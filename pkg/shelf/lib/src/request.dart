@@ -9,10 +9,10 @@ import 'dart:collection';
 
 // TODO(kevmoo): use UnmodifiableMapView from SDK once 1.4 ships
 import 'package:collection/wrappers.dart' as pc;
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
 
 import 'message.dart';
-import 'util.dart';
 
 /// Represents an HTTP request to be processed by a Shelf application.
 class Request extends Message {

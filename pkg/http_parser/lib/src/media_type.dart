@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library shelf.media_type;
+library http_parser.media_type;
 
 import 'package:collection/collection.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -26,6 +26,9 @@ final _escapedChar = new RegExp(r'["\x00-\x1F\x7F]');
 
 /// A class representing an HTTP media type, as used in Accept and Content-Type
 /// headers.
+///
+/// This is immutable; new instances can be created based on an old instance by
+/// calling [change].
 class MediaType {
   /// The primary identifier of the MIME type.
   final String type;

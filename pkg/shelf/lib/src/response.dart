@@ -8,10 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/wrappers.dart';
+import 'package:http_parser/http_parser.dart';
 
-import 'media_type.dart';
 import 'message.dart';
-import 'util.dart';
 
 /// The response returned by a [Handler].
 class Response extends Message {

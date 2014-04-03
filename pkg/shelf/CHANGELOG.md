@@ -1,3 +1,7 @@
+## 0.3.0+8
+
+* Added a dependency on the `http_parser` package.
+
 ## 0.3.0+7
 
 * Removed unused dependency on the `mime` package.

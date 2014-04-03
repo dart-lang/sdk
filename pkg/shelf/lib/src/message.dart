@@ -8,9 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/wrappers.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:stack_trace/stack_trace.dart';
-
-import 'media_type.dart';
 
 /// Represents logic shared between [Request] and [Response].
 abstract class Message {
