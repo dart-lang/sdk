@@ -31,7 +31,12 @@ void _asyncRunCallback() {
   try {
     _asyncRunCallbackLoop();
   } catch (e) {
-    print('microtask error $e'); // TODO(efortuna): Remove this.
+    // TODO(efortuna): Remove these debugging statements.
+    if (e is Error) {
+      print('microtask error ${e.stackTrace}');
+    } else {
+      print('microtask error $e');
+    }
     _AsyncRun._scheduleImmediate(_asyncRunCallback);
     _nextCallback = _nextCallback.next;
     rethrow;
