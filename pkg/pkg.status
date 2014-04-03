@@ -263,6 +263,7 @@ matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
+http/test/http_test: Pass, Crash # Issue 18015
 
 [ $arch == simarm64 ]
 *: Skip
