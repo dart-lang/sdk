@@ -16,6 +16,7 @@ pkg/analyzer: PubGetError
 pkg/browser: PubGetError
 
 [ $use_public_packages ]
+pkg/oauth2: PubGetError # Uses -dev version of pkg/http.
 samples/third_party/todomvc: Fail # Issue 17324
 
 [ $builder_tag == russian ]
