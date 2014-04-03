@@ -126,6 +126,7 @@
     'dart_entry.cc',
     'dart_entry.h',
     'dart_entry_test.cc',
+    'datastream.h',
     'debugger.cc',
     'debugger_test.cc',
     'debugger.h',

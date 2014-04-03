@@ -1774,8 +1774,9 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
                             intptr_t tags,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage);
   // Read the double value for the object.
-  double value = reader->Read<double>();
+  double value = reader->ReadDouble();
 
   // Create a Double object or get canonical one if it is a canonical constant.
   Double& dbl = Double::ZoneHandle(reader->isolate(), Double::null());
@@ -1786,10 +1787,8 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     // references that are objects from the core library (loaded from a
     // full snapshot). Objects that are only in the script need not be
     // canonicalized as they are already canonical.
-    // When reading a message snapshot we always have to canonicalize.
     if (RawObject::IsCanonical(tags) &&
-        (RawObject::IsCreatedFromSnapshot(tags) ||
-         (kind == Snapshot::kMessage))) {
+        RawObject::IsCreatedFromSnapshot(tags)) {
       dbl = Double::NewCanonical(value);
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
@@ -1817,7 +1816,7 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the double value.
-  writer->Write<double>(ptr()->value_);
+  writer->WriteDouble(ptr()->value_);
 }
 
 

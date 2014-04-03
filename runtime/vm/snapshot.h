@@ -182,6 +182,13 @@ class BaseReader {
     stream_.ReadBytes(addr, len);
   }
 
+  double ReadDouble() {
+    double result;
+    stream_.ReadBytes(reinterpret_cast<uint8_t*>(&result), sizeof(result));
+    return result;
+  }
+
+
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
   }
@@ -419,6 +426,10 @@ class BaseWriter {
   // Write out a buffer of bytes.
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
+  }
+
+  void WriteDouble(double value) {
+    stream_.WriteBytes(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
   }
 
  protected:

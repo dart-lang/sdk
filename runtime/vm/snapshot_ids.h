@@ -17,7 +17,10 @@ enum {
   kZeroArrayObject,
   kTrueValue,
   kFalseValue,
-  kClassIdsOffset = kFalseValue,
+  // Marker for special encoding of double objects in message snapshots.
+  kDoubleObject,
+
+  kClassIdsOffset = kDoubleObject,
 
   // The class ids of predefined classes are included in this list
   // at an offset of kClassIdsOffset.

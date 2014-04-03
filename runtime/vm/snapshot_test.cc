@@ -2093,9 +2093,13 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
-        Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(root->value.as_array.values[0], element);
+      Dart_CObject* element = root->value.as_array.values[0];
+      EXPECT_EQ(Dart_CObject_kDouble, element->type);
+      EXPECT_EQ(3.14, element->value.as_double);
+      for (int i = 1; i < kArrayLength; i++) {
+        element = root->value.as_array.values[i];
+        // Double values are expected to not be canonicalized in messages.
+        EXPECT_NE(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kDouble, element->type);
         EXPECT_EQ(3.14, element->value.as_double);
       }
@@ -2140,14 +2144,21 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
-        Dart_CObject* element = root->value.as_array.values[i];
+      Dart_CObject* element = root->value.as_array.values[0];
+      EXPECT_EQ(Dart_CObject_kString, element->type);
+      EXPECT_STREQ("A", element->value.as_string);
+      element = root->value.as_array.values[1];
+      EXPECT_EQ(Dart_CObject_kDouble, element->type);
+      EXPECT_STREQ(2.72, element->value.as_double);
+      for (int i = 2; i < kArrayLength; i++) {
+        element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
           EXPECT_EQ(Dart_CObject_kString, element->type);
           EXPECT_STREQ("A", element->value.as_string);
         } else {
-          EXPECT_EQ(root->value.as_array.values[1], element);
+          // Double values are expected to not be canonicalized in messages.
+          EXPECT_NE(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject_kDouble, element->type);
           EXPECT_STREQ(2.72, element->value.as_double);
         }
@@ -2197,10 +2208,10 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "getDoubleList() {\n"
       "  var d = 3.14;\n"
       "  var list = [3.14, 3.14, 3.14, 3.14, 3.14, 3.14];\n"
-      "  list.add(3.14);;\n"
-      "  list.add(3.14);;\n"
-      "  list.add(3.14);;\n"
-      "  list.add(3.14);;\n"
+      "  list.add(3.14);\n"
+      "  list.add(3.14);\n"
+      "  list.add(3.14);\n"
+      "  list.add(3.14);\n"
       "  return list;\n"
       "}\n"
       "getTypedDataList() {\n"
@@ -2297,9 +2308,14 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
-        Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(root->value.as_array.values[0], element);
+      Dart_CObject* element = root->value.as_array.values[0];
+      // Double values are expected to not be canonicalized in messages.
+      EXPECT_EQ(Dart_CObject_kDouble, element->type);
+      EXPECT_EQ(3.14, element->value.as_double);
+      for (int i = 1; i < kArrayLength; i++) {
+        element = root->value.as_array.values[i];
+        // Double values are expected to not be canonicalized in messages.
+        EXPECT_NE(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kDouble, element->type);
         EXPECT_EQ(3.14, element->value.as_double);
       }
@@ -2344,14 +2360,21 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
+      Dart_CObject* element = root->value.as_array.values[0];
+      EXPECT_EQ(Dart_CObject_kString, element->type);
+      EXPECT_STREQ(".", element->value.as_string);
+      element = root->value.as_array.values[1];
+      EXPECT_EQ(Dart_CObject_kDouble, element->type);
+      EXPECT_STREQ(2.72, element->value.as_double);
+      for (int i = 2; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
           EXPECT_EQ(Dart_CObject_kString, element->type);
           EXPECT_STREQ(".", element->value.as_string);
         } else {
-          EXPECT_EQ(root->value.as_array.values[1], element);
+          // Double values are expected to not be canonicalized in messages.
+          EXPECT_NE(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject_kDouble, element->type);
           EXPECT_STREQ(2.72, element->value.as_double);
         }

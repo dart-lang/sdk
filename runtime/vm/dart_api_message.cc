@@ -458,6 +458,9 @@ Dart_CObject* ApiMessageReader::ReadVMIsolateObject(intptr_t value) {
   if (object_id == kFalseValue) {
     return AllocateDartCObjectBool(false);
   }
+  if (object_id == kDoubleObject) {
+    return AllocateDartCObjectDouble(ReadDouble());
+  }
   if (Symbols::IsVMSymbolId(object_id)) {
     return ReadVMSymbol(object_id);
   }
@@ -537,10 +540,9 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       return object;
     }
     case kDoubleCid: {
-      // Read the double value for the object.
-      Dart_CObject* object = AllocateDartCObjectDouble(Read<double>());
-      AddBackRef(object_id, object, kIsDeserialized);
-      return object;
+      // Doubles are handled specially when being sent as part of message
+      // snapshots.
+      UNREACHABLE();
     }
     case kOneByteStringCid: {
       intptr_t len = ReadSmiValue();
@@ -1053,13 +1055,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       break;
     }
     case Dart_CObject_kDouble:
-      // Write out the serialization header value for this object.
-      WriteInlinedHeader(object);
-      // Write out the class and tags information.
-      WriteIndexedObject(kDoubleCid);
-      WriteIntptrValue(0);
-      // Write double value.
-      Write<double>(object->value.as_double);
+      WriteVMIsolateObject(kDoubleObject);
+      WriteDouble(object->value.as_double);
       break;
     case Dart_CObject_kString: {
       const uint8_t* utf8_str =

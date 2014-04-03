@@ -12,7 +12,7 @@
 // with your changes. You should understand what in your change makes
 // regeneration of the snapshot necessary.
 // Steps for regenerating:
-// 1) Swap the test and main functions below.
+// 1) Swap the test functions below.
 // 2) $ ./xcodebuild/DebugIA32/dart --package-root=./xcodebuild/DebugIA32/packages --snapshot=tests/standalone/issue14236_test.dart tests/standalone/issue14236_source.dart
 // 3) Undo changes in 1.
 

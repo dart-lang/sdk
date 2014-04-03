@@ -779,6 +779,10 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kFalseValue) {
     return Bool::False().raw();
   }
+  if (object_id == kDoubleObject) {
+    ASSERT(kind_ == Snapshot::kMessage);
+    return Double::New(ReadDouble());
+  }
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
@@ -1208,6 +1212,15 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
+  intptr_t cid = rawobj->GetClassId();
+
+  if ((kind_ == Snapshot::kMessage) && (cid == kDoubleCid)) {
+    WriteVMIsolateObject(kDoubleObject);
+    RawDouble* rd = reinterpret_cast<RawDouble*>(rawobj);
+    WriteDouble(rd->ptr()->value_);
+    return true;
+  }
+
   // Check if object has already been serialized, in that case just write
   // the object id out.
   uword tags = rawobj->ptr()->tags_;
@@ -1227,7 +1240,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if the object is a Mint and could potentially be a Smi
   // on other architectures (64 bit), if so write it out as int64_t value.
-  if (rawobj->GetClassId() == kMintCid) {
+  if (cid == kMintCid) {
     int64_t value = reinterpret_cast<RawMint*>(rawobj)->ptr()->value_;
     const intptr_t kSmi64Bits = 62;
     const int64_t kSmi64Max = (static_cast<int64_t>(1) << kSmi64Bits) - 1;
@@ -1240,7 +1253,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (rawobj->GetClassId() == kCodeCid) {
+  if (cid == kCodeCid) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
@@ -1249,7 +1262,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   // or a predefined internal VM class in the object store.
   if (kind_ != Snapshot::kFull) {
     // Check if it is an internal VM class which is in the object store.
-    if (rawobj->GetClassId() == kClassCid) {
+    if (cid == kClassCid) {
       RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
       intptr_t class_id = raw_class->ptr()->id_;
       if (IsObjectStoreClassId(class_id)) {
