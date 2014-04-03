@@ -28,11 +28,14 @@ main() {
 
     pubServe(args: ["web"]);
 
+    // We call [webSocketRequest] outside of the [schedule] call below because
+    // we need it to schedule the sending of the request to guarantee that the
+    // serve is sent before the unserve.
+    var serveRequest = webSocketRequest("serveDirectory", {"path": "test"});
+    var unserveRequest = webSocketRequest("unserveDirectory", {"path": "test"});
+
     schedule(() {
-      return Future.wait([
-        webSocketRequest("serveDirectory", {"path": "test"}),
-        webSocketRequest("unserveDirectory", {"path": "test"})
-      ]).then((results) {
+      return Future.wait([serveRequest, unserveRequest]).then((results) {
         expect(results[0], contains("result"));
         expect(results[1], contains("result"));
         // These results should be equal since "serveDirectory" returns the URL
