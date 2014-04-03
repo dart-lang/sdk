@@ -19,6 +19,8 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
 
@@ -104,39 +106,20 @@ void serve([List<d.Descriptor> contents]) {
 
   schedule(() {
     return _closeServer().then((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
-        _server = server;
-        server.listen((request) {
-          currentSchedule.heartbeat();
-          var response = request.response;
-          try {
-            var path = request.uri.path.replaceFirst("/", "");
-            _requestedPaths.add(path);
+      return shelf_io.serve((request) {
+        currentSchedule.heartbeat();
+        var path = request.pathInfo.replaceFirst("/", "");
+        _requestedPaths.add(path);
 
-            response.persistentConnection = false;
-            var stream = baseDir.load(path);
-
-            new ByteStream(stream).toBytes().then((data) {
-              currentSchedule.heartbeat();
-              response.statusCode = 200;
-              response.contentLength = data.length;
-              response.add(data);
-              response.close();
-            }).catchError((e) {
-              response.statusCode = 404;
-              response.contentLength = 0;
-              response.close();
-            });
-          } catch (e) {
-            currentSchedule.signalError(e);
-            response.statusCode = 500;
-            response.close();
-            return;
-          }
+        return validateStream(baseDir.load(path))
+            .then((stream) => new shelf.Response.ok(stream))
+            .catchError((error) {
+          return new shelf.Response.notFound('File "$path" not found.');
         });
+      }, '127.0.0.1', 0).then((server) {
+        _server = server;
         _portCompleter.complete(_server.port);
         currentSchedule.onComplete.schedule(_closeServer);
-        return null;
       });
     });
   }, 'starting a server serving:\n${baseDir.describe()}');

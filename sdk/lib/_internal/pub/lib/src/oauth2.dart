@@ -9,6 +9,8 @@ import 'dart:io';
 
 import 'package:oauth2/oauth2.dart';
 import 'package:path/path.dart' as path;
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'http.dart';
 import 'io.dart';
@@ -167,7 +169,27 @@ Future<Client> _authorize() {
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
   // the code is received.
-  return HttpServer.bind('127.0.0.1', 0).then((server) {
+  var server;
+  var completer = new Completer();
+  shelf_io.serve((request) {
+    if (request.pathInfo != "/") {
+      return new shelf.Response.notFound('Invalid URI.');
+    }
+
+    log.message('Authorization received, processing...');
+    var queryString = request.queryString;
+    if (queryString == null) queryString = '';
+
+    // Closing the server here is safe, since it will wait until the response is
+    // sent to actually shut down.
+    server.close();
+    chainToCompleter(grant.handleAuthorizationResponse(queryToMap(queryString)),
+        completer);
+
+    return new shelf.Response.found('http://pub.dartlang.org/authorized');
+  }, '127.0.0.1', 0).then((server_) {
+    server = server_;
+
     var authUrl = grant.getAuthorizationUrl(
         Uri.parse('http://127.0.0.1:${server.port}'), scopes: _scopes);
 
@@ -176,28 +198,9 @@ Future<Client> _authorize() {
         'In a web browser, go to $authUrl\n'
         'Then click "Allow access".\n\n'
         'Waiting for your authorization...');
-    return server.first.then((request) {
-      var response = request.response;
-      if (request.uri.path == "/") {
-        log.message('Authorization received, processing...');
-        var queryString = request.uri.query;
-        if (queryString == null) queryString = '';
-        response.statusCode = 302;
-        response.headers.set('location',
-                             'http://pub.dartlang.org/authorized');
-        response.close();
-        return grant.handleAuthorizationResponse(queryToMap(queryString))
-        .then((client) {
-          server.close();
-          return client;
-        });
-      } else {
-        response.statusCode = 404;
-        response.close();
-      }
-    });
-  })
-  .then((client) {
+  });
+
+  return completer.future.then((client) {
     log.message('Successfully authorized.\n');
     return client;
   });
