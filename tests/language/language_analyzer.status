@@ -185,9 +185,11 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# unexpected warning for override
-override_inheritance_abstract_test/27: StaticWarning # Issue 16134
-override_inheritance_generic_test/03: StaticWarning # Issue 16134
+# analyzer issue 17983
+override_inheritance_generic_test/08: MissingStaticWarning # Issue 17983
+override_inheritance_field_test/32: MissingStaticWarning # Issue 17983
+override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
+override_inheritance_abstract_test/27: StaticWarning # Issue 17983
 
 # missing warning for override
 override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
