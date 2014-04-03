@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import utils
 
 HOST_OS = utils.GuessOS()
@@ -302,11 +303,17 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
     print '\n'.join(chunk)
 
 
-def NotifyBuildDone(build_config, success):
+def NotifyBuildDone(build_config, success, start):
   if not success:
     print "BUILD FAILED"
 
   sys.stdout.flush()
+
+  # Display a notification if build time exceeded DART_BUILD_NOTIFICATION_DELAY.
+  notification_delay = float(
+    os.getenv('DART_BUILD_NOTIFICATION_DELAY', default=sys.float_info.max))
+  if (time.time() - start) < notification_delay:
+    return
 
   if success:
     message = 'Build succeeded.'
@@ -355,6 +362,7 @@ def Main():
     for target_os in options.os:
       for mode in options.mode:
         for arch in options.arch:
+          start_time = time.time()
           os.environ['DART_BUILD_MODE'] = mode
           build_config = utils.GetBuildConf(mode, arch, target_os)
           if HOST_OS == 'macos':
@@ -435,10 +443,10 @@ def Main():
             process = subprocess.Popen(args, stdin=None)
           process.wait()
           if process.returncode != 0:
-            NotifyBuildDone(build_config, success=False)
+            NotifyBuildDone(build_config, success=False, start=start_time)
             return 1
           else:
-            NotifyBuildDone(build_config, success=True)
+            NotifyBuildDone(build_config, success=True, start=start_time)
 
   return 0
 
