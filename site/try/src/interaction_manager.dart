@@ -199,15 +199,14 @@ class InitialState extends InteractionState {
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     print('onMutation');
 
-    for (String query in const ['a.diagnostic>span',
-                                '.dart-code-completion',
-                                '.hazed-suggestion']) {
-      for (Element element in mainEditorPane.querySelectorAll(query)) {
-        element.remove();
-      }
+    for (Element element in mainEditorPane.querySelectorAll(
+             'a.diagnostic>span, .dart-code-completion, .hazed-suggestion')) {
+      element.remove();
     }
 
     Selection selection = window.getSelection();
+    Node anchorNode = selection.anchorNode;
+    int anchorOffset = selection.isCollapsed ? selection.anchorOffset : -1;
 
     for (MutationRecord record in mutations) {
       if (record.addedNodes.isEmpty) continue;
@@ -218,99 +217,84 @@ class InitialState extends InteractionState {
         Text newNode = new Text('$buffer');
         node.replaceWith(newNode);
         if (selectionOffset != -1) {
-          selection.collapse(newNode, selectionOffset);
+          anchorNode = newNode;
+          anchorOffset = selectionOffset;
         }
       }
     }
 
-    if (!mainEditorPane.nodes.isEmpty && mainEditorPane.nodes.last is Text) {
-      Text text = mainEditorPane.nodes.last;
-      if (!text.text.endsWith('\n')) {
-        text.appendData('\n');
-      }
-    }
-
-    int offset = 0;
-    int anchorOffset = 0;
-    bool hasSelection = false;
-    Node anchorNode = selection.anchorNode;
-    // TODO(ahe): Try to share walk4 methods.
-    void walk4(Node node) {
-      // TODO(ahe): Use TreeWalker when that is exposed.
-      // function textNodesUnder(root){
-      //   var n, a=[], walk=document.createTreeWalker(
-      //       root,NodeFilter.SHOW_TEXT,null,false);
-      //   while(n=walk.nextNode()) a.push(n);
-      //   return a;
-      // }
-      int type = node.nodeType;
-      if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
+    int globalOffset = -1;
+    if (anchorOffset != -1) {
+      int offset = 0;
+      TreeWalker walker = new TreeWalker(mainEditorPane, NodeFilter.SHOW_TEXT);
+      for (Node node = walker.nextNode();
+           node != null; node = walker.nextNode()) {
         CharacterData text = node;
-        if (anchorNode == node) {
-          hasSelection = true;
-          anchorOffset = selection.anchorOffset + offset;
-          return;
+        if (anchorNode == text) {
+          globalOffset = anchorOffset + offset;
+          break;
         }
-        offset += text.length;
+        offset += text.data.length;
       }
-
-      var child = node.firstChild;
-      while (child != null) {
-        walk4(child);
-        if (hasSelection) return;
-        child = child.nextNode;
-      }
-    }
-    if (selection.isCollapsed) {
-      walk4(mainEditorPane);
     }
 
     String currentText = mainEditorPane.text;
     context.currentCompilationUnit.content = currentText;
     mainEditorPane.nodes.clear();
-    mainEditorPane.appendText(currentText);
-    if (hasSelection) {
-      selection.collapse(mainEditorPane.firstChild, anchorOffset);
-    }
+
+    editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
 
     editor.isMalformedInput = false;
-    for (var n in new List.from(mainEditorPane.nodes)) {
-      if (n is! Text) continue;
-      Text node = n;
-      String text = node.text;
+    int offset = 0;
+    List<Node> nodes = <Node>[];
+    //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
+    //   v         v             v                v
+    // do          identifier_abcdefghijklmnopqrst
+    for (Token token = tokenize(currentText); token.kind != EOF_TOKEN;
+         token = token.next) {
+      int charOffset = token.charOffset;
+      int charCount = token.charCount;
 
-      Token token = tokenize(text);
-      int offset = 0;
-      editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
-      for (; token.kind != EOF_TOKEN; token = token.next) {
-        Decoration decoration = editor.getDecoration(token);
-        if (decoration == null) continue;
-        bool hasSelection = false;
-        int selectionOffset = selection.anchorOffset;
+      if (charOffset < offset) continue; // Happens for scanner errors.
 
-        if (selection.isCollapsed && selection.anchorNode == node) {
-          hasSelection = true;
-          selectionOffset = selection.anchorOffset;
+      Decoration decoration = editor.getDecoration(token);
+      if (decoration == null) continue;
+
+      // Add a node for text before current token.
+      if (charOffset - offset > 0) {
+        nodes.add(new Text(currentText.substring(offset, charOffset)));
+        if (offset <= globalOffset && globalOffset < charOffset) {
+          anchorNode = nodes.last;
+          anchorOffset = globalOffset - offset;
         }
-        int splitPoint = token.charOffset - offset;
-        if (splitPoint < 0) continue; // Happens for scanner errors.
-        Text str = node.splitText(splitPoint);
-        Text after = str.splitText(token.charCount);
-        offset += splitPoint + token.charCount;
-        mainEditorPane.insertBefore(after, node.nextNode);
-        mainEditorPane.insertBefore(decoration.applyTo(str), after);
-
-        if (hasSelection && selectionOffset > node.length) {
-          selectionOffset -= node.length;
-          if (selectionOffset > str.length) {
-            selectionOffset -= str.length;
-            selection.collapse(after, selectionOffset);
-          } else {
-            selection.collapse(str, selectionOffset);
-          }
-        }
-        node = after;
       }
+
+      // Add a node for current token.
+      Text text =
+          new Text(currentText.substring(charOffset, charOffset + charCount));
+      nodes.add(decoration.applyTo(text));
+      if (charOffset <= globalOffset && globalOffset < charOffset + charCount) {
+        anchorNode = text;
+        anchorOffset = globalOffset - charOffset;
+      }
+      offset = charOffset + charCount;
+    }
+
+    if (offset < currentText.length) {
+      // Add a node for anything after the last (decorated) token.
+      nodes.add(new Text(currentText.substring(offset)));
+      if (offset <= globalOffset) {
+        anchorNode = nodes.last;
+        anchorOffset = globalOffset - offset;
+      }
+    }
+
+    if (!currentText.endsWith('\n')) {
+      nodes.add(new Text('\n'));
+    }
+    mainEditorPane.nodes.addAll(nodes);
+    if (anchorOffset >= 0) {
+      selection.collapse(anchorNode, anchorOffset);
     }
 
     // Discard highlighting mutations.
