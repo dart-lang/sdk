@@ -102,12 +102,18 @@ class IrBuilderTask extends CompilerTask {
     FunctionElement function = element.asFunctionElement();
     if (function == null) return false;
 
-    // TODO(lry): support functions with parameters.
+    // TODO(kmillikin): support functions with optional parameters.
     FunctionSignature signature = function.functionSignature;
-    if (signature.parameterCount > 0) return false;
+    if (signature.optionalParameterCount > 0) return false;
 
     SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
     if (!signature.type.returnType.accept(typeVerifier, null)) return false;
+    bool parameters_ok = true;
+    signature.forEachParameter((parameter) {
+      parameters_ok =
+          parameters_ok && parameter.type.accept(typeVerifier, null);
+    });
+    if (!parameters_ok) return false;
 
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
@@ -406,8 +412,4 @@ class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
   // Currently, InterfaceType and TypedefType are supported so long as they
   // do not have type parameters.  They are subclasses of GenericType.
   bool visitGenericType(GenericType type, Null _) => !type.isGeneric;
-
-  // DynamicType is a subclass of InterfaceType, but it is not currently
-  // supported.
-  bool visitDynamicType(DynamicType type, Null _) => false;
 }

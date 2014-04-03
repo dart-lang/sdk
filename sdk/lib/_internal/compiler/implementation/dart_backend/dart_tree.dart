@@ -421,7 +421,31 @@ class Emitter extends Visitor<ast.Node> {
     this.treeElements = treeElements;
     ast.Identifier name = makeIdentifier(element.name);
 
-    ast.NodeList parameters = makeArgumentList([]);
+    TypeEmitter typeEmitter = new TypeEmitter();
+    FunctionSignature signature = element.functionSignature;
+    ast.TypeAnnotation returnType;
+    if (!signature.type.returnType.isDynamic) {
+      returnType =
+          signature.type.returnType.accept(typeEmitter, treeElements);
+    }
+
+    List<ast.VariableDefinitions> parameterList = <ast.VariableDefinitions>[];
+    signature.orderedForEachParameter((parameter) {
+      ast.TypeAnnotation type;
+      if (!parameter.type.isDynamic) {
+        type = parameter.type.accept(typeEmitter, treeElements);
+      }
+      parameterList.add(new ast.VariableDefinitions(
+          type,
+          ast.Modifiers.EMPTY,
+          new ast.NodeList.singleton(makeIdentifier(parameter.name))));
+    });
+    ast.NodeList parameters =
+        new ast.NodeList(openParen,
+                         new Link<ast.Node>.fromList(parameterList),
+                         closeParen,
+                         ',');
+
     ast.Node body = expr.accept(this);
 
     if (!variables.isEmpty) {
@@ -457,14 +481,8 @@ class Emitter extends Visitor<ast.Node> {
       }
     }
 
-    DartType returnType = element.functionSignature.type.returnType;
-    ast.TypeAnnotation returnTypeAnnotation;
-    if (!returnType.isDynamic) {
-      TypeEmitter typeEmitter = new TypeEmitter();
-      returnTypeAnnotation = returnType.accept(typeEmitter, treeElements);
-    }
-    return new ast.FunctionExpression(name, parameters, body,
-        returnTypeAnnotation, ast.Modifiers.EMPTY, null, null);
+    return new ast.FunctionExpression(name, parameters, body, returnType,
+        ast.Modifiers.EMPTY, null, null);
   }
 
   /**
