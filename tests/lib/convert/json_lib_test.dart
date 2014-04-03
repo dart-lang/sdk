@@ -81,9 +81,8 @@ main() {
     expect(JSON.encode(null), equals('null'));
     expect(JSON.encode(' hi there" bob '), equals('" hi there\\" bob "'));
     expect(JSON.encode('hi\\there'), equals('"hi\\\\there"'));
-    // TODO(devoncarew): these tests break the dartium build
-    //expect(JSON.encode('hi\nthere'), equals('"hi\\nthere"'));
-    //expect(JSON.encode('hi\r\nthere'), equals('"hi\\r\\nthere"'));
+    expect(JSON.encode('hi\nthere'), equals('"hi\\nthere"'));
+    expect(JSON.encode('hi\r\nthere'), equals('"hi\\r\\nthere"'));
     expect(JSON.encode(''), equals('""'));
 
     // Lists.

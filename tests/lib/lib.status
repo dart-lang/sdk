@@ -207,7 +207,6 @@ async/schedule_microtask6_test: Fail             # Issue 10957 - may be related 
 
 [ $compiler == dart2dart && $minified ]
 convert/json_lib_test: Fail # Issue 10961
-convert/json2_test:    Fail # Issue 10961
 
 [ $compiler == dart2js && $minified ]
 mirrors/typedef_test/01: Fail # http://dartbug.com/6490
