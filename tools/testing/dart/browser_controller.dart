@@ -631,7 +631,7 @@ class Firefox extends Browser {
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
 
-  Future _createPreferenceFile(var path) {
+  void _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(mode: FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
@@ -682,6 +682,8 @@ class BrowserTestingStatus {
   // removed even when we have really stable system.
   BrowserTest lastTest;
   bool timeout = false;
+  Timer nextTestTimeout;
+
   BrowserTestingStatus(Browser this.browser);
 }
 
@@ -736,6 +738,9 @@ class BrowserTestOutput {
  * whenever a test completes.
  */
 class BrowserTestRunner {
+  static const int MAX_NEXT_TEST_TIMEOUTS = 10;
+  static const Duration NEXT_TEST_TIMEOUT = const Duration(seconds: 60);
+
   final Map globalConfiguration;
   final bool checkedMode; // needed for dartium
 
@@ -747,6 +752,7 @@ class BrowserTestRunner {
   int browserIdCount = 0;
 
   bool underTermination = false;
+  int numBrowserGetTestTimeouts = 0;
 
   List<BrowserTest> testQueue = new List<BrowserTest>();
   Map<String, BrowserTestingStatus> browserStatus =
@@ -793,7 +799,9 @@ class BrowserTestRunner {
           var url = testingServer.getDriverUrl(browser.id);
           var future = browser.start(url).then((success) {
             if (success) {
-              browserStatus[browser.id] = new BrowserTestingStatus(browser);
+              var status = new BrowserTestingStatus(browser);
+              browserStatus[browser.id] = status;
+              status.nextTestTimeout = createNextTestTimer(status);
             }
             return success;
           });
@@ -876,7 +884,6 @@ class BrowserTestRunner {
         throw("This should never happen, wrong test id");
       }
       testCache[testId] = status.currentTest.url;
-      Stopwatch watch = new Stopwatch()..start();
 
       // Report that the test is finished now
       var browserTestOutput = new BrowserTestOutput(
@@ -886,9 +893,9 @@ class BrowserTestRunner {
           status.browser.testBrowserOutput);
       status.currentTest.doneCallback(browserTestOutput);
 
-      watch.stop();
       status.lastTest = status.currentTest;
       status.currentTest = null;
+      status.nextTestTimeout = createNextTestTimer(status);
     } else {
       print("\nThis is bad, should never happen, handleResult no test");
       print("URL: ${status.lastTest.url}");
@@ -951,52 +958,64 @@ class BrowserTestRunner {
 
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
-      var browser;
-      var new_id = id;
-      if (browserName == 'chromeOnAndroid') {
-        browser = new AndroidChrome(adbDeviceMapping[id]);
-      } else if (browserName == 'ContentShellOnAndroid') {
-        browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     contentShellOnAndroidConfig,
-                                     checkedMode);
-      } else if (browserName == 'DartiumOnAndroid') {
-        browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     dartiumOnAndroidConfig,
-                                     checkedMode);
-      } else {
-        browserStatus.remove(id);
-        browser = getInstance();
-        new_id = "BROWSER$browserIdCount";
-        browserIdCount++;
-        browserStatus[new_id] = new BrowserTestingStatus(browser);
+      restartBrowser(id);
+    });
+  }
+
+  void restartBrowser(String id) {
+    var browser;
+    var new_id = id;
+    if (browserName == 'chromeOnAndroid') {
+      browser = new AndroidChrome(adbDeviceMapping[id]);
+    } else if (browserName == 'ContentShellOnAndroid') {
+      browser = new AndroidBrowser(adbDeviceMapping[id],
+                                   contentShellOnAndroidConfig,
+                                   checkedMode);
+    } else if (browserName == 'DartiumOnAndroid') {
+      browser = new AndroidBrowser(adbDeviceMapping[id],
+                                   dartiumOnAndroidConfig,
+                                   checkedMode);
+    } else {
+      browserStatus.remove(id);
+      browser = getInstance();
+      new_id = "BROWSER$browserIdCount";
+      browserIdCount++;
+    }
+    browser.id = new_id;
+    var status = new BrowserTestingStatus(browser);
+    browserStatus[new_id] = status;
+    status.nextTestTimeout = createNextTestTimer(status);
+    browser.start(testingServer.getDriverUrl(new_id)).then((success) {
+      // We may have started terminating in the mean time.
+      if (underTermination) {
+        if (status.nextTestTimeout != null) {
+          status.nextTestTimeout.cancel();
+          status.nextTestTimeout = null;
+        }
+        browser.close().then((success) {
+         // We should never hit this, print it out.
+          if (!success) {
+            print("Could not kill browser ($id) started due to timeout");
+          }
+        });
+        return;
       }
-      browser.id = new_id;
-      browser.start(testingServer.getDriverUrl(new_id)).then((success) {
-        // We may have started terminating in the mean time.
-        if (underTermination) {
-          browser.close().then((success) {
-            // We should never hit this, print it out.
-            if (!success) {
-              print("Could not kill browser ($id) started due to timeout");
-            }
-          });
-          return;
-        }
-        if (success) {
-          browserStatus[browser.id] = new BrowserTestingStatus(browser);
-        } else {
-          // TODO(ricow): Handle this better.
-          print("This is bad, should never happen, could not start browser");
-          exit(1);
-        }
-      });
+      if (!success) {
+        // TODO(ricow): Handle this better.
+        print("This is bad, should never happen, could not start browser");
+        exit(1);
+      }
     });
   }
 
   BrowserTest getNextTest(String browserId) {
-    if (testQueue.isEmpty) return null;
     var status = browserStatus[browserId];
     if (status == null) return null;
+    if (status.nextTestTimeout != null) {
+      status.nextTestTimeout.cancel();
+      status.nextTestTimeout = null;
+    }
+    if (testQueue.isEmpty) return null;
 
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
@@ -1028,8 +1047,26 @@ class BrowserTestRunner {
   }
 
   Timer createTimeoutTimer(BrowserTest test, BrowserTestingStatus status) {
-    return new Timer(
-        new Duration(seconds: test.timeout), () { handleTimeout(status); });
+    return new Timer(new Duration(seconds: test.timeout),
+                     () { handleTimeout(status); });
+  }
+
+  Timer createNextTestTimer(BrowserTestingStatus status) {
+    return new Timer(BrowserTestRunner.NEXT_TEST_TIMEOUT,
+                     () { handleNextTestTimeout(status); });
+  }
+
+  void handleNextTestTimeout(status) {
+    DebugLogger.warning(
+        "Browser timed out before getting next test. Restarting");
+    numBrowserGetTestTimeouts++;
+    if (numBrowserGetTestTimeouts >= MAX_NEXT_TEST_TIMEOUTS) {
+      DebugLogger.error(
+          "Too many browser timeouts before getting next test. Terminating");
+      terminate().then((_) => exit(1));
+    } else {
+      status.browser.close().then((_) => restartBrowser(status.browser.id));
+    }
   }
 
   void queueTest(BrowserTest test) {
@@ -1062,6 +1099,10 @@ class BrowserTestRunner {
     testingServer.underTermination = true;
     for (BrowserTestingStatus status in browserStatus.values) {
       futures.add(status.browser.close());
+      if (status.nextTestTimeout != null) {
+        status.nextTestTimeout.cancel();
+        status.nextTestTimeout = null;
+      }
     }
     return Future.wait(futures).then((values) {
       testingServer.httpServer.close();
