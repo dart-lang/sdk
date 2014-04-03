@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @A(const B())
 library main;
 
@@ -25,10 +29,17 @@ class C {
   String toString() => "C";
 }
 
+class D {
+  const D();
+  String toString() => "D";
+}
+
 void main() {
   asyncStart();
   lib1.loadLibrary().then((_) {
-    Expect.equals("ABC", lib1.foo());
+    Expect.equals("ABCD", lib1.foo());
+    new C();
+    new D();
     asyncEnd();
   });
 }

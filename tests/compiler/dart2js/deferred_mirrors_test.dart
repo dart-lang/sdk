@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,69 +10,73 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 import "dart:async";
+import "memory_compiler.dart";
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as dart2js;
 
-class FakeOutputStream<T> extends EventSink<T> {
-  void add(T event) {}
-  void addError(T event, [StackTrace stackTrace]) {}
-  void close() {}
+runTest(String mainScript, test) {
+  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES,
+      outputProvider: new OutputCollector());
+  asyncTest(() => compiler.run(Uri.parse(mainScript))
+      .then((_) => test(compiler)));
 }
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => new FakeOutputStream(),
-                                   handler.diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  runTest('memory:main.dart', (compiler) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    Expect.isNotNull(main, "Could not find 'main'");
+    compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var classes = compiler.backend.emitter.neededClasses;
     var lib1 = compiler.libraries["memory:lib1.dart"];
     var lib2 = compiler.libraries["memory:lib2.dart"];
     var mathLib = compiler.libraries["dart:math"];
     var sin = mathLib.find('sin');
     var foo1 = lib1.find("foo1");
     var foo2 = lib2.find("foo2");
+    var field2 = lib2.find("field2");
 
-    var outputClassLists = compiler.backend.emitter.outputClassLists;
-
-    Expect.notEquals(mainOutputUnit, outputUnitForElement(foo1));
+    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo1));
     Expect.equals(outputUnitForElement(foo1), outputUnitForElement(sin));
-  }));
+    Expect.equals(outputUnitForElement(foo2), outputUnitForElement(sin));
+    Expect.equals(outputUnitForElement(foo2), outputUnitForElement(field2));
+  });
+  runTest('memory:main2.dart', (compiler) {
+    // Just check that the compile runs.
+    // This is a regression test.
+    Expect.isTrue(true);
+  });
+  runTest('memory:main3.dart', (compiler) {
+    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    Expect.isNotNull(main, "Could not find 'main'");
+    compiler.deferredLoadTask.onResolutionComplete(main);
+    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+
+    var mainLib = compiler.libraries["memory:main3.dart"];
+    var lib3 = compiler.libraries["memory:lib3.dart"];
+    var C = mainLib.find("C");
+    var foo = lib3.find("foo");
+
+    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo));
+    Expect.equals(outputUnitForElement(foo), outputUnitForElement(C));
+  });
 }
 
 // "lib1.dart" uses mirrors without a MirrorsUsed annotation, so everything
 // should be put in the "lib1" output unit.
 const Map MEMORY_SOURCE_FILES = const {
-  "main.dart":"""
-import "dart:async";
+  "main.dart": """
 import "dart:math";
 
-@def1 import 'lib1.dart' as lib1;
-@def2 import 'lib2.dart' as lib2;
-
-const def1 = const DeferredLibrary("lib1");
-const def2 = const DeferredLibrary("lib2");
+import 'lib1.dart' deferred as lib1;
+import 'lib2.dart' deferred as lib2;
 
 void main() {
-  def1.load().then((_) {
+  lib1.loadLibrary().then((_) {
     lib1.foo1();
   });
-  def2.load().then((_) {
+  lib2.loadLibrary().then((_) {
     lib2.foo2();
   });
 }
@@ -97,6 +101,50 @@ const field2 = 42;
 void foo2() {
   var mirror = reflect(field2);
   mirror.invoke(null, null);
+}
+""",
+// The elements C and f are named as targets, but there is no actual use of
+// mirrors.
+"main2.dart": """
+import "lib.dart" deferred as lib;
+
+@MirrorsUsed(targets: const ["C", "f"])
+import "dart:mirrors";
+
+class C {}
+
+var f = 3;
+
+void main() {
+
+}
+""",
+"lib.dart": """ """,
+// Lib3 has a MirrorsUsed annotation with a library.
+// Check that that is handled correctly.
+"main3.dart": """
+library main3;
+
+import "lib3.dart" deferred as lib;
+
+class C {}
+
+class D {}
+
+f() {}
+
+void main() {
+  lib.loadLibrary().then((_) {
+    lib.foo();
+  });
+}
+""",
+"lib3.dart": """
+@MirrorsUsed(targets: const ["main3.C"])
+import "dart:mirrors";
+
+foo() {
+  currentMirrorSystem().findLibrary(#main3);
 }
 """,
 };

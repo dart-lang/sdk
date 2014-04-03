@@ -352,6 +352,14 @@ abstract class Compiler implements DiagnosticListener {
    */
   final TreeElements globalDependencies = new TreeElementMapping(null);
 
+  /**
+   * Dependencies that are only included due to mirrors.
+   *
+   * We should get rid of this and ensure that all dependencies are
+   * associated with a particular element.
+   */
+  final TreeElements mirrorDependencies = new TreeElementMapping(null);
+
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
