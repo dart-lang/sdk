@@ -65,6 +65,19 @@ class Variable extends Expression {
 }
 
 /**
+ * A sequence of expressions.
+ */
+class Sequence extends Expression {
+  final List<Expression> expressions;
+
+  Sequence(this.expressions);
+
+  bool get isPure => expressions.every((e) => e.isPure);
+
+  accept(Visitor visitor) => visitor.visitSequence(this);
+}
+
+/**
  * A local binding of a [Variable] to an [Expression].
  *
  * In contrast to the CPS-based IR, non-primitive expressions can be named
@@ -134,6 +147,7 @@ abstract class Visitor<T> {
 
   // Concrete classes.
   T visitVariable(Variable node) => visitExpression(node);
+  T visitSequence(Sequence node) => visitExpression(node);
   T visitLetVal(LetVal node) => visitExpression(node);
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitReturn(Return node) => visitExpression(node);
@@ -197,10 +211,14 @@ class Builder extends ir.Visitor<Expression> {
 
   Expression visitLetPrim(ir.LetPrim node) {
     // LetPrim is translated to LetVal.
-    Variable variable = new Variable();
     Expression definition = node.primitive.accept(this);
-    variables[node.primitive] = variable;
-    return new LetVal(variable, definition, node.body.accept(this));
+    if (node.primitive.hasAtLeastOneUse) {
+      Variable variable = new Variable();
+      variables[node.primitive] = variable;
+      return new LetVal(variable, definition, node.body.accept(this));
+    } else {
+      return new Sequence([definition, node.body.accept(this)]);
+    }
   }
 
   Expression visitLetCont(ir.LetCont node) {
@@ -220,9 +238,13 @@ class Builder extends ir.Visitor<Expression> {
       return new Return(invoke);
     } else {
       assert(cont.hasExactlyOneUse);
-      Variable variable = new Variable();
-      variables[cont.parameter] = variable;
-      return new LetVal(variable, invoke, cont.body.accept(this));
+      if (cont.parameter.hasAtLeastOneUse) {
+        Variable variable = new Variable();
+        variables[cont.parameter] = variable;
+        return new LetVal(variable, invoke, cont.body.accept(this));
+      } else {
+        return new Sequence([invoke, cont.body.accept(this)]);
+      }
     }
   }
 
@@ -317,6 +339,13 @@ class Unnamer extends Visitor<Expression> {
       }
     }
     // If the definition could not be propagated, leave the variable use.
+    return node;
+  }
+
+  Expression visitSequence(Sequence node) {
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] = node.expressions[i].accept(this);
+    }
     return node;
   }
 
@@ -479,6 +508,20 @@ class Emitter extends Visitor<ast.Node> {
                               semicolon,
                               value);
       }
+    } else if (body is ast.Block) {
+      // Remove a final 'return null' that ends the body block.
+      Link<ast.Node> nodes = (body as ast.Block).statements.nodes;
+      ast.Node last;
+      for (var n in nodes) {
+        last = n;
+      }
+      if (last is ast.Return
+          && (last as ast.Return).expression is ast.LiteralNull) {
+        List<ast.Node> statements =
+            (body as ast.Block).statements.nodes.toList();
+        statements.removeLast();
+        body = makeBlock(statements);
+      }
     }
 
     return new ast.FunctionExpression(name, parameters, body, returnType,
@@ -532,6 +575,10 @@ class Emitter extends Visitor<ast.Node> {
     // already been generated when we visit a variable.
     assert(node.identifier != null);
     return new ast.Send(null, node.identifier);
+  }
+
+  ast.Node visitSequence(Sequence node) {
+    return node.expressions.map((e) => e.accept(this)).reduce(concatenate);
   }
 
   ast.Node visitLetVal(LetVal node) {

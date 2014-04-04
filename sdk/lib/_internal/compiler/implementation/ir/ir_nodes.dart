@@ -31,6 +31,7 @@ abstract class Definition extends Node {
 
   bool get hasAtMostOneUse => firstRef == null || firstRef.nextRef == null;
   bool get hasExactlyOneUse => firstRef != null && firstRef.nextRef == null;
+  bool get hasAtLeastOneUse => firstRef != null;
 }
 
 abstract class Primitive extends Definition {

@@ -236,11 +236,14 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     current = null;
   }
 
+  // Build(EmptyStatement, C) = C
   ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
     assert(isOpen);
     return null;
   }
 
+  // Build(Block(stamements), C) = C'
+  //   where C' = statements.fold(Build, C)
   ir.Definition visitBlock(ast.Block node) {
     assert(isOpen);
     for (var n in node.statements.nodes) {
@@ -250,9 +253,18 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     return null;
   }
 
-  // Build(Return)    = let val x = null in InvokeContinuation(return, x)
-  // Build(Return(e)) = C[InvokeContinuation(return, x)]
-  //   where (C, x) = Build(e)
+  // Build(ExpressionStatement(e), C) = C'
+  //   where (C', _) = Build(e, C)
+  ir.Definition visitExpressionStatement(ast.ExpressionStatement node) {
+    assert(isOpen);
+    node.expression.accept(this);
+    return null;
+  }
+
+  // Build(Return(e), C) = C'[InvokeContinuation(return, x)]
+  //   where (C', x) = Build(e, C)
+  //
+  // Return without a subexpression is translated as if it were return null.
   ir.Definition visitReturn(ast.Return node) {
     assert(isOpen);
     // TODO(lry): support native returns.
@@ -271,7 +283,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   }
 
   // For all simple literals:
-  // Build(Literal(c)) = (let val x = Constant(c) in [], x)
+  // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Definition visitLiteralBool(ast.LiteralBool node) {
     assert(isOpen);
     ir.Constant constant =
@@ -332,13 +344,15 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     return giveup();
   }
 
-  // Build(StaticSend(f, a...)) = C[InvokeStatic(f, x...)]
-  //   where (C, x...) = BuildList(a...)
+  // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
+  //   where (C', xs) = arguments.fold(Build, C)
   ir.Definition visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support static fields. (separate IR instruction?)
     if (element.isField() || element.isGetter()) return giveup();
+    // TODO(kmillikin): support static setters.
+    if (element.isSetter()) return giveup();
     // TODO(lry): support constructors / factory calls.
     if (element.isConstructor()) return giveup();
     // TODO(lry): support foreign functions.
