@@ -72,9 +72,6 @@ unresolved_ports_test: Pass, Timeout # Issue 15610
 isolate_stress_test: Skip # Issue 14463
 spawn_uri_nested_vm_test: Skip # Issue 14463
 
-[ $csp ]
-spawn_uri_multi_test/none: Fail # http://dartbug.com/13454
-
 [ $jscl || $runtime == ie9 ]
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
