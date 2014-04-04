@@ -651,7 +651,11 @@ class NodeList extends ListProxy<Node> {
   }
 
   void add(Node value) {
-    super.add(_setParent(value));
+    if (value is DocumentFragment) {
+      addAll(value.nodes);
+    } else {
+      super.add(_setParent(value));
+    }
   }
 
   void addLast(Node value) => add(value);
@@ -660,17 +664,21 @@ class NodeList extends ListProxy<Node> {
     // Note: we need to be careful if collection is another NodeList.
     // In particular:
     //   1. we need to copy the items before updating their parent pointers,
+    //     _flattenDocFragments does a copy internally.
     //   2. we should update parent pointers in reverse order. That way they
     //      are removed from the original NodeList (if any) from the end, which
     //      is faster.
-    var list = (collection is NodeList || collection is! List)
-        ? collection.toList() : collection as List;
+    var list = _flattenDocFragments(collection);
     for (var node in list.reversed) _setParent(node);
     super.addAll(list);
   }
 
   void insert(int index, Node value) {
-    super.insert(index, _setParent(value));
+    if (value is DocumentFragment) {
+      insertAll(index, value.nodes);
+    } else {
+      super.insert(index, _setParent(value));
+    }
   }
 
   Node removeLast() => super.removeLast()..parent = null;
@@ -683,8 +691,13 @@ class NodeList extends ListProxy<Node> {
   }
 
   void operator []=(int index, Node value) {
-    this[index].parent = null;
-    super[index] = _setParent(value);
+    if (value is DocumentFragment) {
+      removeAt(index);
+      insertAll(index, value.nodes);
+    } else {
+      this[index].parent = null;
+      super[index] = _setParent(value);
+    }
   }
 
   // TODO(jmesserly): These aren't implemented in DOM _NodeListImpl, see
@@ -698,8 +711,7 @@ class NodeList extends ListProxy<Node> {
     // Note: see comment in [addAll]. We need to be careful about the order of
     // operations if [from] is also a NodeList.
     for (int i = rangeLength - 1; i >= 0; i--) {
-      this[start + i].parent = null;
-      super[start + i] = _setParent(from[startFrom + i]);
+      this[start + i] = from[startFrom + i];
     }
   }
 
@@ -727,9 +739,26 @@ class NodeList extends ListProxy<Node> {
     super.retainWhere(test);
   }
 
-  void insertAll(int index, List<Node> nodes) {
-    for (var node in nodes) _setParent(node);
-    super.insertAll(index, nodes);
+  void insertAll(int index, Iterable<Node> collection) {
+    // Note: we need to be careful how we copy nodes. See note in addAll.
+    var list = _flattenDocFragments(collection);
+    for (var node in list.reversed) _setParent(node);
+    super.insertAll(index, list);
+  }
+
+  _flattenDocFragments(Iterable<Node> collection) {
+    // Note: this function serves two purposes:
+    //  * it flattens document fragments
+    //  * it creates a copy of [collections] when `collection is NodeList`.
+    var result = [];
+    for (var node in collection) {
+      if (node is DocumentFragment) {
+        result.addAll(node.nodes);
+      } else {
+        result.add(node);
+      }
+    }
+    return result;
   }
 }
 
