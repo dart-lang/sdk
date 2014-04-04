@@ -194,12 +194,7 @@ stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
-polymer/example/canonicalization/test/dev_test: Fail, OK # tests development only behavior
-polymer/example/canonicalization/test/dev2_test: Fail, OK # tests development only behavior
-polymer/example/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
-polymer/example/canonicalization/test/dir/dev_test: Fail, OK # tests development only behavior
-polymer/example/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
-polymer/test/mirror_loader_test: Fail, OK # tests development only behavior
+polymer/test/mirror_loader_test: Skip # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
@@ -311,11 +306,6 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
 polymer/test/custom_event_test: Pass, Crash # 14360
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]

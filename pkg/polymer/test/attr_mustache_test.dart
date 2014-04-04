@@ -44,8 +44,8 @@ class XTest extends PolymerElement {
   @observable var src = 'testSource';
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

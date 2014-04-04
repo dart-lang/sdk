@@ -51,7 +51,7 @@ void runTests({bool js: true, bool csp: false}) {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG$INTEROP_TAG'
+          '$WEB_COMPONENTS_TAG'
           '</head><body>'
           '<script ${type}src="a.dart$ext"></script>'
           '$dartJsTag'
@@ -62,7 +62,6 @@ void runTests({bool js: true, bool csp: false}) {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
-          '$INTEROP_TAG'
           '</head><body>'
           '<script type="application/dart" src="a.dart"></script>'
           '$dartJsTag'
@@ -70,7 +69,6 @@ void runTests({bool js: true, bool csp: false}) {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
-          '$INTEROP_TAG'
           '</head><body>'
           '<script ${type}src="a.dart$ext"></script>'
           '$dartJsTag'

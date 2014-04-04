@@ -141,10 +141,10 @@ const WEB_COMPONENTS_TAG =
     '<script src="packages/web_components/platform.js"></script>\n'
     '<script src="packages/web_components/dart_support.js"></script>\n';
 
-const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';
 
 const POLYMER_MOCKS = const {
+  'polymer|lib/polymer.html': '<!DOCTYPE html><html></html>',
   'polymer|lib/polymer.dart':
       'library polymer;\n'
       'import "dart:html";\n'

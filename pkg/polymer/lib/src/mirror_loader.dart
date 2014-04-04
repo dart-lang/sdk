@@ -22,24 +22,26 @@ import 'dart:collection' show LinkedHashMap;
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart' show Logger;
-import 'package:polymer/polymer.dart' show
-    InitMethodAnnotation, CustomTag, initMethod, Polymer;
+import 'package:polymer/polymer.dart';
+import 'package:observe/src/dirty_check.dart';
 
+
+void startPolymerInDevelopment(List<String> librariesToLoad) {
+  dirtyCheckZone()..run(() {
+    startPolymer(discoverInitializers(librariesToLoad), false);
+  });
+}
 
 /// Set of initializers that are invoked by `initPolymer`.  This is computed the
 /// list by crawling HTML imports, searching for script tags, and including an
 /// initializer for each type tagged with a [CustomTag] annotation and for each
 /// top-level method annotated with [initMethod].
-List<Function> initializers = _discoverInitializers();
-
-/// True if we're in deployment mode.
-bool deployMode = false;
 
 /// Discovers what script tags are loaded from HTML pages and collects the
 /// initializers of their corresponding libraries.
-List<Function> _discoverInitializers() {
+// Visible for testing only.
+List<Function> discoverInitializers(List<String> librariesToLoad) {
   var initializers = [];
-  var librariesToLoad = _discoverScripts(document, window.location.href);
   for (var lib in librariesToLoad) {
     try {
       _loadLibrary(lib, initializers);
@@ -52,57 +54,10 @@ List<Function> _discoverInitializers() {
   return initializers;
 }
 
-/// Walks the HTML import structure to discover all script tags that are
-/// implicitly loaded. This code is only used in Dartium and should only be
-/// called after all HTML imports are resolved. Polymer ensures this by asking
-/// users to put their Dart script tags after all HTML imports (this is checked
-/// by the linter, and Dartium will otherwise show an error message).
-List<String> _discoverScripts(Document doc, String baseUri,
-    [Set<Document> seen, List<String> scripts]) {
-  if (seen == null) seen = new Set<Document>();
-  if (scripts == null) scripts = <String>[];
-  if (doc == null) {
-    print('warning: $baseUri not found.');
-    return scripts;
-  }
-  if (seen.contains(doc)) return scripts;
-  seen.add(doc);
-
-  bool scriptSeen = false;
-  for (var node in doc.querySelectorAll('script,link[rel="import"]')) {
-    if (node is LinkElement) {
-      _discoverScripts(node.import, node.href, seen, scripts);
-    } else if (node is ScriptElement && node.type == 'application/dart') {
-      if (!scriptSeen) {
-        var url = node.src;
-        scripts.add(url == '' ? baseUri : url);
-        scriptSeen = true;
-      } else {
-        print('warning: more than one Dart script tag in $baseUri. Dartium '
-            'currently only allows a single Dart script tag per document.');
-      }
-    }
-  }
-  return scripts;
-}
-
 /// All libraries in the current isolate.
 final _libs = currentMirrorSystem().libraries;
 
-// TODO(sigmund): explore other (cheaper) ways to resolve URIs relative to the
-// root library (see dartbug.com/12612)
-final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
-
 final Logger _loaderLog = new Logger('polymer.src.mirror_loader');
-
-bool _isHttpStylePackageUrl(Uri uri) {
-  var uriPath = uri.path;
-  return uri.scheme == _rootUri.scheme &&
-      // Don't process cross-domain uris.
-      uri.authority == _rootUri.authority &&
-      uriPath.endsWith('.dart') &&
-      (uriPath.contains('/packages/') || uriPath.startsWith('packages/'));
-}
 
 /// Reads the library at [uriString] (which can be an absolute URI or a relative
 /// URI from the root library), and:
@@ -113,23 +68,8 @@ bool _isHttpStylePackageUrl(Uri uri) {
 ///   * Registers any [PolymerElement] that is marked with the [CustomTag]
 ///     annotation.
 void _loadLibrary(String uriString, List<Function> initializers) {
-  var uri = _rootUri.resolve(uriString);
+  var uri = Uri.parse(uriString);
   var lib = _libs[uri];
-  if (_isHttpStylePackageUrl(uri)) {
-    // Use package: urls if available. This rule here is more permissive than
-    // how we translate urls in polymer-build, but we expect Dartium to limit
-    // the cases where there are differences. The polymer-build issues an error
-    // when using packages/ inside lib without properly stepping out all the way
-    // to the packages folder. If users don't create symlinks in the source
-    // tree, then Dartium will also complain because it won't find the file seen
-    // in an HTML import.
-    var packagePath = uri.path.substring(
-        uri.path.lastIndexOf('packages/') + 'packages/'.length);
-    var canonicalLib = _libs[Uri.parse('package:$packagePath')];
-    if (canonicalLib != null) {
-      lib = canonicalLib;
-    }
-  }
 
   if (lib == null) {
     _loaderLog.info('$uri library not found');

@@ -27,8 +27,8 @@ class XDiv2Element extends XDivElement {
   XDiv2Element.created() : super.created();
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

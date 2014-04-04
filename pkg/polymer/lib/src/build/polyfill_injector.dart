@@ -14,8 +14,7 @@ import 'package:html5lib/parser.dart' show parseFragment;
 import 'common.dart';
 
 /// Ensures that any scripts and polyfills needed to run a polymer application
-/// are included. For example, this transformer will ensure that there is a
-/// script tag that loads the polyfills and interop.js (used for css shimming).
+/// are included.
 ///
 /// This step also replaces "packages/browser/dart.js" and the Dart script tag
 /// with a script tag that loads the dart2js compiled code directly.
@@ -31,7 +30,6 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
   Future apply(Transform transform) {
     return readPrimaryAsHtml(transform).then((document) {
       bool webComponentsFound = false;
-      bool jsInteropFound = false;
       Element dartJs;
       final dartScripts = <Element>[];
 
@@ -39,9 +37,7 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         var src = tag.attributes['src'];
         if (src != null) {
           var last = src.split('/').last;
-          if (last == 'interop.js') {
-            jsInteropFound = true;
-          } else if (_webComponentsJS.hasMatch(last)) {
+          if (_webComponentsJS.hasMatch(last)) {
             webComponentsFound = true;
           } else if (last == 'dart.js') {
             dartJs = tag;
@@ -87,9 +83,6 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         document.head.nodes.insert(0, parseFragment(
               '<script src="packages/$urlSegment"></script>\n'));
       }
-
-      // JS interop code is required for Polymer CSS shimming.
-      if (!jsInteropFound) _addScriptFirst('browser/interop.js');
 
       var suffix = options.releaseMode ? '.js' : '.concat.js';
       if (!webComponentsFound) {

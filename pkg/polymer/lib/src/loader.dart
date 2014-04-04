@@ -20,40 +20,38 @@ class InitMethodAnnotation {
   const InitMethodAnnotation();
 }
 
-/// Initializes a polymer application as follows:
-///   * set up up polling for observable changes
-///   * initialize Model-Driven Views
-///   * Include some style to prevent flash of unstyled content (FOUC)
-///   * for each library included transitively from HTML and HTML imports,
-///   register custom elements declared there (labeled with [CustomTag]) and
-///   invoke the initialization method on it (top-level functions annotated with
-///   [initMethod]).
-Zone initPolymer() => loader.deployMode
-  // In deployment mode, we rely on change notifiers instead of dirty checking.
-    ? _initPolymerOptimized() : (dirtyCheckZone()..run(_initPolymerOptimized));
-
-/// Same as [initPolymer], but runs the version that is optimized for deployment
-/// to the internet. The biggest difference is it omits the [Zone] that
-/// automatically invokes [Observable.dirtyCheck], and the list of initializers
-/// must be supplied instead of being dynamically searched for at runtime using
-/// mirrors.
-Zone _initPolymerOptimized() {
-  _hookJsPolymer();
-
-  for (var initializer in loader.initializers) {
-    initializer();
-  }
-
+/// This method is deprecated. It used to be where polymer initialization
+/// happens, now this is done automatically from bootstrap.dart.
+@deprecated
+Zone initPolymer() {
+  window.console.error(_ERROR);
   return Zone.current;
 }
 
-/// Configures [initPolymer] making it optimized for deployment to the internet.
-/// With this setup the initializer list is supplied instead of searched for
-/// at runtime. Additionally, after this method is called [initPolymer] omits
-/// the [Zone] that automatically invokes [Observable.dirtyCheck].
-void configureForDeployment(List<Function> initializers) {
-  loader.initializers = initializers;
-  loader.deployMode = true;
+const _ERROR = '''
+initPolymer is now deprecated. To initialize a polymer app:
+  * add to your page: <link rel="import" href="packages/polymer/polymer.html">
+  * replace "application/dart" mime-types with "application/dart;component=1"
+  * if you use "init.dart", remove it
+  * if you have a main, change it into a method annotated with @initMethod
+''';
+
+/// True if we're in deployment mode.
+bool _deployMode = false;
+
+/// Starts polymer by running all [initializers] and hooking the polymer.js
+/// code. **Note**: this function is not meant to be invoked directly by
+/// application developers. It is invoked by a bootstrap entry point that is
+/// automatically generated. During development, this entry point is generated
+/// dynamically in `boot.js`. Similarly, pub-build generates this entry point
+/// for deployment.
+void startPolymer(List<Function> initializers, [bool deployMode = true]) {
+  _hookJsPolymer();
+  _deployMode = deployMode;
+
+  for (var initializer in initializers) {
+    initializer();
+  }
 }
 
 /// To ensure Dart can interoperate with polymer-element registered by

@@ -42,8 +42,8 @@ class TestCustomEvent extends PolymerElement {
   barBazHandler(e) => events.add(['barbaz', e]);
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

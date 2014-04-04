@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:html5lib/dom.dart' show Document, Element, Text;
 import 'package:html5lib/dom_parsing.dart';
+import 'package:html5lib/parser.dart' show parseFragment;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' hide Element;
 import 'package:analyzer/src/generated/element.dart' as analyzer show Element;
@@ -70,12 +71,6 @@ class _ScriptCompactor extends PolymerTransformer {
   /// included on each custom element definition).
   List<AssetId> entryLibraries;
 
-  /// The id of the main Dart program.
-  AssetId mainLibraryId;
-
-  /// Script tag that loads the Dart entry point.
-  Element mainScriptTag;
-
   /// Initializers that will register custom tags or invoke `initMethod`s.
   final List<_Initializer> initializers = [];
 
@@ -130,41 +125,27 @@ class _ScriptCompactor extends PolymerTransformer {
         tag.remove();
         continue;
       }
-      if (tag.attributes['type'] != 'application/dart') continue;
-      if (src == null) {
-        logger.warning('unexpected script without a src url. The '
+      if (tag.attributes['type'] == 'application/dart;component=1') {
+        logger.warning('unexpected script. The '
           'ScriptCompactor transformer should run after running the '
-          'InlineCodeExtractor', span: tag.sourceSpan);
-        continue;
+          'ImportInliner', span: tag.sourceSpan);
       }
-      if (mainLibraryId != null) {
-        logger.warning('unexpected script. Only one Dart script tag '
-          'per document is allowed.', span: tag.sourceSpan);
-        tag.remove();
-        continue;
-      }
-      mainLibraryId = uriToAssetId(docId, src, logger, tag.sourceSpan);
-      mainScriptTag = tag;
     }
   }
 
   /// Emits the main HTML and Dart bootstrap code for the application. If there
   /// were not Dart entry point files, then this simply emits the original HTML.
   Future _emitNewEntrypoint(_) {
-    if (mainScriptTag == null) {
-      // We didn't find any main library, nothing to do.
+    if (entryLibraries.isEmpty) {
+      // We didn't find code, nothing to do.
       transform.addOutput(transform.primaryInput);
       return null;
     }
 
-    // Emit the bootstrap .dart file
-    mainScriptTag.attributes['src'] = path.url.basename(bootstrapId.path);
-    entryLibraries.add(mainLibraryId);
-
     return _initResolver()
         .then(_extractUsesOfMirrors)
         .then(_emitFiles)
-        .then((_) => resolver.release());
+        .whenComplete(() => resolver.release());
   }
 
   /// Load a resolver that computes information for every library in
@@ -359,7 +340,7 @@ class _ScriptCompactor extends PolymerTransformer {
     generator.writeTopLevelDeclarations(code);
     code.writeln('\nvoid main() {');
     generator.writeInitCall(code);
-    code.writeln('  configureForDeployment([');
+    code.writeln('  startPolymer([');
 
     // Include initializers to switch from mirrors_loader to static_loader.
     for (var init in initializers) {
@@ -367,9 +348,14 @@ class _ScriptCompactor extends PolymerTransformer {
       code.write("      $initCode,\n");
     }
     code..writeln('    ]);')
-        ..writeln('  i${entryLibraries.length - 1}.main();')
         ..writeln('}');
     transform.addOutput(new Asset.fromString(bootstrapId, code.toString()));
+
+
+    // Emit the bootstrap .dart file
+    var srcUrl = path.url.basename(bootstrapId.path);
+    document.body.nodes.add(parseFragment(
+          '<script type="application/dart" src="$srcUrl"></script>'));
     transform.addOutput(new Asset.fromString(docId, document.outerHtml));
   }
 

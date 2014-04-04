@@ -25,6 +25,7 @@ class XMenuButton extends PolymerElement {
   XMenuButton.created() : super.created();
 }
 
+@initMethod
 main() {
   // TODO(sigmund): use @CustomTag instead of Polymer.regsiter. A bug is making
   // this code sensitive to the order in which we register elements (e.g. if
@@ -34,7 +35,6 @@ main() {
   Polymer.register('x-menu', XMenu);
   Polymer.register('x-menu-button', XMenuButton);
 
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

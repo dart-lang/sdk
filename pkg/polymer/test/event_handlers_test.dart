@@ -97,14 +97,7 @@ class MiniModel extends Observable {
   String toString() => "<mini-model $index>";
 }
 
-main() {
-  Logger.root..level = Level.FINE
-      ..onRecord.listen((m) => print('${m.loggerName} ${m.message}'));
-
-  initPolymer();
-}
-
-@initMethod init() {
+@initMethod main() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

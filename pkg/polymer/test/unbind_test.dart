@@ -39,8 +39,8 @@ class XTest extends PolymerElement {
   bool get isBarValid => validBar == bar;
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

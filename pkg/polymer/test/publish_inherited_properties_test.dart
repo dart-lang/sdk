@@ -46,8 +46,8 @@ class XSquid extends XZot {
   @published int squid = 7;
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady.then((_) {

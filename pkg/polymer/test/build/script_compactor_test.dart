@@ -31,29 +31,28 @@ initializerTests(phases) {
 
   testPhases('no changes outside web/', phases, {
       'a|lib/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
+          '<!DOCTYPE html><html><head>',
+      'a|lib/test.html.scriptUrls': '[["a","lib/a.dart"]]',
     }, {
       'a|lib/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
+          '<!DOCTYPE html><html><head>',
+      'a|lib/test.html.scriptUrls': '[["a","lib/a.dart"]]',
     });
 
   testPhases('single script', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><head>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
-          'main(){}',
+          '@initMethod main(){}',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
+          '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '</head><body></body></html>',
+          '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -63,29 +62,28 @@ initializerTests(phases) {
           void main() {
             useGeneratedCode(new StaticConfiguration(
                 checkedMode: false));
-            configureForDeployment([
+            startPolymer([
+                i0.main,
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
-          'main(){}',
+          '@initMethod main(){}',
     });
 
   testPhases('simple initialization', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><head>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
           '@CustomTag("x-foo")\n'
           'class XFoo extends PolymerElement {\n'
           '}\n'
-          'main(){}',
+          '@initMethod main(){}',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -103,19 +101,18 @@ initializerTests(phases) {
                 declarations: {
                   smoke_0.XFoo: const {},
                 }));
-            configureForDeployment([
+            startPolymer([
+                i0.main,
                 () => Polymer.register(\'x-foo\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
   
   testPhases('use const expressions', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><head>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/b.dart':
           'library a;\n'
           'const x = "x";\n',
@@ -130,8 +127,7 @@ initializerTests(phases) {
           'const letterO = "o";\n'
           '@CustomTag("\$x\${dash}f\${letterO}o2")\n'
           'class XFoo extends PolymerElement {\n'
-          '}\n'
-          'main(){}',
+          '}\n',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -149,19 +145,17 @@ initializerTests(phases) {
                 declarations: {
                   smoke_0.XFoo: const {},
                 }));
-            configureForDeployment([
+            startPolymer([
                 () => Polymer.register(\'x-foo2\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
 
   testPhases('invalid const expression', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><head>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -177,15 +171,14 @@ initializerTests(phases) {
   testPhases('several scripts', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '</head><body><div>'
-          '<script type="application/dart" src="d.dart"></script>'
-          '</div>',
+          '</head><body><div></div>',
       'a|web/test.html.scriptUrls':
-          '[["a", "web/a.dart"],["a", "web/b.dart"],["a", "web/c.dart"]]',
+          '[["a", "web/a.dart"],["a", "web/b.dart"],["a", "web/c.dart"],'
+          '["a", "web/d.dart"]]',
       'a|web/d.dart':
           'library d;\n'
           'import "package:polymer/polymer.dart";\n'
-          'main(){}\n@initMethod mD(){}',
+          '@initMethod main(){}\n@initMethod mD(){}',
 
       'a|web/a.dart':
           'import "package:polymer/polymer.dart";\n'
@@ -234,10 +227,9 @@ initializerTests(phases) {
           '@initMethod mH2(){}\n',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body><div>'
+          '<!DOCTYPE html><html><head></head><body><div></div>'
           '<script type="application/dart" src="test.html_bootstrap.dart">'
           '</script>'
-          '</div>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -273,7 +265,7 @@ initializerTests(phases) {
                   smoke_3.XG2: const {},
                   smoke_4.XH1: const {},
                 }));
-            configureForDeployment([
+            startPolymer([
                 i0.mA,
                 i1.mB,
                 i1.mE,
@@ -285,9 +277,9 @@ initializerTests(phases) {
                 () => Polymer.register('x-h1', i1.XH1),
                 () => Polymer.register('x-c1', i2.XC1),
                 () => Polymer.register('x-c2', i2.XC2),
+                i3.main,
                 i3.mD,
               ]);
-            i3.main();
           }
           '''.replaceAll('\n          ', '\n'),
     }, null);
@@ -309,13 +301,12 @@ codegenTests(phases) {
           '<something-else my-attribute="{{here.too}}"></something-else>'
           '<div on-click="{{methodName}}"></div>'
           '<div on-click="{{@read.method}}"></div>'
-          '</template></polymer-element>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '</template></polymer-element>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
-          'main(){}',
+          '@initMethod main(){}',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -366,15 +357,15 @@ codegenTests(phases) {
                   #twoWayInt: r'twoWayInt',
                   #within: r'within',
                 }));
-            configureForDeployment([
+            startPolymer([
+                i0.main,
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
-          'main(){}',
+          '@initMethod main(){}',
     });
 
   final field1Details = "annotations: const [smoke_1.published]";
@@ -384,9 +375,8 @@ codegenTests(phases) {
       "kind: PROPERTY, isFinal: true, annotations: const [smoke_1.published]";
   testPhases('published via annotation', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><body>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><body>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -404,8 +394,7 @@ codegenTests(phases) {
           '  int get prop4 => 4;\n'
           '  @published int method1() => 1;\n'
           '  int method2() => 2;\n'
-          '}\n'
-          'main(){}',
+          '}\n',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -444,10 +433,9 @@ codegenTests(phases) {
                   #prop1: r'prop1',
                   #prop3: r'prop3',
                 }));
-            configureForDeployment([
+            startPolymer([
                 () => Polymer.register(\'x-foo\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
@@ -456,9 +444,8 @@ codegenTests(phases) {
       'a|web/test.html':
           '<!DOCTYPE html><html><body>'
           '<polymer-element name="x-foo" attributes="field1,prop2">'
-          '</polymer-element>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '</polymer-element>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -470,8 +457,7 @@ codegenTests(phases) {
           '  set prop1(int x) {};\n'
           '  int get prop2 => 2;\n'
           '  set prop2(int x) {};\n'
-          '}\n'
-          'main(){}',
+          '}\n',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -504,10 +490,9 @@ codegenTests(phases) {
                   #field1: r'field1',
                   #prop2: r'prop2',
                 }));
-            configureForDeployment([
+            startPolymer([
                 () => Polymer.register(\'x-foo\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
@@ -518,9 +503,8 @@ codegenTests(phases) {
   testPhases('ObserveProperty and *Changed methods', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><body>'
-          '</polymer-element>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '</polymer-element>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -531,8 +515,7 @@ codegenTests(phases) {
           '  void attributeChanged() {}\n' // should be excluded
           '  @ObserveProperty("x")'
           '  void foo() {}\n'
-          '}\n'
-          'main(){}',
+          '}\n',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -561,10 +544,9 @@ codegenTests(phases) {
                   #foo: r'foo',
                   #xChanged: r'xChanged',
                 }));
-            configureForDeployment([
+            startPolymer([
                 () => Polymer.register(\'x-foo\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
@@ -573,9 +555,8 @@ codegenTests(phases) {
   testPhases('register callback is included', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><body>'
-          '</polymer-element>'
-          '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.html.scriptUrls': '[]',
+          '</polymer-element>',
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
       'a|web/a.dart':
           'library a;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -583,8 +564,7 @@ codegenTests(phases) {
           'class XFoo extends PolymerElement {\n'
           '  static registerCallback() {};\n'
           '  static foo() {};\n'
-          '}\n'
-          'main(){}',
+          '}\n',
     }, {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -612,10 +592,9 @@ codegenTests(phases) {
                 names: {
                   #registerCallback: r'registerCallback',
                 }));
-            configureForDeployment([
+            startPolymer([
                 () => Polymer.register(\'x-foo\', i0.XFoo),
               ]);
-            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });

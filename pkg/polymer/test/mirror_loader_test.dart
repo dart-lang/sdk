@@ -5,45 +5,47 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'dart:mirrors';
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:polymer/polymer.dart';
+import 'package:path/path.dart' show url;
 
-@CustomTag('x-a')
-class XA extends PolymerElement {
-  final String x = "a";
-  XA.created() : super.created();
-}
-
-// The next classes are here as a regression test for darbug.com/17929. Our
-// loader was incorrectly trying to retrieve the reflectiveType of these
-// classes.
-class Foo<T> {}
-
-@CustomTag('x-b')
-class XB<T> extends PolymerElement {
-  final String x = "a";
-  XB.created() : super.created();
-}
+import 'package:polymer/src/mirror_loader.dart';
+import 'mirror_loader_1.dart' as m1;
+import 'mirror_loader_2.dart' as m2;
+import 'mirror_loader_3.dart' as m3;
+import 'mirror_loader_4.dart' as m4;
 
 main() {
   useHtmlConfiguration();
 
-  runZoned(() {
-    initPolymer().run(() {
-      setUp(() => Polymer.onReady);
+  test('registered correctly', () {
+    expect(_discover(#mirror_loader_test1).length, 1);
+    expect(_discover(#mirror_loader_test2).length, 1);
+  });
 
-      test('XA was registered correctly', () {
-        expect(querySelector('x-a').shadowRoot.nodes.first.text, 'a');
-      });
-
-      test('XB was not registered', () {
-        expect(querySelector('x-b').shadowRoot, null);
-      });
+  test('parameterized custom tags are not registered', () {
+    runZoned(() {
+      expect(_discover(#mirror_loader_test3).length, 0);
+    }, onError: (e) {
+      expect(e is UnsupportedError, isTrue);
+      expect('$e', contains(
+          'Custom element classes cannot have type-parameters: XB'));
     });
-  }, onError: (e) {
-    expect(e is UnsupportedError, isTrue);
-    expect('$e', contains(
-        'Custom element classes cannot have type-parameters: XB'));
+  });
+
+  test('registers correct types even when errors are found', () {
+    runZoned(() {
+      expect(_discover(#mirror_loader_test4).length, 1);
+    }, onError: (e) {
+      expect(e is UnsupportedError, isTrue);
+      expect('$e', contains(
+          'Custom element classes cannot have type-parameters: XB'));
+    });
   });
 }
+
+final mirrors = currentMirrorSystem();
+_discover(Symbol name) =>
+    discoverInitializers([mirrors.findLibrary(name).uri.toString()]);

@@ -17,8 +17,8 @@ class MyElement extends PolymerElement {
   get attributes => super.attributes;
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

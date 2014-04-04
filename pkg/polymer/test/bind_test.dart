@@ -44,8 +44,8 @@ class XFoo extends PolymerElement {
   }
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
