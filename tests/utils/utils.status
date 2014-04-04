@@ -18,6 +18,8 @@ dart2js_test: Skip # Uses dart:io.
 
 [ $compiler == dart2js && $mode == debug ]
 source_mirrors_test: Slow, Pass
+dummy_compiler_test: Slow, Pass
+source_mirrors_test: Slow, Pass
 
 [ $compiler == none && $runtime == vm && $arch == simarm64 ]
 *: Skip

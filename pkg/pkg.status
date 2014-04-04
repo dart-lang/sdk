@@ -26,6 +26,20 @@ docgen/test/typedef_test: Skip # Way too slow
 [ $runtime == vm && $mode == debug]
 docgen/test/only_lib_content_in_pkg_test: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
+analysis_server/test/analysis_server_test: Pass, Timeout
+analysis_server/test/domain_context_test: Pass, Timeout
+analysis_server/test/domain_server_test: Pass, Timeout
+analyzer/test/generated/element_test: Pass, Timeout
+analyzer/test/generated/parser_test: Pass, Timeout
+code_transformers/test/resolver_test: Pass, Timeout
+docgen/test/only_lib_content_in_pkg_test: Pass, Timeout
+polymer_expressions/test/globals_test: Pass, Timeout
+polymer/test/build/all_phases_test: Pass, Timeout
+polymer/test/build/script_compactor_test: Pass, Timeout
+smoke/test/codegen/end_to_end_test: Pass, Timeout
+smoke/test/codegen/recorder_test: Pass, Timeout
+template_binding/test/template_binding_test: Pass, Timeout
+third_party/html5lib/test/tokenizer_test: Pass, Timeout
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 docgen/test/only_lib_content_in_pkg_test: Skip # slow

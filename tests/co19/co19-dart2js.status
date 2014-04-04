@@ -670,3 +670,8 @@ LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please 
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 LibTest/async/DeferredLibrary/*: Skip # Issue 17458
+
+[ $compiler == dart2js && $mode == debug ]
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
+LibTest/core/List/List_class_A01_t01: Pass, Timeout
