@@ -2570,6 +2570,9 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
+  if (compiler->ShouldDeoptimizeFunction()) {
+    __ jmp(slow_path->entry_label());
+  }
   __ cmpl(ESP,
           Address::Absolute(Isolate::Current()->stack_limit_address()));
   __ j(BELOW_EQUAL, slow_path->entry_label());

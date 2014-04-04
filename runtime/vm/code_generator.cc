@@ -60,6 +60,8 @@ DECLARE_FLAG(bool, report_usage_count);
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
+DECLARE_FLAG(charp, deoptimize_filter);
+
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
@@ -1221,6 +1223,28 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
       function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
+    }
+  }
+
+  if (FLAG_deoptimize_filter != NULL) {
+    DartFrameIterator iterator;
+    StackFrame* frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
+    const Code& code = Code::Handle(frame->LookupDartCode());
+    ASSERT(!code.IsNull());
+    if (code.is_optimized()) {
+      const Function& function = Function::Handle(code.function());
+      ASSERT(!function.IsNull());
+      if (strstr(function.ToFullyQualifiedCString(),
+                 FLAG_deoptimize_filter) != NULL) {
+        if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("*** Forcing deoptimization (%s)\n",
+                       function.ToFullyQualifiedCString());
+          // TODO(turnidge): Consider changing to DeoptimizeAt for
+          // just the top frame.
+          DeoptimizeAll();
+        }
+      }
     }
   }
 }
