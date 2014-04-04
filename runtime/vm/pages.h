@@ -7,7 +7,6 @@
 
 #include "vm/freelist.h"
 #include "vm/globals.h"
-#include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -117,18 +116,14 @@ class PageSpaceController {
                       int garbage_collection_time_ratio);
   ~PageSpaceController();
 
-  // Returns whether growing to 'after' should trigger a GC.
-  // This method can be called before allocation (e.g., pretenuring) or after
-  // (e.g., promotion), as it does not change the state of the controller.
-  bool NeedsGarbageCollection(SpaceUsage after) const;
+  bool CanGrowPageSpace(intptr_t size_in_bytes);
 
-  // Should be called after each collection to update the controller state.
   // A garbage collection is considered as successful if more than
   // heap_growth_ratio % of memory got deallocated by the garbage collector.
   // In this case garbage collection will be performed next time. Otherwise
   // the heap will grow.
-  void EvaluateGarbageCollection(SpaceUsage before,
-                                 SpaceUsage after,
+  void EvaluateGarbageCollection(intptr_t used_before_in_words,
+                                 intptr_t used_after_in_words,
                                  int64_t start, int64_t end);
 
   int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
@@ -145,9 +140,6 @@ class PageSpaceController {
 
  private:
   bool is_enabled_;
-
-  // Usage after last evaluated GC.
-  SpaceUsage last_usage_;
 
   // Heap growth control variable.
   intptr_t grow_heap_;
@@ -194,16 +186,11 @@ class PageSpace {
                     HeapPage::PageType type = HeapPage::kData,
                     GrowthPolicy growth_policy = kControlGrowth);
 
-  bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_);
-  }
-
-  intptr_t UsedInWords() const { return usage_.used_in_words; }
-  intptr_t CapacityInWords() const { return usage_.capacity_in_words; }
+  intptr_t UsedInWords() const { return used_in_words_; }
+  intptr_t CapacityInWords() const { return capacity_in_words_; }
   intptr_t ExternalInWords() const {
-    return usage_.external_in_words;
+    return external_in_words_;
   }
-  SpaceUsage GetCurrentUsage() const { return usage_; }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
@@ -235,7 +222,7 @@ class PageSpace {
   }
 
   bool NeedExternalGC() {
-    return UsedInWords() + ExternalInWords() > max_capacity_in_words_;
+    return used_in_words_ + ExternalInWords() > max_capacity_in_words_;
   }
 
   void WriteProtect(bool read_only);
@@ -288,8 +275,8 @@ class PageSpace {
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
   bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
-    ASSERT(CapacityInWords() <= max_capacity_in_words_);
-    return increase_in_words <= (max_capacity_in_words_ - CapacityInWords());
+    ASSERT(capacity_in_words_ <= max_capacity_in_words_);
+    return increase_in_words <= (max_capacity_in_words_ - capacity_in_words_);
   }
 
   FreeList freelist_[HeapPage::kNumPageTypes];
@@ -302,7 +289,9 @@ class PageSpace {
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
-  SpaceUsage usage_;
+  intptr_t capacity_in_words_;
+  intptr_t used_in_words_;
+  intptr_t external_in_words_;
 
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;
