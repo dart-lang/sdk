@@ -214,6 +214,8 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
+      // TODO(koda): Replace promotion failure tracking with
+      // old_space_->NeedsGarbageCollection.
       if (new_space_->HadPromotionFailure() || old_space_->NeedExternalGC()) {
         // Old collections should call the API callbacks.
         CollectGarbage(kOld, kInvokeApiCallbacks);
@@ -467,12 +469,8 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.space_ = space;
   stats_.reason_ = reason;
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
-  stats_.before_.new_used_in_words_ = new_space_->UsedInWords();
-  stats_.before_.new_capacity_in_words_ = new_space_->CapacityInWords();
-  stats_.before_.new_external_in_words_ = new_space_->ExternalInWords();
-  stats_.before_.old_used_in_words_ = old_space_->UsedInWords();
-  stats_.before_.old_capacity_in_words_ = old_space_->CapacityInWords();
-  stats_.before_.old_external_in_words_ = old_space_->ExternalInWords();
+  stats_.before_.new_ = new_space_->GetCurrentUsage();
+  stats_.before_.old_ = old_space_->GetCurrentUsage();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -494,12 +492,8 @@ void Heap::RecordAfterGC() {
     old_space_->AddGCTime(delta);
     old_space_->IncrementCollections();
   }
-  stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
-  stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
-  stats_.after_.new_external_in_words_ = new_space_->ExternalInWords();
-  stats_.after_.old_used_in_words_ = old_space_->UsedInWords();
-  stats_.after_.old_capacity_in_words_ = old_space_->CapacityInWords();
-  stats_.after_.old_external_in_words_ = old_space_->ExternalInWords();
+  stats_.after_.new_ = new_space_->GetCurrentUsage();
+  stats_.after_.old_ = old_space_->GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
 }
@@ -537,18 +531,18 @@ void Heap::PrintStats() {
     MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
-    RoundWordsToKB(stats_.before_.new_used_in_words_),
-    RoundWordsToKB(stats_.after_.new_used_in_words_),
-    RoundWordsToKB(stats_.before_.new_capacity_in_words_),
-    RoundWordsToKB(stats_.after_.new_capacity_in_words_),
-    RoundWordsToKB(stats_.before_.new_external_in_words_),
-    RoundWordsToKB(stats_.after_.new_external_in_words_),
-    RoundWordsToKB(stats_.before_.old_used_in_words_),
-    RoundWordsToKB(stats_.after_.old_used_in_words_),
-    RoundWordsToKB(stats_.before_.old_capacity_in_words_),
-    RoundWordsToKB(stats_.after_.old_capacity_in_words_),
-    RoundWordsToKB(stats_.before_.old_external_in_words_),
-    RoundWordsToKB(stats_.after_.old_external_in_words_),
+    RoundWordsToKB(stats_.before_.new_.used_in_words),
+    RoundWordsToKB(stats_.after_.new_.used_in_words),
+    RoundWordsToKB(stats_.before_.new_.capacity_in_words),
+    RoundWordsToKB(stats_.after_.new_.capacity_in_words),
+    RoundWordsToKB(stats_.before_.new_.external_in_words),
+    RoundWordsToKB(stats_.after_.new_.external_in_words),
+    RoundWordsToKB(stats_.before_.old_.used_in_words),
+    RoundWordsToKB(stats_.after_.old_.used_in_words),
+    RoundWordsToKB(stats_.before_.old_.capacity_in_words),
+    RoundWordsToKB(stats_.after_.old_.capacity_in_words),
+    RoundWordsToKB(stats_.before_.old_.external_in_words),
+    RoundWordsToKB(stats_.after_.old_.external_in_words),
     MicrosecondsToMilliseconds(stats_.times_[0]),
     MicrosecondsToMilliseconds(stats_.times_[1]),
     MicrosecondsToMilliseconds(stats_.times_[2]),

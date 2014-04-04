@@ -10,6 +10,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
+#include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 
@@ -80,6 +81,13 @@ class Scavenger {
   }
   intptr_t ExternalInWords() const {
     return external_size_ >> kWordSizeLog2;
+  }
+  SpaceUsage GetCurrentUsage() const {
+    SpaceUsage usage;
+    usage.used_in_words = UsedInWords();
+    usage.capacity_in_words = CapacityInWords();
+    usage.external_in_words = ExternalInWords();
+    return usage;
   }
 
   void VisitObjects(ObjectVisitor* visitor) const;
