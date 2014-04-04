@@ -89,7 +89,7 @@ mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
 mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/method_mirror_location_test: RuntimeError # Issue 6490
-mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
+mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When removing this line please change the "endsWith" to "/mirrors_test.dart".
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490

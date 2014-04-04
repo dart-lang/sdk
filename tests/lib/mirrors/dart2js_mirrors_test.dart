@@ -6,7 +6,7 @@
 // TODO(ahe): Remove this test.
 
 
-import '../../lib/mirrors/mirrors_test.dart' as test;
+import 'mirrors_test.dart' as test;
 
 main() {
   test.isDart2js = true;
