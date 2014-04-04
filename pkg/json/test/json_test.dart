@@ -81,9 +81,8 @@ main() {
     expect(json.stringify(null), equals('null'));
     expect(json.stringify(' hi there" bob '), equals('" hi there\\" bob "'));
     expect(json.stringify('hi\\there'), equals('"hi\\\\there"'));
-    // TODO(devoncarew): these tests break the dartium build
-    //expect(json.stringify('hi\nthere'), equals('"hi\\nthere"'));
-    //expect(json.stringify('hi\r\nthere'), equals('"hi\\r\\nthere"'));
+    expect(json.stringify('hi\nthere'), equals('"hi\\nthere"'));
+    expect(json.stringify('hi\r\nthere'), equals('"hi\\r\\nthere"'));
     expect(json.stringify(''), equals('""'));
 
     // Lists.
@@ -162,6 +161,14 @@ main() {
     }
     a.add(b);
     expect(() => json.stringify(a), throwsJsonError);
+  });
+
+  test('print on', () {
+    var obj = { 'a': 'a', 'b': 2, 'c': [1,2,3]};
+    var output = json.stringify(obj);
+    var sb = new StringBuffer();
+    json.printOn(obj, sb);
+    expect(sb.toString(), output);
   });
 }
 

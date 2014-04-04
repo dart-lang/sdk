@@ -3,57 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * **DEPRECATED** Use the JSON facilities in `dart:convert` instead.
+ *
  * Utilities for encoding and decoding JSON (JavaScript Object Notation) data.
  */
-
+@deprecated
 library json;
 
-import "dart:collection" show HashSet;
-
-// JSON parsing and serialization.
-
-/**
- * Error thrown by JSON serialization if an object cannot be serialized.
- *
- * The [unsupportedObject] field holds that object that failed to be serialized.
- *
- * If an object isn't directly serializable, the serializer calls the 'toJson'
- * method on the object. If that call fails, the error will be stored in the
- * [cause] field. If the call returns an object that isn't directly
- * serializable, the [cause] will be null.
- */
-class JsonUnsupportedObjectError extends Error {
-  /** The object that could not be serialized. */
-  final unsupportedObject;
-  /** The exception thrown by object's [:toJson:] method, if any. */
-  final cause;
-
-  JsonUnsupportedObjectError(this.unsupportedObject, { this.cause });
-
-  String toString() {
-    if (cause != null) {
-      return "Calling toJson method on object failed.";
-    } else {
-      return "Object toJson method returns non-serializable value.";
-    }
-  }
-}
-
+import 'dart:convert' show JSON, StringConversionSink;
+export 'dart:convert' show JsonUnsupportedObjectError, JsonCyclicError;
 
 /**
- * Reports that an object could not be stringified due to cyclic references.
+ * **DEPRECATED** Use [JSON.decode] from `dart:convert` instead.
  *
- * An object that references itself cannot be serialized by [stringify].
- * When the cycle is detected, a [JsonCyclicError] is thrown.
- */
-class JsonCyclicError extends JsonUnsupportedObjectError {
-  /** The first object that was detected as part of a cycle. */
-  JsonCyclicError(Object object): super(object);
-  String toString() => "Cyclic error in JSON stringify";
-}
-
-
-/**
  * Parses [json] and build the corresponding parsed JSON value.
  *
  * Parsed JSON values are of the types [num], [String], [bool], [Null],
@@ -68,18 +30,14 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
+@deprecated
 parse(String json, [reviver(var key, var value)]) {
-  BuildJsonListener listener;
-  if (reviver == null) {
-    listener = new BuildJsonListener();
-  } else {
-    listener = new ReviverJsonListener(reviver);
-  }
-  new JsonParser(json, listener).parse();
-  return listener.result;
+  return JSON.decode(json, reviver: reviver);
 }
 
 /**
+ * **DEPRECATED**. Use [JsonCodec] from `dart:convert` instead.
+ *
  * Serializes [object] into a JSON string.
  *
  * Directly serializable values are [num], [String], [bool], and [Null], as well
@@ -106,11 +64,14 @@ parse(String json, [reviver(var key, var value)]) {
  * the JSON text for it. I.e., if an object changes after it is first
  * serialized, the new values may or may not be reflected in the result.
  */
+@deprecated
 String stringify(Object object) {
-  return _JsonStringifier.stringify(object);
+  return JSON.encode(object);
 }
 
 /**
+ * **DEPRECATED**. Use [JsonCodec] from `dart:convert` instead.
+ *
  * Serializes [object] into [output] stream.
  *
  * Performs the same operations as [stringify] but outputs the resulting
@@ -119,8 +80,10 @@ String stringify(Object object) {
  * If serialization fails by throwing, some data might have been added to
  * [output], but it won't contain valid JSON text.
  */
+@deprecated
 void printOn(Object object, StringSink output) {
-  return _JsonStringifier.printOn(object, output);
+  var stringConversionSink = new StringConversionSink.fromStringSink(output);
+  JSON.encoder.startChunkedConversion(stringConversionSink).add(object);
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -662,166 +625,5 @@ class JsonParser {
       slice = "'${source.substring(position, sliceEnd)}...'";
     }
     throw new FormatException("Unexpected character at $position: $slice");
-  }
-}
-
-
-class _JsonStringifier {
-  final StringSink sink;
-  final Set<Object> seen;
-
-  _JsonStringifier(this.sink) : seen = new HashSet.identity();
-
-  static String stringify(final object) {
-    StringBuffer output = new StringBuffer();
-    _JsonStringifier stringifier = new _JsonStringifier(output);
-    stringifier.stringifyValue(object);
-    return output.toString();
-  }
-
-  static void printOn(final object, StringSink output) {
-    _JsonStringifier stringifier = new _JsonStringifier(output);
-    stringifier.stringifyValue(object);
-  }
-
-  static String numberToString(num x) {
-    return x.toString();
-  }
-
-  // ('0' + x) or ('a' + x - 10)
-  static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
-
-  static void escape(StringSink sb, String s) {
-    final int length = s.length;
-    bool needsEscape = false;
-    final charCodes = new List<int>();
-    for (int i = 0; i < length; i++) {
-      int charCode = s.codeUnitAt(i);
-      if (charCode < 32) {
-        needsEscape = true;
-        charCodes.add(JsonParser.BACKSLASH);
-        switch (charCode) {
-        case JsonParser.BACKSPACE:
-          charCodes.add(JsonParser.CHAR_b);
-          break;
-        case JsonParser.TAB:
-          charCodes.add(JsonParser.CHAR_t);
-          break;
-        case JsonParser.NEWLINE:
-          charCodes.add(JsonParser.CHAR_n);
-          break;
-        case JsonParser.FORM_FEED:
-          charCodes.add(JsonParser.CHAR_f);
-          break;
-        case JsonParser.CARRIAGE_RETURN:
-          charCodes.add(JsonParser.CHAR_r);
-          break;
-        default:
-          charCodes.add(JsonParser.CHAR_u);
-          charCodes.add(hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(hexDigit(charCode & 0xf));
-          break;
-        }
-      } else if (charCode == JsonParser.QUOTE ||
-          charCode == JsonParser.BACKSLASH) {
-        needsEscape = true;
-        charCodes.add(JsonParser.BACKSLASH);
-        charCodes.add(charCode);
-      } else {
-        charCodes.add(charCode);
-      }
-    }
-    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
-  }
-
-  void checkCycle(final object) {
-    if (seen.contains(object)) {
-      throw new JsonCyclicError(object);
-    }
-    seen.add(object);
-  }
-
-  void stringifyValue(final object) {
-    // Tries stringifying object directly. If it's not a simple value, List or
-    // Map, call toJson() to get a custom representation and try serializing
-    // that.
-    if (!stringifyJsonValue(object)) {
-      checkCycle(object);
-      try {
-        var customJson = object.toJson();
-        if (!stringifyJsonValue(customJson)) {
-          throw new JsonUnsupportedObjectError(object);
-        }
-        seen.remove(object);
-      } catch (e) {
-        throw new JsonUnsupportedObjectError(object, cause: e);
-      }
-    }
-  }
-
-  /**
-   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
-   *
-   * Returns true if the value is one of these types, and false if not.
-   * If a value is both a [List] and a [Map], it's serialized as a [List].
-   */
-  bool stringifyJsonValue(final object) {
-    if (object is num) {
-      if (!object.isFinite) return false;
-      sink.write(numberToString(object));
-      return true;
-    } else if (identical(object, true)) {
-      sink.write('true');
-      return true;
-    } else if (identical(object, false)) {
-      sink.write('false');
-       return true;
-    } else if (object == null) {
-      sink.write('null');
-      return true;
-    } else if (object is String) {
-      sink.write('"');
-      escape(sink, object);
-      sink.write('"');
-      return true;
-    } else if (object is List) {
-      checkCycle(object);
-      List a = object;
-      sink.write('[');
-      if (a.length > 0) {
-        stringifyValue(a[0]);
-        // TODO: switch to Iterables.
-        for (int i = 1; i < a.length; i++) {
-          sink.write(',');
-          stringifyValue(a[i]);
-        }
-      }
-      sink.write(']');
-      seen.remove(object);
-      return true;
-    } else if (object is Map) {
-      checkCycle(object);
-      Map<String, Object> m = object;
-      sink.write('{');
-      bool first = true;
-      m.forEach((String key, Object value) {
-        if (!first) {
-          sink.write(',"');
-        } else {
-          sink.write('"');
-        }
-        escape(sink, key);
-        sink.write('":');
-        stringifyValue(value);
-        first = false;
-      });
-      sink.write('}');
-      seen.remove(object);
-      return true;
-    } else {
-      return false;
-    }
   }
 }
