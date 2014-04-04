@@ -512,20 +512,24 @@ void ClassFinalizer::FinalizeTypeParameters(
 }
 
 
-// This function reports a compilation error if the recursive 'type' being
-// finalized is a non-contractive type, i.e. if the induced type set of the
-// instantiation of 'type' with its own type parameters is not finite (see
-// the Dart Language Specification for the definition of the induced type set).
-// This can be detected by looking at the queue of types pending finalization
-// that may be mutually recursive with the checked type.
+// This function reports a compilation error if the recursive 'type' T being
+// finalized is a non-contractive type, i.e. if the induced type set S of P is
+// not finite, where P is the instantiation of T with its own type parameters.
+// The induced type set S consists of the super types of any type in S as well
+// as the type arguments of any parameterized type in S.
+// The Dart Language Specification does not disallow the declaration and use of
+// non-contractive types (this may change). They are nevertheless disallowed
+// as an implementation restriction in the VM since they cause divergence.
+// A non-contractive type can be detected by looking at the queue of types
+// pending finalization that are mutually recursive with the checked type.
 void ClassFinalizer::CheckRecursiveType(const Class& cls,
                                         const Type& type,
                                         GrowableObjectArray* pending_types) {
   Isolate* isolate = Isolate::Current();
   if (FLAG_trace_type_finalization) {
-    OS::Print("Checking recursive type '%s' for class '%s'\n",
+    OS::Print("Checking recursive type '%s': %s\n",
               String::Handle(type.Name()).ToCString(),
-              cls.ToCString());
+              type.ToCString());
   }
   const Class& type_cls = Class::Handle(isolate, type.type_class());
   const TypeArguments& arguments =
@@ -554,8 +558,9 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   for (intptr_t i = num_pending_types - 1; i >= 0; i--) {
     pending_type ^= pending_types->At(i);
     if (FLAG_trace_type_finalization) {
-      OS::Print("  Comparing with pending type '%s'\n",
-                String::Handle(pending_type.Name()).ToCString());
+      OS::Print("  Comparing with pending type '%s': %s\n",
+                String::Handle(pending_type.Name()).ToCString(),
+                pending_type.ToCString());
     }
     if ((pending_type.raw() != type.raw()) &&
         (pending_type.type_class() == type_cls.raw())) {
@@ -648,9 +653,9 @@ void ClassFinalizer::FinalizeTypeArguments(
             ASSERT(super_type_arg.IsType());
             CheckRecursiveType(cls, Type::Cast(super_type_arg), pending_types);
             if (FLAG_trace_type_finalization) {
-              OS::Print("Creating TypeRef '%s' for class '%s'\n",
+              OS::Print("Creating TypeRef '%s': '%s'\n",
                         String::Handle(super_type_arg.Name()).ToCString(),
-                        cls.ToCString());
+                        super_type_arg.ToCString());
             }
             super_type_arg = TypeRef::New(super_type_arg);
             super_type_args.SetTypeAt(i, super_type_arg);
@@ -661,13 +666,20 @@ void ClassFinalizer::FinalizeTypeArguments(
               super_type_args.SetTypeAt(i, super_type_arg);
               // Note that super_type_arg may still not be finalized here, in
               // which case it is a TypeRef to a legal recursive type.
-              // Therefore, it does not need to be instantiated below.
-              // See tests/language/regress_16640_test.dart for an example.
             }
           }
         }
-        if (!super_type_arg.IsBeingFinalized() &&
-            !super_type_arg.IsInstantiated()) {
+        // Instantiate super_type_arg with the current argument vector.
+        if (!super_type_arg.IsInstantiated()) {
+          if (FLAG_trace_type_finalization && super_type_arg.IsTypeRef()) {
+            AbstractType& ref_type = AbstractType::Handle(
+                TypeRef::Cast(super_type_arg).type());
+            OS::Print("Instantiating TypeRef '%s': '%s'\n"
+                      "  instantiator: '%s'\n",
+                      String::Handle(super_type_arg.Name()).ToCString(),
+                      ref_type.ToCString(),
+                      arguments.ToCString());
+          }
           Error& error = Error::Handle();
           super_type_arg =
               super_type_arg.InstantiateFrom(arguments, &error, trail);
@@ -680,6 +692,25 @@ void ClassFinalizer::FinalizeTypeArguments(
             if (bound_error->IsNull()) {
               *bound_error = error.raw();
             }
+          }
+          if (!super_type_arg.IsFinalized() &&
+              !super_type_arg.IsBeingFinalized()) {
+            // The super_type_arg was instantiated from a type being finalized.
+            // We need to finish finalizing its type arguments.
+            if (super_type_arg.IsTypeRef()) {
+              super_type_arg = TypeRef::Cast(super_type_arg).type();
+            }
+            Type::Cast(super_type_arg).set_is_being_finalized();
+            pending_types->Add(super_type_arg);
+            const Class& cls = Class::Handle(super_type_arg.type_class());
+            FinalizeTypeArguments(
+                cls,
+                TypeArguments::Handle(super_type_arg.arguments()),
+                cls.NumTypeArguments() - cls.NumTypeParameters(),
+                bound_error,
+                pending_types,
+                trail);
+            Type::Cast(super_type_arg).SetIsFinalized();
           }
         }
       }
@@ -986,8 +1017,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // num_type_parameters) of this type being finalized with the still
       // unfinalized run-time argument vector (of length num_type_arguments).
       // This type being finalized may be recursively reached via bounds
-      // checking, in which case type arguments of super classes will be seen
-      // as dynamic.
+      // checking or type arguments of its super type.
       parameterized_type.set_arguments(full_arguments);
       // Finalize the current type arguments of the type, which are still the
       // parsed type arguments.
@@ -1050,9 +1080,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // bounds.
   if (is_root_type) {
     Type& type = Type::Handle(isolate);
-    for (intptr_t i = 0; i < types.Length(); i++) {
+    for (intptr_t i = types.Length() - 1; i >= 0; i--) {
       type ^= types.At(i);
       CheckTypeBounds(cls, type);
+      if (FLAG_trace_type_finalization && type.IsRecursive()) {
+        OS::Print("Done finalizing recursive type '%s': %s\n",
+                  String::Handle(isolate, type.Name()).ToCString(),
+                  type.ToCString());
+      }
     }
   }
 
@@ -1076,6 +1111,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   }
 
   if (finalization >= kCanonicalize) {
+    if (FLAG_trace_type_finalization && parameterized_type.IsRecursive()) {
+      AbstractType& type = Type::Handle(isolate);
+      type = parameterized_type.Canonicalize();
+      OS::Print("Done canonicalizing recursive type '%s': %s\n",
+                String::Handle(isolate, type.Name()).ToCString(),
+                type.ToCString());
+      return type.raw();
+    }
     return parameterized_type.Canonicalize();
   } else {
     return parameterized_type.raw();

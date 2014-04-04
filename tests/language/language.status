@@ -24,10 +24,6 @@ mixin_forwarding_constructor2_test: Fail # Issue 13641
 deferred_constraints_constants_test/default_argument2: Fail
 
 # These test use the old syntax, and will be phased out.
-deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/is_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail, Ok
 deferred_constraints_constants_old_syntax_test/reference1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/reference2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/metadata1: Fail, Ok
@@ -38,33 +34,27 @@ deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
-cyclic_type_test: Fail, OK # Issue 17629
-cyclic_type2_test: Fail, OK # Issue 17629
-least_upper_bound_expansive_test/*: Fail, OK # Issue 17629
-
-[ ($compiler == dart2dart)]
+[ $compiler == dart2dart]
 # Issue 17523
-deferred_constraints_type_annotation_test/as_operation: Fail
-deferred_constraints_type_annotation_test/is_check: Fail
-deferred_constraints_type_annotation_test/catch_check: Fail
-deferred_constraints_type_annotation_test/new_before_load: Fail
 deferred_load_library_wrong_args_test/none: Fail
 deferred_load_inval_code_test: Fail # dartbug.com/17933
-
-cyclic_type_test: Fail, OK # Issue 17629
-cyclic_type2_test: Fail, OK # Issue 17629
-least_upper_bound_expansive_test/*: Fail, OK # Issue 17629
-
-[ ($compiler == dart2dart)]
-# Issue 17523
 deferred_constraints_type_annotation_test/*: Fail, Pass
 deferred_constraints_constants_test/*: Fail, Pass
-deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail
-deferred_constraints_type_annotation_old_syntax_test/is_check: Fail
-deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail
-deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail
 deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
+
+[ $compiler == none || $compiler == dart2dart]
+# These test use the old syntax, and will be phased out.
+deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/is_check: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail, Ok
+
+# Non-contractive types are not supported in the vm.
+cyclic_type_test/02: Fail, OK
+cyclic_type_test/04: Fail, OK
+cyclic_type2_test: Fail, OK
+least_upper_bound_expansive_test/*: Fail, OK
 
 [ ($compiler == none || $compiler == dart2dart) && $checked ]
 # Issue 17521, 17523

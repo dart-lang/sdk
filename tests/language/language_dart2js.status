@@ -72,7 +72,7 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
-cyclic_type_test: Fail # Issue 12605
+cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail # Issue 12605
 f_bounded_quantification5_test: Fail # Issue 12605
@@ -234,7 +234,7 @@ malbounded_type_test_test/01: Fail # Issue 14131
 malbounded_instantiation_test/01: Fail # Issue 14132
 
 [ $compiler == dart2dart && $minified ]
-cyclic_type_test: Fail # Issue 12605.
+cyclic_type_test/0*: Fail # Issue 12605.
 cyclic_type2_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.

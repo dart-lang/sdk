@@ -4037,7 +4037,9 @@ intptr_t TypeArguments::Hash() const {
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    result = CombineHashes(result, type.Hash());
+    // The hash may be calculated during type finalization (for debugging
+    // purposes only) while a type argument is still temporarily null.
+    result = CombineHashes(result, type.IsNull() ? 0 : type.Hash());
   }
   return FinalizeHash(result);
 }
@@ -4101,7 +4103,11 @@ bool TypeArguments::IsRecursive() const {
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (type.IsRecursive()) {
+    // If this type argument is null, the type parameterized with this type
+    // argument is still being finalized and is definitely recursive. The null
+    // type argument will be replaced by a non-null type before the type is
+    // marked as finalized.
+    if (type.IsNull() || type.IsRecursive()) {
       return true;
     }
   }
@@ -4253,21 +4259,9 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 }
 
 
-void TypeArguments::set_type_at(intptr_t index,
+void TypeArguments::SetTypeAt(intptr_t index,
                                 const AbstractType& value) const {
   StorePointer(TypeAddr(index), value.raw());
-}
-
-
-void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
-  const AbstractType& type_arg = AbstractType::Handle(TypeAt(index));
-  if (type_arg.IsTypeRef()) {
-    if (value.raw() != type_arg.raw()) {
-      TypeRef::Cast(type_arg).set_type(value);
-    }
-  } else {
-    set_type_at(index, value);
-  }
 }
 
 
@@ -4291,7 +4285,9 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    if (!type.IsInstantiated(trail)) {
+    // If the type argument is null, the type parameterized with this type
+    // argument is still being finalized. Skip this null type argument.
+    if (!type.IsNull() && !type.IsInstantiated(trail)) {
       return false;
     }
   }
@@ -4455,7 +4451,13 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsInstantiated()) {
+    // If this type argument T is null, the type A containing T in its flattened
+    // type argument vector V is recursive and is still being finalized.
+    // T is the type argument of a super type of A. T is being instantiated
+    // during finalization of V, which is also the instantiator. T depends
+    // solely on the type parameters of A and will be replaced by a non-null
+    // type before A is marked as finalized.
+    if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
                                   trail);
@@ -4698,14 +4700,19 @@ RawTypeArguments* TypeArguments::Canonicalize(
       type_arg = type_arg.Canonicalize(trail);
       SetTypeAt(i, type_arg);
     }
-    // Canonicalization of a type should not change its hash. Verify.
-    ASSERT(Hash() == hash);
+    // Canonicalization of a recursive type may change its hash.
+    intptr_t canonical_hash = hash;
+    if (IsRecursive()) {
+      canonical_hash = Hash();
+    }
     // Canonicalization of the type argument's own type arguments may add an
     // entry to the table, or even grow the table, and thereby change the
     // previously calculated index.
     table = object_store->canonical_type_arguments();
-    if (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used) {
-      index = FindIndexInCanonicalTypeArguments(isolate, table, *this, hash);
+    if ((canonical_hash != hash) ||
+        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used)) {
+      index = FindIndexInCanonicalTypeArguments(
+          isolate, table, *this, canonical_hash);
       result ^= table.At(index);
     }
     if (result.IsNull()) {
@@ -13497,26 +13504,40 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsMalformed()) {
     return raw();
   }
+  // Instantiating this type with its own type arguments as instantiator can
+  // occur during finalization and bounds checking. Return the type unchanged.
+  if (arguments() == instantiator_type_arguments.raw()) {
+    return raw();
+  }
+  // If this type is recursive, we may already be instantiating it.
+  Type& instantiated_type = Type::Handle();
+  instantiated_type ^= OnlyBuddyInTrail(trail);
+  if (!instantiated_type.IsNull()) {
+    ASSERT(IsRecursive());
+    return instantiated_type.raw();
+  }
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
   // finalizing the type argument vector of a recursive type.
   const Class& cls = Class::Handle(type_class());
+
   // This uninstantiated type is not modified, as it can be instantiated
-  // with different instantiators.
-  Type& instantiated_type = Type::Handle(
-      Type::New(cls, TypeArguments::Handle(), token_pos()));
-  if (arguments() != TypeArguments::null()) {
-    TypeArguments& type_arguments = TypeArguments::Handle(arguments());
-    ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-    if (type_arguments.IsRecursive()) {
-      AddOnlyBuddyToTrail(&trail, instantiated_type);
-    }
-    type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                    bound_error,
-                                                    trail);
-    instantiated_type.set_arguments(type_arguments);
+  // with different instantiators. Allocate a new instantiated version of it.
+  instantiated_type = Type::New(cls, TypeArguments::Handle(), token_pos());
+  TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+  if (type_arguments.IsRecursive()) {
+    AddOnlyBuddyToTrail(&trail, instantiated_type);
   }
-  instantiated_type.SetIsFinalized();
+  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
+                                                  bound_error,
+                                                  trail);
+  instantiated_type.set_arguments(type_arguments);
+  if (IsFinalized()) {
+    instantiated_type.SetIsFinalized();
+  } else {
+    instantiated_type.set_is_resolved();
+  }
   // Canonicalization is not part of instantiation.
   return instantiated_type.raw();
 }
@@ -13878,26 +13899,30 @@ bool TypeRef::IsEquivalent(const Instance& other,
 }
 
 
-RawAbstractType* TypeRef::InstantiateFrom(
+RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
     GrowableObjectArray* trail) const {
+  TypeRef& instantiated_type_ref = TypeRef::Handle();
+  instantiated_type_ref ^= OnlyBuddyInTrail(trail);
+  if (!instantiated_type_ref.IsNull()) {
+    return instantiated_type_ref.raw();
+  }
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
-  instantiated_ref_type ^= ref_type.OnlyBuddyInTrail(trail);
-  if (instantiated_ref_type.IsNull()) {
-    // The referenced type is first encountered here during instantiation.
-    instantiated_ref_type = ref_type.InstantiateFrom(
+  instantiated_ref_type = ref_type.InstantiateFrom(
         instantiator_type_arguments, bound_error, trail);
-  }
   ASSERT(!instantiated_ref_type.IsTypeRef());
-  return TypeRef::New(instantiated_ref_type);
+  instantiated_type_ref = TypeRef::New(instantiated_ref_type);
+  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
+  return instantiated_type_ref.raw();
 }
 
 
 void TypeRef::set_type(const AbstractType& value) const {
   ASSERT(value.HasResolvedTypeClass());
+  ASSERT(!value.IsTypeRef());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
 
@@ -13910,6 +13935,8 @@ RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
   }
+  // TODO(regis): Try to reduce the number of nodes required to represent the
+  // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
   ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);

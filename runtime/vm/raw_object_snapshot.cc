@@ -460,7 +460,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   // Now set all the type fields.
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
-    type_arguments.set_type_at(i, *reader->TypeHandle());
+    type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
   // If object needs to be a canonical object, Canonicalize it.

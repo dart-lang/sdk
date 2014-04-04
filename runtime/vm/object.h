@@ -1414,7 +1414,6 @@ class TypeArguments : public Object {
 
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
-  void set_type_at(intptr_t index, const AbstractType& value) const;
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
@@ -4440,7 +4439,7 @@ class TypeRef : public AbstractType {
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
-  virtual RawAbstractType* InstantiateFrom(
+  virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
