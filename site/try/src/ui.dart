@@ -48,6 +48,7 @@ import 'compilation.dart' show
 InteractionManager interaction;
 
 DivElement mainEditorPane;
+DivElement statusDiv;
 PreElement outputDiv;
 DivElement hackDiv;
 IFrameElement outputFrame;
@@ -129,6 +130,13 @@ buildUI() {
       ..top = '0px'
       ..position = 'absolute';
   inputWrapper.append(inputHeader);
+
+  statusDiv = new DivElement();
+  statusDiv.style
+      ..left = '0px'
+      ..top = '0px'
+      ..position = 'absolute';
+  inputWrapper.append(statusDiv);
 
   outputFrame =
       makeOutputFrame(

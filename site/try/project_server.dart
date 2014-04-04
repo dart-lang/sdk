@@ -6,6 +6,9 @@ library trydart.projectServer;
 
 import 'dart:io';
 
+import 'dart:async' show
+    Future;
+
 import 'dart:convert' show
     HtmlEscape,
     JSON,
@@ -29,10 +32,33 @@ class WatchHandler {
       : this.watchedFiles = watchedFiles.toSet();
 
   handleFileSystemEvent(FileSystemEvent event) {
-    String type = event.isDirectory ? 'directory' : 'file';
-    String eventType = fsEventNames[event.type];
-    if (eventType == null) eventType = 'unknown';
-    socket.add(JSON.encode({eventType: [event.path]}));
+    if (event.isDirectory) return;
+    String type = fsEventNames[event.type];
+    if (type == null) type = 'unknown';
+    String path = new Uri.file(event.path).pathSegments.last;
+    shouldIgnore(type, path).then((bool ignored) {
+      if (ignored) return;
+      socket.add(JSON.encode({type: [path]}));
+    });
+  }
+
+  Future<bool> shouldIgnore(String type, String path) {
+    switch (type) {
+      case 'create':
+        return new Future<bool>.value(!watchedFiles.contains(path));
+      case 'delete':
+        return Conversation.listProjectFiles().then((List<String> files) {
+          watchedFiles
+              ..retainAll(files)
+              ..addAll(files);
+          return watchedFiles.contains(path);
+        });
+      case 'modify':
+        return new Future<bool>.value(false);
+      default:
+        print('Unhandled fs-event for $path ($type).');
+        return new Future<bool>.value(true);
+    }
   }
 
   onData(_) {

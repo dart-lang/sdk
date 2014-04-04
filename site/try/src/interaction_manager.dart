@@ -34,7 +34,8 @@ import 'ui.dart' show
     hackDiv,
     mainEditorPane,
     observer,
-    outputDiv;
+    outputDiv,
+    statusDiv;
 
 import 'decoration.dart' show
     CodeCompletionDecoration,
@@ -96,6 +97,9 @@ abstract class InteractionManager {
 
   /// Called when the user selected a new project file.
   void onProjectFileSelected(String projectFile);
+
+  /// Called when notified about a project file changed (on the server).
+  void onProjectFileFsEvent(MessageEvent e);
 }
 
 /**
@@ -109,6 +113,8 @@ class InteractionContext extends InteractionManager {
   CompilationUnit currentCompilationUnit =
       // TODO(ahe): Don't use a fake unit.
       new CompilationUnit('fake', '');
+
+  CompilationUnit lastSaved;
 
   InteractionContext()
       : super.internal() {
@@ -133,6 +139,10 @@ class InteractionContext extends InteractionManager {
 
   void onProjectFileSelected(String projectFile) {
     return state.onProjectFileSelected(projectFile);
+  }
+
+  void onProjectFileFsEvent(MessageEvent e) {
+    return state.onProjectFileFsEvent(e);
   }
 }
 
@@ -309,9 +319,11 @@ class InitialState extends InteractionState {
   }
 
   void postProjectFileUpdate(CompilationUnit unit) {
+    context.lastSaved = unit;
     onError(ProgressEvent event) {
       HttpRequest request = event.target;
-      window.alert("Couldn't save '${unit.name}': ${request.responseText}");
+      statusDiv.text = "Couldn't save '${unit.name}': ${request.responseText}";
+      context.lastSaved = null;
     }
     new HttpRequest()
         ..open("POST", "/project/${unit.name}")
@@ -322,9 +334,7 @@ class InitialState extends InteractionState {
   Future<List<String>> projectFileNames() {
     return getString('project?list').then((String response) {
       WebSocket socket = new WebSocket('ws://127.0.0.1:9090/ws/watch');
-      socket.onMessage.listen((MessageEvent e) {
-        print(e.data);
-      });
+      socket.onMessage.listen(context.onProjectFileFsEvent);
       return new List<String>.from(JSON.decode(response));
     });
   }
@@ -371,6 +381,22 @@ class InitialState extends InteractionState {
   }
 
   void transitionToInitialState() {}
+
+  void onProjectFileFsEvent(MessageEvent e) {
+    Map map = JSON.decode(e.data);
+    List modified = map['modify'];
+    if (modified == null) return;
+    for (String name in modified) {
+      if (context.lastSaved != null && context.lastSaved.name == name) {
+        context.lastSaved = null;
+        continue;
+      }
+      if (context.currentCompilationUnit.name == name) {
+        mainEditorPane.contentEditable = false;
+        statusDiv.text = 'Modified on disk';
+      }
+    }
+  }
 }
 
 Future<String> getString(uri) {
