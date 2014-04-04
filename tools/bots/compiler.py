@@ -136,7 +136,7 @@ def GetBuildInfo(builder_name, is_buildbot):
 
 
 def NeedsXterm(compiler, runtime):
-  return runtime in ['ie9', 'ie10', 'ie11', 'chrome', 'safari', 'opera', 
+  return runtime in ['ie9', 'ie10', 'ie11', 'chrome', 'safari', 'opera',
                      'ff', 'drt', 'dartium']
 
 
@@ -262,9 +262,13 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags, arch)
 
-  if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
+  if compiler == 'dart2js' and runtime in ['ie10']:
     TestStep(compiler, mode, system, compiler, runtime,
              ['html', 'pkg', 'samples'], flags, arch)
+  elif compiler == 'dart2js' and runtime in ['ie11']:
+    #TODO(efortuna): Remove this branch.
+    TestStep(compiler, mode, system, compiler, runtime,
+             ['html', 'pkg', 'samples', 'language'], flags, arch)
   else:
     # Run the default set of test suites.
     TestStep(compiler, mode, system, compiler,
