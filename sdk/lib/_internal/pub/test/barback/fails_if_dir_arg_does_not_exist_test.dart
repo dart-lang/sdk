@@ -19,7 +19,6 @@ main() {
         d.file("file.txt", "contents")
       ])
     ]).create();
-
   });
 
   pubBuildAndServeShouldFail("if a specified directory doesn't exist",

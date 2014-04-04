@@ -18,7 +18,6 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
-import '../utils.dart';
 import 'admin_server.dart';
 import 'build_directory.dart';
 import 'dart_forwarding_transformer.dart';
@@ -168,6 +167,16 @@ class BuildEnvironment {
         log.fine('Already serving $rootDirectory on ${server.url}.');
         return server;
       });
+    }
+
+    // See if the new directory overlaps any existing servers.
+    var overlapping = _directories.keys.where((directory) =>
+        path.isWithin(directory, rootDirectory) ||
+        path.isWithin(rootDirectory, directory)).toList();
+
+    if (overlapping.isNotEmpty) {
+      return new Future.error(
+          new OverlappingSourceDirectoryException(overlapping));
     }
 
     var port = _basePort;
@@ -667,6 +676,16 @@ void _log(LogEntry entry) {
       log.fine("${log.gray(prefix)}\n$message");
       break;
   }
+}
+
+/// Exception thrown when trying to serve a new directory that overlaps one or
+/// more directories already being served.
+class OverlappingSourceDirectoryException implements Exception {
+  /// The relative paths of the directories that overlap the one that could not
+  /// be served.
+  final List<String> overlappingDirectories;
+
+  OverlappingSourceDirectoryException(this.overlappingDirectories);
 }
 
 /// An enum describing different modes of constructing a [DirectoryWatcher].

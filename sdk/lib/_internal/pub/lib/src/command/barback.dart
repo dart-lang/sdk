@@ -112,6 +112,24 @@ abstract class BarbackCommand extends PubCommand {
     if (missing.isNotEmpty) {
       dataError(_directorySentence(missing, "does", "do", "not exist"));
     }
+
+    // Make sure the directories don't overlap.
+    var sources = sourceDirectories.toList();
+    var overlapping = new Set();
+    for (var i = 0; i < sources.length; i++) {
+      for (var j = i + 1; j < sources.length; j++) {
+        if (path.isWithin(sources[i], sources[j]) ||
+            path.isWithin(sources[j], sources[i])) {
+          overlapping.add(sources[i]);
+          overlapping.add(sources[j]);
+        }
+      }
+    }
+
+    if (overlapping.isNotEmpty) {
+      usageError(_directorySentence(overlapping, "cannot", "cannot",
+          "overlap"));
+    }
   }
 
   /// Handles "--all" by adding all default source directories that are

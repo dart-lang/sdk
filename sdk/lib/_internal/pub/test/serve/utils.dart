@@ -365,13 +365,21 @@ Future<Map> expectWebSocketResult(String method, Map params, result) {
 /// the error message is checked against [errorMessage]. Either of these may be
 /// matchers.
 ///
+/// If [data] is provided, it is a JSON value or matcher used to validate the
+/// "data" value of the error response.
+///
 /// Returns a [Future] that completes to the error's [data] field.
 Future expectWebSocketError(String method, Map params, errorCode,
-    errorMessage) {
+    errorMessage, {data}) {
   return schedule(() {
     return webSocketRequest(method, params).then((response) {
       expect(response["error"]["code"], errorCode);
       expect(response["error"]["message"], errorMessage);
+
+      if (data != null) {
+        expect(response["error"]["data"], data);
+      }
+
       return response["error"]["data"];
     });
   }, "send $method with $params to web socket and expect error $errorCode");

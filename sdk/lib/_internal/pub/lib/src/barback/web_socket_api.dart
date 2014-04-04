@@ -10,10 +10,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
+import '../utils.dart';
 import 'build_environment.dart';
-
-/// The error code for a directory not being served.
-const _NOT_SERVED = 1;
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
@@ -97,7 +95,7 @@ class WebSocketApi {
 
     return _environment.getAssetIdForUrl(url).then((id) {
       if (id == null) {
-        throw new json_rpc.RpcException(_NOT_SERVED,
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
             '"${url.host}:${url.port}" is not being served by pub.');
       }
 
@@ -174,7 +172,7 @@ class WebSocketApi {
 
     return _environment.getUrlsForAssetPath(assetPath).then((urls) {
       if (urls.isEmpty) {
-        throw new json_rpc.RpcException(_NOT_SERVED,
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
             'Asset path "$assetPath" is not currently being served.');
       }
 
@@ -215,6 +213,19 @@ class WebSocketApi {
       return {
         "url": server.url.toString()
       };
+    }).catchError((error) {
+      if (error is! OverlappingSourceDirectoryException) throw error;
+
+      var dir = pluralize("directory", error.overlappingDirectories.length,
+          plural: "directories");
+      var overlapping = toSentence(error.overlappingDirectories.map(
+          (dir) => '"$dir"'));
+      print("data: ${error.overlappingDirectories}");
+      throw new json_rpc.RpcException(_Error.OVERLAPPING,
+          'Path "$rootDirectory" overlaps already served $dir $overlapping.',
+          data: {
+            "directories": error.overlappingDirectories
+          });
     });
   }
 
@@ -242,7 +253,7 @@ class WebSocketApi {
     var rootDirectory = _validateRelativePath(params, "path");
     return _environment.unserveDirectory(rootDirectory).then((url) {
       if (url == null) {
-        throw new json_rpc.RpcException(_NOT_SERVED,
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
             'Directory "$rootDirectory" is not bound to a server.');
       }
 
@@ -272,4 +283,14 @@ class WebSocketApi {
 
     return pathString;
   }
+}
+
+
+/// The pub-specific JSON RPC error codes.
+class _Error {
+  /// The specified directory is not being served.
+  static const NOT_SERVED = 1;
+
+  /// The specified directory overlaps one or more ones already being served.
+  static const OVERLAPPING = 2;
 }
