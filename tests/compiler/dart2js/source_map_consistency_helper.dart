@@ -22,6 +22,10 @@ checkConsistency(Uri outUri) {
   SingleMapping sourceMap = new SingleMapping.fromJson(
       JSON.decode(mapFile.readAsStringSync()));
   Expect.equals(outUri, mapUri.resolve(sourceMap.targetUrl));
+  print('Checking sources');
+  sourceMap.urls.forEach((String url) {
+    Expect.isTrue(new File.fromUri(mapUri.resolve(url)).existsSync());
+  });
 }
 
 String getMapReferenceFromJsOutput(String file) {
