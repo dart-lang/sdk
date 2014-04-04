@@ -924,6 +924,8 @@ abstract class HttpRequest implements Stream<List<int>> {
 
   /**
    * The request headers.
+   *
+   * The returned [HttpHeaders] are immutable.
    */
   HttpHeaders get headers;
 
@@ -1044,12 +1046,20 @@ abstract class HttpResponse implements IOSink {
    * the official HTTP status codes use the fields from
    * [HttpStatus]. If no status code is explicitly set the default
    * value [HttpStatus.OK] is used.
+   *
+   * The status code must be set before the body is written
+   * to. Setting the status code after writing to the response body or
+   * closing the response will throw a `StateError`.
    */
   int statusCode;
 
   /**
    * Gets and sets the reason phrase. If no reason phrase is explicitly
    * set a default reason phrase is provided.
+   *
+   * The reason phrase must be set before the body is written
+   * to. Setting the reason phrase after writing to the response body
+   * or closing the response will throw a `StateError`.
    */
   String reasonPhrase;
 
@@ -1074,6 +1084,9 @@ abstract class HttpResponse implements IOSink {
 
   /**
    * Returns the response headers.
+   *
+   * The response headers can be modified until the response body is
+   * written to or closed. After that they become immutable.
    */
   HttpHeaders get headers;
 
@@ -1551,7 +1564,11 @@ abstract class HttpClientRequest implements IOSink {
   int contentLength;
 
   /**
-   * Returns the request headers.
+   * Returns the client request headers.
+   *
+   * The client request headers can be modified until the client
+   * request body is written to or closed. After that they become
+   * immutable.
    */
   HttpHeaders get headers;
 
@@ -1598,22 +1615,38 @@ abstract class HttpClientRequest implements IOSink {
 abstract class HttpClientResponse implements Stream<List<int>> {
   /**
    * Returns the status code.
+   *
+   * The status code must be set before the body is written
+   * to. Setting the status code after writing to the body will throw
+   * a `StateError`.
    */
   int get statusCode;
 
   /**
    * Returns the reason phrase associated with the status code.
+   *
+   * The reason phrase must be set before the body is written
+   * to. Setting the reason phrase after writing to the body will throw
+   * a `StateError`.
    */
   String get reasonPhrase;
 
   /**
    * Returns the content length of the response body. Returns -1 if the size of
    * the response body is not known in advance.
+   *
+   * If the content length needs to be set, it must be set before the
+   * body is written to. Setting the reason phrase after writing to
+   * the body will throw a `StateError`.
    */
   int get contentLength;
 
   /**
    * Gets the persistent connection state returned by the server.
+   *
+   * if the persistent connection state needs to be set, it must be
+   * set before the body is written to. Setting the reason phrase
+   * after writing to the body will throw a `StateError`.
    */
   bool get persistentConnection;
 
@@ -1654,7 +1687,9 @@ abstract class HttpClientResponse implements Stream<List<int>> {
 
 
   /**
-   * Returns the response headers.
+   * Returns the client response headers.
+   *
+   * The client response headers are immutable.
    */
   HttpHeaders get headers;
 
