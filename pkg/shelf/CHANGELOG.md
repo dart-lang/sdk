@@ -1,3 +1,9 @@
+## 0.3.0+9
+
+* Removed old testing infrastructure.
+
+* Updated documentation address.
+
 ## 0.3.0+8
 
 * Added a dependency on the `http_parser` package.
