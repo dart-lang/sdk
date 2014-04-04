@@ -349,6 +349,7 @@
     'snapshot.h',
     'snapshot_ids.h',
     'snapshot_test.cc',
+    'spaces.h',
     'stack_frame.cc',
     'stack_frame.h',
     'stack_frame_arm.h',

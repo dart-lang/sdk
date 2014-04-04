@@ -11,6 +11,7 @@
 #include "vm/globals.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
+#include "vm/spaces.h"
 #include "vm/weak_table.h"
 
 namespace dart {
@@ -258,12 +259,8 @@ class Heap {
     public:
       Data() {}
       int64_t micros_;
-      intptr_t new_used_in_words_;
-      intptr_t new_capacity_in_words_;
-      intptr_t new_external_in_words_;
-      intptr_t old_used_in_words_;
-      intptr_t old_capacity_in_words_;
-      intptr_t old_external_in_words_;
+      SpaceUsage new_;
+      SpaceUsage old_;
     private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
