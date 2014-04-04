@@ -52,6 +52,8 @@ class RpcException implements Exception {
       modifiedData['request'] = request;
     } else if (data == null) {
       modifiedData = {'request': request};
+    } else {
+      modifiedData = data;
     }
 
     var id = request is Map ? request['id'] : null;

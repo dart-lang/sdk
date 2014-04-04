@@ -8,9 +8,10 @@ import 'package:unittest/unittest.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 void expectErrorResponse(json_rpc.Server server, request, int errorCode,
-    String message) {
+    String message, {data}) {
   var id;
   if (request is Map) id = request['id'];
+  if (data == null) data = {'request': request};
 
   expect(server.handleRequest(request), completion(equals({
     'jsonrpc': '2.0',
@@ -18,7 +19,7 @@ void expectErrorResponse(json_rpc.Server server, request, int errorCode,
     'error': {
       'code': errorCode,
       'message': message,
-      'data': {'request': request}
+      'data': data
     }
   })));
 }
