@@ -217,8 +217,6 @@ factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
 factory_redirection_test/09: Fail # Issue 12753
 
-malbounded_type_literal_test: Fail # Issue 13960
-
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail

@@ -45,6 +45,8 @@ class DartBackend extends Backend {
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
+  final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
+
   /**
    * Tells whether it is safe to remove type declarations from variables,
    * functions parameters. It becomes not safe if:
@@ -297,6 +299,16 @@ class DartBackend extends Backend {
         }
       }
     });
+    Set<ClassElement> emitNoMembersFor = new Set<ClassElement>();
+    usedTypeLiterals.forEach((ClassElement element) {
+      if (shouldOutput(element)) {
+        if (!topLevelElements.contains(element)) {
+          // The class is only referenced by type literals.
+          emitNoMembersFor.add(element);
+        }
+        addClass(element);
+      }
+    });
 
     // Add synthesized constructors to classes with no resolved constructors,
     // but which originally had any constructor.  That should prevent
@@ -306,6 +318,7 @@ class DartBackend extends Backend {
 
     NextClassElement:
     for (ClassElement classElement in classMembers.keys) {
+      if (emitNoMembersFor.contains(classElement)) continue;
       for (Element member in classMembers[classElement]) {
         if (member.isConstructor()) continue NextClassElement;
       }
@@ -381,7 +394,7 @@ class DartBackend extends Backend {
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
-        if (topLevel.isClass()) {
+        if (topLevel.isClass() && !emitNoMembersFor.contains(topLevel)) {
           // TODO(antonm): add some class info.
           sortedClassMembers[topLevel].forEach(outputElement);
         } else {
@@ -451,6 +464,14 @@ class DartBackend extends Backend {
       });
     }
     return new Future.value();
+  }
+
+  void registerTypeLiteral(Element element,
+                           Enqueuer enqueuer,
+                           TreeElements elements) {
+    if (element.isClass()) {
+      usedTypeLiterals.add(element);
+    }
   }
 
   void registerStaticSend(Element element, Node node) {

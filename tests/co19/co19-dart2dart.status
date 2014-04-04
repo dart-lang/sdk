@@ -21,7 +21,6 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
-Language/12_Expressions/01_Constants_A20_t05: CompileTimeError # co19-roll r667: Please triage this failure
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A07_t02: RuntimeError # co19-roll r667: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A07_t03: RuntimeError # co19-roll r667: Please triage this failure
@@ -93,7 +92,6 @@ Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage
 Language/05_Variables/05_Variables_A11_t01: fail
 Language/07_Classes/6_Constructors/2_Factories_A10_t01: crash # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t04: crash # co19-roll r587: Please triage this failure
-Language/12_Expressions/01_Constants_A20_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
@@ -105,8 +103,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t04: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/22_Equality_A01_t19: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/22_Equality_A01_t20: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/27_Unary_Expressions_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
