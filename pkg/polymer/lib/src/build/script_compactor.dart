@@ -529,8 +529,11 @@ class _SubExpressionVisitor extends pe.RecursiveVisitor {
 
   void preVisitExpression(e) {
     // For two-way bindings the outermost expression may be updated, so we need
-    // both the getter and the setter, but subexpressions only need the getter.
-    // So we exclude setters as soon as we go deeper in the tree.
+    // both the getter and the setter, but we only need the getter for
+    // subexpressions. We exclude setters as soon as we go deeper in the tree,
+    // except when we see a filter (that can potentially be a two-way
+    // transformer).
+    if (e is pe.BinaryOperator && e.operator == '|') return;
     _includeSetter = false;
   }
 

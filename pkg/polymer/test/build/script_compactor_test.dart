@@ -305,6 +305,7 @@ codegenTests(phases) {
           '<div data-attribute="{{anotherAttribute}}"></div>'
           // input and custom-element attributes are treated as 2-way bindings:
           '<input value="{{this.is.twoWay}}">'
+          '<input value="{{this.is.twoWayInt | intToStringTransformer}}">'
           '<something-else my-attribute="{{here.too}}"></something-else>'
           '<div on-click="{{methodName}}"></div>'
           '<div on-click="{{@read.method}}"></div>'
@@ -331,6 +332,7 @@ codegenTests(phases) {
                   #anotherNode: (o) => o.anotherNode,
                   #attribute: (o) => o.attribute,
                   #here: (o) => o.here,
+                  #intToStringTransformer: (o) => o.intToStringTransformer,
                   #is: (o) => o.is,
                   #method: (o) => o.method,
                   #methodName: (o) => o.methodName,
@@ -338,11 +340,13 @@ codegenTests(phases) {
                   #read: (o) => o.read,
                   #too: (o) => o.too,
                   #twoWay: (o) => o.twoWay,
+                  #twoWayInt: (o) => o.twoWayInt,
                   #within: (o) => o.within,
                 },
                 setters: {
                   #too: (o, v) { o.too = v; },
                   #twoWay: (o, v) { o.twoWay = v; },
+                  #twoWayInt: (o, v) { o.twoWayInt = v; },
                 },
                 names: {
                   #a: r'a',
@@ -351,6 +355,7 @@ codegenTests(phases) {
                   #anotherNode: r'anotherNode',
                   #attribute: r'attribute',
                   #here: r'here',
+                  #intToStringTransformer: r'intToStringTransformer',
                   #is: r'is',
                   #method: r'method',
                   #methodName: r'methodName',
@@ -358,6 +363,7 @@ codegenTests(phases) {
                   #read: r'read',
                   #too: r'too',
                   #twoWay: r'twoWay',
+                  #twoWayInt: r'twoWayInt',
                   #within: r'within',
                 }));
             configureForDeployment([
