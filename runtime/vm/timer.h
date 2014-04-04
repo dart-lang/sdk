@@ -5,6 +5,7 @@
 #ifndef VM_TIMER_H_
 #define VM_TIMER_H_
 
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -17,8 +18,9 @@ class JSONObject;
 class Timer : public ValueObject {
  public:
   Timer(bool report, const char* message)
-      : start_(0), stop_(0), total_(0),
-        report_(report), running_(false), message_(message) {}
+      : report_(report), message_(message) {
+    Reset();
+  }
   ~Timer() {}
 
   // Start timer.
@@ -32,7 +34,9 @@ class Timer : public ValueObject {
     ASSERT(start_ != 0);
     ASSERT(running());
     stop_ = OS::GetCurrentTimeMicros();
-    total_ += ElapsedMicros();
+    int64_t elapsed = ElapsedMicros();
+    max_contiguous_ = Utils::Maximum(max_contiguous_, elapsed);
+    total_ += elapsed;
     running_ = false;
   }
 
@@ -46,10 +50,20 @@ class Timer : public ValueObject {
     return result;
   }
 
+  int64_t MaxContiguous() const {
+    int64_t result = max_contiguous_;
+    if (running_) {
+      int64_t now = OS::GetCurrentTimeMicros();
+      result = Utils::Maximum(result, now - start_);
+    }
+    return result;
+  }
+
   void Reset() {
     start_ = 0;
     stop_ = 0;
     total_ = 0;
+    max_contiguous_ = 0;
     running_ = false;
   }
 
@@ -68,6 +82,7 @@ class Timer : public ValueObject {
   int64_t start_;
   int64_t stop_;
   int64_t total_;
+  int64_t max_contiguous_;
   bool report_;
   bool running_;
   const char* message_;
@@ -84,6 +99,7 @@ class Timer : public ValueObject {
   V(time_bootstrap, "Bootstrap of core classes")                               \
   V(time_dart_execution, "Dart execution")                                     \
   V(time_total_runtime, "Total runtime for isolate")                           \
+  V(time_gc, "Garbage collection")                                             \
 
 // Maintains a list of timers per isolate.
 class TimerList : public ValueObject {

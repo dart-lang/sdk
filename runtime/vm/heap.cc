@@ -205,6 +205,7 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
@@ -263,6 +264,7 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_gc);
   {
     VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
     RecordBeforeGC(kNew, kFull);
