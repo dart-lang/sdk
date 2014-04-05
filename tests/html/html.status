@@ -22,6 +22,9 @@ custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+xhr_test/xhr: Pass, RuntimeError # Issue 18049
+
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 

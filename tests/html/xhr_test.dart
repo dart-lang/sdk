@@ -183,7 +183,7 @@ main() {
         xhr.send(new Uint8List.view(data.buffer));
 
         return xhr.onLoad.first.then((_) {
-          expect(progressCalled, isTrue);
+          expect(progressCalled, isTrue, reason: 'onProgress should be fired');
         });
       });
     }
