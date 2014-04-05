@@ -8,12 +8,6 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-void fail(message) {
-  guardAsync(() {
-    expect(false, isTrue, reason: message);
-  });
-}
-
 void main() {
   // TODO(efortuna): This is a bad test. Revisit when we have tests that can run
   // both a server and fire up a browser.
@@ -79,7 +73,7 @@ void main() {
             '${window.location.protocol}//${window.location.host}/echo');
 
         xhr.onLoad.listen(expectAsync((e) {
-          expect(xhr.responseText.contains(blobString), true);
+          expect(xhr.responseText, contains(blobString));
         }));
         xhr.onError.listen((e) {
           fail('$e');

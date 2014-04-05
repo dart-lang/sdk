@@ -350,9 +350,7 @@ main() {
         expectPixelUnfilled(70, 70);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -375,9 +373,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -412,9 +408,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -494,9 +488,7 @@ main() {
       }));
 
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -523,9 +515,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -554,9 +544,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -592,9 +580,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {

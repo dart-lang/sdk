@@ -5,12 +5,6 @@ import 'dart:web_sql';
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 
-void fail(message) {
-  guardAsync(() {
-      expect(false, isTrue, reason: message);
-    });
-}
-
 Future<SqlTransaction> transaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>.sync();
 

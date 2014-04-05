@@ -41,9 +41,7 @@ main() {
       expect(img.complete, true);
     }));
     img.onError.listen((_) {
-      guardAsync(() {
-        expect(true, isFalse, reason: 'URL failed to load.');
-      });
+      fail('URL failed to load.');
     });
     img.src = url;
   });

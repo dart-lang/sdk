@@ -10,12 +10,6 @@ import 'dart:typed_data';
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
-void fail(message) {
-  guardAsync(() {
-    expect(false, isTrue, reason: message);
-  });
-}
-
 main() {
   useHtmlIndividualConfiguration();
   // Cache blocker is a workaround for:
@@ -59,7 +53,7 @@ main() {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
       xhr.open("GET", "NonExistingFile", async: true);
-      xhr.onReadyStateChange.listen(expectAsyncUntil1((event) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil((event) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate404(xhr);
         }
@@ -72,7 +66,7 @@ main() {
 
       var xhr = new HttpRequest();
       xhr.open('GET', url, async: true);
-      xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
 

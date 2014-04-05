@@ -54,14 +54,10 @@ main() {
       final msg1 = 'foo';
       final msg2 = 'bar';
       sendReceive(port, msg1).then((response) {
-        guardAsync(() {
-          expect(response, equals(responseFor(msg1)));
-          sendReceive(port, msg2).then((response) {
-            guardAsync(() {
-              expect(response, equals(responseFor(msg2)));
-              callback();
-            });
-          });
+        expect(response, equals(responseFor(msg1)));
+        sendReceive(port, msg2).then((response) {
+          expect(response, equals(responseFor(msg2)));
+          callback();
         });
       });
     });

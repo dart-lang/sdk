@@ -90,11 +90,9 @@ main() {
         expect(data, isMap);
       });
       xhr.onReadyStateChange.listen((e) {
-        guardAsync(() {
-          if (xhr.readyState == HttpRequest.DONE) {
-            validate(JSON.decode(xhr.response));
-          }
-        });
+        if (xhr.readyState == HttpRequest.DONE) {
+          validate(JSON.decode(xhr.response));
+        }
       });
       xhr.send();
     });

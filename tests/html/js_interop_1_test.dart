@@ -21,7 +21,7 @@ main() {
   test('js-to-dart-post-message', () {
     var subscription = null;
     var complete = false;
-    subscription = window.onMessage.listen(expectAsyncUntil1(
+    subscription = window.onMessage.listen(expectAsyncUntil(
         (e) {
           if (e.data == 'hello') {
             subscription.cancel();

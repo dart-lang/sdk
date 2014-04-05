@@ -46,9 +46,7 @@ main() {
         expect(img.complete, true);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          expect(true, isFalse, reason: 'URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = url;
     });
@@ -64,9 +62,7 @@ main() {
       img.onError.listen(expectAsync((_) {
       }));
       img.onLoad.listen((_) {
-        guardAsync(() {
-          expect(true, isFalse, reason: 'URL should not have loaded.');
-        });
+        fail('URL should not have loaded.');
       });
       img.src = url;
     });
