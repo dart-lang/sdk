@@ -157,6 +157,16 @@ class JsonCodec extends Codec<Object, String> {
  * This class converts JSON objects to strings.
  */
 class JsonEncoder extends Converter<Object, String> {
+  /**
+   * The string used for indention.
+   *
+   * When generating multi-line output, this string is inserted once at the
+   * beginning of each indented line for each level of indentation.
+   *
+   * If `null`, the output is encoded as a single line.
+   */
+  final String indent;
+
   final _toEncodableFunction;
 
   /**
@@ -172,10 +182,33 @@ class JsonEncoder extends Converter<Object, String> {
    * the object.
    */
   const JsonEncoder([Object toEncodable(Object nonSerializable)])
+      : this.indent = null,
+        this._toEncodableFunction = toEncodable;
+
+  /**
+   * Creates a JSON encoder that creates multi-line JSON.
+   *
+   * The encoding of elements of lists and maps are indented and put on separate
+   * lines. The [indent] string is prepended to these elements, once for each
+   * level of indentation.
+   *
+   * If [indent] is `null`, the output is encoded as a single line.
+   *
+   * The JSON encoder handles numbers, strings, booleans, null, lists and
+   * maps directly.
+   *
+   * Any other object is attempted converted by [toEncodable] to an
+   * object that is of one of the convertible types.
+   *
+   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
+   * the object.
+   */
+  const JsonEncoder.withIndent(this.indent,
+      [Object toEncodable(Object nonSerializable)])
       : this._toEncodableFunction = toEncodable;
 
   /**
-   * Converts the given object [o] to its JSON representation.
+   * Converts [object] to a JSON [String].
    *
    * Directly serializable values are [num], [String], [bool], and [Null], as
    * well as some [List] and [Map] values.
@@ -196,13 +229,14 @@ class JsonEncoder extends Converter<Object, String> {
    * other lists or maps, it cannot be serialized and a [JsonCyclicError] is
    * thrown.
    *
-   * Json Objects should not change during serialization.
-   * If an object is serialized more than once, [stringify] is allowed to cache
-   * the JSON text for it. I.e., if an object changes after it is first
-   * serialized, the new values may or may not be reflected in the result.
+   * [object] should not change during serialization.
+   *
+   * If an object is serialized more than once, [convert] may cache the text
+   * for it. In other words, if the content of an object changes after it is
+   * first serialized, the new values may not be reflected in the result.
    */
-  String convert(Object o) =>
-      _JsonStringifier.stringify(o, _toEncodableFunction);
+  String convert(Object object) =>
+      _JsonStringifier.stringify(object, _toEncodableFunction, indent);
 
   /**
    * Starts a chunked conversion.
@@ -217,7 +251,7 @@ class JsonEncoder extends Converter<Object, String> {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }
-    return new _JsonEncoderSink(sink, _toEncodableFunction);
+    return new _JsonEncoderSink(sink, _toEncodableFunction, indent);
   }
 
   // Override the base-classes bind, to provide a better type.
@@ -230,11 +264,12 @@ class JsonEncoder extends Converter<Object, String> {
  * The sink only accepts one value, but will produce output in a chunked way.
  */
 class _JsonEncoderSink extends ChunkedConversionSink<Object> {
+  final String _indent;
   final Function _toEncodableFunction;
   final StringConversionSink _sink;
   bool _isDone = false;
 
-  _JsonEncoderSink(this._sink, this._toEncodableFunction);
+  _JsonEncoderSink(this._sink, this._toEncodableFunction, this._indent);
 
   /**
    * Encodes the given object [o].
@@ -249,7 +284,7 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object> {
     }
     _isDone = true;
     ClosableStringSink stringSink = _sink.asStringSink();
-    _JsonStringifier.printOn(o, stringSink, _toEncodableFunction);
+    _JsonStringifier.printOn(o, stringSink, _toEncodableFunction, _indent);
     stringSink.close();
   }
 
@@ -353,19 +388,25 @@ class _JsonStringifier {
   final StringSink _sink;
   final List _seen;
 
-  _JsonStringifier(this._sink, this._toEncodable)
+  factory _JsonStringifier(StringSink sink, Function toEncodable,
+      String indent) {
+    if (indent == null) return new _JsonStringifier._(sink, toEncodable);
+    return new _JsonStringifierPretty(sink, toEncodable, indent);
+  }
+
+  _JsonStringifier._(this._sink, this._toEncodable)
       : this._seen = new List();
 
-  static String stringify(object, toEncodable(object)) {
+  static String stringify(object, toEncodable(object), String indent) {
     if (toEncodable == null) toEncodable = _defaultToEncodable;
     StringBuffer output = new StringBuffer();
-    printOn(object, output, toEncodable);
+    printOn(object, output, toEncodable, indent);
     return output.toString();
   }
 
-  static void printOn(object, StringSink output, toEncodable(object)) {
-    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
-    stringifier.stringifyValue(object);
+  static void printOn(object, StringSink output, toEncodable(object),
+      String indent) {
+    new _JsonStringifier(output, toEncodable, indent).stringifyValue(object);
   }
 
   static String numberToString(num x) {
@@ -513,5 +554,81 @@ class _JsonStringifier {
     assert(!_seen.isEmpty);
     assert(identical(_seen.last, object));
     _seen.removeLast();
+  }
+}
+
+/**
+ * A subclass of [_JsonStringifier] which indents the contents of [List] and
+ * [Map] objects using the specified indent value.
+ */
+class _JsonStringifierPretty extends _JsonStringifier {
+  final String _indent;
+
+  int _indentLevel = 0;
+
+  _JsonStringifierPretty(_sink, _toEncodable, this._indent)
+      : super._(_sink, _toEncodable);
+
+  void _write([String value = '']) {
+    _sink.write(_indent * _indentLevel);
+    _sink.write(value);
+  }
+
+  /**
+   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
+   *
+   * Returns true if the value is one of these types, and false if not.
+   * If a value is both a [List] and a [Map], it's serialized as a [List].
+   */
+  bool stringifyJsonValue(final object) {
+    if (object is List) {
+      checkCycle(object);
+      List a = object;
+      if (a.isEmpty) {
+        _sink.write('[]');
+      } else {
+        _sink.writeln('[');
+        _indentLevel++;
+        _write();
+        stringifyValue(a[0]);
+        for (int i = 1; i < a.length; i++) {
+          _sink.writeln(',');
+          _write();
+          stringifyValue(a[i]);
+        }
+        _sink.writeln();
+        _indentLevel--;
+        _write(']');
+      }
+      _seen.remove(object);
+      return true;
+    } else if (object is Map) {
+      checkCycle(object);
+      Map<String, Object> m = object;
+      if (m.isEmpty) {
+        _sink.write('{}');
+      } else {
+        _sink.write('{');
+        _sink.writeln();
+        _indentLevel++;
+        bool first = true;
+        m.forEach((String key, Object value) {
+          if (!first) {
+            _sink.writeln(',');
+          }
+          _write('"');
+          escape(key);
+          _sink.write('": ');
+          stringifyValue(value);
+          first = false;
+        });
+        _sink.writeln();
+        _indentLevel--;
+        _write('}');
+      }
+      _seen.remove(object);
+      return true;
+    }
+    return super.stringifyJsonValue(object);
   }
 }
