@@ -6,6 +6,10 @@ impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
 #### Pub version 0.10.0-dev
+  * initPolymer is now deprecated: no need to call it or to include init.dart,
+    instead include `<link rel="import" href="packages/polymer/polymer.html">`
+  * Mime-type of script tags needs to change to prepare for upcoming breaking
+    change in Dartium: use `<script type="application/dart;component=1">`.
   * The output of pub-build no longer uses mirrors. We replace all uses of
     mirrors with code generation.
   * Interop with polymer-js elements now works.
@@ -17,9 +21,7 @@ and template_binding.
   * New feature: `@ObserveProperty('foo bar.baz') myMethod() {...}` will cause
     myMethod to be called when "foo" or "bar.baz" changes.
   * Updated for 0.10.0-dev package:observe and package:template_binding changes.
-  * Deploy step removes use of mirrors to initialize polymer elements. Mirrors
-    are still used for @published and for polymer-expressions.
-    **breaking change**: @initMethod and @CustomTag are only supported on
+  * **breaking change**: @initMethod and @CustomTag are only supported on
     public classes/methods.
 
 #### Pub version 0.9.5
