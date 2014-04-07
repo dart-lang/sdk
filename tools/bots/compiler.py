@@ -262,13 +262,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags, arch)
 
-  if compiler == 'dart2js' and runtime in ['ie10']:
+  if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
     TestStep(compiler, mode, system, compiler, runtime,
              ['html', 'pkg', 'samples'], flags, arch)
-  elif compiler == 'dart2js' and runtime in ['ie11']:
-    #TODO(efortuna): Remove this branch.
-    TestStep(compiler, mode, system, compiler, runtime,
-             ['html', 'pkg', 'samples', 'language'], flags, arch)
   else:
     # Run the default set of test suites.
     TestStep(compiler, mode, system, compiler,
