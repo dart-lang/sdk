@@ -20,9 +20,6 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
-# Issue 17521
-deferred_constraints_constants_test/default_argument2: Fail
-
 # These test use the old syntax, and will be phased out.
 deferred_constraints_constants_old_syntax_test/reference1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/reference2: Fail, Ok

@@ -2007,9 +2007,9 @@ AstNode* Parser::ParseSuperOperator() {
 }
 
 
-AstNode* Parser::CreateImplicitClosureNode(const Function& func,
-                                           intptr_t token_pos,
-                                           AstNode* receiver) {
+ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
+                                               intptr_t token_pos,
+                                               AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(func.ImplicitClosureFunction());
   if (receiver != NULL) {
@@ -8040,9 +8040,10 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
       return ParseCascades(expr);
     }
-    expr = LiteralIfStaticConst(expr);
     if (require_compiletime_const) {
       expr = FoldConstExpr(expr_pos, expr);
+    } else {
+      expr = LiteralIfStaticConst(expr);
     }
     return expr;
   }
@@ -8392,11 +8393,14 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      return new StaticGetterNode(primary->token_pos(),
-                                  NULL,  // No receiver.
-                                  false,  // Not a super getter.
-                                  Class::ZoneHandle(current_class().raw()),
-                                  name);
+      StaticGetterNode* getter =
+          new StaticGetterNode(primary->token_pos(),
+                               NULL,  // No receiver.
+                               false,  // Not a super getter.
+                               Class::ZoneHandle(current_class().raw()),
+                               name);
+      getter->set_is_deferred(primary->is_deferred_reference());
+      return getter;
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -8408,13 +8412,15 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
 
 AstNode* Parser::LoadClosure(PrimaryNode* primary) {
   ASSERT(primary->primary().IsFunction());
-  AstNode* closure = NULL;
   const Function& func =
       Function::CheckedZoneHandle(primary->primary().raw());
   const String& funcname = String::ZoneHandle(func.name());
   if (func.is_static()) {
     // Static function access.
-    closure = CreateImplicitClosureNode(func, primary->token_pos(), NULL);
+    ClosureNode* closure =
+        CreateImplicitClosureNode(func, primary->token_pos(), NULL);
+    closure->set_is_deferred(primary->is_deferred_reference());
+    return closure;
   } else {
     // Instance function access.
     if (parsing_metadata_) {
@@ -8429,9 +8435,10 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
                funcname.ToCString());
     }
     AstNode* receiver = LoadReceiver(primary->token_pos());
-    closure = CallGetter(primary->token_pos(), receiver, funcname);
+    return CallGetter(primary->token_pos(), receiver, funcname);
   }
-  return closure;
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -9260,28 +9267,46 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
       parsed_function()->AddDeferredPrefix(prefix);
     }
   }
+  const bool is_deferred = prefix.is_deferred_load();
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
     return NULL;
   } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
-    return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+    PrimaryNode* primary =
+        new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+    primary->set_is_deferred(is_deferred);
+    return primary;
   } else if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
     ASSERT(field.is_static());
-    return GenerateStaticFieldLookup(field, ident_pos);
+    AstNode* get_field = GenerateStaticFieldLookup(field, ident_pos);
+    ASSERT(get_field != NULL);
+    ASSERT(get_field->IsLoadStaticFieldNode() ||
+           get_field->IsStaticGetterNode());
+    if (get_field->IsLoadStaticFieldNode()) {
+      get_field->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
+    } else if (get_field->IsStaticGetterNode()) {
+      get_field->AsStaticGetterNode()->set_is_deferred(is_deferred);
+    }
+    return get_field;
   } else if (obj.IsFunction()) {
     const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
-      return new StaticGetterNode(ident_pos,
-                                  /* receiver */ NULL,
-                                  /* is_super_getter */ false,
-                                  Class::ZoneHandle(func.Owner()),
-                                  ident);
-
+      StaticGetterNode* getter =
+          new StaticGetterNode(ident_pos,
+                               /* receiver */ NULL,
+                               /* is_super_getter */ false,
+                               Class::ZoneHandle(func.Owner()),
+                               ident);
+      getter->set_is_deferred(is_deferred);
+      return getter;
     } else {
-      return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+      PrimaryNode* primary =
+          new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+      primary->set_is_deferred(is_deferred);
+      return primary;
     }
   }
   // All possible object types are handled above.

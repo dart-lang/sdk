@@ -440,7 +440,8 @@ class ClosureNode : public AstNode {
       : AstNode(token_pos),
         function_(function),
         receiver_(receiver),
-        scope_(scope) {
+        scope_(scope),
+        is_deferred_reference_(false) {
     ASSERT(function_.IsZoneHandle());
     ASSERT((function_.IsNonImplicitClosureFunction() &&
             (receiver_ == NULL) && (scope_ != NULL)) ||
@@ -453,6 +454,8 @@ class ClosureNode : public AstNode {
   const Function& function() const { return function_; }
   AstNode* receiver() const { return receiver_; }
   LocalScope* scope() const { return scope_; }
+
+  void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     if (receiver() != NULL) {
@@ -470,6 +473,7 @@ class ClosureNode : public AstNode {
   const Function& function_;
   AstNode* receiver_;
   LocalScope* scope_;
+  bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureNode);
 };
@@ -482,11 +486,16 @@ class ClosureNode : public AstNode {
 class PrimaryNode : public AstNode {
  public:
   PrimaryNode(intptr_t token_pos, const Object& primary)
-      : AstNode(token_pos), primary_(primary) {
+      : AstNode(token_pos),
+        primary_(primary),
+        is_deferred_reference_(false) {
     ASSERT(primary_.IsNotTemporaryScopedHandle());
   }
 
   const Object& primary() const { return primary_; }
+
+  void set_is_deferred(bool value) { is_deferred_reference_ = value; }
+  bool is_deferred_reference() const { return is_deferred_reference_; }
 
   bool IsSuper() const {
     return primary().IsString() && (primary().raw() == Symbols::Super().raw());
@@ -498,6 +507,7 @@ class PrimaryNode : public AstNode {
 
  private:
   const Object& primary_;
+  bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PrimaryNode);
 };
@@ -667,7 +677,6 @@ class BinaryOpWithMask32Node : public BinaryOpNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpWithMask32Node);
 };
-
 
 
 class UnaryOpNode : public AstNode {
@@ -1139,11 +1148,12 @@ class StoreInstanceFieldNode : public AstNode {
 class LoadStaticFieldNode : public AstNode {
  public:
   LoadStaticFieldNode(intptr_t token_pos, const Field& field)
-      : AstNode(token_pos), field_(field) {
+      : AstNode(token_pos), field_(field), is_deferred_reference_(false) {
     ASSERT(field_.IsZoneHandle());
   }
 
   const Field& field() const { return field_; }
+  void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
@@ -1155,13 +1165,16 @@ class LoadStaticFieldNode : public AstNode {
 
   virtual const Instance* EvalConstExpr() const {
     ASSERT(field_.is_static());
-    return field_.is_const() ? &Instance::ZoneHandle(field_.value()) : NULL;
+    return !is_deferred_reference_ && field_.is_const()
+        ? &Instance::ZoneHandle(field_.value())
+        : NULL;
   }
 
   DECLARE_COMMON_NODE_FUNCTIONS(LoadStaticFieldNode);
 
  private:
   const Field& field_;
+  bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadStaticFieldNode);
 };
@@ -1385,7 +1398,8 @@ class StaticGetterNode : public AstNode {
         receiver_(receiver),
         cls_(cls),
         field_name_(field_name),
-        is_super_getter_(is_super_getter) {
+        is_super_getter_(is_super_getter),
+        is_deferred_reference_(false) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(field_name_.IsSymbol());
@@ -1401,6 +1415,7 @@ class StaticGetterNode : public AstNode {
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
   bool is_super_getter() const { return is_super_getter_; }
+  void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
@@ -1416,6 +1431,7 @@ class StaticGetterNode : public AstNode {
   const Class& cls_;
   const String& field_name_;
   const bool is_super_getter_;
+  bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticGetterNode);
 };

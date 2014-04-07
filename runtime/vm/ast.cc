@@ -418,7 +418,8 @@ bool ClosureNode::IsPotentiallyConst() const {
 
 
 const Instance* ClosureNode::EvalConstExpr() const {
-  if (function().IsImplicitStaticClosureFunction()) {
+  if (!is_deferred_reference_ &&
+      function().IsImplicitStaticClosureFunction()) {
     // Return a value that represents an instance. Only the type is relevant.
     return &Instance::Handle();
   }
@@ -562,6 +563,9 @@ AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 bool StaticGetterNode::IsPotentiallyConst() const {
+  if (is_deferred_reference_) {
+    return false;
+  }
   const String& getter_name =
       String::Handle(Field::GetterName(this->field_name()));
   const Function& getter_func =
@@ -574,6 +578,9 @@ bool StaticGetterNode::IsPotentiallyConst() const {
 
 
 const Instance* StaticGetterNode::EvalConstExpr() const {
+  if (is_deferred_reference_) {
+    return NULL;
+  }
   const String& getter_name =
       String::Handle(Field::GetterName(this->field_name()));
   const Function& getter_func =

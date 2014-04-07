@@ -437,9 +437,9 @@ class Parser : public ValueObject {
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array& default_values);
-  AstNode* CreateImplicitClosureNode(const Function& func,
-                                     intptr_t token_pos,
-                                     AstNode* receiver);
+  ClosureNode* CreateImplicitClosureNode(const Function& func,
+                                         intptr_t token_pos,
+                                         AstNode* receiver);
   static void AddFormalParamsToFunction(const ParamList* params,
                                         const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
