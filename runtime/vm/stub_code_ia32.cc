@@ -741,9 +741,11 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // EAX: Function.
   // EDX: Arguments descriptor array.
-  __ movl(ECX, FieldAddress(EBX, Code::instructions_offset()));
-  __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(ECX);
+  // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ xorl(ECX, ECX);
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EBX);
 
   __ Bind(&not_closure);
   // Call runtime to attempt to resolve and invoke a call method on a

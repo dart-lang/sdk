@@ -872,6 +872,9 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ lw(CTX, FieldAddress(T1, Closure::context_offset()));
 
   // Load closure function code in T2.
+  // S4: arguments descriptor array.
+  // S5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ LoadImmediate(S5, 0);
   __ lw(T2, FieldAddress(T0, Function::code_offset()));
   __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);

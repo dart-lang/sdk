@@ -732,6 +732,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // RAX: Function.
   // R10: Arguments descriptor array.
+  // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ xorq(RBX, RBX);
   __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);

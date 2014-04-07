@@ -770,6 +770,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R0, Function::code_offset()));
 
   // R2: code.
+  // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ LoadImmediate(R5, 0);
   __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
