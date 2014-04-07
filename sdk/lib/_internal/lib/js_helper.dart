@@ -150,8 +150,7 @@ class JSInvocationMirror implements Invocation {
 
   List get positionalArguments {
     if (isGetter) return const [];
-    var argumentCount =
-        _arguments.length - _namedArgumentNames.length;
+    var argumentCount = _arguments.length - _namedArgumentNames.length;
     if (argumentCount == 0) return const [];
     var list = [];
     for (var index = 0 ; index < argumentCount ; index++) {
@@ -274,6 +273,7 @@ class CachedInvocation {
                    this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
+  bool get isGetterStub => JS("bool", "!!#.\$getterStub", jsFunction);
 
   /// Applies [jsFunction] to [victim] with [arguments].
   /// Users of this class must take care to check the arguments first.
@@ -298,6 +298,8 @@ class CachedCatchAllInvocation extends CachedInvocation {
                            Interceptor cachedInterceptor)
       : info = new ReflectionInfo(jsFunction),
         super(name, jsFunction, isIntercepted, cachedInterceptor);
+
+  bool get isGetterStub => false;
 
   invokeOn(Object victim, List arguments) {
     var receiver = victim;
@@ -350,6 +352,7 @@ class CachedNoSuchMethodInvocation {
   CachedNoSuchMethodInvocation(this.interceptor);
 
   bool get isNoSuchMethod => true;
+  bool get isGetterStub => false;
 
   invokeOn(Object victim, Invocation invocation) {
     var receiver = (interceptor == null) ? victim : interceptor;
