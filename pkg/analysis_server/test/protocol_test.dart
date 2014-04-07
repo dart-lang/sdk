@@ -26,13 +26,26 @@ main() {
     test('fromJson_invalidMethod', RequestTest.fromJson_invalidMethod);
     test('fromJson_invalidParams', RequestTest.fromJson_invalidParams);
     test('fromJson_withParams', RequestTest.fromJson_withParams);
+    test('toBool', RequestTest.toBool);
+    test('toInt', RequestTest.toInt);
     test('toJson', RequestTest.toJson);
     test('toJson_withParams', RequestTest.toJson_withParams);
+  });
+  group('RequestError', () {
+    test('create', RequestErrorTest.create);
+    test('create_methodNotFound', RequestErrorTest.create_methodNotFound);
+    test('create_invalidParameters', RequestErrorTest.create_invalidParameters);
+    test('create_invalidRequest', RequestErrorTest.create_invalidRequest);
+    test('create_internalError', RequestErrorTest.create_internalError);
+    test('create_parseError', RequestErrorTest.create_parseError);
+    test('fromJson', RequestErrorTest.fromJson);
+    test('toJson', RequestErrorTest.toJson);
   });
   group('Response', () {
     test('create_contextDoesNotExist', ResponseTest.create_contextDoesNotExist);
     test('create_invalidRequestFormat', ResponseTest.create_invalidRequestFormat);
     test('create_missingRequiredParameter', ResponseTest.create_missingRequiredParameter);
+    test('create_unknownAnalysisOption', ResponseTest.create_unknownAnalysisOption);
     test('create_unknownRequest', ResponseTest.create_unknownRequest);
     test('setResult', ResponseTest.setResult);
     test('fromJson', ResponseTest.fromJson);
@@ -108,7 +121,7 @@ class RequestTest {
   static void getRequiredParameter_undefined() {
     String name = 'name';
     Request request = new Request('0', '');
-    expect(() => request.getRequiredParameter(name), throwsA(new isInstanceOf<RequestFailure>()));
+    expect(() => request.getRequiredParameter(name), _throwsRequestFailure);
   }
 
   static void fromJson() {
@@ -147,6 +160,24 @@ class RequestTest {
     expect(request.getParameter('foo'), equals('bar'));
   }
 
+  static void toBool() {
+    Request request = new Request('0', '');
+    expect(request.toBool(true), isTrue);
+    expect(request.toBool(false), isFalse);
+    expect(request.toBool('true'), isTrue);
+    expect(request.toBool('false'), isFalse);
+    expect(request.toBool('abc'), isFalse);
+    expect(() => request.toBool(42), _throwsRequestFailure);
+  }
+
+  static void toInt() {
+    Request request = new Request('0', '');
+    expect(request.toInt(1), equals(1));
+    expect(request.toInt('2'), equals(2));
+    expect(() => request.toInt('xxx'), _throwsRequestFailure);
+    expect(() => request.toInt(request), _throwsRequestFailure);
+  }
+
   static void toJson() {
     Request request = new Request('one', 'aMethod');
     expect(request.toJson(), equals({
@@ -163,6 +194,72 @@ class RequestTest {
       Request.METHOD : 'aMethod',
       Request.PARAMS : {'foo' : 'bar'}
     }));
+  }
+}
+
+class RequestErrorTest {
+  static void create() {
+    RequestError error = new RequestError(42, 'msg');
+    expect(error.code, 42);
+    expect(error.message, "msg");
+    expect(error.toJson(), equals({
+      RequestError.CODE: 42,
+      RequestError.MESSAGE: "msg"
+    }));
+  }
+
+  static void create_parseError() {
+    RequestError error = new RequestError.parseError();
+    expect(error.code, RequestError.CODE_PARSE_ERROR);
+    expect(error.message, "Parse error");
+  }
+
+  static void create_methodNotFound() {
+    RequestError error = new RequestError.methodNotFound();
+    expect(error.code, RequestError.CODE_METHOD_NOT_FOUND);
+    expect(error.message, "Method not found");
+  }
+
+  static void create_invalidParameters() {
+    RequestError error = new RequestError.invalidParameters();
+    expect(error.code, RequestError.CODE_INVALID_PARAMS);
+    expect(error.message, "Invalid parameters");
+  }
+
+  static void create_invalidRequest() {
+    RequestError error = new RequestError.invalidRequest();
+    expect(error.code, RequestError.CODE_INVALID_REQUEST);
+    expect(error.message, "Invalid request");
+  }
+
+  static void create_internalError() {
+    RequestError error = new RequestError.internalError();
+    expect(error.code, RequestError.CODE_INTERNAL_ERROR);
+    expect(error.message, "Internal error");
+  }
+
+  static void fromJson() {
+    var json = {
+        RequestError.CODE: RequestError.CODE_PARSE_ERROR,
+        RequestError.MESSAGE: 'foo',
+        RequestError.DATA: {'ints': [1, 2, 3]}
+    };
+    RequestError error = new RequestError.fromJson(json);
+    expect(error.code, RequestError.CODE_PARSE_ERROR);
+    expect(error.message, "foo");
+    expect(error.data['ints'], [1, 2, 3]);
+    expect(error.getData('ints'), [1, 2, 3]);
+  }
+
+  static void toJson() {
+    RequestError error = new RequestError(0, 'msg');
+    error.setData('answer', 42);
+    error.setData('question', 'unknown');
+    expect(error.toJson(), {
+        RequestError.CODE: 0,
+        RequestError.MESSAGE: 'msg',
+        RequestError.DATA: {'answer': 42, 'question': 'unknown'}
+    });
   }
 }
 
@@ -197,6 +294,16 @@ class ResponseTest {
     }));
   }
 
+  static void create_unknownAnalysisOption() {
+    Response response = new Response.unknownAnalysisOption(new Request('0', ''), 'x');
+    expect(response.id, equals('0'));
+    expect(response.error, isNotNull);
+    expect(response.toJson(), equals({
+      Response.ID: '0',
+      Response.ERROR: {'code': -6, 'message': 'Unknown analysis option: "x"'}
+    }));
+  }
+
   static void create_unknownRequest() {
     Response response = new Response.unknownRequest(new Request('0', ''));
     expect(response.id, equals('0'));
@@ -212,6 +319,7 @@ class ResponseTest {
     String resultValue = 'value';
     Response response = new Response('0');
     response.setResult(resultName, resultValue);
+    expect(response.getResult(resultName), same(resultValue));
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: null,
@@ -247,3 +355,5 @@ class ResponseTest {
     expect(result['foo'], equals('bar'));
   }
 }
+
+Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());

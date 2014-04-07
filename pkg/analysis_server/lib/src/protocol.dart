@@ -225,7 +225,7 @@ class Response {
    * by a [request] that was expected to have a boolean-valued parameter but was
    * passed a non-boolean value.
    */
-  Response.expectedBoolean(Request request, String value)
+  Response.expectedBoolean(Request request, Object value)
     : this(request.id, new RequestError(-2, 'Expected a boolean value, but found "$value"'));
 
   /**
@@ -233,7 +233,7 @@ class Response {
    * by a [request] that was expected to have a integer-valued parameter but was
    * passed a non-integer value.
    */
-  Response.expectedInteger(Request request, String value)
+  Response.expectedInteger(Request request, Object value)
     : this(request.id, new RequestError(-3, 'Expected an integer value, but found "$value"'));
 
   /**
