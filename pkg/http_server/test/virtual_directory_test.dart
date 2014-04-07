@@ -140,29 +140,6 @@ void main() {
           });
       });
 
-      testVirtualDir('encoded-path', (dir) {
-        var virDir = new VirtualDirectory(dir.path);
-        new Directory('${dir.path}/javascript:alert(document);"').createSync();
-        virDir.allowDirectoryListing = true;
-
-        return getAsString(virDir, '/')
-          .then((result) {
-            expect(result, contains('%2Fjavascript%3Aalert(document)%3B%22'));
-          });
-      });
-
-      testVirtualDir('encoded-special', (dir) {
-        var virDir = new VirtualDirectory(dir.path);
-        new Directory('${dir.path}/<>&"').createSync();
-        virDir.allowDirectoryListing = true;
-
-        return getAsString(virDir, '/')
-          .then((result) {
-            expect(result, contains('&lt;&gt;&amp;&quot;&#x2F;'));
-            expect(result, contains('href="%2F%3C%3E%26%22"'));
-          });
-      });
-
       if (!Platform.isWindows) {
         testVirtualDir('recursive-link', (dir) {
           var link = new Link('${dir.path}/recursive')..createSync('.');
@@ -184,6 +161,29 @@ void main() {
                   (s) => s.contains('Index of &#x2F;recursive'))])
             .then((result) {
               expect(result, equals([true, true, true, true, true, true]));
+            });
+        });
+
+        testVirtualDir('encoded-path', (dir) {
+          var virDir = new VirtualDirectory(dir.path);
+          new Directory('${dir.path}/javascript:alert(document);"').createSync();
+          virDir.allowDirectoryListing = true;
+
+          return getAsString(virDir, '/')
+            .then((result) {
+              expect(result, contains('%2Fjavascript%3Aalert(document)%3B%22'));
+            });
+        });
+
+        testVirtualDir('encoded-special', (dir) {
+          var virDir = new VirtualDirectory(dir.path);
+          new Directory('${dir.path}/<>&"').createSync();
+          virDir.allowDirectoryListing = true;
+
+          return getAsString(virDir, '/')
+            .then((result) {
+              expect(result, contains('&lt;&gt;&amp;&quot;&#x2F;'));
+              expect(result, contains('href="%2F%3C%3E%26%22"'));
             });
         });
       }
