@@ -10558,6 +10558,14 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
   } else if (expr->IsLoadLocalNode() &&
       expr->AsLoadLocalNode()->local().IsConst()) {
     return *expr->AsLoadLocalNode()->local().ConstValue();
+  } else if (expr->IsLoadStaticFieldNode()) {
+    const Field& field = expr->AsLoadStaticFieldNode()->field();
+    // We already checked that this field is const and has been
+    // initialized.
+    ASSERT(field.is_const());
+    ASSERT(field.value() != Object::sentinel().raw());
+    ASSERT(field.value() != Object::transition_sentinel().raw());
+    return Instance::ZoneHandle(field.value());
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new ReturnNode(expr->token_pos(), expr);
