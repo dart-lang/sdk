@@ -101,7 +101,7 @@ abstract class MultiplicationWithStringConversion<E extends ExpressionWithString
 // import 'multiplicationEvaluator.dart';
 // import 'stringConverter.dart';
 
-class Expression =
+abstract class Expression =
   AbstractExpression with ExpressionWithEval, ExpressionWithStringConversion;
 
 class Addition =
