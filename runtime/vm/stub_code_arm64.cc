@@ -51,11 +51,6 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  UNIMPLEMENTED();
-}
-
-
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   UNIMPLEMENTED();
 }
