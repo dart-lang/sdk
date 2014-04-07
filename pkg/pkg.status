@@ -140,11 +140,6 @@ matcher/test/matchers_test: RuntimeError # Issue 17762
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
-[ $system == windows && $compiler == dart2js ]
-polymer/example/canonicalization/test/canonicalization1_test: Fail # Issue 18057
-polymer/example/canonicalization/test/canonicalization2_test: Fail # Issue 18057
-polymer/example/canonicalization/test/canonicalization3_test: Fail # Issue 18057
-
 [ $runtime == ie10 || $runtime == ie11 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
 

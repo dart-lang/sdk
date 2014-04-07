@@ -301,7 +301,7 @@ abstract class TestSuite {
       String name, String dirname, Path testPath, String optionsName) {
     Path relative = testPath.relativeTo(TestUtils.dartDir());
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = relative.toString().replaceAll('/', '_');
+    String testUniqueName = TestUtils.getShortName(relative.toString());
     if (!optionsName.isEmpty) {
       testUniqueName = '$testUniqueName-$optionsName';
     }
@@ -1355,25 +1355,6 @@ class StandardTestSuite extends TestSuite {
         'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);
   }
 
-  String createGeneratedTestDirectoryHelper(
-      String name, String dirname, Path testPath, String optionsName) {
-    Path relative = testPath.relativeTo(TestUtils.dartDir());
-    relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = relative.toString().replaceAll('/', '_');
-    if (!optionsName.isEmpty) {
-      testUniqueName = '$testUniqueName-$optionsName';
-    }
-
-    Path generatedTestPath = new Path(buildDir)
-        .append('generated_$name')
-        .append(dirname)
-        .append(testUniqueName);
-
-    TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
-    return new File(generatedTestPath.toNativePath()).absolute.path
-        .replaceAll('\\', '/');
-  }
-
   String get scriptType {
     switch (configuration['compiler']) {
       case 'none':
@@ -2134,6 +2115,49 @@ class TestUtils {
     }
     return extraVmOptions;
   }
+
+  static String getShortName(String path) {
+    final PATH_REPLACEMENTS = const {
+      "tests_co19_src_WebPlatformTest1_shadow-dom_shadow-trees_":
+          "co19_shadow-trees_",
+      "tests_co19_src_WebPlatformTest1_shadow-dom_elements-and-dom-objects_":
+          "co19_shadowdom_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_additions-to-": "co19_htmltemplates_add_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_clearing-the-stack-back-to-a-given-context_":
+          "co19_htmltemplates_clearstack_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_creating-an-element-for-the-token_":
+          "co19_htmltemplates_create_",
+      "tests_co19_src_WebPlatformTest1_html-templates_additions-to-"
+          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+      "caretRangeFromPoint-": "co19_caretrangefrompoint_",
+      "pkg_polymer_example_canonicalization_test_canonicalization": "polymer_c16n"
+    };
+
+    // Some tests are already in [build_dir]/generated_tests.
+    String GEN_TESTS = 'generated_tests/';
+    if (path.contains(GEN_TESTS)) {
+      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
+      path = 'multitest/${path.substring(index)}';
+    }
+    path = path.replaceAll('/', '_');
+    final int WINDOWS_SHORTEN_PATH_LIMIT = 70;
+    if (Platform.operatingSystem == 'windows' &&
+        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
+      for (var key in PATH_REPLACEMENTS.keys) {
+        if (path.startsWith(key)) {
+          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
+          break;
+        }
+      }
+    }
+    return path;
+  }
 }
 
 class SummaryReport {
@@ -2203,5 +2227,5 @@ class SummaryReport {
  * $compileErrorSkip tests are skipped on browsers due to compile-time error
 """;
     print(report);
-   }
+  }
 }
