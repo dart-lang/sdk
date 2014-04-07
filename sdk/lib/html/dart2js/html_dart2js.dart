@@ -6298,7 +6298,9 @@ class DataListElement extends HtmlElement native "HTMLDataListElement" {
 
   @DomName('HTMLDataListElement.options')
   @DocsEditable()
-  final HtmlCollection options;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7314,7 +7316,9 @@ class Document extends Node  native "Document"
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
-  HtmlCollection getElementsByClassName(String classNames) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> getElementsByClassName(String classNames) native;
 
   @DomName('Document.getElementsByName')
   @DocsEditable()
@@ -7324,7 +7328,9 @@ class Document extends Node  native "Document"
 
   @DomName('Document.getElementsByTagName')
   @DocsEditable()
-  HtmlCollection getElementsByTagName(String localName) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> getElementsByTagName(String localName) native;
 
   @DomName('Document.importNode')
   @DocsEditable()
@@ -7406,7 +7412,9 @@ class Document extends Node  native "Document"
   @JSName('children')
   @DomName('Document.children')
   @DocsEditable()
-  final HtmlCollection _children;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _children;
 
   @JSName('firstElementChild')
   @DomName('Document.firstElementChild')
@@ -11119,12 +11127,16 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
-  HtmlCollection getElementsByClassName(String classNames) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> getElementsByClassName(String classNames) native;
 
   @JSName('getElementsByTagName')
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  HtmlCollection _getElementsByTagName(String name) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> _getElementsByTagName(String name) native;
 
   @JSName('hasAttribute')
   @DomName('Element.hasAttribute')
@@ -11278,7 +11290,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @JSName('children')
   @DomName('Element.children')
   @DocsEditable()
-  final HtmlCollection _children;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _children;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')
@@ -12390,7 +12404,9 @@ class FieldSetElement extends HtmlElement native "HTMLFieldSetElement" {
 
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
-  final HtmlCollection elements;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> elements;
 
   @DomName('HTMLFieldSetElement.form')
   @DocsEditable()
@@ -16395,6 +16411,40 @@ class InputMethodContext extends EventTarget native "InputMethodContext" {
 
 
 @DocsEditable()
+@DomName('InstallEvent')
+@Experimental() // untriaged
+class InstallEvent extends InstallPhaseEvent native "InstallEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InstallEvent.replace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replace() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('InstallPhaseEvent')
+@Experimental() // untriaged
+class InstallPhaseEvent extends Event native "InstallPhaseEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory InstallPhaseEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InstallPhaseEvent.waitUntil')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void waitUntil(Object value) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('KeyPair')
 @Experimental() // untriaged
 class KeyPair extends Interceptor native "KeyPair" {
@@ -16903,7 +16953,9 @@ class MapElement extends HtmlElement native "HTMLMapElement" {
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
-  final HtmlCollection areas;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> areas;
 
   @DomName('HTMLMapElement.name')
   @DocsEditable()
@@ -20866,7 +20918,7 @@ abstract class ParentNode extends Interceptor {
 
   final int _childElementCount;
 
-  final HtmlCollection _children;
+  final List<Node> _children;
 
   final Element _firstElementChild;
 
@@ -23277,11 +23329,15 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable()
-  HtmlCollection getElementsByClassName(String className) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> getElementsByClassName(String className) native;
 
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable()
-  HtmlCollection getElementsByTagName(String tagName) native;
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
+  List<Node> getElementsByTagName(String tagName) native;
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable()
@@ -24835,12 +24891,16 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
   @JSName('rows')
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  final HtmlCollection _rows;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _rows;
 
   @JSName('tBodies')
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  final HtmlCollection _tBodies;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _tBodies;
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
@@ -24936,7 +24996,9 @@ class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
   @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  final HtmlCollection _cells;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _cells;
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
@@ -25000,7 +25062,9 @@ class TableSectionElement extends HtmlElement native "HTMLTableSectionElement" {
   @JSName('rows')
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  final HtmlCollection _rows;
+  @Returns('HtmlCollection')
+  @Creates('HtmlCollection')
+  final List<Node> _rows;
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
