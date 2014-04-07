@@ -492,46 +492,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
-// Input parameters:
-//   S5: ic-data.
-//   S4: arguments descriptor array.
-// Note: The receiver object is the first argument to the function being
-//       called, the stub accesses the receiver from this location directly
-//       when trying to resolve the call.
-void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ TraceSimMsg("InstanceFunctionLookupStub");
-  __ EnterStubFrame();
-
-  // Load the receiver.
-  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ sll(TMP, A1, 1);  // A1 is Smi.
-  __ addu(TMP, FP, TMP);
-  __ lw(T1, Address(TMP, kParamEndSlotFromFp * kWordSize));
-
-  // Push space for the return value.
-  // Push the receiver.
-  // Push TMP data object.
-  // Push arguments descriptor array.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 3 * kWordSize));
-  __ sw(T1, Address(SP, 2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));
-  __ sw(S4, Address(SP, 0 * kWordSize));
-
-  // A1: Smi-tagged arguments array length.
-  PushArgumentsArray(assembler);
-  __ TraceSimMsg("InstanceFunctionLookupStub return");
-
-  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry, 4);
-
-  __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
-  __ addiu(SP, SP, Immediate(5 * kWordSize));    // Remove arguments.
-
-  __ LeaveStubFrameAndReturn();
-}
-
-
 DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                            intptr_t deopt_reason,
                            uword saved_registers_address);
@@ -708,19 +668,17 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 
   __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
 
-  __ lw(T0, Address(SP, 3 * kWordSize));  // Get result.
+  __ lw(T0, Address(SP, 3 * kWordSize));  // Get result function.
   __ lw(S4, Address(SP, 4 * kWordSize));  // Restore argument descriptor.
   __ lw(S5, Address(SP, 5 * kWordSize));  // Restore IC data.
   __ addiu(SP, SP, Immediate(6 * kWordSize));
 
   __ LeaveStubFrame();
 
-  Label nonnull;
-  __ BranchNotEqual(T0, reinterpret_cast<int32_t>(Object::null()), &nonnull);
-  __ Branch(&StubCode::InstanceFunctionLookupLabel());
-  __ Bind(&nonnull);
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T0);
+  __ lw(T2, FieldAddress(T0, Function::code_offset()));
+  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T2);
 }
 
 
@@ -1676,7 +1634,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ sw(S5, Address(SP, (num_slots - num_args - 4) * kWordSize));
   __ CallRuntime(handle_ic_miss, num_args + 1);
   __ TraceSimMsg("NArgsCheckInlineCacheStub return");
-  // Pop returned code object into T3 (null if not found).
+  // Pop returned function object into T3.
   // Restore arguments descriptor array and IC data array.
   __ lw(T3, Address(SP, (num_slots - 3) * kWordSize));
   __ lw(S4, Address(SP, (num_slots - 2) * kWordSize));
@@ -1685,16 +1643,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // and the arguments descriptor array.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
   __ LeaveStubFrame();
-  Label call_target_function;
-  __ BranchNotEqual(T3, reinterpret_cast<int32_t>(Object::null()),
-                    &call_target_function);
 
-  // NoSuchMethod or closure.
-  // Mark IC call that it may be a closure call that does not collect
-  // type feedback.
-  __ LoadImmediate(T6, 1);
-  __ Branch(&StubCode::InstanceFunctionLookupLabel());
-  __ delay_slot()->sb(T6, FieldAddress(S5, ICData::is_closure_call_offset()));
+  Label call_target_function;
+  __ b(&call_target_function);
 
   __ Bind(&found);
   // T0: Pointer to an IC data check group.

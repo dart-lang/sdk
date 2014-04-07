@@ -437,40 +437,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
-// Input parameters:
-//   R5: ic-data.
-//   R4: arguments descriptor array.
-// Note: The receiver object is the first argument to the function being
-//       called, the stub accesses the receiver from this location directly
-//       when trying to resolve the call.
-void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ EnterStubFrame();
-
-  // Load the receiver.
-  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  __ add(IP, FP, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
-  __ ldr(R6, Address(IP, kParamEndSlotFromFp * kWordSize));
-
-  // Push space for the return value.
-  // Push the receiver.
-  // Push IC data object.
-  // Push arguments descriptor array.
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-  __ PushList((1 << R4) | (1 << R5) | (1 << R6) | (1 << IP));
-
-  // R2: Smi-tagged arguments array length.
-  PushArgumentsArray(assembler);
-
-  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry, 4);
-
-  // Remove arguments.
-  __ Drop(4);
-  __ Pop(R0);  // Get result into R0.
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-
 DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                            intptr_t deopt_reason,
                            uword saved_registers_address);
@@ -615,17 +581,18 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
   // Remove arguments.
   __ Drop(3);
-  __ Pop(R0);  // Get result into R0.
+  __ Pop(R0);  // Get result into R0 (target function).
 
   // Restore IC data and arguments descriptor.
   __ PopList((1 << R4) | (1 << R5));
 
   __ LeaveStubFrame();
 
-  __ CompareImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
-  __ Branch(&StubCode::InstanceFunctionLookupLabel(), EQ);
-  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ bx(R0);
+  // Tail-call to target function.
+  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R2);
 }
 
 
@@ -1465,19 +1432,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ CallRuntime(handle_ic_miss, num_args + 1);
   // Remove the call arguments pushed earlier, including the IC data object.
   __ Drop(num_args + 1);
-  // Pop returned code object into R0 (null if not found).
+  // Pop returned function object into R0.
   // Restore arguments descriptor array and IC data array.
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
   __ LeaveStubFrame();
   Label call_target_function;
-  __ CompareImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
-  __ b(&call_target_function, NE);
-  // NoSuchMethod or closure.
-  // Mark IC call that it may be a closure call that does not collect
-  // type feedback.
-  __ mov(IP, ShifterOperand(1));
-  __ strb(IP, FieldAddress(R5, ICData::is_closure_call_offset()));
-  __ Branch(&StubCode::InstanceFunctionLookupLabel());
+  __ b(&call_target_function);
 
   __ Bind(&found);
   // R6: pointer to an IC data check group.

@@ -28,7 +28,6 @@ DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
 DECLARE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs);
-DECLARE_RUNTIME_ENTRY(InstanceFunctionLookup);
 DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(TypeCheck);
 DECLARE_RUNTIME_ENTRY(BadTypeError);
@@ -47,7 +46,6 @@ DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterialize);
-DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
 DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
 
 #define DEOPT_REASONS(V)                                                       \
@@ -88,9 +86,6 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 
 const char* DeoptReasonToText(intptr_t deopt_id);
 
-
-RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
-                                          const ICData& ic_data);
 
 void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeAll();

@@ -381,40 +381,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
-// Input parameters:
-//   RBX: ic-data.
-//   R10: arguments descriptor array.
-// Note: The receiver object is the first argument to the function being
-//       called, the stub accesses the receiver from this location directly
-//       when trying to resolve the call.
-void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ PushObject(Object::null_object(), PP);  // Space for the return value.
-
-  // Push the receiver as an argument.  Load the smi-tagged argument
-  // count into R13 to index the receiver in the stack.  There are
-  // four words (null, stub's pc marker, saved pp, saved fp) above the return
-  // address.
-  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ pushq(Address(RSP, R13, TIMES_4, (4 * kWordSize)));
-
-  __ pushq(RBX);  // Pass IC data object.
-  __ pushq(R10);  // Pass arguments descriptor array.
-
-  // Pass the call's arguments array.
-  __ movq(R10, R13);  // Smi-tagged arguments array length.
-  PushArgumentsArray(assembler);
-
-  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry, 4);
-
-  // Remove arguments.
-  __ Drop(4);
-  __ popq(RAX);  // Get result into RAX.
-  __ LeaveStubFrame();
-  __ ret();
-}
-
-
 DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                            intptr_t deopt_reason,
                            uword saved_registers_address);
@@ -578,19 +544,15 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);
-  __ popq(RAX);  // Return value from the runtime call (instructions).
+  __ popq(RAX);  // Return value from the runtime call (function).
   __ popq(R10);  // Restore arguments descriptor.
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
 
-  Label lookup;
-  __ CompareObject(RAX, Object::null_object(), PP);
-  __ j(EQUAL, &lookup, Assembler::kNearJump);
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RAX);
-
-  __ Bind(&lookup);
-  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 }
 
 
@@ -766,11 +728,11 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ movq(CTX, FieldAddress(R13, Closure::context_offset()));
 
   // Load closure function code in RAX.
-  __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
 
   // RAX: Function.
   // R10: Arguments descriptor array.
-  __ movq(RCX, FieldAddress(RBX, Code::instructions_offset()));
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
 
@@ -1446,18 +1408,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popq(RAX);
   }
-  __ popq(RAX);  // Pop returned code object into RAX (null if not found).
+  __ popq(RAX);  // Pop returned function object into RAX.
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
   Label call_target_function;
-  __ cmpq(RAX, R12);
-  __ j(NOT_EQUAL, &call_target_function, Assembler::kNearJump);
-  // NoSuchMethod or closure.
-  // Mark IC call that it may be a closure call that does not collect
-  // type feedback.
-  __ movb(FieldAddress(RBX, ICData::is_closure_call_offset()), Immediate(1));
-  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+  __ jmp(&call_target_function);
 
   __ Bind(&found);
   // R12: Pointer to an IC data check group.
