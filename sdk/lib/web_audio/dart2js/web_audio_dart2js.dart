@@ -361,17 +361,6 @@ class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" 
   @DocsEditable()
   void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
-  @JSName('decodeAudioData')
-  @DomName('AudioContext.decodeAudioData')
-  @DocsEditable()
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
-    var completer = new Completer<AudioBuffer>();
-    _decodeAudioData(audioData,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
   @DomName('AudioContext.startRendering')
   @DocsEditable()
   void startRendering() native;
@@ -406,6 +395,20 @@ class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" 
       return JS('ScriptProcessorNode', '#.call(#, #)', function, this,
           bufferSize);
     }
+  }
+  @DomName('AudioContext.decodeAudioData')
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
+    var completer = new Completer<AudioBuffer>();
+    _decodeAudioData(audioData,
+        (value) { completer.complete(value); },
+        (error) {
+          if (error == null) {
+            completer.completeError('');
+          } else {
+            completer.completeError(error);
+          }
+        });
+    return completer.future;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

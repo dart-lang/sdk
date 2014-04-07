@@ -34,4 +34,18 @@ $if DART2JS
     }
   }
 $endif
+  @DomName('AudioContext.decodeAudioData')
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
+    var completer = new Completer<AudioBuffer>();
+    _decodeAudioData(audioData,
+        (value) { completer.complete(value); },
+        (error) {
+          if (error == null) {
+            completer.completeError('');
+          } else {
+            completer.completeError(error);
+          }
+        });
+    return completer.future;
+  }
 }

@@ -142,7 +142,6 @@ for interface in _removed_html_interfaces:
 
 convert_to_future_members = monitored.Set(
     'htmlrenamer.converted_to_future_members', [
-  'AudioContext.decodeAudioData',
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
@@ -182,6 +181,7 @@ custom_html_constructors = monitored.Set(
 # browser. They are exposed simply by placing an underscore in front of the
 # name.
 private_html_members = monitored.Set('htmlrenamer.private_html_members', [
+  'AudioContext.decodeAudioData',
   'AudioNode.connect',
   'CanvasRenderingContext2D.arc',
   'CanvasRenderingContext2D.drawImage',
