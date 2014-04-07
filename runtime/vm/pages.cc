@@ -663,7 +663,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       Utils::RoundUp(capacity_increase_in_words, PageSpace::kPageSizeInWords);
   intptr_t capacity_increase_in_pages =
       capacity_increase_in_words / PageSpace::kPageSizeInWords;
-  return capacity_increase_in_pages >= grow_heap_;
+  return capacity_increase_in_pages > grow_heap_;
 }
 
 

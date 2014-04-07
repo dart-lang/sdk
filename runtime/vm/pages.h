@@ -136,8 +136,12 @@ class PageSpaceController {
     last_code_collection_in_us_ = t;
   }
 
-  void set_is_enabled(bool state) {
-    is_enabled_ = state;
+  void Enable(SpaceUsage current) {
+    last_usage_ = current;
+    is_enabled_ = true;
+  }
+  void Disable() {
+    is_enabled_ = false;
   }
   bool is_enabled() {
     return is_enabled_;
@@ -146,10 +150,10 @@ class PageSpaceController {
  private:
   bool is_enabled_;
 
-  // Usage after last evaluated GC.
+  // Usage after last evaluated GC or last enabled.
   SpaceUsage last_usage_;
 
-  // Heap growth control variable.
+  // Pages of capacity growth allowed before next GC is advised.
   intptr_t grow_heap_;
 
   // If the garbage collector was not able to free more than heap_growth_ratio_
@@ -227,7 +231,11 @@ class PageSpace {
   void StartEndAddress(uword* start, uword* end) const;
 
   void SetGrowthControlState(bool state) {
-    page_space_controller_.set_is_enabled(state);
+    if (state) {
+      page_space_controller_.Enable(usage_);
+    } else {
+      page_space_controller_.Disable();
+    }
   }
 
   bool GrowthControlState() {
