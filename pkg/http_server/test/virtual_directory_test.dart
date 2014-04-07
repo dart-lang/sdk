@@ -166,7 +166,8 @@ void main() {
 
         testVirtualDir('encoded-path', (dir) {
           var virDir = new VirtualDirectory(dir.path);
-          new Directory('${dir.path}/javascript:alert(document);"').createSync();
+          new Directory('${dir.path}/javascript:alert(document);"')
+              .createSync();
           virDir.allowDirectoryListing = true;
 
           return getAsString(virDir, '/')
