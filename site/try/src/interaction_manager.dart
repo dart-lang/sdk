@@ -216,7 +216,6 @@ class InitialState extends InteractionState {
     hackDiv = newDiv;
   }
 
-  // TODO(ahe): This method should be cleaned up. It is too large.
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     print('onMutation');
 
@@ -227,27 +226,14 @@ class InitialState extends InteractionState {
     }
 
     Selection selection = window.getSelection();
-    Node anchorNode = selection.anchorNode;
-    int anchorOffset = selection.isCollapsed ? selection.anchorOffset : -1;
+    TrySelection trySelection = new TrySelection(mainEditorPane, selection);
 
     for (MutationRecord record in mutations) {
-      if (record.addedNodes.isEmpty) continue;
-      for (Node node in record.addedNodes) {
-        if (node.parent == null) continue;
-        StringBuffer buffer = new StringBuffer();
-        int selectionOffset = htmlToText(node, buffer, selection);
-        Text newNode = new Text('$buffer');
-        node.replaceWith(newNode);
-        if (selectionOffset != -1) {
-          anchorNode = newNode;
-          anchorOffset = selectionOffset;
-        }
-      }
+      normalizeMutationRecord(record, trySelection);
     }
 
     String currentText = mainEditorPane.text;
-    TrySelection trySelection =
-        new TrySelection(mainEditorPane, selection, currentText);
+    trySelection.updateText(currentText);
 
     context.currentCompilationUnit.content = currentText;
 
@@ -256,37 +242,8 @@ class InitialState extends InteractionState {
     editor.isMalformedInput = false;
     int offset = 0;
     List<Node> nodes = <Node>[];
-    //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
-    //   v         v             v                v
-    // do          identifier_abcdefghijklmnopqrst
-    for (Token token = tokenize(currentText);
-         token.kind != EOF_TOKEN;
-         token = token.next) {
-      int charOffset = token.charOffset;
-      int charCount = token.charCount;
 
-      if (charOffset < offset) continue; // Happens for scanner errors.
-
-      Decoration decoration = editor.getDecoration(token);
-      if (decoration == null) continue;
-
-      // Add a node for text before current token.
-      trySelection.addNodeFromSubstring(offset, charOffset, nodes);
-
-      // Add a node for current token.
-      trySelection.addNodeFromSubstring(
-          charOffset, charOffset + charCount, nodes, decoration);
-
-      offset = charOffset + charCount;
-    }
-
-    // Add a node for anything after the last (decorated) token.
-    trySelection.addNodeFromSubstring(offset, currentText.length, nodes);
-
-    // Ensure text always ends with a newline.
-    if (!currentText.endsWith('\n')) {
-      nodes.add(new Text('\n'));
-    }
+    tokenizeAndHighlight(currentText, offset, trySelection, nodes);
 
     mainEditorPane
         ..nodes.clear()
@@ -392,7 +349,7 @@ class InitialState extends InteractionState {
         continue;
       }
       if (context.currentCompilationUnit.name == name) {
-        mainEditorPane.contentEditable = false;
+        mainEditorPane.contentEditable = 'false';
         statusDiv.text = 'Modified on disk';
       }
     }
@@ -710,4 +667,56 @@ bool computeHasModifier(KeyboardEvent event) {
       event.getModifierState("Shift") ||
       event.getModifierState("SymbolLock") ||
       event.getModifierState("OS");
+}
+
+void tokenizeAndHighlight(String currentText,
+                          int offset,
+                          TrySelection trySelection,
+                          List<Node> nodes) {
+  //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
+  //   v         v             v                v
+  // do          identifier_abcdefghijklmnopqrst
+  for (Token token = tokenize(currentText);
+       token.kind != EOF_TOKEN;
+       token = token.next) {
+    int charOffset = token.charOffset;
+    int charCount = token.charCount;
+
+    if (charOffset < offset) continue; // Happens for scanner errors.
+
+    Decoration decoration = editor.getDecoration(token);
+    if (decoration == null) continue;
+
+    // Add a node for text before current token.
+    trySelection.addNodeFromSubstring(offset, charOffset, nodes);
+
+    // Add a node for current token.
+    trySelection.addNodeFromSubstring(
+        charOffset, charOffset + charCount, nodes, decoration);
+
+    offset = charOffset + charCount;
+  }
+
+  // Add a node for anything after the last (decorated) token.
+  trySelection.addNodeFromSubstring(offset, currentText.length, nodes);
+
+  // Ensure text always ends with a newline.
+  if (!currentText.endsWith('\n')) {
+    nodes.add(new Text('\n'));
+  }
+}
+
+void normalizeMutationRecord(MutationRecord record, TrySelection selection) {
+  if (record.addedNodes.isEmpty) return;
+  for (Node node in record.addedNodes) {
+    if (node.parent == null) continue;
+    StringBuffer buffer = new StringBuffer();
+    int selectionOffset = htmlToText(node, buffer, selection);
+    Text newNode = new Text('$buffer');
+    node.replaceWith(newNode);
+    if (selectionOffset != -1) {
+      selection.anchorNode = newNode;
+      selection.anchorOffset = selectionOffset;
+    }
+  }
 }

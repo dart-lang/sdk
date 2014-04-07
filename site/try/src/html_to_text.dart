@@ -7,7 +7,15 @@ library trydart.htmlToText;
 import 'dart:math' show
     max;
 
-import 'dart:html';
+import 'dart:html' show
+    Element,
+    Node,
+    NodeFilter,
+    Text,
+    TreeWalker;
+
+import 'selection.dart' show
+    TrySelection;
 
 /// Returns true if [node] is a block element, that is, not inline.
 bool isBlockElement(Node node) {
@@ -37,7 +45,7 @@ void skip(Node node, TreeWalker walker) {
 /// Writes the text of [root] to [buffer]. Keeps track of [selection] and
 /// returns the new anchorOffset from beginning of [buffer] or -1 if the
 /// selection isn't in [root].
-int htmlToText(Node root, StringBuffer buffer, Selection selection) {
+int htmlToText(Node root, StringBuffer buffer, TrySelection selection) {
   int selectionOffset = -1;
   TreeWalker walker = new TreeWalker(root, NodeFilter.SHOW_ALL);
 
@@ -45,7 +53,7 @@ int htmlToText(Node root, StringBuffer buffer, Selection selection) {
     switch (node.nodeType) {
       case Node.CDATA_SECTION_NODE:
       case Node.TEXT_NODE:
-        if (selection.isCollapsed && selection.anchorNode == node) {
+        if (selection.anchorNode == node) {
           selectionOffset = selection.anchorOffset + buffer.length;
         }
         Text text = node;

@@ -16,27 +16,15 @@ import 'decoration.dart';
 
 class TrySelection {
   final Node root;
-  final String text;
-  final int globalOffset;
-
   Node anchorNode;
   int anchorOffset;
 
-  TrySelection.internal(
-      this.root, this.text, this.globalOffset,
-      this.anchorNode, this.anchorOffset);
+  String text;
+  int globalOffset = -1;
 
-  factory TrySelection(Node root, Selection selection, String text) {
-    if (selection.isCollapsed) {
-      Node anchorNode = selection.anchorNode;
-      int anchorOffset = selection.anchorOffset;
-      return new TrySelection.internal(
-          root, text, computeGlobalOffset(root, anchorNode, anchorOffset),
-          anchorNode, anchorOffset);
-    } else {
-      return new TrySelection.internal(root, text, -1, null, -1);
-    }
-  }
+  TrySelection(this.root, Selection selection)
+      : this.anchorNode = selection.isCollapsed ? selection.anchorNode : null,
+        this.anchorOffset = selection.isCollapsed ? selection.anchorOffset : -1;
 
   Text addNodeFromSubstring(int start,
                             int end,
@@ -60,6 +48,11 @@ class TrySelection {
     if (anchorOffset >= 0) {
       selection.collapse(anchorNode, anchorOffset);
     }
+  }
+
+  void updateText(String newText) {
+    text = newText;
+    globalOffset = computeGlobalOffset(root, anchorNode, anchorOffset);
   }
 
   /// Computes the global offset, that is, the offset from [root].
