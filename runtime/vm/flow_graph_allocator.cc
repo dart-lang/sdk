@@ -913,22 +913,22 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
       // Writable unallocated input. Expected shape of
       // live ranges:
       //
-      //                 j' i  i'
+      //                 i  i'
       //      value    --*
-      //      temp       [------)
-      MoveOperands* move = AddMoveAt(pos - 1,
+      //      temp       [--)
+      MoveOperands* move = AddMoveAt(pos,
                                      Location::RequiresRegister(),
                                      Location::PrefersRegister());
 
       // Add uses to the live range of the input.
-      range->AddUseInterval(block->start_pos(), pos - 1);
-      range->AddUse(pos - 1, move->src_slot());
+      range->AddUseInterval(block->start_pos(), pos);
+      range->AddUse(pos, move->src_slot());
 
       // Create live range for the temporary.
       LiveRange* temp = MakeLiveRangeForTemporary();
-      temp->AddUseInterval(pos - 1, pos + 1);
-      temp->AddHintedUse(pos - 1, in_ref, move->src_slot());
-      temp->AddUse(pos + 1, move->dest_slot());
+      temp->AddUseInterval(pos, pos + 1);
+      temp->AddHintedUse(pos, in_ref, move->src_slot());
+      temp->AddUse(pos, move->dest_slot());
       *in_ref = Location::RequiresRegister();
       CompleteRange(temp, RegisterKindFromPolicy(*in_ref));
     } else {
