@@ -171,9 +171,10 @@ LibTest/html/Window/close_A01_t01: RuntimeError # Issue 17758.  Please triage th
 LibTest/html/Window/find_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Window/find_A03_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Window/find_A06_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LibTest/html/Window/moveTo_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LibTest/html/Window/moveTo_A01_t01: RuntimeError, Pass # Issue 17758.  Please triage this failure.
 LibTest/html/Window/moveTo_A02_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Window/postMessage_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError, Pass # Issue 17758.  Please triage this failure.
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/isolate/SendPort/send_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -242,7 +243,6 @@ LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: RuntimeError # Issue 177
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/responseText_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/status_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError # Issue 17758.  Please triage this failure.
 WebPlatformTest1/custom-elements/instantiating/createElementNS_A05_t01: RuntimeError # Issue 17758.  Please triage this failure.
 WebPlatformTest1/custom-elements/instantiating/createElement_A05_t01: RuntimeError # Issue 17758.  Please triage this failure.
 WebPlatformTest1/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Issue 17758.  Please triage this failure.
