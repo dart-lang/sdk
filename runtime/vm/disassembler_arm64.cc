@@ -32,6 +32,7 @@ class ARM64Decoder : public ValueObject {
   // Printing of common values.
   void PrintRegister(int reg, R31Type r31t);
   void PrintShiftExtendRm(Instr* instr);
+  void PrintMemOperand(Instr* instr);
   void PrintS(Instr* instr);
 
   // Handle formatting of instructions and their options.
@@ -161,6 +162,74 @@ void ARM64Decoder::PrintShiftExtendRm(Instr* instr) {
 }
 
 
+void ARM64Decoder::PrintMemOperand(Instr* instr) {
+  const Register rn = instr->RnField();
+  if (instr->Bit(24) == 1) {
+    // rn + scaled unsigned 12-bit immediate offset.
+    const uint32_t scale = instr->SzField();
+    const uint32_t imm12 = instr->Imm12Field();
+    const uint32_t off = imm12 << scale;
+    Print("[");
+    PrintRegister(rn, R31IsSP);
+    if (off != 0) {
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 ", #%d",
+                                 off);
+    }
+    Print("]");
+  } else {
+    switch (instr->Bits(10, 2)) {
+      case 1: {
+        const int32_t imm9 = instr->SImm9Field();
+        // rn + signed 9-bit immediate, post-index, writeback.
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        Print("]");
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   ", #%d !",
+                                   imm9);
+        break;
+      }
+      case 3: {
+        const int32_t imm9 = instr->SImm9Field();
+        // rn + signed 9-bit immediate, pre-index, writeback.
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   ", #%d",
+                                   imm9);
+        Print("] !");
+        break;
+      }
+      case 2: {
+        const Register rm = instr->RmField();
+        const Extend ext = instr->ExtendTypeField();
+        const int s = instr->Bit(12);
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        Print(", ");
+        PrintRegister(rm, R31IsZR);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   " %s",
+                                   extend_names[ext]);
+        if (s == 1) {
+          Print(" scaled");
+        }
+        Print("]");
+        break;
+      }
+      default: {
+        Print("???");
+      }
+    }
+  }
+}
+
+
 // Handle all register based formatting in these functions to reduce the
 // complexity of FormatOption.
 int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
@@ -175,6 +244,10 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
     return 2;
   } else if (format[1] == 'm') {  // 'rm: Rm register
     int reg = instr->RmField();
+    PrintRegister(reg, R31IsZR);
+    return 2;
+  } else if (format[1] == 't') {  // 'rt: Rt register
+    int reg = instr->RtField();
     PrintRegister(reg, R31IsZR);
     return 2;
   }
@@ -230,6 +303,22 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
           Print("w");
         }
         return 2;
+      } else if (format[1] == 'z') {
+        ASSERT(STRING_STARTS_WITH(format, "sz"));
+        const int sz = instr->SzField();
+        char const* sz_str;
+        switch (sz) {
+          case 0: sz_str = "b"; break;
+          case 1: sz_str = "h"; break;
+          case 2: sz_str = "w"; break;
+          case 3: sz_str = "x"; break;
+          default: sz_str = "?"; break;
+        }
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "%s",
+                                   sz_str);
+        return 2;
       } else if (format[1] == ' ') {
         if (instr->HasS()) {
           Print("s");
@@ -252,6 +341,11 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
                                    shift);
       }
       return 2;
+    }
+    case 'm': {
+      ASSERT(STRING_STARTS_WITH(format, "memop"));
+      PrintMemOperand(instr);
+      return 5;
     }
     default: {
       UNREACHABLE();
@@ -301,6 +395,19 @@ void ARM64Decoder::DecodeMoveWide(Instr* instr) {
     default:
       Unknown(instr);
       break;
+  }
+}
+
+
+void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
+  if (instr->Bits(25, 2) != 0) {
+    Unknown(instr);
+    return;
+  }
+  if (instr->Bit(22) == 1) {
+    Format(instr, "ldr'sz 'rt, 'memop");
+  } else {
+    Format(instr, "str'sz 'rt, 'memop");
   }
 }
 
@@ -394,7 +501,11 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 
 
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
-  Unknown(instr);
+  if (instr->IsLoadStoreRegOp()) {
+    DecodeLoadStoreReg(instr);
+  } else {
+    Unknown(instr);
+  }
 }
 
 

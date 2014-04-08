@@ -63,7 +63,7 @@ Simulator::Simulator() {
 
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
-  registers_[SP] = StackTop();
+  registers_[R31] = StackTop();
   // The lr and pc are initialized to a known bad value that will cause an
   // access violation if the simulator ever tries to execute it.
   registers_[LR] = kBadLR;
@@ -161,6 +161,20 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
 }
 
 
+// The ARMv8 manual advises that an unaligned access may generate a fault,
+// and if not, will likely take a number of additional cycles to execute,
+// so let's just not generate any.
+void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer),
+           "unaligned %s at 0x%" Px ", pc=%p\n", msg, addr, instr);
+  // TODO(zra): Drop into the simulator debugger when it exists.
+  // The debugger will not be able to single step past this instruction, but
+  // it will be possible to disassemble the code and inspect registers.
+  FATAL("Cannot continue execution after unaligned access.");
+}
+
+
 void Simulator::UnimplementedInstruction(Instr* instr) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
@@ -176,6 +190,104 @@ uword Simulator::StackTop() const {
   // set the stack top.
   return reinterpret_cast<uword>(stack_) +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+}
+
+
+intptr_t Simulator::ReadX(uword addr, Instr* instr) {
+  if ((addr & 7) == 0) {
+    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("read", addr, instr);
+  return 0;
+}
+
+
+void Simulator::WriteX(uword addr, intptr_t value, Instr* instr) {
+  if ((addr & 7) == 0) {
+    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
+    *ptr = value;
+    return;
+  }
+  UnalignedAccess("write", addr, instr);
+}
+
+
+uint32_t Simulator::ReadWU(uword addr, Instr* instr) {
+  if ((addr & 3) == 0) {
+    uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("read unsigned single word", addr, instr);
+  return 0;
+}
+
+
+int32_t Simulator::ReadW(uword addr, Instr* instr) {
+  if ((addr & 3) == 0) {
+    int32_t* ptr = reinterpret_cast<int32_t*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("read single word", addr, instr);
+  return 0;
+}
+
+
+void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
+  if ((addr & 3) == 0) {
+    uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
+    *ptr = value;
+    return;
+  }
+  UnalignedAccess("write single word", addr, instr);
+}
+
+
+uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
+  if ((addr & 1) == 0) {
+    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("unsigned halfword read", addr, instr);
+  return 0;
+}
+
+
+int16_t Simulator::ReadH(uword addr, Instr* instr) {
+  if ((addr & 1) == 0) {
+    int16_t* ptr = reinterpret_cast<int16_t*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("signed halfword read", addr, instr);
+  return 0;
+}
+
+
+void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
+  if ((addr & 1) == 0) {
+    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
+    *ptr = value;
+    return;
+  }
+  UnalignedAccess("halfword write", addr, instr);
+}
+
+
+uint8_t Simulator::ReadBU(uword addr) {
+  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+  return *ptr;
+}
+
+
+int8_t Simulator::ReadB(uword addr) {
+  int8_t* ptr = reinterpret_cast<int8_t*>(addr);
+  return *ptr;
+}
+
+
+void Simulator::WriteB(uword addr, uint8_t value) {
+  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+  *ptr = value;
 }
 
 
@@ -430,8 +542,157 @@ void Simulator::DecodeCompareBranch(Instr* instr) {
 }
 
 
+void Simulator::DecodeLoadStoreReg(Instr* instr) {
+  // TODO(zra): SIMD loads and stores have bit 26 (V) set.
+  // (bit 25 is never set for loads and stores).
+  if (instr->Bits(25, 2) != 0) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  // Calculate the address.
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const int64_t rn_val = get_register(rn, R31IsSP);
+  const uint32_t size = instr->SzField();
+  uword address = 0;
+  uword wb_address = 0;
+  bool wb = false;
+  if (instr->Bit(24) == 1) {
+    // addr = rn + scaled unsigned 12-bit immediate offset.
+    const uint32_t imm12 = static_cast<uint32_t>(instr->Imm12Field());
+    const uint32_t offset = imm12 << size;
+    address = rn_val + offset;
+  } else if (instr->Bit(10) == 1) {
+    // addr = rn + signed 9-bit immediate offset.
+    wb = true;
+    const int64_t offset = static_cast<int64_t>(instr->SImm9Field());
+    if (instr->Bit(11) == 1) {
+      // Pre-index.
+      address = rn_val + offset;
+      wb_address = address;
+    } else {
+      // Post-index.
+      address = rn_val;
+      wb_address = rn_val + offset;
+    }
+  } else if (instr->Bits(10, 2) == 2) {
+    // addr = rn + (rm EXT optionally scaled by operand instruction size).
+    const Register rm = instr->RmField();
+    const Extend ext = instr->ExtendTypeField();
+    const uint8_t scale =
+        (ext == UXTX) && (instr->Bit(12) == 1) ? size : 0;
+    const int64_t rm_val = get_register(rm, R31IsZR);
+    const int64_t offset = ExtendOperand(kXRegSizeInBits, rm_val, ext, scale);
+    address = rn_val + offset;
+  } else {
+    UnimplementedInstruction(instr);
+  }
+
+  // Check the address.
+  if (IsIllegalAddress(address)) {
+    HandleIllegalAccess(address, instr);
+    return;
+  }
+
+  // Do access.
+  if (instr->Bits(22, 2) == 0) {
+    // Format(instr, "str'sz 'rt, 'memop");
+    int32_t rt_val32 = get_wregister(rt, R31IsZR);
+    switch (size) {
+      case 0: {
+        uint8_t val = static_cast<uint8_t>(rt_val32);
+        WriteB(address, val);
+        break;
+      }
+      case 1: {
+        uint16_t val = static_cast<uint16_t>(rt_val32);
+        WriteH(address, val, instr);
+        break;
+      }
+      case 2: {
+        uint32_t val = static_cast<uint32_t>(rt_val32);
+        WriteW(address, val, instr);
+        break;
+      }
+      case 3: {
+        int64_t val = get_register(rt, R31IsZR);
+        WriteX(address, val, instr);
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+  } else {
+    // Format(instr, "ldr'sz 'rt, 'memop");
+    // Undefined case.
+    if ((size == 3) && (instr->Bits(22, 0) == 3)) {
+      UnimplementedInstruction(instr);
+      return;
+    }
+
+    // Read the value.
+    const bool signd = instr->Bit(23) == 1;
+    // Write the W register for signed values when size < 2.
+    // Write the W register for unsigned values when size == 2.
+    const bool use_w =
+        (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
+    int64_t val = 0;  // Sign extend into an int64_t.
+    switch (size) {
+      case 0: {
+        if (signd) {
+          val = static_cast<int64_t>(ReadB(address));
+        } else {
+          val = static_cast<int64_t>(ReadBU(address));
+        }
+        break;
+      }
+      case 1: {
+        if (signd) {
+          val = static_cast<int64_t>(ReadH(address, instr));
+        } else {
+          val = static_cast<int64_t>(ReadHU(address, instr));
+        }
+        break;
+      }
+      case 2: {
+        if (signd) {
+          val = static_cast<int64_t>(ReadW(address, instr));
+        } else {
+          val = static_cast<int64_t>(ReadWU(address, instr));
+        }
+        break;
+      }
+      case 3:
+        val = ReadX(address, instr);
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+
+    // Write to register.
+    if (use_w) {
+      set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+    } else {
+      set_register(rt, val, R31IsZR);
+    }
+  }
+
+  // Do writeback.
+  if (wb) {
+    set_register(rn, wb_address, R31IsSP);
+  }
+}
+
+
 void Simulator::DecodeLoadStore(Instr* instr) {
-  UnimplementedInstruction(instr);
+  if (instr->IsLoadStoreRegOp()) {
+    DecodeLoadStoreReg(instr);
+  } else {
+    UnimplementedInstruction(instr);
+  }
 }
 
 
@@ -653,7 +914,7 @@ int64_t Simulator::Call(int64_t entry,
                         int64_t parameter2,
                         int64_t parameter3) {
   // Save the SP register before the call so we can restore it.
-  int32_t sp_before_call = get_register(SP, R31IsSP);
+  intptr_t sp_before_call = get_register(R31, R31IsSP);
 
   // Setup parameters.
   set_register(R0, parameter0);
@@ -662,12 +923,12 @@ int64_t Simulator::Call(int64_t entry,
   set_register(R3, parameter3);
 
   // Make sure the activation frames are properly aligned.
-  int32_t stack_pointer = sp_before_call;
+  intptr_t stack_pointer = sp_before_call;
   if (OS::ActivationFrameAlignment() > 1) {
     stack_pointer =
         Utils::RoundDown(stack_pointer, OS::ActivationFrameAlignment());
   }
-  set_register(SP, stack_pointer, R31IsSP);
+  set_register(R31, stack_pointer, R31IsSP);
 
   // Prepare to execute the code at entry.
   set_pc(entry);
@@ -734,7 +995,7 @@ int64_t Simulator::Call(int64_t entry,
   set_register(R29, r29_val);
 
   // Restore the SP register and return R1:R0.
-  set_register(SP, sp_before_call, R31IsSP);
+  set_register(R31, sp_before_call, R31IsSP);
   int64_t return_value;
   return_value = get_register(R0);
   return return_value;

@@ -108,11 +108,29 @@ class Simulator {
   }
   void HandleIllegalAccess(uword addr, Instr* instr);
 
+  // Handles an unaligned memory access.
+  void UnalignedAccess(const char* msg, uword addr, Instr* instr);
+
   // Handles a legal instruction that the simulator does not implement.
   void UnimplementedInstruction(Instr* instr);
 
   // Unsupported instructions use Format to print an error and stop execution.
   void Format(Instr* instr, const char* format);
+
+  inline uint8_t ReadBU(uword addr);
+  inline int8_t ReadB(uword addr);
+  inline void WriteB(uword addr, uint8_t value);
+
+  inline uint16_t ReadHU(uword addr, Instr* instr);
+  inline int16_t ReadH(uword addr, Instr* instr);
+  inline void WriteH(uword addr, uint16_t value, Instr* instr);
+
+  inline uint32_t ReadWU(uword addr, Instr* instr);
+  inline int32_t ReadW(uword addr, Instr* instr);
+  inline void WriteW(uword addr, uint32_t value, Instr* instr);
+
+  inline intptr_t ReadX(uword addr, Instr* instr);
+  inline void WriteX(uword addr, intptr_t value, Instr* instr);
 
   // Helper functions to set the conditional flags in the architecture state.
   void SetNZFlagsW(int32_t val);

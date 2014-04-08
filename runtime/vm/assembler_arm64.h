@@ -69,23 +69,85 @@ class Label : public ValueObject {
 class Address : public ValueObject {
  public:
   Address(const Address& other)
-      : ValueObject(), encoding_(other.encoding_) {
+      : ValueObject(),
+        encoding_(other.encoding_),
+        type_(other.type_),
+        base_(other.base_) {
   }
 
   Address& operator=(const Address& other) {
     encoding_ = other.encoding_;
+    type_ = other.type_;
+    base_ = other.base_;
     return *this;
   }
 
-  Address(Register rn, int32_t offset = 0) {
-    ASSERT(Utils::IsAbsoluteUint(12, offset));
-    encoding_ = -1;
+  enum AddressType {
+    Offset,
+    PreIndex,
+    PostIndex,
+    Reg,
+  };
+
+  // Offset is in bytes. For the unsigned imm12 case, we unscale based on the
+  // operand size, and assert that offset is aligned accordingly.
+  // For the smaller signed imm9 case, the offset is the number of bytes, but
+  // is unscaled.
+  Address(Register rn, int32_t offset = 0, AddressType at = Offset,
+          OperandSize sz = kDoubleWord) {
+    ASSERT((rn != R31) && (rn != ZR));
+    const Register crn = ConcreteRegister(rn);
+    const int32_t scale = Log2OperandSizeBytes(sz);
+    if (Utils::IsUint(12 + scale, offset) && (at == Offset)) {
+      ASSERT(offset == ((offset >> scale) << scale));
+      encoding_ =
+          B24 |
+          ((offset >> scale) << kImm12Shift) |
+          (static_cast<int32_t>(crn) << kRnShift);
+    } else {
+      ASSERT(Utils::IsInt(9, offset));
+      ASSERT((at == PreIndex) || (at == PostIndex));
+      int32_t idx = (at == PostIndex) ? B10 : (B11 | B10);
+      encoding_ =
+          idx |
+          ((offset & 0x1ff) << kImm9Shift) |
+          (static_cast<int32_t>(crn) << kRnShift);
+    }
+    type_ = at;
+    base_ = crn;
+  }
+
+  // TODO(zra): Write CanHoldOffset(int32_t off, AddressType, OperandSize).
+  // TODO(zra): Write constructor for PC-relative load address.
+
+  // Base register rn with offset rm. rm is sign-extended according to ext.
+  // If ext is UXTX, rm may be optionally scaled by the
+  // Log2OperandSize (specified by the instruction).
+  Address(Register rn, Register rm, Extend ext = UXTX, bool scaled = false) {
+    ASSERT((rn != R31) && (rn != ZR));
+    ASSERT((rm != R31) && (rm != SP));
+    ASSERT(!scaled || (ext == UXTX));  // Can only scale when ext = UXTX.
+    ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const int32_t s = scaled ? B12 : 0;
+    encoding_ =
+        B21 | B11 | s |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift) |
+        (static_cast<int32_t>(ext) << kExtendTypeShift);
+    type_ = Reg;
+    base_ = crn;
   }
 
  private:
   uint32_t encoding() const { return encoding_; }
+  AddressType type() const { return type_; }
+  Register base() const { return base_; }
 
   uint32_t encoding_;
+  AddressType type_;
+  Register base_;
 
   friend class Assembler;
 };
@@ -288,6 +350,19 @@ class Assembler : public ValueObject {
     EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
   }
 
+  // Loads and Stores.
+  void ldr(Register rt, Address a) {
+    // If we are doing pre-/post-indexing, and the base and result registers
+    // are the same, then the result of the load will be clobbered by the
+    // writeback, which is unlikely to be useful.
+    ASSERT(((a.type() != Address::PreIndex) &&
+            (a.type() != Address::PostIndex)) ||
+           (rt != a.base()));
+    EmitLoadStoreReg(LDR, rt, a, kDoubleWord);
+  }
+  void str(Register rt, Address a) {
+    EmitLoadStoreReg(STR, rt, a, kDoubleWord);
+  }
 
   // Function return.
   void ret(Register rn = R30) {
@@ -380,6 +455,16 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(rd) << kRdShift) |
         (hw_idx << kHWShift) |
         (imm << kImm16Shift);
+    Emit(encoding);
+  }
+
+  void EmitLoadStoreReg(LoadStoreRegOp op, Register rt, Address a,
+                        OperandSize sz) {
+    const int32_t size = Log2OperandSizeBytes(sz);
+    const int32_t encoding =
+        op | (size << kSzShift) |
+        (static_cast<int32_t>(rt) << kRtShift) |
+        a.encoding();
     Emit(encoding);
   }
 

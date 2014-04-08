@@ -283,6 +283,114 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
+
+// Loads and Stores.
+ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  __ str(R1, Address(SP, -1*kWordSize, Address::PreIndex));
+  __ ldr(R0, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SimpleLoadStore, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  __ add(R2, SP, Operand(1));
+  __ str(R1, Address(R2, -1, Address::PreIndex));
+  __ ldr(R0, Address(R2, -1, Address::PostIndex));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  // Largest negative offset that can fit in the signed 9-bit immediate field.
+  __ str(R1, Address(SP, -32*kWordSize, Address::PreIndex));
+  // Largest positive kWordSize aligned offset that we can fit.
+  __ ldr(R0, Address(SP, 31*kWordSize, Address::PostIndex));
+  // Correction.
+  __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadStoreLargeIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  __ sub(SP, SP, Operand(512*kWordSize));
+  __ str(R1, Address(SP, 512*kWordSize, Address::Offset));
+  __ add(SP, SP, Operand(512*kWordSize));
+  __ ldr(R0, Address(SP));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadStoreLargeOffset, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  __ movz(R2, 0xfff8, 0);
+  __ movk(R2, 0xffff, 1);  // R2 <- -8 (int32_t).
+  // This should sign extend R2, and add to SP to get address,
+  // i.e. SP - kWordSize.
+  __ str(R1, Address(SP, R2, SXTW));
+  __ sub(SP, SP, Operand(kWordSize));
+  __ ldr(R0, Address(SP));
+  __ add(SP, SP, Operand(kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadStoreExtReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
+  __ movz(R0, 43, 0);
+  __ movz(R1, 42, 0);
+  __ movz(R2, 10, 0);
+  __ sub(SP, SP, Operand(10*kWordSize));
+  // Store R1 into SP + R2 * kWordSize.
+  __ str(R1, Address(SP, R2, UXTX, true));
+  __ ldr(R0, Address(SP, R2, UXTX, true));
+  __ add(SP, SP, Operand(10*kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)

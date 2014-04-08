@@ -47,15 +47,16 @@ enum Register {
   kNumberOfCpuRegisters = 32,
   kNoRegister = -1,
 
+  // These registers both use the encoding R31, but to avoid mistakes we give
+  // them different values, and then translate before encoding.
+  SP = 32,
+  ZR = 33,
+
   // Aliases.
   IP0 = R25,
   IP1 = R26,
   FP = R29,
   LR = R30,
-
-  // Left abstract so we can avoid misuse.
-  SP,
-  ZR,
 };
 
 enum VRegister {
@@ -214,6 +215,28 @@ enum OperandSize {
   kDWord,
 };
 
+static inline int Log2OperandSizeBytes(OperandSize os) {
+  switch (os) {
+    case kByte:
+    case kUnsignedByte:
+      return 0;
+    case kHalfword:
+    case kUnsignedHalfword:
+      return 1;
+    case kWord:
+    case kUnsignedWord:
+    case kSWord:
+      return 2;
+    case kDoubleWord:
+    case kDWord:
+      return 3;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return -1;
+}
+
 // Opcodes from C3
 // C3.1.
 enum MainOp {
@@ -261,6 +284,13 @@ enum UnconditionalBranchRegOp {
   RET = BR | B22,
 };
 
+enum LoadStoreRegOp {
+  LoadStoreRegMask = 0x3a000000,
+  LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
+  STR = LoadStoreRegFixed,
+  LDR = LoadStoreRegFixed | B22,
+};
+
 // C3.4.1
 enum AddSubImmOp {
   AddSubImmMask = 0x1f000000,
@@ -296,6 +326,7 @@ _V(DPSimd1)                                                                    \
 _V(DPSimd2)                                                                    \
 _V(ExceptionGen)                                                               \
 _V(System)                                                                     \
+_V(LoadStoreReg)                                                               \
 _V(UnconditionalBranchReg)                                                     \
 _V(AddSubImm)                                                                  \
 _V(MoveWide)                                                                   \
@@ -341,6 +372,10 @@ enum InstructionFields {
   kSFShift = 31,
   kSFBits = 1,
 
+  // size field,
+  kSzShift = 30,
+  kSzBits = 2,
+
   // Registers.
   kRdShift = 0,
   kRdBits = 5,
@@ -350,12 +385,16 @@ enum InstructionFields {
   kRaBits = 5,
   kRmShift = 16,
   kRmBits = 5,
+  kRtShift = 0,
+  kRtBits = 5,
 
   // Immediates.
   kImm3Shift = 10,
   kImm3Bits = 3,
   kImm6Shift = 10,
   kImm6Bits = 6,
+  kImm9Shift = 12,
+  kImm9Bits = 9,
   kImm12Shift = 10,
   kImm12Bits = 12,
   kImm12ShiftShift = 22,
@@ -434,6 +473,7 @@ class Instr {
 
   inline int SField() const { return Bit(kSShift); }
   inline int SFField() const { return Bit(kSFShift); }
+  inline int SzField() const { return Bits(kSzShift, kSzBits); }
   inline Register RdField() const { return static_cast<Register>(
                                         Bits(kRdShift, kRdBits)); }
   inline Register RnField() const { return static_cast<Register>(
@@ -442,10 +482,16 @@ class Instr {
                                         Bits(kRaShift, kRaBits)); }
   inline Register RmField() const { return static_cast<Register>(
                                         Bits(kRmShift, kRmBits)); }
+  inline Register RtField() const { return static_cast<Register>(
+                                        Bits(kRtShift, kRtBits)); }
 
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
   inline int Imm6Field() const { return Bits(kImm6Shift, kImm6Bits); }
+  inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
+  // Sign-extended Imm9Field()
+  inline int64_t SImm9Field() const {
+      return (static_cast<int32_t>(Imm9Field()) << 23) >> 23; }
   inline int Imm12Field() const { return Bits(kImm12Shift, kImm12Bits); }
   inline int Imm16Field() const { return Bits(kImm16Shift, kImm16Bits); }
 
