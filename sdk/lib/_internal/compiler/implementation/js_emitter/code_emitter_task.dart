@@ -842,7 +842,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitStaticNonFinalFieldInitializations(CodeBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
@@ -862,7 +862,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitLazilyInitializedStaticFields(CodeBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
@@ -901,7 +901,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
     Set<Constant> outputUnitConstants = null;

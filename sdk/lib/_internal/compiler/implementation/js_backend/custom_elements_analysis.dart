@@ -163,7 +163,7 @@ class CustomElementsAnalysisJoin {
         Constant constant = makeTypeConstant(classElement);
         backend.registerCompileTimeConstant(
             constant, compiler.globalDependencies);
-        compiler.constantHandler.addCompileTimeConstantForEmission(constant);
+        backend.constants.addCompileTimeConstantForEmission(constant);
       }
     }
     activeClasses.addAll(newActiveClasses);
