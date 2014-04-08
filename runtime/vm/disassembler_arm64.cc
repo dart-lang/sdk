@@ -93,7 +93,7 @@ static const char* reg_names[kNumberOfCpuRegisters] = {
 void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
-  if ((reg == 31)) {
+  if (reg == 31) {
     const char* rstr = (r31t == R31IsZR) ? "zr" : "sp";
     Print(rstr);
   } else {
