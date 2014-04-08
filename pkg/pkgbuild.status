@@ -19,6 +19,7 @@ pkg/third_party/html5lib: PubGetError # angular needs to be updated
 [ $use_public_packages ]
 pkg/oauth2: PubGetError # Uses -dev version of pkg/http.
 samples/third_party/todomvc: Fail # Issue 17324
+samples/polymer_intl: Pass, Fail # Issue 18059
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
