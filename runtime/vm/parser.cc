@@ -9114,7 +9114,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // Check if an instance/static function exists.
   func = cls.LookupFunction(ident);
   if (!func.IsNull() &&
-      (func.IsDynamicFunction() || func.IsStaticFunction())) {
+      (func.IsDynamicFunction() ||
+      func.IsStaticFunction() ||
+      func.is_abstract())) {
     if (node != NULL) {
       *node = new PrimaryNode(ident_pos,
                               Function::ZoneHandle(isolate(), func.raw()));
@@ -9126,7 +9128,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // it is still a field.
   func = cls.LookupGetterFunction(ident);
   if (!func.IsNull()) {
-    if (func.IsDynamicFunction()) {
+    if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -9156,7 +9158,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   func = cls.LookupSetterFunction(ident);
   if (!func.IsNull()) {
-    if (func.IsDynamicFunction()) {
+    if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
         // We create a getter node even though a getter doesn't exist as
         // it could be followed by an assignment which will convert it to
