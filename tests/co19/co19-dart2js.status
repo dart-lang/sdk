@@ -65,15 +65,15 @@ LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 LayoutTests/fast/html/imports/import-events_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
+Language/12_Expressions/07_Maps_A11_t01: CompileTimeError # Maybe ok. Issue 17207
 LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 
 [ $compiler == dart2js && $runtime != ie9 ]
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
-Language/12_Expressions/07_Maps_A11_t01: CompileTimeError # Maybe ok. Issue 17207
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # Dart issue 15617
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/SendPort/send_A02_t05: RuntimeError # TODO(ahe): Please triage this failure.
@@ -157,7 +157,7 @@ LayoutTests/fast/html/footer-element_t01: RuntimeError # co19-roll 706: Please t
 LayoutTests/fast/html/header-element_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LayoutTests/fast/html/hgroup-element_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LayoutTests/fast/html/hidden-attr-dom_t01: RuntimeError # co19-roll 706: Please triage this failure.
-LayoutTests/fast/html/hidden-attr_t01: RuntimeError # co19-roll 706: Please triage this failure.
+LayoutTests/fast/html/hidden-attr_t01: RuntimeError, Timeout # co19-roll 706: Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LayoutTests/fast/html/main-element_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LayoutTests/fast/html/mark-element_t01: RuntimeError # co19-roll 706: Please triage this failure.
@@ -172,6 +172,7 @@ LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: RuntimeError # co19-roll 706
 LayoutTests/fast/innerHTML/innerHTML-uri-resolution_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LayoutTests/fast/innerHTML/javascript-url_t01: RuntimeError, Timeout # co19-roll 706: Please triage this failure.
 LibTest/core/double/roundToDouble_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/html/Document/childNodes_A01_t01: Pass, RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Document/clone_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Document/clone_A01_t02: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Document/contains_A01_t02: RuntimeError # co19-roll 706: Please triage this failure.
@@ -182,7 +183,7 @@ LibTest/html/Element/Element.tag_A01_t01: RuntimeError # co19-roll 706: Please t
 LibTest/html/Element/appendHtml_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Element/appendText_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Element/attributeChanged_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
-LibTest/html/Element/blur_A01_t01: Timeout # co19-roll r607: Please triage this failure
+LibTest/html/Element/blur_A01_t01: Pass, Timeout # co19-roll r607: Please triage this failure
 LibTest/html/Element/contentEditable_A01_t02: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Element/dataset_A02_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Element/draggable_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
@@ -209,6 +210,7 @@ LibTest/html/HttpRequest/onError_A01_t02: Timeout # co19-roll r607: Please triag
 LibTest/html/HttpRequest/onLoadEnd_A01_t01: Timeout # co19-roll r607: Please triage this failure
 LibTest/html/HttpRequest/onLoadStart_A01_t01: Timeout # co19-roll r607: Please triage this failure
 LibTest/html/HttpRequest/overrideMimeType_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Pass, RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/HttpRequest/responseText_A01_t02: Timeout # co19-roll r607: Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
@@ -262,14 +264,14 @@ LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError # co19-roll 706: Ple
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/isolate/Isolate/spawnUri_A02_t02: RuntimeError, Pass # co19-roll 706: Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t03: RuntimeError # co19-roll 706: Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError # co19-roll 706: Please triage this failure.
-LibTest/isolate/Isolate/spawn_A02_t01: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/isolate/Isolate/spawnUri_A02_t03: RuntimeError, Pass # co19-roll 706: Please triage this failure.
+LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError, Pass # co19-roll 706: Please triage this failure.
+LibTest/isolate/Isolate/spawn_A02_t01: RuntimeError, Pass # co19-roll 706: Please triage this failure.
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # co19-roll 706: Please triage this failure.
 LibTest/math/MutableRectangle/MutableRectangle_A01_t01: Pass
-LibTest/math/MutableRectangle/boundingBox_A01_t02: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/math/MutableRectangle/boundingBox_A01_t02: RuntimeError, Pass # co19-roll 706: Please triage this failure.
 LibTest/math/Rectangle/Rectangle_A01_t01: Pass
-LibTest/math/Rectangle/boundingBox_A01_t02: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/math/Rectangle/boundingBox_A01_t02: RuntimeError, Pass # co19-roll 706: Please triage this failure.
 WebPlatformTest/dom/events/event_constants/constants_A01_t01: Timeout # co19-roll r607: Please triage this failure
 WebPlatformTest/dom/events/event_constructors/Event_A01_t01: Timeout # co19-roll r607: Please triage this failure
 WebPlatformTest/dom/events/event_constructors/Event_A02_t01: Timeout # co19-roll r607: Please triage this failure
