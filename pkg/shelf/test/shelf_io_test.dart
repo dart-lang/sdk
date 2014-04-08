@@ -84,10 +84,10 @@ void main() {
       var expectedUrl = 'http://localhost:$_serverPort$path';
       expect(request.requestedUri, Uri.parse(expectedUrl));
 
-      expect(request.pathInfo, '/foo/bar');
-      expect(request.pathSegments, ['foo', 'bar']);
+      expect(request.url.path, '/foo/bar');
+      expect(request.url.pathSegments, ['foo', 'bar']);
       expect(request.protocolVersion, '1.1');
-      expect(request.queryString, 'qs=value');
+      expect(request.url.query, 'qs=value');
       expect(request.scriptName, '');
 
       return syncHandler(request);
@@ -129,11 +129,16 @@ void main() {
   test('custom request headers are received by the handler', () {
     _scheduleServer((request) {
       expect(request.headers, containsPair('custom-header', 'client value'));
+
+      // dart:io HttpServer splits multi-value headers into an array
+      // validate that they are combined correctly
+      expect(request.headers, containsPair('multi-header', 'foo,bar,baz'));
       return syncHandler(request);
     });
 
     var headers = {
-      'custom-header': 'client value'
+      'custom-header': 'client value',
+      'multi-header': 'foo,bar,baz'
     };
 
     return _scheduleGet(headers: headers).then((response) {

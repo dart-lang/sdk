@@ -65,7 +65,6 @@ Future handleRequest(HttpRequest request, Handler handler) {
 
 /// Creates a new [Request] from the provided [HttpRequest].
 Request _fromHttpRequest(HttpRequest request) {
-  //TODO(kevmoo): make headers case-insensitive
   var headers = {};
   request.headers.forEach((k, v) {
     // Multiple header values are joined with commas.
@@ -73,9 +72,9 @@ Request _fromHttpRequest(HttpRequest request) {
     headers[k] = v.join(',');
   });
 
-  return new Request(request.uri.path, request.uri.query, request.method,
-      '', request.protocolVersion, request.requestedUri,
-      headers, body: request);
+  return new Request(request.method, request.requestedUri,
+      protocolVersion: request.protocolVersion, headers: headers,
+      body: request);
 }
 
 Future _writeResponse(Response response, HttpResponse httpResponse) {

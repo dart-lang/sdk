@@ -7,7 +7,6 @@ library shelf.response;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:collection/wrappers.dart';
 import 'package:http_parser/http_parser.dart';
 
 import 'message.dart';
@@ -196,8 +195,8 @@ class Response extends Message {
   /// Content-Type header, it will be set to "application/octet-stream".
   Response(this.statusCode, {body, Map<String, String> headers,
       Encoding encoding})
-      : super(_adjustHeaders(headers, encoding),
-          _bodyToStream(body, encoding)) {
+      : super(_bodyToStream(body, encoding),
+          headers: _adjustHeaders(headers, encoding)) {
     if (statusCode < 100) {
       throw new ArgumentError("Invalid status code: $statusCode.");
     }
@@ -221,19 +220,18 @@ Stream<List<int>> _bodyToStream(body, Encoding encoding) {
 /// Adds information about [encoding] to [headers].
 ///
 /// Returns a new map without modifying [headers].
-UnmodifiableMapView<String, String> _adjustHeaders(
+Map<String, String> _adjustHeaders(
     Map<String, String> headers, Encoding encoding) {
   if (headers == null) headers = const {};
-  if (encoding == null) return new UnmodifiableMapView(headers);
+  if (encoding == null) return headers;
   if (headers['content-type'] == null) {
-    return new UnmodifiableMapView(_addHeader(headers, 'content-type',
-        'application/octet-stream; charset=${encoding.name}'));
+    return _addHeader(headers, 'content-type',
+        'application/octet-stream; charset=${encoding.name}');
   }
 
   var contentType = new MediaType.parse(headers['content-type'])
       .change(parameters: {'charset': encoding.name});
-  return new UnmodifiableMapView(
-      _addHeader(headers, 'content-type', contentType.toString()));
+  return _addHeader(headers, 'content-type', contentType.toString());
 }
 
 /// Adds a header with [name] and [value] to [headers], which may be null.

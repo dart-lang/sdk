@@ -88,11 +88,11 @@ class ScheduledServer {
   Future<shelf.Response> _handleRequest(shelf.Request request) {
     return wrapFuture(syncFuture(() {
       if (_handlers.isEmpty) {
-        fail("'$description' received ${request.method} ${request.pathInfo} "
+        fail("'$description' received ${request.method} ${request.url.path} "
              "when no more requests were expected.");
       }
       return _handlers.removeFirst().fn(request);
-    }), 'receiving ${request.method} ${request.pathInfo}').catchError((error) {
+    }), 'receiving ${request.method} ${request.url.path}').catchError((error) {
       // Don't let errors bubble up to the shelf handler. It will print them to
       // stderr, but the user will already be notified via the scheduled_test
       // infrastructure.

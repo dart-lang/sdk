@@ -5,29 +5,119 @@
 library shelf.request_test;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import 'package:unittest/unittest.dart';
 
+import 'test_util.dart';
+
 Request _request([Map<String, String> headers, Stream<List<int>> body]) {
-  if (headers == null) headers = {};
-  return new Request("/", "", "GET", "", "1.1", Uri.parse('http://localhost/'),
-      headers, body: body);
+  return new Request("GET", LOCALHOST_URI, headers: headers, body: body);
 }
 
 void main() {
-  group("contentLength", () {
-    test("is null without a content-length header", () {
-      var request = _request();
-      expect(request.contentLength, isNull);
+  group('constructor', () {
+    test('protocolVersion defaults to "1.1"', () {
+      var request = new Request('GET', LOCALHOST_URI);
+      expect(request.protocolVersion, '1.1');
     });
 
-    test("comes from the content-length header", () {
-      var request = _request({
-        'content-length': '42'
-      });
-      expect(request.contentLength, 42);
+    test('provide non-default protocolVersion', () {
+      var request = new Request('GET', LOCALHOST_URI, protocolVersion: '1.0');
+      expect(request.protocolVersion, '1.0');
+    });
+
+    test('requestedUri must be absolute', () {
+      expect(() => new Request('GET', Uri.parse('/path')),
+          throwsArgumentError);
+    });
+
+    test('if uri is null, scriptName must be null', () {
+      expect(() => new Request('GET', Uri.parse('/path'),
+          scriptName: '/script/name'), throwsArgumentError);
+    });
+
+    test('if scriptName is null, uri must be null', () {
+      var relativeUri = new Uri(path: '/cool/beans.html');
+      expect(() => new Request('GET', Uri.parse('/path'),
+          url: relativeUri), throwsArgumentError);
+    });
+
+    test('uri must be relative', () {
+      var relativeUri = Uri.parse('http://localhost/test');
+
+      expect(() => new Request('GET', LOCALHOST_URI,
+          url: relativeUri, scriptName: '/news'),
+          throwsArgumentError);
+
+      // NOTE: explicitly testing fragments due to Issue 18053
+      relativeUri = Uri.parse('http://localhost/test#fragment');
+
+      expect(() => new Request('GET', LOCALHOST_URI,
+          url: relativeUri, scriptName: '/news'),
+          throwsArgumentError);
+    });
+
+    test('uri and scriptName', () {
+      var pathInfo = '/pages/page.html?utm_source=ABC123';
+      var scriptName = '/assets/static';
+      var fullUrl = 'http://localhost/other_path/other_resource.asp';
+      var request = new Request('GET', Uri.parse(fullUrl),
+          url: Uri.parse(pathInfo), scriptName: scriptName);
+
+      expect(request.scriptName, scriptName);
+      expect(request.url.path, '/pages/page.html');
+      expect(request.url.query, 'utm_source=ABC123');
+    });
+
+    test('minimal uri', () {
+      var pathInfo = '/';
+      var scriptName = '/assets/static';
+      var fullUrl = 'http://localhost$scriptName$pathInfo';
+      var request = new Request('GET', Uri.parse(fullUrl),
+          url: Uri.parse(pathInfo), scriptName: scriptName);
+
+      expect(request.scriptName, scriptName);
+      expect(request.url.path, '/');
+      expect(request.url.query, '');
+    });
+
+    test('invalid url', () {
+      var testUrl = 'page';
+      var scriptName = '/assets/static';
+      var fullUrl = 'http://localhost$scriptName$testUrl';
+
+      expect(() => new Request('GET', Uri.parse(fullUrl),
+          url: Uri.parse(testUrl), scriptName: scriptName),
+          throwsArgumentError);
+    });
+
+    test('scriptName with no leading slash', () {
+      var pathInfo = '/page';
+      var scriptName = 'assets/static';
+      var fullUrl = 'http://localhost/assets/static/pages';
+
+      expect(() => new Request('GET',Uri.parse(fullUrl),
+          url: Uri.parse(pathInfo), scriptName: scriptName),
+          throwsArgumentError);
+
+      pathInfo = '/assets/static/page';
+      scriptName = '/';
+      fullUrl = 'http://localhost/assets/static/pages';
+
+      expect(() => new Request('GET',Uri.parse(fullUrl),
+          url: Uri.parse(pathInfo), scriptName: scriptName),
+          throwsArgumentError);
+    });
+
+    test('scriptName that is only a slash', () {
+      var pathInfo = '/assets/static/page';
+      var scriptName = '/';
+      var fullUrl = 'http://localhost/assets/static/pages';
+
+      expect(() => new Request('GET',Uri.parse(fullUrl),
+          url: Uri.parse(pathInfo), scriptName: scriptName),
+          throwsArgumentError);
     });
   });
 
@@ -64,23 +154,6 @@ void main() {
           ..close();
       });
     });
-
-    test("defaults to UTF-8", () {
-      var request = _request({}, new Stream.fromIterable([[195, 168]]));
-      expect(request.readAsString(), completion(equals("è")));
-    });
-
-    test("the content-type header overrides the default", () {
-      var request = _request({'content-type': 'text/plain; charset=iso-8859-1'},
-          new Stream.fromIterable([[195, 168]]));
-      expect(request.readAsString(), completion(equals("Ã¨")));
-    });
-
-    test("an explicit encoding overrides the content-type header", () {
-      var request = _request({'content-type': 'text/plain; charset=iso-8859-1'},
-          new Stream.fromIterable([[195, 168]]));
-      expect(request.readAsString(LATIN1), completion(equals("Ã¨")));
-    });
   });
 
   group("read", () {
@@ -103,48 +176,6 @@ void main() {
           ..add([32, 119, 111, 114, 108, 100])
           ..close();
       });
-    });
-  });
-
-  group("mimeType", () {
-    test("is null without a content-type header", () {
-      expect(_request().mimeType, isNull);
-    });
-
-    test("comes from the content-type header", () {
-      expect(_request({
-        'content-type': 'text/plain'
-      }).mimeType, equals('text/plain'));
-    });
-
-    test("doesn't include parameters", () {
-      expect(_request({
-        'content-type': 'text/plain; foo=bar; bar=baz'
-      }).mimeType, equals('text/plain'));
-    });
-  });
-
-  group("encoding", () {
-    test("is null without a content-type header", () {
-      expect(_request().encoding, isNull);
-    });
-
-    test("is null without a charset parameter", () {
-      expect(_request({
-        'content-type': 'text/plain'
-      }).encoding, isNull);
-    });
-
-    test("is null with an unrecognized charset parameter", () {
-      expect(_request({
-        'content-type': 'text/plain; charset=fblthp'
-      }).encoding, isNull);
-    });
-
-    test("comes from the content-type charset parameter", () {
-      expect(_request({
-        'content-type': 'text/plain; charset=iso-8859-1'
-      }).encoding, equals(LATIN1));
     });
   });
 }

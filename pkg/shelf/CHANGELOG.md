@@ -1,3 +1,12 @@
+## 0.4.0
+
+* Access to headers for `Request` and `Response` is now case-insensitive.
+
+* The constructor for `Request` has been simplified. 
+
+* `Request` now exposes `url` which replaces `pathInfo`, `queryString`, and 
+  `pathSegments`.
+
 ## 0.3.0+9
 
 * Removed old testing infrastructure.

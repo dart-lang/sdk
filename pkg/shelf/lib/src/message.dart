@@ -5,9 +5,11 @@
 library shelf.message;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
-import 'package:collection/wrappers.dart';
+// TODO(kevmoo): use UnmodifiableMapView from SDK once 1.4 ships
+import 'package:collection/wrappers.dart' as pc;
 import 'package:http_parser/http_parser.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -23,8 +25,11 @@ abstract class Message {
   /// This can be read via [read] or [readAsString].
   final Stream<List<int>> _body;
 
-  Message(UnmodifiableMapView<String, String> headers, this._body)
-      : this.headers = headers;
+  /// Creates a new [Message].
+  ///
+  /// If [headers] is `null`, it is treated as empty.
+  Message(this._body, {Map<String, String> headers})
+      : this.headers = _getIgnoreCaseMapView(headers);
 
   /// The contents of the content-length field in [headers].
   ///
@@ -91,4 +96,18 @@ abstract class Message {
     if (encoding == null) encoding = UTF8;
     return Chain.track(encoding.decodeStream(read()));
   }
+}
+
+/// Creates on an unmodifiable map of [headers] with case-insensitive access.
+Map<String, String> _getIgnoreCaseMapView(Map<String, String> headers) {
+  if (headers == null) return const {};
+  // TODO(kevmoo) generalize this model with a 'canonical map' to align with
+  // similiar implementation in http pkg [BaseRequest].
+  var map = new LinkedHashMap<String, String>(
+      equals: (key1, key2) => key1.toLowerCase() == key2.toLowerCase(),
+      hashCode: (key) => key.toLowerCase().hashCode);
+
+  map.addAll(headers);
+
+  return new pc.UnmodifiableMapView<String, String>(map);
 }

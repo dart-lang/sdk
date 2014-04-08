@@ -12,12 +12,12 @@ import 'package:shelf/src/util.dart';
 /// A simple, synchronous handler for [Request].
 ///
 /// By default, replies with a status code 200, empty headers, and
-/// `Hello from ${request.pathInfo}`.
+/// `Hello from ${request.url.path}`.
 Response syncHandler(Request request, {int statusCode,
     Map<String, String> headers}) {
   if (statusCode == null) statusCode = 200;
   return new Response(statusCode, headers: headers,
-      body: 'Hello from ${request.pathInfo}');
+      body: 'Hello from ${request.url.path}');
 }
 
 /// Calls [syncHandler] and wraps the response in a [Future].
@@ -28,5 +28,6 @@ Future<Response> asyncHandler(Request request) =>
 Future<Response> makeSimpleRequest(Handler handler) =>
     syncFuture(() => handler(_request));
 
-final _request = new Request('/', '', 'GET', '', '1.1',
-    Uri.parse('http://localhost/'), {});
+final _request = new Request('GET', LOCALHOST_URI);
+
+final LOCALHOST_URI = Uri.parse('http://localhost/');

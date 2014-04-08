@@ -34,26 +34,6 @@ void main() {
           ..close();
       });
     });
-
-    test("defaults to UTF-8", () {
-      var response = new Response.ok(
-          new Stream.fromIterable([[195, 168]]));
-      expect(response.readAsString(), completion(equals("è")));
-    });
-
-    test("the content-type header overrides the default", () {
-      var response = new Response.ok(
-          new Stream.fromIterable([[195, 168]]),
-          headers: {'content-type': 'text/plain; charset=iso-8859-1'});
-      expect(response.readAsString(), completion(equals("Ã¨")));
-    });
-
-    test("an explicit encoding overrides the content-type header", () {
-      var response = new Response.ok(
-          new Stream.fromIterable([[195, 168]]),
-          headers: {'content-type': 'text/plain; charset=utf-8'});
-      expect(response.readAsString(LATIN1), completion(equals("Ã¨")));
-    });
   });
 
   group("read", () {
@@ -154,48 +134,6 @@ void main() {
     });
   });
 
-  group("mimeType", () {
-    test("is null without a content-type header", () {
-      expect(new Response.ok("okay!").mimeType, isNull);
-    });
-
-    test("comes from the content-type header", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-type': 'text/plain'
-      }).mimeType, equals('text/plain'));
-    });
-
-    test("doesn't include parameters", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-type': 'text/plain; foo=bar; bar=baz'
-      }).mimeType, equals('text/plain'));
-    });
-  });
-
-  group("encoding", () {
-    test("is null without a content-type header", () {
-      expect(new Response.ok("okay!").encoding, isNull);
-    });
-
-    test("is null without a charset parameter", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-type': 'text/plain'
-      }).encoding, isNull);
-    });
-
-    test("is null with an unrecognized charset parameter", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-type': 'text/plain; charset=fblthp'
-      }).encoding, isNull);
-    });
-
-    test("comes from the content-type charset parameter", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-type': 'text/plain; charset=iso-8859-1'
-      }).encoding, equals(LATIN1));
-    });
-  });
-
   group("expires", () {
     test("is null without an Expires header", () {
       expect(new Response.ok("okay!").expires, isNull);
@@ -217,18 +155,6 @@ void main() {
       expect(new Response.ok("okay!", headers: {
         'last-modified': 'Sun, 06 Nov 1994 08:49:37 GMT'
       }).lastModified, equals(DateTime.parse("1994-11-06 08:49:37z")));
-    });
-  });
-
-  group("contentLength", () {
-    test("is null without a content-length header", () {
-      expect(new Response.ok("okay!").contentLength, isNull);
-    });
-
-    test("comes from the content-length header", () {
-      expect(new Response.ok("okay!", headers: {
-        'content-length': '42'
-      }).contentLength, equals(42));
     });
   });
 }

@@ -30,14 +30,14 @@ Middleware logRequests({void logger(String msg, bool isError)}) =>
     var watch = new Stopwatch()..start();
 
     return syncFuture(() => innerHandler(request)).then((response) {
-      var msg = _getMessage(startTime, response.statusCode, request.pathInfo,
+      var msg = _getMessage(startTime, response.statusCode, request.url,
           request.method, watch.elapsed);
 
       logger(msg, false);
 
       return response;
     }, onError: (error, stackTrace) {
-      var msg = _getErrorMessage(startTime, request.pathInfo, request.method,
+      var msg = _getErrorMessage(startTime, request.url, request.method,
           watch.elapsed, error, stackTrace);
 
       logger(msg, true);
@@ -47,13 +47,13 @@ Middleware logRequests({void logger(String msg, bool isError)}) =>
   };
 };
 
-String _getMessage(DateTime requestTime, int statusCode, String pathInfo,
+String _getMessage(DateTime requestTime, int statusCode, Uri url,
   String method, Duration elapsedTime) {
 
-  return '${requestTime}\t$elapsedTime\t$method\t[${statusCode}]\t${pathInfo}';
+  return '${requestTime}\t$elapsedTime\t$method\t[${statusCode}]\t${url}';
 }
 
-String _getErrorMessage(DateTime requestTime, String pathInfo,
+String _getErrorMessage(DateTime requestTime, Uri url,
   String method, Duration elapsedTime, Object error, StackTrace stack) {
 
   var chain = new Chain.current();
@@ -63,7 +63,7 @@ String _getErrorMessage(DateTime requestTime, String pathInfo,
       .terse;
   }
 
-  var msg = '${requestTime}\t$elapsedTime\t$method\t${pathInfo}\n$error';
+  var msg = '${requestTime}\t$elapsedTime\t$method\t${url}\n$error';
   if(chain == null) return msg;
 
   return '$msg\n$chain';

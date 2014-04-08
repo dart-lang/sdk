@@ -108,7 +108,7 @@ void serve([List<d.Descriptor> contents]) {
     return _closeServer().then((_) {
       return shelf_io.serve((request) {
         currentSchedule.heartbeat();
-        var path = request.pathInfo.replaceFirst("/", "");
+        var path = request.url.path.replaceFirst("/", "");
         _requestedPaths.add(path);
 
         return validateStream(baseDir.load(path))

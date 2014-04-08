@@ -29,7 +29,7 @@ void main() {
 }
 
 shelf.Response _echoRequest(shelf.Request request) {
-  return new shelf.Response.ok('Request for "${request.pathInfo}"');
+  return new shelf.Response.ok('Request for "${request.url}"');
 }
 ```
 

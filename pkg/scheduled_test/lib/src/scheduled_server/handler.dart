@@ -52,15 +52,15 @@ class Handler {
         }
 
         var description = "'${server.description}' handling ${request.method} "
-            "${request.pathInfo}";
+            "${request.url.path}";
         // Use a nested call to [schedule] to help the user tell the difference
         // between a test failing while waiting for a handler and a test failing
         // while executing a handler.
         chainToCompleter(schedule(() {
           return syncFuture(() {
-            if (request.method != method || request.pathInfo != path) {
+            if (request.method != method || request.url.path != path) {
               fail("'${server.description}' expected $method $path, "
-                   "but got ${request.method} ${request.pathInfo}.");
+                   "but got ${request.method} ${request.url.path}.");
             }
 
             return fn(request);

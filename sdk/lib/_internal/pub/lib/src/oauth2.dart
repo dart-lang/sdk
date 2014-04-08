@@ -172,12 +172,12 @@ Future<Client> _authorize() {
   var server;
   var completer = new Completer();
   shelf_io.serve((request) {
-    if (request.pathInfo != "/") {
+    if (request.url.path != "/") {
       return new shelf.Response.notFound('Invalid URI.');
     }
 
     log.message('Authorization received, processing...');
-    var queryString = request.queryString;
+    var queryString = request.url.query;
     if (queryString == null) queryString = '';
 
     // Closing the server here is safe, since it will wait until the response is

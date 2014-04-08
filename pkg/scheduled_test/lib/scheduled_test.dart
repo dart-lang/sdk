@@ -196,7 +196,6 @@ import 'package:unittest/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
-import 'src/utils.dart';
 
 export 'package:unittest/unittest.dart' hide
     test, solo_test, group, setUp, tearDown, completes, completion;

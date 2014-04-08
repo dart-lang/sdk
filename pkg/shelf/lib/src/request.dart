@@ -5,31 +5,24 @@
 library shelf.request;
 
 import 'dart:async';
-import 'dart:collection';
 
-// TODO(kevmoo): use UnmodifiableMapView from SDK once 1.4 ships
-import 'package:collection/wrappers.dart' as pc;
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as p;
 
 import 'message.dart';
 
 /// Represents an HTTP request to be processed by a Shelf application.
 class Request extends Message {
-  /// The remainder of the [requestedUri] path designating the virtual
+  /// The remainder of the [requestedUri] path and query designating the virtual
   /// "location" of the request's target within the handler.
   ///
-  /// [pathInfo] may be an empty string, if [requestedUri ]targets the handler
+  /// [url] may be an empty, if [requestedUri]targets the handler
   /// root and does not have a trailing slash.
   ///
-  /// [pathInfo] is never null. If it is not empty, it will start with `/`.
+  /// [url] is never null. If it is not empty, it will start with `/`.
   ///
-  /// [scriptName] and [pathInfo] combine to create a valid path that should
+  /// [scriptName] and [url] combine to create a valid path that should
   /// correspond to the [requestedUri] path.
-  final String pathInfo;
-
-  /// The portion of the request URL that follows the "?", if any.
-  final String queryString;
+  final Uri url;
 
   /// The HTTP request method, such as "GET" or "POST".
   final String method;
@@ -42,7 +35,7 @@ class Request extends Message {
   /// If the handler corresponds to the "root" of a server, it will be an
   /// empty string, otherwise it will start with a `/`
   ///
-  /// [scriptName] and [pathInfo] combine to create a valid path that should
+  /// [scriptName] and [url] combine to create a valid path that should
   /// correspond to the [requestedUri] path.
   final String scriptName;
 
@@ -66,43 +59,95 @@ class Request extends Message {
   }
   DateTime _ifModifiedSinceCache;
 
-  Request(this.pathInfo, String queryString, this.method,
-      this.scriptName, this.protocolVersion, this.requestedUri,
-      Map<String, String> headers, {Stream<List<int>> body})
-      : this.queryString = queryString == null ? '' : queryString,
-        super(new pc.UnmodifiableMapView(new HashMap.from(headers)),
-            body == null ? new Stream.fromIterable([]) : body) {
+  /// Creates a new [Request].
+  ///
+  /// If [url] and [scriptName] are omitted, they are inferred from
+  /// [requestedUri].
+  ///
+  /// Setting one of [url] or [scriptName] and not the other will throw an
+  /// [ArgumentError].
+  ///
+  /// The default value for [protocolVersion] is '1.1'.
+  // TODO(kevmoo) finish documenting the rest of the arguments.
+  Request(this.method, Uri requestedUri, {String protocolVersion,
+    Map<String, String> headers, Uri url, String scriptName,
+    Stream<List<int>> body})
+      : this.requestedUri = requestedUri,
+        this.protocolVersion = protocolVersion == null ?
+            '1.1' : protocolVersion,
+        this.url = _computeUrl(requestedUri, url, scriptName),
+        this.scriptName = _computeScriptName(requestedUri, url, scriptName),
+        super(body == null ? new Stream.fromIterable([]) : body,
+            headers: headers) {
     if (method.isEmpty) throw new ArgumentError('method cannot be empty.');
 
-    if (scriptName.isNotEmpty && !scriptName.startsWith('/')) {
+    // TODO(kevmoo) use isAbsolute property on Uri once Issue 18053 is fixed
+    if (requestedUri.scheme.isEmpty) {
+      throw new ArgumentError('requstedUri must be an absolute URI.');
+    }
+
+    if (this.scriptName.isNotEmpty && !this.scriptName.startsWith('/')) {
       throw new ArgumentError('scriptName must be empty or start with "/".');
     }
 
-    if (scriptName == '/') {
+    if (this.scriptName == '/') {
       throw new ArgumentError(
           'scriptName can never be "/". It should be empty instead.');
     }
 
-    if (scriptName.endsWith('/')) {
+    if (this.scriptName.endsWith('/')) {
       throw new ArgumentError('scriptName must not end with "/".');
     }
 
-    if (pathInfo.isNotEmpty && !pathInfo.startsWith('/')) {
-      throw new ArgumentError('pathInfo must be empty or start with "/".');
+    if (this.url.path.isNotEmpty && !this.url.path.startsWith('/')) {
+      throw new ArgumentError('url must be empty or start with "/".');
     }
 
-    if (scriptName.isEmpty && pathInfo.isEmpty) {
-      throw new ArgumentError('scriptName and pathInfo cannot both be empty.');
+    if (this.scriptName.isEmpty && this.url.path.isEmpty) {
+      throw new ArgumentError('scriptName and url cannot both be empty.');
     }
+  }
+}
+
+/// Computes `url` from the provided [Request] constructor arguments.
+///
+/// If [url] and [scriptName] are `null`, infer value from [requestedUrl],
+/// otherwise return [url].
+///
+/// If [url] is provided, but [scriptName] is omitted, throws an
+/// [ArgumentError].
+Uri _computeUrl(Uri requestedUri, Uri url, String scriptName) {
+  if (url == null && scriptName == null) {
+    return new Uri(path: requestedUri.path, query: requestedUri.query,
+        fragment: requestedUri.fragment);
   }
 
-  /// Convenience property to access [pathInfo] data as a [List].
-  List<String> get pathSegments {
-    var segs = p.url.split(pathInfo);
-    if (segs.length > 0) {
-      assert(segs.first == p.url.separator);
-      segs.removeAt(0);
-    }
-    return segs;
+  if (url != null && scriptName != null) {
+    // TODO(kevmoo) use isAbsolute property on Uri once Issue 18053 is fixed
+    if (url.scheme.isNotEmpty) throw new ArgumentError('url must be relative.');
+    return url;
   }
+
+  throw new ArgumentError(
+      'url and scriptName must both be null or both be set.');
+}
+
+/// Computes `scriptName` from the provided [Request] constructor arguments.
+///
+/// If [url] and [scriptName] are `null` it returns an empty string, otherwise
+/// [scriptName] is returned.
+///
+/// If [script] is provided, but [url] is omitted, throws an
+/// [ArgumentError].
+String _computeScriptName(Uri requstedUri, Uri url, String scriptName) {
+  if (url == null && scriptName == null) {
+    return '';
+  }
+
+  if (url != null && scriptName != null) {
+    return scriptName;
+  }
+
+  throw new ArgumentError(
+      'url and scriptName must both be null or both be set.');
 }
