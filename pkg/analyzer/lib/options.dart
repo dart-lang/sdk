@@ -39,6 +39,9 @@ class CommandLineOptions {
   /** Whether to show SDK warnings */
   final bool showSdkWarnings;
 
+  /** Whether to show both cold and hot performance statistics */
+  final bool warmPerf;
+
   /** Whether to treat warnings as fatal */
   final bool warningsAreFatal;
 
@@ -66,6 +69,7 @@ class CommandLineOptions {
       perf = args['perf'],
       showPackageWarnings = args['show-package-warnings'] || args['package-warnings'],
       showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
+      warmPerf = args['warm-perf'],
       warningsAreFatal = args['fatal-warnings'],
       dartSdkPath = args['dart-sdk'],
       packageRootPath = args['package-root'],
@@ -127,6 +131,9 @@ class CommandLineOptions {
       ..addFlag('perf',
           help: 'Show performance statistics',
           defaultsTo: false, negatable: false)
+      ..addFlag('warm-perf',
+          help: 'Show both cold and warm performance statistics',
+          defaultsTo: false, negatable: false, hide: true)
       ..addFlag('warnings', help: 'Show warnings from SDK imports',
           defaultsTo: false, negatable: false)
       ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports (deprecated)',

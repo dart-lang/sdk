@@ -30,7 +30,6 @@ void main(args) {
 }
 
 _runAnalyzer(CommandLineOptions options, [bool async = true]) {
-  int startTime = JavaSystem.currentTimeMillis();
   if (!options.machineFormat) {
     stdout.writeln("Analyzing ${options.sourceFiles}...");
   }
@@ -50,6 +49,23 @@ _runAnalyzer(CommandLineOptions options, [bool async = true]) {
     return ErrorSeverity.ERROR;
   }
   // do analyze
+  if (options.warmPerf) {
+    int startTime = JavaSystem.currentTimeMillis();
+    AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+    analyzer.analyzeSync(printMode: 2);
+
+    for (int i = 0; i < 8; i++) {
+      startTime = JavaSystem.currentTimeMillis();
+      analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+      analyzer.analyzeSync(printMode: 0);
+    }
+
+    PerformanceStatistics.reset();
+    startTime = JavaSystem.currentTimeMillis();
+    analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+    return analyzer.analyzeSync();
+  }
+  int startTime = JavaSystem.currentTimeMillis();
   AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
   if (async) {
     return analyzer.analyzeAsync();

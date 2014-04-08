@@ -59,11 +59,14 @@ class AnalyzerImpl {
 
   /**
    * Treats the [sourcePath] as the top level library and analyzes it using a
-   * synchronous algorithm over the analysis engine.
+   * synchronous algorithm over the analysis engine. If [printMode] is `0`,
+   * then no error or performance information is printed. If [printMode] is `1`,
+   * then both will be printed. If [printMode] is `2`, then only performance
+   * information will be printed, and it will be marked as being for a cold VM.
    */
-  ErrorSeverity analyzeSync() {
+  ErrorSeverity analyzeSync({int printMode : 1}) {
     setupForAnalysis();
-    return _analyzeSync();
+    return _analyzeSync(printMode);
   }
 
   /**
@@ -92,8 +95,8 @@ class AnalyzerImpl {
     prepareAnalysisContext(sourceFile, librarySource);
   }
 
-  /// The sync version of analysis
-  ErrorSeverity _analyzeSync() {
+  /// The sync version of analysis.
+  ErrorSeverity _analyzeSync(int printMode) {
     // don't try to analyze parts
     if (context.computeKindOf(librarySource) == SourceKind.PART) {
       print("Only libraries can be analyzed.");
@@ -107,7 +110,11 @@ class AnalyzerImpl {
     prepareErrors();
 
     // print errors and performance numbers
-    _printErrorsAndPerf();
+    if (printMode == 1) {
+      _printErrorsAndPerf();
+    } else if (printMode == 2) {
+      _printColdPerf();
+    }
 
     // compute max severity and set exitCode
     ErrorSeverity status = maxErrorSeverity;
@@ -169,7 +176,7 @@ class AnalyzerImpl {
     formatter.formatErrors(errorInfos);
 
     // print performance numbers
-    if (options.perf) {
+    if (options.perf || options.warmPerf) {
       int totalTime = JavaSystem.currentTimeMillis() - startTime;
       int ioTime = PerformanceStatistics.io.result;
       int scanTime = PerformanceStatistics.scan.result;
@@ -190,6 +197,29 @@ class AnalyzerImpl {
           + angularTime)}");
       stdout.writeln("total:$totalTime");
    }
+  }
+
+  _printColdPerf() {
+    // print cold VM performance numbers
+    int totalTime = JavaSystem.currentTimeMillis() - startTime;
+    int ioTime = PerformanceStatistics.io.result;
+    int scanTime = PerformanceStatistics.scan.result;
+    int parseTime = PerformanceStatistics.parse.result;
+    int resolveTime = PerformanceStatistics.resolve.result;
+    int errorsTime = PerformanceStatistics.errors.result;
+    int hintsTime = PerformanceStatistics.hints.result;
+    int angularTime = PerformanceStatistics.angular.result;
+    stdout.writeln("io-cold:$ioTime");
+    stdout.writeln("scan-cold:$scanTime");
+    stdout.writeln("parse-cold:$parseTime");
+    stdout.writeln("resolve-cold:$resolveTime");
+    stdout.writeln("errors-cold:$errorsTime");
+    stdout.writeln("hints-cold:$hintsTime");
+    stdout.writeln("angular-cold:$angularTime");
+    stdout.writeln("other-cold:${totalTime
+        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
+        + angularTime)}");
+    stdout.writeln("total-cold:$totalTime");
   }
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.

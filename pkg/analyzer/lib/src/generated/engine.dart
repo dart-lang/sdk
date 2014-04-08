@@ -9869,6 +9869,19 @@ class PerformanceStatistics {
    * The [TimeCounter] for time spent in hints generator.
    */
   static TimeCounter hints = new TimeCounter();
+
+  /**
+   * Reset all of the time counters to zero.
+   */
+  static void reset() {
+    io = new TimeCounter();
+    scan = new TimeCounter();
+    parse = new TimeCounter();
+    resolve = new TimeCounter();
+    angular = new TimeCounter();
+    errors = new TimeCounter();
+    hints = new TimeCounter();
+  }
 }
 
 /**
