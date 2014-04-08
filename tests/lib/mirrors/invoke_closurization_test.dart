@@ -24,14 +24,14 @@ testSync() {
   Expect.equals("A+B+C", result.reflectee('A', 'B', 'C'));
 
   ClassMirror cm = reflectClass(C);
-  result = cm.getField(#staticFunction);
-  Expect.isTrue(result.reflectee is Function, "Should be closure");
-  Expect.equals("A-B-C", result.reflectee('A', 'B', 'C'));
+  result = cm.getField(#staticFunction);                             /// static: ok
+  Expect.isTrue(result.reflectee is Function, "Should be closure");  /// static: continued
+  Expect.equals("A-B-C", result.reflectee('A', 'B', 'C'));           /// static: continued
 
   LibraryMirror lm = cm.owner;
-  result = lm.getField(#libraryFunction);
-  Expect.isTrue(result.reflectee is Function, "Should be closure");
-  Expect.equals("A:B:C", result.reflectee('A', 'B', 'C'));
+  result = lm.getField(#libraryFunction);                            /// static: continued
+  Expect.isTrue(result.reflectee is Function, "Should be closure");  /// static: continued
+  Expect.equals("A:B:C", result.reflectee('A', 'B', 'C'));           /// static: continued
 }
 
 main() {
