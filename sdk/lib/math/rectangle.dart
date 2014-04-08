@@ -148,8 +148,8 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
    * point `(left, top)`.
    */
   const Rectangle(this.left, this.top, T width, T height)
-      : this.width = (width >= 0) ? width : -width * 0,  // Inline _clampToZero.
-        this.height = (height >= 0) ? height : -height * 0;
+      : this.width = (width < 0) ? -width * 0 : width,  // Inline _clampToZero.
+        this.height = (height < 0) ?  -height * 0 : height;
 
   /**
    * Create a rectangle spanned by the points [a] and [b];
@@ -209,8 +209,8 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * point `(left, top)`.
    */
   MutableRectangle(this.left, this.top, T width, T height)
-      : this._width = (width >= 0) ? width : _clampToZero(width),
-        this._height = (height >= 0) ? height : _clampToZero(height);
+      : this._width = (width < 0) ? _clampToZero(width) : width,
+        this._height = (height < 0) ? _clampToZero(height) : height;
 
   /**
    * Create a mutable rectangle spanned by the points [a] and [b];
