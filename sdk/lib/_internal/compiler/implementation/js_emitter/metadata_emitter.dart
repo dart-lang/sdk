@@ -27,8 +27,7 @@ class MetadataEmitter extends CodeEmitterHelper {
       if (link != null) {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
-          Constant value =
-              backend.constants.getConstantForMetadata(annotation);
+          Constant value = annotation.value;
           if (value == null) {
             compiler.internalError(annotation, 'Annotation value is null.');
           } else {
@@ -47,7 +46,8 @@ class MetadataEmitter extends CodeEmitterHelper {
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
     for (Element element in signature.optionalParameters) {
-      Constant value = backend.constants.getConstantForVariable(element);
+      Constant value =
+          compiler.constantHandler.initialVariableValues[element];
       String stringRepresentation = (value == null)
           ? "null"
           : jsAst.prettyPrint(task.constantReference(value), compiler)
@@ -58,7 +58,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
-    Constant value = backend.constants.getConstantForMetadata(annotation);
+    Constant value = annotation.value;
     if (value == null) {
       compiler.internalError(annotation, 'Annotation value is null.');
       return -1;

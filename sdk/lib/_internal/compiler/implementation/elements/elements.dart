@@ -1040,7 +1040,6 @@ abstract class TypeVariableElement extends Element implements TypedElement {
 }
 
 abstract class MetadataAnnotation implements Spannable {
-  /// The front-end constant of this metadata annotation.
   Constant get value;
   Element get annotatedElement;
   int get resolutionState;
@@ -1049,6 +1048,7 @@ abstract class MetadataAnnotation implements Spannable {
 
   // TODO(kasperl): Try to get rid of these.
   void set annotatedElement(Element value);
+  void set resolutionState(int value);
 
   MetadataAnnotation ensureResolved(Compiler compiler);
 }

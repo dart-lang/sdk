@@ -74,20 +74,11 @@ class DeferredTask {
 
 abstract class Backend {
   final Compiler compiler;
+  final ConstantSystem constantSystem;
 
-  Backend(this.compiler);
-
-  /// The [ConstantSystem] used to interpret compile-time constants for this
-  /// backend.
-  ConstantSystem get constantSystem;
-
-  /// The constant environment for the backend interpretation of compile-time
-  /// constants.
-  BackendConstantEnvironment get constants;
-
-  /// The compiler task responsible for the compilation of constants for both
-  /// the frontend and the backend.
-  ConstantCompilerTask get constantCompilerTask;
+  Backend(this.compiler,
+          [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
+      : this.constantSystem = constantSystem;
 
   // Given a [FunctionElement], return a buffer with the code generated for it
   // or null if no code was generated.
@@ -575,11 +566,7 @@ abstract class Compiler implements DiagnosticListener {
   IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
-
-  /// The constant environment for the frontend interpretation of compile-time
-  /// constants.
-  ConstantEnvironment constants;
-
+  ConstantHandler constantHandler;
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
@@ -692,12 +679,12 @@ abstract class Compiler implements DiagnosticListener {
       dietParser = new DietParserTask(this),
       parser = new ParserTask(this),
       patchParser = new PatchParserTask(this),
-      resolver = new ResolverTask(this, backend.constantCompilerTask),
+      resolver = new ResolverTask(this),
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       irBuilder = new IrBuilderTask(this),
       typesTask = new ti.TypesTask(this),
-      constants = backend.constantCompilerTask,
+      constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this),
@@ -956,8 +943,8 @@ abstract class Compiler implements DiagnosticListener {
 
     dynamicClass.ensureResolved(this);
 
-    proxyConstant =
-        resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+    proxyConstant = constantHandler.compileVariable(
+        coreLibrary.find('proxy'), isConst: true);
   }
 
   Element _unnamedListConstructor;

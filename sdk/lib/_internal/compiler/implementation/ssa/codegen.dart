@@ -1793,7 +1793,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant);
 
     backend.registerCompileTimeConstant(node.constant, work.resolutionTree);
-    backend.constants.addCompileTimeConstantForEmission(node.constant);
+    compiler.constantHandler.addCompileTimeConstantForEmission(node.constant);
   }
 
   visitNot(HNot node) {

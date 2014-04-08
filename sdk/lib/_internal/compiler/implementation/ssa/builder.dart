@@ -63,9 +63,10 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
             Constant constant =
-                backend.constants.getConstantForVariable(parameter);
+                compiler.constantHandler.getConstantForVariable(parameter);
             backend.registerCompileTimeConstant(constant, work.resolutionTree);
-            backend.constants.addCompileTimeConstantForEmission(constant);
+            compiler.constantHandler.addCompileTimeConstantForEmission(
+                constant);
           });
         }
         if (compiler.tracer.enabled) {
@@ -1309,7 +1310,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
     Constant constant =
-        backend.constants.getConstantForVariable(parameter);
+        compiler.constantHandler.getConstantForVariable(parameter);
     assert(invariant(parameter, constant != null,
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
@@ -1348,8 +1349,7 @@ class SsaBuilder extends ResolvedVisitor {
   bool inTryStatement = false;
 
   Constant getConstantForNode(ast.Node node) {
-    Constant constant =
-        backend.constants.getConstantForNode(node, elements);
+    Constant constant = elements.getConstant(node);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
@@ -1361,7 +1361,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   bool isLazilyInitialized(VariableElement element) {
     Constant initialValue =
-        backend.constants.getConstantForVariable(element);
+        compiler.constantHandler.getConstantForVariable(element);
     return initialValue == null;
   }
 
@@ -2937,7 +2937,7 @@ class SsaBuilder extends ResolvedVisitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = backend.constants.getConstantForVariable(element);
+        value = compiler.constantHandler.getConstantForVariable(element);
       }
       if (value != null) {
         HConstant instruction = graph.addConstant(value, compiler);
@@ -4341,7 +4341,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (node.isConst()) {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
-        ConstructedConstant symbol = getConstantForNode(node);
+        ConstructedConstant symbol = elements.getConstant(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
         compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);

@@ -8,7 +8,7 @@ export 'dart2jslib.dart' show
     CompilerTask,
     Compiler,
     Constant,
-    ConstantEnvironment,
+    ConstantHandler,
     InterceptorConstant,
     MessageKind,
     NullConstant,

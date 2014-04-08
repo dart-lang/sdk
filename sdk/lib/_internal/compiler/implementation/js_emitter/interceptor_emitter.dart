@@ -15,7 +15,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
   Set<ClassElement> interceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
-    JavaScriptConstantCompiler handler = backend.constants;
+    ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     for (Constant constant in constants) {
       if (constant is InterceptorConstant) {
@@ -442,7 +442,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     if (!analysis.needsTable) return;
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];
-    JavaScriptConstantCompiler handler = backend.constants;
+    ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants =
         handler.getConstantsForEmission(task.compareConstants);
     for (Constant constant in constants) {

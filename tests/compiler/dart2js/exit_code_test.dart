@@ -39,7 +39,7 @@ class TestCompiler extends apiimpl.Compiler {
       : super(inputProvider, outputProvider, handler, libraryRoot,
               packageRoot, options, environment) {
     scanner = new TestScanner(this);
-    resolver = new TestResolver(this, backend.constantCompilerTask);
+    resolver = new TestResolver(this);
     test('Compiler');
   }
 
@@ -129,8 +129,7 @@ class TestScanner extends ScannerTask {
 }
 
 class TestResolver extends ResolverTask {
-  TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
-      : super(compiler, constantCompiler);
+  TestResolver(TestCompiler compiler) : super(compiler);
 
   TestCompiler get compiler => super.compiler;
 

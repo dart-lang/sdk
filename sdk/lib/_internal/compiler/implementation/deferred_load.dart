@@ -5,7 +5,6 @@
 library deferred_load;
 
 import 'dart2jslib.dart' show
-    Backend,
     Compiler,
     CompilerTask,
     Constant,
@@ -151,8 +150,6 @@ class DeferredLoadTask extends CompilerTask {
 
   DeferredLoadTask(Compiler compiler) : super(compiler);
 
-  Backend get backend => compiler.backend;
-
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForElement(Element element) {
     if (!splitProgram) return mainOutputUnit;
@@ -295,11 +292,7 @@ class DeferredLoadTask extends CompilerTask {
       if (dependency.isStatement()) continue;
       elementDependencies.add(dependency);
     }
-    elements.forEachConstantNode((Node n, _) {
-      // Explicitly depend on the backend constants.
-      constantDependencies.add(
-          backend.constants.getConstantForNode(n, elements));
-    });
+    constantDependencies.addAll(elements.allConstants);
     elementDependencies.addAll(elements.otherDependencies);
   }
 
@@ -312,10 +305,9 @@ class DeferredLoadTask extends CompilerTask {
       Set<Constant> constants) {
     // TODO(sigurdm): How is metadata on a patch-class handled?
     for (MetadataAnnotation metadata in element.metadata) {
-      Constant constant = backend.constants.getConstantForMetadata(metadata);
-      if (constant != null) {
-        constants.add(constant);
-        elements.add(constant.computeType(compiler).element);
+      if (metadata.value != null) {
+        constants.add(metadata.value);
+        elements.add(metadata.value.computeType(compiler).element);
       }
     }
     if (element.isClass()) {
@@ -427,19 +419,15 @@ class DeferredLoadTask extends CompilerTask {
         // TODO(sigurdm): The metadata should go to the right output unit.
         // For now they all go to the main output unit.
         for (MetadataAnnotation metadata in library.metadata) {
-          Constant constant =
-              backend.constants.getConstantForMetadata(metadata);
-          if (constant != null) {
-            _mapDependencies(constant.computeType(compiler).element,
+          if (metadata.value != null) {
+            _mapDependencies(metadata.value.computeType(compiler).element,
                 _fakeMainImport);
           }
         }
         for (LibraryTag tag in library.tags) {
           for (MetadataAnnotation metadata in tag.metadata) {
-            Constant constant =
-                backend.constants.getConstantForMetadata(metadata);
-            if (constant != null) {
-              _mapDependencies(constant.computeType(compiler).element,
+            if (metadata.value != null) {
+              _mapDependencies(metadata.value.computeType(compiler).element,
                   _fakeMainImport);
             }
           }
@@ -608,7 +596,8 @@ class DeferredLoadTask extends CompilerTask {
         for (MetadataAnnotation metadata in metadatas) {
           metadata.ensureResolved(compiler);
           Element element = metadata.value.computeType(compiler).element;
-          if (element == deferredLibraryClass) {
+          if (metadata.value.computeType(compiler).element ==
+              deferredLibraryClass) {
             ConstructedConstant constant = metadata.value;
             StringConstant s = constant.fields[0];
             result = s.value.slowToString();
@@ -777,7 +766,7 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    if (splitProgram && backend is DartBackend) {
+    if (splitProgram && compiler.backend is DartBackend) {
       // TODO(sigurdm): Implement deferred loading for dart2dart.
       splitProgram = false;
       compiler.reportInfo(

@@ -25,10 +25,11 @@ import '../js/js.dart' show
 
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,
+    CheckedModeHelper,
     ConstantEmitter,
     CustomElementsAnalysis,
     JavaScriptBackend,
-    JavaScriptConstantCompiler,
+    JavaScriptBackend,
     Namer,
     NativeEmitter,
     RuntimeTypes,

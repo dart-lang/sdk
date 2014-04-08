@@ -66,7 +66,7 @@ class TypeVariableHandler {
       InterfaceType typeVariableType = typeVariableClass.thisType;
       List<int> constants = <int>[];
       evaluator = new CompileTimeConstantEvaluator(
-          backend.constants,
+          compiler.constantHandler,
           compiler.globalDependencies,
           compiler);
 
@@ -80,7 +80,7 @@ class TypeVariableHandler {
               new DartString.literal(currentTypeVariable.name));
           Constant bound = backend.constantSystem.createInt(
               emitter.reifyType(currentTypeVariable.element.bound));
-          Constant type = backend.constants.createTypeConstant(cls);
+          Constant type = evaluator.makeTypeConstant(cls);
           return [type, name, bound];
         }
 
@@ -88,7 +88,7 @@ class TypeVariableHandler {
             currentTypeVariable.element, typeVariableType,
             typeVariableConstructor, createArguments);
         backend.registerCompileTimeConstant(c, compiler.globalDependencies);
-        backend.constants.addCompileTimeConstantForEmission(c);
+        compiler.constantHandler.addCompileTimeConstantForEmission(c);
         constants.add(
             reifyTypeVariableConstant(c, currentTypeVariable.element));
       }

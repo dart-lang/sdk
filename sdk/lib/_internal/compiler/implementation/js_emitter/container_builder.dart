@@ -43,7 +43,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       // directly.
       return;
     }
-    JavaScriptConstantCompiler handler = backend.constants;
+    ConstantHandler handler = compiler.constantHandler;
     List<String> names = selector.getOrderedNamedArguments();
 
     String invocationName = namer.invocationName(selector);
@@ -99,7 +99,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          Constant value = handler.getConstantForVariable(element);
+          Constant value = handler.initialVariableValues[element];
           if (value == null) {
             argumentsBuffer[count] = task.constantReference(new NullConstant());
           } else {
@@ -505,11 +505,9 @@ class ContainerBuilder extends CodeEmitterHelper {
         if (backend.mustRetainMetadata) {
           List<MetadataAnnotation> annotations = parameter.metadata.toList();
           Iterable<int> metadataIndices =
-              annotations.map((MetadataAnnotation annotation) {
-            Constant constant =
-                backend.constants.getConstantForMetadata(annotation);
-            backend.constants.addCompileTimeConstantForEmission(constant);
-            return task.metadataEmitter.reifyMetadata(annotation);
+              annotations.map((MetadataAnnotation a) {
+            compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
+            return task.metadataEmitter.reifyMetadata(a);
           });
           expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
                                                      : js('[]'));

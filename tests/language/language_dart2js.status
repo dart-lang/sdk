@@ -120,8 +120,6 @@ truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 generic_closure_test: RuntimeError # Issue 12605
 call_closurization_test: RuntimeError # Issue 17474
-const_switch_test/02: RuntimeError # Issue 17960
-const_switch_test/04: RuntimeError # Issue 17960
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
@@ -207,7 +205,6 @@ not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
-const_evaluation_test/01: Fail # Issue 12762
 const_var_test: CompileTimeError # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
