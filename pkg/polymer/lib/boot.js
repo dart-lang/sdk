@@ -124,31 +124,9 @@
     return state;
   }
 
-  // Waits for all imports to be loaded, then calls [callback].
-  function onImportsReady(callback) {
-    // Note: we only need to check the main document because an import is loaded
-    // only when all it's transitive imports are loaded too.
-    var links = document.querySelectorAll('link[rel="import"]');
-    var total = links.length;
-    var loaded = 0;
-    function incrementLoaded() {
-      loaded++;
-      if (loaded == total) {
-        window.addEventListener('DOMContentLoaded', callback);
-      }
-    }
-
-    for (var i = 0; i < total; i++) {
-      var node = links[i];
-      if (node.import) {
-        incrementLoaded();
-      } else {
-        node.addEventListener('load', incrementLoaded);
-      }
-    }
-  }
-
-  onImportsReady(function () {
+  // TODO(jmesserly): we're using this function because DOMContentLoaded can
+  // be fired too soon: https://www.w3.org/Bugs/Public/show_bug.cgi?id=23526
+  HTMLImports.whenImportsReady(function() {
     // Append a new script tag that initializes everything.
     var newScript = document.createElement('script');
     newScript.type = "application/dart";
@@ -160,7 +138,7 @@
         + 'separtate isolates.  To prepare for this all the following '
         + 'script tags need to be updated to use the mime-type '
         + '"application/dart;component=1" instead of "application/dart":');
-      for (var i = 0; i < results.badTags.length; i++) { 
+      for (var i = 0; i < results.badTags.length; i++) {
         console.warn(results.badTags[i]);
       }
     }
