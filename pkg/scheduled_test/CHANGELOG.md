@@ -3,6 +3,10 @@
 * `ScheduledServer.handle` now takes a `shelf.Handler` rather than a custom
   handler class.
 
+* The body of a `test()` or a `setUp()` call may now return a Future. This was
+  already supported by the `unittest` package. The Future is passed to a
+  `wrapFuture` call.
+
 ## 0.10.1+1
 
 * Updated `http` version constraint from `">=0.9.0 <0.10.0"` to

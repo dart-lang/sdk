@@ -196,6 +196,7 @@ import 'package:unittest/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
+import 'src/utils.dart';
 
 export 'package:unittest/unittest.dart' hide
     test, solo_test, group, setUp, tearDown, completes, completion;
@@ -216,18 +217,30 @@ Schedule _currentSchedule;
 /// `unittest.setUp`.
 Function _setUpFn;
 
-/// Creates a new test case with the given description and body. This has the
-/// same semantics as [unittest.test].
-void test(String description, void body()) =>
+/// Creates a new test case with the given description and body.
+///
+/// This has the same semantics as [unittest.test].
+///
+/// If [body] returns a [Future], that future will automatically be wrapped with
+/// [wrapFuture].
+void test(String description, Future body()) =>
   _test(description, body, unittest.test);
 
 /// Creates a new test case with the given description and body that will be the
-/// only test run in this file. This has the same semantics as
-/// [unittest.solo_test].
-void solo_test(String description, void body()) =>
+/// only test run in this file.
+///
+/// This has the same semantics as [unittest.solo_test].
+///
+/// If [body] returns a [Future], that future will automatically be wrapped with
+/// [wrapFuture].
+void solo_test(String description, Future body()) =>
   _test(description, body, unittest.solo_test);
 
-void _test(String description, void body(), Function testFn) {
+void _test(String description, Future body(), Function testFn) {
+  maybeWrapFuture(future, description) {
+    if (future != null) wrapFuture(future, description);
+  }
+
   unittest.ensureInitialized();
   _ensureSetUpForTopLevel();
   testFn(description, () {
@@ -236,8 +249,8 @@ void _test(String description, void body(), Function testFn) {
     Chain.capture(() {
       _currentSchedule = new Schedule();
       return currentSchedule.run(() {
-        if (_setUpFn != null) _setUpFn();
-        body();
+        if (_setUpFn != null) maybeWrapFuture(_setUpFn(), "set up");
+        maybeWrapFuture(body(), "test body");
       }).catchError((error, stackTrace) {
         if (error is ScheduleError) {
           assert(error.schedule.errors.contains(error));
