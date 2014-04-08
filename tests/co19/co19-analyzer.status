@@ -131,9 +131,9 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
-#co19 issue 677
 WebPlatformTest1/shadow-dom/*: CompileTimeError # co19 issue 677
 WebPlatformTest1/html-templates/*: CompileTimeError # co19 issue 677
+WebPlatformTest1/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 # co19 roll to r706: Please triage all these issues.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03: StaticWarning # co19-roll r706: Please triage this failure.
