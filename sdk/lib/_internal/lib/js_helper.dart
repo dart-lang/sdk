@@ -1650,17 +1650,6 @@ unwrapException(ex) {
       if (thrownStackTrace == null) {
         JS('void', r'#.$thrownJsError = #', error, ex);
       }
-    } else {
-      // TODO(efortuna): Remove this branch. Added for debugging.
-      if (JS('bool', '# instanceof window.Error', error)) {
-        var msg = JS('String', '#.message', error);
-        var fileName = JS('String', '#.fileName', error);
-        var lineNumber = JS('String', '#.lineNumber', error);
-        print('window.Error stack: $msg $fileName $lineNumber');
-      } else {
-        var stack = JS('String', 'new Error().stack');
-        print('Exception error stack: $stack');
-      }
     }
     return error;
   }
