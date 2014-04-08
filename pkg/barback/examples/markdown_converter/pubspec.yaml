@@ -1,0 +1,10 @@
+name: markdown_converter
+description: This hello world example implements a simple
+             transformer that converts a markdown file (with
+             a ".mdown", ".md", or a ".markdown" extension) to HTML.
+dependencies:
+  barback: any
+  markdown: any
+
+transformers:
+- markdown_converter
