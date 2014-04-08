@@ -95,19 +95,22 @@ class _FileStream extends Stream<List<int>> {
     }
     _openedFile.read(readBytes)
       .then((block) {
+        _readInProgress = false;
         if (_unsubscribed) {
           _closeFile();
           return;
         }
-        _readInProgress = false;
         _position += block.length;
         if (block.length < readBytes ||
             (_end != null && _position == _end)) {
           _atEnd = true;
         }
-        _controller.add(block);
-        if (!_controller.isPaused) {
+        if (!_atEnd && !_controller.isPaused) {
           _readBlock();
+        }
+        _controller.add(block);
+        if (_atEnd) {
+          _closeFile();
         }
       })
       .catchError((e, s) {
