@@ -32,12 +32,13 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kInt32x4Cid) ||
+          (class_id >= kInstanceCid && class_id <= kFloat64x2Cid) ||
           class_id == kArrayCid ||
           class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
-          RawObject::IsExternalTypedDataClassId(class_id));
+          RawObject::IsExternalTypedDataClassId(class_id) ||
+          class_id == kNullCid);
 }
 
 
