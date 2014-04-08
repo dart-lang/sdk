@@ -7,12 +7,12 @@ import "package:expect/expect.dart";
 // Checks that abstract instance methods are correctly resolved.
 
 int get length => throw "error: top-level getter called";
-int set height(x) { throw "error: top-level setter called"; }
+set height(x) { throw "error: top-level setter called"; }
 width() { throw "error: top-level function called"; }
 
-class A {
+abstract class A {
   int get length;     // Abstract instance getter.
-  int set height(x);  // Abstract instance setter.
+  set height(x);      // Abstract instance setter.
   int width();        // Abstract instance method.
 
   // Must resolve to non-abstract length getter in subclass.
