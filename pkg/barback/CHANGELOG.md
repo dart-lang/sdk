@@ -1,3 +1,13 @@
+## 0.13.0
+
+* `Transformer.isPrimary` now takes an `AssetId` rather than an `Asset`.
+
+* `DeclaringTransform` now only exposes the primary input's `AssetId`, rather
+  than the primary `Asset` object.
+
+* `DeclaringTransform` no longer supports `getInput`, `readInput`,
+  `readInputAsString`, or `hasInput`.
+
 ## 0.12.0
 
 * Add a `Transform.logger.fine` function that doesn't print its messages by

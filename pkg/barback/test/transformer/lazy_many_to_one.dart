@@ -18,6 +18,6 @@ class LazyManyToOneTransformer extends ManyToOneTransformer
       : super(extension);
 
   Future declareOutputs(DeclaringTransform transform) {
-    transform.declareOutput(transform.primaryInput.id.changeExtension(".out"));
+    transform.declareOutput(transform.primaryId.changeExtension(".out"));
   }
 }

@@ -21,15 +21,17 @@ class CheckContentAndRenameTransformer extends MockTransformer {
   CheckContentAndRenameTransformer(this.oldExtension, this.oldContent,
       this.newExtension, this.newContent);
 
-  Future<bool> doIsPrimary(Asset asset) {
-    if (asset.id.extension != '.$oldExtension') return new Future.value(false);
-    return asset.readAsString().then((value) => value == oldContent);
-  }
+  Future<bool> doIsPrimary(AssetId id) =>
+      new Future.value(id.extension != '.$oldExtension');
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((input) {
-      transform.addOutput(new Asset.fromString(
-          input.id.changeExtension('.$newExtension'), newContent));
+      return input.readAsString().then((contents) {
+        if (contents != oldContent) return;
+
+        transform.addOutput(new Asset.fromString(
+            input.id.changeExtension('.$newExtension'), newContent));
+      });
     });
   }
 }

@@ -244,8 +244,12 @@ class ImportInliner extends Transformer {
   ImportInliner(this.options);
 
   /// Only run on entry point .html files.
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(options.isHtmlEntryPoint(input.id));
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(options.isHtmlEntryPoint(id));
+  }
 
   Future apply(Transform transform) =>
       new _HtmlInliner(options, transform).apply();

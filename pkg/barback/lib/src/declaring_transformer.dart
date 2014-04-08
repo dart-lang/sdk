@@ -14,11 +14,12 @@ import 'declaring_transform.dart';
 /// If a transformer implements this interface, that allows barback to perform
 /// optimizations to make the asset graph work more smoothly.
 abstract class DeclaringTransformer {
-  /// Declare which assets would be emitted for the primary input specified by
-  /// [transform].
+  /// Declare which assets would be emitted for the primary input id specified
+  /// by [transform].
   ///
-  /// For the most part, this works like [Transformer.apply]. The difference is
-  /// that instead of emitting [Asset]s, it just emits [AssetId]s through
-  /// [transform.addOutputId].
+  /// This works a little like [Transformer.apply], with two main differences.
+  /// First, instead of having access to the primary input's contents, it only
+  /// has access to its id. Second, instead of emitting [Asset]s, it just emits
+  /// [AssetId]s through [transform.addOutputId].
   Future declareOutputs(DeclaringTransform transform);
 }

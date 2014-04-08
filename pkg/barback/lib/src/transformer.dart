@@ -6,7 +6,7 @@ library barback.transformer;
 
 import 'dart:async';
 
-import 'asset.dart';
+import 'asset_id.dart';
 import 'transform.dart';
 import 'utils.dart';
 
@@ -43,7 +43,7 @@ abstract class Transformer {
         '${pluralize("doesn't", invalidExtensions.length, plural: "don't")}.');
   }
 
-  /// Returns `true` if [input] can be a primary input for this transformer.
+  /// Returns `true` if [id] can be a primary input for this transformer.
   ///
   /// While a transformer can read from multiple input files, one must be the
   /// "primary" input. This asset determines whether the transformation should
@@ -59,12 +59,12 @@ abstract class Transformer {
   /// If this is not overridden, defaults to allow any asset whose extension
   /// matches one of the ones returned by [allowedExtensions]. If *that* is
   /// not overridden, allows all assets.
-  Future<bool> isPrimary(Asset input) {
+  Future<bool> isPrimary(AssetId id) {
     // Allow all files if [primaryExtensions] is not overridden.
     if (allowedExtensions == null) return new Future.value(true);
 
     for (var extension in allowedExtensions.split(" ")) {
-      if (input.id.path.endsWith(extension)) return new Future.value(true);
+      if (id.path.endsWith(extension)) return new Future.value(true);
     }
 
     return new Future.value(false);

@@ -354,8 +354,12 @@ class TestTransformer extends Transformer with ResolverTransformer {
     this.resolvers = resolvers;
   }
 
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(input.id == primary);
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(id == primary);
+  }
 
   applyResolver(Transform transform, Resolver resolver) => validator(resolver);
 }

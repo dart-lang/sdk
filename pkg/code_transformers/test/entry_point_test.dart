@@ -98,8 +98,6 @@ class Validator extends Transformer {
 
   Validator(this.validation);
 
-  Future<bool> isPrimary(Asset input) => new Future.value(true);
-
   Future apply(Transform transform) {
     return new Future.value(validation(transform));
   }

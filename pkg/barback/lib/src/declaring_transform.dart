@@ -14,8 +14,11 @@ import 'transform_node.dart';
 class DeclaringTransform extends BaseTransform {
   final _outputIds = new Set<AssetId>();
 
+  final AssetId primaryId;
+
   DeclaringTransform._(TransformNode node)
-    : super(node);
+      : primaryId = node.primary.id,
+        super(node);
 
   /// Stores [id] as the id of an output that will be created by this
   /// transformation when it's run.

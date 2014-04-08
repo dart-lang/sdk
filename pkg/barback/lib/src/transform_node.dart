@@ -191,7 +191,7 @@ class TransformNode {
     _state = _TransformNodeState.PROCESSING;
     primary.whenAvailable((_) {
       _state = _TransformNodeState.PROCESSING;
-      return transformer.isPrimary(primary.asset);
+      return transformer.isPrimary(primary.asset.id);
     }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
       // it.

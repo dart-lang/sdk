@@ -166,11 +166,11 @@ abstract class MockTransformer extends Transformer {
     }).then((_) => transform.primaryInput);
   }
 
-  Future<bool> isPrimary(Asset asset) {
-    return newFuture(() => doIsPrimary(asset)).then((result) {
+  Future<bool> isPrimary(AssetId id) {
+    return newFuture(() => doIsPrimary(id)).then((result) {
       return newFuture(() {
-        if (_isPrimary.containsKey(asset.id)) {
-          return _isPrimary[asset.id].future;
+        if (_isPrimary.containsKey(id)) {
+          return _isPrimary[id].future;
         }
       }).then((_) => result);
     });
@@ -190,7 +190,7 @@ abstract class MockTransformer extends Transformer {
   }
 
   /// The wrapped version of [isPrimary] for subclasses to override.
-  Future<bool> doIsPrimary(Asset asset);
+  Future<bool> doIsPrimary(AssetId id);
 
   /// The wrapped version of [doApply] for subclasses to override.
   Future doApply(Transform transform);

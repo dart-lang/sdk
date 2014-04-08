@@ -14,9 +14,13 @@ class MirrorsRemover extends Transformer {
   MirrorsRemover.asPlugin();
 
   /// Only apply to `lib/polymer.dart`.
-  Future<bool> isPrimary(Asset input) => new Future.value(
-      input.id.package == 'polymer' &&
-      input.id.path == 'lib/polymer.dart');
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(
+        id.package == 'polymer' && id.path == 'lib/polymer.dart');
+  }
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;

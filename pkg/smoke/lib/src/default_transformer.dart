@@ -17,9 +17,13 @@ class DefaultTransformer extends Transformer {
   DefaultTransformer.asPlugin();
 
   /// Only apply to `lib/src/implementation.dart`.
-  Future<bool> isPrimary(Asset input) => new Future.value(
-      input.id.package == 'smoke' &&
-      input.id.path == 'lib/src/implementation.dart');
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(
+        id.package == 'smoke' && id.path == 'lib/src/implementation.dart');
+  }
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;

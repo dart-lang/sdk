@@ -57,15 +57,44 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
       : this.withSettings(environment, new BarbackSettings({}, mode));
 
   /// Only ".dart" entrypoint files within a buildable directory are processed.
-  Future<bool> isPrimary(Asset asset) {
-    if (asset.id.extension != ".dart") return new Future.value(false);
+  Future<bool> isPrimary(AssetId id) {
+    if (id.extension != ".dart") return new Future.value(false);
 
     // These should only contain libraries. For efficiency's sake, we don't
     // look for entrypoints in there.
-    if (["asset/", "lib/"].any(asset.id.path.startsWith)) {
-      return new Future.value(false);
-    }
+    return new Future.value(!["asset/", "lib/"].any(id.path.startsWith));
+  }
 
+  Future apply(Transform transform) {
+    // TODO(nweiz): If/when barback starts reporting what assets were modified,
+    // don't re-run the entrypoint detection logic unless the primary input was
+    // actually modified. See issue 16817.
+    return _isEntrypoint(transform.primaryInput).then((isEntrypoint) {
+      if (!isEntrypoint) return null;
+
+      // Wait for any ongoing apply to finish first.
+      return _pool.withResource(() {
+        transform.logger.info("Compiling ${transform.primaryInput.id}...");
+        var stopwatch = new Stopwatch()..start();
+        return _doCompilation(transform).then((_) {
+          stopwatch.stop();
+          transform.logger.info("Took ${stopwatch.elapsed} to compile "
+              "${transform.primaryInput.id}.");
+        });
+      });
+    });
+  }
+
+  Future declareOutputs(DeclaringTransform transform) {
+    var primaryId = transform.primaryId;
+    transform.declareOutput(primaryId.addExtension(".js"));
+    transform.declareOutput(primaryId.addExtension(".js.map"));
+    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
+    return new Future.value();
+  }
+
+  /// Returns whether or not [asset] might be an entrypoint.
+  Future<bool> _isEntrypoint(Asset asset) {
     return asset.readAsString().then((code) {
       try {
         var name = asset.id.path;
@@ -83,59 +112,39 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     });
   }
 
-  Future apply(Transform transform) {
-    var stopwatch = new Stopwatch();
+  /// Run the dart2js compiler.
+  Future _doCompilation(Transform transform) {
+    var provider = new _BarbackCompilerProvider(_environment, transform,
+        generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
 
-    // Wait for any ongoing apply to finish first.
-    return _pool.withResource(() {
-      transform.logger.info("Compiling ${transform.primaryInput.id}...");
-      stopwatch.start();
+    // Create a "path" to the entrypoint script. The entrypoint may not actually
+    // be on disk, but this gives dart2js a root to resolve relative paths
+    // against.
+    var id = transform.primaryInput.id;
 
-      var provider = new _BarbackCompilerProvider(_environment, transform,
-          generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
+    var entrypoint = path.join(_environment.graph.packages[id.package].dir,
+        id.path);
 
-      // Create a "path" to the entrypoint script. The entrypoint may not
-      // actually be on disk, but this gives dart2js a root to resolve relative
-      // paths against.
-      var id = transform.primaryInput.id;
-
-      var entrypoint = path.join(_environment.graph.packages[id.package].dir,
-          id.path);
-
-      // TODO(rnystrom): Should have more sophisticated error-handling here.
-      // Need to report compile errors to the user in an easily visible way.
-      // Need to make sure paths in errors are mapped to the original source
-      // path so they can understand them.
-      return Chain.track(dart.compile(
-          entrypoint, provider,
-          commandLineOptions: _configCommandLineOptions,
-          checked: _configBool('checked'),
-          minify: _configBool(
-              'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
-          verbose: _configBool('verbose'),
-          environment: _configEnvironment,
-          packageRoot: path.join(_environment.rootPackage.dir,
-                                 "packages"),
-          analyzeAll: _configBool('analyzeAll'),
-          suppressWarnings: _configBool('suppressWarnings'),
-          suppressHints: _configBool('suppressHints'),
-          suppressPackageWarnings: _configBool(
-              'suppressPackageWarnings', defaultsTo: true),
-          terse: _configBool('terse'),
-          includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE))
-          .then((_) {
-        stopwatch.stop();
-        transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
-      });
-    });
-  }
-
-  Future declareOutputs(DeclaringTransform transform) {
-    var primaryId = transform.primaryInput.id;
-    transform.declareOutput(primaryId.addExtension(".js"));
-    transform.declareOutput(primaryId.addExtension(".js.map"));
-    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
-    return new Future.value();
+    // TODO(rnystrom): Should have more sophisticated error-handling here. Need
+    // to report compile errors to the user in an easily visible way. Need to
+    // make sure paths in errors are mapped to the original source path so they
+    // can understand them.
+    return Chain.track(dart.compile(
+        entrypoint, provider,
+        commandLineOptions: _configCommandLineOptions,
+        checked: _configBool('checked'),
+        minify: _configBool(
+            'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
+        verbose: _configBool('verbose'),
+        environment: _configEnvironment,
+        packageRoot: path.join(_environment.rootPackage.dir, "packages"),
+        analyzeAll: _configBool('analyzeAll'),
+        suppressWarnings: _configBool('suppressWarnings'),
+        suppressHints: _configBool('suppressHints'),
+        suppressPackageWarnings: _configBool(
+            'suppressPackageWarnings', defaultsTo: true),
+        terse: _configBool('terse'),
+        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE));
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.

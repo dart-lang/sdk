@@ -17,7 +17,7 @@ class CreateAssetTransformer extends MockTransformer {
 
   CreateAssetTransformer(this.output);
 
-  Future<bool> doIsPrimary(Asset asset) => new Future.value(true);
+  Future<bool> doIsPrimary(_) => new Future.value(true);
 
   Future doApply(Transform transform) {
     return newFuture(() {

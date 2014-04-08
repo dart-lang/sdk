@@ -19,7 +19,7 @@ class BadLogTransformer extends MockTransformer {
 
   BadLogTransformer(this.outputs);
 
-  Future<bool> doIsPrimary(Asset asset) => new Future.value(true);
+  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
 
   Future doApply(Transform transform) {
     return newFuture(() {
