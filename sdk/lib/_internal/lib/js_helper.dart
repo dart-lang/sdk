@@ -1813,6 +1813,10 @@ int objectHashCode(var object) {
  * Called by generated code to build a map literal. [keyValuePairs] is
  * a list of key, value, key, value, ..., etc.
  */
+makeLiteralMap(keyValuePairs) {
+  return fillLiteralMap(keyValuePairs, new LinkedHashMap());
+}
+
 fillLiteralMap(keyValuePairs, Map result) {
   // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
   // [getLength] and [getIndex].

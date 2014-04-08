@@ -5039,55 +5039,19 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(addConstant(node));
       return;
     }
-    List<HInstruction> listInputs = <HInstruction>[];
+    List<HInstruction> inputs = <HInstruction>[];
     for (Link<ast.Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
-      listInputs.add(pop());
-      listInputs.add(pop());
+      inputs.add(pop());
+      inputs.add(pop());
     }
-
-    Element constructor;
-    List<HInstruction> inputs = <HInstruction>[];
-
-    if (listInputs.isEmpty) {
-      constructor = backend.mapLiteralConstructorEmpty;
-    } else {
-      constructor = backend.mapLiteralConstructor;
-      HLiteralList keyValuePairs = buildLiteralList(listInputs);
-      add(keyValuePairs);
-      inputs.add(keyValuePairs);
-    }
-
-    assert(constructor.isFactoryConstructor());
-
-    FunctionElement functionElement = constructor;
-    constructor = functionElement.redirectionTarget;
-
-    InterfaceType type = elements.getType(node);
-    InterfaceType expectedType = functionElement.computeTargetType(type);
-
-    if (constructor.isFactoryConstructor()) {
-      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
-    }
-
-    ClassElement cls = constructor.getEnclosingClass();
-
-    if (backend.classNeedsRti(cls)) {
-      Link<DartType> typeVariable = cls.typeVariables;
-      expectedType.typeArguments.forEach((DartType argument) {
-            inputs.add(analyzeTypeArgument(argument));
-            typeVariable = typeVariable.tail;
-          });
-      assert(typeVariable.isEmpty);
-    }
-
-    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
-        constructor, compiler);
-    addInlinedInstantiation(expectedType);
-    pushInvokeStatic(node, constructor, inputs, returnTypeMask);
-    removeInlinedInstantiation(expectedType);
+    HLiteralList keyValuePairs = buildLiteralList(inputs);
+    add(keyValuePairs);
+    TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
+    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
+    stack.add(setRtiIfNeeded(pop(), node));
   }
 
   visitLiteralMapEntry(ast.LiteralMapEntry node) {
