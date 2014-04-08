@@ -49,6 +49,11 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 
+[ $runtime == vm ]
+# These flaky tests also fail with dart2dart.
+LibTest/math/Rectangle/boundingBox_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
+LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
+
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 
@@ -79,6 +84,10 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
+LibTest/html/*: SkipByDesign # dart:html not supported on VM.
+LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
+WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
+WebPlatformTest1/*: SkipByDesign # dart:html not supported on VM.
 
 [ $compiler == none && $runtime == vm && $arch == simarm64 ]
 *: Skip

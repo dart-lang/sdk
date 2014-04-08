@@ -16,22 +16,16 @@
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
+# Tests that fail on every runtime, but not on the analyzer.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
-LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError, OK # co19 issue 662 (fixed in r673)
-
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Set/intersection_A02_t01: Fail, OK # Issue 659 (fixed in r675)
 
 Language/07_Classes/07_Classes_A13_t01: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t04: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t07: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
-
-LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError, OK # co19 issue 663 (fixed in r675)
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError, OK # co19 issue 663
-LibTest/core/Set/IterableBase_A01_t01: RuntimeError, OK # co19 issue 663
 
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -40,12 +34,13 @@ LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/tan_A01_t01: PASS, FAIL, OK  # co19 issue 44
 
-LibTest/core/double/ceil_A01_t03: FAIL, OK # co19 issue 389 (not fixed in r672)
-LibTest/core/double/ceil_A01_t04: FAIL, OK # co19 issue 389
-LibTest/core/double/floor_A01_t03: FAIL, OK # co19 issue 389
-LibTest/core/double/floor_A01_t04: FAIL, OK # co19 issue 389
-LibTest/core/double/round_A01_t02: FAIL, OK # co19 issue 389
-LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
+LibTest/math/MutableRectangle/MutableRectangle_A01_t01: RuntimeError # co19 issue 674
+LibTest/math/Rectangle/Rectangle_A01_t01: RuntimeError # co19 issue 674
+
+LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
+LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
+LibTest/core/Expando/Expando_A03_t04: RuntimeError # Issue 17735
+LibTest/core/Expando/Expando_A03_t05: RuntimeError # Issue 17735
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493 (not fixed in r672)
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495 (not fixed in r672)
@@ -64,22 +59,17 @@ LibTest/isolate/IsolateStream/last_A02_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateStream/length_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateStream/single_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateStream/single_A02_t01: Fail # Co19 issue 639
-LibTest/isolate/ReceivePort/close_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/ReceivePort/close_A02_t01: Fail # Co19 issue 639
 LibTest/isolate/ReceivePort/receive_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/ReceivePort/receive_A01_t03: Fail # Co19 issue 639
-LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # Co19 issue 639
+LibTest/isolate/ReceivePort/sendPort_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/call_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/SendPort/hashCode_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/SendPort/operator_equality_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/SendPort/send_A02_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t04: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t05: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t06: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 
+LibTest/isolate/ReceivePort/any_A01_t02: RuntimeError # co19 issue 676
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # co19 issue 638
 
 [ $runtime == dartium || $compiler == dart2js ]
@@ -90,3 +80,9 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 [ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
+LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError # co19 issue 675
+LibTest/math/MutableRectangle/boundingBox_A01_t02: RuntimeError # co19 issue 675
+LibTest/math/MutableRectangle/intersection_A01_t01: RuntimeError # co19 issue 675
+LibTest/math/MutableRectangle/operator_equality_A02_t01: RuntimeError # Issue 17734
+LibTest/math/MutableRectangle/operator_equality_A04_t01: RuntimeError # Issue 17734
+
