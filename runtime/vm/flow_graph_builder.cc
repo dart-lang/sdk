@@ -3088,16 +3088,12 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
       for_instance.value(),
       &node->field(),
       AbstractType::ZoneHandle(node->field().type()));
-  if (owner()->exit_collector() != NULL) {
-    // While inlining into an optimized function, the field has
-    // to be added to the list of guarded fields of the caller.
-    if (node->field().guarded_cid() != kIllegalCid) {
-      if (!node->field().is_nullable() ||
-          (node->field().guarded_cid() == kNullCid)) {
-        load->set_result_cid(node->field().guarded_cid());
-      }
-      FlowGraph::AddToGuardedFields(owner()->guarded_fields(), &node->field());
+  if (node->field().guarded_cid() != kIllegalCid) {
+    if (!node->field().is_nullable() ||
+        (node->field().guarded_cid() == kNullCid)) {
+      load->set_result_cid(node->field().guarded_cid());
     }
+    FlowGraph::AddToGuardedFields(owner()->guarded_fields(), &node->field());
   }
   ReturnDefinition(load);
 }
