@@ -45,6 +45,8 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # I
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
+LibTest/math/MutableRectangle/boundingBox_A01_t02: Pass, Crash # Dart issue 18099
+
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
