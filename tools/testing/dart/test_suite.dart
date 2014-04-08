@@ -1790,14 +1790,14 @@ class PkgBuildTestSuite extends TestSuite {
           var dartBinary = new File(dartVmBinaryFileName).absolute.path;
 
           commands.add(CommandBuilder.instance.getProcessCommand(
-              "custom_build", dartBinary, ['build.dart'], null,
-              checkoutDir));
+              "custom_build", dartBinary, ['build.dart'],
+              {'PUB_CACHE': cacheDir}, checkoutDir));
 
           // We only try to deploy the application if it's a webapp.
           if (containsWebDirectory) {
             commands.add(CommandBuilder.instance.getProcessCommand(
-                 "custom_deploy", dartBinary, ['build.dart', '--deploy'], null,
-                 checkoutDir));
+                 "custom_deploy", dartBinary, ['build.dart', '--deploy'],
+                 {'PUB_CACHE': cacheDir}, checkoutDir));
           }
         } else if (containsWebDirectory)  {
           commands.add(CommandBuilder.instance.getPubCommand(
