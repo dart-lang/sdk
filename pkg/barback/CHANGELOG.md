@@ -1,3 +1,7 @@
+## 0.13.1
+
+* Only run `Transformer.isPrimary` once for each asset.
+
 ## 0.13.0
 
 * `Transformer.isPrimary` now takes an `AssetId` rather than an `Asset`.

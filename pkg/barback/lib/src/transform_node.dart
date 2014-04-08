@@ -44,7 +44,7 @@ class TransformNode {
   StreamSubscription<AssetNode> _phaseSubscription;
 
   /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => !_state.isDone;
+  bool get isDirty => _state != _State.NOT_PRIMARY && _state != _State.APPLIED;
 
   /// Whether [transformer] is lazy and this transform has yet to be forced.
   bool _isLazy;
@@ -90,7 +90,7 @@ class TransformNode {
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   /// The current state of [this].
-  var _state = _TransformNodeState.PROCESSING;
+  var _state = _State.COMPUTING_IS_PRIMARY;
 
   /// Whether [this] has been marked as removed.
   bool get _isRemoved => _onAssetController.isClosed;
@@ -99,7 +99,7 @@ class TransformNode {
   /// consumes the primary input.
   ///
   /// Defaults to `false`. This is not meaningful unless [_state] is
-  /// [_TransformNodeState.APPLIED].
+  /// [_State.APPLIED].
   bool _consumePrimary = false;
 
   TransformNode(this.phase, Transformer transformer, this.primary,
@@ -110,15 +110,34 @@ class TransformNode {
       if (state.isRemoved) {
         remove();
       } else {
-        _dirty(primaryChanged: true);
+        _dirty();
       }
     });
 
     _phaseSubscription = phase.previous.onAsset.listen((node) {
-      if (_missingInputs.contains(node.id)) _dirty(primaryChanged: false);
+      if (_missingInputs.contains(node.id)) _dirty();
     });
 
-    _process();
+    syncFuture(() => transformer.isPrimary(primary.id))
+        .catchError((error, stackTrace) {
+      if (_isRemoved) return false;
+
+      // Catch all transformer errors and pipe them to the results stream. This
+      // is so a broken transformer doesn't take down the whole graph.
+      phase.cascade.reportError(_wrapException(error, stackTrace));
+
+      return false;
+    }).then((isPrimary) {
+      if (_isRemoved) return;
+      if (isPrimary) {
+        _apply();
+        return;
+      }
+
+      _emitPassThrough();
+      _state = _State.NOT_PRIMARY;
+      _onDoneController.add(null);
+    });
   }
 
   /// The [TransformInfo] describing this node.
@@ -153,90 +172,51 @@ class TransformNode {
     // transform's outputs have gone unused, we switch it back to lazy mode.
     if (!_isLazy) return;
     _isLazy = false;
-    _dirty(primaryChanged: false);
+    _dirty();
   }
 
   /// Marks this transform as dirty.
   ///
   /// This causes all of the transform's outputs to be marked as dirty as well.
-  /// [primaryChanged] should be true if and only if [this] was set dirty
-  /// because [primary] changed.
-  void _dirty({bool primaryChanged: false}) {
-    if (!primaryChanged && _state.isNotPrimary) return;
+  void _dirty() {
+    if (_state == _State.COMPUTING_IS_PRIMARY) return;
+    if (_state == _State.NOT_PRIMARY) {
+      _emitPassThrough();
+      return;
+    }
 
     if (_passThroughController != null) _passThroughController.setDirty();
     for (var controller in _outputControllers.values) {
       controller.setDirty();
     }
 
-    if (_state.isDone) {
-      if (primaryChanged) {
-        _process();
-      } else {
-        _apply();
-      }
-    } else if (primaryChanged) {
-      _state = _TransformNodeState.NEEDS_IS_PRIMARY;
-    } else if (!_state.needsIsPrimary) {
-      _state = _TransformNodeState.NEEDS_APPLY;
+    if (_state == _State.APPLIED) {
+      _apply();
+    } else {
+      _state = _State.NEEDS_APPLY;
     }
-  }
-
-  /// Determines whether [primary] is primary for [transformer], and if so runs
-  /// [transformer.apply].
-  void _process() {
-    // Clear all the old input subscriptions. If an input is re-used, we'll
-    // re-subscribe.
-    _clearInputSubscriptions();
-    _state = _TransformNodeState.PROCESSING;
-    primary.whenAvailable((_) {
-      _state = _TransformNodeState.PROCESSING;
-      return transformer.isPrimary(primary.asset.id);
-    }).catchError((error, stackTrace) {
-      // If the transform became dirty while processing, ignore any errors from
-      // it.
-      if (_state.needsIsPrimary || _isRemoved) return false;
-
-      // Catch all transformer errors and pipe them to the results stream. This
-      // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(_wrapException(error, stackTrace));
-
-      return false;
-    }).then((isPrimary) {
-      if (_isRemoved) return;
-      if (_state.needsIsPrimary) {
-        _process();
-      } else if (isPrimary) {
-        _apply();
-      } else {
-        _clearOutputs();
-        _emitPassThrough();
-        _state = _TransformNodeState.NOT_PRIMARY;
-        _onDoneController.add(null);
-      }
-    });
   }
 
   /// Applies this transform.
   void _apply() {
-    assert(!_onAssetController.isClosed);
+    assert(!_isRemoved);
 
     // Clear input subscriptions here as well as in [_process] because [_apply]
     // may be restarted independently if only a secondary input changes.
     _clearInputSubscriptions();
-    _state = _TransformNodeState.PROCESSING;
+    _state = _State.APPLYING;
     primary.whenAvailable((_) {
-      if (_state.needsIsPrimary) return null;
-      _state = _TransformNodeState.PROCESSING;
+      if (_isRemoved) return null;
+      _state = _State.APPLYING;
       // TODO(nweiz): If [transformer] is a [DeclaringTransformer] but not a
-      // [LazyTransformer], we can get some mileage out of doing a declarative
+      // [LazyTransformer], we can get some mileage out of doing a declaration
       // first so we know how to hook up the assets.
       if (_isLazy) return _declareLazy();
       return _applyImmediate();
     }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
-      if (!_state.isProcessing || _isRemoved) return false;
+      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
 
       // Catch all transformer errors and pipe them to the results stream. This
       // is so a broken transformer doesn't take down the whole graph.
@@ -245,20 +225,19 @@ class TransformNode {
     }).then((hadError) {
       if (_isRemoved) return;
 
-      if (_state.needsIsPrimary) {
-        _process();
-      } else if (_state.needsApply) {
+      if (_state == _State.NEEDS_APPLY) {
         _apply();
-      } else {
-        assert(_state.isProcessing);
-        if (hadError) {
-          _clearOutputs();
-          _dontEmitPassThrough();
-        }
-
-        _state = _TransformNodeState.APPLIED;
-        _onDoneController.add(null);
+        return;
       }
+
+      assert(_state == _State.APPLYING);
+      if (hadError) {
+        _clearOutputs();
+        _dontEmitPassThrough();
+      }
+
+      _state = _State.APPLIED;
+      _onDoneController.add(null);
     });
   }
 
@@ -276,7 +255,7 @@ class TransformNode {
       }
 
       _inputSubscriptions.putIfAbsent(node.id, () {
-        return node.onStateChange.listen((_) => _dirty(primaryChanged: false));
+        return node.onStateChange.listen((_) => _dirty());
       });
 
       return node.asset;
@@ -294,7 +273,7 @@ class TransformNode {
     return syncFuture(() {
       return transformer.apply(transformController.transform);
     }).then((_) {
-      if (!_state.isProcessing || _onAssetController.isClosed) return false;
+      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
       if (transformController.loggedError) return true;
 
       _consumePrimary = transformController.consumePrimary;
@@ -352,7 +331,7 @@ class TransformNode {
       return (transformer as LazyTransformer)
           .declareOutputs(transformController.transform);
     }).then((_) {
-      if (!_state.isProcessing || _onAssetController.isClosed) return false;
+      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
       if (transformController.loggedError) return true;
 
       _consumePrimary = transformController.consumePrimary;
@@ -421,7 +400,9 @@ class TransformNode {
     if (_passThroughController == null) {
       _passThroughController = new AssetNodeController.from(primary);
       _onAssetController.add(_passThroughController.node);
-    } else {
+    } else if (primary.state.isDirty) {
+      _passThroughController.setDirty();
+    } else if (!_passThroughController.node.state.isAvailable) {
       _passThroughController.setAvailable(primary.asset);
     }
   }
@@ -446,70 +427,43 @@ class TransformNode {
 }
 
 /// The enum of states that [TransformNode] can be in.
-class _TransformNodeState {
-  /// The transform node is running [Transformer.isPrimary] or
-  /// [Transformer.apply] and doesn't need to re-run them.
+class _State {
+  /// The transform is running [Transformer.isPrimary].
   ///
-  /// If there are no external changes by the time the processing finishes, this
-  /// will transition to [APPLIED] or [NOT_PRIMARY] depending on the result of
-  /// [Transformer.isPrimary]. If the primary input changes, this will
-  /// transition to [NEEDS_IS_PRIMARY]. If a secondary input changes, this will
-  /// transition to [NEEDS_APPLY].
-  static final PROCESSING = const _TransformNodeState._("processing");
+  /// This is the initial state of the transformer. Once [Transformer.isPrimary]
+  /// finishes running, this will transition to [APPLYING] if the input is
+  /// primary, or [NOT_PRIMARY] if it's not.
+  static final COMPUTING_IS_PRIMARY = const _State._("computing isPrimary");
 
-  /// The transform is running [Transformer.isPrimary] or [Transformer.apply],
-  /// but since it started the primary input changed, so it will need to re-run
-  /// [Transformer.isPrimary].
+  /// The transform is running [Transformer.apply].
   ///
-  /// This will always transition to [Transformer.PROCESSING].
-  static final NEEDS_IS_PRIMARY =
-    const _TransformNodeState._("needs isPrimary");
+  /// If an input changes while in this state, it will transition to
+  /// [NEEDS_APPLY]. If the [TransformNode] is still in this state when
+  /// [Transformer.apply] finishes running, it will transition to [APPLIED].
+  static final APPLYING = const _State._("applying");
 
-  /// The transform is running [Transformer.apply], but since it started a
-  /// secondary input changed, so it will need to re-run [Transformer.apply].
+  /// The transform is running [Transformer.apply], but an input changed after
+  /// it started, so it will need to re-run [Transformer.apply].
   ///
-  /// If there are no external changes by the time [Transformer.apply] finishes,
-  /// this will transition to [PROCESSING]. If the primary input changes, this
-  /// will transition to [NEEDS_IS_PRIMARY].
-  static final NEEDS_APPLY = const _TransformNodeState._("needs apply");
+  /// This will transition to [APPLYING] once [Transformer.apply] finishes
+  /// running.
+  static final NEEDS_APPLY = const _State._("needs apply");
 
   /// The transform has finished running [Transformer.apply], whether or not it
   /// emitted an error.
   ///
-  /// If the primary input or a secondary input changes, this will transition to
-  /// [PROCESSING].
-  static final APPLIED = const _TransformNodeState._("applied");
+  /// If an input changes, this will transition to [APPLYING].
+  static final APPLIED = const _State._("applied");
 
   /// The transform has finished running [Transformer.isPrimary], which returned
   /// `false`.
   ///
-  /// If the primary input changes, this will transition to [PROCESSING].
-  static final NOT_PRIMARY = const _TransformNodeState._("not primary");
-
-  /// Whether [this] is [PROCESSING].
-  bool get isProcessing => this == _TransformNodeState.PROCESSING;
-
-  /// Whether [this] is [NEEDS_IS_PRIMARY].
-  bool get needsIsPrimary => this == _TransformNodeState.NEEDS_IS_PRIMARY;
-
-  /// Whether [this] is [NEEDS_APPLY].
-  bool get needsApply => this == _TransformNodeState.NEEDS_APPLY;
-
-  /// Whether [this] is [APPLIED].
-  bool get isApplied => this == _TransformNodeState.APPLIED;
-
-  /// Whether [this] is [NOT_PRIMARY].
-  bool get isNotPrimary => this == _TransformNodeState.NOT_PRIMARY;
-
-  /// Whether the transform has finished running [Transformer.isPrimary] and
-  /// [Transformer.apply].
-  ///
-  /// Specifically, whether [this] is [APPLIED] or [NOT_PRIMARY].
-  bool get isDone => isApplied || isNotPrimary;
+  /// This will never transition to another state.
+  static final NOT_PRIMARY = const _State._("not primary");
 
   final String name;
 
-  const _TransformNodeState._(this.name);
+  const _State._(this.name);
 
   String toString() => name;
 }

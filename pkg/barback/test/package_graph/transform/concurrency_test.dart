@@ -490,4 +490,19 @@ main() {
     expectAsset("app|bar.out", "foo.in");
     buildShouldSucceed();
   });
+
+  test("materializes a passed-through asset that was emitted before it was "
+      "available", () {
+    initGraph(["app|foo.in"], {"app": [
+      [new RewriteTransformer("txt", "txt")]
+    ]});
+
+    pauseProvider();
+    updateSources(["app|foo.in"]);
+    expectAssetDoesNotComplete("app|foo.in");
+
+    resumeProvider();
+    expectAsset("app|foo.in", "foo");
+    buildShouldSucceed();
+  });
 }
