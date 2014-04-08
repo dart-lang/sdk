@@ -64,6 +64,7 @@ double_to_string_as_exponential2_test: RuntimeError # Issue 12749
 double_to_string_as_fixed2_test: RuntimeError # Issue 12749
 double_to_string_as_precision2_test: RuntimeError # Issue 12749
 generic_test: RuntimeError, OK
+map_literal4_test: RuntimeError, OK # Checked mode required.
 named_parameters_type_test/01: MissingRuntimeError, OK
 named_parameters_type_test/02: MissingRuntimeError, OK
 named_parameters_type_test/03: MissingRuntimeError, OK
