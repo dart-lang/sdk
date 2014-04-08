@@ -15,8 +15,13 @@ pkg/analyzer: PubGetError
 pkg/args: PubGetError
 pkg/browser: PubGetError
 
+# These samples were patched to work with polymer-0.10.0-pre.7, but that version
+# of polymer was not merged in trunk:
+samples/polymer_intl: Fail
+samples/searchable_list: Fail
+samples/third_party/todomvc: Fail
+
 [ $use_public_packages ]
-samples/third_party/todomvc: Fail # Issue 17324
 pkg/polymer: Fail # observe with analyzer 0.13.0 has not been published yet.
 
 [ $builder_tag == russian ]
