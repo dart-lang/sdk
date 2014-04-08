@@ -170,9 +170,14 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.is_used()) {
     if (definition.HasSSATemp()) {
-      f->Print("v%" Pd, definition.ssa_temp_index());
+      if (definition.HasPairRepresentation()) {
+        f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
+                                       definition.ssa_temp_index() + 1);
+      } else {
+        f->Print("v%" Pd "", definition.ssa_temp_index());
+      }
     } else if (definition.temp_index() != -1) {
-      f->Print("t%" Pd, definition.temp_index());
+      f->Print("t%" Pd "", definition.temp_index());
     }
   }
 }
@@ -232,7 +237,9 @@ void Definition::PrintTo(BufferFormatter* f) const {
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
-    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+    if (InputAt(i) != NULL) {
+      InputAt(i)->PrintTo(f);
+    }
   }
 }
 
@@ -569,6 +576,12 @@ void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void MergedMathInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("'%s', ", MergedMathInstr::KindToCString(kind()));
+  Definition::PrintOperandsTo(f);
+}
+
+
+void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Extract %" Pd " from ", index());
   Definition::PrintOperandsTo(f);
 }
 

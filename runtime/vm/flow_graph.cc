@@ -115,7 +115,7 @@ void FlowGraph::InsertAfter(Instruction* prev,
                             Definition::UseKind use_kind) {
   if (use_kind == Definition::kValue) {
     ASSERT(instr->IsDefinition());
-    instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
+    AllocateSSAIndexes(instr->AsDefinition());
   }
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
@@ -129,7 +129,7 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  Definition::UseKind use_kind) {
   if (use_kind == Definition::kValue) {
     ASSERT(instr->IsDefinition());
-    instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
+    AllocateSSAIndexes(instr->AsDefinition());
   }
   ASSERT(instr->env() == NULL);
   if (env != NULL) env->DeepCopyTo(instr);
@@ -716,7 +716,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     ASSERT(parameter_count() == inlining_parameters->length());
     for (intptr_t i = 0; i < parameter_count(); ++i) {
       Definition* defn = (*inlining_parameters)[i];
-      defn->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+      AllocateSSAIndexes(defn);
       AddToInitialDefinitions(defn);
       env.Add(defn);
     }
@@ -926,7 +926,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         // Not a load, store, or constant.
         if (definition->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
-          definition->set_ssa_temp_index(alloc_ssa_temp_index());
+          AllocateSSAIndexes(definition);
           env->Add(definition);
         }
       }

@@ -4847,27 +4847,77 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(bool opt) const {
+  // Only use this instruction in optimized code.
+  ASSERT(opt);
+  const intptr_t kNumInputs = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, 0, LocationSummary::kNoCall);
+  if (representation() == kUnboxedDouble) {
+    if (index() == 0) {
+      summary->set_in(0, Location::Pair(Location::RequiresFpuRegister(),
+                                        Location::Any()));
+    } else {
+      ASSERT(index() == 1);
+      summary->set_in(0, Location::Pair(Location::Any(),
+                                        Location::RequiresFpuRegister()));
+    }
+    summary->set_out(0, Location::RequiresFpuRegister());
+  } else {
+    ASSERT(representation() == kTagged);
+    if (index() == 0) {
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::Any()));
+    } else {
+      ASSERT(index() == 1);
+      summary->set_in(0, Location::Pair(Location::Any(),
+                                        Location::RequiresRegister()));
+    }
+    summary->set_out(0, Location::RequiresRegister());
+  }
+  return summary;
+}
+
+
+void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->in(0).IsPairLocation());
+  PairLocation* pair = locs()->in(0).AsPairLocation();
+  Location in_loc = pair->At(index());
+  if (representation() == kUnboxedDouble) {
+    XmmRegister out = locs()->out(0).fpu_reg();
+    XmmRegister in = in_loc.fpu_reg();
+    __ movaps(out, in);
+  } else {
+    ASSERT(representation() == kTagged);
+    Register out = locs()->out(0).reg();
+    Register in = in_loc.reg();
+    __ movl(out, in);
+  }
+}
+
+
 LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
   if (kind() == MergedMathInstr::kTruncDivMod) {
     const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(EAX));
     summary->set_in(1, Location::WritableRegister());
-    summary->set_out(0, Location::RequiresRegister());
-    // Will be used for sign extension and division.
-    summary->set_temp(0, Location::RegisterLocation(EDX));
+    // Output is a pair of registers.
+    summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
+                                       Location::RegisterLocation(EDX)));
     return summary;
   }
   if (kind() == MergedMathInstr::kSinCos) {
     const intptr_t kNumInputs = 1;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    summary->set_out(0, Location::RegisterLocation(EAX));
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_out(0, Location::Pair(Location::RequiresFpuRegister(),
+                                       Location::RequiresFpuRegister()));
     return summary;
   }
   UNIMPLEMENTED();
@@ -4891,7 +4941,10 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MergedMathInstr::kTruncDivMod) {
     Register left = locs()->in(0).reg();
     Register right = locs()->in(1).reg();
-    Register result = locs()->out(0).reg();
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* pair = locs()->out(0).AsPairLocation();
+    Register result1 = pair->At(0).reg();
+    Register result2 = pair->At(1).reg();
     Range* right_range = InputAt(1)->definition()->range();
     if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
       // Handle divide by zero in runtime.
@@ -4900,8 +4953,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     ASSERT(left == EAX);
     ASSERT((right != EDX) && (right != EAX));
-    ASSERT(locs()->temp(0).reg() == EDX);
-    ASSERT((result != EDX) && (result != EAX));
+    ASSERT(result1 == EAX);
+    ASSERT(result2 == EDX);
     __ SmiUntag(left);
     __ SmiUntag(right);
     __ cdq();  // Sign extend EAX -> EDX:EAX.
@@ -4943,53 +4996,30 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     __ Bind(&done);
 
-    __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));
-    const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(kArrayCid);
-    Address trunc_div_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(
-            kArrayCid, index_scale, result,
-            MergedMathInstr::ResultIndexOf(Token::kTRUNCDIV)));
-    Address mod_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(
-            kArrayCid, index_scale, result,
-            MergedMathInstr::ResultIndexOf(Token::kMOD)));
     __ SmiTag(EAX);
     __ SmiTag(EDX);
-    __ StoreIntoObjectNoBarrier(result, trunc_div_address, EAX);
-    __ StoreIntoObjectNoBarrier(result, mod_address, EDX);
     return;
   }
 
   if (kind() == MergedMathInstr::kSinCos) {
+    XmmRegister in = locs()->in(0).fpu_reg();
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* pair = locs()->out(0).AsPairLocation();
+    XmmRegister out1 = pair->At(0).fpu_reg();
+    XmmRegister out2 = pair->At(1).fpu_reg();
+
     // Do x87 sincos, since the ia32 compilers may not fuse sin/cos into
     // sincos.
     __ pushl(EAX);
     __ pushl(EAX);
-    __ movsd(Address(ESP, 0), locs()->in(0).fpu_reg());
+    __ movsd(Address(ESP, 0), in);
     __ fldl(Address(ESP, 0));
     __ fsincos();
     __ fstpl(Address(ESP, 0));
-    __ movsd(XMM1, Address(ESP, 0));
+    __ movsd(out1, Address(ESP, 0));
     __ fstpl(Address(ESP, 0));
-    __ movsd(XMM0, Address(ESP, 0));
+    __ movsd(out2, Address(ESP, 0));
     __ addl(ESP, Immediate(2 * kWordSize));
-
-    Register result = locs()->out(0).reg();
-    const TypedData& res_array = TypedData::ZoneHandle(
-      TypedData::New(kTypedDataFloat64ArrayCid, 2, Heap::kOld));
-    __ LoadObject(result, res_array);
-    const intptr_t index_scale =
-        FlowGraphCompiler::ElementSizeFor(kTypedDataFloat64ArrayCid);
-    Address sin_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(
-            kTypedDataFloat64ArrayCid, index_scale, result,
-            MergedMathInstr::ResultIndexOf(MethodRecognizer::kMathSin)));
-    Address cos_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(
-            kTypedDataFloat64ArrayCid, index_scale, result,
-            MergedMathInstr::ResultIndexOf(MethodRecognizer::kMathCos)));
-    __ movsd(sin_address, XMM0);
-    __ movsd(cos_address, XMM1);
     return;
   }
 

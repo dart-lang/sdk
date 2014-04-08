@@ -1021,6 +1021,17 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
   UNIMPLEMENTED();
   return NULL;

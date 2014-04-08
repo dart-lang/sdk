@@ -109,6 +109,22 @@ class FlowGraphAllocator : public ValueObject {
                                   const intptr_t block_start_pos,
                                   const intptr_t use_pos,
                                   MaterializeObjectInstr* mat);
+  void ProcessOneInput(BlockEntryInstr* block,
+                       intptr_t pos,
+                       Location* in_ref,
+                       Value* input,
+                       intptr_t vreg);
+  void ProcessOneOutput(BlockEntryInstr* block,
+                        Instruction* current,
+                        intptr_t pos,
+                        Location* out,
+                        Definition* def,
+                        intptr_t vreg,
+                        bool output_same_as_first_input,
+                        Location* in_ref,
+                        Definition* input,
+                        intptr_t input_vreg,
+                        BitVector* interference_set);
   void ProcessOneInstruction(BlockEntryInstr* block,
                              Instruction* instr,
                              BitVector* interference_set);

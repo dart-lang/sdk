@@ -34,6 +34,18 @@ static const intptr_t kNoVirtualRegister = -1;
 static const intptr_t kTempVirtualRegister = -2;
 static const intptr_t kIllegalPosition = -1;
 static const intptr_t kMaxPosition = 0x7FFFFFFF;
+static const intptr_t kPairVirtualRegisterOffset = 1;
+
+// Definitions which have pair representations
+// (kPairOfTagged or kPairOfUnboxedDouble) use two virtual register names.
+// At SSA index allocation time each definition reserves two SSA indexes,
+// the second index is only used for pairs. This function maps from the first
+// SSA index to the second.
+static intptr_t ToSecondPairVreg(intptr_t vreg) {
+  // Map vreg to its pair vreg.
+  return vreg + kPairVirtualRegisterOffset;
+}
+
 
 static intptr_t MinPosition(intptr_t a, intptr_t b) {
   return (a < b) ? a : b;
@@ -74,7 +86,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     blocked_cpu_registers_(),
     blocked_fpu_registers_(),
     cpu_spill_slot_count_(0) {
-  for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
+  for (intptr_t i = 0; i < vreg_count_; i++) {
+    live_ranges_.Add(NULL);
+  }
   for (intptr_t i = 0; i < vreg_count_; i++) {
     value_representations_.Add(kNoRepresentation);
   }
@@ -114,25 +128,33 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
 
+      // Initialize location summary for instruction.
+      current->InitializeLocationSummary(true);  // Optimizing.
+      LocationSummary* locs = current->locs();
+
       // Handle definitions.
       Definition* current_def = current->AsDefinition();
       if ((current_def != NULL) && current_def->HasSSATemp()) {
         kill->Add(current_def->ssa_temp_index());
         live_in->Remove(current_def->ssa_temp_index());
+        if (current_def->HasPairRepresentation()) {
+          kill->Add(ToSecondPairVreg(current_def->ssa_temp_index()));
+          live_in->Remove(ToSecondPairVreg(current_def->ssa_temp_index()));
+        }
       }
 
       // Handle uses.
-      current->InitializeLocationSummary(true);  // Optimizing.
-      LocationSummary* locs = current->locs();
       ASSERT(locs->input_count() == current->InputCount());
       for (intptr_t j = 0; j < current->InputCount(); j++) {
         Value* input = current->InputAt(j);
-        const intptr_t use = input->definition()->ssa_temp_index();
 
         ASSERT(!locs->in(j).IsConstant() || input->BindsToConstant());
         if (locs->in(j).IsConstant()) continue;
 
-        live_in->Add(use);
+        live_in->Add(input->definition()->ssa_temp_index());
+        if (input->definition()->HasPairRepresentation()) {
+          live_in->Add(ToSecondPairVreg(input->definition()->ssa_temp_index()));
+        }
       }
 
       // Add non-argument uses from the deoptimization environment (pushed
@@ -147,11 +169,15 @@ void SSALivenessAnalysis::ComputeInitialSets() {
             // Treat its inputs as part of the environment.
             for (intptr_t i = 0; i < defn->InputCount(); i++) {
               if (!defn->InputAt(i)->BindsToConstant()) {
-                live_in->Add(defn->InputAt(i)->definition()->ssa_temp_index());
+                intptr_t idx = defn->InputAt(i)->definition()->ssa_temp_index();
+                live_in->Add(idx);
               }
             }
           } else if (!defn->IsPushArgument() && !defn->IsConstant()) {
             live_in->Add(defn->ssa_temp_index());
+            if (defn->HasPairRepresentation()) {
+              live_in->Add(ToSecondPairVreg(defn->ssa_temp_index()));
+            }
           }
         }
       }
@@ -161,6 +187,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
         PhiInstr* phi = it.Current();
         ASSERT(phi != NULL);
         kill->Add(phi->ssa_temp_index());
@@ -185,8 +212,8 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       for (intptr_t i = 0;
            i < catch_entry->initial_definitions()->length();
            i++) {
-        intptr_t vreg =
-            (*catch_entry->initial_definitions())[i]->ssa_temp_index();
+        Definition* def = (*catch_entry->initial_definitions())[i];
+        const intptr_t vreg = def->ssa_temp_index();
         kill_[catch_entry->postorder_number()]->Add(vreg);
         live_in_[catch_entry->postorder_number()]->Remove(vreg);
       }
@@ -195,7 +222,8 @@ void SSALivenessAnalysis::ComputeInitialSets() {
 
   // Process initial definitions, ie, constants and incoming parameters.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); i++) {
-    intptr_t vreg = (*graph_entry_->initial_definitions())[i]->ssa_temp_index();
+    Definition* def = (*graph_entry_->initial_definitions())[i];
+    const intptr_t vreg = def->ssa_temp_index();
     kill_[graph_entry_->postorder_number()]->Add(vreg);
     live_in_[graph_entry_->postorder_number()]->Remove(vreg);
   }
@@ -607,7 +635,8 @@ static Location::Kind RegisterKindForResult(Instruction* instr) {
       (instr->representation() == kUnboxedMint) ||
       (instr->representation() == kUnboxedFloat32x4) ||
       (instr->representation() == kUnboxedInt32x4) ||
-      (instr->representation() == kUnboxedFloat64x2)) {
+      (instr->representation() == kUnboxedFloat64x2) ||
+      (instr->representation() == kPairOfUnboxedDouble)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -666,6 +695,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
   // Record the corresponding phi input use for each phi.
   intptr_t move_idx = 0;
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
+    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = it.Current();
     Value* val = phi->InputAt(pred_idx);
     MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
@@ -709,6 +739,7 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
   const bool is_loop_header = BlockInfoAt(join->start_pos())->is_loop_header();
   intptr_t move_idx = 0;
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
+    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = it.Current();
     ASSERT(phi != NULL);
     const intptr_t vreg = phi->ssa_temp_index();
@@ -796,10 +827,16 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
-      const intptr_t vreg = def->ssa_temp_index();
-      LiveRange* range = GetLiveRange(vreg);
+      LiveRange* range = GetLiveRange(def->ssa_temp_index());
       range->AddUseInterval(block_start_pos, use_pos);
       range->AddUse(use_pos, &locations[i]);
+
+      if (def->HasPairRepresentation()) {
+        LiveRange* range =
+            GetLiveRange(ToSecondPairVreg(def->ssa_temp_index()));
+        range->AddUseInterval(block_start_pos, use_pos);
+        range->AddUse(use_pos, &locations[i]);
+      }
     }
 
     env->set_locations(locations);
@@ -834,13 +871,194 @@ void FlowGraphAllocator::ProcessMaterializationUses(
 
     locations[i] = Location::Any();
 
-    const intptr_t vreg = def->ssa_temp_index();
-    LiveRange* range = GetLiveRange(vreg);
+    LiveRange* range = GetLiveRange(def->ssa_temp_index());
     range->AddUseInterval(block_start_pos, use_pos);
     range->AddUse(use_pos, &locations[i]);
+    if (def->HasPairRepresentation()) {
+      LiveRange* range = GetLiveRange(ToSecondPairVreg(def->ssa_temp_index()));
+      range->AddUseInterval(block_start_pos, use_pos);
+      range->AddUse(use_pos, &locations[i]);
+    }
   }
 
   mat->set_locations(locations);
+}
+
+
+void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
+                                         intptr_t pos,
+                                         Location* in_ref,
+                                         Value* input,
+                                         intptr_t vreg) {
+  ASSERT(in_ref != NULL);
+  ASSERT(!in_ref->IsPairLocation());
+  ASSERT(input != NULL);
+  ASSERT(block != NULL);
+  LiveRange* range = GetLiveRange(vreg);
+  if (in_ref->IsMachineRegister()) {
+    // Input is expected in a fixed register. Expected shape of
+    // live ranges:
+    //
+    //                 j' i  i'
+    //      value    --*
+    //      register   [-----)
+    //
+    MoveOperands* move =
+        AddMoveAt(pos - 1, *in_ref, Location::Any());
+    BlockLocation(*in_ref, pos - 1, pos + 1);
+    range->AddUseInterval(block->start_pos(), pos - 1);
+    range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
+  } else if (in_ref->IsUnallocated()) {
+    if (in_ref->policy() == Location::kWritableRegister) {
+      // Writable unallocated input. Expected shape of
+      // live ranges:
+      //
+      //                 j' i  i'
+      //      value    --*
+      //      temp       [------)
+      MoveOperands* move = AddMoveAt(pos - 1,
+                                     Location::RequiresRegister(),
+                                     Location::PrefersRegister());
+
+      // Add uses to the live range of the input.
+      range->AddUseInterval(block->start_pos(), pos - 1);
+      range->AddUse(pos - 1, move->src_slot());
+
+      // Create live range for the temporary.
+      LiveRange* temp = MakeLiveRangeForTemporary();
+      temp->AddUseInterval(pos - 1, pos + 1);
+      temp->AddHintedUse(pos - 1, in_ref, move->src_slot());
+      temp->AddUse(pos + 1, move->dest_slot());
+      *in_ref = Location::RequiresRegister();
+      CompleteRange(temp, RegisterKindFromPolicy(*in_ref));
+    } else {
+      // Normal unallocated input. Expected shape of
+      // live ranges:
+      //
+      //                 i  i'
+      //      value    -----*
+      //
+      range->AddUseInterval(block->start_pos(), pos + 1);
+      range->AddUse(pos + 1, in_ref);
+    }
+  } else {
+    ASSERT(in_ref->IsConstant());
+  }
+}
+
+
+void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
+                                          Instruction* current,
+                                          intptr_t pos,
+                                          Location* out,
+                                          Definition* def,
+                                          intptr_t vreg,
+                                          bool output_same_as_first_input,
+                                          Location* in_ref,
+                                          Definition* input,
+                                          intptr_t input_vreg,
+                                          BitVector* interference_set) {
+  ASSERT(out != NULL);
+  ASSERT(!out->IsPairLocation());
+  ASSERT(def != NULL);
+  ASSERT(block != NULL);
+
+  LiveRange* range = vreg >= 0 ?
+      GetLiveRange(vreg) : MakeLiveRangeForTemporary();
+
+  // Process output and finalize its liverange.
+  if (out->IsMachineRegister()) {
+    // Fixed output location. Expected shape of live range:
+    //
+    //                    i  i' j  j'
+    //    register        [--)
+    //    output             [-------
+    //
+    BlockLocation(*out, pos, pos + 1);
+
+    if (range->vreg() == kTempVirtualRegister) return;
+
+    // We need to emit move connecting fixed register with another location
+    // that will be allocated for this output's live range.
+    // Special case: fixed output followed by a fixed input last use.
+    UsePosition* use = range->first_use();
+
+    // If the value has no uses we don't need to allocate it.
+    if (use == NULL) return;
+
+    if (use->pos() == (pos + 1)) {
+      ASSERT(use->location_slot()->IsUnallocated());
+      *(use->location_slot()) = *out;
+
+      // Remove first use. It was allocated.
+      range->set_first_use(range->first_use()->next());
+    }
+
+    // Shorten live range to the point of definition, this might make the range
+    // empty (if the only use immediately follows). If range is not empty add
+    // move from a fixed register to an unallocated location.
+    range->DefineAt(pos + 1);
+    if (range->Start() == range->End()) return;
+
+    MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
+    range->AddHintedUse(pos + 1, move->dest_slot(), out);
+  } else if (output_same_as_first_input) {
+    ASSERT(in_ref != NULL);
+    ASSERT(input != NULL);
+    // Output register will contain a value of the first input at instruction's
+    // start. Expected shape of live ranges:
+    //
+    //                 i  i'
+    //    input #0   --*
+    //    output       [----
+    //
+    ASSERT(in_ref->Equals(Location::RequiresRegister()) ||
+           in_ref->Equals(Location::RequiresFpuRegister()));
+
+    // TODO(johnmccutchan): Without this I get allocated a register instead
+    // of an FPU register. Figure out why.
+
+    *out = *in_ref;
+    // Create move that will copy value between input and output.
+    MoveOperands* move = AddMoveAt(pos,
+                                   Location::RequiresRegister(),
+                                   Location::Any());
+
+    // Add uses to the live range of the input.
+    LiveRange* input_range = GetLiveRange(input_vreg);
+    input_range->AddUseInterval(block->start_pos(), pos);
+    input_range->AddUse(pos, move->src_slot());
+
+    // Shorten output live range to the point of definition and add both input
+    // and output uses slots to be filled by allocator.
+    range->DefineAt(pos);
+    range->AddHintedUse(pos, out, move->src_slot());
+    range->AddUse(pos, move->dest_slot());
+    range->AddUse(pos, in_ref);
+
+    if ((interference_set != NULL) &&
+        (range->vreg() >= 0) &&
+        interference_set->Contains(range->vreg())) {
+      interference_set->Add(input->ssa_temp_index());
+    }
+  } else {
+    // Normal unallocated location that requires a register. Expected shape of
+    // live range:
+    //
+    //                    i  i'
+    //    output          [-------
+    //
+    ASSERT(out->Equals(Location::RequiresRegister()) ||
+           out->Equals(Location::RequiresFpuRegister()));
+
+    // Shorten live range to the point of definition and add use to be filled by
+    // allocator.
+    range->DefineAt(pos);
+    range->AddUse(pos, out);
+  }
+
+  AssignSafepoints(range);
+  CompleteRange(range, RegisterKindForResult(current));
 }
 
 
@@ -853,6 +1071,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
   Definition* def = current->AsDefinition();
   if ((def != NULL) && (def->AsConstant() != NULL)) {
+    ASSERT(!def->HasPairRepresentation());
     LiveRange* range = (def->ssa_temp_index() != -1) ?
         GetLiveRange(def->ssa_temp_index()) : NULL;
 
@@ -881,7 +1100,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   const intptr_t pos = current->lifetime_position();
   ASSERT(IsInstructionStartPosition(pos));
 
-  // Number of input locations and number of input operands have to agree.
   ASSERT(locs->input_count() == current->InputCount());
 
   // Normalize same-as-first-input output if input is specified as
@@ -902,63 +1120,28 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   // Process inputs.
   // Skip the first input if output is specified with kSameAsFirstInput policy,
   // they will be processed together at the very end.
-  for (intptr_t j = output_same_as_first_input ? 1 : 0;
-       j < current->InputCount();
-       j++) {
-    Value* input = current->InputAt(j);
-    const intptr_t vreg = input->definition()->ssa_temp_index();
-    LiveRange* range = GetLiveRange(vreg);
-
-    Location* in_ref = locs->in_slot(j);
-
-    if (in_ref->IsMachineRegister()) {
-      // Input is expected in a fixed register. Expected shape of
-      // live ranges:
-      //
-      //                 j' i  i'
-      //      value    --*
-      //      register   [-----)
-      //
-      MoveOperands* move =
-          AddMoveAt(pos - 1, *in_ref, Location::Any());
-      BlockLocation(*in_ref, pos - 1, pos + 1);
-      range->AddUseInterval(block->start_pos(), pos - 1);
-      range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
-    } else if (in_ref->IsUnallocated()) {
-      if (in_ref->policy() == Location::kWritableRegister) {
-        // Writable unallocated input. Expected shape of
-        // live ranges:
-        //
-        //                 i  i'
-        //      value    --*
-        //      temp       [--)
-        MoveOperands* move = AddMoveAt(pos,
-                                       Location::RequiresRegister(),
-                                       Location::PrefersRegister());
-
-        // Add uses to the live range of the input.
-        range->AddUseInterval(block->start_pos(), pos);
-        range->AddUse(pos, move->src_slot());
-
-        // Create live range for the temporary.
-        LiveRange* temp = MakeLiveRangeForTemporary();
-        temp->AddUseInterval(pos, pos + 1);
-        temp->AddHintedUse(pos, in_ref, move->src_slot());
-        temp->AddUse(pos, move->dest_slot());
-        *in_ref = Location::RequiresRegister();
-        CompleteRange(temp, RegisterKindFromPolicy(*in_ref));
+  {
+    for (intptr_t j = output_same_as_first_input ? 1 : 0;
+         j < locs->input_count();
+         j++) {
+      // Determine if we are dealing with a value pair, and if so, whether
+      // the location is the first register or second register.
+      Value* input = current->InputAt(j);
+      Location* in_ref = locs->in_slot(j);
+      if (in_ref->IsPairLocation()) {
+        ASSERT(input->definition()->HasPairRepresentation());
+        PairLocation* pair = in_ref->AsPairLocation();
+        const intptr_t vreg = input->definition()->ssa_temp_index();
+        // Each element of the pair is assigned it's own virtual register number
+        // and is allocated its own LiveRange.
+        ProcessOneInput(block, pos, pair->SlotAt(0),
+                        input, vreg);
+        ProcessOneInput(block, pos, pair->SlotAt(1), input,
+                        ToSecondPairVreg(vreg));
       } else {
-        // Normal unallocated input. Expected shape of
-        // live ranges:
-        //
-        //                 i  i'
-        //      value    -----*
-        //
-        range->AddUseInterval(block->start_pos(), pos + 1);
-        range->AddUse(pos + 1, in_ref);
+        ProcessOneInput(block, pos, in_ref, input,
+                        input->definition()->ssa_temp_index());
       }
-    } else {
-      ASSERT(in_ref->IsConstant());
     }
   }
 
@@ -971,6 +1154,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //
 
     Location temp = locs->temp(j);
+    // We do not support pair locations for temporaries.
+    ASSERT(!temp.IsPairLocation());
     if (temp.IsMachineRegister()) {
       BlockLocation(temp, pos, pos + 1);
     } else if (temp.IsUnallocated()) {
@@ -1010,14 +1195,27 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // locations.  Every register is blocked now so attempt to
     // allocate will not succeed.
     for (intptr_t j = 0; j < locs->temp_count(); j++) {
+      ASSERT(!locs->temp(j).IsPairLocation());
       ASSERT(!locs->temp(j).IsUnallocated());
     }
 
     for (intptr_t j = 0; j < locs->input_count(); j++) {
-      ASSERT(!locs->in(j).IsUnallocated());
+      if (locs->in(j).IsPairLocation()) {
+        PairLocation* pair = locs->in_slot(j)->AsPairLocation();
+        ASSERT(!pair->At(0).IsUnallocated());
+        ASSERT(!pair->At(1).IsUnallocated());
+      } else {
+        ASSERT(!locs->in(j).IsUnallocated());
+      }
     }
 
-    ASSERT(!locs->out(0).IsUnallocated());
+    if (locs->out(0).IsPairLocation()) {
+      PairLocation* pair = locs->out_slot(0)->AsPairLocation();
+      ASSERT(!pair->At(0).IsUnallocated());
+      ASSERT(!pair->At(1).IsUnallocated());
+    } else {
+      ASSERT(!locs->out(0).IsUnallocated());
+    }
 #endif
   }
 
@@ -1035,103 +1233,69 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     return;
   }
 
-  // We might have a definition without use.  We do not assign SSA index to
-  // such definitions.
-  LiveRange* range = (def->ssa_temp_index() >= 0) ?
-      GetLiveRange(def->ssa_temp_index()) :
-      MakeLiveRangeForTemporary();
+  ASSERT(locs->output_count() == 1);
   Location* out = locs->out_slot(0);
-
-  // Process output and finalize its liverange.
-  if (out->IsMachineRegister()) {
-    // Fixed output location. Expected shape of live range:
-    //
-    //                    i  i' j  j'
-    //    register        [--)
-    //    output             [-------
-    //
-    BlockLocation(*out, pos, pos + 1);
-
-    if (range->vreg() == kTempVirtualRegister) return;
-
-    // We need to emit move connecting fixed register with another location
-    // that will be allocated for this output's live range.
-    // Special case: fixed output followed by a fixed input last use.
-    UsePosition* use = range->first_use();
-
-    // If the value has no uses we don't need to allocate it.
-    if (use == NULL) return;
-
-    if (use->pos() == (pos + 1)) {
-      ASSERT(use->location_slot()->IsUnallocated());
-      *(use->location_slot()) = *out;
-
-      // Remove first use. It was allocated.
-      range->set_first_use(range->first_use()->next());
-    }
-
-    // Shorten live range to the point of definition, this might make the range
-    // empty (if the only use immediately follows). If range is not empty add
-    // move from a fixed register to an unallocated location.
-    range->DefineAt(pos + 1);
-    if (range->Start() == range->End()) return;
-
-    MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
-    range->AddHintedUse(pos + 1, move->dest_slot(), out);
-  } else if (output_same_as_first_input) {
-    // Output register will contain a value of the first input at instruction's
-    // start. Expected shape of live ranges:
-    //
-    //                 i  i'
-    //    input #0   --*
-    //    output       [----
-    //
-    ASSERT(locs->in(0).Equals(Location::RequiresRegister()) ||
-           locs->in(0).Equals(Location::RequiresFpuRegister()));
-
-    // Create move that will copy value between input and output.
-    locs->set_out(0, Location::RequiresRegister());
-    MoveOperands* move = AddMoveAt(pos,
-                                   Location::RequiresRegister(),
-                                   Location::Any());
-
-    // Add uses to the live range of the input.
-    Definition* input = current->InputAt(0)->definition();
-    LiveRange* input_range =
-        GetLiveRange(input->ssa_temp_index());
-    input_range->AddUseInterval(block->start_pos(), pos);
-    input_range->AddUse(pos, move->src_slot());
-
-    // Shorten output live range to the point of definition and add both input
-    // and output uses slots to be filled by allocator.
-    range->DefineAt(pos);
-    range->AddHintedUse(pos, out, move->src_slot());
-    range->AddUse(pos, move->dest_slot());
-    range->AddUse(pos, locs->in_slot(0));
-
-    if ((interference_set != NULL) &&
-        (range->vreg() >= 0) &&
-        interference_set->Contains(range->vreg())) {
-      interference_set->Add(input->ssa_temp_index());
+  if (out->IsPairLocation()) {
+    ASSERT(def->HasPairRepresentation());
+    PairLocation* pair = out->AsPairLocation();
+    if (output_same_as_first_input) {
+      ASSERT(locs->in_slot(0)->IsPairLocation());
+      PairLocation* in_pair = locs->in_slot(0)->AsPairLocation();
+      Definition* input = current->InputAt(0)->definition();
+      ASSERT(input->HasPairRepresentation());
+      // Each element of the pair is assigned it's own virtual register number
+      // and is allocated its own LiveRange.
+      ProcessOneOutput(block, current, pos,  // BlockEntry, Instruction, seq.
+                       pair->SlotAt(0), def,  // (output) Location, Definition.
+                       def->ssa_temp_index(),  // (output) virtual register.
+                       true,  // output mapped to first input.
+                       in_pair->SlotAt(0), input,  // (input) Location, Def.
+                       input->ssa_temp_index(),  // (input) virtual register.
+                       interference_set);
+      ProcessOneOutput(block, current, pos,
+                       pair->SlotAt(1), def,
+                       ToSecondPairVreg(def->ssa_temp_index()),
+                       true,
+                       in_pair->SlotAt(1), input,
+                       ToSecondPairVreg(input->ssa_temp_index()),
+                       interference_set);
+    } else {
+      // Each element of the pair is assigned it's own virtual register number
+      // and is allocated its own LiveRange.
+      ProcessOneOutput(block, current, pos,
+                       pair->SlotAt(0), def,
+                       def->ssa_temp_index(),
+                       false,            // output is not mapped to first input.
+                       NULL, NULL, -1,   // First input not needed.
+                       interference_set);
+      ProcessOneOutput(block, current, pos,
+                       pair->SlotAt(1), def,
+                       ToSecondPairVreg(def->ssa_temp_index()),
+                       false,
+                       NULL, NULL, -1,
+                       interference_set);
     }
   } else {
-    // Normal unallocated location that requires a register. Expected shape of
-    // live range:
-    //
-    //                    i  i'
-    //    output          [-------
-    //
-    ASSERT(locs->out(0).Equals(Location::RequiresRegister()) ||
-           locs->out(0).Equals(Location::RequiresFpuRegister()));
-
-    // Shorten live range to the point of definition and add use to be filled by
-    // allocator.
-    range->DefineAt(pos);
-    range->AddUse(pos, out);
+    if (output_same_as_first_input) {
+      Location* in_ref = locs->in_slot(0);
+      Definition* input = current->InputAt(0)->definition();
+      ASSERT(!in_ref->IsPairLocation());
+      ProcessOneOutput(block, current, pos,  // BlockEntry, Instruction, seq.
+                       out, def,  // (output) Location, Definition.
+                       def->ssa_temp_index(),  // (output) virtual register.
+                       true,  // output mapped to first input.
+                       in_ref, input,  // (input) Location, Def.
+                       input->ssa_temp_index(),  // (input) virtual register.
+                       interference_set);
+    } else {
+      ProcessOneOutput(block, current, pos,
+                       out, def,
+                       def->ssa_temp_index(),
+                       false,            // output is not mapped to first input.
+                       NULL, NULL, -1,   // First input not needed.
+                       interference_set);
+    }
   }
-
-  AssignSafepoints(range);
-  CompleteRange(range, RegisterKindForResult(current));
 }
 
 
@@ -1718,6 +1882,7 @@ intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
 
 
 void ReachingDefs::AddPhi(PhiInstr* phi) {
+  // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
   if (phi->reaching_defs() == NULL) {
     phi->set_reaching_defs(
         new BitVector(flow_graph_.max_virtual_register_number()));
@@ -1741,6 +1906,7 @@ void ReachingDefs::AddPhi(PhiInstr* phi) {
 void ReachingDefs::Compute() {
   // Transitively collect all phis that are used by the given phi.
   for (intptr_t i = 0; i < phis_.length(); i++) {
+    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = phis_[i];
 
     // Add all phis that affect this phi to the list.
@@ -1844,6 +2010,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     for (PhiIterator it(loop_header->entry()->AsJoinEntry());
          !it.Done();
          it.Advance()) {
+      // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
       PhiInstr* phi = it.Current();
       ASSERT(phi->is_alive());
       const intptr_t phi_vreg = phi->ssa_temp_index();
@@ -1908,7 +2075,8 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
 bool FlowGraphAllocator::RangeHasOnlyUnconstrainedUsesInLoop(LiveRange* range,
                                                              intptr_t loop_id) {
   if (range->vreg() >= 0) {
-    return GetLiveRange(range->vreg())->HasOnlyUnconstrainedUsesInLoop(loop_id);
+    LiveRange* parent = GetLiveRange(range->vreg());
+    return parent->HasOnlyUnconstrainedUsesInLoop(loop_id);
   }
   return false;
 }
@@ -1988,6 +2156,8 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
     SpillBetween(unallocated, unallocated->Start(), register_use->pos());
     return;
   }
+
+  ASSERT(candidate != kNoRegister);
 
   TRACE_ALLOC(OS::Print("assigning blocked register "));
   TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
@@ -2499,6 +2669,7 @@ void FlowGraphAllocator::CollectRepresentations() {
   for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); ++i) {
     Definition* def = (*graph_entry->initial_definitions())[i];
     value_representations_[def->ssa_temp_index()] = def->representation();
+    ASSERT(!def->HasPairRepresentation());
   }
 
   for (BlockIterator it = flow_graph_.reverse_postorder_iterator();
@@ -2520,6 +2691,7 @@ void FlowGraphAllocator::CollectRepresentations() {
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
         PhiInstr* phi = it.Current();
         if ((phi != NULL) && (phi->ssa_temp_index() >= 0)) {
           value_representations_[phi->ssa_temp_index()] = phi->representation();
@@ -2532,7 +2704,11 @@ void FlowGraphAllocator::CollectRepresentations() {
          instr_it.Advance()) {
       Definition* def = instr_it.Current()->AsDefinition();
       if ((def != NULL) && (def->ssa_temp_index() >= 0)) {
-        value_representations_[def->ssa_temp_index()] = def->representation();
+        const intptr_t vreg = def->ssa_temp_index();
+        value_representations_[vreg] = def->representation();
+        if (def->HasPairRepresentation()) {
+         value_representations_[ToSecondPairVreg(vreg)] = def->representation();
+        }
       }
     }
   }

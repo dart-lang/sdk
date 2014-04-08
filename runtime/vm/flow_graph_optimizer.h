@@ -237,7 +237,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
 
   void AppendLoadIndexedForMerged(Definition* instr, intptr_t ix, intptr_t cid);
-
+  void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
+                                       Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
   FlowGraph* flow_graph_;

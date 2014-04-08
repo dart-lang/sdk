@@ -805,7 +805,9 @@ void Definition::ReplaceWith(Definition* other,
   ReplaceUsesWith(other);
   // Reuse this instruction's SSA name for other.
   ASSERT(!other->HasSSATemp());
-  if (HasSSATemp()) other->set_ssa_temp_index(ssa_temp_index());
+  if (HasSSATemp()) {
+    other->set_ssa_temp_index(ssa_temp_index());
+  }
 
   // Finally insert the other definition in place of this one in the graph.
   previous()->LinkTo(other);
@@ -3228,16 +3230,16 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
 }
 
 
-intptr_t MergedMathInstr::ResultIndexOf(MethodRecognizer::Kind kind) {
+intptr_t MergedMathInstr::OutputIndexOf(intptr_t kind) {
   switch (kind) {
-    case MethodRecognizer::kMathSin: return 0;
-    case MethodRecognizer::kMathCos: return 1;
+    case MethodRecognizer::kMathSin: return 1;
+    case MethodRecognizer::kMathCos: return 0;
     default: UNIMPLEMENTED(); return -1;
   }
 }
 
 
-intptr_t MergedMathInstr::ResultIndexOf(Token::Kind token) {
+intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
   switch (token) {
     case Token::kTRUNCDIV: return 0;
     case Token::kMOD: return 1;

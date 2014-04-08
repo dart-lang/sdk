@@ -120,6 +120,14 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
+  void AllocateSSAIndexes(Definition* def) {
+    ASSERT(def);
+    def->set_ssa_temp_index(alloc_ssa_temp_index());
+    // Always allocate a second index. This index is unused except
+    // for Definitions with register pair outputs.
+    alloc_ssa_temp_index();
+  }
+
   intptr_t InstructionCount() const;
 
   ConstantInstr* GetConstant(const Object& object);

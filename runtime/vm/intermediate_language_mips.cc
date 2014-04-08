@@ -3773,18 +3773,67 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(bool opt) const {
+  // Only use this instruction in optimized code.
+  ASSERT(opt);
+  const intptr_t kNumInputs = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, 0, LocationSummary::kNoCall);
+  if (representation() == kUnboxedDouble) {
+    if (index() == 0) {
+      summary->set_in(0, Location::Pair(Location::RequiresFpuRegister(),
+                                        Location::Any()));
+    } else {
+      ASSERT(index() == 1);
+      summary->set_in(0, Location::Pair(Location::Any(),
+                                        Location::RequiresFpuRegister()));
+    }
+    summary->set_out(0, Location::RequiresFpuRegister());
+  } else {
+    ASSERT(representation() == kTagged);
+    if (index() == 0) {
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::Any()));
+    } else {
+      ASSERT(index() == 1);
+      summary->set_in(0, Location::Pair(Location::Any(),
+                                        Location::RequiresRegister()));
+    }
+    summary->set_out(0, Location::RequiresRegister());
+  }
+  return summary;
+}
+
+
+void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->in(0).IsPairLocation());
+  PairLocation* pair = locs()->in(0).AsPairLocation();
+  Location in_loc = pair->At(index());
+  if (representation() == kUnboxedDouble) {
+    DRegister out = locs()->out(0).fpu_reg();
+    DRegister in = in_loc.fpu_reg();
+    __ movd(out, in);
+  } else {
+    ASSERT(representation() == kTagged);
+    Register out = locs()->out(0).reg();
+    Register in = in_loc.reg();
+    __ mov(out, in);
+  }
+}
+
+
 LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
   if (kind() == MergedMathInstr::kTruncDivMod) {
     const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 3;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresRegister());  // result_div.
-    summary->set_temp(2, Location::RequiresRegister());  // result_mod.
-    summary->set_out(0, Location::RequiresRegister());
+    // Output is a pair of registers.
+    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                       Location::RequiresRegister()));
     return summary;
   }
   UNIMPLEMENTED();
@@ -3800,10 +3849,11 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MergedMathInstr::kTruncDivMod) {
     Register left = locs()->in(0).reg();
     Register right = locs()->in(1).reg();
-    Register result = locs()->out(0).reg();
     Register temp = locs()->temp(0).reg();
-    Register result_div = locs()->temp(1).reg();
-    Register result_mod = locs()->temp(2).reg();
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* pair = locs()->out(0).AsPairLocation();
+    Register result_div = pair->At(0).reg();
+    Register result_mod = pair->At(1).reg();
     Range* right_range = InputAt(1)->definition()->range();
     if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
       // Handle divide by zero in runtime.
@@ -3845,16 +3895,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ SmiTag(result_div);
     __ SmiTag(result_mod);
-    __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays.
-    // [0]: divide resut, [1]: mod result.
-    __ LoadImmediate(temp,
-        FlowGraphCompiler::DataOffsetFor(kArrayCid) - kHeapObjectTag);
-    __ addu(temp, result, temp);
-    Address div_result_address(temp, 0);
-    Address mod_result_address(temp, kWordSize);
-    __ StoreIntoObjectNoBarrier(result, div_result_address, result_div);
-    __ StoreIntoObjectNoBarrier(result, mod_result_address, result_mod);
     return;
   }
   UNIMPLEMENTED();

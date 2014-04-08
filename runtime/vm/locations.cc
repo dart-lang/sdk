@@ -87,6 +87,22 @@ LocationSummary* LocationSummary::Make(
 }
 
 
+Location Location::Pair(Location first, Location second) {
+  PairLocation* pair_location = new PairLocation();
+  ASSERT((reinterpret_cast<intptr_t>(pair_location) & kLocationTagMask) == 0);
+  pair_location->SetAt(0, first);
+  pair_location->SetAt(1, second);
+  Location loc(reinterpret_cast<uword>(pair_location) | kPairLocationTag);
+  return loc;
+}
+
+
+PairLocation* Location::AsPairLocation() const {
+  ASSERT(IsPairLocation());
+  return reinterpret_cast<PairLocation*>(value_ & ~kLocationTagMask);
+}
+
+
 Location Location::RegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
@@ -176,8 +192,12 @@ const char* Location::Name() const {
       }
       UNREACHABLE();
     default:
-      ASSERT(IsConstant());
-      return "C";
+      if (IsConstant()) {
+        return "C";
+      } else {
+        ASSERT(IsPairLocation());
+        return "2P";
+      }
   }
   return "?";
 }
