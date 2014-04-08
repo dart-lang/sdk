@@ -18,13 +18,28 @@ $V8_INTERFACE_INCLUDE
 namespace WebCore {
 
 struct Dart$INTERFACE {
-    static const char* const dartImplementationClassName;
-    static const int dartImplementationLibraryId;
-    static const int dartClassId;
+    static const int dartClassId = $(INTERFACE)ClassId;
     typedef $WEBCORE_CLASS_NAME NativeType;
     static const bool isNode = $IS_NODE;
     static const bool isActive = $IS_ACTIVE;
     static const bool isEventTarget = $IS_EVENT_TARGET;
+
+    static ActiveDOMObject* toActiveDOMObject(void* value)
+    {
+        $TO_ACTIVE
+    }
+    static EventTarget* toEventTarget(void* value)
+    {
+        $TO_EVENT_TARGET
+    }
+    static Node* toNode(void* value)
+    {
+        $TO_NODE
+    }
+    static $WEBCORE_CLASS_NAME* toNative(void* value)
+    {
+        return static_cast<$WEBCORE_CLASS_NAME*>(value);
+    }
 
 $TO_NATIVE
 $TO_DART
@@ -36,12 +51,16 @@ $TO_DART
     {
         return createWrapper(value.get());
     }
-    static void returnToDart(Dart_NativeArguments args, PassRefPtr< $WEBCORE_CLASS_NAME > value, bool autoDartScope = true)
+    static void returnToDart(Dart_NativeArguments args,
+                             PassRefPtr< $WEBCORE_CLASS_NAME > value,
+                             bool autoDartScope = true)
     {
         return returnToDart(args, value.get(), autoDartScope);
     }
 
-    static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount, bool* autoSetupScope);
+    static Dart_NativeFunction resolver(Dart_Handle name,
+                                        int argumentCount,
+                                        bool* autoSetupScope);
 };
 
 Dart_Handle $(WEBCORE_CLASS_NAME_ESCAPED)_toDart(PassRefPtr< $WEBCORE_CLASS_NAME > value);
@@ -50,6 +69,6 @@ namespace Dart$(INTERFACE)Internal {
 $DECLARATIONS
 }
 
-}
+}  // namespace WebCore
 
 #endif // Dart$(INTERFACE)_h

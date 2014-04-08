@@ -239,6 +239,12 @@ class DartiumBackend(HtmlDartGenerator):
     if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
       return
 
+    interface = self._interface
+    if interface.parents:
+      supertype = '%sClassId' % interface.parents[0].type.id
+    else:
+      supertype = '-1'
+
     cpp_impl_includes = set(['"' + partial + '.h"'
                              for partial in _GetCPPPartialNames(self._interface)])
     cpp_header_handlers_emitter = emitter.Emitter()
@@ -332,7 +338,10 @@ class DartiumBackend(HtmlDartGenerator):
         self._template_loader.Load('cpp_callback_implementation.template'),
         INCLUDES=self._GenerateCPPIncludes(cpp_impl_includes),
         INTERFACE=self._interface.id,
-        HANDLERS=cpp_impl_handlers_emitter.Fragments())
+        SUPER_INTERFACE=supertype,
+        HANDLERS=cpp_impl_handlers_emitter.Fragments(),
+        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name(),
+        DART_IMPLEMENTATION_LIBRARY_ID='Dart%sLibraryId' % self._renamer.GetLibraryId(self._interface))
 
   def ImplementationTemplate(self):
     template = None
@@ -481,11 +490,18 @@ class DartiumBackend(HtmlDartGenerator):
       return 'true'
 
   def FinishInterface(self):
+    interface = self._interface
+    if interface.parents:
+      supertype = '%sClassId' % interface.parents[0].type.id
+    else:
+      supertype = '-1'
+
     self._GenerateCPPHeader()
 
     self._cpp_impl_emitter.Emit(
         self._template_loader.Load('cpp_implementation.template'),
         INTERFACE=self._interface.id,
+        SUPER_INTERFACE=supertype,
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
@@ -599,8 +615,28 @@ class DartiumBackend(HtmlDartGenerator):
     is_node_test = lambda interface: interface.id == 'Node'
     is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
     is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+
     def TypeCheckHelper(test):
       return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
+
+    to_active_emitter = emitter.Emitter()
+    to_node_emitter = emitter.Emitter()
+    to_event_target_emitter = emitter.Emitter()
+
+    if (any(map(is_active_test, self._database.Hierarchy(self._interface)))):
+      to_active_emitter.Emit('return toNative(value);')
+    else:
+      to_active_emitter.Emit('return 0;')
+
+    if (any(map(is_node_test, self._database.Hierarchy(self._interface)))):
+      to_node_emitter.Emit('return toNative(value);')
+    else:
+      to_node_emitter.Emit('return 0;')
+
+    if (any(map(is_event_target_test, self._database.Hierarchy(self._interface)))):
+      to_event_target_emitter.Emit('return toNative(value);')
+    else:
+      to_event_target_emitter.Emit('return 0;')
 
     v8_interface_include = ''
     # V8AbstractWorker.h does not exist so we have to hard code this case.
@@ -620,6 +656,9 @@ class DartiumBackend(HtmlDartGenerator):
         IS_NODE=TypeCheckHelper(is_node_test),
         IS_ACTIVE=TypeCheckHelper(is_active_test),
         IS_EVENT_TARGET=TypeCheckHelper(is_event_target_test),
+        TO_NODE=to_node_emitter.Fragments(),
+        TO_ACTIVE=to_active_emitter.Fragments(),
+        TO_EVENT_TARGET=to_event_target_emitter.Fragments(),
         TO_NATIVE=to_native_emitter.Fragments(),
         TO_DART=to_dart_emitter.Fragments())
 
@@ -1404,6 +1443,16 @@ class CPPLibraryEmitter():
             CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
 
   def EmitClassIdTable(self, database, output_dir, type_registry, renamer):
+    def HasConverters(interface):
+      is_node_test = lambda interface: interface.id == 'Node'
+      is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
+      is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+
+      return (any(map(is_node_test, database.Hierarchy(interface))) or
+              any(map(is_active_test, database.Hierarchy(interface))) or
+              any(map(is_event_target_test, database.Hierarchy(interface))))
+
+
     path = os.path.join(output_dir, 'DartWebkitClassIds.h')
     e = self._emitters.FileEmitter(path)
     e.Emit('// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file\n');
@@ -1429,25 +1478,29 @@ class CPPLibraryEmitter():
     e.Emit('    // New types that are not auto-generated should be added here.\n');
     e.Emit('\n');
     for interface in database.GetInterfaces():
-      interface_name = interface.id
-      e.Emit('    %sClassId,\n' % interface_name)
+      e.Emit('    %sClassId,\n' % interface.id)
     e.Emit('    NumWebkitClassIds\n');
     e.Emit('};\n');
-
-    e.Emit('typedef struct {\n');
-    e.Emit('    const char* class_name;\n');
-    e.Emit('    int library_id;\n');
-    e.Emit('    int base_class_id;\n');
-    e.Emit('    bool is_node;\n');
-    e.Emit('    bool is_active;\n');
-    e.Emit('    bool is_event;\n');
-    e.Emit('} _Classinfo;\n');
-    e.Emit('typedef _Classinfo _DartWebkitClassInfo[NumWebkitClassIds];\n');
-    e.Emit('\n');
-    e.Emit('extern _DartWebkitClassInfo DartWebkitClassInfo;\n');
-    e.Emit('\n');
-    e.Emit('} // namespace WebCore\n');
-    e.Emit('#endif // DartWebkitClassIds_h\n');
+    e.Emit('class ActiveDOMObject;\n'
+           'class EventTarget;\n'
+           'class Node;\n'
+           'typedef ActiveDOMObject* (*ToActiveDOMObject)(void* value);\n'
+           'typedef EventTarget* (*ToEventTarget)(void* value);\n'
+           'typedef Node* (*ToNode)(void* value);\n'
+           'typedef struct {\n'
+           '    const char* class_name;\n'
+           '    int library_id;\n'
+           '    int base_class_id;\n'
+           '    ToActiveDOMObject toActiveDOMObject;\n'
+           '    ToEventTarget toEventTarget;\n'
+           '    ToNode toNode;\n'
+           '} DartWrapperTypeInfo;\n'
+           'typedef DartWrapperTypeInfo _DartWebkitClassInfo[NumWebkitClassIds];\n'
+           '\n'
+           'extern _DartWebkitClassInfo DartWebkitClassInfo;\n'
+           '\n'
+           '} // namespace WebCore\n'
+           '#endif // DartWebkitClassIds_h\n');
 
     path = os.path.join(output_dir, 'DartWebkitClassIds.cpp')
     e = self._emitters.FileEmitter(path)
@@ -1457,43 +1510,77 @@ class CPPLibraryEmitter():
     e.Emit('// WARNING: Do not edit - generated code.\n');
     e.Emit('// See dart/tools/dom/scripts/systemnative.py\n');
     e.Emit('\n');
+    e.Emit('#include "config.h"\n');
     e.Emit('#include "DartWebkitClassIds.h"\n');
     e.Emit('\n');
     e.Emit('#include "bindings/dart/DartLibraryIds.h"\n');
-    e.Emit('\n');
-    e.Emit('namespace WebCore {\n');
-    e.Emit('\n');
-    e.Emit("_DartWebkitClassInfo DartWebkitClassInfo = {\n");
-    e.Emit('    { "_InvalidClassId", -1, -1, false, false, false },\n');
-    e.Emit('    { "_HistoryCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
-    e.Emit('    { "_LocationCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
-    e.Emit('    { "_DOMWindowCrossFrame", DartHtmlLibraryId, -1, false, false, true },\n');
-    e.Emit('    { "DateTime", DartCoreLibraryId, -1, false, false, false },\n');
-    e.Emit('    { "JsObject", DartJsLibraryId, -1, false, false, false },\n');
-    e.Emit('    { "JsFunction", DartJsLibraryId, _JsObjectClassId, false, false, false },\n');
-    e.Emit('    { "JsArray", DartJsLibraryId, _JsObjectClassId, false, false, false },\n');
-    e.Emit('    // New types that are not auto-generated should be added here.\n');
-    e.Emit('\n');
-    is_node_test = lambda interface: interface.id == 'Node'
-    is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
-    is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
-    def TypeCheckHelper(test):
-      return 'true' if any(map(test, database.Hierarchy(interface))) else 'false'
     for interface in database.GetInterfaces():
-      e.Emit("    {")
-      type_info = type_registry.TypeInfo(interface.id)
-      type_info.native_type().replace('<', '_').replace('>', '_'),
-      e.Emit(' "%s",' % type_info.implementation_name())
-      e.Emit(' Dart%sLibraryId,' % renamer.GetLibraryId(interface))
+      if HasConverters(interface):
+        e.Emit('#include "Dart%s.h"\n' % interface.id);
+    e.Emit('\n');
+
+    e.Emit('namespace WebCore {\n');
+
+    e.Emit('\n');
+
+    e.Emit('ActiveDOMObject* toNullActiveDOMObject(void* value) { return 0; }\n');
+    e.Emit('EventTarget* toNullEventTarget(void* value) { return 0; }\n');
+    e.Emit('Node* toNullNode(void* value) { return 0; }\n');
+
+    e.Emit("_DartWebkitClassInfo DartWebkitClassInfo = {\n")
+
+    e.Emit('    {\n'
+           '        "_InvalidClassId", -1, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "_HistoryCrossFrame", DartHtmlLibraryId, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "_LocationCrossFrame", DartHtmlLibraryId, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "_DOMWindowCrossFrame", DartHtmlLibraryId, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "DateTime", DartCoreLibraryId, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "JsObject", DartJsLibraryId, -1,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "JsFunction", DartJsLibraryId, _JsObjectClassId,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    {\n'
+           '        "JsArray", DartJsLibraryId, _JsObjectClassId,\n'
+           '        toNullActiveDOMObject, toNullEventTarget, toNullNode\n'
+           '    },\n');
+    e.Emit('    // New types that are not auto-generated should be added here.\n');
+    for interface in database.GetInterfaces():
+      name = interface.id
+      type_info = type_registry.TypeInfo(name)
+      type_info.native_type().replace('<', '_').replace('>', '_')
+      e.Emit('    {\n')
+      e.Emit('        "%s", ' % type_info.implementation_name())
+      e.Emit('Dart%sLibraryId, ' % renamer.GetLibraryId(interface))
       if interface.parents:
         supertype = interface.parents[0].type.id
-        e.Emit(' %sClassId,\n' % supertype)
+        e.Emit('%sClassId,\n' % supertype)
       else:
-        e.Emit(' -1,')
-      e.Emit(" %s," % TypeCheckHelper(is_node_test))
-      e.Emit(" %s," % TypeCheckHelper(is_active_test))
-      e.Emit(" %s," % TypeCheckHelper(is_event_target_test))
-      e.Emit(" },\n")
+        e.Emit(' -1,\n')
+      if HasConverters(interface):
+        e.Emit('        Dart%s::toActiveDOMObject, Dart%s::toEventTarget,'
+               ' Dart%s::toNode\n' % (name, name, name))
+      else:
+        e.Emit('        toNullActiveDOMObject, toNullEventTarget, toNullNode\n')
+      e.Emit('    },\n')
+
     e.Emit("};\n");
     e.Emit('\n');
     e.Emit('} // namespace WebCore\n');

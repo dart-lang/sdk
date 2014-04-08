@@ -27,7 +27,4 @@ $RESOLVER
     return 0;
 }
 
-const char* const Dart$(INTERFACE)::dartImplementationClassName = "$DART_IMPLEMENTATION_CLASS";
-const int Dart$(INTERFACE)::dartImplementationLibraryId = $(DART_IMPLEMENTATION_LIBRARY_ID);
-const int Dart$(INTERFACE)::dartClassId = $(INTERFACE)ClassId;
-}
+}  // namespace WebCore
