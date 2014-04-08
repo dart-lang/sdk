@@ -18,6 +18,9 @@ cc/Sleep: Pass, Fail
 
 cc/GenerateSource: Fail  # Issue 17857
 
+[ $mode == debug ]
+cc/PrintToJSONStream: Crash  # Issue 17857
+
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
