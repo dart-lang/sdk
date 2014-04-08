@@ -11,7 +11,8 @@ library engine.utilities.general;
  * Helper for measuring how much time is spent doing some operation.
  */
 class TimeCounter {
-  Stopwatch _sw = new Stopwatch();
+  static TimeCounter _current = null;
+  final Stopwatch _sw = new Stopwatch();
 
   /**
    * @return the number of milliseconds spent between [start] and [stop].
@@ -23,7 +24,9 @@ class TimeCounter {
    *
    * @return the [TimeCounterHandle] that should be used to stop counting.
    */
-  TimeCounter_TimeCounterHandle start() => new TimeCounter_TimeCounterHandle(this);
+  TimeCounter_TimeCounterHandle start() {
+    return new TimeCounter_TimeCounterHandle(this);
+  }
 }
 
 /**
@@ -31,8 +34,16 @@ class TimeCounter {
  */
 class TimeCounter_TimeCounterHandle {
   final TimeCounter _counter;
+  TimeCounter _prev;
 
   TimeCounter_TimeCounterHandle(this._counter) {
+    // if there is some counter running, pause it
+    _prev = TimeCounter._current;
+    if (_prev != null) {
+      _prev._sw.stop();
+    }
+    TimeCounter._current = _counter;
+    // start this counter
     _counter._sw.start();
   }
 
@@ -41,5 +52,10 @@ class TimeCounter_TimeCounterHandle {
    */
   void stop() {
     _counter._sw.stop();
+    // restore previous counter and resume it
+    TimeCounter._current = _prev;
+    if (_prev != null) {
+      _prev._sw.start();
+    }
   }
 }
