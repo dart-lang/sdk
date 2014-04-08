@@ -175,6 +175,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    */
   Duration idleTimeout;
 
+
   /**
    * Starts listening for HTTP requests on the specified [address] and
    * [port].
@@ -1083,6 +1084,16 @@ abstract class HttpResponse implements IOSink {
   Duration deadline;
 
   /**
+   * Get or set if the [HttpResponse] should buffer output.
+   *
+   * Default value is `true`.
+   *
+   * __Note__: Disabling buffering of the output can result in very poor
+   * performance, when writing many small chunks.
+   */
+  bool bufferOutput;
+
+  /**
    * Returns the response headers.
    *
    * The response headers can be modified until the response body is
@@ -1564,6 +1575,16 @@ abstract class HttpClientRequest implements IOSink {
   int contentLength;
 
   /**
+   * Get or set if the [HttpClientRequest] should buffer output.
+   *
+   * Default value is `true`.
+   *
+   * __Note__: Disabling buffering of the output can result in very poor
+   * performance, when writing many small chunks.
+   */
+  bool bufferOutput;
+
+  /**
    * Returns the client request headers.
    *
    * The client request headers can be modified until the client
@@ -1605,7 +1626,7 @@ abstract class HttpClientRequest implements IOSink {
  * the data and be notified when the entire body is received.
  *
  *     new HttpClient().get('localhost', 80, '/file.txt')
- *          .then((HttpClientRequeset request) => request.close())
+ *          .then((HttpClientRequest request) => request.close())
  *          .then((HttpClientResponse response) {
  *            response.transform(UTF8.decoder).listen((contents) {
  *              // handle data

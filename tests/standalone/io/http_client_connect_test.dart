@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import "package:async_helper/async_helper.dart";
@@ -121,6 +122,7 @@ void testGetDataServerForceClose() {
   var completer = new Completer();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
+      request.response.bufferOutput = false;
       request.response.contentLength = 100;
       request.response.write("data");
       request.response.write("more data");
@@ -162,6 +164,52 @@ void testPostEmptyRequest() {
 }
 
 
+void testNoBuffer() {
+  asyncStart();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    var response;
+    server.listen((request) {
+      response = request.response;
+      response.bufferOutput = false;
+      response.writeln('init');
+    });
+
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+      .then((request) => request.close())
+      .then((clientResponse) {
+        var iterator = new StreamIterator(
+            clientResponse.transform(UTF8.decoder)
+                          .transform(new LineSplitter()));
+        iterator.moveNext().then((hasValue) {
+          Expect.isTrue(hasValue);
+          Expect.equals('init', iterator.current);
+          int count = 0;
+          void run() {
+            if (count == 10) {
+              response.close();
+              iterator.moveNext().then((hasValue) {
+                Expect.isFalse(hasValue);
+                server.close();
+                asyncEnd();
+              });
+            } else {
+              response.writeln('output$count');
+              iterator.moveNext().then((hasValue) {
+                Expect.isTrue(hasValue);
+                Expect.equals('output$count', iterator.current);
+                count++;
+                run();
+              });
+            }
+          }
+          run();
+        });
+      });
+  });
+}
+
+
 void main() {
   testGetEmptyRequest();
   testGetDataRequest();
@@ -169,7 +217,7 @@ void main() {
   testGetServerClose();
   testGetServerCloseNoKeepAlive();
   testGetServerForceClose();
-  // TODO(14953): This test can only run, when buffering is disabled.
-  // testGetDataServerForceClose();
+  testGetDataServerForceClose();
   testPostEmptyRequest();
+  testNoBuffer();
 }

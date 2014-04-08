@@ -310,7 +310,8 @@ class _HttpClientResponse
     }
 
     _Credentials findCredentials(_AuthenticationScheme scheme) {
-      return proxyAuth ? _httpClient._findProxyCredentials(_httpRequest._proxy, scheme)
+      return proxyAuth ? _httpClient._findProxyCredentials(_httpRequest._proxy,
+                                                           scheme)
                        : _httpClient._findCredentials(_httpRequest.uri, scheme);
     }
 
@@ -411,6 +412,8 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   // requests and in error handling.
   bool _encodingSet = false;
 
+  bool _bufferOutput = true;
+
   final Uri _uri;
   final _HttpOutgoing _outgoing;
 
@@ -441,6 +444,13 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
     headers.persistentConnection = p;
   }
 
+  bool get bufferOutput => _bufferOutput;
+  void set bufferOutput(bool bufferOutput) {
+    if (_outgoing.headersWritten) throw new StateError("Header already sent");
+    _bufferOutput = bufferOutput;
+  }
+
+
   Encoding get encoding {
     if (_encodingSet && _outgoing.headersWritten) {
       return _encoding;
@@ -468,6 +478,8 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }
 
   void _writeHeader();
+
+  bool get _isConnectionClosed => false;
 }
 
 
@@ -487,6 +499,8 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
       : super(uri, protocolVersion, outgoing) {
     if (serverHeader != null) headers._add('server', serverHeader);
   }
+
+  bool get _isConnectionClosed => _httpRequest._httpConnection._isClosing;
 
   List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
@@ -538,8 +552,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 
     if (_deadline == null) return;
     _deadlineTimer = new Timer(_deadline, () {
-      _outgoing._socketError = true;
-      _outgoing.socket.destroy();
+      _httpRequest._httpConnection.destroy();
     });
   }
 
@@ -919,7 +932,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     bool gzip = false;
     if (isServerSide) {
       var response = outbound;
-      if (outbound.headers.chunkedTransferEncoding) {
+      if (outbound.bufferOutput && outbound.headers.chunkedTransferEncoding) {
         List acceptEncodings =
             response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
         List contentEncoding = outbound.headers[HttpHeaders.CONTENT_ENCODING];
@@ -1043,6 +1056,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     // If we earlier saw an error, return immediate. The notification to
     // _Http*Connection is already done.
     if (_socketError) return new Future.value(outbound);
+    if (outbound._isConnectionClosed) return new Future.value(outbound);
     if (!headersWritten && !ignoreBody) {
       if (outbound.headers.contentLength == -1) {
         // If no body was written, ignoreBody is false (it's not a HEAD
@@ -1149,6 +1163,10 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
        outbound is HttpResponse;
 
   void _addGZipChunk(chunk, void add(List<int> data)) {
+    if (!outbound.bufferOutput) {
+      add(chunk);
+      return;
+    }
     if (chunk.length > _gzipBuffer.length - _gzipBufferLength) {
       add(new Uint8List.view(
           _gzipBuffer.buffer, 0, _gzipBufferLength));
@@ -1166,6 +1184,17 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
   }
 
   void _addChunk(chunk, void add(List<int> data)) {
+    if (!outbound.bufferOutput) {
+      if (_buffer != null) {
+        // If _buffer is not null, we have not written the header yet. Write
+        // it now.
+        add(new Uint8List.view(_buffer.buffer, 0, _length));
+        _buffer = null;
+        _length = 0;
+      }
+      add(chunk);
+      return;
+    }
     if (chunk.length > _buffer.length - _length) {
       add(new Uint8List.view(_buffer.buffer, 0, _length));
       _buffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
