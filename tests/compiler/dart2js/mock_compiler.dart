@@ -61,7 +61,10 @@ const String DEFAULT_HELPERLIB = r'''
   class Closure implements Function {}
   class Null {}
   class Dynamic_ {}
-  class LinkedHashMap {}
+  class LinkedHashMap {
+    factory LinkedHashMap._empty() => null;
+    factory LinkedHashMap._literal(elements) => null;
+  }
   class ConstantMap {}
   class TypeImpl {}
   S() {}

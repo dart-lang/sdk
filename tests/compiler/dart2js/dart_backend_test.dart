@@ -33,7 +33,10 @@ class Null {}
 class TypeError {}
 class Type {}
 class StackTrace {}
-class LinkedHashMap {}
+class LinkedHashMap {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+}
 class Math {
   static double parseDouble(String s) => 1.0;
 }

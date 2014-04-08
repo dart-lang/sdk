@@ -102,6 +102,8 @@ class JavaScriptBackend extends Backend {
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
   ClassElement typeVariableClass;
+  Element mapLiteralConstructor;
+  Element mapLiteralConstructorEmpty;
 
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
@@ -728,7 +730,6 @@ class JavaScriptBackend extends Backend {
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         rti.registerRtiDependency(mapLiteralClass, cls);
-        enqueueInResolution(getMapMaker(), elements);
       } else if (cls == compiler.boundClosureClass) {
         // TODO(ngeoffray): Move the bound closure class in the
         // backend.
@@ -737,6 +738,27 @@ class JavaScriptBackend extends Backend {
         enqueue(enqueuer, getNativeInterceptorMethod, elements);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
         enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
+      } else if (cls == mapLiteralClass) {
+        // For map literals, the dependency between the implementation class
+        // and [Map] is not visible, so we have to add it manually.
+        Element getFactory(String name, int arity) {
+          // The constructor is on the patch class, but dart2js unit tests don't
+          // have a patch class.
+          ClassElement implementation = cls.patch != null ? cls.patch : cls;
+          return implementation.lookupConstructor(
+            new Selector.callConstructor(
+                name, mapLiteralClass.getLibrary(), arity),
+            (element) {
+              compiler.internalError(mapLiteralClass,
+                  "Map literal class $mapLiteralClass missing "
+                  "'$name' constructor"
+                  "  ${mapLiteralClass.constructors}");
+            });
+        }
+        mapLiteralConstructor = getFactory('_literal', 1);
+        mapLiteralConstructorEmpty = getFactory('_empty', 0);
+        enqueueInResolution(mapLiteralConstructor, elements);
+        enqueueInResolution(mapLiteralConstructorEmpty, elements);
       }
     }
     if (cls == compiler.closureClass) {
@@ -1448,10 +1470,6 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper('getTraceFromException');
   }
 
-  Element getMapMaker() {
-    return compiler.findHelper('makeLiteralMap');
-  }
-
   Element getSetRuntimeTypeInfo() {
     return compiler.findHelper('setRuntimeTypeInfo');
   }
@@ -1886,4 +1904,3 @@ class Dependency {
 
   const Dependency(this.constant, this.user);
 }
-

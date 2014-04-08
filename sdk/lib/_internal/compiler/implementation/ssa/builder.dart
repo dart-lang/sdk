@@ -5039,19 +5039,61 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(addConstant(node));
       return;
     }
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> listInputs = <HInstruction>[];
     for (Link<ast.Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
-      inputs.add(pop());
-      inputs.add(pop());
+      listInputs.add(pop());
+      listInputs.add(pop());
     }
-    HLiteralList keyValuePairs = buildLiteralList(inputs);
-    add(keyValuePairs);
+
+    Element constructor;
+    List<HInstruction> inputs = <HInstruction>[];
+
+    if (listInputs.isEmpty) {
+      constructor = backend.mapLiteralConstructorEmpty;
+    } else {
+      constructor = backend.mapLiteralConstructor;
+      HLiteralList keyValuePairs = buildLiteralList(listInputs);
+      add(keyValuePairs);
+      inputs.add(keyValuePairs);
+    }
+
+    assert(constructor.isFactoryConstructor());
+
+    FunctionElement functionElement = constructor;
+    constructor = functionElement.redirectionTarget;
+
+    InterfaceType type = elements.getType(node);
+    InterfaceType expectedType = functionElement.computeTargetType(type);
+
+    if (constructor.isFactoryConstructor()) {
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+    }
+
+    ClassElement cls = constructor.getEnclosingClass();
+
+    if (backend.classNeedsRti(cls)) {
+      Link<DartType> typeVariable = cls.typeVariables;
+      expectedType.typeArguments.forEach((DartType argument) {
+            inputs.add(analyzeTypeArgument(argument));
+            typeVariable = typeVariable.tail;
+          });
+      assert(typeVariable.isEmpty);
+    }
+
+    // The instruction type will always be a subtype of the mapLiteralClass, but
+    // type inference might discover a more specific type, or find nothing (in
+    // dart2js unit tests).
     TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
-    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
-    stack.add(setRtiIfNeeded(pop(), node));
+    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
+        constructor, compiler);
+    TypeMask instructionType = mapType.intersection(returnTypeMask, compiler);
+
+    addInlinedInstantiation(expectedType);
+    pushInvokeStatic(node, constructor, inputs, instructionType);
+    removeInlinedInstantiation(expectedType);
   }
 
   visitLiteralMapEntry(ast.LiteralMapEntry node) {

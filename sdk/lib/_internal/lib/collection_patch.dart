@@ -4,6 +4,7 @@
 
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper' show fillLiteralMap, NoInline;
 
 patch class HashMap<K, V> {
   patch factory HashMap({ bool equals(K key1, K key2),
@@ -488,6 +489,18 @@ patch class LinkedHashMap<K, V> {
   }
 
   patch factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+
+  // Private factory constructor called by generated code for map literals.
+  @NoInline()
+  factory LinkedHashMap._literal(List keyValuePairs) {
+    return fillLiteralMap(keyValuePairs, new _LinkedHashMap<K, V>());
+  }
+
+  // Private factory constructor called by generated code for map literals.
+  @NoInline()
+  factory LinkedHashMap._empty() {
+    return new _LinkedHashMap<K, V>();
+  }
 }
 
 class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
