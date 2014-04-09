@@ -83,11 +83,15 @@ class _HashMap<K, V> implements HashMap<K, V> {
       var nums = _nums;
       return (nums == null) ? false : _hasTableEntry(nums, key);
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, key);
-      return _findBucketIndex(bucket, key) >= 0;
+      return _containsKey(key);
     }
+  }
+
+  bool _containsKey(Object key) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, key);
+    return _findBucketIndex(bucket, key) >= 0;
   }
 
   bool containsValue(Object value) {
@@ -108,12 +112,16 @@ class _HashMap<K, V> implements HashMap<K, V> {
       var nums = _nums;
       return (nums == null) ? null : _getTableEntry(nums, key);
     } else {
-      var rest = _rest;
-      if (rest == null) return null;
-      var bucket = _getBucket(rest, key);
-      int index = _findBucketIndex(bucket, key);
-      return (index < 0) ? null : JS('var', '#[#]', bucket, index + 1);
+      return _get(key);
     }
+  }
+
+  V _get(Object key) {
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    return (index < 0) ? null : JS('var', '#[#]', bucket, index + 1);
   }
 
   void operator[]=(K key, V value) {
@@ -126,23 +134,27 @@ class _HashMap<K, V> implements HashMap<K, V> {
       if (nums == null) _nums = nums = _newHashTable();
       _addHashTableEntry(nums, key, value);
     } else {
-      var rest = _rest;
-      if (rest == null) _rest = rest = _newHashTable();
-      var hash = _computeHashCode(key);
-      var bucket = JS('var', '#[#]', rest, hash);
-      if (bucket == null) {
-        _setTableEntry(rest, hash, JS('var', '[#, #]', key, value));
+      _set(key, value);
+    }
+  }
+
+  void _set(K key, V value) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      _setTableEntry(rest, hash, JS('var', '[#, #]', key, value));
+      _length++;
+      _keys = null;
+    } else {
+      int index = _findBucketIndex(bucket, key);
+      if (index >= 0) {
+        JS('void', '#[#] = #', bucket, index + 1, value);
+      } else {
+        JS('void', '#.push(#, #)', bucket, key, value);
         _length++;
         _keys = null;
-      } else {
-        int index = _findBucketIndex(bucket, key);
-        if (index >= 0) {
-          JS('void', '#[#] = #', bucket, index + 1, value);
-        } else {
-          JS('void', '#.push(#, #)', bucket, key, value);
-          _length++;
-          _keys = null;
-        }
       }
     }
   }
@@ -160,19 +172,23 @@ class _HashMap<K, V> implements HashMap<K, V> {
     } else if (_isNumericKey(key)) {
       return _removeHashTableEntry(_nums, key);
     } else {
-      var rest = _rest;
-      if (rest == null) return null;
-      var bucket = _getBucket(rest, key);
-      int index = _findBucketIndex(bucket, key);
-      if (index < 0) return null;
-      // TODO(kasperl): Consider getting rid of the bucket list when
-      // the length reaches zero.
-      _length--;
-      _keys = null;
-      // Use splice to remove the two [key, value] elements at the
-      // index and return the value.
-      return JS('var', '#.splice(#, 2)[1]', bucket, index);
+      return _remove(key);
     }
+  }
+
+  V _remove(Object key) {
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return null;
+    // TODO(kasperl): Consider getting rid of the bucket list when
+    // the length reaches zero.
+    _length--;
+    _keys = null;
+    // Use splice to remove the two [key, value] elements at the
+    // index and return the value.
+    return JS('var', '#.splice(#, 2)[1]', bucket, index);
   }
 
   void clear() {
@@ -370,17 +386,21 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   V operator[](Object key) {
     if (!_validKey(key)) return null;
-    return super[key];
+    return super._get(key);
+  }
+
+  void operator[]=(K key, V value) {
+    super._set(key, value);
   }
 
   bool containsKey(Object key) {
     if (!_validKey(key)) return false;
-    return super.containsKey(key);
+    return super._containsKey(key);
   }
 
   V remove(Object key) {
     if (!_validKey(key)) return null;
-    return super.remove(key);
+    return super._remove(key);
   }
 
   int _computeHashCode(var key) {
@@ -555,11 +575,15 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
       LinkedHashMapCell cell = _getTableEntry(nums, key);
       return cell != null;
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, key);
-      return _findBucketIndex(bucket, key) >= 0;
+      return _containsKey(key);
     }
+  }
+
+  bool _containsKey(Object key) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, key);
+    return _findBucketIndex(bucket, key) >= 0;
   }
 
   bool containsValue(Object value) {
@@ -584,14 +608,18 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
       LinkedHashMapCell cell = _getTableEntry(nums, key);
       return (cell == null) ? null : cell._value;
     } else {
-      var rest = _rest;
-      if (rest == null) return null;
-      var bucket = _getBucket(rest, key);
-      int index = _findBucketIndex(bucket, key);
-      if (index < 0) return null;
-      LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-      return cell._value;
+      return _get(key);
     }
+  }
+
+  V _get(K key) {
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return null;
+    LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
+    return cell._value;
   }
 
   void operator[]=(K key, V value) {
@@ -604,22 +632,26 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
       if (nums == null) _nums = nums = _newHashTable();
       _addHashTableEntry(nums, key, value);
     } else {
-      var rest = _rest;
-      if (rest == null) _rest = rest = _newHashTable();
-      var hash = _computeHashCode(key);
-      var bucket = JS('var', '#[#]', rest, hash);
-      if (bucket == null) {
-        LinkedHashMapCell cell = _newLinkedCell(key, value);
-        _setTableEntry(rest, hash, JS('var', '[#]', cell));
+      _set(key, value);
+    }
+  }
+
+  void _set(K key, V value) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      LinkedHashMapCell cell = _newLinkedCell(key, value);
+      _setTableEntry(rest, hash, JS('var', '[#]', cell));
+    } else {
+      int index = _findBucketIndex(bucket, key);
+      if (index >= 0) {
+        LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
+        cell._value = value;
       } else {
-        int index = _findBucketIndex(bucket, key);
-        if (index >= 0) {
-          LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-          cell._value = value;
-        } else {
-          LinkedHashMapCell cell = _newLinkedCell(key, value);
-          JS('void', '#.push(#)', bucket, cell);
-        }
+        LinkedHashMapCell cell = _newLinkedCell(key, value);
+        JS('void', '#.push(#)', bucket, cell);
       }
     }
   }
@@ -637,19 +669,23 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     } else if (_isNumericKey(key)) {
       return _removeHashTableEntry(_nums, key);
     } else {
-      var rest = _rest;
-      if (rest == null) return null;
-      var bucket = _getBucket(rest, key);
-      int index = _findBucketIndex(bucket, key);
-      if (index < 0) return null;
-      // Use splice to remove the [cell] element at the index and
-      // unlink the cell before returning its value.
-      LinkedHashMapCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
-      _unlinkCell(cell);
-      // TODO(kasperl): Consider getting rid of the bucket list when
-      // the length reaches zero.
-      return cell._value;
+      return _remove(key);
     }
+  }
+
+  V _remove(Object key) {
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return null;
+    // Use splice to remove the [cell] element at the index and
+    // unlink the cell before returning its value.
+    LinkedHashMapCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+    _unlinkCell(cell);
+    // TODO(kasperl): Consider getting rid of the bucket list when
+    // the length reaches zero.
+    return cell._value;
   }
 
   void clear() {
@@ -823,17 +859,21 @@ class _LinkedCustomHashMap<K, V> extends _LinkedHashMap<K, V> {
 
   V operator[](Object key) {
     if (!_validKey(key)) return null;
-    return super[key];
+    return super._get(key);
+  }
+
+  void operator[]=(K key, V value) {
+    super._set(key, value);
   }
 
   bool containsKey(Object key) {
     if (!_validKey(key)) return false;
-    return super.containsKey(key);
+    return super._containsKey(key);
   }
 
   V remove(Object key) {
     if (!_validKey(key)) return null;
-    return super.remove(key);
+    return super._remove(key);
   }
 
   int _computeHashCode(var key) {
@@ -995,17 +1035,25 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
       var nums = _nums;
       return (nums == null) ? false : _hasTableEntry(nums, object);
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, object);
-      return _findBucketIndex(bucket, object) >= 0;
+      return _contains(object);
     }
+  }
+
+  bool _contains(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    return _findBucketIndex(bucket, object) >= 0;
   }
 
   E lookup(Object object) {
     if (_isStringElement(object) || _isNumericElement(object)) {
       return this.contains(object) ? object : null;
     }
+    return _lookup(object);
+  }
+
+  E _lookup(Object object) {
     var rest = _rest;
     if (rest == null) return null;
     var bucket = _getBucket(rest, object);
@@ -1025,21 +1073,25 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
       if (nums == null) _nums = nums = _newHashTable();
       return _addHashTableEntry(nums, element);
     } else {
-      var rest = _rest;
-      if (rest == null) _rest = rest = _newHashTable();
-      var hash = _computeHashCode(element);
-      var bucket = JS('var', '#[#]', rest, hash);
-      if (bucket == null) {
-        _setTableEntry(rest, hash, JS('var', '[#]', element));
-      } else {
-        int index = _findBucketIndex(bucket, element);
-        if (index >= 0) return false;
-        JS('void', '#.push(#)', bucket, element);
-      }
-      _length++;
-      _elements = null;
-      return true;
+      return _add(element);
     }
+  }
+
+  bool _add(E element) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(element);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      _setTableEntry(rest, hash, JS('var', '[#]', element));
+    } else {
+      int index = _findBucketIndex(bucket, element);
+      if (index >= 0) return false;
+      JS('void', '#.push(#)', bucket, element);
+    }
+    _length++;
+    _elements = null;
+    return true;
   }
 
   void addAll(Iterable<E> objects) {
@@ -1054,20 +1106,24 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     } else if (_isNumericElement(object)) {
       return _removeHashTableEntry(_nums, object);
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, object);
-      int index = _findBucketIndex(bucket, object);
-      if (index < 0) return false;
-      // TODO(kasperl): Consider getting rid of the bucket list when
-      // the length reaches zero.
-      _length--;
-      _elements = null;
-      // TODO(kasperl): It would probably be faster to move the
-      // element to the end and reduce the length of the bucket list.
-      JS('void', '#.splice(#, 1)', bucket, index);
-      return true;
+      return _remove(object);
     }
+  }
+
+  bool _remove(object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    int index = _findBucketIndex(bucket, object);
+    if (index < 0) return false;
+    // TODO(kasperl): Consider getting rid of the bucket list when
+    // the length reaches zero.
+    _length--;
+    _elements = null;
+    // TODO(kasperl): It would probably be faster to move the
+    // element to the end and reduce the length of the bucket list.
+    JS('void', '#.splice(#, 1)', bucket, index);
+    return true;
   }
 
   void removeAll(Iterable<Object> objectsToRemove) {
@@ -1275,19 +1331,21 @@ class _CustomHashSet<E> extends _HashSet<E> {
     return JS('int', '# & 0x3ffffff', _hasher(element));
   }
 
+  bool add(E object) => super._add(object);
+
   bool contains(Object object) {
     if (!_validKey(object)) return false;
-    return super.contains(object);
+    return super._contains(object);
   }
 
   E lookup(Object object) {
     if (!_validKey(object)) return null;
-    return super.lookup(object);
+    return super._lookup(object);
   }
 
   bool remove(Object object) {
     if (!_validKey(object)) return false;
-    return super.remove(object);
+    return super._remove(object);
   }
 
   bool containsAll(Iterable<Object> elements) {
@@ -1428,24 +1486,32 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
       LinkedHashSetCell cell = _getTableEntry(nums, object);
       return cell != null;
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, object);
-      return _findBucketIndex(bucket, object) >= 0;
+      return _contains(object);
     }
+  }
+
+  bool _contains(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    return _findBucketIndex(bucket, object) >= 0;
   }
 
   E lookup(Object object) {
     if (_isStringElement(object) || _isNumericElement(object)) {
       return this.contains(object) ? object : null;
     } else {
-      var rest = _rest;
-      if (rest == null) return null;
-      var bucket = _getBucket(rest, object);
-      var index = _findBucketIndex(bucket, object);
-      if (index < 0) return null;
-      return bucket[index]._element;
+      return _lookup(object);
     }
+  }
+
+  E _lookup(Object object) {
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, object);
+    var index = _findBucketIndex(bucket, object);
+    if (index < 0) return null;
+    return bucket[index]._element;
   }
 
   void forEach(void action(E element)) {
@@ -1481,21 +1547,25 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
       if (nums == null) _nums = nums = _newHashTable();
       return _addHashTableEntry(nums, element);
     } else {
-      var rest = _rest;
-      if (rest == null) _rest = rest = _newHashTable();
-      var hash = _computeHashCode(element);
-      var bucket = JS('var', '#[#]', rest, hash);
-      if (bucket == null) {
-        LinkedHashSetCell cell = _newLinkedCell(element);
-        _setTableEntry(rest, hash, JS('var', '[#]', cell));
-      } else {
-        int index = _findBucketIndex(bucket, element);
-        if (index >= 0) return false;
-        LinkedHashSetCell cell = _newLinkedCell(element);
-        JS('void', '#.push(#)', bucket, cell);
-      }
-      return true;
+      return _add(element);
     }
+  }
+
+  bool _add(E element) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(element);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      LinkedHashSetCell cell = _newLinkedCell(element);
+      _setTableEntry(rest, hash, JS('var', '[#]', cell));
+    } else {
+      int index = _findBucketIndex(bucket, element);
+      if (index >= 0) return false;
+      LinkedHashSetCell cell = _newLinkedCell(element);
+      JS('void', '#.push(#)', bucket, cell);
+    }
+    return true;
   }
 
   void addAll(Iterable<E> objects) {
@@ -1510,17 +1580,21 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     } else if (_isNumericElement(object)) {
       return _removeHashTableEntry(_nums, object);
     } else {
-      var rest = _rest;
-      if (rest == null) return false;
-      var bucket = _getBucket(rest, object);
-      int index = _findBucketIndex(bucket, object);
-      if (index < 0) return false;
-      // Use splice to remove the [cell] element at the index and
-      // unlink it.
-      LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
-      _unlinkCell(cell);
-      return true;
+      return _remove(object);
     }
+  }
+
+  bool _remove(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    int index = _findBucketIndex(bucket, object);
+    if (index < 0) return false;
+    // Use splice to remove the [cell] element at the index and
+    // unlink it.
+    LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+    _unlinkCell(cell);
+    return true;
   }
 
   void removeAll(Iterable objectsToRemove) {
@@ -1734,19 +1808,21 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
     return JS('int', '# & 0x3ffffff', _hasher(element));
   }
 
+  bool add(E element) => super._add(element);
+
   bool contains(Object object) {
     if (!_validKey(object)) return false;
-    return super.contains(object);
+    return super._contains(object);
   }
 
   E lookup(Object object) {
     if (!_validKey(object)) return null;
-    return super.lookup(object);
+    return super._lookup(object);
   }
 
   bool remove(Object object) {
     if (!_validKey(object)) return false;
-    return super.remove(object);
+    return super._remove(object);
   }
 
   bool containsAll(Iterable<Object> elements) {
