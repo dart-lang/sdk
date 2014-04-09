@@ -88,8 +88,10 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   Future declareOutputs(DeclaringTransform transform) {
     var primaryId = transform.primaryId;
     transform.declareOutput(primaryId.addExtension(".js"));
-    transform.declareOutput(primaryId.addExtension(".js.map"));
     transform.declareOutput(primaryId.addExtension(".precompiled.js"));
+    if (generateSourceMaps) {
+      transform.declareOutput(primaryId.addExtension(".js.map"));
+    }
     return new Future.value();
   }
 

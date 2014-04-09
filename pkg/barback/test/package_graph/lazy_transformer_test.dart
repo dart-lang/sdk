@@ -82,9 +82,6 @@ main() {
     expect(transformer.numRuns, completion(equals(1)));
   });
 
-  // TODO(nweiz): enable these once DeclaringTransformers forward laziness
-  // properly (issue 16442).
-  //
   // test("a lazy asset piped into a declaring transformer isn't eagerly "
   //     "compiled", () {
   //   var transformer1 = new LazyRewriteTransformer("blub", "blab");
@@ -227,6 +224,29 @@ main() {
     // Getting all assets will force every lazy transformer. This shouldn't
     // cause the rewrite to apply, because foo.txt isn't primary.
     expectAllAssets(["app|foo.txt"]);
+    buildShouldSucceed();
+  });
+
+  // Regression test.
+  test("a lazy transformer that doesn't apply updates its passed-through asset",
+      () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")]
+    ]});
+
+    // Pause the provider so that the transformer will start forwarding the
+    // asset while it's dirty.
+    pauseProvider();
+    updateSources(["app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.txt");
+
+    resumeProvider();
+    expectAsset("app|foo.txt", "foo");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.txt", "bar");
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "bar");
     buildShouldSucceed();
   });
 }

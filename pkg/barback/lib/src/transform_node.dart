@@ -10,6 +10,7 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'declaring_transform.dart';
+import 'declaring_transformer.dart';
 import 'errors.dart';
 import 'lazy_transformer.dart';
 import 'log.dart';
@@ -55,6 +56,8 @@ class TransformNode {
   /// The controllers for the asset nodes emitted by this node.
   final _outputControllers = new Map<AssetId, AssetNodeController>();
 
+  /// The ids of inputs the transformer tried and failed to read last time it
+  /// ran.
   final _missingInputs = new Set<AssetId>();
 
   /// The controller that's used to pass [primary] through [this] if it's not
@@ -89,6 +92,9 @@ class TransformNode {
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
+  /// A controller for log entries emitted by this node.
+  final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
+
   /// The current state of [this].
   var _state = _State.COMPUTING_IS_PRIMARY;
 
@@ -102,10 +108,18 @@ class TransformNode {
   /// [_State.APPLIED].
   bool _consumePrimary = false;
 
+  /// The set of output ids that [transformer] declared it would emit.
+  ///
+  /// This is only non-null if [transformer] is a [DeclaringTransformer] and its
+  /// [declareOutputs] has been run successfully.
+  Set<AssetId> _declaredOutputs;
+
   TransformNode(this.phase, Transformer transformer, this.primary,
       this._location)
       : transformer = transformer,
         _isLazy = transformer is LazyTransformer {
+    _onLogPool.add(_onLogController.stream);
+
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
@@ -118,26 +132,7 @@ class TransformNode {
       if (_missingInputs.contains(node.id)) _dirty();
     });
 
-    syncFuture(() => transformer.isPrimary(primary.id))
-        .catchError((error, stackTrace) {
-      if (_isRemoved) return false;
-
-      // Catch all transformer errors and pipe them to the results stream. This
-      // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(_wrapException(error, stackTrace));
-
-      return false;
-    }).then((isPrimary) {
-      if (_isRemoved) return;
-      if (isPrimary) {
-        _apply();
-        return;
-      }
-
-      _emitPassThrough();
-      _state = _State.NOT_PRIMARY;
-      _onDoneController.add(null);
-    });
+    _isPrimary();
   }
 
   /// The [TransformInfo] describing this node.
@@ -153,6 +148,7 @@ class TransformNode {
   /// from the primary input, but it's possible for a transform to no longer be
   /// valid even if its primary input still exists.
   void remove() {
+    _onLogController.close();
     _onAssetController.close();
     _onDoneController.close();
     _primarySubscription.cancel();
@@ -179,11 +175,11 @@ class TransformNode {
   ///
   /// This causes all of the transform's outputs to be marked as dirty as well.
   void _dirty() {
-    if (_state == _State.COMPUTING_IS_PRIMARY) return;
     if (_state == _State.NOT_PRIMARY) {
       _emitPassThrough();
       return;
     }
+    if (_state == _State.COMPUTING_IS_PRIMARY || _isLazy) return;
 
     if (_passThroughController != null) _passThroughController.setDirty();
     for (var controller in _outputControllers.values) {
@@ -197,32 +193,87 @@ class TransformNode {
     }
   }
 
+  /// Runs [transformer.isPrimary] and adjusts [this]'s state according to the
+  /// result.
+  ///
+  /// This will also run [_declareOutputs] and/or [_apply] as appropriate.
+  void _isPrimary() {
+    syncFuture(() => transformer.isPrimary(primary.id))
+        .catchError((error, stackTrace) {
+      if (_isRemoved) return false;
+
+      // Catch all transformer errors and pipe them to the results stream. This
+      // is so a broken transformer doesn't take down the whole graph.
+      phase.cascade.reportError(_wrapException(error, stackTrace));
+
+      return false;
+    }).then((isPrimary) {
+      if (_isRemoved) return null;
+      if (isPrimary) {
+        return _declareOutputs().then((_) {
+          if (_isRemoved) return;
+          if (_isLazy) {
+            _state = _State.APPLIED;
+            _onDoneController.add(null);
+          } else {
+            _apply();
+          }
+        });
+      }
+
+      _emitPassThrough();
+      _state = _State.NOT_PRIMARY;
+      _onDoneController.add(null);
+    });
+  }
+
+  /// Runs [transform.declareOutputs] and emits the resulting assets as dirty
+  /// assets.
+  Future _declareOutputs() {
+    if (transformer is! DeclaringTransformer) return new Future.value();
+
+    var controller = new DeclaringTransformController(this);
+    return syncFuture(() {
+      return (transformer as DeclaringTransformer)
+          .declareOutputs(controller.transform);
+    }).then((_) {
+      if (_isRemoved) return;
+      if (controller.loggedError) return;
+
+      _consumePrimary = controller.consumePrimary;
+      _declaredOutputs = controller.outputIds;
+      var invalidIds = _declaredOutputs
+          .where((id) => id.package != phase.cascade.package).toSet();
+      for (var id in invalidIds) {
+        _declaredOutputs.remove(id);
+        // TODO(nweiz): report this as a warning rather than a failing error.
+        phase.cascade.reportError(new InvalidOutputException(info, id));
+      }
+
+      if (!_declaredOutputs.contains(primary.id)) _emitPassThrough();
+
+      for (var id in _declaredOutputs) {
+        var controller = transformer is LazyTransformer
+            ? new AssetNodeController.lazy(id, force, this)
+            : new AssetNodeController(id, this);
+        _outputControllers[id] = controller;
+        _onAssetController.add(controller.node);
+      }
+    }).catchError((error, stackTrace) {
+      if (_isRemoved) return;
+      phase.cascade.reportError(_wrapException(error, stackTrace));
+    });
+  }
+
   /// Applies this transform.
   void _apply() {
-    assert(!_isRemoved);
+    assert(!_isRemoved && !_isLazy);
 
     // Clear input subscriptions here as well as in [_process] because [_apply]
     // may be restarted independently if only a secondary input changes.
     _clearInputSubscriptions();
     _state = _State.APPLYING;
-    primary.whenAvailable((_) {
-      if (_isRemoved) return null;
-      _state = _State.APPLYING;
-      // TODO(nweiz): If [transformer] is a [DeclaringTransformer] but not a
-      // [LazyTransformer], we can get some mileage out of doing a declaration
-      // first so we know how to hook up the assets.
-      if (_isLazy) return _declareLazy();
-      return _applyImmediate();
-    }).catchError((error, stackTrace) {
-      // If the transform became dirty while processing, ignore any errors from
-      // it.
-      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
-
-      // Catch all transformer errors and pipe them to the results stream. This
-      // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(_wrapException(error, stackTrace));
-      return true;
-    }).then((hadError) {
+    _runApply().then((hadError) {
       if (_isRemoved) return;
 
       if (_state == _State.NEEDS_APPLY) {
@@ -233,7 +284,16 @@ class TransformNode {
       assert(_state == _State.APPLYING);
       if (hadError) {
         _clearOutputs();
-        _dontEmitPassThrough();
+        // If the transformer threw an error, we don't want to emit the
+        // pass-through asset in case it will be overwritten by the transformer.
+        // However, if the transformer declared that it wouldn't overwrite or
+        // consume the pass-through asset, we can safely emit it.
+        if (_declaredOutputs != null && !_consumePrimary &&
+            !_declaredOutputs.contains(primary.id)) {
+          _emitPassThrough();
+        } else {
+          _dontEmitPassThrough();
+        }
       }
 
       _state = _State.APPLIED;
@@ -262,116 +322,88 @@ class TransformNode {
     });
   }
 
-  /// Applies the transform so that it produces concrete (as opposed to lazy)
-  /// outputs.
+  /// Run [Transformer.apply] as soon as [primary] is available.
   ///
-  /// Returns whether or not the transformer logged an error.
-  Future<bool> _applyImmediate() {
+  /// Returns whether or not an error occurred while running the transformer.
+  Future<bool> _runApply() {
     var transformController = new TransformController(this);
     _onLogPool.add(transformController.onLog);
 
-    return syncFuture(() {
-      return transformer.apply(transformController.transform);
+    return primary.whenAvailable((_) {
+      if (_isRemoved) return null;
+      _state = _State.APPLYING;
+      return syncFuture(() => transformer.apply(transformController.transform));
     }).then((_) {
       if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
       if (transformController.loggedError) return true;
-
-      _consumePrimary = transformController.consumePrimary;
-
-      var newOutputs = transformController.outputs;
-      // Any ids that are for a different package are invalid.
-      var invalidIds = newOutputs
-          .map((asset) => asset.id)
-          .where((id) => id.package != phase.cascade.package)
-          .toSet();
-      for (var id in invalidIds) {
-        newOutputs.removeId(id);
-        // TODO(nweiz): report this as a warning rather than a failing error.
-        phase.cascade.reportError(new InvalidOutputException(info, id));
-      }
-
-      // Remove outputs that used to exist but don't anymore.
-      for (var id in _outputControllers.keys.toList()) {
-        if (newOutputs.containsId(id)) continue;
-        _outputControllers.remove(id).setRemoved();
-      }
-
-      // Emit or stop emitting the pass-through asset between removing and
-      // adding outputs to ensure there are no collisions.
-      if (!newOutputs.containsId(primary.id)) {
-        _emitPassThrough();
-      } else {
-        _dontEmitPassThrough();
-      }
-
-      // Store any new outputs or new contents for existing outputs.
-      for (var asset in newOutputs) {
-        var controller = _outputControllers[asset.id];
-        if (controller != null) {
-          controller.setAvailable(asset);
-        } else {
-          var controller = new AssetNodeController.available(asset, this);
-          _outputControllers[asset.id] = controller;
-          _onAssetController.add(controller.node);
-        }
-      }
-
+      _handleApplyResults(transformController);
       return false;
+    }).catchError((error, stackTrace) {
+      // If the transform became dirty while processing, ignore any errors from
+      // it.
+      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
+
+      // Catch all transformer errors and pipe them to the results stream. This
+      // is so a broken transformer doesn't take down the whole graph.
+      phase.cascade.reportError(_wrapException(error, stackTrace));
+      return true;
     });
   }
 
-  /// Applies the transform in declarative mode so that it produces lazy
-  /// outputs.
+  /// Handle the results of running [Transformer.apply].
   ///
-  /// Returns whether or not the transformer logged an error.
-  Future<bool> _declareLazy() {
-    var transformController = new DeclaringTransformController(this);
+  /// [transformController] should be the controller for the [Transform] passed
+  /// to [Transformer.apply].
+  void _handleApplyResults(TransformController transformController) {
+    _consumePrimary = transformController.consumePrimary;
 
-    return syncFuture(() {
-      return (transformer as LazyTransformer)
-          .declareOutputs(transformController.transform);
-    }).then((_) {
-      if (_state == _State.NEEDS_APPLY || _isRemoved) return false;
-      if (transformController.loggedError) return true;
+    var newOutputs = transformController.outputs;
+    // Any ids that are for a different package are invalid.
+    var invalidIds = newOutputs
+        .map((asset) => asset.id)
+        .where((id) => id.package != phase.cascade.package)
+        .toSet();
+    for (var id in invalidIds) {
+      newOutputs.removeId(id);
+      // TODO(nweiz): report this as a warning rather than a failing error.
+      phase.cascade.reportError(new InvalidOutputException(info, id));
+    }
 
-      _consumePrimary = transformController.consumePrimary;
-
-      var newIds = transformController.outputIds;
-      var invalidIds =
-          newIds.where((id) => id.package != phase.cascade.package).toSet();
-      for (var id in invalidIds) {
-        newIds.remove(id);
-        // TODO(nweiz): report this as a warning rather than a failing error.
-        phase.cascade.reportError(new InvalidOutputException(info, id));
+    if (_declaredOutputs != null) {
+      var missingOutputs = _declaredOutputs.difference(
+          newOutputs.map((asset) => asset.id).toSet());
+      if (missingOutputs.isNotEmpty) {
+        _warn("This transformer didn't emit declared "
+            "${pluralize('output asset', missingOutputs.length)} "
+            "${toSentence(missingOutputs)}.");
       }
+    }
 
-      // Remove outputs that used to exist but don't anymore.
-      for (var id in _outputControllers.keys.toList()) {
-        if (newIds.contains(id)) continue;
-        _outputControllers.remove(id).setRemoved();
-      }
+    // Remove outputs that used to exist but don't anymore.
+    for (var id in _outputControllers.keys.toList()) {
+      if (newOutputs.containsId(id)) continue;
+      _outputControllers.remove(id).setRemoved();
+    }
 
-      // Emit or stop emitting the pass-through asset between removing and
-      // adding outputs to ensure there are no collisions.
-      if (!newIds.contains(primary.id)) {
-        _emitPassThrough();
+    // Emit or stop emitting the pass-through asset between removing and
+    // adding outputs to ensure there are no collisions.
+    if (!_consumePrimary && !newOutputs.containsId(primary.id)) {
+      _emitPassThrough();
+    } else {
+      _dontEmitPassThrough();
+    }
+
+    // Store any new outputs or new contents for existing outputs.
+    for (var asset in newOutputs) {
+      var controller = _outputControllers[asset.id];
+      if (controller != null) {
+        controller.setAvailable(asset);
       } else {
-        _dontEmitPassThrough();
+        var controller = new AssetNodeController.available(asset, this);
+        _outputControllers[asset.id] = controller;
+        _onAssetController.add(controller.node);
       }
-
-      for (var id in newIds) {
-        var controller = _outputControllers[id];
-        if (controller != null) {
-          controller.setLazy(force);
-        } else {
-          var controller = new AssetNodeController.lazy(id, force, this);
-          _outputControllers[id] = controller;
-          _onAssetController.add(controller.node);
-        }
-      }
-
-      return false;
-    });
+    }
   }
 
   /// Cancels all subscriptions to secondary input nodes.
@@ -422,6 +454,12 @@ class TransformNode {
     }
   }
 
+  /// Emit a warning about the transformer on [id].
+  void _warn(String message) {
+    _onLogController.add(
+        new LogEntry(info, primary.id, LogLevel.WARNING, message, null));
+  }
+
   String toString() =>
     "transform node in $_location for $transformer on $primary";
 }
@@ -451,6 +489,10 @@ class _State {
 
   /// The transform has finished running [Transformer.apply], whether or not it
   /// emitted an error.
+  ///
+  /// If the transformer is lazy, the [TransformNode] can also be in this state
+  /// when [Transformer.declareOutputs] has been run but [Transformer.apply] has
+  /// not.
   ///
   /// If an input changes, this will transition to [APPLYING].
   static final APPLIED = const _State._("applied");
