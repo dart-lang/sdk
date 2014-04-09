@@ -52,7 +52,6 @@ class FunctionInlineCache {
   }
 }
 
-
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
@@ -290,19 +289,30 @@ class JavaScriptBackend extends Backend {
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
 
+  JavaScriptConstantTask constantCompilerTask;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
-        super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
+        super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
+    constantCompilerTask = new JavaScriptConstantTask(compiler);
+  }
+
+  ConstantSystem get constantSystem => constants.constantSystem;
+
+  /// Returns constant environment for the JavaScript interpretation of the
+  /// constants.
+  JavaScriptConstantCompiler get constants {
+    return constantCompilerTask.jsConstantCompiler;
   }
 
   static Namer determineNamer(Compiler compiler) {
@@ -1164,12 +1174,10 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      Constant initialValue =
-          compiler.constantHandler.getConstantForVariable(element);
+      Constant initialValue = constants.getConstantForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue, work.resolutionTree);
-        compiler.constantHandler.addCompileTimeConstantForEmission(
-            initialValue);
+        constants.addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -1625,8 +1633,8 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata && isNeededForReflection(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
-        compiler.constantHandler.addCompileTimeConstantForEmission(
-            metadata.value);
+        Constant constant = constants.getConstantForMetadata(metadata);
+        constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
     }

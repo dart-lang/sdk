@@ -643,8 +643,8 @@ class TypeGraphInferrerEngine
           if (type is! ListTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            Constant value =
-                compiler.constantHandler.getConstantForVariable(element);
+            Constant value = compiler.backend.constants
+                .getConstantForVariable(element);
             if (value != null) {
               if (value.isFunction) {
                 FunctionConstant functionConstant = value;

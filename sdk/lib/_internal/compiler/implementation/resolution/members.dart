@@ -11,7 +11,7 @@ abstract class TreeElements {
   /// Iterables of the dependencies that this [TreeElement] records of
   /// [currentElement].
   Iterable<Element> get allElements;
-  Iterable<Constant> get allConstants;
+  void forEachConstantNode(f(Node n, Constant c));
 
   /// A set of additional dependencies.  See [registerDependency] below.
   Setlet<Element> get otherDependencies;
@@ -245,11 +245,13 @@ class TreeElementMapping implements TreeElements {
 
   Iterable<Element> get allElements => elements;
 
-  Iterable<Constant> get allConstants => constants.values;
+  void forEachConstantNode(f(Node n, Constant c)) => constants.forEach(f);
 }
 
 class ResolverTask extends CompilerTask {
-  ResolverTask(Compiler compiler) : super(compiler);
+  final ConstantCompiler constantCompiler;
+
+  ResolverTask(Compiler compiler, this.constantCompiler) : super(compiler);
 
   String get name => 'Resolver';
 
@@ -583,8 +585,11 @@ class ResolverTask extends CompilerTask {
 
     if (Elements.isStaticOrTopLevelField(element)) {
       visitor.addDeferredAction(element, () {
-        compiler.constantHandler.compileVariable(
-            element, isConst: element.modifiers.isConst());
+        if (element.modifiers.isConst()) {
+          constantCompiler.compileConstant(element);
+        } else {
+          constantCompiler.compileVariable(element);
+        }
       });
       if (initializer != null) {
         if (!element.modifiers.isConst()) {
@@ -657,8 +662,13 @@ class ResolverTask extends CompilerTask {
     while (!seen.isEmpty) {
       FunctionElementX factory = seen.removeLast();
 
-      TreeElements treeElements =
-          compiler.enqueuer.resolution.getCachedElements(factory);
+      // [factory] must already be analyzed but the [TreeElements] might not
+      // have been stored in the enqueuer cache yet.
+      // TODO(johnniwinther): Store [TreeElements] in the cache before
+      // resolution of the element.
+      TreeElements treeElements = factory.treeElements;
+      assert(invariant(node, treeElements != null,
+          message: 'No TreeElements cached for $factory.'));
       FunctionExpression functionNode = factory.parseNode(compiler);
       Return redirectionNode = functionNode.body;
       InterfaceType factoryType =
@@ -1179,11 +1189,14 @@ class ResolverTask extends CompilerTask {
       }
       ResolverVisitor visitor = visitorFor(context);
       node.accept(visitor);
-      annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
-          node, visitor.mapping, isConst: true);
-      compiler.backend.registerMetadataConstant(annotation.value,
-                                                visitor.mapping);
-
+      annotation.value =
+          constantCompiler.compileMetadata(annotation, node, visitor.mapping);
+      // TODO(johnniwinther): Register the relation between the annotation
+      // and the annotated element instead. This will allow the backed to
+      // retrieve the backend constant and only registered metadata on the
+      // elements for which it is needed. (Issue 17732).
+      compiler.backend.registerMetadataConstant(
+          annotation.value, visitor.mapping);
       annotation.resolutionState = STATE_DONE;
     }));
   }
@@ -1204,23 +1217,6 @@ class ResolverTask extends CompilerTask {
       metadata.addLast(metadataAnnotation.ensureResolved(compiler));
     }
     return metadata.toLink();
-  }
-}
-
-class ConstantMapper extends Visitor {
-  final Map<Constant, Node> constantToNodeMap = new Map<Constant, Node>();
-  final CompileTimeConstantEvaluator evaluator;
-
-  ConstantMapper(ConstantHandler handler,
-                 TreeElements elements,
-                 Compiler compiler)
-      : evaluator = new CompileTimeConstantEvaluator(
-          handler, elements, compiler, isConst: false);
-
-  visitNode(Node node) {
-    Constant constant = evaluator.evaluate(node);
-    if (constant != null) constantToNodeMap[constant] = node;
-    node.visitChildren(this);
   }
 }
 
@@ -2208,7 +2204,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     });
     addDeferredAction(enclosingElement, () {
       functionParameters.forEachOptionalParameter((Element parameter) {
-        compiler.constantHandler.compileConstant(parameter);
+        compiler.resolver.constantCompiler.compileConstant(parameter);
       });
     });
     if (inCheckContext) {
@@ -2588,7 +2584,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
         world.registerTypeLiteral(target, mapping);
 
         // Don't try to make constants of calls to type literals.
-        analyzeConstant(node, isConst: !node.isCall);
+        if (!node.isCall) {
+          analyzeConstant(node);
+        } else {
+          // The node itself is not a constant but we register the selector (the
+          // identifier that refers to the class/typedef) as a constant.
+          analyzeConstant(node.selector);
+        }
       }
       if (isPotentiallyMutableTarget(target)) {
         if (enclosingElement != target.enclosingElement) {
@@ -3058,8 +3060,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (isSymbolConstructor) {
       if (node.isConst()) {
         Node argumentNode = node.send.arguments.head;
-        Constant name = compiler.constantHandler.compileNodeWithDefinitions(
-            argumentNode, mapping, isConst: true);
+        Constant name = compiler.resolver.constantCompiler.compileNode(
+            argumentNode, mapping);
         if (!name.isString) {
           DartType type = name.computeType(compiler);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
@@ -3107,12 +3109,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
   }
 
-  void analyzeConstant(Node node, {bool isConst: true}) {
+  void analyzeConstant(Node node) {
     addDeferredAction(enclosingElement, () {
-      Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
-          node, mapping, isConst: isConst);
+      Constant constant =
+          compiler.resolver.constantCompiler.compileNode(node, mapping);
 
-      if (isConst && constant != null && constant.isMap) {
+      if (constant.isMap) {
         checkConstMapKeysDontOverrideEquals(node, constant);
       }
 
@@ -4462,7 +4464,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
       resolver.defineElement(link.head, element);
       if (definitions.modifiers.isConst()) {
         compiler.enqueuer.resolution.addDeferredAction(element, () {
-          compiler.constantHandler.compileVariable(element, isConst: true);
+          compiler.resolver.constantCompiler.compileConstant(element);
         });
       }
     }

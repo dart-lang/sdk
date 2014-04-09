@@ -500,8 +500,6 @@ LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negati
 LibTest/core/int/operator_OR_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
 
-Language/13_Statements/09_Switch_A03_t03: MissingCompileTimeError # Issue 17235
-
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 212
 
 #

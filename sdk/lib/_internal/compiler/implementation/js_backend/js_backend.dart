@@ -28,6 +28,7 @@ part 'backend.dart';
 part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_system_javascript.dart';
+part 'constant_handler_javascript.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';

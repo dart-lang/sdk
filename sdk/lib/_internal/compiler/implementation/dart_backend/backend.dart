@@ -45,6 +45,14 @@ class DartBackend extends Backend {
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
+  ConstantSystem get constantSystem {
+    return constantCompilerTask.constantCompiler.constantSystem;
+  }
+
+  BackendConstantEnvironment get constants => constantCompilerTask;
+
+  DartConstantTask constantCompilerTask;
+
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
   /**
@@ -98,6 +106,7 @@ class DartBackend extends Backend {
         reexportingLibraries = <Element, LibraryElement>{},
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
+        constantCompilerTask  = new DartConstantTask(compiler),
         super(compiler);
 
   bool classNeedsRti(ClassElement cls) => false;
@@ -581,3 +590,56 @@ compareElements(e0, e1) {
 
 List<Element> sortElements(Iterable<Element> elements) =>
     sorted(elements, compareElements);
+
+/// [ConstantCompilerTask] for compilation of constants for the Dart backend.
+///
+/// Since this task needs no distinction between frontend and backend constants
+/// it also serves as the [BackendConstantEnvironment].
+class DartConstantTask extends ConstantCompilerTask
+    implements BackendConstantEnvironment {
+  final DartConstantCompiler constantCompiler;
+
+  DartConstantTask(Compiler compiler)
+    : this.constantCompiler = new DartConstantCompiler(compiler),
+      super(compiler);
+
+  String get name => 'ConstantHandler';
+
+  Constant getConstantForVariable(VariableElement element) {
+    return constantCompiler.getConstantForVariable(element);
+  }
+
+  Constant getConstantForNode(Node node, TreeElements elements) {
+    return constantCompiler.getConstantForNode(node, elements);
+  }
+
+  Constant getConstantForMetadata(MetadataAnnotation metadata) {
+    return metadata.value;
+  }
+
+  Constant compileConstant(VariableElement element) {
+    return measure(() {
+      return constantCompiler.compileConstant(element);
+    });
+  }
+
+  void compileVariable(VariableElement element) {
+    measure(() {
+      constantCompiler.compileVariable(element);
+    });
+  }
+
+  Constant compileNode(Node node, TreeElements elements) {
+    return measure(() {
+      return constantCompiler.compileNodeWithDefinitions(node, elements);
+    });
+  }
+
+  Constant compileMetadata(MetadataAnnotation metadata,
+                           Node node,
+                           TreeElements elements) {
+    return measure(() {
+      return constantCompiler.compileMetadata(metadata, node, elements);
+    });
+  }
+}

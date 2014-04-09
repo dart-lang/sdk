@@ -8,6 +8,7 @@ import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
     Constant,
+    ConstantCompiler,
     ConstructedConstant,
     ListConstant,
     MessageKind,
@@ -133,17 +134,13 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     for (Node argument in node.send.arguments) {
       NamedArgument named = argument.asNamedArgument();
       if (named == null) continue;
-      Constant value = compiler.constantHandler.compileNodeWithDefinitions(
-          named.expression, mapping, isConst: true);
-
-      ConstantMapper mapper =
-          new ConstantMapper(compiler.constantHandler, mapping, compiler);
-      named.expression.accept(mapper);
+      ConstantCompiler constantCompiler = compiler.resolver.constantCompiler;
+      Constant value = constantCompiler.compileNode(named.expression, mapping);
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
               analyzer, mapping.currentElement.getLibrary(), named.expression,
-              value, mapper.constantToNodeMap);
+              value, mapping);
 
       if (named.name.source == 'symbols') {
         analyzer.cachedStrings[value] =
@@ -374,14 +371,14 @@ class MirrorUsageBuilder {
   final LibraryElement enclosingLibrary;
   final Spannable spannable;
   final Constant constant;
-  final Map<Constant, Node> constantToNodeMap;
+  final TreeElements elements;
 
   MirrorUsageBuilder(
       this.analyzer,
       this.enclosingLibrary,
       this.spannable,
       this.constant,
-      this.constantToNodeMap);
+      this.elements);
 
   Compiler get compiler => analyzer.compiler;
 
@@ -566,7 +563,12 @@ class MirrorUsageBuilder {
 
   /// Attempt to find a [Spannable] corresponding to constant.
   Spannable positionOf(Constant constant) {
-    Node node = constantToNodeMap[constant];
+    Node node;
+    elements.forEachConstantNode((Node n, Constant c) {
+      if (node == null && c == constant) {
+        node = n;
+      }
+    });
     if (node == null) {
       // TODO(ahe): Returning [spannable] here leads to confusing error
       // messages.  For example, consider:

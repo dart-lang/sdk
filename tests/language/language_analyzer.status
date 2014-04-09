@@ -179,6 +179,8 @@ least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 # test issue 15467
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
+proxy3_test/03: StaticWarning # Issue 15467
+proxy3_test/04: StaticWarning # Issue 15467
 
 # analyzer does not handle @proxy and noSuchMethod correctly
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
