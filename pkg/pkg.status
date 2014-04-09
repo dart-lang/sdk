@@ -73,6 +73,7 @@ serialization/test/serialization_test: Skip
 
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
+docgen/test/typedef_test: Slow, Pass # issue 17060
 
 [ $runtime == d8 || $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
