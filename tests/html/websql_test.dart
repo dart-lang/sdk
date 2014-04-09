@@ -2,8 +2,8 @@ library WebDBTest;
 import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_individual_config.dart';
 
 Future<SqlTransaction> transaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>.sync();

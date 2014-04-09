@@ -6,8 +6,8 @@
 // checks of native classes that are not instantiated.
 
 import 'dart:html';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 var a = [new Object()];
 

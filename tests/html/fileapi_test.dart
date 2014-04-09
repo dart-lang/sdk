@@ -1,6 +1,6 @@
 library fileapi;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:async';
 
