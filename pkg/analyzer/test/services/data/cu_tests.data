@@ -247,3 +247,27 @@ class Foo extends Bar {
       : super(a),
         this.b = b == null ? 0 : b;
 }
+>>> dartbug.com/17837
+@meta class Foo {
+  @meta String foo;
+  @meta int bar() => 42;
+}
+@meta
+class Bar {
+  @meta
+  String foo;
+  @meta
+  int bar() => 42;
+}
+<<<
+@meta class Foo {
+  @meta String foo;
+  @meta int bar() => 42;
+}
+@meta
+class Bar {
+  @meta
+  String foo;
+  @meta
+  int bar() => 42;
+}

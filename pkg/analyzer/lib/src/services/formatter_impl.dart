@@ -530,7 +530,7 @@ class SourceVisitor implements AstVisitor {
 
   visitClassDeclaration(ClassDeclaration node) {
     preserveLeadingNewlines();
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.abstractKeyword);
     token(node.classKeyword);
     space();
@@ -556,7 +556,7 @@ class SourceVisitor implements AstVisitor {
 
   visitClassTypeAlias(ClassTypeAlias node) {
     preserveLeadingNewlines();
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.abstractKeyword);
     token(node.keyword);
     space();
@@ -615,7 +615,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.externalKeyword);
     modifier(node.constKeyword);
     modifier(node.factoryKeyword);
@@ -743,7 +743,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitExportDirective(ExportDirective node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitDirectiveMetadata(node.metadata);
     token(node.keyword);
     space();
     visit(node.uri);
@@ -772,7 +772,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.staticKeyword);
     visit(node.fields);
     token(node.semicolon);
@@ -862,7 +862,7 @@ class SourceVisitor implements AstVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     preserveLeadingNewlines();
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.externalKeyword);
     visitNode(node.returnType, followedBy: space);
     modifier(node.propertyKeyword);
@@ -888,7 +888,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    visitNodes(node.metadata, separatedBy: newlines, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     token(node.keyword);
     space();
     visitNode(node.returnType, followedBy: space);
@@ -942,7 +942,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitImportDirective(ImportDirective node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitDirectiveMetadata(node.metadata);
     token(node.keyword);
     nonBreakingSpace();
     visit(node.uri);
@@ -1011,7 +1011,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitLibraryDirective(LibraryDirective node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitDirectiveMetadata(node.metadata);
     token(node.keyword);
     space();
     visit(node.name);
@@ -1055,7 +1055,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.externalKeyword);
     modifier(node.modifierKeyword);
     visitNode(node.returnType, followedBy: space);
@@ -1182,7 +1182,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
-    visitNodes(node.metadata, followedBy: space);
+    visitMemberMetadata(node.metadata);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
     visit(node.identifier);
@@ -1305,7 +1305,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitTypeParameter(TypeParameter node) {
-    visitNodes(node.metadata, followedBy: space);
+    visitMemberMetadata(node.metadata);
     visit(node.name);
     token(node.keyword /* extends */, precededBy: space, followedBy: space);
     visit(node.bound);
@@ -1336,7 +1336,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
-    visitNodes(node.metadata, followedBy: newlines);
+    visitMemberMetadata(node.metadata);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
 
@@ -1397,6 +1397,24 @@ class SourceVisitor implements AstVisitor {
     if (node != null) {
       node.accept(this);
     }
+  }
+
+  /// Visit member metadata
+  visitMemberMetadata(NodeList<Annotation> metadata) {
+    visitNodes(metadata,
+      separatedBy: () {
+        space();
+        preserveLeadingNewlines();
+      },
+      followedBy: space);
+    if (metadata != null && metadata.length > 0) {
+      preserveLeadingNewlines();
+    }
+  }
+
+  /// Visit member metadata
+  visitDirectiveMetadata(NodeList<Annotation> metadata) {
+    visitNodes(metadata, separatedBy: newlines, followedBy: newlines);
   }
 
   /// Visit the given function [body], printing the [prefix] before if given
