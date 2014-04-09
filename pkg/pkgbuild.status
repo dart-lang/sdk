@@ -28,3 +28,15 @@ samples/third_party/angular_todo: Fail # Issue 16356
 
 [ $system == windows ]
 samples/third_party/todomvc_performance: Fail # Issue 18086
+
+[ $use_public_packages ]
+pkgbuild/pkg/observe: PubGetError # Issue 18115
+pkgbuild/pkg/polymer: PubGetError # Issue 18115
+pkgbuild/pkg/polymer_expressions: PubGetError # Issue 18115
+pkgbuild/pkg/template_binding: PubGetError # Issue 18115
+pkgbuild/samples/polymer_intl: PubGetError # Issue 18115
+pkgbuild/samples/searchable_list: PubGetError # Issue 18115
+pkgbuild/samples/third_party/angular_todo: PubGetError # Issue 18115
+pkgbuild/samples/third_party/todomvc: PubGetError # Issue 18115
+pkgbuild/samples/third_party/todomvc_performance: PubGetError # Issue 18115
+pkgbuild/samples/tracker: PubGetError # Issue 18115
