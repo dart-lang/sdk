@@ -70,6 +70,7 @@ LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please
 LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
+LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll 706: Please triage this failure.
 
 [ $compiler == dart2js && $runtime != ie9 ]
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
