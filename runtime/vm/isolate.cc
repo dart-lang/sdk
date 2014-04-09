@@ -321,6 +321,8 @@ Isolate::Isolate()
       mutex_(new Mutex()),
       stack_limit_(0),
       saved_stack_limit_(0),
+      stack_overflow_flags_(0),
+      stack_overflow_count_(0),
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
@@ -659,6 +661,13 @@ uword Isolate::GetAndClearInterrupts() {
   uword interrupt_bits = stack_limit_ & kInterruptsMask;
   stack_limit_ = saved_stack_limit_;
   return interrupt_bits;
+}
+
+
+uword Isolate::GetAndClearStackOverflowFlags() {
+  uword stack_overflow_flags = stack_overflow_flags_;
+  stack_overflow_flags_ = 0;
+  return stack_overflow_flags;
 }
 
 

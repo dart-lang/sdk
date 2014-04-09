@@ -226,6 +226,24 @@ class Isolate : public BaseIsolate {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
+  // Stack overflow flags
+  enum {
+    kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
+  };
+
+  uword stack_overflow_flags_address() const {
+    return reinterpret_cast<uword>(&stack_overflow_flags_);
+  }
+
+  int32_t IncrementAndGetStackOverflowCount() {
+    return ++stack_overflow_count_;
+  }
+
+  // Retrieves and clears the stack overflow flags.  These are set by
+  // the generated code before the slow path runtime routine for a
+  // stack overflow is called.
+  uword GetAndClearStackOverflowFlags();
+
   // Retrieve the stack address bounds.
   bool GetStackBounds(uword* lower, uword* upper);
 
@@ -233,6 +251,7 @@ class Isolate : public BaseIsolate {
 
   static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
+  // Interrupt bits.
   enum {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
@@ -510,6 +529,8 @@ class Isolate : public BaseIsolate {
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;
+  uword stack_overflow_flags_;
+  int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;

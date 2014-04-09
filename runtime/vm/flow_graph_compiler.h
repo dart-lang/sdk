@@ -269,7 +269,7 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
-  bool ShouldDeoptimizeFunction() const;
+  bool ForceSlowPathForStackOverflow() const;
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
   ParallelMoveResolver* parallel_move_resolver() {

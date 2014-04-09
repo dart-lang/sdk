@@ -2312,6 +2312,16 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (FLAG_use_osr) {
+      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
+      Register value = instruction_->locs()->temp(0).reg();
+      __ TraceSimMsg("CheckStackOverflowSlowPathOsr");
+      __ Comment("CheckStackOverflowSlowPathOsr");
+      __ Bind(osr_entry_label());
+      __ LoadImmediate(TMP, flags_address);
+      __ LoadImmediate(value, Isolate::kOsrRequest);
+      __ sw(value, Address(TMP));
+    }
     __ TraceSimMsg("CheckStackOverflowSlowPath");
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2338,8 +2348,14 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     __ b(exit_label());
   }
 
+  Label* osr_entry_label() {
+    ASSERT(FLAG_use_osr);
+    return &osr_entry_label_;
+  }
+
  private:
   CheckStackOverflowInstr* instruction_;
+  Label osr_entry_label_;
 };
 
 
@@ -2349,7 +2365,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
-
   __ lw(CMPRES1, Address(TMP));
   __ BranchUnsignedLessEqual(SP, CMPRES1, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
@@ -2361,7 +2376,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ lw(temp, FieldAddress(temp, Function::usage_counter_offset()));
-    __ BranchSignedGreaterEqual(temp, threshold, slow_path->entry_label());
+    __ BranchSignedGreaterEqual(temp, threshold, slow_path->osr_entry_label());
+  }
+  if (compiler->ForceSlowPathForStackOverflow()) {
+    __ b(slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());
 }
