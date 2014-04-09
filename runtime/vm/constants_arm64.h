@@ -299,6 +299,16 @@ enum AddSubImmOp {
   SUBI = AddSubImmFixed | B30,
 };
 
+// C3.4.4
+enum LogicalImmOp {
+  LogicalImmMask = 0x1f800000,
+  LogicalImmFixed = DPImmediateFixed | B25,
+  ANDI = LogicalImmFixed,
+  ORRI = LogicalImmFixed | B29,
+  EORI = LogicalImmFixed | B30,
+  ANDIS = LogicalImmFixed | B30 | B29,
+};
+
 // C3.4.5
 enum MoveWideOp {
   MoveWideMask = 0x1f800000,
@@ -308,13 +318,25 @@ enum MoveWideOp {
   MOVK = MoveWideFixed | B30 | B29,
 };
 
-
 // C3.5.1
 enum AddSubShiftExtOp {
   AddSubShiftExtMask = 0x1f000000,
   AddSubShiftExtFixed = DPRegisterFixed | B24,
   ADD = AddSubShiftExtFixed,
   SUB = AddSubShiftExtFixed | B30,
+};
+
+enum LogicalShiftOp {
+  LogicalShiftMask = 0x1f000000,
+  LogicalShiftFixed = DPRegisterFixed,
+  AND = LogicalShiftFixed,
+  BIC = LogicalShiftFixed | B21,
+  ORR = LogicalShiftFixed | B29,
+  ORN = LogicalShiftFixed | B29 | B21,
+  EOR = LogicalShiftFixed | B30,
+  EON = LogicalShiftFixed | B30 | B21,
+  ANDS = LogicalShiftFixed | B30 | B29,
+  BICS = LogicalShiftFixed | B30 | B29 | B21,
 };
 
 #define APPLY_OP_LIST(_V)                                                      \
@@ -329,8 +351,10 @@ _V(System)                                                                     \
 _V(LoadStoreReg)                                                               \
 _V(UnconditionalBranchReg)                                                     \
 _V(AddSubImm)                                                                  \
+_V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
 _V(AddSubShiftExt)                                                             \
+_V(LogicalShift)                                                               \
 
 
 enum Shift {
@@ -402,12 +426,20 @@ enum InstructionFields {
   kImm16Shift = 5,
   kImm16Bits = 16,
 
+  // Bitfield immediates.
+  kNShift = 22,
+  kNBits = 1,
+  kImmRShift = 16,
+  kImmRBits = 6,
+  kImmSShift = 10,
+  kImmSBits = 6,
+
   kHWShift = 21,
   kHWBits = 2,
 
   // Shift and Extend.
-  kShiftExtendShift = 21,
-  kShiftExtendBits = 1,
+  kAddShiftExtendShift = 21,
+  kAddShiftExtendBits = 1,
   kShiftTypeShift = 22,
   kShiftTypeBits = 2,
   kExtendTypeShift = 13,
@@ -425,6 +457,27 @@ const uint32_t kImmExceptionIsRedirectedCall = 0xca11;
 const uint32_t kImmExceptionIsUnreachable = 0xdebf;
 const uint32_t kImmExceptionIsPrintf = 0xdeb1;
 const uint32_t kImmExceptionIsDebug = 0xdeb0;
+
+// Helper functions for decoding logical immediates.
+static inline uint64_t RotateRight(
+    uint64_t value, uint8_t rotate, uint8_t width) {
+  ASSERT(width <= 64);
+  rotate &= 63;
+  return ((value & ((1UL << rotate) - 1UL)) << (width - rotate)) |
+         (value >> rotate);
+}
+
+static inline uint64_t RepeatBitsAcrossReg(
+    uint8_t reg_size, uint64_t value, uint8_t width) {
+  ASSERT((width == 2) || (width == 4) || (width == 8) || (width == 16) ||
+         (width == 32));
+  ASSERT((reg_size == kWRegSizeInBits) || (reg_size == kXRegSizeInBits));
+  uint64_t result = value & ((1UL << width) - 1UL);
+  for (unsigned i = width; i < reg_size; i *= 2) {
+    result |= (result << i);
+  }
+  return result;
+}
 
 // The class Instr enables access to individual fields defined in the ARM
 // architecture instruction set encoding as described in figure A3-1.
@@ -470,7 +523,7 @@ class Instr {
     return (InstructionBits() >> shift) & ((1 << count) - 1);
   }
 
-
+  inline int NField() const { return Bit(22); }
   inline int SField() const { return Bit(kSShift); }
   inline int SFField() const { return Bit(kSFShift); }
   inline int SzField() const { return Bits(kSzShift, kSzBits); }
@@ -488,20 +541,29 @@ class Instr {
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
   inline int Imm6Field() const { return Bits(kImm6Shift, kImm6Bits); }
+
   inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
   // Sign-extended Imm9Field()
   inline int64_t SImm9Field() const {
       return (static_cast<int32_t>(Imm9Field()) << 23) >> 23; }
-  inline int Imm12Field() const { return Bits(kImm12Shift, kImm12Bits); }
-  inline int Imm16Field() const { return Bits(kImm16Shift, kImm16Bits); }
 
+  inline int Imm12Field() const { return Bits(kImm12Shift, kImm12Bits); }
   inline int Imm12ShiftField() const {
     return Bits(kImm12ShiftShift, kImm12ShiftBits); }
+
+  inline int Imm16Field() const { return Bits(kImm16Shift, kImm16Bits); }
   inline int HWField() const { return Bits(kHWShift, kHWBits); }
 
+  inline int ImmRField() const { return Bits(kImmRShift, kImmRBits); }
+  inline int ImmSField() const { return Bits(kImmSShift, kImmSBits); }
+
   // Shift and Extend.
-  inline bool IsShift() const { return (Bit(kShiftExtendShift) == 0); }
-  inline bool IsExtend() const { return (Bit(kShiftExtendShift) == 1); }
+  inline bool IsShift() const {
+    return IsLogicalShiftOp() || (Bit(kAddShiftExtendShift) == 0);
+  }
+  inline bool IsExtend() const {
+    return !IsLogicalShiftOp() && (Bit(kAddShiftExtendShift) == 1);
+  }
   inline Shift ShiftTypeField() const {
       return static_cast<Shift>(Bits(kShiftTypeShift, kShiftTypeBits)); }
   inline Extend ExtendTypeField() const {
@@ -551,6 +613,59 @@ class Instr {
       return R31IsSP;
     }
     return R31IsZR;
+  }
+
+  // Logical immediates can't encode zero, so a return value of zero is used to
+  // indicate a failure case. Specifically, where the constraints on imm_s are
+  // not met.
+  uint64_t ImmLogical() {
+    const uint8_t reg_size =
+        SFField() == 1 ? kXRegSizeInBits : kWRegSizeInBits;
+    const int64_t n = NField();
+    const int64_t imm_s = ImmSField();
+    const int64_t imm_r = ImmRField();
+
+    // An integer is constructed from the n, imm_s and imm_r bits according to
+    // the following table:
+    //
+    //  N   imms    immr    size        S             R
+    //  1  ssssss  rrrrrr    64    UInt(ssssss)  UInt(rrrrrr)
+    //  0  0sssss  xrrrrr    32    UInt(sssss)   UInt(rrrrr)
+    //  0  10ssss  xxrrrr    16    UInt(ssss)    UInt(rrrr)
+    //  0  110sss  xxxrrr     8    UInt(sss)     UInt(rrr)
+    //  0  1110ss  xxxxrr     4    UInt(ss)      UInt(rr)
+    //  0  11110s  xxxxxr     2    UInt(s)       UInt(r)
+    // (s bits must not be all set)
+    //
+    // A pattern is constructed of size bits, where the least significant S+1
+    // bits are set. The pattern is rotated right by R, and repeated across a
+    // 32 or 64-bit value, depending on destination register width.
+
+    if (n == 1) {
+      if (imm_s == 0x3F) {
+        return 0;
+      }
+      uint64_t bits = (1UL << (imm_s + 1)) - 1;
+      return RotateRight(bits, imm_r, 64);
+    } else {
+      if ((imm_s >> 1) == 0x1F) {
+        return 0;
+      }
+      for (int width = 0x20; width >= 0x2; width >>= 1) {
+        if ((imm_s & width) == 0) {
+          int mask = width - 1;
+          if ((imm_s & mask) == mask) {
+            return 0;
+          }
+          uint64_t bits = (1UL << ((imm_s & mask) + 1)) - 1;
+          return RepeatBitsAcrossReg(reg_size,
+                                     RotateRight(bits, imm_r & mask, width),
+                                     width);
+        }
+      }
+    }
+    UNREACHABLE();
+    return 0;
   }
 
   // Instructions are read out of a code stream. The only way to get a

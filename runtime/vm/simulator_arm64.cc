@@ -477,11 +477,64 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
   }
 }
 
+
+void Simulator::DecodeLogicalImm(Instr* instr) {
+  const int op = instr->Bits(29, 2);
+  const bool set_flags = op == 3;
+  const int out_size = ((instr->SFField() == 0) && (instr->NField() == 0))
+                       ? kWRegSizeInBits : kXRegSizeInBits;
+  const Register rn = instr->RnField();
+  const Register rd = instr->RdField();
+  const int64_t rn_val = get_register(rn, instr->RnMode());
+  const uint64_t imm = instr->ImmLogical();
+  if (imm == 0) {
+    UnimplementedInstruction(instr);
+  }
+
+  int64_t alu_out = 0;
+  switch (op) {
+    case 0:
+      alu_out = rn_val & imm;
+      break;
+    case 1:
+      alu_out = rn_val | imm;
+      break;
+    case 2:
+      alu_out = rn_val ^ imm;
+      break;
+    case 3:
+      alu_out = rn_val & imm;
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  if (set_flags) {
+    if (out_size == kXRegSizeInBits) {
+      SetNZFlagsX(alu_out);
+    } else {
+      SetNZFlagsW(alu_out);
+    }
+    SetCFlag(false);
+    SetVFlag(false);
+  }
+
+  if (out_size == kXRegSizeInBits) {
+    set_register(rd, alu_out, instr->RdMode());
+  } else {
+    set_wregister(rd, alu_out, instr->RdMode());
+  }
+}
+
+
 void Simulator::DecodeDPImmediate(Instr* instr) {
   if (instr->IsMoveWideOp()) {
     DecodeMoveWide(instr);
   } else if (instr->IsAddSubImmOp()) {
     DecodeAddSubImm(instr);
+  } else if (instr->IsLogicalImmOp()) {
+    DecodeLogicalImm(instr);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -821,9 +874,75 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
 }
 
 
+void Simulator::DecodeLogicalShift(Instr* instr) {
+  const int op = (instr->Bits(29, 2) << 1) | instr->Bit(21);
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const int64_t rn_val = get_register(rn, instr->RnMode());
+  const int64_t rm_val = DecodeShiftExtendOperand(instr);
+  int64_t alu_out = 0;
+  switch (op) {
+    case 0:
+      // Format(instr, "and'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val & rm_val;
+      break;
+    case 1:
+      // Format(instr, "bic'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val & (~rm_val);
+      break;
+    case 2:
+      // Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val | rm_val;
+      break;
+    case 3:
+      // Format(instr, "orn'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val | (~rm_val);
+      break;
+    case 4:
+      // Format(instr, "eor'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val ^ rm_val;
+      break;
+    case 5:
+      // Format(instr, "eon'sf 'rd, 'rn, 'shift_op");
+      alu_out = rn_val ^ (~rm_val);
+      break;
+    case 6:
+      // Format(instr, "and'sfs 'rd, 'rn, 'shift_op");
+      alu_out = rn_val & rm_val;
+      break;
+    case 7:
+      // Format(instr, "bic'sfs 'rd, 'rn, 'shift_op");
+      alu_out = rn_val & (~rm_val);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  // Set flags if ands or bics.
+  if ((op == 6) || (op == 7)) {
+    if (instr->SFField() == 1) {
+      SetNZFlagsX(alu_out);
+    } else {
+      SetNZFlagsW(alu_out);
+    }
+    SetCFlag(false);
+    SetVFlag(false);
+  }
+
+  if (instr->SFField() == 1) {
+    set_register(rd, alu_out, instr->RdMode());
+  } else {
+    set_wregister(rd, alu_out & kWRegMask, instr->RdMode());
+  }
+}
+
+
 void Simulator::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
+  } else if (instr->IsLogicalShiftOp()) {
+    DecodeLogicalShift(instr);
   } else {
     UnimplementedInstruction(instr);
   }

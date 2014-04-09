@@ -176,6 +176,12 @@ class Operand : public ValueObject {
   Operand(const Operand& other)
       : ValueObject(), encoding_(other.encoding_), type_(other.type_) { }
 
+  Operand& operator=(const Operand& other) {
+    type_ = other.type_;
+    encoding_ = other.encoding_;
+    return *this;
+  }
+
   explicit Operand(Register rm) {
     ASSERT((rm != R31) && (rm != SP));
     const Register crm = ConcreteRegister(rm);
@@ -217,8 +223,19 @@ class Operand : public ValueObject {
     type_ = Immediate;
   }
 
-  // TODO(zra): Add bitfield immediate operand
-  // Operand(int32_t n, int32_t imms, int32_t immr);
+  // Encodes the value of an immediate for a logical operation.
+  // Since these values are difficult to craft by hand, instead pass the
+  // logical mask to the function Assembler::IsImmLogical to get n, imm_s, and
+  // imm_r.
+  Operand(uint8_t n, int8_t imm_s, int8_t imm_r) {
+    ASSERT((n == 1) || (n == 0));
+    ASSERT(Utils::IsUint(6, imm_s) && Utils::IsUint(6, imm_r));
+    type_ = BitfieldImm;
+    encoding_ =
+      (static_cast<int32_t>(n) << kNShift) |
+      (static_cast<int32_t>(imm_s) << kImmSShift) |
+      (static_cast<int32_t>(imm_r) << kImmRShift);
+  }
 
   enum OperandType {
     Shifted,
@@ -326,11 +343,81 @@ class Assembler : public ValueObject {
   void add(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, false, rd, rn, o);
   }
+  void adds(Register rd, Register rn, Operand o) {
+    AddSubHelper(kDoubleWord, true, false, rd, rn, o);
+  }
   void addw(Register rd, Register rn, Operand o) {
     AddSubHelper(kWord, false, false, rd, rn, o);
   }
   void sub(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, true, rd, rn, o);
+  }
+  void subs(Register rd, Register rn, Operand o) {
+    AddSubHelper(kDoubleWord, true, true, rd, rn, o);
+  }
+
+  // Logical immediate operations.
+  // TODO(zra): Add macros that check IsImmLogical, and fall back on a longer
+  // sequence on failure.
+  void andi(Register rd, Register rn, uint64_t imm) {
+    Operand imm_op;
+    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    ASSERT(immok);
+    EmitLogicalImmOp(ANDI, rd, rn, imm_op, kDoubleWord);
+  }
+  void orri(Register rd, Register rn, uint64_t imm) {
+    Operand imm_op;
+    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    ASSERT(immok);
+    EmitLogicalImmOp(ORRI, rd, rn, imm_op, kDoubleWord);
+  }
+  void eori(Register rd, Register rn, uint64_t imm) {
+    Operand imm_op;
+    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    ASSERT(immok);
+    EmitLogicalImmOp(EORI, rd, rn, imm_op, kDoubleWord);
+  }
+  void andis(Register rd, Register rn, uint64_t imm) {
+    Operand imm_op;
+    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    ASSERT(immok);
+    EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kDoubleWord);
+  }
+
+  // Logical (shifted) register operations.
+  void and_(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(AND, rd, rn, o, kDoubleWord);
+  }
+  void bic(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(BIC, rd, rn, o, kDoubleWord);
+  }
+  void orr(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ORR, rd, rn, o, kDoubleWord);
+  }
+  void orn(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ORN, rd, rn, o, kDoubleWord);
+  }
+  void eor(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(EOR, rd, rn, o, kDoubleWord);
+  }
+  void eon(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(EON, rd, rn, o, kDoubleWord);
+  }
+  void ands(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ANDS, rd, rn, o, kDoubleWord);
+  }
+  void bics(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(BICS, rd, rn, o, kDoubleWord);
+  }
+
+  // Comparison.
+  // rn cmp o.
+  void cmp(Register rn, Operand o) {
+    subs(ZR, rn, o);
+  }
+  // rn cmp -o.
+  void cmn(Register rn, Operand o) {
+    adds(ZR, rn, o);
   }
 
   // Move wide immediate.
@@ -393,6 +480,8 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
+  bool IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op);
+
   void AddSubHelper(OperandSize os, bool set_flags, bool subtract,
                     Register rd, Register rn, Operand o) {
     ASSERT((rd != R31) && (rn != R31));
@@ -412,14 +501,50 @@ class Assembler : public ValueObject {
   }
 
   void EmitAddSubImmOp(AddSubImmOp op, Register rd, Register rn,
-                       Operand o, OperandSize os, bool set_flags) {
-    ASSERT((os == kDoubleWord) || (os == kWord));
-    const int32_t size = (os == kDoubleWord) ? B31 : 0;
+                       Operand o, OperandSize sz, bool set_flags) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
     const int32_t encoding =
         op | size | s |
         (static_cast<int32_t>(rd) << kRdShift) |
         (static_cast<int32_t>(rn) << kRnShift) |
+        o.encoding();
+    Emit(encoding);
+  }
+
+  void EmitLogicalImmOp(LogicalImmOp op, Register rd, Register rn,
+                        Operand o, OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((rd != R31) && (rn != R31));
+    ASSERT(rn != SP);
+    ASSERT((op == ANDIS) || (rd != ZR));  // op != ANDIS => rd != ZR.
+    ASSERT((op != ANDIS) || (rd != SP));  // op == ANDIS => rd != SP.
+    ASSERT(o.type() == Operand::BitfieldImm);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        o.encoding();
+    Emit(encoding);
+  }
+
+  void EmitLogicalShiftOp(LogicalShiftOp op,
+                          Register rd, Register rn, Operand o, OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((rd != R31) && (rn != R31));
+    ASSERT((rd != SP) && (rn != SP));
+    ASSERT(o.type() == Operand::Shifted);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
         o.encoding();
     Emit(encoding);
   }

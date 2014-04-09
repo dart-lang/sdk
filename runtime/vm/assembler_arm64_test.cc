@@ -391,6 +391,170 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
+
+// Logical register operations.
+ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
+  __ movz(R1, 43, 0);
+  __ movz(R2, 42, 0);
+  __ and_(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
+  __ movz(R1, 42, 0);
+  __ movz(R2, 21, 0);
+  __ and_(R0, R1, Operand(R2, LSL, 1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndShiftRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
+  __ movz(R1, 42, 0);
+  __ movz(R2, 5, 0);
+  __ bic(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BicRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
+  __ movz(R1, 32, 0);
+  __ movz(R2, 10, 0);
+  __ orr(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(OrrRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
+  __ movz(R1, 32, 0);
+  __ movn(R2, 0, 0);  // R2 <- 0xffffffffffffffff.
+  __ movk(R2, 0xffd5, 0);  // R2 <- 0xffffffffffffffe5.
+  __ orn(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(OrnRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
+  __ movz(R1, 0xffd5, 0);
+  __ movz(R2, 0xffff, 0);
+  __ eor(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(EorRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
+  __ movz(R1, 0xffd5, 0);
+  __ movn(R2, 0xffff, 0);
+  __ eon(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(EonRegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+// TODO(zra): ands and bics after branches are implemented.
+
+
+// Logical immediate operations.
+ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
+  __ movz(R1, 42, 0);
+  __ andi(R0, R1, 0xaaaaaaaaaaaaaaaaULL);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndImm, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
+  __ movz(R1, 43, 0);
+  __ andi(R0, R1, 1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndOneImm, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
+  __ movz(R1, 0, 0);
+  __ movz(R2, 0x3f, 0);
+  __ movz(R3, 0xa, 0);
+  __ orri(R1, R1, 0x0020002000200020ULL);
+  __ orr(R1, R1, Operand(R3));
+  __ and_(R0, R1, Operand(R2));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(OrrImm, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
+  __ movn(R0, 0, 0);
+  __ movk(R0, 0xffd5, 0);  // R0 < 0xffffffffffffffd5.
+  __ movz(R1, 0x3f, 0);
+  __ eori(R0, R0, 0x3f3f3f3f3f3f3f3fULL);
+  __ and_(R0, R0, Operand(R1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(EorImm, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+// TODO(zra): andis after branches are implemented.
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)
