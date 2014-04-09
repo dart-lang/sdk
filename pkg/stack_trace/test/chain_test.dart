@@ -107,6 +107,29 @@ void main() {
 
       return completer.future;
     });
+
+    test('and relays them to the parent zone', () {
+      var completer = new Completer();
+
+      runZoned(() {
+        Chain.capture(() {
+          inMicrotask(() => throw 'error');
+        }, onError: (error, chain) {
+          expect(error, equals('error'));
+          expect(chain.traces[1].frames,
+              contains(frameMember(startsWith('inMicrotask'))));
+          throw error;
+        });
+      }, onError: (error, chain) {
+        expect(error, equals('error'));
+        expect(chain, new isInstanceOf<Chain>());
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+        completer.complete();
+      });
+
+      return completer.future;
+    });
   });
 
   test('capture() without onError passes exceptions to parent zone', () {

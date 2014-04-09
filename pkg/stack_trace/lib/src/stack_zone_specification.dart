@@ -145,10 +145,21 @@ class StackZoneSpecification {
   /// [_onError] or [parent]'s error handler.
   handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, error,
       StackTrace stackTrace) {
+    var stackChain = chainFor(stackTrace);
     if (_onError == null) {
-      return parent.handleUncaughtError(zone, error, chainFor(stackTrace));
-    } else {
-      _onError(error, chainFor(stackTrace));
+      return parent.handleUncaughtError(zone, error, stackChain);
+    }
+
+    // TODO(nweiz): Currently this copies a lot of logic from [runZoned]. Just
+    // allow [runBinary] to throw instead once issue 18134 is fixed.
+    try {
+      return parent.runBinary(zone, _onError, error, stackChain);
+    } catch (newError, newStackTrace) {
+      if (identical(newError, error)) {
+        return parent.handleUncaughtError(zone, error, stackChain);
+      } else {
+        return parent.handleUncaughtError(zone, newError, newStackTrace);
+      }
     }
   }
 
