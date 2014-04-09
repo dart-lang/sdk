@@ -4,9 +4,10 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:async_helper/async_helper.dart';
 
-import 'source_map_consistency_helper.dart';
+import 'source_map_validator_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2js.dart' as entry;
 
 void main() {
@@ -19,7 +20,7 @@ void main() {
       return result.then((_) {
         Uri uri =
             new Uri.file('${tmpDir.path}/out.js', windows: Platform.isWindows);
-        checkConsistency(uri);
+        validateSourceMap(uri);
 
         print("Deleting '${tmpDir.path}'.");
         tmpDir.deleteSync(recursive: true);

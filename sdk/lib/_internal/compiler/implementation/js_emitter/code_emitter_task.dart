@@ -1696,9 +1696,9 @@ if (typeof $printHelperName === "function") {
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     SourceFile compiledFile = new StringSourceFile(null, code);
     SourceMapBuilder sourceMapBuilder =
-            new SourceMapBuilder(sourceMapUri, fileUri);
+            new SourceMapBuilder(sourceMapUri, fileUri, compiledFile);
     buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build(compiledFile);
+    String sourceMap = sourceMapBuilder.build();
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
         ..close();
