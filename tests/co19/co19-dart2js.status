@@ -212,6 +212,7 @@ LibTest/html/HttpRequest/onLoadStart_A01_t01: Timeout # co19-roll r607: Please t
 LibTest/html/HttpRequest/overrideMimeType_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Pass, RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
+LibTest/html/HttpRequest/responseText_A01_t01: Pass, RuntimeError # co19-roll r706: Please triage this failure
 LibTest/html/HttpRequest/responseText_A01_t02: Timeout # co19-roll r607: Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: RuntimeError # co19-roll 706: Please triage this failure.

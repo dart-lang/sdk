@@ -128,6 +128,7 @@ LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Is
 LayoutTests/fast/html/hidden-attr_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/imports/import-events_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Document/childNodes_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Document/clone_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Document/clone_A01_t02: RuntimeError # Issue 17758.  Please triage this failure.

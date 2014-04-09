@@ -126,6 +126,8 @@ string_case_test/01: Fail, OK  # Bug in Firefox.
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
 string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 
+[ $compiler == dart2js && $runtime == chrome ]
+string_case_test/02: Fail, OK  # Bug in Chrome.  Please file issue.
 
 [ $compiler == dart2js && $checked ]
 map_test: Crash # Issue 17829
