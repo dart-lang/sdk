@@ -155,10 +155,13 @@ def Main():
     global verbose
     verbose = True
 
-  if not options.tar_filename:
-    raise Exception('Please specify an output filename')
+  tar_filename = options.tar_filename
+  if not tar_filename:
+    tar_filename = join(DART_DIR,
+                        utils.GetBuildDir(HOST_OS, HOST_OS),
+                        'dart-%s.tar.gz' % utils.GetVersion())
 
-  CreateTarball(options.tar_filename)
+  CreateTarball(tar_filename)
 
 if __name__ == '__main__':
   sys.exit(Main())
