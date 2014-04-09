@@ -1,5 +1,5 @@
 name: mock
-version: 0.10.0
+version: 0.10.0+1
 author: Dart Team <misc@dartlang.org>
 description: A library for mocking classes
 homepage: http://www.dartlang.org
