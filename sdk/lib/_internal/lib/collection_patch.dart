@@ -1358,7 +1358,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
   void removeAll(Iterable<Object> elements) {
     for (Object element in elements) {
       if (_validKey(element)) {
-        super.remove(element);
+        super._remove(element);
       }
     }
   }
@@ -1835,7 +1835,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   void removeAll(Iterable<Object> elements) {
     for (Object element in elements) {
       if (_validKey(element)) {
-        super.remove(element);
+        super._remove(element);
       }
     }
   }
