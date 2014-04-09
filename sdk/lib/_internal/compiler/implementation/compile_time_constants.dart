@@ -774,8 +774,8 @@ class CompileTimeConstantEvaluator extends Visitor {
     assert(invariant(node, constructor.isImplementation));
 
     List<Constant> arguments = getArguments(constructor);
-    ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(constructor, handler, compiler);
+    ConstructorEvaluator evaluator = new ConstructorEvaluator(
+        constructedType, constructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -807,6 +807,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 }
 
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
+  final InterfaceType constructedType;
   final FunctionElement constructor;
   final Map<Element, Constant> definitions;
   final Map<Element, Constant> fieldValues;
@@ -816,7 +817,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    *
    * Invariant: [constructor] must be an implementation element.
    */
-  ConstructorEvaluator(FunctionElement constructor,
+  ConstructorEvaluator(InterfaceType this.constructedType,
+                       FunctionElement constructor,
                        ConstantCompiler handler,
                        Compiler compiler)
       : this.constructor = constructor,
@@ -845,16 +847,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                             TypedElement element,
                             Constant constant) {
     if (compiler.enableTypeAssertions) {
-      DartType elementType = element.type;
+      DartType elementType = element.type.substByContext(constructedType);
       DartType constantType = constant.computeType(compiler);
-      // TODO(ngeoffray): Handle type parameters.
-      if (elementType.element.isTypeVariable()) return;
       if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
-        // TODO(johnniwinther): Provide better [node] values that point to the
-        // origin of the constant and not (just) the assignment.
         compiler.reportFatalError(
             node, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': elementType, 'toType': constantType});
+            {'fromType': constantType, 'toType': elementType});
       }
     }
   }
@@ -871,9 +869,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
-    FunctionSignature parameters = constructor.functionSignature;
+    FunctionSignature signature = constructor.functionSignature;
     int index = 0;
-    parameters.orderedForEachParameter((Element parameter) {
+    signature.orderedForEachParameter((Element parameter) {
       Constant argument = arguments[index++];
       Node node = parameter.parseNode(compiler);
       potentiallyCheckType(node, parameter, argument);
@@ -888,6 +886,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   void evaluateSuperOrRedirectSend(List<Constant> compiledArguments,
                                    FunctionElement targetConstructor) {
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
+        constructedType.asInstanceOf(targetConstructor.getEnclosingClass()),
         targetConstructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.

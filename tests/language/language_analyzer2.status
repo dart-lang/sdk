@@ -464,11 +464,6 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
-# Issue 16392.
-const_constructor2_test/20: MissingStaticWarning # Issue 16392.
-const_constructor2_test/22: MissingStaticWarning # Issue 16392.
-const_constructor2_test/24: MissingStaticWarning # Issue 16392.
-
 # Issue 16391. The analyzer handle compile-time error in checked only in these
 # cases:
 compile_time_constant_checked2_test/01: CompileTimeError # Issue 16391
@@ -488,4 +483,3 @@ deferred_closurize_load_library_test: Fail
 deferred_load_library_wrong_args_test/01: Fail
 deferred_load_library_wrong_args_test/none: Fail
 deferred_load_inval_code_test: Fail
-
