@@ -216,12 +216,12 @@ class A extends B {
 >>> Single initializers can be on one line
 class Foo extends Bar {
   final int b;
-  Foo(int a, this.b): super(a);
+  Foo(int a, this.b) : super(a);
 }
 <<<
 class Foo extends Bar {
   final int b;
-  Foo(int a, this.b): super(a);
+  Foo(int a, this.b) : super(a);
 }
 >>> (or not)
 class Foo extends Bar {

@@ -650,6 +650,7 @@ class SourceVisitor implements AstVisitor {
       newlines();
     } else {
       preserveLeadingNewlines();
+      space();
     }
     indent(2);
     token(node.separator /* : */);
