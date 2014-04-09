@@ -1253,6 +1253,22 @@ class XmlAttributeNode extends XmlNode {
   }
 
   /**
+   * Answer the offset of the value after the leading quote.
+   *
+   * @return the offset of the value, or `-1` if the value is not specified
+   */
+  int get textOffset {
+    if (_value == null) {
+      return -1;
+    }
+    String text = _value.lexeme;
+    if (StringUtilities.startsWithChar(text, 0x22) || StringUtilities.startsWithChar(text, 0x27)) {
+      return _value.offset + 1;
+    }
+    return _value.offset;
+  }
+
+  /**
    * Answer the attribute value token. A properly formed value will start and end with matching
    * quote characters, but the value returned may not be properly formed.
    *

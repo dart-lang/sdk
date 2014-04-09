@@ -827,6 +827,13 @@ abstract class AnalysisOptions {
   bool get analyzeFunctionBodies;
 
   /**
+   * Return `true` if analysis is to analyze Polymer.
+   *
+   * @return `true` if analysis is to analyze Polymer
+   */
+  bool get analyzePolymer;
+
+  /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
    *
    * @return the maximum number of sources for which AST structures should be kept in the cache
@@ -1186,20 +1193,19 @@ class AnalysisCache {
   }
 
   /**
-   * Return a collection containing all of the map entries mapping sources to cache entries. Clients
-   * should not modify the returned collection.
-   *
-   * @return a collection containing all of the map entries mapping sources to cache entries
-   */
-  Iterable<MapEntry<Source, SourceEntry>> entrySet() => getMapEntrySet(_sourceMap);
-
-  /**
    * Return the entry associated with the given source.
    *
    * @param source the source whose entry is to be returned
    * @return the entry associated with the given source
    */
   SourceEntry get(Source source) => _sourceMap[source];
+
+  /**
+   * Return an iterator returning all of the map entries mapping sources to cache entries.
+   *
+   * @return an iterator returning all of the map entries mapping sources to cache entries
+   */
+  MapIterator<Source, SourceEntry> iterator() => new SingleMapIterator<Source, SourceEntry>(_sourceMap);
 
   /**
    * Associate the given entry with the given source.
@@ -1400,6 +1406,11 @@ abstract class DartEntry implements SourceEntry {
    * The data descriptor representing the errors reported during Angular resolution.
    */
   static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.ANGULAR_ERRORS");
+
+  /**
+   * The data descriptor representing the errors reported while building an element model.
+   */
+  static final DataDescriptor<List<AnalysisError>> BUILD_ELEMENT_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILD_ELEMENT_ERRORS");
 
   /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
@@ -1757,6 +1768,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ListUtilities.addAll(errors, _parseErrors);
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
+      ListUtilities.addAll(errors, state._buildElementErrors);
       ListUtilities.addAll(errors, state._resolutionErrors);
       ListUtilities.addAll(errors, state._verificationErrors);
       ListUtilities.addAll(errors, state._hints);
@@ -1880,7 +1892,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
+          return state._buildElementErrorsState;
+        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnitState;
@@ -1895,7 +1909,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       return CacheState.INVALID;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
@@ -1942,7 +1956,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
+          return state._buildElementErrors;
+        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrors;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnit;
@@ -1957,7 +1973,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       return AnalysisError.NO_ERRORS;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
       return null;
@@ -1999,10 +2015,12 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return _sourceKindState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
       return _tokenStreamState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    } else if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
+          return state._buildElementErrorsState == CacheState.INVALID;
+        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnitState == CacheState.INVALID;
@@ -2361,7 +2379,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   void setStateInLibrary(DataDescriptor descriptor, Source librarySource, CacheState cacheState) {
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
+      state._buildElementErrors = updatedValue(cacheState, state._buildElementErrors, AnalysisError.NO_ERRORS);
+      state._buildElementErrorsState = cacheState;
+    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
       state._resolutionErrorsState = cacheState;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -2435,7 +2456,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   void setValueInLibrary(DataDescriptor descriptor, Source librarySource, Object value) {
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
+      state._buildElementErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
+      state._buildElementErrorsState = CacheState.VALID;
+    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
       state._resolutionErrorsState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -2595,6 +2619,17 @@ class DartEntryImpl_ResolutionState {
   Source _librarySource;
 
   /**
+   * The state of the cached errors reported while building an element model.
+   */
+  CacheState _buildElementErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while building an element model, or an empty array if the errors are not
+   * currently cached.
+   */
+  List<AnalysisError> _buildElementErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached resolved compilation unit.
    */
   CacheState _resolvedUnitState = CacheState.INVALID;
@@ -2646,6 +2681,8 @@ class DartEntryImpl_ResolutionState {
    */
   void copyFrom(DartEntryImpl_ResolutionState other) {
     _librarySource = other._librarySource;
+    _buildElementErrorsState = other._buildElementErrorsState;
+    _buildElementErrors = other._buildElementErrors;
     _resolvedUnitState = other._resolvedUnitState;
     _resolvedUnit = other._resolvedUnit;
     _resolutionErrorsState = other._resolutionErrorsState;
@@ -2673,7 +2710,7 @@ class DartEntryImpl_ResolutionState {
     }
   }
 
-  bool get hasErrorState => _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
+  bool get hasErrorState => _buildElementErrorsState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
@@ -2681,6 +2718,8 @@ class DartEntryImpl_ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
+    _buildElementErrorsState = CacheState.INVALID;
+    _buildElementErrors = AnalysisError.NO_ERRORS;
     _resolvedUnitState = CacheState.INVALID;
     _resolvedUnit = null;
     _resolutionErrorsState = CacheState.INVALID;
@@ -2697,6 +2736,8 @@ class DartEntryImpl_ResolutionState {
    * will not change the state of any parse results.
    */
   void recordResolutionError() {
+    _buildElementErrorsState = CacheState.ERROR;
+    _buildElementErrors = AnalysisError.NO_ERRORS;
     _resolvedUnitState = CacheState.ERROR;
     _resolvedUnit = null;
     _resolutionErrorsState = CacheState.ERROR;
@@ -2715,6 +2756,9 @@ class DartEntryImpl_ResolutionState {
    * were invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
+    if (_buildElementErrorsState == CacheState.IN_PROCESS) {
+      _buildElementErrorsState = CacheState.INVALID;
+    }
     if (_resolvedUnitState == CacheState.IN_PROCESS) {
       _resolvedUnitState = CacheState.INVALID;
     }
@@ -2740,6 +2784,8 @@ class DartEntryImpl_ResolutionState {
    */
   void writeOn(JavaStringBuilder builder) {
     if (_librarySource != null) {
+      builder.append("; buildElementErrors = ");
+      builder.append(_buildElementErrorsState);
       builder.append("; resolvedUnit = ");
       builder.append(_resolvedUnitState);
       builder.append("; resolutionErrors = ");
@@ -2838,6 +2884,16 @@ abstract class HtmlEntry implements SourceEntry {
    * The data descriptor representing the errors resulting from resolving the source.
    */
   static final DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.RESOLUTION_ERRORS");
+
+  /**
+   * The data descriptor representing the status of Polymer elements in the source.
+   */
+  static final DataDescriptor<List<AnalysisError>> POLYMER_BUILD_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_BUILD_ERRORS");
+
+  /**
+   * The data descriptor representing the errors reported during Polymer resolution.
+   */
+  static final DataDescriptor<List<AnalysisError>> POLYMER_RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_RESOLUTION_ERRORS");
 
   /**
    * Return all of the errors associated with the compilation unit that are currently cached.
@@ -2978,6 +3034,28 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
 
   /**
+   * The state of the Polymer elements.
+   */
+  CacheState _polymerBuildErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Polymer HTML elements building, or an empty array if the
+   * error are not currently cached.
+   */
+  List<AnalysisError> _polymerBuildErrors = AnalysisError.NO_ERRORS;
+
+  /**
+   * The state of the Polymer resolution errors.
+   */
+  CacheState _polymerResolutionErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Polymer resolution, or an empty array if the error are not
+   * currently cached.
+   */
+  List<AnalysisError> _polymerResolutionErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * Flush any AST structures being maintained by this entry.
    */
   void flushAstStructures() {
@@ -3017,6 +3095,16 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     }
     if (_hints != null) {
       for (AnalysisError error in _hints) {
+        errors.add(error);
+      }
+    }
+    if (_polymerBuildErrors != null) {
+      for (AnalysisError error in _polymerBuildErrors) {
+        errors.add(error);
+      }
+    }
+    if (_polymerResolutionErrors != null) {
+      for (AnalysisError error in _polymerResolutionErrors) {
         errors.add(error);
       }
     }
@@ -3066,6 +3154,10 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return _resolutionErrorsState;
     } else if (identical(descriptor, HtmlEntry.HINTS)) {
       return _hintsState;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
+      return _polymerBuildErrorsState;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
+      return _polymerResolutionErrorsState;
     }
     return super.getState(descriptor);
   }
@@ -3094,6 +3186,10 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return _resolutionErrors;
     } else if (identical(descriptor, HtmlEntry.HINTS)) {
       return _hints;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
+      return _polymerBuildErrors;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
+      return _polymerResolutionErrors;
     }
     return super.getValue(descriptor);
   }
@@ -3127,6 +3223,10 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _angularEntryState = CacheState.INVALID;
     _angularErrors = AnalysisError.NO_ERRORS;
     _angularErrorsState = CacheState.INVALID;
+    _polymerBuildErrors = AnalysisError.NO_ERRORS;
+    _polymerBuildErrorsState = CacheState.INVALID;
+    _polymerResolutionErrors = AnalysisError.NO_ERRORS;
+    _polymerResolutionErrorsState = CacheState.INVALID;
     _element = null;
     _elementState = CacheState.INVALID;
     _resolutionErrors = AnalysisError.NO_ERRORS;
@@ -3163,6 +3263,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.HINTS, CacheState.ERROR);
+    setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.ERROR);
+    setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
   }
 
   @override
@@ -3200,6 +3302,12 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (identical(descriptor, HtmlEntry.HINTS)) {
       _hints = updatedValue(state, _hints, AnalysisError.NO_ERRORS);
       _hintsState = state;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
+      _polymerBuildErrors = updatedValue(state, _polymerBuildErrors, null);
+      _polymerBuildErrorsState = state;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
+      _polymerResolutionErrors = updatedValue(state, _polymerResolutionErrors, null);
+      _polymerResolutionErrorsState = state;
     } else {
       super.setState(descriptor, state);
     }
@@ -3240,6 +3348,12 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (identical(descriptor, HtmlEntry.HINTS)) {
       _hints = value as List<AnalysisError>;
       _hintsState = CacheState.VALID;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
+      _polymerBuildErrors = value as List<AnalysisError>;
+      _polymerBuildErrorsState = CacheState.VALID;
+    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
+      _polymerResolutionErrors = value as List<AnalysisError>;
+      _polymerResolutionErrorsState = CacheState.VALID;
     } else {
       super.setValue(descriptor, value);
     }
@@ -3265,16 +3379,20 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _resolvedUnit = other._resolvedUnit;
     _referencedLibrariesState = other._referencedLibrariesState;
     _referencedLibraries = other._referencedLibraries;
-    _resolutionErrors = other._resolutionErrors;
     _resolutionErrorsState = other._resolutionErrorsState;
+    _resolutionErrors = other._resolutionErrors;
     _elementState = other._elementState;
     _element = other._element;
-    _hints = other._hints;
     _hintsState = other._hintsState;
+    _hints = other._hints;
+    _polymerBuildErrorsState = other._polymerBuildErrorsState;
+    _polymerBuildErrors = other._polymerBuildErrors;
+    _polymerResolutionErrorsState = other._polymerResolutionErrorsState;
+    _polymerResolutionErrors = other._polymerResolutionErrors;
   }
 
   @override
-  bool get hasErrorState => super.hasErrorState || _parsedUnitState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _referencedLibrariesState == CacheState.ERROR || _elementState == CacheState.ERROR || _angularErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR;
+  bool get hasErrorState => super.hasErrorState || _parsedUnitState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _referencedLibrariesState == CacheState.ERROR || _elementState == CacheState.ERROR || _angularErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || _polymerBuildErrorsState == CacheState.ERROR || _polymerResolutionErrorsState == CacheState.ERROR;
 
   @override
   void writeOn(JavaStringBuilder builder) {
@@ -3300,6 +3418,10 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(_angularEntryState);
     builder.append("; angularErrors = ");
     builder.append(_angularErrorsState);
+    builder.append("; polymerBuildErrors = ");
+    builder.append(_polymerBuildErrorsState);
+    builder.append("; polymerResolutionErrors = ");
+    builder.append(_polymerResolutionErrorsState);
   }
 }
 
@@ -3940,9 +4062,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // only re-analyze those libraries.
       //        logInformation("Added Dart sources, invalidating all resolution information");
       List<Source> sourcesToInvalidate = new List<Source>();
-      for (MapEntry<Source, SourceEntry> mapEntry in _cache.entrySet()) {
-        Source source = mapEntry.getKey();
-        SourceEntry sourceEntry = mapEntry.getValue();
+      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+      while (iterator.moveNext()) {
+        Source source = iterator.key;
+        SourceEntry sourceEntry = iterator.value;
         if (!source.isInSystemLibrary && sourceEntry is DartEntry) {
           sourcesToInvalidate.add(source);
         }
@@ -4134,11 +4257,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext) {
     List<Source> sourcesToRemove = new List<Source>();
     // Move sources in the specified directory to the new context
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      Source source = entry.getKey();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
       if (container.contains(source)) {
         sourcesToRemove.add(source);
-        newContext.addSourceInfo(source, entry.getValue().writableCopy);
+        newContext.addSourceInfo(source, sourceEntry.writableCopy);
       }
     }
     return newContext;
@@ -4241,12 +4366,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (sourceKind == SourceKind.LIBRARY) {
       } else if (sourceKind == SourceKind.PART) {
         List<Source> librarySources = getLibrariesContaining(source);
-        for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-          SourceEntry sourceEntry = entry.getValue();
+        MapIterator<Source, SourceEntry> partIterator = _cache.iterator();
+        while (partIterator.moveNext()) {
+          SourceEntry sourceEntry = partIterator.value;
           if (sourceEntry.kind == SourceKind.HTML) {
             List<Source> referencedLibraries = (sourceEntry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_containsAny(referencedLibraries, librarySources)) {
-              htmlSources.add(entry.getKey());
+              htmlSources.add(partIterator.key);
             }
           }
         }
@@ -4276,9 +4402,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) This needs to filter out libraries that do not reference dart:html,
     // either directly or indirectly.
     List<Source> sources = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      Source source = entry.getKey();
-      SourceEntry sourceEntry = entry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
       if (sourceEntry.kind == SourceKind.LIBRARY && !source.isInSystemLibrary) {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && dartEntry.getValue(DartEntry.IS_CLIENT)) {
@@ -4293,9 +4420,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) This needs to filter out libraries that reference dart:html, either
     // directly or indirectly.
     List<Source> sources = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      Source source = entry.getKey();
-      SourceEntry sourceEntry = entry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
       if (sourceEntry.kind == SourceKind.LIBRARY && !source.isInSystemLibrary) {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
@@ -4317,14 +4445,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
     List<Source> dependentLibraries = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      SourceEntry sourceEntry = entry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      SourceEntry sourceEntry = iterator.value;
       if (sourceEntry.kind == SourceKind.LIBRARY) {
         if (_contains((sourceEntry as DartEntry).getValue(DartEntry.EXPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(entry.getKey());
+          dependentLibraries.add(iterator.key);
         }
         if (_contains((sourceEntry as DartEntry).getValue(DartEntry.IMPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(entry.getKey());
+          dependentLibraries.add(iterator.key);
         }
       }
     }
@@ -4407,11 +4536,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<Source> get refactoringUnsafeSources {
     List<Source> sources = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      SourceEntry sourceEntry = entry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is DartEntry) {
         if (!sourceEntry.isRefactoringSafe) {
-          sources.add(entry.getKey());
+          sources.add(iterator.key);
         }
       }
     }
@@ -4467,8 +4597,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     //
     // Look for non-priority sources that need to be analyzed.
     //
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      _getSourcesNeedingProcessing(entry.getKey(), entry.getValue(), false, hintsEnabled, sources);
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      _getSourcesNeedingProcessing(iterator.key, iterator.value, false, hintsEnabled, sources);
     }
     return new List<Source>.from(sources);
   }
@@ -4477,12 +4608,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisContentStatistics get statistics {
     bool hintsEnabled = _options.hint;
     AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
-    for (MapEntry<Source, SourceEntry> mapEntry in _cache.entrySet()) {
-      statistics.addSource(mapEntry.getKey());
-      SourceEntry entry = mapEntry.getValue();
-      if (entry is DartEntry) {
-        Source source = mapEntry.getKey();
-        DartEntry dartEntry = entry;
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      SourceEntry sourceEntry = iterator.value;
+      if (sourceEntry is DartEntry) {
+        Source source = iterator.key;
+        DartEntry dartEntry = sourceEntry;
         SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
         // get library independent values
         statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
@@ -4509,8 +4640,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         }
-      } else if (entry is HtmlEntry) {
-        HtmlEntry htmlEntry = entry;
+      } else if (sourceEntry is HtmlEntry) {
+        HtmlEntry htmlEntry = sourceEntry;
         statistics.putCacheItem(htmlEntry, SourceEntry.LINE_INFO);
         statistics.putCacheItem(htmlEntry, HtmlEntry.PARSE_ERRORS);
         statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
@@ -4559,12 +4690,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
     // TODO(brianwilkerson) This does not lock against the other context's cacheLock.
-    for (MapEntry<Source, SourceEntry> entry in (context as AnalysisContextImpl)._cache.entrySet()) {
-      Source newSource = entry.getKey();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source newSource = iterator.key;
       SourceEntry existingEntry = _getReadableSourceEntry(newSource);
       if (existingEntry == null) {
         // TODO(brianwilkerson) Decide whether we really need to copy the info.
-        _cache.put(newSource, entry.getValue().writableCopy);
+        _cache.put(newSource, iterator.value.writableCopy);
       } else {
       }
     }
@@ -4619,16 +4751,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     Source htmlSource = _sourceFactory.forUri(DartSdk.DART_HTML);
-    for (MapEntry<Source, LibraryElement> entry in getMapEntrySet(elementMap)) {
-      Source librarySource = entry.getKey();
-      LibraryElement library = entry.getValue();
+    for (MapIterator<Source, LibraryElement> iter = SingleMapIterator.forMap(elementMap); iter.moveNext();) {
+      Source librarySource = iter.key;
+      LibraryElement library = iter.value;
       //
       // Cache the element in the library's info.
       //
       DartEntry dartEntry = _getReadableDartEntry(librarySource);
       if (dartEntry != null) {
         DartEntryImpl dartCopy = dartEntry.writableCopy;
-        _recordElementData(dartEntry, dartCopy, library, library.source, htmlSource);
+        _recordElementData(dartCopy, library, library.source, htmlSource);
         _cache.put(librarySource, dartCopy);
       }
     }
@@ -4813,24 +4945,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             CompilationUnit unit = library.getAST(source);
             List<AnalysisError> errors = errorListener.getErrorsForSource(source);
             LineInfo lineInfo = getLineInfo(source);
-            DartEntry dartEntry = _cache.get(source) as DartEntry;
-            int sourceTime = getModificationStamp(source);
-            if (dartEntry.modificationTime != sourceTime) {
-              // The source has changed without the context being notified. Simulate notification.
-              _sourceChanged(source);
-              dartEntry = _getReadableDartEntry(source);
-              if (dartEntry == null) {
-                throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
-              }
-            }
-            DartEntryImpl dartCopy = dartEntry.writableCopy;
+            DartEntryImpl dartCopy = _cache.get(source).writableCopy as DartEntryImpl;
             if (thrownException == null) {
               dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
               dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
               dartCopy.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
               dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
               if (source == librarySource) {
-                _recordElementData(dartEntry, dartCopy, library.libraryElement, librarySource, htmlSource);
+                _recordElementData(dartCopy, library.libraryElement, librarySource, htmlSource);
               }
               _cache.storedAst(source);
             } else {
@@ -4955,7 +5077,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
               dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
               if (source == librarySource) {
-                _recordElementData(dartEntry, dartCopy, library.libraryElement, librarySource, htmlSource);
+                _recordElementData(dartCopy, library.libraryElement, librarySource, htmlSource);
               }
               _cache.storedAst(source);
             } else {
@@ -5044,8 +5166,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param container the source container containing the sources to be added to the list
    */
   void _addSourcesInContainer(List<Source> sources, SourceContainer container) {
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      Source source = entry.getKey();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
       if (container.contains(source)) {
         sources.add(source);
       }
@@ -5533,6 +5656,42 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     htmlCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
     _cache.put(source, htmlCopy);
     return new AnalysisContextImpl_TaskData(new ParseHtmlTask(this, source, htmlCopy.modificationTime, content), false);
+  }
+
+  /**
+   * Create a [PolymerBuildHtmlTask] for the given source, marking the Polymer elements as
+   * being in-process.
+   *
+   * @param source the source whose content is to be processed
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  AnalysisContextImpl_TaskData _createPolymerBuildHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return _createResolveHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+    htmlCopy.setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.IN_PROCESS);
+    _cache.put(source, htmlCopy);
+    return new AnalysisContextImpl_TaskData(new PolymerBuildHtmlTask(this, source, htmlCopy.modificationTime, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+  }
+
+  /**
+   * Create a [PolymerResolveHtmlTask] for the given source, marking the Polymer errors as
+   * being in-process.
+   *
+   * @param source the source whose content is to be resolved
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  AnalysisContextImpl_TaskData _createPolymerResolveHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return _createResolveHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+    htmlCopy.setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.IN_PROCESS);
+    _cache.put(source, htmlCopy);
+    return new AnalysisContextImpl_TaskData(new PolymerResolveHtmlTask(this, source, htmlCopy.modificationTime, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false);
   }
 
   /**
@@ -6182,6 +6341,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           return _createResolveAngularComponentTemplateTask(source, htmlEntry);
         }
       }
+      //
+      // Polymer support
+      //
+      if (_options.analyzePolymer) {
+        // Build elements.
+        CacheState polymerBuildErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
+        if (polymerBuildErrorsState == CacheState.INVALID || (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
+          return _createPolymerBuildHtmlTask(source, htmlEntry);
+        }
+        // Resolve references.
+        CacheState polymerResolutionErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
+        if (polymerResolutionErrorsState == CacheState.INVALID || (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
+          return _createPolymerResolveHtmlTask(source, htmlEntry);
+        }
+      }
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -6287,9 +6461,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<Source> _getSources(SourceKind kind) {
     List<Source> sources = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      if (entry.getValue().kind == kind) {
-        sources.add(entry.getKey());
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      if (iterator.value.kind == kind) {
+        sources.add(iterator.key);
       }
     }
     return new List.from(sources);
@@ -6396,6 +6571,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
+      // Polymer
+      if (_options.analyzePolymer) {
+        // Elements building.
+        CacheState polymerBuildErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
+        if (polymerBuildErrorsState == CacheState.INVALID || (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
+          sources.add(source);
+        }
+        // Resolution.
+        CacheState polymerResolutionErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
+        if (polymerResolutionErrorsState == CacheState.INVALID || (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
+          sources.add(source);
+        }
+      }
     }
   }
 
@@ -6406,19 +6594,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _invalidateAllResolutionInformation() {
     Map<Source, List<Source>> oldPartMap = new Map<Source, List<Source>>();
-    for (MapEntry<Source, SourceEntry> mapEntry in _cache.entrySet()) {
-      Source source = mapEntry.getKey();
-      SourceEntry sourceEntry = mapEntry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is HtmlEntry) {
         HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
         htmlCopy.invalidateAllResolutionInformation();
-        mapEntry.setValue(htmlCopy);
+        iterator.value = htmlCopy;
       } else if (sourceEntry is DartEntry) {
         DartEntry dartEntry = sourceEntry;
         oldPartMap[source] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         dartCopy.invalidateAllResolutionInformation();
-        mapEntry.setValue(dartCopy);
+        iterator.value = dartCopy;
         _workManager.add(source, SourcePriority.UNKNOWN);
       }
     }
@@ -6618,16 +6807,112 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a [BuildDartElementModelTask]. If the results
+   * were computed from data that is now out-of-date, then the results will not be recorded.
+   *
+   * @param task the task that was performed
+   * @return an entry containing the recorded results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  DartEntry _recordBuildDartElementModelTask(BuildDartElementModelTask task) {
+    Source targetLibrary = task.targetLibrary;
+    List<ResolvableLibrary> builtLibraries = task.librariesInCycle;
+    AnalysisException thrownException = task.exception;
+    DartEntry targetEntry = null;
+    if (_allModificationTimesMatch(builtLibraries)) {
+      Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+      RecordingErrorListener errorListener = task.errorListener;
+      for (ResolvableLibrary library in builtLibraries) {
+        Source librarySource = library.librarySource;
+        for (Source source in library.compilationUnitSources) {
+          CompilationUnit unit = library.getAST(source);
+          List<AnalysisError> errors = errorListener.getErrorsForSource(source);
+          LineInfo lineInfo = getLineInfo(source);
+          DartEntryImpl dartCopy = _cache.get(source).writableCopy as DartEntryImpl;
+          if (thrownException == null) {
+            dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, errors);
+            if (source == librarySource) {
+              LibraryElementImpl libraryElement = library.libraryElement;
+              dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
+              dartCopy.setValue(DartEntry.IS_LAUNCHABLE, libraryElement.entryPoint != null);
+              dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new Set<LibraryElement>()));
+            }
+          } else {
+            dartCopy.recordResolutionError();
+            _cache.remove(source);
+          }
+          dartCopy.exception = thrownException;
+          _cache.put(source, dartCopy);
+          if (source != librarySource) {
+            _workManager.add(librarySource, SourcePriority.PRIORITY_PART);
+          }
+          if (source == targetLibrary) {
+            targetEntry = dartCopy;
+          }
+          ChangeNoticeImpl notice = _getNotice(source);
+          notice.compilationUnit = unit;
+          notice.setErrors(dartCopy.allErrors, lineInfo);
+        }
+      }
+    } else {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.println("Build element model results discarded for");
+      for (ResolvableLibrary library in builtLibraries) {
+        for (Source source in library.compilationUnitSources) {
+          DartEntry dartEntry = _getReadableDartEntry(source);
+          if (dartEntry != null) {
+            int resultTime = library.getModificationTime(source);
+            writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}");
+            DartEntryImpl dartCopy = dartEntry.writableCopy;
+            if (thrownException == null || resultTime >= 0) {
+              //
+              // The analysis was performed on out-of-date sources. Mark the cache so that the
+              // sources will be re-analyzed using the up-to-date sources.
+              //
+              dartCopy.recordResolutionNotInProcess();
+            } else {
+              //
+              // We could not determine whether the sources were up-to-date or out-of-date. Mark
+              // the cache so that we won't attempt to re-analyze the sources until there's a
+              // good chance that we'll be able to do so without error.
+              //
+              dartCopy.recordResolutionError();
+              _cache.remove(source);
+            }
+            dartCopy.exception = thrownException;
+            _cache.put(source, dartCopy);
+            if (source == targetLibrary) {
+              targetEntry = dartCopy;
+            }
+          } else {
+            writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, no entry");
+          }
+        }
+      }
+      _logInformation(writer.toString());
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    if (targetEntry == null) {
+      targetEntry = _getReadableDartEntry(targetLibrary);
+      if (targetEntry == null) {
+        throw new AnalysisException.con1("A Dart file became a non-Dart file: ${targetLibrary.fullName}");
+      }
+    }
+    return targetEntry;
+  }
+
+  /**
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    *
-   * @param dartEntry the original cache entry from which the copy was made
    * @param dartCopy the cache entry in which data is to be recorded
    * @param library the library element used to record information
    * @param librarySource the source for the library used to record information
    * @param htmlSource the source for the HTML library
    */
-  void _recordElementData(DartEntry dartEntry, DartEntryImpl dartCopy, LibraryElement library, Source librarySource, Source htmlSource) {
+  void _recordElementData(DartEntryImpl dartCopy, LibraryElement library, Source librarySource, Source htmlSource) {
     dartCopy.setValue(DartEntry.ELEMENT, library);
     dartCopy.setValue(DartEntry.IS_LAUNCHABLE, library.entryPoint != null);
     dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(library, htmlSource, new Set<LibraryElement>()));
@@ -6742,9 +7027,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _cache.put(librarySource, dartCopy);
       throw thrownException;
     }
-    for (MapEntry<Source, TimestampedData<List<AnalysisError>>> entry in getMapEntrySet(hintMap)) {
-      Source unitSource = entry.getKey();
-      TimestampedData<List<AnalysisError>> results = entry.getValue();
+    for (MapIterator<Source, TimestampedData<List<AnalysisError>>> iter = SingleMapIterator.forMap(hintMap); iter.moveNext();) {
+      Source unitSource = iter.key;
+      TimestampedData<List<AnalysisError>> results = iter.value;
       SourceEntry sourceEntry = _cache.get(unitSource);
       if (sourceEntry is! DartEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
@@ -7063,6 +7348,148 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
         htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
         htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
+      }
+      htmlCopy.exception = thrownException;
+      _cache.put(source, htmlCopy);
+      htmlEntry = htmlCopy;
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a [PolymerBuildHtmlTask]. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   *
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  HtmlEntry _recordPolymerBuildHtmlTaskResults(PolymerBuildHtmlTask task) {
+    Source source = task.source;
+    AnalysisException thrownException = task.exception;
+    HtmlEntry htmlEntry = null;
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry == null) {
+      throw new ObsoleteSourceAnalysisException(source);
+    } else if (sourceEntry is! HtmlEntry) {
+      // This shouldn't be possible because we should never have performed the task if the source
+      // didn't represent an HTML file, but check to be safe.
+      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+    }
+    htmlEntry = sourceEntry as HtmlEntry;
+    int sourceTime = getModificationStamp(source);
+    int resultTime = task.modificationTime;
+    if (sourceTime == resultTime) {
+      if (htmlEntry.modificationTime != sourceTime) {
+        // The source has changed without the context being notified. Simulate notification.
+        _sourceChanged(source);
+        htmlEntry = _getReadableHtmlEntry(source);
+        if (htmlEntry == null) {
+          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+        }
+      }
+      HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+      if (thrownException == null) {
+        htmlCopy.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, task.errors);
+        // notify about errors
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
+      } else {
+        htmlCopy.recordResolutionError();
+      }
+      htmlCopy.exception = thrownException;
+      _cache.put(source, htmlCopy);
+      htmlEntry = htmlCopy;
+    } else {
+      HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+      if (thrownException == null || resultTime >= 0) {
+        //
+        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+        // will be re-analyzed using the up-to-date sources.
+        //
+        htmlCopy.invalidateAllInformation();
+        htmlCopy.modificationTime = sourceTime;
+        _cache.removedAst(source);
+      } else {
+        //
+        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+        // cache so that we won't attempt to re-analyze the sources until there's a good chance
+        // that we'll be able to do so without error.
+        //
+        htmlCopy.recordResolutionError();
+      }
+      htmlCopy.exception = thrownException;
+      _cache.put(source, htmlCopy);
+      htmlEntry = htmlCopy;
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a [PolymerResolveHtmlTask]. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   *
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  HtmlEntry _recordPolymerResolveHtmlTaskResults(PolymerResolveHtmlTask task) {
+    Source source = task.source;
+    AnalysisException thrownException = task.exception;
+    HtmlEntry htmlEntry = null;
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry == null) {
+      throw new ObsoleteSourceAnalysisException(source);
+    } else if (sourceEntry is! HtmlEntry) {
+      // This shouldn't be possible because we should never have performed the task if the source
+      // didn't represent an HTML file, but check to be safe.
+      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+    }
+    htmlEntry = sourceEntry as HtmlEntry;
+    int sourceTime = getModificationStamp(source);
+    int resultTime = task.modificationTime;
+    if (sourceTime == resultTime) {
+      if (htmlEntry.modificationTime != sourceTime) {
+        // The source has changed without the context being notified. Simulate notification.
+        _sourceChanged(source);
+        htmlEntry = _getReadableHtmlEntry(source);
+        if (htmlEntry == null) {
+          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+        }
+      }
+      HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+      if (thrownException == null) {
+        htmlCopy.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, task.errors);
+        // notify about errors
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
+      } else {
+        htmlCopy.recordResolutionError();
+      }
+      htmlCopy.exception = thrownException;
+      _cache.put(source, htmlCopy);
+      htmlEntry = htmlCopy;
+    } else {
+      HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+      if (thrownException == null || resultTime >= 0) {
+        //
+        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+        // will be re-analyzed using the up-to-date sources.
+        //
+        htmlCopy.invalidateAllInformation();
+        htmlCopy.modificationTime = sourceTime;
+        _cache.removedAst(source);
+      } else {
+        //
+        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+        // cache so that we won't attempt to re-analyze the sources until there's a good chance
+        // that we'll be able to do so without error.
+        //
+        htmlCopy.recordResolutionError();
       }
       htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
@@ -7516,9 +7943,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldPartMap the table containing the parts associated with each library
    */
   void _removeFromPartsUsingMap(Map<Source, List<Source>> oldPartMap) {
-    for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
-      Source librarySource = entry.getKey();
-      List<Source> oldParts = entry.getValue();
+    for (MapIterator<Source, List<Source>> iter = SingleMapIterator.forMap(oldPartMap); iter.moveNext();) {
+      Source librarySource = iter.key;
+      List<Source> oldParts = iter.value;
       for (int i = 0; i < oldParts.length; i++) {
         Source partSource = oldParts[i];
         if (partSource != librarySource) {
@@ -7667,9 +8094,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int consistencyCheckStart = JavaSystem.nanoTime();
     List<Source> changedSources = new List<Source>();
     List<Source> missingSources = new List<Source>();
-    for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      Source source = entry.getKey();
-      SourceEntry sourceEntry = entry.getValue();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
       int sourceTime = getModificationStamp(source);
       if (sourceTime != sourceEntry.modificationTime) {
         changedSources.add(source);
@@ -7716,6 +8144,9 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
   AnalysisContextImpl_AnalysisTaskResultRecorder(this.AnalysisContextImpl_this);
 
   @override
+  DartEntry visitBuildDartElementModelTask(BuildDartElementModelTask task) => AnalysisContextImpl_this._recordBuildDartElementModelTask(task);
+
+  @override
   DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task) => AnalysisContextImpl_this._recordGenerateDartErrorsTask(task);
 
   @override
@@ -7732,6 +8163,12 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
 
   @override
   HtmlEntry visitParseHtmlTask(ParseHtmlTask task) => AnalysisContextImpl_this._recordParseHtmlTaskResults(task);
+
+  @override
+  HtmlEntry visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) => AnalysisContextImpl_this._recordPolymerBuildHtmlTaskResults(task);
+
+  @override
+  HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) => AnalysisContextImpl_this._recordPolymerResolveHtmlTaskResults(task);
 
   @override
   HtmlEntry visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) => AnalysisContextImpl_this._recordResolveAngularComponentTemplateTaskResults(task);
@@ -8417,6 +8854,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to analyze Angular.
    */
   bool analyzeAngular = true;
+
+  /**
+   * A flag indicating whether analysis is to analyze Polymer.
+   */
+  bool analyzePolymer = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -9836,11 +10278,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
  */
 class PerformanceStatistics {
   /**
-   * The [TimeCounter] for time spent in Angular analysis.
-   */
-  static TimeCounter angular = new TimeCounter();
-
-  /**
    * The [TimeCounter] for time spent in reading files.
    */
   static TimeCounter io = new TimeCounter();
@@ -9861,6 +10298,16 @@ class PerformanceStatistics {
   static TimeCounter resolve = new TimeCounter();
 
   /**
+   * The [TimeCounter] for time spent in Angular analysis.
+   */
+  static TimeCounter angular = new TimeCounter();
+
+  /**
+   * The [TimeCounter] for time spent in Polymer analysis.
+   */
+  static TimeCounter polymer = new TimeCounter();
+
+  /**
    * The [TimeCounter] for time spent in error verifier.
    */
   static TimeCounter errors = new TimeCounter();
@@ -9879,6 +10326,7 @@ class PerformanceStatistics {
     parse = new TimeCounter();
     resolve = new TimeCounter();
     angular = new TimeCounter();
+    polymer = new TimeCounter();
     errors = new TimeCounter();
     hints = new TimeCounter();
   }
@@ -9912,14 +10360,14 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<MapEntry<Source, Set<AnalysisError>>> entrySet = getMapEntrySet(_errors);
-    int numEntries = entrySet.length;
+    Iterable<Set<AnalysisError>> errorsSets = _errors.values;
+    int numEntries = errorsSets.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, Set<AnalysisError>> entry in entrySet) {
-      resultList.addAll(entry.getValue());
+    for (Set<AnalysisError> errorsSet in errorsSets) {
+      resultList.addAll(errorsSet);
     }
     return new List.from(resultList);
   }
@@ -11595,6 +12043,396 @@ abstract class NgProcessor {
 }
 
 /**
+ * Instances of the class [PolymerHtmlUnitBuilder] build Polymer specific elements.
+ */
+class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
+  /**
+   * These names are forbidden to use as a custom tag name.
+   *
+   * http://w3c.github.io/webcomponents/spec/custom/#concepts
+   */
+  static Set<String> _FORBIDDEN_TAG_NAMES = new Set();
+
+  static bool isValidAttributeName(String name) {
+    // cannot be empty
+    if (name.isEmpty) {
+      return false;
+    }
+    // check characters
+    int length = name.length;
+    for (int i = 0; i < length; i++) {
+      int c = name.codeUnitAt(i);
+      if (i == 0) {
+        if (!Character.isLetter(c)) {
+          return false;
+        }
+      } else {
+        if (!(Character.isLetterOrDigit(c) || c == 0x5F)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  static bool isValidTagName(String name) {
+    // cannot be empty
+    if (name.isEmpty) {
+      return false;
+    }
+    // check for forbidden name
+    if (_FORBIDDEN_TAG_NAMES.contains(name)) {
+      return false;
+    }
+    // check characters
+    int length = name.length;
+    bool hasDash = false;
+    for (int i = 0; i < length; i++) {
+      int c = name.codeUnitAt(i);
+      // check for '-'
+      if (c == 0x2D) {
+        hasDash = true;
+      }
+      // check character
+      if (i == 0) {
+        if (hasDash) {
+          return false;
+        }
+        if (!Character.isLetter(c)) {
+          return false;
+        }
+      } else {
+        if (!(Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F)) {
+          return false;
+        }
+      }
+    }
+    if (!hasDash) {
+      return false;
+    }
+    return true;
+  }
+
+  final InternalAnalysisContext _context;
+
+  TypeProvider _typeProvider;
+
+  final AnalysisErrorListener _errorListener;
+
+  final Source _source;
+
+  final LineInfo _lineInfo;
+
+  final ht.HtmlUnit _unit;
+
+  List<PolymerTagHtmlElement> _tagHtmlElements = [];
+
+  ht.XmlTagNode _elementNode;
+
+  String _elementName;
+
+  PolymerTagHtmlElementImpl _htmlElement;
+
+  PolymerTagDartElementImpl _dartElement;
+
+  PolymerHtmlUnitBuilder(this._context, this._errorListener, this._source, this._lineInfo, this._unit) {
+    this._typeProvider = _context.typeProvider;
+  }
+
+  /**
+   * Builds Polymer specific HTML elements.
+   */
+  void build() {
+    _unit.accept(this);
+    // set Polymer tags
+    HtmlElementImpl unitElement = _unit.element as HtmlElementImpl;
+    unitElement.polymerTags = new List.from(_tagHtmlElements);
+  }
+
+  @override
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    if (node.tag == "polymer-element") {
+      _createTagHtmlElement(node);
+    }
+    // visit children
+    return super.visitXmlTagNode(node);
+  }
+
+  void _createAttributeElements() {
+    // prepare "attributes" attribute
+    ht.XmlAttributeNode attributesAttribute = _elementNode.getAttribute("attributes");
+    if (attributesAttribute == null) {
+      return;
+    }
+    // check if there is a Dart part to resolve against it
+    if (_dartElement == null) {
+      // TODO(scheglov) maybe report error (if it is allowed at all to have element without Dart part)
+      return;
+    }
+    // prepare value of the "attributes" attribute
+    String attributesText = attributesAttribute.text;
+    if (attributesText.trim().isEmpty) {
+      _reportErrorForAttribute(attributesAttribute, PolymerCode.EMPTY_ATTRIBUTES, []);
+      return;
+    }
+    // prepare attribute name tokens
+    List<PolymerHtmlUnitBuilder_NameToken> nameTokens = [];
+    {
+      int index = 0;
+      int textOffset = attributesAttribute.textOffset;
+      int nameOffset = -1;
+      JavaStringBuilder nameBuilder = new JavaStringBuilder();
+      while (index < attributesText.length) {
+        int c = attributesText.codeUnitAt(index++);
+        if (Character.isWhitespace(c)) {
+          if (nameOffset != -1) {
+            nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
+            nameBuilder = new JavaStringBuilder();
+            nameOffset = -1;
+          }
+          continue;
+        }
+        if (nameOffset == -1) {
+          nameOffset = textOffset + index - 1;
+        }
+        nameBuilder.appendChar(c);
+      }
+      if (nameOffset != -1) {
+        nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
+        nameBuilder = new JavaStringBuilder();
+      }
+    }
+    // create attributes for name tokens
+    List<PolymerAttributeElement> attributes = [];
+    Set<String> definedNames = new Set();
+    ClassElement classElement = _dartElement.classElement;
+    for (PolymerHtmlUnitBuilder_NameToken nameToken in nameTokens) {
+      int offset = nameToken._offset;
+      // prepare name
+      String name = nameToken._value;
+      if (!isValidAttributeName(name)) {
+        _reportErrorForNameToken(nameToken, PolymerCode.INVALID_ATTRIBUTE_NAME, [name]);
+        continue;
+      }
+      if (!definedNames.add(name)) {
+        _reportErrorForNameToken(nameToken, PolymerCode.DUPLICATE_ATTRIBUTE_DEFINITION, [name]);
+        continue;
+      }
+      // create attribute
+      PolymerAttributeElementImpl attribute = new PolymerAttributeElementImpl(name, offset);
+      attributes.add(attribute);
+      // resolve field
+      FieldElement field = classElement.getField(name);
+      if (field == null) {
+        _reportErrorForNameToken(nameToken, PolymerCode.UNDEFINED_ATTRIBUTE_FIELD, [name, classElement.displayName]);
+        continue;
+      }
+      if (!_isPublishedField(field)) {
+        _reportErrorForNameToken(nameToken, PolymerCode.ATTRIBUTE_FIELD_NOT_PUBLISHED, [name, classElement.displayName]);
+      }
+      attribute.field = field;
+    }
+    _htmlElement.attributes = new List.from(attributes);
+  }
+
+  void _createTagHtmlElement(ht.XmlTagNode node) {
+    this._elementNode = node;
+    this._elementName = null;
+    this._htmlElement = null;
+    this._dartElement = null;
+    // prepare 'name' attribute
+    ht.XmlAttributeNode nameAttribute = node.getAttribute("name");
+    if (nameAttribute == null) {
+      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME, []);
+      return;
+    }
+    // prepare name
+    _elementName = nameAttribute.text;
+    if (!isValidTagName(_elementName)) {
+      _reportErrorForAttributeValue(nameAttribute, PolymerCode.INVALID_TAG_NAME, [_elementName]);
+      return;
+    }
+    // TODO(scheglov) Maybe check that at least one of "template" or "script" children.
+    // TODO(scheglov) Maybe check if more than one top-level "template".
+    // create HTML element
+    int nameOffset = nameAttribute.textOffset;
+    _htmlElement = new PolymerTagHtmlElementImpl(_elementName, nameOffset);
+    // bind to the corresponding Dart element
+    _dartElement = _findTagDartElement();
+    if (_dartElement != null) {
+      _htmlElement.dartElement = _dartElement;
+      _dartElement.htmlElement = _htmlElement;
+    }
+    // TODO(scheglov) create attributes
+    _createAttributeElements();
+    // done
+    _tagHtmlElements.add(_htmlElement);
+  }
+
+  /**
+   * Returns the [PolymerTagDartElement] that corresponds to the Polymer custom tag declared
+   * by the given [XmlTagNode].
+   */
+  PolymerTagDartElementImpl _findTagDartElement() {
+    LibraryElement dartLibraryElement = dartUnitElement;
+    if (dartLibraryElement == null) {
+      return null;
+    }
+    return _findTagDartElement_inLibrary(dartLibraryElement);
+  }
+
+  /**
+   * Returns the [PolymerTagDartElementImpl] declared in the given [LibraryElement] with
+   * the [elementName]. Maybe `null`.
+   */
+  PolymerTagDartElementImpl _findTagDartElement_inLibrary(LibraryElement library) {
+    try {
+      library.accept(new RecursiveElementVisitor_PolymerHtmlUnitBuilder_findTagDartElement_inLibrary(this));
+    } on PolymerHtmlUnitBuilder_FoundTagDartElementError catch (e) {
+      return e._result;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the only [LibraryElement] referenced by a direct `script` child. Maybe
+   * `null` if none.
+   */
+  LibraryElement get dartUnitElement {
+    // TODO(scheglov) Maybe check if more than one "script".
+    for (ht.XmlTagNode child in _elementNode.tagNodes) {
+      if (child is ht.HtmlScriptTagNode) {
+        HtmlScriptElement scriptElement = child.scriptElement;
+        if (scriptElement is ExternalHtmlScriptElement) {
+          Source scriptSource = scriptElement.scriptSource;
+          if (scriptSource != null) {
+            return _context.getLibraryElement(scriptSource);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  bool _isPublishedAnnotation(ElementAnnotation annotation) {
+    Element element = annotation.element;
+    if (element != null && element.name == "published") {
+      return true;
+    }
+    return false;
+  }
+
+  bool _isPublishedField(FieldElement field) {
+    List<ElementAnnotation> annotations = field.metadata;
+    for (ElementAnnotation annotation in annotations) {
+      if (_isPublishedAnnotation(annotation)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Reports an error on the attribute's value, or (if absent) on the attribute's name.
+   */
+  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+    _reportErrorForOffset(node.offset, node.length, errorCode, arguments);
+  }
+
+  /**
+   * Reports an error on the attribute's value, or (if absent) on the attribute's name.
+   */
+  void _reportErrorForAttributeValue(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+    ht.Token valueToken = node.valueToken;
+    if (valueToken == null || valueToken.isSynthetic) {
+      _reportErrorForAttribute(node, errorCode, arguments);
+    } else {
+      _reportErrorForToken(valueToken, errorCode, arguments);
+    }
+  }
+
+  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token, ErrorCode errorCode, List<Object> arguments) {
+    int offset = token._offset;
+    int length = token._value.length;
+    _reportErrorForOffset(offset, length, errorCode, arguments);
+  }
+
+  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode, List<Object> arguments) {
+    _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
+  }
+
+  void _reportErrorForToken(ht.Token token, ErrorCode errorCode, List<Object> arguments) {
+    int offset = token.offset;
+    int length = token.length;
+    _reportErrorForOffset(offset, length, errorCode, arguments);
+  }
+}
+
+class PolymerHtmlUnitBuilder_FoundTagDartElementError extends Error {
+  final PolymerTagDartElementImpl _result;
+
+  PolymerHtmlUnitBuilder_FoundTagDartElementError(this._result);
+}
+
+class PolymerHtmlUnitBuilder_NameToken {
+  final int _offset;
+
+  final String _value;
+
+  PolymerHtmlUnitBuilder_NameToken(this._offset, this._value);
+}
+
+class RecursiveElementVisitor_PolymerHtmlUnitBuilder_findTagDartElement_inLibrary extends RecursiveElementVisitor<Object> {
+  final PolymerHtmlUnitBuilder PolymerHtmlUnitBuilder_this;
+
+  RecursiveElementVisitor_PolymerHtmlUnitBuilder_findTagDartElement_inLibrary(this.PolymerHtmlUnitBuilder_this) : super();
+
+  @override
+  Object visitPolymerTagDartElement(PolymerTagDartElement element) {
+    if (element.name == PolymerHtmlUnitBuilder_this._elementName) {
+      throw new PolymerHtmlUnitBuilder_FoundTagDartElementError(element as PolymerTagDartElementImpl);
+    }
+    return null;
+  }
+}
+
+/**
+ * Instances of the class [PolymerHtmlUnitResolver] resolve Polymer specific
+ * [XmlTagNode]s and expressions.
+ *
+ * TODO(scheglov) implement it
+ */
+class PolymerHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
+  final InternalAnalysisContext _context;
+
+  TypeProvider _typeProvider;
+
+  final AnalysisErrorListener _errorListener;
+
+  final Source _source;
+
+  final LineInfo _lineInfo;
+
+  final ht.HtmlUnit _unit;
+
+  PolymerHtmlUnitResolver(this._context, this._errorListener, this._source, this._lineInfo, this._unit) {
+    this._typeProvider = _context.typeProvider;
+  }
+
+  /**
+   * Resolves Polymer specific features.
+   */
+  void resolveUnit() {
+  }
+
+  @override
+  Object visitXmlAttributeNode(ht.XmlAttributeNode node) => super.visitXmlAttributeNode(node);
+
+  @override
+  Object visitXmlTagNode(ht.XmlTagNode node) => super.visitXmlTagNode(node);
+}
+
+/**
  * The abstract class `AnalysisTask` defines the behavior of objects used to perform an
  * analysis task.
  */
@@ -11692,6 +12530,15 @@ abstract class AnalysisTask {
  */
 abstract class AnalysisTaskVisitor<E> {
   /**
+   * Visit a [BuildDartElementModelTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitBuildDartElementModelTask(BuildDartElementModelTask task);
+
+  /**
    * Visit a [GenerateDartErrorsTask].
    *
    * @param task the task to be visited
@@ -11744,6 +12591,24 @@ abstract class AnalysisTaskVisitor<E> {
    * @throws AnalysisException if the visitor throws an exception for some reason
    */
   E visitParseHtmlTask(ParseHtmlTask task);
+
+  /**
+   * Visit a [PolymerBuildHtmlTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task);
+
+  /**
+   * Visit a [PolymerResolveHtmlTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task);
 
   /**
    * Visit a [ResolveAngularComponentTemplateTask].
@@ -11807,6 +12672,324 @@ abstract class AnalysisTaskVisitor<E> {
    * @throws AnalysisException if the visitor throws an exception for some reason
    */
   E visitScanDartTask(ScanDartTask task);
+}
+
+/**
+ * Instances of the class `BuildDartElementModelTask` build the element models for all of the
+ * libraries in a cycle.
+ */
+class BuildDartElementModelTask extends AnalysisTask {
+  /**
+   * The library for which an element model was originally requested.
+   */
+  Source _targetLibrary;
+
+  /**
+   * The libraries that are part of the cycle to be resolved.
+   */
+  final List<ResolvableLibrary> librariesInCycle;
+
+  /**
+   * The listener to which analysis errors will be reported.
+   */
+  RecordingErrorListener _errorListener;
+
+  /**
+   * A source object representing the core library (dart:core).
+   */
+  Source _coreLibrarySource;
+
+  /**
+   * The object representing the core library.
+   */
+  ResolvableLibrary _coreLibrary;
+
+  /**
+   * A table mapping library sources to the information being maintained for those libraries.
+   */
+  Map<Source, ResolvableLibrary> _libraryMap = new Map<Source, ResolvableLibrary>();
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param targetLibrary the library for which an element model was originally requested
+   * @param librariesInCycle the libraries that are part of the cycle to be resolved
+   */
+  BuildDartElementModelTask(InternalAnalysisContext context, Source targetLibrary, this.librariesInCycle) : super(context) {
+    this._errorListener = new RecordingErrorListener();
+    _coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+  }
+
+  @override
+  accept(AnalysisTaskVisitor visitor) => visitor.visitBuildDartElementModelTask(this);
+
+  /**
+   * Return the listener to which analysis errors were (or will be) reported.
+   *
+   * @return the listener to which analysis errors were reported
+   */
+  RecordingErrorListener get errorListener => _errorListener;
+
+  /**
+   * Return the library for which an element model was originally requested.
+   *
+   * @return the library for which an element model was originally requested
+   */
+  Source get targetLibrary => _targetLibrary;
+
+  @override
+  String get taskDescription {
+    Source librarySource = librariesInCycle[0].librarySource;
+    if (librarySource == null) {
+      return "build an element model for unknown library";
+    }
+    return "build an element model for ${librarySource.fullName}";
+  }
+
+  @override
+  void internalPerform() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.LibraryResolver.resolveLibrary");
+    try {
+      //
+      // Build the map of libraries that are known.
+      //
+      _libraryMap = _buildLibraryMap();
+      _coreLibrary = _libraryMap[_coreLibrarySource];
+      LibraryElement coreElement = _coreLibrary.libraryElement;
+      if (coreElement == null) {
+        throw new AnalysisException.con1("Could not resolve dart:core");
+      }
+      instrumentation.metric3("buildLibraryMap", "complete");
+      //
+      // Build the element models representing the libraries being resolved. This is done in three
+      // steps.
+      //
+      // 1. Build the basic element models without making any connections between elements other than
+      //    the basic parent/child relationships. This includes building the elements representing the
+      //    libraries.
+      //
+      _buildElementModels();
+      instrumentation.metric3("buildElementModels", "complete");
+      //
+      // 2. Build the elements for the import and export directives. This requires that we have the
+      //    elements built for the referenced libraries, but because of the possibility of circular
+      //    references needs to happen after all of the library elements have been created.
+      //
+      _buildDirectiveModels();
+      instrumentation.metric3("buildDirectiveModels", "complete");
+      //
+      // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
+      //    requires that we be able to compute the names visible in the libraries being resolved,
+      //    which in turn requires that we have resolved the import directives.
+      //
+      _buildTypeHierarchies(new TypeProviderImpl(coreElement));
+      instrumentation.metric3("buildTypeHierarchies", "complete");
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  /**
+   * Build the element model representing the combinators declared by the given directive.
+   *
+   * @param directive the directive that declares the combinators
+   * @return an array containing the import combinators that were built
+   */
+  List<NamespaceCombinator> _buildCombinators(NamespaceDirective directive) {
+    List<NamespaceCombinator> combinators = new List<NamespaceCombinator>();
+    for (Combinator combinator in directive.combinators) {
+      if (combinator is HideCombinator) {
+        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
+        hide.hiddenNames = _getIdentifiers(combinator.hiddenNames);
+        combinators.add(hide);
+      } else {
+        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
+        show.offset = combinator.offset;
+        show.end = combinator.end;
+        show.shownNames = _getIdentifiers((combinator as ShowCombinator).shownNames);
+        combinators.add(show);
+      }
+    }
+    return new List.from(combinators);
+  }
+
+  /**
+   * Every library now has a corresponding [LibraryElement], so it is now possible to resolve
+   * the import and export directives.
+   *
+   * @throws AnalysisException if the defining compilation unit for any of the libraries could not
+   *           be accessed
+   */
+  void _buildDirectiveModels() {
+    AnalysisContext analysisContext = context;
+    for (ResolvableLibrary library in librariesInCycle) {
+      Map<String, PrefixElementImpl> nameToPrefixMap = new Map<String, PrefixElementImpl>();
+      List<ImportElement> imports = new List<ImportElement>();
+      List<ExportElement> exports = new List<ExportElement>();
+      for (Directive directive in library.definingCompilationUnit.directives) {
+        if (directive is ImportDirective) {
+          ImportDirective importDirective = directive;
+          String uriContent = importDirective.uriContent;
+          if (DartUriResolver.isDartExtUri(uriContent)) {
+            library.libraryElement.hasExtUri = true;
+          }
+          Source importedSource = importDirective.source;
+          if (importedSource != null && analysisContext.exists(importedSource)) {
+            // The imported source will be null if the URI in the import directive was invalid.
+            ResolvableLibrary importedLibrary = _libraryMap[importedSource];
+            if (importedLibrary != null) {
+              ImportElementImpl importElement = new ImportElementImpl(directive.offset);
+              StringLiteral uriLiteral = importDirective.uri;
+              if (uriLiteral != null) {
+                importElement.uriOffset = uriLiteral.offset;
+                importElement.uriEnd = uriLiteral.end;
+              }
+              importElement.uri = uriContent;
+              importElement.combinators = _buildCombinators(importDirective);
+              LibraryElement importedLibraryElement = importedLibrary.libraryElement;
+              if (importedLibraryElement != null) {
+                importElement.importedLibrary = importedLibraryElement;
+              }
+              SimpleIdentifier prefixNode = directive.prefix;
+              if (prefixNode != null) {
+                importElement.prefixOffset = prefixNode.offset;
+                String prefixName = prefixNode.name;
+                PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+                if (prefix == null) {
+                  prefix = new PrefixElementImpl(prefixNode);
+                  nameToPrefixMap[prefixName] = prefix;
+                }
+                importElement.prefix = prefix;
+                prefixNode.staticElement = prefix;
+              }
+              directive.element = importElement;
+              imports.add(importElement);
+              if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+              }
+            }
+          }
+        } else if (directive is ExportDirective) {
+          ExportDirective exportDirective = directive;
+          Source exportedSource = exportDirective.source;
+          if (exportedSource != null && analysisContext.exists(exportedSource)) {
+            // The exported source will be null if the URI in the export directive was invalid.
+            ResolvableLibrary exportedLibrary = _libraryMap[exportedSource];
+            if (exportedLibrary != null) {
+              ExportElementImpl exportElement = new ExportElementImpl();
+              StringLiteral uriLiteral = exportDirective.uri;
+              if (uriLiteral != null) {
+                exportElement.uriOffset = uriLiteral.offset;
+                exportElement.uriEnd = uriLiteral.end;
+              }
+              exportElement.uri = exportDirective.uriContent;
+              exportElement.combinators = _buildCombinators(exportDirective);
+              LibraryElement exportedLibraryElement = exportedLibrary.libraryElement;
+              if (exportedLibraryElement != null) {
+                exportElement.exportedLibrary = exportedLibraryElement;
+              }
+              directive.element = exportElement;
+              exports.add(exportElement);
+              if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+              }
+            }
+          }
+        }
+      }
+      Source librarySource = library.librarySource;
+      if (!library.explicitlyImportsCore && _coreLibrarySource != librarySource) {
+        ImportElementImpl importElement = new ImportElementImpl(-1);
+        importElement.importedLibrary = _coreLibrary.libraryElement;
+        importElement.synthetic = true;
+        imports.add(importElement);
+      }
+      LibraryElementImpl libraryElement = library.libraryElement;
+      libraryElement.imports = new List.from(imports);
+      libraryElement.exports = new List.from(exports);
+      if (libraryElement.entryPoint == null) {
+        Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
+        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
+        if (element is FunctionElement) {
+          libraryElement.entryPoint = element;
+        }
+      }
+    }
+  }
+
+  /**
+   * Build element models for all of the libraries in the current cycle.
+   *
+   * @throws AnalysisException if any of the element models cannot be built
+   */
+  void _buildElementModels() {
+    for (ResolvableLibrary library in librariesInCycle) {
+      LibraryElementBuilder builder = new LibraryElementBuilder(context, _errorListener);
+      LibraryElementImpl libraryElement = builder.buildLibrary2(library);
+      library.libraryElement = libraryElement;
+    }
+  }
+
+  /**
+   * Build a table mapping library sources to the resolvable libraries representing those libraries.
+   *
+   * @return the map that was built
+   */
+  Map<Source, ResolvableLibrary> _buildLibraryMap() {
+    Map<Source, ResolvableLibrary> libraryMap = new Map<Source, ResolvableLibrary>();
+    int libraryCount = librariesInCycle.length;
+    for (int i = 0; i < libraryCount; i++) {
+      ResolvableLibrary library = librariesInCycle[i];
+      library.errorListener = _errorListener;
+      libraryMap[library.librarySource] = library;
+      List<ResolvableLibrary> dependencies = library.importsAndExports;
+      int dependencyCount = dependencies.length;
+      for (int j = 0; j < dependencyCount; j++) {
+        ResolvableLibrary dependency = dependencies[j];
+        //dependency.setErrorListener(errorListener);
+        libraryMap[dependency.librarySource] = dependency;
+      }
+    }
+    return libraryMap;
+  }
+
+  /**
+   * Resolve the type hierarchy across all of the types declared in the libraries in the current
+   * cycle.
+   *
+   * @throws AnalysisException if any of the type hierarchies could not be resolved
+   */
+  void _buildTypeHierarchies(TypeProvider typeProvider) {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (ResolvableLibrary library in librariesInCycle) {
+        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+          Source source = unit.source;
+          CompilationUnit ast = unit.compilationUnit;
+          TypeResolverVisitor visitor = new TypeResolverVisitor.con4(library, source, typeProvider);
+          ast.accept(visitor);
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Return an array containing the lexical identifiers associated with the nodes in the given list.
+   *
+   * @param names the AST nodes representing the identifiers
+   * @return the lexical identifiers associated with the nodes in the list
+   */
+  List<String> _getIdentifiers(NodeList<SimpleIdentifier> names) {
+    int count = names.length;
+    List<String> identifiers = new List<String>(count);
+    for (int i = 0; i < count; i++) {
+      identifiers[i] = names[i].name;
+    }
+    return identifiers;
+  }
 }
 
 /**
@@ -12576,6 +13759,122 @@ class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends ht.RecursiveXm
 }
 
 /**
+ * Instances of the class `PolymerBuildHtmlTask` build Polymer specific elements.
+ */
+class PolymerBuildHtmlTask extends AnalysisTask {
+  /**
+   * The source to build which Polymer HTML elements for.
+   */
+  final Source source;
+
+  /**
+   * The time at which the contents of the source were last modified.
+   */
+  final int modificationTime;
+
+  /**
+   * The line information associated with the source.
+   */
+  final LineInfo _lineInfo;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  final ht.HtmlUnit _unit;
+
+  /**
+   * The resolution errors that were discovered while building elements.
+   */
+  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param lineInfo the line information associated with the source
+   * @param unit the HTML unit to build Polymer elements for
+   */
+  PolymerBuildHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._lineInfo, this._unit) : super(context);
+
+  @override
+  accept(AnalysisTaskVisitor visitor) => visitor.visitPolymerBuildHtmlTask(this);
+
+  List<AnalysisError> get errors => _errors;
+
+  @override
+  String get taskDescription => "build Polymer elements ${source.fullName}";
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    PolymerHtmlUnitBuilder resolver = new PolymerHtmlUnitBuilder(context, errorListener, source, _lineInfo, _unit);
+    resolver.build();
+    _errors = errorListener.getErrorsForSource(source);
+  }
+}
+
+/**
+ * Instances of the class `PolymerResolveHtmlTask` performs Polymer specific HTML file
+ * resolution.
+ *
+ * TODO(scheglov) implement it
+ */
+class PolymerResolveHtmlTask extends AnalysisTask {
+  /**
+   * The source to be resolved.
+   */
+  final Source source;
+
+  /**
+   * The time at which the contents of the source were last modified.
+   */
+  final int modificationTime;
+
+  /**
+   * The line information associated with the source.
+   */
+  final LineInfo _lineInfo;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  final ht.HtmlUnit _unit;
+
+  /**
+   * The resolution errors that were discovered while resolving the source.
+   */
+  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the HTML unit to be resolved
+   */
+  PolymerResolveHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._lineInfo, this._unit) : super(context);
+
+  @override
+  accept(AnalysisTaskVisitor visitor) => visitor.visitPolymerResolveHtmlTask(this);
+
+  List<AnalysisError> get errors => _errors;
+
+  @override
+  String get taskDescription => "resolve as Polymer ${source.fullName}";
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    PolymerHtmlUnitResolver resolver = new PolymerHtmlUnitResolver(context, errorListener, source, _lineInfo, _unit);
+    resolver.resolveUnit();
+    _errors = errorListener.getErrorsForSource(source);
+  }
+}
+
+/**
  * Instances of the class `ResolveAngularComponentTemplateTask` resolve HTML template
  * referenced by [AngularComponentElement].
  */
@@ -12640,7 +13939,7 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
   ht.HtmlUnit get resolvedUnit => _resolvedUnit;
 
   @override
-  String get taskDescription => "resolving Angular template ${source}";
+  String get taskDescription => "resolve as Angular template ${source}";
 
   @override
   void internalPerform() {

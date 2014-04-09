@@ -103,6 +103,9 @@ class JavaFile {
     }
     return false;
   }
+  bool isExecutable() {
+    return _newFile().statSync().mode & 0x111 != 0;
+  }
   bool isFile() {
     return _newFile().existsSync();
   }

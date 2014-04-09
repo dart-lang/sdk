@@ -412,6 +412,15 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    * @return the classes contained in this compilation unit
    */
   List<ClassElement> get types;
+
+  /**
+   * Return `true` if this compilation unit defines a top-level function named
+   * `loadLibrary`.
+   *
+   * @return `true` if this compilation unit defines a top-level function named
+   *         `loadLibrary`
+   */
+  bool get hasLoadLibraryFunction;
 }
 
 /**
@@ -785,17 +794,23 @@ class ElementKind extends Enum<ElementKind> {
 
   static const ElementKind PARAMETER = const ElementKind('PARAMETER', 26, "parameter");
 
-  static const ElementKind PREFIX = const ElementKind('PREFIX', 27, "import prefix");
+  static const ElementKind POLYMER_ATTRIBUTE = const ElementKind('POLYMER_ATTRIBUTE', 27, "Polymer attribute");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 28, "setter");
+  static const ElementKind POLYMER_TAG_DART = const ElementKind('POLYMER_TAG_DART', 28, "Polymer Dart tag");
 
-  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
+  static const ElementKind POLYMER_TAG_HTML = const ElementKind('POLYMER_TAG_HTML', 29, "Polymer HTML tag");
 
-  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
+  static const ElementKind PREFIX = const ElementKind('PREFIX', 30, "import prefix");
 
-  static const ElementKind TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER', 31, "type parameter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 31, "setter");
 
-  static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 32, "<universe>");
+  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 32, "top level variable");
+
+  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 33, "function type alias");
+
+  static const ElementKind TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER', 34, "type parameter");
+
+  static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 35, "<universe>");
 
   static const List<ElementKind> values = const [
       ANGULAR_FILTER,
@@ -825,6 +840,9 @@ class ElementKind extends Enum<ElementKind> {
       METHOD,
       NAME,
       PARAMETER,
+      POLYMER_ATTRIBUTE,
+      POLYMER_TAG_DART,
+      POLYMER_TAG_HTML,
       PREFIX,
       SETTER,
       TOP_LEVEL_VARIABLE,
@@ -929,6 +947,12 @@ abstract class ElementVisitor<R> {
   R visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   R visitParameterElement(ParameterElement element);
+
+  R visitPolymerAttributeElement(PolymerAttributeElement element);
+
+  R visitPolymerTagDartElement(PolymerTagDartElement element);
+
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
 
   R visitPrefixElement(PrefixElement element);
 
@@ -1084,6 +1108,11 @@ abstract class FieldFormalParameterElement implements ParameterElement {
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /**
+   * The name of the synthetic function defined for libraries that are deferred.
+   */
+  static final String LOAD_LIBRARY_NAME = "loadLibrary";
+
+  /**
    * Return the resolved [FunctionDeclaration] node that declares this [FunctionElement]
    * .
    *
@@ -1175,6 +1204,14 @@ abstract class HtmlElement implements Element {
   CompilationUnitElement get angularCompilationUnit;
 
   /**
+   * Return an array containing all of the [PolymerTagHtmlElement]s defined in the HTML file.
+   *
+   * @return the [PolymerTagHtmlElement]s elements in the HTML file (not `null`,
+   *         contains no `null`s)
+   */
+  List<PolymerTagHtmlElement> get polymerTags;
+
+  /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
    * that are referenced in the {@core source} attribute of a script tag.
@@ -1235,6 +1272,13 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * @return the offset of the prefix of this import
    */
   int get prefixOffset;
+
+  /**
+   * Return `true` if this import is for a deferred library.
+   *
+   * @return `true` if this import is for a deferred library
+   */
+  bool get isDeferred;
 }
 
 /**
@@ -1347,6 +1391,13 @@ abstract class LibraryElement implements Element {
    * import directive whose URI uses the "dart-ext" scheme.
    */
   bool get hasExtUri;
+
+  /**
+   * Return `true` if this library defines a top-level function named `loadLibrary`.
+   *
+   * @return `true` if this library defines a top-level function named `loadLibrary`
+   */
+  bool get hasLoadLibraryFunction;
 
   /**
    * Return `true` if this library is created for Angular analysis. If this library has not
@@ -1876,7 +1927,7 @@ abstract class AngularDirectiveElement implements AngularHasSelectorElement {
  */
 abstract class AngularElement implements ToolkitObjectElement {
   /**
-   * An empty array of angular elements.
+   * An empty array of Angular elements.
    */
   static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
 
@@ -2087,6 +2138,87 @@ abstract class AngularViewElement implements AngularHasTemplateElement {
 }
 
 /**
+ * The interface `PolymerAttributeElement` defines an attribute in
+ * [PolymerTagHtmlElement].
+ *
+ * <pre>
+ * <polymer-element name="my-example" attributes='attrA attrB'>
+ * </polymer-element>
+ * </pre>
+ */
+abstract class PolymerAttributeElement implements PolymerElement {
+  /**
+   * An empty array of Polymer custom tag attributes.
+   */
+  static final List<PolymerAttributeElement> EMPTY_ARRAY = new List<PolymerAttributeElement>(0);
+
+  /**
+   * Return the [FieldElement] associated with this attribute. Maybe `null` if
+   * [PolymerTagDartElement] does not have a field associated with it.
+   */
+  FieldElement get field;
+}
+
+/**
+ * The interface `PolymerElement` defines the behavior of objects representing information
+ * about a Polymer specific element.
+ */
+abstract class PolymerElement implements ToolkitObjectElement {
+  /**
+   * An empty array of Polymer elements.
+   */
+  static final List<PolymerElement> EMPTY_ARRAY = new List<PolymerElement>(0);
+}
+
+/**
+ * The interface `PolymerTagDartElement` defines a Polymer custom tag in Dart.
+ *
+ * <pre>
+ * @CustomTag('my-example')
+ * </pre>
+ */
+abstract class PolymerTagDartElement implements PolymerElement {
+  /**
+   * Return the [ClassElement] that is associated with this Polymer custom tag. Not
+   * `null`, because [PolymerTagDartElement]s are created for [ClassElement]s
+   * marked with the `@CustomTag` annotation.
+   */
+  ClassElement get classElement;
+
+  /**
+   * Return the [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if
+   * it has not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagHtmlElement get htmlElement;
+}
+
+/**
+ * The interface `PolymerTagHtmlElement` defines a Polymer custom tag in HTML.
+ *
+ * <pre>
+ * <polymer-element name="my-example" attributes='attrA attrB'>
+ * </polymer-element>
+ * </pre>
+ */
+abstract class PolymerTagHtmlElement implements PolymerElement {
+  /**
+   * An empty array of [PolymerTagHtmlElement]s.
+   */
+  static final List<PolymerTagHtmlElement> EMPTY_ARRAY = new List<PolymerTagHtmlElement>(0);
+
+  /**
+   * Return an array containing all of the attributes declared by this tag.
+   */
+  List<PolymerAttributeElement> get attributes;
+
+  /**
+   * Return the [PolymerTagDartElement] part on this Polymer custom tag. Maybe `null` if
+   * it has not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagDartElement get dartElement;
+}
+
+/**
  * Instances of the class `GeneralizingElementVisitor` implement an element visitor that will
  * recursively visit all of the elements in an element model (like instances of the class
  * [RecursiveElementVisitor]). In addition, when an element of a specific type is visited not
@@ -2243,6 +2375,17 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitParameterElement(ParameterElement element) => visitLocalElement(element);
+
+  @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) => visitPolymerElement(element);
+
+  R visitPolymerElement(PolymerElement element) => visitToolkitObjectElement(element);
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) => visitPolymerElement(element);
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => visitPolymerElement(element);
 
   @override
   R visitPrefixElement(PrefixElement element) => visitElement(element);
@@ -2431,6 +2574,24 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
@@ -2539,6 +2700,15 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitParameterElement(ParameterElement element) => null;
+
+  @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) => null;
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) => null;
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => null;
 
   @override
   R visitPrefixElement(PrefixElement element) => null;
@@ -2651,6 +2821,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
+
+  /**
+   * Set the toolkit specific information objects attached to this class.
+   *
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  void addToolkitObjects(ToolkitObjectElement toolkitObject) {
+    (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
+    _toolkitObjects = ArrayUtils.add(_toolkitObjects, toolkitObject);
+  }
 
   @override
   List<PropertyAccessorElement> get accessors => _accessors;
@@ -3008,18 +3188,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
-   * Set the toolkit specific information objects attached to this class.
-   *
-   * @param toolkitObjects the toolkit objects attached to this class
-   */
-  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
-    for (ToolkitObjectElement toolkitObject in toolkitObjects) {
-      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
-    }
-    this._toolkitObjects = toolkitObjects;
-  }
-
-  /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    *
    * @param isTypedef `true` if the class is defined by a typedef construct
@@ -3273,6 +3441,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
 
   @override
   int get hashCode => source.hashCode;
+
+  @override
+  bool get hasLoadLibraryFunction {
+    for (int i = 0; i < _functions.length; i++) {
+      if (_functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Set the top-level accessors (getters and setters) contained in this compilation unit to the
@@ -4958,6 +5136,11 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
 
   /**
+   * The [PolymerTagHtmlElement]s defined in the HTML file.
+   */
+  List<PolymerTagHtmlElement> _polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
+
+  /**
    * The source that corresponds to this HTML file.
    */
   Source source;
@@ -4994,10 +5177,27 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   ElementKind get kind => ElementKind.HTML;
 
   @override
+  List<PolymerTagHtmlElement> get polymerTags => _polymerTags;
+
+  @override
   List<HtmlScriptElement> get scripts => _scripts;
 
   @override
   int get hashCode => source.hashCode;
+
+  /**
+   * Set the [PolymerTagHtmlElement]s defined in the HTML file.
+   */
+  void set polymerTags(List<PolymerTagHtmlElement> polymerTags) {
+    if (polymerTags.length == 0) {
+      this._polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
+      return;
+    }
+    for (PolymerTagHtmlElement tag in polymerTags) {
+      (tag as PolymerTagHtmlElementImpl).enclosingElement = this;
+    }
+    this._polymerTags = polymerTags;
+  }
 
   /**
    * Set the scripts contained in the HTML file to the given scripts.
@@ -5006,7 +5206,8 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    */
   void set scripts(List<HtmlScriptElement> scripts) {
     if (scripts.length == 0) {
-      scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+      this._scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+      return;
     }
     for (HtmlScriptElement script in scripts) {
       (script as HtmlScriptElementImpl).enclosingElement = this;
@@ -5018,6 +5219,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_scripts, visitor);
+    safelyVisitChildren(_polymerTags, visitor);
   }
 
   @override
@@ -5086,6 +5288,18 @@ class ImportElementImpl extends UriReferencedElementImpl implements ImportElemen
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  bool get isDeferred => hasModifier(Modifier.DEFERRED);
+
+  /**
+   * Set whether this import is for a deferred library to correspond to the given value.
+   *
+   * @param isDeferred `true` if this import is for a deferred library
+   */
+  void set deferred(bool isDeferred) {
+    setModifier(Modifier.DEFERRED, isDeferred);
+  }
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -5374,6 +5588,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   int get hashCode => _definingCompilationUnit.hashCode;
+
+  @override
+  bool get hasLoadLibraryFunction {
+    if (_definingCompilationUnit.hasLoadLibraryFunction) {
+      return true;
+    }
+    for (int i = 0; i < _parts.length; i++) {
+      if (_parts[i].hasLoadLibraryFunction) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   bool get isAngularHtml => _isAngularHtml;
@@ -5752,52 +5979,58 @@ class Modifier extends Enum<Modifier> {
   static const Modifier CONST = const Modifier('CONST', 1);
 
   /**
+   * Indicates that the import element represents a deferred library.
+   */
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 2);
+
+  /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 2);
+  static const Modifier FACTORY = const Modifier('FACTORY', 3);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 3);
+  static const Modifier FINAL = const Modifier('FINAL', 4);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 4);
+  static const Modifier GETTER = const Modifier('GETTER', 5);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit contains at least one
    * import directive whose URI uses the "dart-ext" scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 5);
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 6);
 
-  static const Modifier MIXIN = const Modifier('MIXIN', 6);
+  static const Modifier MIXIN = const Modifier('MIXIN', 7);
 
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 7);
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 8);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 8);
+  static const Modifier SETTER = const Modifier('SETTER', 9);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 9);
+  static const Modifier STATIC = const Modifier('STATIC', 10);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 10);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 11);
 
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 11);
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 12);
 
   static const List<Modifier> values = const [
       ABSTRACT,
       CONST,
+      DEFERRED,
       FACTORY,
       FINAL,
       GETTER,
@@ -8012,6 +8245,128 @@ abstract class VariableMember extends Member implements VariableElement {
 }
 
 /**
+ * Implementation of `PolymerAttributeElement`.
+ */
+class PolymerAttributeElementImpl extends PolymerElementImpl implements PolymerAttributeElement {
+  /**
+   * The [FieldElement] associated with this attribute.
+   */
+  FieldElement field;
+
+  /**
+   * Initialize a newly created Polymer attribute to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerAttributeElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerAttributeElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_ATTRIBUTE;
+}
+
+/**
+ * Implementation of `PolymerElement`.
+ */
+abstract class PolymerElementImpl extends ToolkitObjectElementImpl implements PolymerElement {
+  /**
+   * Initialize a newly created Polymer element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * Implementation of `PolymerTagDartElement`.
+ */
+class PolymerTagDartElementImpl extends PolymerElementImpl implements PolymerTagDartElement {
+  /**
+   * The [ClassElement] that is associated with this Polymer custom tag.
+   */
+  final ClassElement classElement;
+
+  /**
+   * The [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if it has
+   * not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagHtmlElement htmlElement;
+
+  /**
+   * Initialize a newly created Dart part of a Polymer tag to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerTagDartElementImpl(String name, int nameOffset, this.classElement) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerTagDartElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_TAG_DART;
+}
+
+/**
+ * Implementation of `PolymerTagHtmlElement`.
+ */
+class PolymerTagHtmlElementImpl extends PolymerElementImpl implements PolymerTagHtmlElement {
+  /**
+   * The [PolymerTagDartElement] part of this Polymer custom tag. Maybe `null` if it has
+   * not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagDartElement dartElement;
+
+  /**
+   * The array containing all of the attributes declared by this tag.
+   */
+  List<PolymerAttributeElement> _attributes = PolymerAttributeElement.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created HTML part of a Polymer tag to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerTagHtmlElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerTagHtmlElement(this);
+
+  @override
+  List<PolymerAttributeElement> get attributes => _attributes;
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_TAG_HTML;
+
+  /**
+   * Set an array containing all of the attributes declared by this tag.
+   *
+   * @param attributes the properties to set
+   */
+  void set attributes(List<PolymerAttributeElement> attributes) {
+    for (PolymerAttributeElement property in attributes) {
+      encloseElement(property as PolymerAttributeElementImpl);
+    }
+    this._attributes = attributes;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_attributes, visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/**
  * The unique instance of the class `BottomTypeImpl` implements the type `bottom`.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -8140,12 +8495,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
-    JavaIterator<MapEntry<String, DartType>> firstIterator = new JavaIterator(getMapEntrySet(firstTypes));
-    JavaIterator<MapEntry<String, DartType>> secondIterator = new JavaIterator(getMapEntrySet(secondTypes));
-    while (firstIterator.hasNext) {
-      MapEntry<String, DartType> firstEntry = firstIterator.next();
-      MapEntry<String, DartType> secondEntry = secondIterator.next();
-      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
+    MapIterator<String, DartType> firstIterator = SingleMapIterator.forMap(firstTypes);
+    MapIterator<String, DartType> secondIterator = SingleMapIterator.forMap(secondTypes);
+    while (firstIterator.moveNext() && secondIterator.moveNext()) {
+      if (firstIterator.key != secondIterator.key || !(firstIterator.value as TypeImpl).internalEquals(secondIterator.value, visitedElementPairs)) {
         return false;
       }
     }
@@ -8221,15 +8574,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           needsComma = false;
         }
         builder.append("{");
-        for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+        for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
           if (needsComma) {
             builder.append(", ");
           } else {
             needsComma = true;
           }
-          builder.append(entry.getKey());
+          builder.append(iter.key);
           builder.append(": ");
-          builder.append(entry.getValue().displayName);
+          builder.append(iter.value.displayName);
         }
         builder.append("}");
         needsComma = true;
@@ -8400,14 +8753,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is more specific then the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      MapIterator<String, DartType> iteratorS = SingleMapIterator.forMap(namedTypesS);
+      while (iteratorS.moveNext()) {
+        DartType typeT = namedTypesT[iteratorS.key];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan2(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan2(iteratorS.value, withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -8520,15 +8872,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = false;
       }
       builder.append("{");
-      for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+      for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
         if (needsComma) {
           builder.append(", ");
         } else {
           needsComma = true;
         }
-        builder.append(entry.getKey());
+        builder.append(iter.key);
         builder.append(": ");
-        (entry.getValue() as TypeImpl).appendTo(builder);
+        (iter.value as TypeImpl).appendTo(builder);
       }
       builder.append("}");
       needsComma = true;
@@ -8616,14 +8968,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is assignable to the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      MapIterator<String, DartType> iteratorS = SingleMapIterator.forMap(namedTypesS);
+      while (iteratorS.moveNext()) {
+        DartType typeT = namedTypesT[iteratorS.key];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isAssignableTo2(entryS.getValue(), visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isAssignableTo2(iteratorS.value, visitedTypePairs)) {
           return false;
         }
       }

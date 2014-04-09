@@ -335,31 +335,33 @@ class Keyword extends Enum<Keyword> {
 
   static const Keyword AS = const Keyword.con2('AS', 34, "as", true);
 
-  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 35, "dynamic", true);
+  static const Keyword DEFERRED = const Keyword.con2('DEFERRED', 35, "deferred", true);
 
-  static const Keyword EXPORT = const Keyword.con2('EXPORT', 36, "export", true);
+  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 36, "dynamic", true);
 
-  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 37, "external", true);
+  static const Keyword EXPORT = const Keyword.con2('EXPORT', 37, "export", true);
 
-  static const Keyword FACTORY = const Keyword.con2('FACTORY', 38, "factory", true);
+  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 38, "external", true);
 
-  static const Keyword GET = const Keyword.con2('GET', 39, "get", true);
+  static const Keyword FACTORY = const Keyword.con2('FACTORY', 39, "factory", true);
 
-  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 40, "implements", true);
+  static const Keyword GET = const Keyword.con2('GET', 40, "get", true);
 
-  static const Keyword IMPORT = const Keyword.con2('IMPORT', 41, "import", true);
+  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 41, "implements", true);
 
-  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 42, "library", true);
+  static const Keyword IMPORT = const Keyword.con2('IMPORT', 42, "import", true);
 
-  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 43, "operator", true);
+  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 43, "library", true);
 
-  static const Keyword PART = const Keyword.con2('PART', 44, "part", true);
+  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 44, "operator", true);
 
-  static const Keyword SET = const Keyword.con2('SET', 45, "set", true);
+  static const Keyword PART = const Keyword.con2('PART', 45, "part", true);
 
-  static const Keyword STATIC = const Keyword.con2('STATIC', 46, "static", true);
+  static const Keyword SET = const Keyword.con2('SET', 46, "set", true);
 
-  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 47, "typedef", true);
+  static const Keyword STATIC = const Keyword.con2('STATIC', 47, "static", true);
+
+  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 48, "typedef", true);
 
   static const List<Keyword> values = const [
       ASSERT,
@@ -397,6 +399,7 @@ class Keyword extends Enum<Keyword> {
       WITH,
       ABSTRACT,
       AS,
+      DEFERRED,
       DYNAMIC,
       EXPORT,
       EXTERNAL,
@@ -1457,11 +1460,6 @@ class Scanner {
         next = bigSwitch(next);
       }
     }
-    if (next == -1) {
-      return next;
-    }
-    next = _reader.advance();
-    _beginToken();
     return next;
   }
 

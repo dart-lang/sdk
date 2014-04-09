@@ -174,6 +174,11 @@ class FileNameUtilities {
 }
 
 class ArrayUtils {
+  static List add(List target, Object value) {
+    target = new List.from(target);
+    target.add(value);
+    return target;
+  }
   static List addAll(List target, List source) {
     List result = new List.from(target);
     result.addAll(source);

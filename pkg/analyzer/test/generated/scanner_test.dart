@@ -302,6 +302,14 @@ class TokenStreamValidator {
 }
 
 class ScannerTest extends JUnitTestCase {
+  void fail_incomplete_string_interpolation() {
+    // https://code.google.com/p/dart/issues/detail?id=18073
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
+        new StringToken(TokenType.STRING, "\"foo ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
+        new StringToken(TokenType.IDENTIFIER, "bar", 7)]);
+  }
+
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
   }
@@ -471,7 +479,7 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_illegalChar_cyrillicLetter_middle() {
-    _assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "Shche\u0433lov");
+    _assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 5, "Shche\u0433lov");
   }
 
   void test_illegalChar_cyrillicLetter_start() {
@@ -540,6 +548,10 @@ class ScannerTest extends JUnitTestCase {
 
   void test_keyword_default() {
     _assertKeywordToken("default");
+  }
+
+  void test_keyword_deferred() {
+    _assertKeywordToken("deferred");
   }
 
   void test_keyword_do() {
@@ -1092,6 +1104,22 @@ class ScannerTest extends JUnitTestCase {
   }
 
   /**
+   * Assert that scanning the given source produces an error with the given code, and also produces
+   * the given tokens.
+   *
+   * @param expectedError the error that should be produced
+   * @param expectedOffset the string offset that should be associated with the error
+   * @param source the source to be scanned to produce the error
+   * @param expectedTokens the tokens that are expected to be in the source
+   */
+  void _assertErrorAndTokens(ScannerErrorCode expectedError, int expectedOffset, String source, List<Token> expectedTokens) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Token token = _scanWithListener(source, listener);
+    listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset)])]);
+    _checkTokens(token, expectedTokens);
+  }
+
+  /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
    *
@@ -1190,7 +1218,12 @@ class ScannerTest extends JUnitTestCase {
    */
   void _assertTokens(String source, List<Token> expectedTokens) {
     Token token = _scan(source);
-    JUnitTestCase.assertNotNull(token);
+    _checkTokens(token, expectedTokens);
+  }
+
+  void _checkTokens(Token firstToken, List<Token> expectedTokens) {
+    JUnitTestCase.assertNotNull(firstToken);
+    Token token = firstToken;
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
       JUnitTestCase.assertEqualsMsg("Wrong type for token ${i}", expectedToken.type, token.type);
@@ -1454,6 +1487,10 @@ class ScannerTest extends JUnitTestCase {
       _ut.test('test_keyword_default', () {
         final __test = new ScannerTest();
         runJUnitTest(__test, __test.test_keyword_default);
+      });
+      _ut.test('test_keyword_deferred', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_deferred);
       });
       _ut.test('test_keyword_do', () {
         final __test = new ScannerTest();

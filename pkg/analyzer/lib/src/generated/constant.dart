@@ -17,7 +17,7 @@ import 'element.dart';
 import 'resolver.dart' show TypeProvider;
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart' show ParameterKind;
-import 'utilities_collection.dart' show DirectedGraph;
+import 'utilities_collection.dart';
 
 /**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
@@ -312,11 +312,11 @@ class ConstantValueComputer {
    */
   void computeValues() {
     _declarationMap = _constantFinder.variableMap;
-    for (MapEntry<VariableElement, VariableDeclaration> entry in getMapEntrySet(_declarationMap)) {
-      VariableElement element = entry.getKey();
+    for (MapIterator<VariableElement, VariableDeclaration> iter = SingleMapIterator.forMap(_declarationMap); iter.moveNext();) {
+      VariableElement element = iter.key;
       ReferenceFinder referenceFinder = new ReferenceFinder(element, _referenceGraph);
       _referenceGraph.addNode(element);
-      entry.getValue().initializer.accept(referenceFinder);
+      iter.value.initializer.accept(referenceFinder);
     }
     while (!_referenceGraph.isEmpty) {
       VariableElement element = _referenceGraph.removeSink();
@@ -3938,9 +3938,9 @@ class MapState extends InstanceState {
     } else if (count == 0) {
       return true;
     }
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(_entries); iter.moveNext();) {
+      DartObjectImpl key = iter.key;
+      DartObjectImpl value = iter.value;
       DartObjectImpl otherValue = otherElements[key];
       if (value != otherValue) {
         return false;
@@ -3955,9 +3955,9 @@ class MapState extends InstanceState {
   @override
   Map<Object, Object> get value {
     Map<Object, Object> result = new Map<Object, Object>();
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(_entries); iter.moveNext();) {
+      DartObjectImpl key = iter.key;
+      DartObjectImpl value = iter.value;
       if (!key.hasExactValue || !value.hasExactValue) {
         return null;
       }
@@ -3968,8 +3968,8 @@ class MapState extends InstanceState {
 
   @override
   bool get hasExactValue {
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      if (!entry.getKey().hasExactValue || !entry.getValue().hasExactValue) {
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(_entries); iter.moveNext();) {
+      if (!iter.key.hasExactValue || !iter.value.hasExactValue) {
         return false;
       }
     }

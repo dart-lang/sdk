@@ -10,6 +10,7 @@ library engine.test_support;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -142,9 +143,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
-      ErrorCode code = entry.getKey();
-      int expectedCount = entry.getValue();
+    for (MapIterator<ErrorCode, int> iter = SingleMapIterator.forMap(expectedCounts); iter.moveNext();) {
+      ErrorCode code = iter.key;
+      int expectedCount = iter.value;
       int actualCount;
       List<AnalysisError> list = errorsByCode.remove(code);
       if (list == null) {
@@ -168,9 +169,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Check that there are no more errors in the actual-errors map, otherwise, record message.
     //
-    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
-      ErrorCode code = entry.getKey();
-      List<AnalysisError> actualErrors = entry.getValue();
+    for (MapIterator<ErrorCode, List<AnalysisError>> iter = SingleMapIterator.forMap(errorsByCode); iter.moveNext();) {
+      ErrorCode code = iter.key;
+      List<AnalysisError> actualErrors = iter.value;
       int actualCount = actualErrors.length;
       if (builder.length == 0) {
         builder.append("Expected ");
@@ -401,7 +402,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         return true;
       }
     }
-    return true;
+    return false;
   }
 }
 

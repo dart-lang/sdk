@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:unittest/unittest.dart' as _ut;
@@ -2077,6 +2078,17 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_importDeferredLibraryWithLoadFunction() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_importDuplicatedLibraryName() {
     Source source = addSource(EngineTestCase.createSource([
         "library test;",
@@ -2213,6 +2225,57 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "class C<E> implements A<E>, B<E> {",
         "  x(E e) {}",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_inconsistentMethodInheritance_overrideTrumpsInherits_getter() {
+    // 16134
+    Source source = addSource(EngineTestCase.createSource([
+        "class B<S> {",
+        "  S get g => null;",
+        "}",
+        "abstract class I<U> {",
+        "  U get g => null;",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  num get g => null;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_inconsistentMethodInheritance_overrideTrumpsInherits_method() {
+    // 16134
+    Source source = addSource(EngineTestCase.createSource([
+        "class B<S> {",
+        "  m(S s) => null;",
+        "}",
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  m(num n) => null;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_inconsistentMethodInheritance_overrideTrumpsInherits_setter() {
+    // 16134
+    Source source = addSource(EngineTestCase.createSource([
+        "class B<S> {",
+        "  set t(S s) {}",
+        "}",
+        "abstract class I<U> {",
+        "  set t(U u) {}",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  set t(num n) {}",
         "}"]));
     resolve(source);
     assertNoErrors(source);
@@ -3019,6 +3082,46 @@ class NonErrorResolverTest extends ResolverTestCase {
         "  set s(v);",
         "}",
         "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class M {}",
+        "abstract class A {}",
+        "abstract class I {",
+        "  m();",
+        "}",
+        "abstract class B = A with M implements I;"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class M {",
+        "  m();",
+        "}",
+        "abstract class A {}",
+        "abstract class B = A with M;"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "class M {}",
+        "abstract class A {",
+        "  m();",
+        "}",
+        "abstract class B = A with M;"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -3876,6 +3979,21 @@ class NonErrorResolverTest extends ResolverTestCase {
         "class _InvertedCodec<T2, S2> extends Codec<T2, S2> {",
         "  _InvertedCodec(Codec<S2, T2> codec);",
         "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_sharedDeferredPrefix() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f1() {}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "f2() {}"]));
+    addNamedSource("/lib3.dart", EngineTestCase.createSource(["library lib3;", "f3() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "import 'lib2.dart' as lib;",
+        "import 'lib3.dart' as lib;",
+        "main() { lib1.f1(); lib.f2(); lib.f3(); }"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -5008,6 +5126,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_typeParameter);
       });
+      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
+      });
       _ut.test('test_importDuplicatedLibraryName', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_importDuplicatedLibraryName);
@@ -5047,6 +5169,18 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_inconsistentMethodInheritance_methods_typeParameters1', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_inconsistentMethodInheritance_methods_typeParameters1);
+      });
+      _ut.test('test_inconsistentMethodInheritance_overrideTrumpsInherits_getter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_overrideTrumpsInherits_getter);
+      });
+      _ut.test('test_inconsistentMethodInheritance_overrideTrumpsInherits_method', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_overrideTrumpsInherits_method);
+      });
+      _ut.test('test_inconsistentMethodInheritance_overrideTrumpsInherits_setter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_overrideTrumpsInherits_setter);
       });
       _ut.test('test_inconsistentMethodInheritance_simple', () {
         final __test = new NonErrorResolverTest();
@@ -5344,6 +5478,18 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter);
       });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass);
+      });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter);
@@ -5623,6 +5769,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_reversedTypeArguments', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_reversedTypeArguments);
+      });
+      _ut.test('test_sharedDeferredPrefix', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_sharedDeferredPrefix);
       });
       _ut.test('test_staticAccessToInstanceMember_annotation', () {
         final __test = new NonErrorResolverTest();
@@ -7774,55 +7924,6 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void fail_overriddingPrivateMember_getter() {
-    Source source = addSource(EngineTestCase.createSource([
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  get _g => 0;",
-        "}"]));
-    Source source2 = addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {", "  get _g => 0;", "}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.OVERRIDDING_PRIVATE_MEMBER]);
-    verify([source, source2]);
-  }
-
-  void fail_overriddingPrivateMember_method() {
-    Source source = addSource(EngineTestCase.createSource([
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  _m(int x) => 0;",
-        "}"]));
-    Source source2 = addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {", "  _m(int x) => 0;", "}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.OVERRIDDING_PRIVATE_MEMBER]);
-    verify([source, source2]);
-  }
-
-  void fail_overriddingPrivateMember_method2() {
-    Source source = addSource(EngineTestCase.createSource([
-        "import 'lib1.dart';",
-        "class B extends A {}",
-        "class C extends B {",
-        "  _m(int x) => 0;",
-        "}"]));
-    Source source2 = addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {", "  _m(int x) => 0;", "}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.OVERRIDDING_PRIVATE_MEMBER]);
-    verify([source, source2]);
-  }
-
-  void fail_overriddingPrivateMember_setter() {
-    Source source = addSource(EngineTestCase.createSource([
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  set _s(int x) {}",
-        "}"]));
-    Source source2 = addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {", "  set _s(int x) {}", "}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.OVERRIDDING_PRIVATE_MEMBER]);
-    verify([source, source2]);
-  }
-
   void fail_overrideEqualsButNotHashCode() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  bool operator ==(x) {}", "}"]));
     resolve(source);
@@ -8343,6 +8444,75 @@ class HintCodeTest extends ResolverTestCase {
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}", "class B {}"]));
     resolve(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT]);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_instanceVariable() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int x;",
+        "}",
+        "f(var y) {",
+        "  A a;",
+        "  if(y is String) {",
+        "    a.x = y;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_localVariable() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var y) {",
+        "  if(y is String) {",
+        "    int x = y;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_message() {
+    // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
+    // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
+    JUnitTestCase.assertEquals(HintCode.INVALID_ASSIGNMENT.message, StaticTypeWarningCode.INVALID_ASSIGNMENT.message);
+  }
+
+  void test_invalidAssignment_staticVariable() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  static int x;",
+        "}",
+        "f(var y) {",
+        "  if(y is String) {",
+        "    A.x = y;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_variableDeclaration() {
+    // 17971
+    Source source = addSource(EngineTestCase.createSource([
+        "class Point {",
+        "  final num x, y;",
+        "  Point(this.x, this.y);",
+        "  Point operator +(Point other) {",
+        "    return new Point(x+other.x, y+other.y);",
+        "  }",
+        "}",
+        "main() {",
+        "  var p1 = new Point(0, 0);",
+        "  var p2 = new Point(10, 10);",
+        "  int n = p1 + p2;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -8942,6 +9112,26 @@ class HintCodeTest extends ResolverTestCase {
       _ut.test('test_duplicateImport3', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_duplicateImport3);
+      });
+      _ut.test('test_invalidAssignment_instanceVariable', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_instanceVariable);
+      });
+      _ut.test('test_invalidAssignment_localVariable', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_localVariable);
+      });
+      _ut.test('test_invalidAssignment_message', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_message);
+      });
+      _ut.test('test_invalidAssignment_staticVariable', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_staticVariable);
+      });
+      _ut.test('test_invalidAssignment_variableDeclaration', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_variableDeclaration);
       });
       _ut.test('test_isDouble', () {
         final __test = new HintCodeTest();
@@ -9633,6 +9823,12 @@ class ResolverTestCase extends EngineTestCase {
    * @throws Exception if the compilation unit could not be resolved
    */
   CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
+
+  @override
+  void tearDown() {
+    _analysisContext = null;
+    super.tearDown();
+  }
 
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
@@ -12341,6 +12537,17 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_importDeferredLibraryWithLoadFunction() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "loadLibrary() {}", "f() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
+    verify([source]);
+  }
+
   void test_importInternalLibrary() {
     Source source = addSource(EngineTestCase.createSource(["import 'dart:_interceptors';"]));
     resolve(source);
@@ -13732,6 +13939,19 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_sharedDeferredPrefix() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f1() {}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "f2() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib;",
+        "import 'lib2.dart' as lib;",
+        "main() { lib.f1(); lib.f2(); }"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX]);
+    verify([source]);
+  }
+
   void test_superInInvalidContext_binaryExpression() {
     Source source = addSource(EngineTestCase.createSource(["var v = super + 0;"]));
     resolve(source);
@@ -14792,6 +15012,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_superConstructorInvocation);
       });
+      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
+      });
       _ut.test('test_importInternalLibrary', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_importInternalLibrary);
@@ -15395,6 +15619,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_returnInGenerativeConstructor_expressionFunctionBody', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_returnInGenerativeConstructor_expressionFunctionBody);
+      });
+      _ut.test('test_sharedDeferredPrefix', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_sharedDeferredPrefix);
       });
       _ut.test('test_superInInvalidContext_binaryExpression', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -17098,6 +17326,58 @@ class PubSuggestionCodeTest extends ResolverTestCase {
 }
 
 class StaticWarningCodeTest extends ResolverTestCase {
+  void fail_invalidGetterOverrideReturnType_twoInterfaces_conflicting() {
+    // 17983
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  U get g => null;",
+        "}",
+        "abstract class J<V> {",
+        "  V get g => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  double get g => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void fail_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() {
+    // 17983
+    // language/override_inheritance_generic_test/08
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "abstract class J<V> {",
+        "  m(V v) => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  m(double d) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void fail_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting() {
+    // 17983
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  set s(U u) {}",
+        "}",
+        "abstract class J<V> {",
+        "  set s(V v) {}",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  set s(double d) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
   void fail_undefinedGetter() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
@@ -18286,13 +18566,42 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType() {
+  void test_invalidMethodOverrideNormalParamType_interface() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
         "  m(int a) {}",
         "}",
         "class B implements A {",
         "  m(String a) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidMethodOverrideNormalParamType_superclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m(int a) {}",
+        "}",
+        "class B extends A {",
+        "  m(String a) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidMethodOverrideNormalParamType_superclass_interface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "abstract class J<V> {",
+        "  m(V v) => null;",
+        "}",
+        "class B extends I<int> implements J<String> {",
+        "  m(double d) {}",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
@@ -18562,6 +18871,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidSetterOverrideNormalParamType_superclass_interface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  set setter14(int _) => null;",
+        "}",
+        "abstract class J {",
+        "  set setter14(num _) => null;",
+        "}",
+        "abstract class A extends I implements J {}",
+        "class B extends A {",
+        "  set setter14(String _) => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
   void test_invalidSetterOverrideNormalParamType_twoInterfaces() {
     // test from language/override_inheritance_field_test_34.dart
     Source source = addSource(EngineTestCase.createSource([
@@ -18812,6 +19138,46 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR]);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class M {}",
+        "abstract class A {}",
+        "abstract class I {",
+        "  m();",
+        "}",
+        "class B = A with M implements I;"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class M {",
+        "  m();",
+        "}",
+        "abstract class A {}",
+        "class B = A with M;"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+    // 15979
+    Source source = addSource(EngineTestCase.createSource([
+        "class M {}",
+        "abstract class A {",
+        "  m();",
+        "}",
+        "class B = A with M;"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
@@ -19935,9 +20301,17 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideNamedParamType);
       });
-      _ut.test('test_invalidMethodOverrideNormalParamType', () {
+      _ut.test('test_invalidMethodOverrideNormalParamType_interface', () {
         final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType);
+        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_interface);
+      });
+      _ut.test('test_invalidMethodOverrideNormalParamType_superclass', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_superclass);
+      });
+      _ut.test('test_invalidMethodOverrideNormalParamType_superclass_interface', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_superclass_interface);
       });
       _ut.test('test_invalidMethodOverrideNormalParamType_twoInterfaces', () {
         final __test = new StaticWarningCodeTest();
@@ -20014,6 +20388,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_invalidSetterOverrideNormalParamType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType);
+      });
+      _ut.test('test_invalidSetterOverrideNormalParamType_superclass_interface', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType_superclass_interface);
       });
       _ut.test('test_invalidSetterOverrideNormalParamType_twoInterfaces', () {
         final __test = new StaticWarningCodeTest();
@@ -20098,6 +20476,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_nonAbstractClassInheritsAbstractMemberFour', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberFour);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass);
       });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation', () {
         final __test = new StaticWarningCodeTest();
@@ -20413,6 +20803,8 @@ class AnalysisContextHelper {
     context.setContents(source, code);
     return source;
   }
+
+  CompilationUnitElement getDefiningUnitElement(Source source) => context.getCompilationUnitElement(source, source);
 
   CompilationUnit resolveDefiningUnit(Source source) {
     LibraryElement libraryElement = context.computeLibraryElement(source);
@@ -20775,6 +21167,7 @@ class TestTypeProvider implements TypeProvider {
     //
     // Force the referenced types to be cached.
     //
+    objectType;
     boolType;
     stringType;
     //
@@ -22393,8 +22786,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       EngineTestCase.assertSizeOfMap(0, namedTypes);
     } else {
       EngineTestCase.assertSizeOfMap(expectedNamedTypes.length, namedTypes);
-      for (MapEntry<String, DartType> entry in getMapEntrySet(expectedNamedTypes)) {
-        JUnitTestCase.assertSame(entry.getValue(), namedTypes[entry.getKey()]);
+      for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(expectedNamedTypes); iter.moveNext();) {
+        JUnitTestCase.assertSame(iter.value, namedTypes[iter.key]);
       }
     }
     JUnitTestCase.assertSame(expectedReturnType, functionType.returnType);
@@ -23056,19 +23449,6 @@ class NonHintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_overriddingPrivateMember_sameLibrary() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  _m(int x) => 0;",
-        "}",
-        "class B extends A {",
-        "  _m(int x) => 0;",
-        "}"]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_overrideEqualsButNotHashCode() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -23595,10 +23975,6 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_missingReturn_voidReturnType', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_missingReturn_voidReturnType);
-      });
-      _ut.test('test_overriddingPrivateMember_sameLibrary', () {
-        final __test = new NonHintCodeTest();
-        runJUnitTest(__test, __test.test_overriddingPrivateMember_sameLibrary);
       });
       _ut.test('test_overrideEqualsButNotHashCode', () {
         final __test = new NonHintCodeTest();
@@ -25445,31 +25821,31 @@ class ScopeBuilderTest extends EngineTestCase {
 }
 
 main() {
-//  DeclarationMatcherTest.dartSuite();
-//  ElementResolverTest.dartSuite();
-//  IncrementalResolverTest.dartSuite();
-//  InheritanceManagerTest.dartSuite();
-//  LibraryElementBuilderTest.dartSuite();
-//  LibraryTest.dartSuite();
-//  StaticTypeAnalyzerTest.dartSuite();
-//  SubtypeManagerTest.dartSuite();
-//  TypeOverrideManagerTest.dartSuite();
-//  TypeProviderImplTest.dartSuite();
-//  TypeResolverVisitorTest.dartSuite();
-//  EnclosedScopeTest.dartSuite();
-//  LibraryImportScopeTest.dartSuite();
-//  LibraryScopeTest.dartSuite();
-//  ScopeBuilderTest.dartSuite();
-//  ScopeTest.dartSuite();
-//  CompileTimeErrorCodeTest.dartSuite();
-//  ErrorResolverTest.dartSuite();
-//  HintCodeTest.dartSuite();
-//  MemberMapTest.dartSuite();
-//  NonHintCodeTest.dartSuite();
-//  NonErrorResolverTest.dartSuite();
-//  SimpleResolverTest.dartSuite();
-//  StaticTypeWarningCodeTest.dartSuite();
-//  StaticWarningCodeTest.dartSuite();
-//  StrictModeTest.dartSuite();
-//  TypePropagationTest.dartSuite();
+  DeclarationMatcherTest.dartSuite();
+  ElementResolverTest.dartSuite();
+  IncrementalResolverTest.dartSuite();
+  InheritanceManagerTest.dartSuite();
+  LibraryElementBuilderTest.dartSuite();
+  LibraryTest.dartSuite();
+  StaticTypeAnalyzerTest.dartSuite();
+  SubtypeManagerTest.dartSuite();
+  TypeOverrideManagerTest.dartSuite();
+  TypeProviderImplTest.dartSuite();
+  TypeResolverVisitorTest.dartSuite();
+  EnclosedScopeTest.dartSuite();
+  LibraryImportScopeTest.dartSuite();
+  LibraryScopeTest.dartSuite();
+  ScopeBuilderTest.dartSuite();
+  ScopeTest.dartSuite();
+  CompileTimeErrorCodeTest.dartSuite();
+  ErrorResolverTest.dartSuite();
+  HintCodeTest.dartSuite();
+  MemberMapTest.dartSuite();
+  NonHintCodeTest.dartSuite();
+  NonErrorResolverTest.dartSuite();
+  SimpleResolverTest.dartSuite();
+  StaticTypeWarningCodeTest.dartSuite();
+  StaticWarningCodeTest.dartSuite();
+  StrictModeTest.dartSuite();
+  TypePropagationTest.dartSuite();
 }
