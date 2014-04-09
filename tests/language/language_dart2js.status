@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+override_inheritance_mixed_test/08: Fail # Issue 18124
+override_inheritance_mixed_test/09: Fail # Issue 18124
 bad_constructor_test/05: CompileTimeError # Issue 13669
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
