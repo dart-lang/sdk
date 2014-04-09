@@ -115,6 +115,9 @@ vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
 override_inheritance_mixed_test/08: Fail # Issue 16137
 override_inheritance_mixed_test/09: Fail # Issue 16137
 
+[ $compiler == none && $runtime == drt ]
+disassemble_test: Pass, Fail # Issue 18122
+
 [ $compiler == none && $runtime == vm && $arch == mips && $checked ]
 generic_instanceof3_test: Pass, Crash # Issue 17440.
 
