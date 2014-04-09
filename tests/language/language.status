@@ -39,6 +39,8 @@ deferred_constraints_type_annotation_test/*: Fail, Pass
 deferred_constraints_constants_test/*: Fail, Pass
 deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
+override_inheritance_mixed_test/08: Fail # Issue 18124
+override_inheritance_mixed_test/09: Fail # Issue 18124
 
 [ $compiler == none || $compiler == dart2dart]
 # These test use the old syntax, and will be phased out.
@@ -69,8 +71,6 @@ deferred_duplicate_prefix3_old_syntax_test/01: Fail
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 16137
-override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16137
 
 unicode_bom_test: Fail # Issue 16067
 
@@ -112,8 +112,6 @@ issue13474_test: Pass, Fail # Issue 14651.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
-override_inheritance_mixed_test/08: Fail # Issue 16137
-override_inheritance_mixed_test/09: Fail # Issue 16137
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
