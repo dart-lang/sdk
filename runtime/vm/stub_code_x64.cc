@@ -70,7 +70,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ subq(RSP, Immediate(sizeof(NativeArguments)));
@@ -175,8 +175,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kRuntimeNativeTagId));
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -272,8 +271,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kRuntimeNativeTagId));
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in

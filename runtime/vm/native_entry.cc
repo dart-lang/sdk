@@ -8,6 +8,7 @@
 
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/object_store.h"
 #include "vm/tags.h"
 
 
@@ -39,6 +40,37 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
                number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
+}
+
+
+const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
+                                                uword pc) {
+  if (library.native_entry_symbol_resolver() == 0) {
+    // Cannot reverse lookup native entries.
+    return NULL;
+  }
+  Dart_NativeEntrySymbol symbol_resolver =
+      library.native_entry_symbol_resolver();
+  return symbol_resolver(reinterpret_cast<Dart_NativeFunction>(pc));
+}
+
+
+const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  ASSERT(!libs.IsNull());
+  intptr_t num_libs = libs.Length();
+  Library& lib = Library::Handle();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    const uint8_t* r = ResolveSymbolInLibrary(lib, pc);
+    if (r != NULL) {
+      return r;
+    }
+  }
+  return NULL;
 }
 
 

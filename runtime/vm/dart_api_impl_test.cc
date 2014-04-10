@@ -1389,7 +1389,8 @@ TEST_CASE(ByteDataAccess) {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  Dart_Handle result = Dart_SetNativeResolver(lib, &ByteDataNativeResolver);
+  Dart_Handle result =
+      Dart_SetNativeResolver(lib, &ByteDataNativeResolver, NULL);
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
@@ -1457,7 +1458,8 @@ TEST_CASE(ExternalByteDataAccess) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle result = Dart_SetNativeResolver(lib,
-                                              &ExternalByteDataNativeResolver);
+                                              &ExternalByteDataNativeResolver,
+                                              NULL);
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
@@ -6117,7 +6119,7 @@ TEST_CASE(ParsePatchLibrary) {
       EXPECT(false);
     }
   }
-  result = Dart_SetNativeResolver(result, &PatchNativeResolver);
+  result = Dart_SetNativeResolver(result, &PatchNativeResolver, NULL);
   EXPECT_VALID(result);
 
   Dart_Handle script_url = NewString("theScript");
@@ -6230,23 +6232,23 @@ TEST_CASE(SetNativeResolver) {
   Dart_Handle type = Dart_GetType(lib, NewString("Test"), 0, NULL);
   EXPECT_VALID(type);
 
-  result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1);
+  result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_SetNativeResolver expects argument 'library' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1);
+  result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_SetNativeResolver expects argument 'library' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(error, &MyNativeResolver1);
+  result = Dart_SetNativeResolver(error, &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(lib, &MyNativeResolver1);
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver1, NULL);
   EXPECT_VALID(result);
 
   // Call a function and make sure native resolution works.
@@ -6258,7 +6260,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_EQ(654321, value);
 
   // A second call succeeds.
-  result = Dart_SetNativeResolver(lib, &MyNativeResolver2);
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver2, NULL);
   EXPECT_VALID(result);
 
   // 'foo' has already been resolved so gets the old value.
@@ -6278,7 +6280,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_EQ(123456, value);
 
   // A NULL resolver is okay, but resolution will fail.
-  result = Dart_SetNativeResolver(lib, NULL);
+  result = Dart_SetNativeResolver(lib, NULL, NULL);
   EXPECT_VALID(result);
 
   EXPECT_ERROR(Dart_Invoke(type, NewString("baz"), 0, NULL),
@@ -6701,7 +6703,8 @@ void BusyLoop_start(uword unused) {
     EXPECT_VALID(result);
     lib = Dart_LoadScript(url, source, 0, 0);
     EXPECT_VALID(lib);
-    result = Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup);
+    result =
+        Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup, NULL);
     DART_CHECK_VALID(result);
 
     sync->Notify();
@@ -7063,7 +7066,7 @@ TEST_CASE(NativeFunctionClosure) {
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
-  result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver);
+  result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver, NULL);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -7210,7 +7213,7 @@ TEST_CASE(NativeStaticFunctionClosure) {
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
-  result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver);
+  result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver, NULL);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);

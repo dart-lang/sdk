@@ -95,6 +95,9 @@ class NativeEntry : public AllStatic {
                                       const String& function_name,
                                       int number_of_arguments,
                                       bool* auto_setup_scope);
+  static const uint8_t* ResolveSymbolInLibrary(const Library& library,
+                                               uword pc);
+  static const uint8_t* ResolveSymbol(uword pc);
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
   static const ExternalLabel& NativeCallWrapperLabel();

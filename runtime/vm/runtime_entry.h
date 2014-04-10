@@ -9,6 +9,7 @@
 #include "vm/assembler.h"
 #include "vm/flags.h"
 #include "vm/native_arguments.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -28,7 +29,11 @@ class RuntimeEntry : public ValueObject {
         function_(function),
         argument_count_(argument_count),
         is_leaf_(is_leaf),
-        is_float_(is_float) { }
+        is_float_(is_float),
+        next_(NULL) {
+    // Strip off const for registration.
+    VMTag::RegisterRuntimeEntry(const_cast<RuntimeEntry*>(this));
+  }
   ~RuntimeEntry() {}
 
   const char* name() const { return name_; }
@@ -41,12 +46,16 @@ class RuntimeEntry : public ValueObject {
   // Generate code to call the runtime entry.
   void Call(Assembler* assembler, intptr_t argument_count) const;
 
+  void set_next(const RuntimeEntry* next) { next_ = next; }
+  const RuntimeEntry* next() const { return next_; }
+
  private:
   const char* name_;
   const RuntimeFunction function_;
   const intptr_t argument_count_;
   const bool is_leaf_;
   const bool is_float_;
+  const RuntimeEntry* next_;
 
   DISALLOW_COPY_AND_ASSIGN(RuntimeEntry);
 };

@@ -96,7 +96,8 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
     library = Dart_LoadLibrary(url, Source(id));
     if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
       // Setup the native resolver for built in library functions.
-      DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
+      DART_CHECK_VALID(
+          Dart_SetNativeResolver(library, NativeLookup, NativeSymbol));
     }
     if (builtin_libraries_[id].patch_url_ != NULL) {
       ASSERT(builtin_libraries_[id].patch_paths_ != NULL);

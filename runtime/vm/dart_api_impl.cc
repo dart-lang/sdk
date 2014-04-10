@@ -4586,7 +4586,8 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
-    Dart_NativeEntryResolver resolver) {
+    Dart_NativeEntryResolver resolver,
+    Dart_NativeEntrySymbol symbol) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
@@ -4594,6 +4595,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     RETURN_TYPE_ERROR(isolate, library, Library);
   }
   lib.set_native_entry_resolver(resolver);
+  lib.set_native_entry_symbol_resolver(symbol);
   return Api::Success();
 }
 

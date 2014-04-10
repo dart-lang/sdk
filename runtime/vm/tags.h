@@ -11,6 +11,7 @@ namespace dart {
 
 class Isolate;
 class JSONObject;
+class RuntimeEntry;
 
 #define VM_TAG_LIST(V)                                                         \
   V(Idle)                                                                      \
@@ -19,7 +20,8 @@ class JSONObject;
   V(Script)                                                                    \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
-  V(RuntimeNative)                                                             \
+  V(Runtime)                                                                   \
+  V(Native)                                                                    \
 
 
 class VMTag : public AllStatic {
@@ -34,6 +36,12 @@ class VMTag : public AllStatic {
   };
 
   static const char* TagName(uword id);
+  static bool IsNativeEntryTag(uword id);
+
+  static bool IsRuntimeEntryTag(uword id);
+  static const char* RuntimeEntryTagName(uword id);
+
+  static void RegisterRuntimeEntry(RuntimeEntry* runtime_entry);
 
  private:
   struct TagEntry {

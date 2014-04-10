@@ -2212,6 +2212,24 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
 /* TODO(turnidge): Consider renaming to NativeFunctionResolver or
  * NativeResolver. */
 
+/**
+ * Native entry symbol lookup callback.
+ *
+ * For libraries and scripts which have native functions, the embedder
+ * can provide a callback for mapping a native entry to a symbol. This callback
+ * maps a native function entry PC to the native function name. If no native
+ * entry symbol can be found, the callback should return NULL.
+ *
+ * The parameters to the native reverse resolver function are:
+ * \param nf A Dart_NativeFunction.
+ *
+ * \return A const UTF-8 string containing the symbol name or NULL.
+ *
+ * See Dart_SetNativeResolver.
+ */
+typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
+
+
 /*
  * ===========
  * Environment
@@ -2248,7 +2266,8 @@ DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
  */
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
-    Dart_NativeEntryResolver resolver);
+    Dart_NativeEntryResolver resolver,
+    Dart_NativeEntrySymbol symbol);
 /* TODO(turnidge): Rename to Dart_LibrarySetNativeResolver? */
 
 

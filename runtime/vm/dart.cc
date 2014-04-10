@@ -101,6 +101,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   CodeObservers::InitOnce();
   ThreadInterrupter::InitOnce();
   Profiler::InitOnce();
+
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
 #endif
@@ -249,6 +250,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (FLAG_print_class_table) {
     isolate->class_table()->Print();
   }
+
+  // Setup for profiling.
+  Profiler::InitProfilingForIsolate(isolate);
+
   Service::SendIsolateStartupMessage();
   return Error::null();
 }

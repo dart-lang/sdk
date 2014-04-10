@@ -53,39 +53,62 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
 }
 
 
+const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
+  int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(BootStrapEntries[i]);
+    if (reinterpret_cast<Dart_NativeFunction*>(entry->function_) == nf) {
+      return reinterpret_cast<const uint8_t*>(entry->name_);
+    }
+  }
+  return NULL;
+}
+
+
 void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
 
   Dart_NativeEntryResolver resolver =
       reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup);
 
+  Dart_NativeEntrySymbol symbol_resolver =
+      reinterpret_cast<Dart_NativeEntrySymbol>(
+          BootstrapNatives::Symbol);
+
   library = Library::AsyncLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::CoreLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::MathLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::InternalLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::IsolateLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::TypedDataLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 }
 
 

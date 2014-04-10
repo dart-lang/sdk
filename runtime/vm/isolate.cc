@@ -408,9 +408,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
-  // Setup for profiling.
-  Profiler::InitProfilingForIsolate(result);
-
   // Add to isolate list.
   AddIsolateTolist(result);
 

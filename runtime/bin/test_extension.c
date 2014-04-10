@@ -64,7 +64,7 @@ DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
     return parent_library;
   }
 
-  result_code = Dart_SetNativeResolver(parent_library, ResolveName);
+  result_code = Dart_SetNativeResolver(parent_library, ResolveName, NULL);
   if (Dart_IsError(result_code)) {
     return result_code;
   }

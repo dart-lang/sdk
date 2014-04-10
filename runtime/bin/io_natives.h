@@ -15,6 +15,8 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count,
                                    bool* auto_setup_scope);
 
+const uint8_t* IONativeSymbol(Dart_NativeFunction nf);
+
 }  // namespace bin
 }  // namespace dart
 

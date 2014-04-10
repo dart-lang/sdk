@@ -57,6 +57,8 @@ class Builtin {
                                           int argument_count,
                                           bool* auto_setup_scope);
 
+  static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
+
   static const char* builtin_source_paths_[];
   static const char* io_source_paths_[];
   static const char* io_patch_paths_[];

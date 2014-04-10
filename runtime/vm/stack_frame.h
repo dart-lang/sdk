@@ -241,7 +241,9 @@ class DartFrameIterator : public ValueObject {
  public:
   DartFrameIterator() : frames_(StackFrameIterator::kDontValidateFrames) { }
   explicit DartFrameIterator(uword last_fp)
-      : frames_(last_fp, StackFrameIterator::kDontValidateFrames) {}
+      : frames_(last_fp, StackFrameIterator::kDontValidateFrames) { }
+  DartFrameIterator(uword fp, uword sp, uword pc)
+      : frames_(fp, sp, pc, StackFrameIterator::kDontValidateFrames) { }
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();

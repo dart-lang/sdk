@@ -73,8 +73,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ LoadImmediate(T0, VMTag::kVMTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(S5, Address(A0, Isolate::vm_tag_offset()));
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -200,8 +199,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(T5, Address(A0, Isolate::vm_tag_offset()));
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
@@ -334,8 +332,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(T5, Address(A0, Isolate::vm_tag_offset()));
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.

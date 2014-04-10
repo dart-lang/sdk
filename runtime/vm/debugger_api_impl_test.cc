@@ -1393,7 +1393,8 @@ static void InterruptIsolateRun(uword unused) {
   LoadScript(kScriptChars);
 
   Dart_Handle result = Dart_SetNativeResolver(script_lib,
-                                              &InterruptNativeResolver);
+                                              &InterruptNativeResolver,
+                                              NULL);
   EXPECT_VALID(result);
 
   Dart_Handle retval = Invoke("main");

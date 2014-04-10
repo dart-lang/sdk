@@ -124,5 +124,17 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   return NULL;
 }
 
+
+const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
+  int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(IOEntries[i]);
+    if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
+      return reinterpret_cast<const uint8_t*>(entry->name_);
+    }
+  }
+  return NULL;
+}
+
 }  // namespace bin
 }  // namespace dart

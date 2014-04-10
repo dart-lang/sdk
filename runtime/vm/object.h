@@ -2608,6 +2608,13 @@ class Library : public Object {
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     raw_ptr()->native_entry_resolver_ = value;
   }
+  Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
+    return raw_ptr()->native_entry_symbol_resolver_;
+  }
+  void set_native_entry_symbol_resolver(
+      Dart_NativeEntrySymbol native_symbol_resolver) const {
+    raw_ptr()->native_entry_symbol_resolver_ = native_symbol_resolver;
+  }
 
   RawError* Patch(const Script& script) const;
 

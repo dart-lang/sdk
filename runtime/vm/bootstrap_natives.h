@@ -356,6 +356,8 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
+  static const uint8_t* Symbol(Dart_NativeFunction* nf);
+
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static void DN_##name(Dart_NativeArguments args);
 
