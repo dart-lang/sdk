@@ -120,10 +120,15 @@ class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool splitProgram = false;
 
-  /// A mapping from the name of a [DeferredLibrary] annotation to all dependent
-  /// output units.
-  final Map<String, Set<OutputUnit>> hunksToLoad =
-      new Map<String, Set<OutputUnit>>();
+  /// A mapping from the name of a defer import to all the output units it
+  /// depends on in a list of lists to be loaded in the order they appear.
+  ///
+  /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
+  /// [lib1]]} would mean that in order to load "lib1" first the hunk
+  /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
+  /// can be loaded in parallel. And finally lib1 can be loaded.
+  final Map<String, List<List<OutputUnit>>> hunksToLoad =
+      new Map<String, List<List<OutputUnit>>>();
   final Map<Import, String> importDeferName = new Map<Import, String>();
 
   /// A mapping from elements and constants to their output unit. Query this via
@@ -458,8 +463,7 @@ class DeferredLoadTask extends CompilerTask {
           void mapDependenciesIfResolved(Element element) {
             // If there is a target for this class, but no use of mirrors the
             // class will not be resolved. We just skip it.
-            if (element is ClassElement &&
-                !(element as ClassElement).isResolved) {
+            if (element is ClassElement &&!element.isResolved) {
               return;
             }
             _mapDependencies(element, deferredImport);
@@ -639,15 +643,36 @@ class DeferredLoadTask extends CompilerTask {
     for (OutputUnit outputUnit in allOutputUnits) {
       computeOutputUnitName(outputUnit);
     }
+    List sortedOutputUnits = new List.from(allOutputUnits);
+    // Sort the output units in descending order of the number of imports they
+    // include.
+
+    // The loading of the output units mut be ordered because a superclass needs
+    // to be initialized before its subclass.
+    // But a class can only depend on another class in an output unit shared by
+    // a strict superset of the imports:
+    // By contradiction: Assume a class C in output unit shared by imports in
+    // the set S1 = (lib1,.., lib_n) depends on a class D in an output unit
+    // shared by S2 such that S2 not a superset of S1. Let lib_s be a library in
+    // S1 not in S2. lib_s must depend on C, and then in turn on D therefore D
+    // is not in the right output unit.
+    sortedOutputUnits.sort((a, b) => b.imports.length - a.imports.length);
 
     // For each deferred import we find out which outputUnits to load.
     for (Import import in _allDeferredImports.keys) {
       if (import == _fakeMainImport) continue;
-      hunksToLoad[importDeferName[import]] = new Set<OutputUnit>();
-      for (OutputUnit outputUnit in allOutputUnits) {
+      hunksToLoad[importDeferName[import]] = new List<List<OutputUnit>>();
+      int lastNumberOfImports = 0;
+      List<OutputUnit> currentLastList;
+      for (OutputUnit outputUnit in sortedOutputUnits) {
         if (outputUnit == mainOutputUnit) continue;
         if (outputUnit.imports.contains(import)) {
-          hunksToLoad[importDeferName[import]].add(outputUnit);
+          if (outputUnit.imports.length != lastNumberOfImports) {
+            lastNumberOfImports = outputUnit.imports.length;
+            currentLastList = new List<OutputUnit>();
+            hunksToLoad[importDeferName[import]].add(currentLastList);
+          }
+          currentLastList.add(outputUnit);
         }
       }
     }

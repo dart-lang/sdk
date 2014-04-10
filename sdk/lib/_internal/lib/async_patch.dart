@@ -33,7 +33,7 @@ patch class _AsyncRun {
 }
 
 patch class DeferredLibrary {
-  patch Future<bool> load() {
+  patch Future<Null> load() {
     return loadDeferredLibrary(libraryName, uri);
   }
 }

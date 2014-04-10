@@ -67,24 +67,36 @@ void main() {
         .contains(inputElement));
 
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
-    var hunksLib1 = new Set.from(hunksToLoad["lib1"].map((o) => o.name));
-    var hunksLib2 = new Set.from(hunksToLoad["lib2"].map((o) => o.name));
-    var hunksLib4_1 = new Set.from(hunksToLoad["lib4_1"].map((o) => o.name));
-    var hunksLib4_2 =  new Set.from(hunksToLoad["lib4_2"].map((o) => o.name));
-    Expect.equals(hunksLib1.length, 2);
-    Expect.isTrue(hunksLib1.contains("lib1"));
-    Expect.isTrue(hunksLib1.contains("lib1_lib2") ||
-                  hunksLib1.contains("lib2_lib1"));
-    Expect.isTrue(hunksLib2.contains("lib2"));
-    Expect.equals(hunksLib2.length, 2);
-    Expect.isTrue(hunksLib2.contains("lib1_lib2") ||
-                  hunksLib1.contains("lib2_lib1"));
-    Expect.isTrue(hunksLib4_1.contains("lib4_1"));
-    Expect.equals(hunksLib4_1.length, 1);
-    Expect.isTrue(hunksLib4_2.contains("lib4_2"));
-    Expect.equals(hunksLib4_2.length, 1);
-    Expect.equals(hunksToLoad["main"], null);
 
+    mapToNames(id) {
+      return hunksToLoad[id].map((l) {
+        return new Set.from(l.map((o) => o.name));
+      }).toList();
+    }
+
+    var hunksLib1 = mapToNames("lib1");
+    var hunksLib2 = mapToNames("lib2");
+    var hunksLib4_1 = mapToNames("lib4_1");
+    var hunksLib4_2 = mapToNames("lib4_2");
+    Expect.equals(hunksLib1.length, 2);
+    Expect.equals(hunksLib1[0].length, 1);
+    Expect.equals(hunksLib1[1].length, 1);
+    Expect.isTrue(hunksLib1[0].contains("lib1_lib2") ||
+                  hunksLib1[0].contains("lib2_lib1"));
+    Expect.isTrue(hunksLib1[1].contains("lib1"));
+    Expect.equals(hunksLib2.length, 2);
+    Expect.equals(hunksLib2[0].length, 1);
+    Expect.equals(hunksLib2[1].length, 1);
+    Expect.isTrue(hunksLib2[0].contains("lib1_lib2") ||
+                  hunksLib2[0].contains("lib2_lib1"));
+    Expect.isTrue(hunksLib2[1].contains("lib2"));
+    Expect.equals(hunksLib4_1.length, 1);
+    Expect.equals(hunksLib4_1[0].length, 1);
+    Expect.isTrue(hunksLib4_1[0].contains("lib4_1"));
+    Expect.equals(hunksLib4_2.length, 1);
+    Expect.equals(hunksLib4_2[0].length, 1);
+    Expect.isTrue(hunksLib4_2[0].contains("lib4_2"));
+    Expect.equals(hunksToLoad["main"], null);
   }));
 }
 

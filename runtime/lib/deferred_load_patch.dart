@@ -5,11 +5,11 @@
 final Set<String> _loadedLibraries = new Set<String>();
 
 patch class DeferredLibrary {
-  /* patch */ Future<bool> load() {
+  /* patch */ Future<Null> load() {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
     Future future =
-        new Future<bool>.value(!_loadedLibraries.contains(libraryName));
+        new Future<Null>.value(null);
     _loadedLibraries.add(libraryName);
     return future;
   }
