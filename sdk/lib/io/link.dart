@@ -163,7 +163,7 @@ class _Link extends FileSystemEntity implements Link {
   FileStat statSync() => FileStat.statSync(path);
 
   Future<Link> create(String target, {bool recursive: false}) {
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       target = _makeWindowsLinkTarget(target);
     }
     var result = recursive ? parent.create(recursive: true)
@@ -183,7 +183,7 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       parent.createSync(recursive: true);
     }
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       target = _makeWindowsLinkTarget(target);
     }
     var result = _File._createLink(path, target);

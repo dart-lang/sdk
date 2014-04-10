@@ -181,7 +181,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
         throw new ArgumentError("Non-string argument: $arg");
       }
       _arguments[i] = arguments[i];
-      if (Platform.operatingSystem == 'windows') {
+      if (Platform.isWindows) {
         _arguments[i] = _windowsArgumentEscape(_arguments[i]);
       }
     }
@@ -192,21 +192,27 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     }
 
     _environment = [];
-    var environmentEntryHandler = (key, value) {
+    // Ensure that we have a non-null environment.
+    environment = (environment == null) ? (const {}) : environment;
+    if (environment is !Map) {
+      throw new ArgumentError("Environment is not a map: $environment");
+    }
+    environment.forEach((key, value) {
       if (key is !String || value is !String) {
         throw new ArgumentError(
         "Environment key or value is not a string: ($key, $value)");
       }
       _environment.add('$key=$value');
-    };
-    if (environment != null) {
-      if (environment is !Map) {
-        throw new ArgumentError("Environment is not a map: $environment");
-      }
-      environment.forEach(environmentEntryHandler);
-    }
+    });
     if (includeParentEnvironment) {
-      Platform.environment.forEach(environmentEntryHandler);
+      Platform.environment.forEach((key, value) {
+        assert(key is String);
+        assert(value is String);
+        // Do not override keys already set as part of environment.
+        if (!environment.containsKey(key)) {
+          _environment.add('$key=$value');
+        }
+      });
     }
 
     // stdin going to process.
@@ -221,7 +227,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
   }
 
   static String _getShellCommand() {
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       return 'cmd.exe';
     }
     return '/bin/sh';
@@ -230,7 +236,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
   static List<String> _getShellArguments(String executable,
                                          List<String> arguments) {
     List<String> shellArguments = [];
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       shellArguments.add('/c');
       shellArguments.add(executable);
       for (var arg in arguments) {
@@ -320,7 +326,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                   _stderr._stream._nativeSocket,
                                   _exitHandler._nativeSocket,
                                   status);
-      _environment = null;  // The environment will not be needed going forward.
       if (!success) {
         completer.completeError(
             new ProcessException(_path,
@@ -329,6 +334,12 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                  status._errorCode));
         return;
       }
+      // Reset values which are no longer needed.
+      _path = null;
+      _aguments = null;
+      _workingDirectory = null;
+      _environment = null;
+
       _started = true;
 
       // Setup an exit handler to handle internal cleanup and possible
@@ -376,13 +387,17 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                 _stderr._stream._nativeSocket,
                                 _exitHandler._nativeSocket,
                                 status);
-    _environment = null;  // The environment will not be needed going forward.
     if (!success) {
       throw new ProcessException(_path,
                                  _arguments,
                                  status._errorMessage,
                                  status._errorCode);
     }
+    // Reset values which are no longer needed.
+    _path = null;
+    _aguments = null;
+    _workingDirectory = null;
+    _environment = null;
 
     var result = _wait(
         _stdin._sink._nativeSocket,
