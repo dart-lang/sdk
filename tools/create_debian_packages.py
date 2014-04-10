@@ -65,10 +65,6 @@ def BuildDebianPackage(tarball, out_dir):
     print "Building source package"
     RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot));
 
-    # Build 32-bit binary package.
-    print "Building i386 package"
-    RunBuildPackage(['-B', '-ai386', '-us', '-uc'], join(temp_dir, tarroot));
-
     # Build 64-bit binary package.
     print "Building amd64 package"
     RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot));
@@ -80,16 +76,11 @@ def BuildDebianPackage(tarball, out_dir):
       '%s.orig.tar.gz' % debbase,
       '%s-1.debian.tar.gz' % debbase
     ]
-    i386_package = [
-      '%s-1_i386.deb' % debbase
-    ]
     amd64_package = [
       '%s-1_amd64.deb' % debbase
     ]
 
     for name in source_package:
-      copyfile(join(temp_dir, name), join(out_dir, name))
-    for name in i386_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
     for name in amd64_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
