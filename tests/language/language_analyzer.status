@@ -29,6 +29,8 @@ switch_case_test/none: CompileTimeError # Issue 17209
 
 call_closurization_test: StaticWarning # Issue 17476
 
+function_literals2_test: Fail # Issue 18137
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
