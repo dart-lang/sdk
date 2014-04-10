@@ -89,7 +89,6 @@ part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
-part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_Platform.dart';
 part '$AUXILIARY_DIR/shared_html.dart';
 part '$AUXILIARY_DIR/Validators.dart';

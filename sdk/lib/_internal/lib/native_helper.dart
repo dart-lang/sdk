@@ -608,6 +608,7 @@ function(hooks) {
     "BeforeUnloadEvent": "Event",
     "DataTransfer": "Clipboard",
     "GeoGeolocation": "Geolocation",
+    "Location": "!Location",               // Fixes issue 18151
     "WorkerMessageEvent": "MessageEvent",
     "XMLDocument": "!Document"};
 
