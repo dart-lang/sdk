@@ -82,29 +82,59 @@ main() {
     expect(transformer.numRuns, completion(equals(1)));
   });
 
-  // test("a lazy asset piped into a declaring transformer isn't eagerly "
-  //     "compiled", () {
-  //   var transformer1 = new LazyRewriteTransformer("blub", "blab");
-  //   var transformer2 = new DeclaringRewriteTransformer("blab", "blib");
-  //   initGraph(["app|foo.blub"], {"app": [
-  //     [transformer1], [transformer2]
-  //   ]});
-  //   updateSources(["app|foo.blub"]);
-  //   buildShouldSucceed();
-  //   expect(transformer1.numRuns, completion(equals(0)));
-  //   expect(transformer2.numRuns, completion(equals(0)));
-  // });
-  //
-  // test("a lazy asset piped into a declaring transformer is compiled "
-  //     "on-demand", () {
-  //   initGraph(["app|foo.blub"], {"app": [
-  //     [new LazyRewriteTransformer("blub", "blab")],
-  //     [new DeclaringRewriteTransformer("blab", "blib")]
-  //   ]});
-  //   updateSources(["app|foo.blub"]);
-  //   expectAsset("app|foo.blib", "foo.blab.blib");
-  //   buildShouldSucceed();
-  // });
+  test("a lazy asset piped into a declaring transformer isn't eagerly "
+      "compiled", () {
+    var transformer1 = new LazyRewriteTransformer("blub", "blab");
+    var transformer2 = new DeclaringRewriteTransformer("blab", "blib");
+    initGraph(["app|foo.blub"], {"app": [
+      [transformer1], [transformer2]
+    ]});
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+    expect(transformer1.numRuns, completion(equals(0)));
+    expect(transformer2.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped into a declaring transformer is compiled "
+      "on-demand", () {
+    initGraph(["app|foo.blub"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")],
+      [new DeclaringRewriteTransformer("blab", "blib")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blib", "foo.blab.blib");
+    buildShouldSucceed();
+  });
+
+  test("a lazy asset piped through many declaring transformers isn't eagerly "
+      "compiled", () {
+    var transformer1 = new LazyRewriteTransformer("one", "two");
+    var transformer2 = new DeclaringRewriteTransformer("two", "three");
+    var transformer3 = new DeclaringRewriteTransformer("three", "four");
+    var transformer4 = new DeclaringRewriteTransformer("four", "five");
+    initGraph(["app|foo.one"], {"app": [
+      [transformer1], [transformer2], [transformer3], [transformer4]
+    ]});
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+    expect(transformer1.numRuns, completion(equals(0)));
+    expect(transformer2.numRuns, completion(equals(0)));
+    expect(transformer3.numRuns, completion(equals(0)));
+    expect(transformer4.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped through many declaring transformers is compiled "
+      "on-demand", () {
+    initGraph(["app|foo.one"], {"app": [
+      [new LazyRewriteTransformer("one", "two")],
+      [new DeclaringRewriteTransformer("two", "three")],
+      [new DeclaringRewriteTransformer("three", "four")],
+      [new DeclaringRewriteTransformer("four", "five")]
+    ]});
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.five", "foo.two.three.four.five");
+    buildShouldSucceed();
+  });
 
   test("a lazy asset works as a cross-package input", () {
     initGraph({

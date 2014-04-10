@@ -47,7 +47,11 @@ class TransformNode {
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => _state != _State.NOT_PRIMARY && _state != _State.APPLIED;
 
-  /// Whether [transformer] is lazy and this transform has yet to be forced.
+  /// Whether this transform is lazy and this transform has yet to be forced.
+  ///
+  /// A transform being lazy is distinct from a transformer being lazy. A
+  /// transformer that's declaring but not lazy will have lazy transforms for
+  /// primary inputs that are themselves lazy.
   bool _isLazy;
 
   /// The subscriptions to each input's [AssetNode.onStateChange] stream.
@@ -114,11 +118,15 @@ class TransformNode {
   /// [declareOutputs] has been run successfully.
   Set<AssetId> _declaredOutputs;
 
-  TransformNode(this.phase, Transformer transformer, this.primary,
+  TransformNode(this.phase, Transformer transformer, AssetNode primary,
       this._location)
       : transformer = transformer,
-        _isLazy = transformer is LazyTransformer {
+        primary = primary,
+        _isLazy = transformer is LazyTransformer ||
+            (transformer is DeclaringTransformer && primary.isLazy) {
     _onLogPool.add(_onLogController.stream);
+
+    if (!_isLazy) primary.force();
 
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
@@ -167,6 +175,7 @@ class TransformNode {
     // TODO(nweiz): we might want to have a timeout after which, if the
     // transform's outputs have gone unused, we switch it back to lazy mode.
     if (!_isLazy) return;
+    primary.force();
     _isLazy = false;
     _dirty();
   }
@@ -253,7 +262,7 @@ class TransformNode {
       if (!_declaredOutputs.contains(primary.id)) _emitPassThrough();
 
       for (var id in _declaredOutputs) {
-        var controller = transformer is LazyTransformer
+        var controller = _isLazy
             ? new AssetNodeController.lazy(id, force, this)
             : new AssetNodeController(id, this);
         _outputControllers[id] = controller;

@@ -58,6 +58,10 @@ class AssetNode {
   /// lazy.
   Function _lazyCallback;
 
+  /// Whether this is lazy and needs [force] to be called before it will be
+  /// marked available.
+  bool get isLazy => _lazyCallback != null;
+
   /// A broadcast stream that emits an event whenever the node changes state.
   ///
   /// This stream is synchronous to ensure that when a source asset is modified
