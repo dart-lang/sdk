@@ -336,7 +336,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
       // Reset values which are no longer needed.
       _path = null;
-      _aguments = null;
+      _arguments = null;
       _workingDirectory = null;
       _environment = null;
 
@@ -395,7 +395,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     }
     // Reset values which are no longer needed.
     _path = null;
-    _aguments = null;
+    _arguments = null;
     _workingDirectory = null;
     _environment = null;
 
