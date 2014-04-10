@@ -22,13 +22,15 @@ custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+xhr_test/xhr: Pass, RuntimeError # Issue 18049
+
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
-xhr_test: Pass, Fail # Issue 12648
 xhr_test/json: Fail # Issue 13069
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
@@ -147,6 +149,7 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.

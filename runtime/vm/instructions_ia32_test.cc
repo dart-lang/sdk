@@ -17,20 +17,20 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ call(&StubCode::InstanceFunctionLookupLabel());
+  __ call(&StubCode::InvokeDartCodeLabel());
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Call, test) {
   CallPattern call(test->entry());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             call.TargetAddress());
 }
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+  __ jmp(&StubCode::InvokeDartCodeLabel());
   __ jmp(&StubCode::AllocateArrayLabel());
   __ ret();
 }
@@ -45,7 +45,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
                              VirtualMemory::kReadWrite);
   EXPECT(status);
   JumpPattern jump1(test->entry(), test->code());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
                     test->code());
@@ -57,7 +57,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
 }
 

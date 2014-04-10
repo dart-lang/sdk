@@ -57,14 +57,14 @@ void main([args, port]) {
   test("spawned isolate can spawn other isolates", () {
     ReceivePort init = new ReceivePort();
     Isolate.spawn(isolateA, init.sendPort);
-    init.first.then(expectAsync1((port) {
-      _call(port, "launch nested!", expectAsync2((msg, replyTo) {
+    init.first.then(expectAsync((port) {
+      _call(port, "launch nested!", expectAsync((msg, replyTo) {
         expect(msg[0], "0");
-        _call(replyTo, msg1, expectAsync2((msg, replyTo) {
+        _call(replyTo, msg1, expectAsync((msg, replyTo) {
           expect(msg[0], "2");
-          _call(replyTo, msg3, expectAsync2((msg, replyTo) {
+          _call(replyTo, msg3, expectAsync((msg, replyTo) {
             expect(msg[0], "4");
-            _call(replyTo, msg5, expectAsync2((msg, _) {
+            _call(replyTo, msg5, expectAsync((msg, _) {
               expect(msg[0], "6");
             }));
           }));

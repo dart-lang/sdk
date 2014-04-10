@@ -17,12 +17,13 @@ class CheckContentTransformer extends MockTransformer {
 
   CheckContentTransformer(this.content, this.addition);
 
-  Future<bool> doIsPrimary(Asset asset) =>
-    asset.readAsString().then((value) => value.contains(content));
+  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((primary) {
       return primary.readAsString().then((value) {
+        if (!value.contains(content)) return;
+
         transform.addOutput(
             new Asset.fromString(primary.id, "$value$addition"));
       });

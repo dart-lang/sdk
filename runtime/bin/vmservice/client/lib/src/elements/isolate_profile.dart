@@ -234,11 +234,17 @@ class IsolateProfileElement extends ObservatoryElement {
   }
 
   @observable void toggleExpanded(Event e, var detail, Element target) {
+    // We only want to expand a tree row if the target of the click is
+    // the table cell (passed in as target) or the span containing the
+    // expander symbol (#expand).
+    if ((e.target.id != 'expand') && (e.target != target)) {
+      // Target of click was not the expander span or the table cell.
+      return;
+    }
     var row = target.parent;
     if (row is TableRowElement) {
       // Subtract 1 to get 0 based indexing.
       tree.toggle(row.rowIndex - 1);
     }
   }
-
 }

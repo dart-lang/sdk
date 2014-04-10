@@ -51,5 +51,3 @@ main() {
   var t = new MapLiteral4Test<int>();
   Expect.equals(110111, t.test());
 }
-
-

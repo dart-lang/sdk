@@ -63,7 +63,7 @@ void spawnTest(name, function, response) {
   test(name, () {
     ReceivePort r = new ReceivePort();
       Isolate.spawn(function, r.sendPort);
-      r.listen(expectAsync1((v) {
+      r.listen(expectAsync((v) {
         expect(v, response);
         r.close();
       }));
@@ -72,7 +72,7 @@ void spawnTest(name, function, response) {
 
 void functionFailTest(name, function) {
   test("throws on $name", () {
-    Isolate.spawn(function, null).catchError(expectAsync1((e) {
+    Isolate.spawn(function, null).catchError(expectAsync((e) {
       /* do nothing */
     }));
   });

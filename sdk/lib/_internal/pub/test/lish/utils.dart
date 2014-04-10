@@ -9,14 +9,15 @@ import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 
 void handleUploadForm(ScheduledServer server, [Map body]) {
   server.handle('GET', '/api/packages/versions/new', (request) {
     return server.url.then((url) {
-      expect(request.headers.value('authorization'),
-          equals('Bearer access token'));
+      expect(request.headers,
+          containsPair('authorization', 'Bearer access token'));
 
       if (body == null) {
         body = {
@@ -28,10 +29,8 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
         };
       }
 
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode(body));
-      request.response.close();
+      return new shelf.Response.ok(JSON.encode(body),
+          headers: {'content-type': 'application/json'});
     });
   });
 }
@@ -40,14 +39,9 @@ void handleUpload(ScheduledServer server) {
   server.handle('POST', '/upload', (request) {
     // TODO(nweiz): Once a multipart/form-data parser in Dart exists, validate
     // that the request body is correctly formatted. See issue 6952.
-    return drainStream(request).then((_) {
-      return server.url;
-    }).then((url) {
-      request.response.statusCode = 302;
-      request.response.headers.set(
-          'location', url.resolve('/create').toString());
-      request.response.close();
-    });
+    return drainStream(request.read())
+        .then((_) => server.url)
+        .then((url) => new shelf.Response.found(url.resolve('/create')));
   });
 }
 

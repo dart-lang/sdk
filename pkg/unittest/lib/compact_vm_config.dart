@@ -28,8 +28,10 @@ class CompactVMConfiguration extends VMConfiguration {
   ReceivePort _receivePort;
 
   DateTime _start;
-  int _pass = 0;
-  int _fail = 0;
+  Set<int> _passing = new Set();
+  Set<int> _failing = new Set();
+  int get _pass => _passing.length;
+  int get _fail => _failing.length;
 
   void onInit() {
     _receivePort = new ReceivePort();
@@ -43,17 +45,17 @@ class CompactVMConfiguration extends VMConfiguration {
 
   void onTestStart(TestCase test) {
     super.onTestStart(test);
-    _progressLine(_start, _pass, _fail, test.description);
+    _progressLine(test.description);
   }
 
   void onTestResult(TestCase test) {
     super.onTestResult(test);
     if (test.result == PASS) {
-      _pass++;
-      _progressLine(_start, _pass, _fail, test.description);
+      _passing.add(test.id);
+      _progressLine(test.description);
     } else {
-      _fail++;
-      _progressLine(_start, _pass, _fail, test.description);
+      _failing.add(test.id);
+      _progressLine(test.description);
       _print();
       if (test.message != '') {
         _print(indent(test.message));
@@ -66,9 +68,9 @@ class CompactVMConfiguration extends VMConfiguration {
   }
 
   void onTestResultChanged(TestCase test) {
-    _pass--;
-    _fail++;
-    _progressLine(_start, _pass, _fail, test.description);
+    _passing.remove(test.id);
+    _failing.add(test.id);
+    _progressLine(test.description);
     _print();
     if (test.message != '') {
       _print(indent(test.message));
@@ -94,11 +96,11 @@ class CompactVMConfiguration extends VMConfiguration {
     if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       _print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
-      _progressLine(_start, _pass, _fail, 'All tests passed!', _NONE);
+      _progressLine('All tests passed!', _NONE);
       _print();
       success = true;
     } else {
-      _progressLine(_start, _pass, _fail, 'Some tests failed.', _RED);
+      _progressLine('Some tests failed.', _RED);
       _print();
       if (uncaughtError != null) {
         _print('Top-level uncaught error: $uncaughtError');
@@ -111,20 +113,19 @@ class CompactVMConfiguration extends VMConfiguration {
 
   final int _nonVisiblePrefix = 1 + _GREEN.length + _NONE.length;
 
-  void _progressLine(DateTime startTime, int passed, int failed, String message,
-      [String color = _NONE]) {
-    var duration = (new DateTime.now()).difference(startTime);
+  void _progressLine(String message, [String color = _NONE]) {
+    var duration = (new DateTime.now()).difference(_start);
     var buffer = new StringBuffer();
     // \r moves back to the beginning of the current line.
     buffer.write('\r${_timeString(duration)} ');
     buffer.write(_GREEN);
     buffer.write('+');
-    buffer.write(passed);
+    buffer.write(_pass);
     buffer.write(_NONE);
-    if (failed != 0) {
+    if (_fail != 0) {
       buffer.write(_RED);
       buffer.write(' -');
-      buffer.write(failed);
+      buffer.write(_fail);
       buffer.write(_NONE);
     }
     buffer.write(': ');
@@ -134,7 +135,7 @@ class CompactVMConfiguration extends VMConfiguration {
     // sequences too. Because these sequences are not visible characters, we
     // make sure they are not counted towards the limit.
     int nonVisible = _nonVisiblePrefix + color.length  +
-        (failed != 0 ? (_RED.length + _NONE.length) : 0);
+        (_fail != 0 ? (_RED.length + _NONE.length) : 0);
     int len = buffer.length - nonVisible;
     var mx = MAX_LINE - len;
     buffer.write(_snippet(message, MAX_LINE - len));

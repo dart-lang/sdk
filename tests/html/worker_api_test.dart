@@ -27,6 +27,6 @@ main() {
     var response = new ReceivePort();
     var remote = Isolate.spawn(worker, ['', response.sendPort]);
     remote.then((_) => response.first)
-        .then(expectAsync1((reply) => expect(reply, equals('Hello from Worker'))));
+        .then(expectAsync((reply) => expect(reply, equals('Hello from Worker'))));
   });
 }

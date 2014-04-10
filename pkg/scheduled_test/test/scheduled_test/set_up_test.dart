@@ -176,4 +176,31 @@ void main(_, message) {
     });
   });
 
+  expectTestsPass("a future returned by setUp is implicitly wrapped", () {
+    var futureComplete = false;
+    setUp(() => pumpEventQueue().then((_) => futureComplete = true));
+
+    test('test', () {
+      currentSchedule.onComplete.schedule(() => expect(futureComplete, isTrue));
+    });
+  });
+
+  expectTestsPass("a future returned by setUp should not block test()", () {
+    var futureComplete = false;
+    setUp(() => pumpEventQueue().then((_) => futureComplete = true));
+
+    test('test', () {
+      expect(futureComplete, isFalse);
+    });
+  });
+
+  expectTestsPass("a future returned by setUp should not block the schedule",
+      () {
+    var futureComplete = false;
+    setUp(() => pumpEventQueue().then((_) => futureComplete = true));
+
+    test('test', () {
+      schedule(() => expect(futureComplete, isFalse));
+    });
+  });
 }

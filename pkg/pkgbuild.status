@@ -6,24 +6,37 @@ third_party/pkg/route_hierarchical: Fail
 
 samples/third_party/angular_todo: Pass, Slow
 samples/third_party/dromaeo: Pass, Slow
+samples/third_party/todomvc_performance: Pass, Slow
 samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
-pkg/args: PubGetError
 pkg/browser: PubGetError
-
-# These samples were patched to work with polymer-0.10.0-pre.7, but that version
-# of polymer was not merged in trunk:
-samples/polymer_intl: Fail
-samples/searchable_list: Fail
-samples/third_party/todomvc: Fail
+pkg/third_party/html5lib: PubGetError # angular needs to be updated
 
 [ $use_public_packages ]
-pkg/polymer: Fail # observe with analyzer 0.13.0 has not been published yet.
+pkg/oauth2: PubGetError # Uses -dev version of pkg/http.
+
+[ $use_public_packages && $builder_tag == russian ]
+samples/third_party/todomvc: Fail # Issue 18104
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
 samples/third_party/angular_todo: Fail # Issue 16356
+
+[ $system == windows ]
+samples/third_party/todomvc_performance: Fail # Issue 18086
+
+[ $use_public_packages ]
+pkg/observe: PubGetError # Issue 18115
+pkg/polymer: PubGetError # Issue 18115
+pkg/polymer_expressions: PubGetError # Issue 18115
+pkg/template_binding: PubGetError # Issue 18115
+samples/polymer_intl: PubGetError # Issue 18115
+samples/searchable_list: PubGetError # Issue 18115
+samples/third_party/angular_todo: PubGetError # Issue 18115
+samples/third_party/todomvc: PubGetError # Issue 18115
+samples/third_party/todomvc_performance: PubGetError # Issue 18115
+samples/tracker: PubGetError # Issue 18115

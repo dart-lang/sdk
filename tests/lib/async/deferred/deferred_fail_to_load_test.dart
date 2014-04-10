@@ -1,7 +1,7 @@
 import 'dart:isolate';
 import 'dart:async';
 import 'dart:html';
-import '../../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 @a import 'deferred_in_isolate_lib.dart' as lib1;
 @b import 'deferred_api_library.dart' as lib2;

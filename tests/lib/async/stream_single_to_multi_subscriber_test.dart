@@ -8,7 +8,7 @@ library stream_single_test;
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 import 'event_helper.dart';
 
 main() {
@@ -16,8 +16,8 @@ main() {
     StreamController c = new StreamController<int>(sync: true);
     Stream<int> multi = c.stream.asBroadcastStream();
     // Listen twice.
-    multi.listen(expectAsync1((v) => Expect.equals(42, v)));
-    multi.listen(expectAsync1((v) => Expect.equals(42, v)));
+    multi.listen(expectAsync((v) => Expect.equals(42, v)));
+    multi.listen(expectAsync((v) => Expect.equals(42, v)));
     c.add(42);
   });
 
@@ -27,10 +27,10 @@ main() {
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);
-    actual1.onDone(expectAsync0(() {
+    actual1.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual1.events);
     }));
-    actual2.onDone(expectAsync0(() {
+    actual2.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual2.events);
     }));
     expected.replay(c);
@@ -42,10 +42,10 @@ main() {
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);
-    actual1.onDone(expectAsync0(() {
+    actual1.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual1.events);
     }));
-    actual2.onDone(expectAsync0(() {
+    actual2.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual2.events);
     }));
     expected.replay(c);

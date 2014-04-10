@@ -1,9 +1,14 @@
 <head>
-<link rel="import" href="service_ref.html">
+  <link rel="import" href="service_ref.html">
 </head>
 <polymer-element name="code-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
+  <template>
+    <template if="{{ code.isDartCode }}">
+      <a href="{{ url }}">{{ name }}</a>
+    </template>
+    <template if="{{ !code.isDartCode }}">
+      <span>{{ name }}</span>
+    </template>
+  </template>
 <script type="application/dart" src="code_ref.dart"></script>
 </polymer-element>

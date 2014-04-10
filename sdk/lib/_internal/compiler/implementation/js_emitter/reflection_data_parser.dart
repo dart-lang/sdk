@@ -105,7 +105,8 @@ String getReflectionDataParser(String classesCollector,
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
-      f.getterStub = true;
+      descriptor[name].\$getter = f;
+      f.\$getterStub = true;
 '''
       /* Used to create an isolate using spawnFunction.*/
 '''

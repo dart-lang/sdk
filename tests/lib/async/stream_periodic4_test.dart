@@ -6,10 +6,10 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 void runTest(period, maxElapsed, pauseDuration) {
-  Function done = expectAsync0(() { });
+  Function done = expectAsync(() { });
 
   Stopwatch watch = new Stopwatch()..start();
   Stream stream = new Stream.periodic(period, (x) => x);

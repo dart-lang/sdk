@@ -57,6 +57,8 @@ Future _executeCommandRaw(String executable,
                     "stderr: \n ${results[1]}"
                     "exitCode: \n ${results[2]}";
         throw new Exception(error);
+      } else {
+        DebugLogger.info("Success: $executable finished");
       }
       return results[0];
     });
@@ -299,7 +301,7 @@ class AdbDevice {
 }
 
 /**
- * Helper to list all adb devicess available.
+ * Helper to list all adb devices available.
  */
 class AdbHelper {
   static RegExp _deviceLineRegexp =

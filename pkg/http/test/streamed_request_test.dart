@@ -58,4 +58,17 @@ void main() {
       expect(() => request.contentLength = 10, throwsStateError);
     });
   });
+
+  // Regression test.
+  test('.send() with a response with no content length', () {
+    return startServer().then((_) {
+      var request = new http.StreamedRequest(
+          'GET', serverUrl.resolve('/no-content-length'));
+      request.sink.close();
+      return request.send();
+    }).then((response) {
+      expect(UTF8.decodeStream(response.stream), completion(equals('body')));
+    }).whenComplete(stopServer);
+  });
+
 }

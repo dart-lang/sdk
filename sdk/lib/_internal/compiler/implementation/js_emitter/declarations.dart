@@ -46,9 +46,6 @@ typedef void AcceptField(VariableElement member,
 typedef void FunctionTypeSignatureEmitter(Element method,
                                           FunctionType methodType);
 
-// TODO(johnniwinther): Clean up terminology for rti in the emitter.
-typedef void FunctionTypeTestEmitter(FunctionType functionType);
-
 typedef void SubstitutionEmitter(Element element, {bool emitNull});
 
 const String GENERATED_BY = """

@@ -74,11 +74,20 @@ class DeferredTask {
 
 abstract class Backend {
   final Compiler compiler;
-  final ConstantSystem constantSystem;
 
-  Backend(this.compiler,
-          [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
-      : this.constantSystem = constantSystem;
+  Backend(this.compiler);
+
+  /// The [ConstantSystem] used to interpret compile-time constants for this
+  /// backend.
+  ConstantSystem get constantSystem;
+
+  /// The constant environment for the backend interpretation of compile-time
+  /// constants.
+  BackendConstantEnvironment get constants;
+
+  /// The compiler task responsible for the compilation of constants for both
+  /// the frontend and the backend.
+  ConstantCompilerTask get constantCompilerTask;
 
   // Given a [FunctionElement], return a buffer with the code generated for it
   // or null if no code was generated.
@@ -352,6 +361,14 @@ abstract class Compiler implements DiagnosticListener {
    */
   final TreeElements globalDependencies = new TreeElementMapping(null);
 
+  /**
+   * Dependencies that are only included due to mirrors.
+   *
+   * We should get rid of this and ensure that all dependencies are
+   * associated with a particular element.
+   */
+  final TreeElements mirrorDependencies = new TreeElementMapping(null);
+
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
@@ -359,6 +376,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
   final bool dumpInfo;
+  final bool useContentSecurityPolicy;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -557,7 +575,11 @@ abstract class Compiler implements DiagnosticListener {
   IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
-  ConstantHandler constantHandler;
+
+  /// The constant environment for the frontend interpretation of compile-time
+  /// constants.
+  ConstantEnvironment constants;
+
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
@@ -638,6 +660,7 @@ abstract class Compiler implements DiagnosticListener {
             this.terseDiagnostics: false,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
+            this.useContentSecurityPolicy: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly =
@@ -669,12 +692,12 @@ abstract class Compiler implements DiagnosticListener {
       dietParser = new DietParserTask(this),
       parser = new ParserTask(this),
       patchParser = new PatchParserTask(this),
-      resolver = new ResolverTask(this),
+      resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       irBuilder = new IrBuilderTask(this),
       typesTask = new ti.TypesTask(this),
-      constantHandler = new ConstantHandler(this, backend.constantSystem),
+      constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this),
@@ -933,8 +956,8 @@ abstract class Compiler implements DiagnosticListener {
 
     dynamicClass.ensureResolved(this);
 
-    proxyConstant = constantHandler.compileVariable(
-        coreLibrary.find('proxy'), isConst: true);
+    proxyConstant =
+        resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
   }
 
   Element _unnamedListConstructor;
@@ -1077,16 +1100,18 @@ abstract class Compiler implements DiagnosticListener {
       deferredLoadTask.ensureMetadataResolved(this);
     }
 
-    log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
-      libraries.forEach(
-          (_, lib) => fullyEnqueueLibrary(lib, enqueuer.resolution));
+      libraries.forEach((uri, lib) {
+        log('Enqueuing $uri');
+        fullyEnqueueLibrary(lib, enqueuer.resolution);
+      });
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     resolveLibraryMetadata();
+    log('Resolving...');
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -1372,11 +1397,6 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
   }
 
-  /// For debugging only, print a message with a source location.
-  void reportHere(Spannable node, String debugMessage) {
-    reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
-  }
-
   void reportDiagnosticInternal(Spannable node,
                                 MessageKind messageKind,
                                 Map arguments,
@@ -1386,7 +1406,7 @@ abstract class Compiler implements DiagnosticListener {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:
         Element element = elementFromSpannable(node);
-        if (!inUserCode(element)) {
+        if (!inUserCode(element, assumeInUserCode: true)) {
           Uri uri = getCanonicalUri(element);
           SuppressionInfo info =
               suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
@@ -1550,10 +1570,20 @@ abstract class Compiler implements DiagnosticListener {
       if (member.isFunction()) {
         if (!enqueuer.resolution.isLive(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,
-                     {'method_name': member.name});
+                     {'name': member.name});
         }
-      } else if (member.isClass() && !member.isMixinApplication) {
-        member.forEachLocalMember(checkLive);
+      } else if (member.isClass()) {
+        if (!member.isResolved) {
+          reportHint(member, MessageKind.UNUSED_CLASS,
+                     {'name': member.name});
+        } else {
+          member.forEachLocalMember(checkLive);
+        }
+      } else if (member.isTypedef()) {
+        if (!member.isResolved) {
+          reportHint(member, MessageKind.UNUSED_TYPEDEF,
+                     {'name': member.name});
+        }
       }
     }
     libraries.forEach((_, library) {
@@ -1589,7 +1619,10 @@ abstract class Compiler implements DiagnosticListener {
   /// with that scheme is in user code. For instance, an entry point URI is
   /// 'file:///foo.dart' then every library whose canonical URI scheme is
   /// 'file' is in user code.
-  bool inUserCode(Element element) {
+  ///
+  /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
+  /// if no entrypoints have been set.
+  bool inUserCode(Element element, {bool assumeInUserCode: false}) {
     List<Uri> entrypoints = <Uri>[];
     if (mainApp != null) {
       entrypoints.add(mainApp.canonicalUri);
@@ -1597,7 +1630,7 @@ abstract class Compiler implements DiagnosticListener {
     if (librariesToAnalyzeWhenRun != null) {
       entrypoints.addAll(librariesToAnalyzeWhenRun);
     }
-    if (entrypoints.isEmpty) {
+    if (entrypoints.isEmpty && assumeInUserCode) {
       // Assume in user code since [mainApp] has not been set yet.
       return true;
     }

@@ -11,7 +11,7 @@ void main([args, port]) {
   test("stacktrace_message", () {
     ReceivePort reply = new ReceivePort();
     Isolate.spawn(runTest, reply.sendPort);
-    reply.first.then(expectAsync1((StackTrace stack) {
+    reply.first.then(expectAsync((StackTrace stack) {
       print(stack);
     }));
   });

@@ -6,6 +6,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
@@ -459,7 +460,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   // Now set all the type fields.
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
-    type_arguments.set_type_at(i, *reader->TypeHandle());
+    type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
   // If object needs to be a canonical object, Canonicalize it.
@@ -709,6 +710,14 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
+// TODO(zra): Remove when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+  // Set up code pointer with the lazy-compile-stub.
+  func.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#else
+  func.set_code(Code::Handle());
+#endif
+
   return func.raw();
 }
 
@@ -741,7 +750,11 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_no_code());
+
+  // Write null for the code and unoptimized code.
+  writer->WriteVMIsolateObject(kNullObject);
+  writer->WriteVMIsolateObject(kNullObject);
 }
 
 
@@ -1761,8 +1774,9 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
                             intptr_t tags,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage);
   // Read the double value for the object.
-  double value = reader->Read<double>();
+  double value = reader->ReadDouble();
 
   // Create a Double object or get canonical one if it is a canonical constant.
   Double& dbl = Double::ZoneHandle(reader->isolate(), Double::null());
@@ -1773,10 +1787,8 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     // references that are objects from the core library (loaded from a
     // full snapshot). Objects that are only in the script need not be
     // canonicalized as they are already canonical.
-    // When reading a message snapshot we always have to canonicalize.
     if (RawObject::IsCanonical(tags) &&
-        (RawObject::IsCreatedFromSnapshot(tags) ||
-         (kind == Snapshot::kMessage))) {
+        RawObject::IsCreatedFromSnapshot(tags)) {
       dbl = Double::NewCanonical(value);
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
@@ -1804,7 +1816,7 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the double value.
-  writer->Write<double>(ptr()->value_);
+  writer->WriteDouble(ptr()->value_);
 }
 
 
@@ -2292,7 +2304,7 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
 
 
 #define TYPED_DATA_READ(setter, type)                                          \
-  for (intptr_t i = 0; i < lengthInBytes; i += element_size) {                 \
+  for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
     result.Set##setter(i, reader->Read<type>());                               \
   }                                                                            \
 
@@ -2314,17 +2326,15 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 
   // Setup the array elements.
   intptr_t element_size = ElementSizeInBytes(cid);
-  intptr_t lengthInBytes = len * element_size;
+  intptr_t length_in_bytes = len * element_size;
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_READ(Int8, int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+      reader->ReadBytes(data, length_in_bytes);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_READ(Int16, int16_t);
       break;
@@ -2406,14 +2416,12 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
   // Write out the array elements.
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_WRITE(int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+      writer->WriteBytes(data, len);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_WRITE(int16_t);
       break;

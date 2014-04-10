@@ -303,6 +303,19 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
 }
 
 
+void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
+                                                         intptr_t index,
+                                                         Representation rep,
+                                                         intptr_t cid) {
+  ExtractNthOutputInstr* extract = new ExtractNthOutputInstr(new Value(instr),
+                                                             index,
+                                                             rep,
+                                                             cid);
+  instr->ReplaceUsesWith(extract);
+  flow_graph()->InsertAfter(instr, extract, NULL, Definition::kValue);
+}
+
+
 // Dart:
 //  var x = d % 10;
 //  var y = d ~/ 10;
@@ -347,17 +360,16 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
           (other_binop->left()->definition() == left_def) &&
           (other_binop->right()->definition() == right_def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
-        // Append a LoadIndexed behind TRUNC_DIV and MOD.
         ASSERT(curr_instr->HasUses());
-        AppendLoadIndexedForMerged(
+        AppendExtractNthOutputForMerged(
             curr_instr,
-            MergedMathInstr::ResultIndexOf(curr_instr->op_kind()),
-            kArrayCid);
+            MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
+            kTagged, kSmiCid);
         ASSERT(other_binop->HasUses());
-        AppendLoadIndexedForMerged(
+        AppendExtractNthOutputForMerged(
             other_binop,
-            MergedMathInstr::ResultIndexOf(other_binop->op_kind()),
-            kArrayCid);
+            MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
+            kTagged, kSmiCid);
 
         ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(2);
         args->Add(new Value(curr_instr->left()->definition()));
@@ -396,12 +408,12 @@ void FlowGraphOptimizer::TryMergeMathUnary(
       // Instruction was merged already.
       continue;
     }
-    ASSERT((curr_instr->kind() == MethodRecognizer::kMathSin) ||
-           (curr_instr->kind() == MethodRecognizer::kMathCos));
+    const intptr_t kind = curr_instr->kind();
+    ASSERT((kind == MethodRecognizer::kMathSin) ||
+           (kind == MethodRecognizer::kMathCos));
     // Check if there is sin/cos binop with same inputs.
-    const intptr_t other_kind =
-        (curr_instr->kind() == MethodRecognizer::kMathSin) ?
-            MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
+    const intptr_t other_kind = (kind == MethodRecognizer::kMathSin) ?
+        MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
     Definition* def = curr_instr->value()->definition();
     for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
       MathUnaryInstr* other_op = (*merge_candidates)[k];
@@ -409,25 +421,21 @@ void FlowGraphOptimizer::TryMergeMathUnary(
       if ((other_op != NULL) && (other_op->kind() == other_kind) &&
           (other_op->value()->definition() == def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
-        // Append a LoadIndexed behind SIN and COS.
         ASSERT(curr_instr->HasUses());
-        AppendLoadIndexedForMerged(
-            curr_instr,
-            MergedMathInstr::ResultIndexOf(curr_instr->kind()),
-            kTypedDataFloat64ArrayCid);
+        AppendExtractNthOutputForMerged(curr_instr,
+                                        MergedMathInstr::OutputIndexOf(kind),
+                                        kUnboxedDouble, kDoubleCid);
         ASSERT(other_op->HasUses());
-        AppendLoadIndexedForMerged(
+        AppendExtractNthOutputForMerged(
             other_op,
-            MergedMathInstr::ResultIndexOf(other_op->kind()),
-            kTypedDataFloat64ArrayCid);
+            MergedMathInstr::OutputIndexOf(other_kind),
+            kUnboxedDouble, kDoubleCid);
         ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(1);
         args->Add(new Value(curr_instr->value()->definition()));
-
         // Replace with SinCos.
-        MergedMathInstr* sin_cos = new MergedMathInstr(
-            args,
-            curr_instr->DeoptimizationTarget(),
-            MergedMathInstr::kSinCos);
+        MergedMathInstr* sin_cos =
+            new MergedMathInstr(args, curr_instr->DeoptimizationTarget(),
+                                MergedMathInstr::kSinCos);
         curr_instr->ReplaceWith(sin_cos, current_iterator());
         other_op->ReplaceUsesWith(sin_cos);
         other_op->RemoveFromGraph();
@@ -755,7 +763,7 @@ static bool UnboxPhi(PhiInstr* phi) {
 
 
 void FlowGraphOptimizer::SelectRepresentations() {
-  // Convervatively unbox all phis that were proven to be of Double,
+  // Conservatively unbox all phis that were proven to be of Double,
   // Float32x4, or Int32x4 type.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
@@ -7909,6 +7917,11 @@ void ConstantPropagator::VisitInvokeMathCFunction(
 
 void ConstantPropagator::VisitMergedMath(MergedMathInstr* instr) {
   // TODO(srdjan): Handle merged instruction.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitExtractNthOutput(ExtractNthOutputInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

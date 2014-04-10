@@ -5,13 +5,10 @@
 library code_transformers.test.assets_test;
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
-import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -19,7 +16,7 @@ main() {
   useCompactVMConfiguration();
 
 
-  Future testAssetUri(String name,
+  void testAssetUri(String name,
       {AssetId source, String uri, AssetId result, String message,
       bool errorOnAbsolute: true}) {
     test(name, () {
@@ -69,7 +66,7 @@ main() {
     testAssetUri('does not allow packages from non-dart lib files',
         source: new AssetId('a', 'lib/index.html'),
         uri: 'packages/foo/bar',
-        message: 'error: Invalid url to reach to another package: '
+        message: 'warning: Invalid url to reach to another package: '
             'packages/foo/bar. Path reaching to other packages must first '
             'reach up all the way to the packages folder. For example, try '
             'changing the url above to: ../../packages/foo/bar');
@@ -82,12 +79,13 @@ main() {
     testAssetUri('does not allow package: imports from non-dart files',
         source: new AssetId('a', 'lib/index.html'),
         uri: 'package:foo/bar.dart',
-        message: 'error: absolute paths not allowed: "package:foo/bar.dart"');
+        message: 'warning: absolute paths not allowed: "package:foo/bar.dart"');
 
     testAssetUri('does not allow absolute /packages by default',
         source: new AssetId('a', 'lib/index.html'),
         uri: '/packages/foo/bar.dart',
-        message: 'error: absolute paths not allowed: "/packages/foo/bar.dart"');
+        message:
+            'warning: absolute paths not allowed: "/packages/foo/bar.dart"');
 
     testAssetUri('can suppress error on absolute /packages ',
         source: new AssetId('a', 'lib/index.html'),
@@ -101,8 +99,6 @@ class Validator extends Transformer {
   final Function validation;
 
   Validator(this.validation);
-
-  Future<bool> isPrimary(Asset input) => new Future.value(true);
 
   Future apply(Transform transform) {
     return new Future.value(validation(transform));

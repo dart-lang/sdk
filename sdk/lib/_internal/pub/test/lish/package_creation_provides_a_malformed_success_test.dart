@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -26,8 +27,7 @@ main() {
 
     var body = {'success': 'Your package was awesome.'};
     server.handle('GET', '/create', (request) {
-      request.response.write(JSON.encode(body));
-      request.response.close();
+      return new shelf.Response.ok(JSON.encode(body));
     });
 
     pub.stderr.expect('Invalid server response:');

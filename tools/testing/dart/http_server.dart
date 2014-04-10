@@ -97,6 +97,13 @@ class TestingServers {
     "/NonExistingFile",
     "/NonExistingFile.js",
     "/hahaURL",
+    "/UNEXISTENT",
+    "/missing.png",
+    "/NoSuchPart.dart",
+    "/Nonexistent_library.dart",
+    "/missing_file",
+    "/xxx-missing.jpeg",
+    "/does-not-exist.css"
   ];
 
   List _serverList = [];

@@ -21,7 +21,7 @@ main() {
     "/root_dart/pkg/intl/lib/src/data/dates/";
 
    test("Initializing a locale that needs fallback", () {
-     initializeDateFormatting("de_DE", url).then(expectAsync1((_) => true));
+     initializeDateFormatting("de_DE", url).then(expectAsync((_) => true));
    });
 
   runWith(smallSetOfLocales, url, initializeDateFormatting);

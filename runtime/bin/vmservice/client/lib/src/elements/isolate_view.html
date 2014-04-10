@@ -5,6 +5,7 @@
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_inset.html">
   <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="isolate-view" extends="observatory-element">
@@ -32,6 +33,9 @@
       .sourceInset {
         padding-left: 15%;
         padding-right: 15%;
+      }
+      .miniProfileChart {
+        width: 80%;
       }
     </style>
 
@@ -68,7 +72,8 @@
               <function-ref ref="{{ isolate.topFrame['function'] }}">
               </function-ref>
               (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                           line="{{ isolate.topFrame['line'] }}"></script-ref>)
+                           pos="{{ isolate.topFrame['tokenPos'] }}">
+              </script-ref>)
             </template>
 
             <template if="{{ isolate.idle }}">
@@ -110,12 +115,12 @@
       <hr>
     </template>
 
+    <br>
+
     <template if="{{ isolate.topFrame != null }}">
-      <br>
-      <div class="sourceInset">
-        <pre>
-          {{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
-      </div>
+      <script-inset script="{{ isolate.topFrame['script'] }}"
+                    pos="{{ isolate.topFrame['tokenPos'] }}">
+      </script-inset>
     </template>
 
     <br>
@@ -201,7 +206,14 @@
     <hr>
 
     <div class="content">
-      <div id="tagProfileChart" class="col-md-8" style="height: 400px"></div>
+      <div class="memberValue">Isolate execution</div>
+      <template repeat="{{ key in isolate.counters.keys }}">
+        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+      </template>
+    </div>
+
+    <div class="content">
+      <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>
     </div>
 
     <hr>

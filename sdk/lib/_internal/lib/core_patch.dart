@@ -219,6 +219,10 @@ patch class String {
     return Primitives.stringFromCharCodes(charCodes);
   }
 
+  patch factory String.fromCharCode(int charCode) {
+    return Primitives.stringFromCharCode(charCode);
+  }
+
   patch factory String.fromEnvironment(String name, {String defaultValue}) {
     throw new UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');

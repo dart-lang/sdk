@@ -252,22 +252,4 @@ main() {
     expectAsset("app|foo.txt", "bar.in");
     buildShouldSucceed();
   });
-
-  test("doesn't return an overwritten asset until we know it will still "
-      "be overwritten", () {
-    var rewrite = new RewriteTransformer("txt", "txt");
-    initGraph(["app|foo.txt"], {"app": [[rewrite]]});
-
-    updateSources(["app|foo.txt"]);
-    expectAsset("app|foo.txt", "foo.txt");
-    buildShouldSucceed();
-
-    rewrite.pauseIsPrimary("app|foo.txt");
-    updateSources(["app|foo.txt"]);
-    expectAssetDoesNotComplete("app|foo.txt");
-
-    rewrite.resumeIsPrimary("app|foo.txt");
-    expectAsset("app|foo.txt", "foo.txt");
-    buildShouldSucceed();
-  });
 }

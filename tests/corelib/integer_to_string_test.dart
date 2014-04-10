@@ -19,7 +19,7 @@ main() {
     Expect.equals(expect, (new StringBuffer()..write(value)).toString());
   }
 
-  // Null.
+  // Very simple tests.
   test(0, "0");
   test(1, "1");
   test(2, "2");

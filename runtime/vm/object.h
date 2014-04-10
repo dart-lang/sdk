@@ -817,8 +817,8 @@ class Class : public Object {
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
 
+  // Note this returns false for mixin application aliases.
   bool IsMixinApplication() const;
-  bool IsAnonymousMixinApplication() const;
 
   RawClass* patch_class() const {
     return raw_ptr()->patch_class_;
@@ -1298,23 +1298,38 @@ class TypeArguments : public Object {
     return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
   }
 
-  // Check if the vectors are equal.
+  // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsEquivalent(other);
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
   }
 
   bool IsEquivalent(const TypeArguments& other,
-                    GrowableObjectArray* trail = NULL) const;
+                    GrowableObjectArray* trail = NULL) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
+  }
+  bool IsSubvectorEquivalent(const TypeArguments& other,
+                             intptr_t from_index,
+                             intptr_t len,
+                             GrowableObjectArray* trail = NULL) const;
 
-  bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  // Check if the vector is instantiated (it must not be null).
+  bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+    return IsSubvectorInstantiated(0, Length(), trail);
+  }
+  bool IsSubvectorInstantiated(intptr_t from_index,
+                               intptr_t len,
+                               GrowableObjectArray* trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
-  // Returns true if all types of this vector are respectively, resolved,
+  // Return true if all types of this vector are respectively, resolved,
   // finalized, or bounded.
   bool IsResolved() const;
   bool IsFinalized() const;
   bool IsBounded() const;
+
+  // Return true if this vector contains a recursive type argument.
+  bool IsRecursive() const;
 
   // Clone this type argument vector and clone all unfinalized type arguments.
   // Finalized type arguments are shared.
@@ -1399,7 +1414,6 @@ class TypeArguments : public Object {
 
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
-  void set_type_at(intptr_t index, const AbstractType& value) const;
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
@@ -1499,8 +1513,9 @@ class Function : public Object {
   void set_parameter_names(const Array& value) const;
 
   // Sets function's code and code's function.
-  void SetCode(const Code& value) const;
-  void  ClearCode() const;
+  void AttachCode(const Code& value) const;
+  void set_code(const Code& value) const;
+  void ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -1515,7 +1530,7 @@ class Function : public Object {
   static intptr_t unoptimized_code_offset() {
     return OFFSET_OF(RawFunction, unoptimized_code_);
   }
-  inline bool HasCode() const;
+  bool HasCode() const;
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
@@ -2383,6 +2398,7 @@ class Script : public Object {
   bool HasSource() const;
   RawString* Source() const;
   RawString* GenerateSource() const;  // Generates source code from Tokenstream.
+  RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
   }
@@ -2560,7 +2576,9 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
-  void AddClassMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddClassMetadata(const Class& cls,
+                        const Class& toplevel_class,
+                        intptr_t token_pos) const;
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
   void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
@@ -2951,9 +2969,6 @@ class Stackmap : public Object {
     ASSERT(InRange(index));
     return GetBit(index);
   }
-
-  RawCode* Code() const { return raw_ptr()->code_; }
-  void SetCode(const dart::Code& code) const;
 
   intptr_t Length() const { return raw_ptr()->length_; }
 
@@ -4024,19 +4039,14 @@ class Instance : public Object {
   // error object if evaluating the expression fails.
   RawObject* Evaluate(const String& expr) const;
 
-  // Returns a string representation of this instance in a form
-  // that is suitable for an end user.
-  //
-  // max_len is advisory, and the returned string may exceed this max
-  // length.
-  virtual const char* ToUserCString(intptr_t max_len = 40,
-                                    intptr_t nesting = 0) const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
 
   static RawInstance* New(const Class& cls, Heap::Space space = Heap::kNew);
+
+ protected:
+  virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
 
  private:
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
@@ -4144,6 +4154,7 @@ class AbstractType : public Instance {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -4165,6 +4176,15 @@ class AbstractType : public Instance {
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const;
+
+  // Return the object associated with the receiver in the trail or
+  // Object::null() if the receiver is not contained in the trail.
+  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
+
+  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
+  // the trail. The receiver may only be added once with its only buddy.
+  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                           const Object& buddy) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -4299,6 +4319,7 @@ class Type : public AbstractType {
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
@@ -4417,7 +4438,8 @@ class TypeRef : public AbstractType {
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* InstantiateFrom(
+  virtual bool IsRecursive() const { return true; }
+  virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
@@ -4437,15 +4459,6 @@ class TypeRef : public AbstractType {
   // The receiver may be added several times, each time with a different buddy.
   bool TestAndAddBuddyToTrail(GrowableObjectArray** trail,
                               const Object& buddy) const;
-
-  // Return the object associated with the receiver in the trail or
-  // Object::null() if the receiver is not contained in the trail.
-  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
-
-  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
-  // the trail. The receiver may only be added once with its only buddy.
-  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                           const Object& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -4505,6 +4518,7 @@ class TypeParameter : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
@@ -4588,6 +4602,7 @@ class BoundedType : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
@@ -5113,6 +5128,9 @@ class String : public Instance {
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
+  // Produces a quoted, escaped, (possibly) truncated string.
+  const char* ToUserCString(intptr_t max_len) const;
+
   // Copies the string characters into the provided external array
   // and morphs the string object into an external string object.
   // The remaining unused part of the original string object is marked as
@@ -5122,10 +5140,6 @@ class String : public Instance {
                           intptr_t length,
                           void* peer,
                           Dart_PeerFinalizer cback) const;
-
-  // Produces a quoted, escaped, (possibly) truncated string.
-  const char* ToUserCString(intptr_t max_len = 40,
-                            intptr_t nesting = 0) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -5872,11 +5886,6 @@ class GrowableObjectArray : public Instance {
     UNREACHABLE();
     return Instance::null();
   }
-
-  // Produces a readable representation of this array, e.g. '[1,2,3]',
-  // subject to length limits.
-  const char* ToUserCString(intptr_t max_len = 40,
-                            intptr_t nesting = 0) const;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawGrowableObjectArray, type_arguments_);
@@ -6668,11 +6677,6 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
            vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
 #endif
-}
-
-
-bool Function::HasCode() const {
-  return raw_ptr()->code_ != Code::null();
 }
 
 

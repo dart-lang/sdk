@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "include/dart_debugger_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -112,6 +116,9 @@ static RawInstance* EvalF(Dart_Handle lib, const char* fmt, ...) {
 
 
 // Search for the formatted string in buff.
+//
+// TODO(turnidge): This function obscures the line number of failing
+// EXPECTs.  Rework this.
 static void ExpectSubstringF(const char* buff, const char* fmt, ...) {
   Isolate* isolate = Isolate::Current();
 
@@ -374,7 +381,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/null\","
-      "\"preview\":\"null\"}",
+      "\"valueAsString\":\"null\"}",
       handler.msg());
 
   // not initialized
@@ -384,7 +391,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/not-initialized\","
-      "\"preview\":\"<not initialized>\"}",
+      "\"valueAsString\":\"<not initialized>\"}",
       handler.msg());
 
   // being initialized
@@ -394,7 +401,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/being-initialized\","
-      "\"preview\":\"<being initialized>\"}",
+      "\"valueAsString\":\"<being initialized>\"}",
       handler.msg());
 
   // optimized out
@@ -404,7 +411,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/optimized-out\","
-      "\"preview\":\"<optimized out>\"}",
+      "\"valueAsString\":\"<optimized out>\"}",
       handler.msg());
 
   // collected
@@ -414,7 +421,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/collected\","
-      "\"preview\":\"<collected>\"}",
+      "\"valueAsString\":\"<collected>\"}",
       handler.msg());
 
   // expired
@@ -424,7 +431,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
-      "\"preview\":\"<expired>\"}",
+      "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
   // bool
@@ -435,7 +442,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"Bool\",\"id\":\"objects\\/bool-true\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
-      "\"user_name\":\"bool\"},\"preview\":\"true\"}",
+      "\"user_name\":\"bool\"},\"valueAsString\":\"true\"}",
       handler.msg());
 
   // int
@@ -444,9 +451,12 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"Smi\",\"id\":\"objects\\/int-123\","
+      "{\"type\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"123\"}",
+      "\"user_name\":\"int\"},"
+      "\"fields\":[],"
+      "\"id\":\"objects\\/int-123\","
+      "\"valueAsString\":\"123\"}",
       handler.msg());
 
   // object id ring / valid
@@ -455,11 +465,12 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   handler.filterMsg("size");
+  handler.filterMsg("id");
   EXPECT_STREQ(
-      "{\"type\":\"String\",\"id\":\"objects\\/1\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/60\","
-      "\"user_name\":\"String\"},\"preview\":\"\\\"value\\\"\","
-      "\"fields\":[],}",
+      "{\"type\":\"String\","
+      "\"class\":{\"type\":\"@Class\","
+      "\"user_name\":\"String\"},\"fields\":[],"
+      "\"valueAsString\":\"\\\"value\\\"\"}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -469,7 +480,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
-      "\"preview\":\"<expired>\"}",
+      "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
   // expired/eval => error
@@ -492,9 +503,11 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-222\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"222\"}",
+      "\"user_name\":\"int\"},"
+      "\"id\":\"objects\\/int-222\","
+      "\"valueAsString\":\"222\"}",
       handler.msg());
 
   // eval returning null works
@@ -505,7 +518,8 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Null\",\"id\":\"objects\\/null\",\"preview\":\"null\"}",
+      "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+      "\"valueAsString\":\"null\"}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -589,9 +603,10 @@ TEST_CASE(Service_Libraries) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-54320\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"54320\"}",
+      "\"user_name\":\"int\"},\"id\":\"objects\\/int-54320\","
+      "\"valueAsString\":\"54320\"}",
       handler.msg());
 }
 
@@ -663,9 +678,11 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-111235\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"111235\"}",
+      "\"user_name\":\"int\"},"
+      "\"id\":\"objects\\/int-111235\","
+      "\"valueAsString\":\"111235\"}",
       handler.msg());
 
   // Request function 0 from class A.
@@ -781,8 +798,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\"", cid);
 
   // Request canonical type 0 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '0'],"
@@ -790,9 +808,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A<bool>\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/types\\/0\","
-                   "\"name\":\"A<bool>\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/0\"", cid);
 
   // Request canonical type 1 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '1'],"
@@ -800,9 +818,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A<A<bool>>\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/types\\/1\","
-                   "\"name\":\"A<A<bool>>\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/1\"", cid);
 
   // Request for non-existent canonical type from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '42'],"
@@ -995,6 +1013,39 @@ TEST_CASE(Service_VM) {
 }
 
 
+TEST_CASE(Service_Scripts) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(h_lib, "[port, ['scripts', 'dart:test-lib'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ(
+      "{\"type\":\"Script\",\"id\":\"scripts\\/dart%3Atest-lib\","
+       "\"name\":\"dart:test-lib\",\"user_name\":\"dart:test-lib\","
+       "\"kind\":\"script\","
+       "\"source\":\"var port;\\n\\nmain() {\\n}\","
+       "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
+      handler.msg());
+}
+
+
 TEST_CASE(Service_Coverage) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -1064,6 +1115,45 @@ TEST_CASE(Service_AllocationProfile) {
 
   Instance& service_msg = Instance::Handle();
   service_msg = Eval(h_lib, "[port, ['allocationprofile'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Too long.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile', 'foo'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Bad gc option.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['cat']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Bad reset option.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['ff']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Good reset.
+  service_msg =
+      Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['true']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Good GC.
+  service_msg =
+      Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['full']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Good GC and reset.
+  service_msg = Eval(h_lib,
+      "[port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
@@ -1290,3 +1380,5 @@ TEST_CASE(Service_Profile) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

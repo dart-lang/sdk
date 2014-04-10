@@ -1,5 +1,5 @@
 name: smoke
-version: 0.1.0-pre.2.dev
+version: 0.1.0-pre.3.dev
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: "https://api.dartlang.org/apidocs/channels/be/#smoke"
 description: >
@@ -7,18 +7,16 @@ description: >
   can be replaced with non-reflective calls using code generation. See README.md
   for mode details.
 dependencies:
-  barback: ">=0.9.0 <0.12.0"
+  barback: ">=0.9.0 <0.14.0"
   logging: ">=0.9.0 <0.10.0"
-# TODO(sigmund): uncomment this once we have some easier way to do global
-# app-level transformers or a way to enable this selectively from the
-# application package.
-#transformers:
-#- smoke/src/default_transformer:
-#    # TODO(sigmund): include this once this feature is available in the stable
-#    # channel, or when we really need some other feature in the dev channel.
-#    $include: lib/src/implementation.dart
+# TODO(sigmund): once we have some easier way to do global app-level
+# transformers, we might want to remove this transformer here and only apply it
+# in apps that need it.
+transformers:
+- smoke/src/default_transformer:
+    $include: lib/src/implementation.dart
 dev_dependencies:
   unittest: ">=0.10.0 <0.11.0"
   path: ">=1.0.0 <2.0.0"
 environment:
-  sdk: ">=1.2.0 <2.0.0"
+  sdk: ">=1.3.0-dev.7.9 <2.0.0"

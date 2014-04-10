@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
 #include "vm/timer.h"
 #include "vm/json_stream.h"
 
@@ -27,9 +28,10 @@ TimerList::TimerList()
 
 #define TIMER_FIELD_REPORT(name, msg)                                          \
   if (name().report() && name().message() != NULL) {                           \
-    OS::Print("%s :  %" Pd64 " micros.\n",                                     \
+    OS::Print("%s :  %.3f ms total; %.3f ms max.\n",                           \
               name().message(),                                                \
-              name().TotalElapsedTime());                                      \
+              MicrosecondsToMilliseconds(name().TotalElapsedTime()),           \
+              MicrosecondsToMilliseconds(name().MaxContiguous()));             \
   }
 void TimerList::ReportTimers() {
   TIMER_LIST(TIMER_FIELD_REPORT);
@@ -41,9 +43,10 @@ void TimerList::ReportTimers() {
   {                                                                            \
     JSONObject jsobj(&jsarr);                                                  \
     jsobj.AddProperty("name", #name);                                          \
-    double seconds = static_cast<double>(name().TotalElapsedTime()) /          \
-        static_cast<double>(kMicrosecondsPerSecond);                           \
-    jsobj.AddProperty("time", seconds);                                        \
+    jsobj.AddProperty("time",                                                  \
+                      MicrosecondsToSeconds(name().TotalElapsedTime()));       \
+    jsobj.AddProperty("max_contiguous",                                        \
+                      MicrosecondsToSeconds(name().MaxContiguous()));          \
   }
 void TimerList::PrintTimersToJSONProperty(JSONObject* jsobj) {
   JSONArray jsarr(jsobj, "timers");

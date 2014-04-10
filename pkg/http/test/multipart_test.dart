@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
@@ -30,7 +31,7 @@ class _BodyMatches extends Matcher {
 
     var future = item.finalize().toBytes().then((bodyBytes) {
       var body = UTF8.decode(bodyBytes);
-      var contentType = ContentType.parse(item.headers['content-type']);
+      var contentType = new MediaType.parse(item.headers['content-type']);
       var boundary = contentType.parameters['boundary'];
       var expected = cleanUpLiteral(_pattern)
           .replaceAll("\n", "\r\n")
@@ -93,7 +94,33 @@ void main() {
 
     expect(request, bodyMatches('''
         --{{boundary}}
-        content-disposition: form-data; name="f%C3%AF%C4%93ld"
+        content-disposition: form-data; name="fïēld"
+
+        value
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a field name with newlines', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.fields['foo\nbar\rbaz\r\nbang'] = 'value';
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-disposition: form-data; name="foo%0D%0Abar%0D%0Abaz%0D%0Abang"
+
+        value
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a field name with a quote', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.fields['foo"bar'] = 'value';
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-disposition: form-data; name="foo%22bar"
 
         value
         --{{boundary}}--
@@ -122,7 +149,37 @@ void main() {
     expect(request, bodyMatches('''
         --{{boundary}}
         content-type: text/plain; charset=utf-8
-        content-disposition: form-data; name="file"; filename="f%C3%AFl%C4%93name.txt"
+        content-disposition: form-data; name="file"; filename="fïlēname.txt"
+
+        contents
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a filename with newlines', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.files.add(new http.MultipartFile.fromString('file', 'contents',
+        filename: 'foo\nbar\rbaz\r\nbang'));
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: text/plain; charset=utf-8
+        content-disposition: form-data; name="file"; filename="foo%0D%0Abar%0D%0Abaz%0D%0Abang"
+
+        contents
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a filename with a quote', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.files.add(new http.MultipartFile.fromString('file', 'contents',
+        filename: 'foo"bar'));
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: text/plain; charset=utf-8
+        content-disposition: form-data; name="file"; filename="foo%22bar"
 
         contents
         --{{boundary}}--
@@ -132,7 +189,7 @@ void main() {
   test('with a string file with a content-type but no charset', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
     var file = new http.MultipartFile.fromString('file', '{"hello": "world"}',
-        contentType: new ContentType('application', 'json'));
+        contentType: new MediaType('application', 'json'));
     request.files.add(file);
 
     expect(request, bodyMatches('''
@@ -149,7 +206,7 @@ void main() {
     var request = new http.MultipartRequest('POST', dummyUrl);
     // "Ã¥" encoded as ISO-8859-1 and then read as UTF-8 results in "å".
     var file = new http.MultipartFile.fromString('file', 'non-ascii: "Ã¥"',
-        contentType: new ContentType('text', 'plain', charset: 'iso-8859-1'));
+        contentType: new MediaType('text', 'plain', {'charset': 'iso-8859-1'}));
     request.files.add(file);
 
     expect(request, bodyMatches('''

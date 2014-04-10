@@ -842,7 +842,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitStaticNonFinalFieldInitializations(CodeBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
@@ -862,7 +862,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitLazilyInitializedStaticFields(CodeBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
@@ -901,7 +901,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
-    ConstantHandler handler = compiler.constantHandler;
+    JavaScriptConstantCompiler handler = backend.constants;
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
     Set<Constant> outputUnitConstants = null;
@@ -1530,6 +1530,14 @@ if (typeof $printHelperName === "function") {
       } else {
         mainBuffer.add('\n');
       }
+
+      if (compiler.useContentSecurityPolicy) {
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
+      }
+
       String assembledCode = mainBuffer.getText();
       String sourceMapTags = "";
       if (generateSourceMap) {
@@ -1544,15 +1552,31 @@ if (typeof $printHelperName === "function") {
           ..close();
       compiler.assembledCode = assembledCode;
 
-      mainBuffer.write(
-          jsAst.prettyPrint(
-              precompiledFunctionAst, compiler,
-              allowVariableMinification: false).getText());
+      if (!compiler.useContentSecurityPolicy) {
+        mainBuffer.write("""
+{
+  var message = 
+      'Deprecation: Automatic generation of output for Content Security\\n' +
+      'Policy is deprecated and will be removed with the next development\\n' +
+      'release. Use the --csp option to generate CSP restricted output.';
+  if (typeof dartPrint == "function") {
+    dartPrint(message);
+  } else if (typeof console == "object" && typeof console.log == "function") {
+    console.log(message);
+  } else if (typeof print == "function") {
+    print(message);
+  }
+}\n""");
 
-      compiler.outputProvider('', 'precompiled.js')
-          ..add(mainBuffer.getText())
-          ..close();
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
 
+        compiler.outputProvider('', 'precompiled.js')
+            ..add(mainBuffer.getText())
+            ..close();
+      }
       emitDeferredCode();
 
     });
@@ -1672,9 +1696,9 @@ if (typeof $printHelperName === "function") {
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     SourceFile compiledFile = new StringSourceFile(null, code);
     SourceMapBuilder sourceMapBuilder =
-            new SourceMapBuilder(sourceMapUri, fileUri);
+            new SourceMapBuilder(sourceMapUri, fileUri, compiledFile);
     buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build(compiledFile);
+    String sourceMap = sourceMapBuilder.build();
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
         ..close();

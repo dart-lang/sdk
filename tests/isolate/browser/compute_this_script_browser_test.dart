@@ -26,7 +26,7 @@ void main([args, port]) {
   document.body.append(script);
   test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
-    port.listen(expectAsync1((msg) {
+    port.listen(expectAsync((msg) {
       expect(msg, equals('re: hi'));
       port.close();
     }));

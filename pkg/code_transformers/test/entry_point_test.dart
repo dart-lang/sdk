@@ -5,12 +5,10 @@
 library code_transformers.test.assets_test;
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -99,8 +97,6 @@ class Validator extends Transformer {
   final Function validation;
 
   Validator(this.validation);
-
-  Future<bool> isPrimary(Asset input) => new Future.value(true);
 
   Future apply(Transform transform) {
     return new Future.value(validation(transform));

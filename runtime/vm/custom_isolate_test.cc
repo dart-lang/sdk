@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
@@ -26,7 +30,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 static const char* kCustomIsolateScriptChars =
     "import 'dart:isolate';\n"
     "\n"
-    "RawReceivePort mainPort;\n"
+    "final RawReceivePort mainPort = new RawReceivePort();\n"
     "\n"
     "echo(arg) native \"native_echo\";\n"
     "\n"
@@ -170,17 +174,8 @@ void StartEvent::Process() {
   Dart_EnterScope();
   Dart_Handle result;
 
-  // Reload all the test classes here.
-  //
-  // TODO(turnidge): Use the create isolate callback instead?
-  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
-                                             NativeLookup);
+  Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
   EXPECT_VALID(lib);
-
-  Dart_Handle recv_port = Dart_GetReceivePort(Dart_GetMainPortId());
-  EXPECT_VALID(recv_port);
-  result = Dart_SetField(lib, NewString("mainPort"), recv_port);
-  EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString(main_), 0, NULL);
   EXPECT_VALID(result);
@@ -287,17 +282,30 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   Dart_Isolate new_isolate = TestCase::CreateTestIsolate();
   EXPECT(new_isolate != NULL);
   Dart_SetMessageNotifyCallback(&NotifyMessage);
-  Dart_Port new_port = Dart_GetMainPortId();
+  Dart_EnterScope();
+  // Reload all the test classes here.
+  //
+  // TODO(turnidge): Use the create isolate callback instead?
+  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
+                                             NativeLookup);
+  EXPECT_VALID(lib);
+
+  Dart_Handle main_port = Dart_GetField(lib, NewString("mainPort"));
+  EXPECT_VALID(main_port);
+  Dart_Port main_port_id;
+  Dart_Handle err = Dart_PortGetId(main_port, &main_port_id);
+  EXPECT_VALID(err);
 
   OS::Print("-- Adding StartEvent to queue --\n");
   event_queue->Add(new StartEvent(new_isolate, isolate_main));
 
   // Restore the original isolate.
+  Dart_ExitScope();
   Dart_ExitIsolate();
   Dart_EnterIsolate(saved_isolate);
   Dart_EnterScope();
 
-  Dart_Handle send_port = Dart_NewSendPort(new_port);
+  Dart_Handle send_port = Dart_NewSendPort(main_port_id);
   EXPECT_VALID(send_port);
   Dart_SetReturnValue(args, send_port);
 
@@ -346,3 +354,5 @@ UNIT_TEST_CASE(CustomIsolates) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

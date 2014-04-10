@@ -6,6 +6,8 @@ library code_transformer.src.resolver;
 
 import 'dart:async';
 
+import 'package:analyzer/src/generated/ast.dart' show Expression;
+import 'package:analyzer/src/generated/constant.dart' show EvaluationResult;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
@@ -67,6 +69,11 @@ abstract class Resolver {
   /// This will resolve the first instance of [functionName], because of
   /// potential library name conflicts the name is not guaranteed to be unique.
   Element getLibraryFunction(String functionName);
+
+  /// Gets the result of evaluating the constant [expression] in the context of
+  /// a [library].
+  EvaluationResult evaluateConstant(
+      LibraryElement library, Expression expression);
 
   /// Gets an URI appropriate for importing the specified library.
   ///

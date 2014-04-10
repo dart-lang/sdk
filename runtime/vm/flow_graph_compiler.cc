@@ -35,6 +35,8 @@ DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(charp, deoptimize_filter, NULL,
+            "Force deoptimization in named function");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -166,6 +168,14 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 
 bool FlowGraphCompiler::CanOSRFunction() const {
   return FLAG_use_osr & CanOptimizeFunction() && !is_optimizing();
+}
+
+
+bool FlowGraphCompiler::ShouldDeoptimizeFunction() const {
+  return (is_optimizing() &&
+          (FLAG_deoptimize_filter != NULL) &&
+          (strstr(parsed_function().function().ToFullyQualifiedCString(),
+                  FLAG_deoptimize_filter) != NULL));
 }
 
 

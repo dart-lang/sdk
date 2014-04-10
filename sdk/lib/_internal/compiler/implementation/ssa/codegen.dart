@@ -1492,9 +1492,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // list class is instantiated.
         world.registerInstantiatedClass(
             compiler.listClass, work.resolutionTree);
-      } else if (target == backend.jsStringOperatorAdd) {
-        push(new js.Binary('+', object, arguments[0]), node);
-        return;
       } else if (target.isNative() && target.isFunction()
                  && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
@@ -1690,6 +1687,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         node);
   }
 
+  visitReadModifyWrite(HReadModifyWrite node) {
+    Element element = node.element;
+    world.registerFieldSetter(element);
+    String name = backend.namer.instanceFieldPropertyName(element);
+    use(node.receiver);
+    js.Expression fieldReference = new js.PropertyAccess.field(pop(), name);
+    if (node.isPreOp) {
+      push(new js.Prefix(node.jsOp, fieldReference), node);
+    } else if (node.isPostOp) {
+      push(new js.Postfix(node.jsOp, fieldReference), node);
+    } else {
+      use(node.value);
+      push(new js.Assignment.compound(fieldReference, node.jsOp, pop()), node);
+    }
+  }
+
   visitLocalGet(HLocalGet node) {
     use(node.receiver);
   }
@@ -1780,7 +1793,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant);
 
     backend.registerCompileTimeConstant(node.constant, work.resolutionTree);
-    compiler.constantHandler.addCompileTimeConstantForEmission(node.constant);
+    backend.constants.addCompileTimeConstantForEmission(node.constant);
   }
 
   visitNot(HNot node) {

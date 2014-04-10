@@ -157,15 +157,22 @@ templateInstantiationTests() {
     // and would cause the template to not be expanded.
     var m = toObservable({ 'predicate': null, 'bound': 1 });
     var template = div.firstChild;
-    templateBind(template).model = m;
+    bool errorSeen = false;
+    runZoned(() {
+      templateBind(template).model = m;
+    }, onError: (e, s) {
+      expect(e, isNoSuchMethodError);
+      errorSeen = true;
+    });
     return new Future(() {
       expect(div.nodes.length, 1);
 
       m['predicate'] = 1;
 
-    }).then(endOfMicrotask).then((_) {
-      expect(div.nodes.length, 2);
-      expect(div.lastChild.text, 'value:');
+      expect(errorSeen, isFalse);
+    }).then(nextMicrotask).then((_) {
+      expect(errorSeen, isTrue);
+      expect(div.nodes.length, 1);
 
       m['bound'] = toObservable({ 'value': 2 });
 
@@ -234,14 +241,18 @@ templateInstantiationTests() {
     // undefined, and would cause the template to not be expanded.
     var m = toObservable({ 'predicate': 1, 'bound': 1 });
     var template = div.firstChild;
-    templateBind(template).model = m;
+    bool errorSeen = false;
+    runZoned(() {
+      templateBind(template).model = m;
+    }, onError: (e, s) {
+      expect(e, isNoSuchMethodError);
+      errorSeen = true;
+    });
 
     return new Future(() {
-      expect(div.nodes.length, 2);
-      expect(div.lastChild.text, 'value:');
-
+      expect(div.nodes.length, 1);
       m['bound'] = toObservable({ 'value': 2 });
-
+      expect(errorSeen, isTrue);
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.length, 2);
       expect(div.lastChild.text, 'value:2');
@@ -2197,6 +2208,33 @@ templateInstantiationTests() {
     return new Future(() {
       expect(host.firstChild.nextNode.text, 'bar:replaced');
     });
+  });
+
+  test('CreateInstance - sync error', () {
+    var div = createTestHtml('<template>{{foo}}</template>');
+    var outer = templateBind(div.nodes.first);
+    var model = 1; // model is missing 'foo' should throw.
+    expect(() => outer.createInstance(model, new TestBindingSyntax()),
+        throwsA(isNoSuchMethodError));
+  });
+
+  test('CreateInstance - async error', () {
+    var div = createTestHtml(
+      '<template>'
+        '<template bind="{{b}}">'
+          '{{ foo }}:{{ replaceme }}'
+        '</template>'
+      '</template>');
+    var outer = templateBind(div.nodes.first);
+    var model = toObservable({'b': 1}); // missing 'foo' should throw.
+
+    bool seen = false;
+    runZoned(() => outer.createInstance(model, new TestBindingSyntax()),
+      onError: (e) {
+        expect(e, isNoSuchMethodError);
+        seen = true;
+      });
+    return new Future(() { expect(seen, isTrue); });
   });
 
   test('Repeat - svg', () {

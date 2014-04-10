@@ -15,8 +15,8 @@ import 'package:canonicalization3/c.dart';
 import 'package:canonicalization3/d.dart' as d1;
 import 'packages/canonicalization3/d.dart' as d2;
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

@@ -66,11 +66,9 @@ class Parser {
         left = _makeInvokeOrGetter(left, right);
       } else if (_token.kind == KEYWORD_TOKEN && _token.value == 'in') {
         left = _parseComprehension(left);
-      } else if (_token.kind == OPERATOR_TOKEN && _token.value == '?') {
-        left = _parseTernary(left);
       } else if (_token.kind == OPERATOR_TOKEN
           && _token.precedence >= precedence) {
-        left = _parseBinary(left);
+        left = _token.value == '?' ? _parseTernary(left) : _parseBinary(left);
       } else {
         break;
       }

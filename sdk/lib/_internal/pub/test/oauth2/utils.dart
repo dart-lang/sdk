@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 import '../../lib/src/utils.dart';
@@ -41,17 +42,13 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request) {
-    return new ByteStream(request).toBytes().then((bytes) {
-      var body = new String.fromCharCodes(bytes);
+    return request.readAsString().then((body) {
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode({
+      return new shelf.Response.ok(JSON.encode({
         "access_token": accessToken,
         "token_type": "bearer"
-      }));
-      request.response.close();
+      }), headers: {'content-type': 'application/json'});
     });
   });
 }

@@ -874,6 +874,8 @@ void Scanner::ScanAll(GrowableTokenStream* token_stream) {
     if (inserted_new_lines &&
         ((current_token_.kind == Token::kINTERPOL_VAR) ||
          (current_token_.kind == Token::kINTERPOL_START))) {
+      // NOTE: If this changes, be sure to update
+      // Script::GenerateLineNumberArray to stay in sync.
       empty_string_token_.position.line = current_token_.position.line;
       token_stream->Add(empty_string_token_);
     }

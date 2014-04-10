@@ -16,7 +16,7 @@ import 'package:args/args.dart';
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
  * primary responsibility of this server is to listen for an UPGRADE request and
- * to start an analysis server
+ * to start an analysis server.
  */
 class HttpAnalysisServer {
   /**

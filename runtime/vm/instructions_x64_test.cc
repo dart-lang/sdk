@@ -15,14 +15,14 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ call(&StubCode::InstanceFunctionLookupLabel());
+  __ call(&StubCode::InvokeDartCodeLabel());
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Call, test) {
   CallPattern call(test->entry(), test->code());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             call.TargetAddress());
 }
 
@@ -35,7 +35,7 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ pushq(PP);
   __ LoadPoolPointer(PP);
   prologue_code_size = assembler->CodeSize();
-  __ JmpPatchable(&StubCode::InstanceFunctionLookupLabel(), PP);
+  __ JmpPatchable(&StubCode::InvokeDartCodeLabel(), PP);
   __ JmpPatchable(&StubCode::AllocateArrayLabel(), PP);
   __ popq(PP);
   __ ret();
@@ -53,7 +53,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   EXPECT(status);
   JumpPattern jump1(test->entry() + prologue_code_size, test->code());
   jump1.IsValid();
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2((test->entry() +
                      jump1.pattern_length_in_bytes() + prologue_code_size),
@@ -66,7 +66,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
 }
 

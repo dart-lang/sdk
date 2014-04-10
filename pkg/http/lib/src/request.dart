@@ -5,8 +5,9 @@
 library request;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+
+import 'package:http_parser/http_parser.dart';
 
 import 'base_request.dart';
 import 'byte_stream.dart';
@@ -45,23 +46,19 @@ class Request extends BaseRequest {
   /// If the request has a `Content-Type` header, setting this will set the
   /// charset parameter on that header.
   Encoding get encoding {
-    if (_contentType == null || _contentType.charset == null) {
+    if (_contentType == null ||
+        !_contentType.parameters.containsKey('charset')) {
       return _defaultEncoding;
     }
-    return requiredEncodingForCharset(_contentType.charset);
+    return requiredEncodingForCharset(_contentType.parameters['charset']);
   }
 
   set encoding(Encoding value) {
     _checkFinalized();
     _defaultEncoding = value;
     var contentType = _contentType;
-    if (contentType != null) {
-      contentType = new ContentType(contentType.primaryType,
-                                    contentType.subType,
-                                    charset: value.name,
-                                    parameters: contentType.parameters);
-      _contentType = contentType;
-    }
+    if (contentType == null) return;
+    _contentType = contentType.change(parameters: {'charset': value.name});
   }
 
   // TODO(nweiz): make this return a read-only view
@@ -90,14 +87,10 @@ class Request extends BaseRequest {
     bodyBytes = encoding.encode(value);
     var contentType = _contentType;
     if (contentType == null) {
-      contentType = new ContentType("text", "plain", charset: encoding.name);
-    } else if (contentType.charset == null) {
-      contentType = new ContentType(contentType.primaryType,
-                                    contentType.subType,
-                                    charset: encoding.name,
-                                    parameters: contentType.parameters);
+      _contentType = new MediaType("text", "plain", {'charset': encoding.name});
+    } else if (!contentType.parameters.containsKey('charset')) {
+      _contentType = contentType.change(parameters: {'charset': encoding.name});
     }
-    _contentType = contentType;
   }
 
   /// The form-encoded fields in the body of the request as a map from field
@@ -115,8 +108,9 @@ class Request extends BaseRequest {
   ///
   /// This map should only be set, not modified in place.
   Map<String, String> get bodyFields {
-    if (_contentType == null ||
-        _contentType.value != "application/x-www-form-urlencoded") {
+    var contentType = _contentType;
+    if (contentType == null ||
+        contentType.mimeType != "application/x-www-form-urlencoded") {
       throw new StateError('Cannot access the body fields of a Request without '
           'content-type "application/x-www-form-urlencoded".');
     }
@@ -125,11 +119,12 @@ class Request extends BaseRequest {
   }
 
   set bodyFields(Map<String, String> fields) {
-    if (_contentType == null) {
-      _contentType = new ContentType("application", "x-www-form-urlencoded");
-    } else if (_contentType.value != "application/x-www-form-urlencoded") {
+    var contentType = _contentType;
+    if (contentType == null) {
+      _contentType = new MediaType("application", "x-www-form-urlencoded");
+    } else if (contentType.mimeType != "application/x-www-form-urlencoded") {
       throw new StateError('Cannot set the body fields of a Request with '
-          'content-type "${_contentType.value}".');
+          'content-type "${contentType.mimeType}".');
     }
 
     this.body = mapToQuery(fields, encoding: encoding);
@@ -149,15 +144,15 @@ class Request extends BaseRequest {
   }
 
   /// The `Content-Type` header of the request (if it exists) as a
-  /// [ContentType].
-  ContentType get _contentType {
-    var contentType = headers[HttpHeaders.CONTENT_TYPE];
+  /// [MediaType].
+  MediaType get _contentType {
+    var contentType = headers['content-type'];
     if (contentType == null) return null;
-    return ContentType.parse(contentType);
+    return new MediaType.parse(contentType);
   }
 
-  set _contentType(ContentType value) {
-    headers[HttpHeaders.CONTENT_TYPE] = value.toString();
+  set _contentType(MediaType value) {
+    headers['content-type'] = value.toString();
   }
 
   /// Throw an error if this request has been finalized.

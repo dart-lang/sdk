@@ -195,7 +195,7 @@ class _DateFormatPatternField extends _DateFormatField {
     if (year < 0) {
       year = -year;
     }
-    return width == 2 ? padTo(2, year % 100) : year.toString();
+    return width == 2 ? padTo(2, year % 100) : padTo(width, year);
   }
 
   /**

@@ -119,6 +119,9 @@ io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 [ $arch == mips && $mode == debug ]
 io/file_read_special_device_test: Fail # dartbug.com/17440
 
+[ $arch == simarm64 ]
+*: Skip
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
 

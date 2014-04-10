@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "platform/assert.h"
 #include "platform/json.h"
 #include "vm/json_stream.h"
@@ -312,4 +316,27 @@ TEST_CASE(JSON_JSONStream_EscapedString) {
 }
 
 
+TEST_CASE(JSON_JSONStream_Options) {
+  const char* arguments[] = {"a", "b", "c"};
+  const char* option_keys[] = {"dog", "cat"};
+  const char* option_values[] = {"apple", "banana"};
+
+  JSONStream js;
+  EXPECT(js.num_arguments() == 0);
+  js.SetArguments(&arguments[0], 3);
+  EXPECT(js.num_arguments() == 3);
+  EXPECT_STREQ("a", js.command());
+
+  EXPECT(js.num_options() == 0);
+  js.SetOptions(&option_keys[0], &option_values[0], 3);
+  EXPECT(js.num_options() == 3);
+  EXPECT(!js.HasOption("lizard"));
+  EXPECT(js.HasOption("dog"));
+  EXPECT(js.HasOption("cat"));
+  EXPECT(js.OptionIs("cat", "banana"));
+  EXPECT(!js.OptionIs("dog", "banana"));
+}
+
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

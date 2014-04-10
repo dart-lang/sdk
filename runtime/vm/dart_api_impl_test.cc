@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "bin/builtin.h"
 #include "include/dart_api.h"
 #include "include/dart_debugger_api.h"
@@ -2306,24 +2310,30 @@ TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
 
 
 TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
-  const intptr_t kWeak1ExternalSize = 100 * MB;
+  // Large enough to exceed any new space limit. Not actually allocated.
+  const intptr_t kWeak1ExternalSize = 500 * MB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
     EXPECT_VALID(obj);
+    // Triggers a scavenge immediately, since kWeak1ExternalSize is above limit.
     weak1 = Dart_NewWeakPersistentHandle(obj,
                                          NULL,
                                          kWeak1ExternalSize,
                                          NopCallback);
     EXPECT_VALID(AsHandle(weak1));
-    // While new space is "full" of external data, any allocation will
-    // trigger GC, so after two of them, obj should be promoted.
-    Dart_Handle trigger1 = NewString("trigger1");
-    EXPECT_VALID(trigger1);
-    Dart_Handle trigger2 = NewString("trigger2");
-    EXPECT_VALID(trigger2);
+    // ... but the object is still alive and not yet promoted, so external size
+    // in new space is still above the limit. Thus, even the following tiny
+    // external allocation will trigger another scavenge.
+    Dart_WeakPersistentHandle trigger =
+      Dart_NewWeakPersistentHandle(obj, NULL, 1, NopCallback);
+    EXPECT_VALID(AsHandle(trigger));
+    Dart_DeleteWeakPersistentHandle(isolate, trigger);
+    // After the two scavenges above, 'obj' should now be promoted, hence its
+    // external size charged to old space.
     {
       DARTSCOPE(Isolate::Current());
       String& handle = String::Handle();
@@ -2334,7 +2344,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak1ExternalSize / kWordSize);
     Dart_ExitScope();
   }
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
@@ -8089,3 +8098,5 @@ TEST_CASE(ExternalStringIndexOf) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

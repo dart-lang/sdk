@@ -17,13 +17,21 @@ part of template_binding;
 // See: https://github.com/polymer/TemplateBinding/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
+// Dart note: this was added to decouple the MustacheTokens.parse function from
+// the rest of template_binding.
+_getDelegateFactory(name, node, delegate) {
+  if (delegate == null) return null;
+  return (pathString) => delegate.prepareBinding(pathString, name, node);
+}
+
 _InstanceBindingMap _getBindings(Node node, BindingDelegate delegate) {
   if (node is Element) {
     return _parseAttributeBindings(node, delegate);
   }
 
   if (node is Text) {
-    var tokens = MustacheTokens.parse(node.text, 'text', node, delegate);
+    var tokens = MustacheTokens.parse(node.text,
+        _getDelegateFactory('text', node, delegate));
     if (tokens != null) return new _InstanceBindingMap(['text', tokens]);
   }
 
@@ -46,7 +54,7 @@ MustacheTokens _parseWithDefault(Element element, String name,
 
   var v = element.attributes[name];
   if (v == '') v = '{{}}';
-  return MustacheTokens.parse(v, name, element, delegate);
+  return MustacheTokens.parse(v, _getDelegateFactory(name, element, delegate));
 }
 
 _InstanceBindingMap _parseAttributeBindings(Element element,
@@ -72,7 +80,8 @@ _InstanceBindingMap _parseAttributeBindings(Element element,
       return;
     }
 
-    var tokens = MustacheTokens.parse(value, name, element, delegate);
+    var tokens = MustacheTokens.parse(value,
+        _getDelegateFactory(name, element, delegate));
     if (tokens != null) {
       if (bindings == null) bindings = [];
       bindings..add(name)..add(tokens);
@@ -88,7 +97,8 @@ _InstanceBindingMap _parseAttributeBindings(Element element,
 
     // Treat <template if> as <template bind if>
     if (result._if != null && result._bind == null && result._repeat == null) {
-      result._bind = MustacheTokens.parse('{{}}', 'bind', element, delegate);
+      result._bind = MustacheTokens.parse('{{}}',
+          _getDelegateFactory('bind', element, delegate));
     }
 
     return result;
@@ -430,13 +440,26 @@ class _TemplateIterator extends Bindable {
           instanceBindings = instance.instanceBindings;
           instanceNodes = instance.nodes;
         } else {
-          instanceBindings = [];
-          if (_instanceModelFn != null) {
-            model = _instanceModelFn(model);
-          }
-          if (model != null) {
-            fragment = _templateExt.createInstance(model, delegate,
-                instanceBindings);
+          try {
+            instanceBindings = [];
+            if (_instanceModelFn != null) {
+              model = _instanceModelFn(model);
+            }
+            if (model != null) {
+              fragment = _templateExt.createInstance(model, delegate,
+                  instanceBindings);
+            }
+          } catch (e, s) {
+            // Dart note: we propagate errors asynchronously here to avoid
+            // disrupting the rendering flow. This is different than in the JS
+            // implementation but it should probably be fixed there too. Dart
+            // hits this case more because non-existing properties in
+            // [PropertyPath] are treated as errors, while JS treats them as
+            // null/undefined.
+            // TODO(sigmund): this should be a synchronous throw when this is
+            // called from createInstance, but that requires enough refactoring
+            // that it should be done upstream first. See dartbug.com/17789.
+            new Completer().completeError(e, s);
           }
         }
 

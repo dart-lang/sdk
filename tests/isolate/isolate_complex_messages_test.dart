@@ -15,8 +15,8 @@ void main([args, port]) {
   test("complex messages are serialized correctly", () {
     ReceivePort local = new ReceivePort();
     Isolate.spawn(logMessages, local.sendPort);
-    var done = expectAsync0((){});
-    local.listen(expectAsync1((msg) {
+    var done = expectAsync((){});
+    local.listen(expectAsync((msg) {
       switch (msg[0]) {
         case "init":
           var remote = msg[1];

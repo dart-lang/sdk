@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'dart:mirrors';
 
 import "deferred_constraints_constants_lib.dart" deferred as lib;
 
@@ -54,6 +55,12 @@ void main() {
     var h1 = new H1();
     var h2 = new H2();
     var h3 = new H3();
+
+    // Need to access the metadata to trigger the expected compilation error.
+    reflectClass(H1).metadata;  // metadata1: continued
+    reflectClass(H2).metadata;  // metadata2: continued
+    reflectClass(H3).metadata;  // metadata3: continued
+
     asyncEnd();
   });
 }

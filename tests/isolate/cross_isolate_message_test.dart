@@ -40,7 +40,7 @@ void main([args, port]) {
   test("send message cross isolates ", () {
     ReceivePort fromIsolate1 = new ReceivePort();
     Isolate.spawn(crossIsolate1, fromIsolate1.sendPort);
-    var done = expectAsync0((){});
+    var done = expectAsync((){});
     fromIsolate1.listen((msg) {
       switch (msg[0]) {
         case "ready1":

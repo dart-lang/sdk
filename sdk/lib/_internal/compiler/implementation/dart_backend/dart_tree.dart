@@ -5,6 +5,7 @@
 library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
+import '../dart_types.dart';
 import '../util/util.dart';
 import '../elements/elements.dart' show FunctionElement, FunctionSignature;
 import '../ir/ir_nodes.dart' as ir;
@@ -36,7 +37,9 @@ abstract class Node {
 /**
  * The base class of [Expression]s.
  */
-abstract class Expression extends Node {}
+abstract class Expression extends Node {
+  bool get isPure;
+}
 
 /**
  * Variables are [Expression]s.
@@ -52,12 +55,26 @@ class Variable extends Expression {
   ast.Identifier assignIdentifier() {
     assert(identifier == null);
     String name = _newName();
-    identifier = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, name, -1));
+    identifier = Emitter.makeIdentifier(name);
     return identifier;
   }
 
+  final bool isPure = true;
+
   accept(Visitor visitor) => visitor.visitVariable(this);
+}
+
+/**
+ * A sequence of expressions.
+ */
+class Sequence extends Expression {
+  final List<Expression> expressions;
+
+  Sequence(this.expressions);
+
+  bool get isPure => expressions.every((e) => e.isPure);
+
+  accept(Visitor visitor) => visitor.visitSequence(this);
 }
 
 /**
@@ -73,6 +90,8 @@ class LetVal extends Expression {
 
   LetVal(this.variable, this.definition, this.body);
 
+  bool get isPure => definition.isPure && body.isPure;
+
   accept(Visitor visitor) => visitor.visitLetVal(this);
 }
 
@@ -87,6 +106,8 @@ class InvokeStatic extends Expression {
 
   InvokeStatic(this.target, this.arguments);
 
+  final bool isPure = false;
+
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
@@ -97,9 +118,11 @@ class InvokeStatic extends Expression {
  * expression.
  */
 class Return extends Expression {
-  final Expression value;
+  Expression value;
 
   Return(this.value);
+
+  final bool isPure = true;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 }
@@ -112,6 +135,8 @@ class Constant extends Expression {
 
   Constant(this.value);
 
+  final bool isPure = true;
+
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
@@ -122,6 +147,7 @@ abstract class Visitor<T> {
 
   // Concrete classes.
   T visitVariable(Variable node) => visitExpression(node);
+  T visitSequence(Sequence node) => visitExpression(node);
   T visitLetVal(LetVal node) => visitExpression(node);
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitReturn(Return node) => visitExpression(node);
@@ -185,10 +211,14 @@ class Builder extends ir.Visitor<Expression> {
 
   Expression visitLetPrim(ir.LetPrim node) {
     // LetPrim is translated to LetVal.
-    Variable variable = new Variable();
     Expression definition = node.primitive.accept(this);
-    variables[node.primitive] = variable;
-    return new LetVal(variable, definition, node.body.accept(this));
+    if (node.primitive.hasAtLeastOneUse) {
+      Variable variable = new Variable();
+      variables[node.primitive] = variable;
+      return new LetVal(variable, definition, node.body.accept(this));
+    } else {
+      return new Sequence([definition, node.body.accept(this)]);
+    }
   }
 
   Expression visitLetCont(ir.LetCont node) {
@@ -208,9 +238,13 @@ class Builder extends ir.Visitor<Expression> {
       return new Return(invoke);
     } else {
       assert(cont.hasExactlyOneUse);
-      Variable variable = new Variable();
-      variables[cont.parameter] = variable;
-      return new LetVal(variable, invoke, cont.body.accept(this));
+      if (cont.parameter.hasAtLeastOneUse) {
+        Variable variable = new Variable();
+        variables[cont.parameter] = variable;
+        return new LetVal(variable, invoke, cont.body.accept(this));
+      } else {
+        return new Sequence([invoke, cont.body.accept(this)]);
+      }
     }
   }
 
@@ -241,6 +275,110 @@ class Builder extends ir.Visitor<Expression> {
 }
 
 /**
+ * Unnamer propagates single-use definitions to their use site when possible.
+ *
+ * After translating out of CPS, all intermediate values are bound by [LetVal].
+ * This transformation propagates such definitions to their uses when it is
+ * safe and profitable.  Bindings are processed "on demand" when their uses are
+ * seen, but are only processed once to keep this transformation linear in
+ * the size of the tree.
+ *
+ * The transformation builds an environment containing [LetVal] bindings that
+ * are in scope.  These bindings have yet-untranslated definitions.  When a use
+ * is encountered the transformation determines if it is safe and profitable
+ * to propagate the definition to its use.  If so, it is removed from the
+ * environment and the definition is recursively processed (in the
+ * new environment at the use site) before being propagated.
+ *
+ * See [visitVariable] for the implementation of the heuristic for propagating
+ * a definition.
+ */
+class Unnamer extends Visitor<Expression> {
+  // The binding environment.  The rightmost element of the list is the nearest
+  // enclosing binding.
+  List<LetVal> environment;
+
+  Expression unname(Expression body) {
+    environment = <LetVal>[];
+    body = body.accept(this);
+
+    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
+    // this means rebuilding the binding with a recursively unnamed definition,
+    // or else introducing a variable definition and an assignment.
+    assert(environment.isEmpty);
+    return body;
+  }
+
+  Expression visitVariable(Variable node) {
+    // Propagate a variable's definition to its use site if:
+    // 1.  It has a single use, to avoid code growth and potential duplication
+    //     of side effects, AND
+    // 2a. It is pure (i.e., does not have side effects that prevent it from
+    //     being moved), OR
+    // 2b. There are only pure expressions between the definition and use.
+
+    // TODO(kmillikin): It's not always beneficial to propagate pure
+    // definitions---it can prevent propagation of their inputs.  Implement
+    // a heuristic to avoid this.
+
+    // TODO(kmillikin): Replace linear search with something faster in
+    // practice.
+    bool seenImpure = false;
+    for (int i = environment.length - 1; i >= 0; --i) {
+      if (environment[i].variable == node) {
+        if (!seenImpure || environment[i].definition.isPure) {
+          // Use the definition if it is pure or if it is the first impure
+          // definition (i.e., propagating past only pure expressions).
+          return environment.removeAt(i).definition.accept(this);
+        }
+        break;
+      } else if (!environment[i].definition.isPure) {
+        // Once the first impure definition is seen, impure definitions should
+        // no longer be propagated.  Continue searching for a pure definition.
+        seenImpure = true;
+      }
+    }
+    // If the definition could not be propagated, leave the variable use.
+    return node;
+  }
+
+  Expression visitSequence(Sequence node) {
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] = node.expressions[i].accept(this);
+    }
+    return node;
+  }
+
+  Expression visitLetVal(LetVal node) {
+    environment.add(node);
+    Expression body = node.body.accept(this);
+
+    // TODO(kmillikin): Allow definitions that are not propagated.  Currently,
+    // the only bindings are anonymous intermediate values (which only have one
+    // use in the absence of optimizations) and they are not reordered.
+    assert(!environment.contains(node));
+    return body;
+  }
+
+  Expression visitInvokeStatic(InvokeStatic node) {
+    // Process arguments right-to-left, the opposite of evaluation order.
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = node.arguments[i].accept(this);
+    }
+    return node;
+  }
+
+  Expression visitReturn(Return node) {
+    node.value = node.value.accept(this);
+    return node;
+  }
+
+  visitConstant(Constant node) {
+    return node;
+  }
+}
+
+/**
  * [Emitter] translates Tree to a Dart AST.
  *
  * The AST is handed off to the Dart backend for renaming and to emit Dart
@@ -267,42 +405,29 @@ class Emitter extends Visitor<ast.Node> {
   // tree.
   dart2js.TreeElementMapping treeElements;
 
-  /**
-   * Translate the body of a function to an AST FunctionExpression.
-   */
-  ast.FunctionExpression emit(FunctionElement element,
-                              dart2js.TreeElementMapping treeElements,
-                              Expression expr) {
-    // Reset the variable index.  This function is not reentrant.
-    Variable.counter = 0;
-    this.treeElements = treeElements;
-    ast.Identifier name = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, element.name, -1));
+  // Tokens needed in the AST.
+  final Token openParen = new BeginGroupToken(OPEN_PAREN_INFO, -1);
+  final Token closeParen = new SymbolToken(CLOSE_PAREN_INFO, -1);
+  final Token openBrace = new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1);
+  final Token closeBrace = new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1);
+  final Token semicolon = new SymbolToken(SEMICOLON_INFO, -1);
 
-    ast.NodeList parameters = new ast.NodeList(
-        new BeginGroupToken(OPEN_PAREN_INFO, -1),
-        const Link<ast.Node>(),
-        new SymbolToken(CLOSE_PAREN_INFO, -1),
-        ',');
-    ast.Node body = expr.accept(this);
+  // Helper methods to construct ASTs.
+  static ast.Identifier makeIdentifier(String name) {
+    return new ast.Identifier(
+        new StringToken.fromString(IDENTIFIER_INFO, name, -1));
+  }
 
-    ast.Identifier modifier =
-        new ast.Identifier(new KeywordToken(Keyword.keywords['var'], -1));
-    ast.VariableDefinitions definitions = new ast.VariableDefinitions(
-        null,
-        new ast.Modifiers(new ast.NodeList(
-            null,
-            new Link<ast.Node>.fromList([modifier]),
-            null,
-            ' ')),
-        new ast.NodeList(
-            null,
-            new Link<ast.Node>.fromList(variables),
-            new SymbolToken(SEMICOLON_INFO, -1),
-            ','));
-    body = concatenate(definitions, body);
-    return new ast.FunctionExpression(name, parameters, body, null,
-        ast.Modifiers.EMPTY, null, null);
+  ast.NodeList makeArgumentList(List<ast.Node> arguments) {
+    return new ast.NodeList(openParen,
+                            new Link<ast.Node>.fromList(arguments),
+                            closeParen,
+                            ',');
+  }
+
+  ast.Block makeBlock(List<ast.Node> statements) {
+    return new ast.Block(new ast.NodeList(
+        openBrace, new Link<ast.Node>.fromList(statements), closeBrace));
   }
 
   static ast.SendSet makeAssignment(ast.Identifier identifier,
@@ -314,25 +439,109 @@ class Emitter extends Visitor<ast.Node> {
         new ast.NodeList.singleton(expression));
   }
 
+  /**
+   * Translate the body of a function to an AST FunctionExpression.
+   */
+  ast.FunctionExpression emit(FunctionElement element,
+                              dart2js.TreeElementMapping treeElements,
+                              Expression expr) {
+    // Reset the variable index.  This function is not reentrant.
+    Variable.counter = 0;
+    this.treeElements = treeElements;
+    ast.Identifier name = makeIdentifier(element.name);
+
+    TypeEmitter typeEmitter = new TypeEmitter();
+    FunctionSignature signature = element.functionSignature;
+    ast.TypeAnnotation returnType;
+    if (!signature.type.returnType.isDynamic) {
+      returnType =
+          signature.type.returnType.accept(typeEmitter, treeElements);
+    }
+
+    List<ast.VariableDefinitions> parameterList = <ast.VariableDefinitions>[];
+    signature.orderedForEachParameter((parameter) {
+      ast.TypeAnnotation type;
+      if (!parameter.type.isDynamic) {
+        type = parameter.type.accept(typeEmitter, treeElements);
+      }
+      parameterList.add(new ast.VariableDefinitions(
+          type,
+          ast.Modifiers.EMPTY,
+          new ast.NodeList.singleton(makeIdentifier(parameter.name))));
+    });
+    ast.NodeList parameters =
+        new ast.NodeList(openParen,
+                         new Link<ast.Node>.fromList(parameterList),
+                         closeParen,
+                         ',');
+
+    ast.Node body = expr.accept(this);
+
+    if (!variables.isEmpty) {
+      // Introduce hoisted definitions for all variables.
+      ast.Identifier modifier =
+          new ast.Identifier(new KeywordToken(Keyword.keywords['var'], -1));
+      ast.VariableDefinitions definitions = new ast.VariableDefinitions(
+          null,
+          new ast.Modifiers(new ast.NodeList(
+              null,
+              new Link<ast.Node>.fromList([modifier]),
+              null,
+              ' ')),
+          new ast.NodeList(
+              null,
+              new Link<ast.Node>.fromList(variables),
+              semicolon,
+              ','));
+      body = concatenate(definitions, body);
+    }
+
+    if (body is ast.Return) {
+      // Use a short form for bodies that are a single return.
+      ast.Expression value = (body as ast.Return).expression;
+      if (value is ast.LiteralNull) {
+        // '{ return null; }' is '{}'.
+        body = makeBlock([]);
+      } else {
+        // '{ return e; }' is '=> e;'.
+        body = new ast.Return(new SymbolToken(FUNCTION_INFO, -1),
+                              semicolon,
+                              value);
+      }
+    } else if (body is ast.Block) {
+      // Remove a final 'return null' that ends the body block.
+      Link<ast.Node> nodes = (body as ast.Block).statements.nodes;
+      ast.Node last;
+      for (var n in nodes) {
+        last = n;
+      }
+      if (last is ast.Return
+          && (last as ast.Return).expression is ast.LiteralNull) {
+        List<ast.Node> statements =
+            (body as ast.Block).statements.nodes.toList();
+        statements.removeLast();
+        body = makeBlock(statements);
+      }
+    }
+
+    return new ast.FunctionExpression(name, parameters, body, returnType,
+        ast.Modifiers.EMPTY, null, null);
+  }
 
   /**
    * Translate a list of arguments to an AST NodeList.
    */
-  ast.NodeList makeArgumentList(List<Expression> args) {
+  ast.NodeList translateArguments(List<Expression> args) {
     List<ast.Expression> arguments =
         args.map((e) => e.accept(this)).toList(growable: false);
-    return new ast.NodeList(
-        new BeginGroupToken(OPEN_PAREN_INFO, -1),
-        new Link.fromList(arguments),
-        new SymbolToken(CLOSE_PAREN_INFO, -1),
-        ',');
+    return makeArgumentList(arguments);
   }
 
   /**
    * Concatenate a pair of AST expressions or statements into a single Block
    * statement.
    */
-  static ast.Node concatenate(ast.Node first, ast.Node second) {
+  ast.Node concatenate(ast.Node first, ast.Node second) {
     // This is a convenient but very inefficient way to accumulate statements.
     // The Block and NodeList nodes are not mutable so we can't simply use a
     // Block or NodeList as an accumulator.  Using a List<Node> requires
@@ -340,36 +549,25 @@ class Emitter extends Visitor<ast.Node> {
     // distinction.
     // TODO(kmillikin): If we don't get rid of this Emitter, use a more
     // efficient way to accumulate nodes.
-    Link<ast.Node> statements;
-    if (second is ast.Block) {
-      statements = second.statements.nodes;
-    } else {
-      statements = new Link<ast.Node>();
-      if (second is ast.Expression) {
-        second = new ast.ExpressionStatement(second,
-            new SymbolToken(SEMICOLON_INFO, -1));
+    LinkBuilder<ast.Node> statements = new LinkBuilder<ast.Node>();
+
+    addStatements(ast.Node node) {
+      if (node is ast.Block) {
+        for (var n in node.statements.nodes) {
+          statements.addLast(n);
+        }
+      } else if (node is ast.Expression) {
+          statements.addLast(new ast.ExpressionStatement(node, semicolon));
+      } else {
+        statements.addLast(node);
       }
-      statements = statements.prepend(second);
     }
 
-    if (first is ast.Block) {
-      LinkBuilder<ast.Node> front = new LinkBuilder<ast.Node>();
-      for (var n in first.statements.nodes) {
-        front.addLast(n);
-      }
-      statements = front.toLink(statements);
-    } else {
-      if (first is ast.Expression) {
-        first = new ast.ExpressionStatement(first,
-            new SymbolToken(SEMICOLON_INFO, -1));
-      }
-      statements = statements.prepend(first);
-    }
+    addStatements(first);
+    addStatements(second);
 
-    return new ast.Block(new ast.NodeList(
-        new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1),
-        statements,
-        new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1)));
+    return new ast.Block(
+        new ast.NodeList(openBrace, statements.toLink(), closeBrace));
   }
 
   ast.Node visitVariable(Variable node) {
@@ -377,6 +575,10 @@ class Emitter extends Visitor<ast.Node> {
     // already been generated when we visit a variable.
     assert(node.identifier != null);
     return new ast.Send(null, node.identifier);
+  }
+
+  ast.Node visitSequence(Sequence node) {
+    return node.expressions.map((e) => e.accept(this)).reduce(concatenate);
   }
 
   ast.Node visitLetVal(LetVal node) {
@@ -392,10 +594,9 @@ class Emitter extends Visitor<ast.Node> {
   }
 
   ast.Node visitInvokeStatic(InvokeStatic node) {
-    ast.Identifier name = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, node.target.name, -1));
+    ast.Identifier name = makeIdentifier(node.target.name);
     ast.Send send =
-        new ast.Send(null, name, makeArgumentList(node.arguments));
+        new ast.Send(null, name, translateArguments(node.arguments));
     treeElements[send] = node.target;
     return send;
   }
@@ -404,12 +605,59 @@ class Emitter extends Visitor<ast.Node> {
     ast.Expression expression = node.value.accept(this);
     return new ast.Return(
         new KeywordToken(Keyword.keywords['return'], -1),
-        new SymbolToken(SEMICOLON_INFO, -1),
+        semicolon,
         expression);
   }
 
   ast.Node visitConstant(Constant node) {
     return node.value.accept(constantEmitter);
+  }
+}
+
+class TypeEmitter extends
+    DartTypeVisitor<ast.TypeAnnotation, dart2js.TreeElementMapping> {
+
+  // Supported types are verified at IR construction time.  The unimplemented
+  // emit methods should be unreachable.
+  ast.TypeAnnotation unimplemented() => throw new UnimplementedError();
+
+  ast.TypeAnnotation makeSimpleAnnotation(
+      DartType type,
+      dart2js.TreeElementMapping treeElements) {
+    ast.TypeAnnotation annotation =
+        new ast.TypeAnnotation(Emitter.makeIdentifier(type.toString()), null);
+    treeElements.setType(annotation, type);
+    return annotation;
+  }
+
+  ast.TypeAnnotation visitType(DartType type,
+                               dart2js.TreeElementMapping treeElements) {
+    return unimplemented();
+  }
+
+  ast.TypeAnnotation visitVoidType(VoidType type,
+                                   dart2js.TreeElementMapping treeElements) {
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitInterfaceType(
+      InterfaceType type,
+      dart2js.TreeElementMapping treeElements) {
+    assert(!type.isGeneric);
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitTypedefType(
+      TypedefType type,
+      dart2js.TreeElementMapping treeElements) {
+    assert(!type.isGeneric);
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitDynamicType(
+      DynamicType type,
+      dart2js.TreeElementMapping treeElements) {
+    return unimplemented();
   }
 }
 

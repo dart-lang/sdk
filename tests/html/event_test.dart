@@ -143,7 +143,7 @@ main() {
 
   test('DOMMutationEvent', () {
     var div = new DivElement();
-    div.on['DOMSubtreeModified'].add(expectAsync1((DOMMutationEvent e) {}));
+    div.on['DOMSubtreeModified'].add(expectAsync((DOMMutationEvent e) {}));
     div.append(new SpanElement());
   });
 

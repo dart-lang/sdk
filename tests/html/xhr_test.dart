@@ -10,12 +10,6 @@ import 'dart:typed_data';
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
-void fail(message) {
-  guardAsync(() {
-    expect(false, isTrue, reason: message);
-  });
-}
-
 main() {
   useHtmlIndividualConfiguration();
   // Cache blocker is a workaround for:
@@ -59,7 +53,7 @@ main() {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
       xhr.open("GET", "NonExistingFile", async: true);
-      xhr.onReadyStateChange.listen(expectAsyncUntil1((event) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil((event) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate404(xhr);
         }
@@ -72,11 +66,11 @@ main() {
 
       var xhr = new HttpRequest();
       xhr.open('GET', url, async: true);
-      xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
 
-          Timer.run(expectAsync0(() {
+          Timer.run(expectAsync(() {
             expect(loadEndCalled, HttpRequest.supportsLoadEndEvent);
           }));
         }
@@ -91,7 +85,7 @@ main() {
     test('XHR.request No file', () {
       HttpRequest.request('NonExistingFile').then(
         (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync1((error) {
+        onError: expectAsync((error) {
           var xhr = error.target;
           expect(xhr.readyState, equals(HttpRequest.DONE));
           validate404(xhr);
@@ -99,7 +93,7 @@ main() {
     });
 
     test('XHR.request file', () {
-      HttpRequest.request(url).then(expectAsync1((xhr) {
+      HttpRequest.request(url).then(expectAsync((xhr) {
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate200Response(xhr);
       }));
@@ -110,7 +104,7 @@ main() {
       HttpRequest.request(url,
         onProgress: (_) {
           progressCalled = true;
-        }).then(expectAsync1(
+        }).then(expectAsync(
           (xhr) {
             expect(xhr.readyState, equals(HttpRequest.DONE));
             expect(progressCalled, HttpRequest.supportsProgressEvent);
@@ -121,7 +115,7 @@ main() {
     test('XHR.request withCredentials No file', () {
       HttpRequest.request('NonExistingFile', withCredentials: true).then(
         (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync1((error) {
+        onError: expectAsync((error) {
           var xhr = error.target;
           expect(xhr.readyState, equals(HttpRequest.DONE));
           validate404(xhr);
@@ -129,20 +123,20 @@ main() {
     });
 
     test('XHR.request withCredentials file', () {
-      HttpRequest.request(url, withCredentials: true).then(expectAsync1((xhr) {
+      HttpRequest.request(url, withCredentials: true).then(expectAsync((xhr) {
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate200Response(xhr);
       }));
     });
 
     test('XHR.getString file', () {
-      HttpRequest.getString(url).then(expectAsync1((str) {}));
+      HttpRequest.getString(url).then(expectAsync((str) {}));
     });
 
     test('XHR.getString No file', () {
       HttpRequest.getString('NonExistingFile').then(
         (_) { fail('Succeeded for non-existing file.'); },
-        onError: expectAsync1((error) {
+        onError: expectAsync((error) {
           validate404(error.target);
         }));
     });
@@ -151,7 +145,7 @@ main() {
       if (Platform.supportsTypedData) {
         HttpRequest.request(url, responseType: 'arraybuffer',
           requestHeaders: {'Content-Type': 'text/xml'}).then(
-          expectAsync1((xhr) {
+          expectAsync((xhr) {
             expect(xhr.status, equals(200));
             var byteBuffer = xhr.response;
             expect(byteBuffer, new isInstanceOf<ByteBuffer>());
@@ -189,7 +183,7 @@ main() {
         xhr.send(new Uint8List.view(data.buffer));
 
         return xhr.onLoad.first.then((_) {
-          expect(progressCalled, isTrue);
+          expect(progressCalled, isTrue, reason: 'onProgress should be fired');
         });
       });
     }
@@ -239,7 +233,7 @@ main() {
           method: 'POST',
           sendData: JSON.encode(data),
           responseType: 'json').then(
-          expectAsync1((xhr) {
+          expectAsync((xhr) {
             expect(xhr.status, equals(200));
             var json = xhr.response;
             expect(json, equals(data));

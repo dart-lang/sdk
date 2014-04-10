@@ -339,7 +339,7 @@ main() {
       var dataUrl = otherCanvas.toDataUrl('image/gif');
       var img = new ImageElement();
 
-      img.onLoad.listen(expectAsync1((_) {
+      img.onLoad.listen(expectAsync((_) {
         context.drawImage(img, 50, 50);
 
         expectPixelFilled(50, 50);
@@ -350,9 +350,7 @@ main() {
         expectPixelUnfilled(70, 70);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -362,7 +360,7 @@ main() {
       var dataUrl = otherCanvas.toDataUrl('image/gif');
       var img = new ImageElement();
 
-      img.onLoad.listen(expectAsync1((_) {
+      img.onLoad.listen(expectAsync((_) {
         context.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
 
         expectPixelFilled(50, 50);
@@ -375,9 +373,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -389,7 +385,7 @@ main() {
       var dataUrl = otherCanvas.toDataUrl('image/gif');
       var img = new ImageElement();
 
-      img.onLoad.listen(expectAsync1((_) {
+      img.onLoad.listen(expectAsync((_) {
         // This will take a 6x6 square from the first canvas from position 2,2
         // and then scale it to a 20x20 square and place it to the second
         // canvas at 50,50.
@@ -412,9 +408,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       img.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
       img.src = dataUrl;
     });
@@ -482,7 +476,7 @@ main() {
     tearDown(tearDownFunc);
 
     test('with 3 params', () {
-      video.onCanPlay.listen(expectAsync1((_) {
+      video.onCanPlay.listen(expectAsync((_) {
         context.drawImage(video, 50, 50);
 
         expectPixelFilled(50, 50);
@@ -494,9 +488,7 @@ main() {
       }));
 
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -510,7 +502,7 @@ main() {
     });
 
     test('with 5 params', () {
-      video.onCanPlay.listen(expectAsync1((_) {
+      video.onCanPlay.listen(expectAsync((_) {
         context.drawImageToRect(video, new Rectangle(50, 50, 20, 20));
 
         expectPixelFilled(50, 50);
@@ -523,9 +515,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -540,7 +530,7 @@ main() {
     });
 
     test('with 9 params', () {
-      video.onCanPlay.listen(expectAsync1((_) {
+      video.onCanPlay.listen(expectAsync((_) {
         context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
           sourceRect: new Rectangle(2, 2, 6, 6));
 
@@ -554,9 +544,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
@@ -578,7 +566,7 @@ main() {
     test('with 9 params', () {
       video = new VideoElement();
       canvas = new CanvasElement();
-      video.onCanPlay.listen(expectAsync1((_) {
+      video.onCanPlay.listen(expectAsync((_) {
         context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
           sourceRect: new Rectangle(2, 2, 6, 6));
 
@@ -592,9 +580,7 @@ main() {
         expectPixelUnfilled(80, 80);
       }));
       video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
+        fail('URL failed to load.');
       });
 
       if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {

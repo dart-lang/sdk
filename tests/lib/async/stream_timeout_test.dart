@@ -13,7 +13,7 @@ main() {
     StreamController c = new StreamController();
     Stream tos = c.stream.timeout(ms5);
     expect(tos.isBroadcast, false);
-    tos.handleError(expectAsync2((e, s) {
+    tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);
     })).listen((v){ fail("Unexpected event"); });
@@ -27,9 +27,9 @@ main() {
       sink.close();
     });
     expect(tos.isBroadcast, false);
-    tos.listen(expectAsync1((v) { expect(v, 42); }),
-               onError: expectAsync2((e, s) { expect(e, "ERROR"); }),
-               onDone: expectAsync0((){}));
+    tos.listen(expectAsync((v) { expect(v, 42); }),
+               onError: expectAsync((e, s) { expect(e, "ERROR"); }),
+               onDone: expectAsync((){}));
   });
 
   test("stream no timeout", () {
@@ -41,7 +41,7 @@ main() {
                  ctr++;
                },
                onError: (e, s) { fail("No error expected"); },
-               onDone: expectAsync0(() {
+               onDone: expectAsync(() {
                  expect(ctr, 2);
                }));
     expect(tos.isBroadcast, false);
@@ -57,7 +57,7 @@ main() {
                  expect(v, 42);
                  ctr++;
                },
-               onError: expectAsync2((e, s) {
+               onError: expectAsync((e, s) {
                  expect(ctr, 2);
                  expect(e, new isInstanceOf<TimeoutException>());
                }));
@@ -68,7 +68,7 @@ main() {
     StreamController c = new StreamController.broadcast();
     Stream tos = c.stream.timeout(ms5);
     expect(tos.isBroadcast, false);
-    tos.handleError(expectAsync2((e, s) {
+    tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);
     })).listen((v){ fail("Unexpected event"); });
@@ -78,7 +78,7 @@ main() {
     StreamController c = new StreamController.broadcast();
     Stream tos = c.stream.asBroadcastStream().timeout(ms5);
     expect(tos.isBroadcast, false);
-    tos.handleError(expectAsync2((e, s) {
+    tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);
     })).listen((v){ fail("Unexpected event"); });
@@ -88,7 +88,7 @@ main() {
     StreamController c = new StreamController();
     Stream tos = c.stream.map((x) => 2 * x).timeout(ms5);
     expect(tos.isBroadcast, false);
-    tos.handleError(expectAsync2((e, s) {
+    tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);
     })).listen((v){ fail("Unexpected event"); });
@@ -121,7 +121,7 @@ main() {
     });
     sw.start();
 
-    tos.listen((v) { expect(v, 42);}, onDone: expectAsync0((){}));
+    tos.listen((v) { expect(v, 42);}, onDone: expectAsync((){}));
   });
 
   test("errors prevent timeout", () {
@@ -155,7 +155,7 @@ main() {
       onError: (e, s) {
         expect(e, "ERROR");
       },
-      onDone: expectAsync0((){}));
+      onDone: expectAsync((){}));
   });
 
   test("closing prevents timeout", () {
@@ -163,7 +163,7 @@ main() {
     Stream tos = c.stream.timeout(twoSecs, onTimeout: (_) {
       fail("Timeout not prevented by close");
     });
-    tos.listen((_) {}, onDone: expectAsync0((){}));
+    tos.listen((_) {}, onDone: expectAsync((){}));
     c.close();
   });
 
@@ -172,7 +172,7 @@ main() {
     Stream tos = c.stream.timeout(ms5, onTimeout: (_) {
       fail("Timeout not prevented by close");
     });
-    var subscription = tos.listen((_) {}, onDone: expectAsync0((){}));
+    var subscription = tos.listen((_) {}, onDone: expectAsync((){}));
     subscription.pause();
     new Timer(twoSecs, () {
       c.close();

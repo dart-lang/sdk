@@ -44,6 +44,26 @@ void main(_, message) {
     });
   });
 
+  expectTestsPass("a returned future should be implicitly wrapped",
+      () {
+    test('test', () {
+      var futureComplete = false;
+      currentSchedule.onComplete.schedule(() => expect(futureComplete, isTrue));
+
+      return pumpEventQueue().then((_) => futureComplete = true);
+    });
+  });
+
+  expectTestsPass("a returned future should not block the schedule",
+      () {
+    test('test', () {
+      var futureComplete = false;
+      schedule(() => expect(futureComplete, isFalse));
+
+      return pumpEventQueue().then((_) => futureComplete = true);
+    });
+  });
+
   expectTestsPass("wrapFuture should pass through the error of the wrapped "
       "future", () {
     var error;

@@ -10,46 +10,68 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
 import '../data_directory.dart';
-import 'verify_messages.dart';
-import 'sample_with_messages.dart' as sample;
 
 final dart = Platform.executable;
 
 /** The VM arguments we were given, most important package-root. */
 final vmArgs = Platform.executableArguments;
 
+var tempDir = Directory.systemTemp.createTempSync('message_extraction_test'
+    ).path;
+
 /**
- * Translate a file path into this test directory, regardless of the
- * working directory.
+ * Translate a relative file path into this test directory. This is
+ * applied to all the arguments of [run]. It will ignore a string that
+ * is an absolute path or begins with "--", because some of the arguments
+ * might be command-line options.
  */
-String dir([String s]) {
-  if (s != null && s.startsWith("--")) { // Don't touch command-line options.
-    return s;
-  } else {
-   return path.join(intlDirectory, 'test', 'message_extraction', s);
-  }
+String asTestDirPath([String s]) {
+  if (s == null || s.startsWith("--") || path.isAbsolute(s)) return s;
+  return path.join(intlDirectory, 'test', 'message_extraction', s);
+}
+
+/**
+ * Translate a relative file path into our temp directory. This is
+ * applied to all the arguments of [run]. It will ignore a string that
+ * is an absolute path or begins with "--", because some of the arguments
+ * might be command-line options.
+ */
+String asTempDirPath([String s]) {
+  if (s == null || s.startsWith("--") || path.isAbsolute(s)) return s;
+  return path.join(tempDir, s);
 }
 
 main() {
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
-    deleteGeneratedFiles();
+    copyFilesToTempDirectory();
     return extractMessages(null).then((result) {
       return generateTranslationFiles(result);
     }).then((result) {
       return generateCodeFromTranslation(result);
-    }).then((_) => sample.main())
-    .then(verifyResult)
-    .whenComplete(deleteGeneratedFiles);
+    }).then((result) => runAndVerify(result));
   });
 }
 
+void copyFilesToTempDirectory() {
+  var files = [asTestDirPath('sample_with_messages.dart'), asTestDirPath(
+      'part_of_sample_with_messages.dart'), asTestDirPath('verify_messages.dart'),
+      asTestDirPath('run_and_verify.dart')];
+  for (var filename in files) {
+    var file = new File(filename);
+    file.copySync(path.join(tempDir, path.basename(filename)));
+  }
+}
+
 void deleteGeneratedFiles() {
-  var files = [dir('intl_messages.json'), dir('translation_fr.json'),
-      dir('translation_de_DE.json')];
-  files.map((name) => new File(name)).forEach((x) {
-    if (x.existsSync()) x.deleteSync();
-  });
+  try {
+    var dir = new Directory(tempDir);
+    dir.listSync().forEach((x) => x.deleteSync());
+    dir.deleteSync();
+  } on Error catch (e) {
+    print("Failed to delete $tempDir");
+    print("Exception:\n$e");
+  }
 }
 
 /**
@@ -58,7 +80,7 @@ void deleteGeneratedFiles() {
  * directory.
  */
 Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
-{
+    {
   // If there's a failure in one of the sub-programs, print its output.
   if (previousResult != null) {
     if (previousResult.exitCode != 0) {
@@ -68,34 +90,35 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
     print(previousResult.stderr);
     print("exitCode=${previousResult.exitCode}");
   }
-  var filesInTheRightDirectory = filenames.map((x) => dir(x)).toList();
+  var filesInTheRightDirectory = filenames.map((x) => asTempDirPath(x)).toList(
+      );
   // Inject the script argument --output-dir in between the script and its
   // arguments.
   var args = []
       ..addAll(vmArgs)
       ..add(filesInTheRightDirectory.first)
-      ..addAll(["--output-dir=${dir()}"])
+      ..addAll(["--output-dir=$tempDir"])
       ..addAll(filesInTheRightDirectory.skip(1));
-  var result = Process.run(dart, args, stdoutEncoding: UTF8,
-      stderrEncoding: UTF8);
+  var result = Process.run(dart, args, stdoutEncoding: UTF8, stderrEncoding:
+      UTF8);
   return result;
 }
 
 Future<ProcessResult> extractMessages(ProcessResult previousResult) => run(
-    previousResult,
-    ['extract_to_json.dart', '--suppress-warnings', 'sample_with_messages.dart',
-        'part_of_sample_with_messages.dart']);
+    previousResult, [asTestDirPath('extract_to_json.dart'),
+    '--suppress-warnings', 'sample_with_messages.dart',
+    'part_of_sample_with_messages.dart']);
 
 Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
-    run(
-        previousResult,
-        ['make_hardcoded_translation.dart', 'intl_messages.json']);
+    run(previousResult,
+        [asTestDirPath('make_hardcoded_translation.dart'),
+        'intl_messages.json']);
 
 Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
-    => run(
-        previousResult,
-        ['generate_from_json.dart', '--generated-file-prefix=foo_',
-         'sample_with_messages.dart',
-             'part_of_sample_with_messages.dart', 'translation_fr.json',
-             'translation_de_DE.json' ]);
+    => run(previousResult, [asTestDirPath('generate_from_json.dart'),
+    '--generated-file-prefix=foo_', 'sample_with_messages.dart',
+    'part_of_sample_with_messages.dart', 'translation_fr.json',
+    'translation_de_DE.json']);
 
+Future<ProcessResult> runAndVerify(ProcessResult previousResult) => run(
+    previousResult, [asTempDirPath('run_and_verify.dart')]);

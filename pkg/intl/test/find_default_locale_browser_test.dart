@@ -14,7 +14,7 @@ main() {
     // should find a way to force the system locale before the test is run
     // and then verify that it's actually the correct value.
     Intl.systemLocale = 'xx_YY';
-    var callback = expectAsync1(verifyLocale);
+    var callback = expectAsync(verifyLocale);
     findSystemLocale().then(callback);
   });
 }

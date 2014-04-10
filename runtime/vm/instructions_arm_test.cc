@@ -16,7 +16,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ BranchLinkPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ BranchLinkPatchable(&StubCode::InvokeDartCodeLabel());
   __ Ret();
 }
 
@@ -27,13 +27,13 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // before the end of the code buffer.
   CallPattern call(test->entry() + test->code().Size() - Instr::kInstrSize,
                    test->code());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             call.TargetAddress());
 }
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ BranchPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ BranchPatchable(&StubCode::InvokeDartCodeLabel());
   __ BranchPatchable(&StubCode::AllocateArrayLabel());
 }
 
@@ -47,7 +47,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
                              VirtualMemory::kReadWrite);
   EXPECT(status);
   JumpPattern jump1(test->entry(), test->code());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
                     test->code());
@@ -59,7 +59,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
 }
 
@@ -68,7 +68,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
 ASSEMBLER_TEST_GENERATE(JumpARMv6, assembler) {
   // ARMv7 is the default.
   HostCPUFeatures::set_arm_version(ARMv6);
-  __ BranchPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ BranchPatchable(&StubCode::InvokeDartCodeLabel());
   __ BranchPatchable(&StubCode::AllocateArrayLabel());
   HostCPUFeatures::set_arm_version(ARMv7);
 }
@@ -84,7 +84,7 @@ ASSEMBLER_TEST_RUN(JumpARMv6, test) {
                              VirtualMemory::kReadWrite);
   EXPECT(status);
   JumpPattern jump1(test->entry(), test->code());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
                     test->code());
@@ -96,7 +96,7 @@ ASSEMBLER_TEST_RUN(JumpARMv6, test) {
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
   HostCPUFeatures::set_arm_version(ARMv7);
 }

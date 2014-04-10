@@ -218,7 +218,9 @@ main() {
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test current library uri", () {
     testLibraryUri(new Class(),
-      (Uri uri) => uri.path.endsWith('/mirrors_test.dart'));
+      // TODO(floitsch): change this to "/mirrors_test.dart" when
+      // dart2js_mirrors_test.dart has been removed.
+      (Uri uri) => uri.path.endsWith('mirrors_test.dart'));
   });
   test("Test dart library uri", () {
     testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));

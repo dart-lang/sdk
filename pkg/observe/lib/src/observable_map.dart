@@ -118,8 +118,10 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
     if (len != _map.length) {
       notifyPropertyChange(#length, len, _map.length);
       notifyChange(new MapChangeRecord.insert(key, value));
+      _notifyKeysValuesChanged();
     } else if (oldValue != value) {
       notifyChange(new MapChangeRecord(key, oldValue, value));
+      _notifyValuesChanged();
     }
   }
 
@@ -133,6 +135,7 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
     if (hasObservers && len != _map.length) {
       notifyPropertyChange(#length, len, _map.length);
       notifyChange(new MapChangeRecord.insert(key, result));
+      _notifyKeysValuesChanged();
     }
     return result;
   }
@@ -143,6 +146,7 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
     if (hasObservers && len != _map.length) {
       notifyChange(new MapChangeRecord.remove(key, result));
       notifyPropertyChange(#length, len, _map.length);
+      _notifyKeysValuesChanged();
     }
     return result;
   }
@@ -154,6 +158,7 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
         notifyChange(new MapChangeRecord.remove(key, value));
       });
       notifyPropertyChange(#length, len, 0);
+      _notifyKeysValuesChanged();
     }
     _map.clear();
   }
@@ -161,4 +166,15 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
   void forEach(void f(K key, V value)) => _map.forEach(f);
 
   String toString() => Maps.mapToString(this);
+
+  // Note: we don't really have a reasonable old/new value to use here.
+  // But this should fix "keys" and "values" in templates with minimal overhead.
+  void _notifyKeysValuesChanged() {
+    notifyChange(new PropertyChangeRecord(this, #keys, null, null));
+    _notifyValuesChanged();
+  }
+
+  void _notifyValuesChanged() {
+    notifyChange(new PropertyChangeRecord(this, #values, null, null));
+  }
 }

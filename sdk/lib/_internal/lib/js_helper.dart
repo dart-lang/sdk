@@ -38,6 +38,7 @@ import 'dart:_foreign_helper' show
     JS_OPERATOR_AS_PREFIX,
     JS_OPERATOR_IS_PREFIX,
     JS_SIGNATURE_NAME,
+    JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
@@ -149,8 +150,7 @@ class JSInvocationMirror implements Invocation {
 
   List get positionalArguments {
     if (isGetter) return const [];
-    var argumentCount =
-        _arguments.length - _namedArgumentNames.length;
+    var argumentCount = _arguments.length - _namedArgumentNames.length;
     if (argumentCount == 0) return const [];
     var list = [];
     for (var index = 0 ; index < argumentCount ; index++) {
@@ -273,6 +273,7 @@ class CachedInvocation {
                    this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
+  bool get isGetterStub => JS("bool", "!!#.\$getterStub", jsFunction);
 
   /// Applies [jsFunction] to [victim] with [arguments].
   /// Users of this class must take care to check the arguments first.
@@ -297,6 +298,8 @@ class CachedCatchAllInvocation extends CachedInvocation {
                            Interceptor cachedInterceptor)
       : info = new ReflectionInfo(jsFunction),
         super(name, jsFunction, isIntercepted, cachedInterceptor);
+
+  bool get isGetterStub => false;
 
   invokeOn(Object victim, List arguments) {
     var receiver = victim;
@@ -349,6 +352,7 @@ class CachedNoSuchMethodInvocation {
   CachedNoSuchMethodInvocation(this.interceptor);
 
   bool get isNoSuchMethod => true;
+  bool get isGetterStub => false;
 
   invokeOn(Object victim, Invocation invocation) {
     var receiver = (interceptor == null) ? victim : interceptor;
@@ -771,8 +775,23 @@ class Primitives {
     return _fromCharCodeApply(charCodes);
   }
 
+  static String stringFromCharCode(charCode) {
+    if (0 <= charCode) {
+      if (charCode <= 0xffff) {
+        return JS('String', 'String.fromCharCode(#)', charCode);
+      }
+      if (charCode <= 0x10ffff) {
+        var bits = charCode - 0x10000;
+        var low = 0xDC00 | (bits & 0x3ff);
+        var high = 0xD800 | (bits >> 10);
+        return  JS('String', 'String.fromCharCode(#, #)', high, low);
+      }
+    }
+    throw new RangeError.range(charCode, 0, 0x10ffff);
+  }
+
   static String stringConcatUnchecked(String string1, String string2) {
-    return JS('String', r'# + #', string1, string2);
+    return JS_STRING_CONCAT(string1, string2);
   }
 
   static String getTimeZoneName(receiver) {
@@ -959,7 +978,8 @@ class Primitives {
       });
     }
 
-    String selectorName = 'call\$$argumentCount$names';
+    String selectorName =
+      '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount$names';
 
     return function.noSuchMethod(
         createUnmangledInvocationMirror(
@@ -1032,7 +1052,7 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    String selectorName = 'call\$$argumentCount';
+    String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
 
@@ -1184,6 +1204,7 @@ checkString(value) {
  * The code in [unwrapException] deals with getting the original Dart
  * object out of the wrapper again.
  */
+@NoInline()
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
   var wrapper = JS('', 'new Error()');
@@ -1792,10 +1813,6 @@ int objectHashCode(var object) {
  * Called by generated code to build a map literal. [keyValuePairs] is
  * a list of key, value, key, value, ..., etc.
  */
-makeLiteralMap(keyValuePairs) {
-  return fillLiteralMap(keyValuePairs, new LinkedHashMap());
-}
-
 fillLiteralMap(keyValuePairs, Map result) {
   // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
   // [getLength] and [getIndex].

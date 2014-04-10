@@ -219,17 +219,17 @@ class AngularCompilationUnitBuilder {
   /**
    * The listener to which errors will be reported.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * The source containing the unit that will be analyzed.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The compilation unit with built Dart element models.
    */
-  CompilationUnit _unit;
+  final CompilationUnit _unit;
 
   /**
    * The [ClassDeclaration] that is currently being analyzed.
@@ -258,11 +258,7 @@ class AngularCompilationUnitBuilder {
    * @param source the source containing the unit that will be analyzed
    * @param unit the compilation unit with built Dart element models
    */
-  AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source, CompilationUnit unit) {
-    this._errorListener = errorListener;
-    this._source = source;
-    this._unit = unit;
-  }
+  AngularCompilationUnitBuilder(this._errorListener, this._source, this._unit);
 
   /**
    * Builds Angular specific element models and adds them to the existing Dart elements.
@@ -1558,7 +1554,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * @param keyword the keyword being tested for
    * @return `true` if the given token is a token for the given keyword
    */
-  bool _matches(sc.Token token, sc.Keyword keyword) => token != null && identical(token.type, sc.TokenType.KEYWORD) && identical((token as sc.KeywordToken).keyword, keyword);
+  bool _matches(sc.Token token, sc.Keyword keyword) => token != null && token.type == sc.TokenType.KEYWORD && (token as sc.KeywordToken).keyword == keyword;
 
   /**
    * Sets the visible source range for formal parameter.
@@ -1981,7 +1977,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   /**
    * The analysis context in which the element model will be built.
    */
-  InternalAnalysisContext _context;
+  final InternalAnalysisContext _context;
 
   /**
    * The error listener to which errors will be reported.
@@ -2018,8 +2014,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    *
    * @param context the analysis context in which the element model will be built
    */
-  HtmlUnitBuilder(InternalAnalysisContext context) {
-    this._context = context;
+  HtmlUnitBuilder(this._context) {
     this._errorListener = new RecordingErrorListener();
   }
 
@@ -2067,7 +2062,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
       Source htmlSource = _htmlElement.source;
       ht.XmlAttributeNode scriptAttribute = _getScriptSourcePath(node);
       String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.text;
-      if (identical(node.attributeEnd.type, ht.TokenType.GT) && scriptSourcePath == null) {
+      if (node.attributeEnd.type == ht.TokenType.GT && scriptSourcePath == null) {
         EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
         try {
           LibraryResolver resolver = new LibraryResolver(_context);
@@ -2254,16 +2249,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * Create a new instance of the [BestPracticesVerifier].
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(ErrorReporter errorReporter) {
-    this._errorReporter = errorReporter;
-  }
+  BestPracticesVerifier(this._errorReporter);
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -2809,7 +2802,7 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * The name of the `double` type.
@@ -2821,9 +2814,7 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter
    */
-  Dart2JSVerifier(ErrorReporter errorReporter) {
-    this._errorReporter = errorReporter;
-  }
+  Dart2JSVerifier(this._errorReporter);
 
   @override
   Object visitIsExpression(IsExpression node) {
@@ -2879,22 +2870,20 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * Create a new instance of the [DeadCodeVerifier].
    *
    * @param errorReporter the error reporter
    */
-  DeadCodeVerifier(ErrorReporter errorReporter) {
-    this._errorReporter = errorReporter;
-  }
+  DeadCodeVerifier(this._errorReporter);
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     sc.Token operator = node.operator;
-    bool isAmpAmp = identical(operator.type, sc.TokenType.AMPERSAND_AMPERSAND);
-    bool isBarBar = identical(operator.type, sc.TokenType.BAR_BAR);
+    bool isAmpAmp = operator.type == sc.TokenType.AMPERSAND_AMPERSAND;
+    bool isBarBar = operator.type == sc.TokenType.BAR_BAR;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
@@ -3179,7 +3168,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     // binary expression.
     // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
     // differently than if(<condition>), when <condition> evaluates to a constant false value?
-    if (identical(operatorType, sc.TokenType.BAR_BAR)) {
+    if (operatorType == sc.TokenType.BAR_BAR) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (!booleanLiteral.value) {
@@ -3189,7 +3178,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     // If the operator is && and the left hand side is true literal, don't consider the RHS of the
     // binary expression.
-    if (identical(operatorType, sc.TokenType.AMPERSAND_AMPERSAND)) {
+    if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (booleanLiteral.value) {
@@ -3197,7 +3186,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         }
       }
     }
-    return lhsExpression.accept(this) || node.rightOperand.accept(this);
+    Expression rhsExpression = node.rightOperand;
+    return (lhsExpression != null && lhsExpression.accept(this)) || (rhsExpression != null && rhsExpression.accept(this));
   }
 
   @override
@@ -3563,11 +3553,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
  * @see HintCode
  */
 class HintGenerator {
-  List<CompilationUnit> _compilationUnits;
+  final List<CompilationUnit> _compilationUnits;
 
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   ImportsVerifier _importsVerifier;
 
@@ -3578,14 +3568,11 @@ class HintGenerator {
    */
   InheritanceManager _manager;
 
-  HintGenerator(List<CompilationUnit> compilationUnits, AnalysisContext context, AnalysisErrorListener errorListener) {
-    this._compilationUnits = compilationUnits;
-    this._context = context;
-    this._errorListener = errorListener;
-    LibraryElement library = compilationUnits[0].element.library;
+  HintGenerator(this._compilationUnits, this._context, this._errorListener) {
+    LibraryElement library = _compilationUnits[0].element.library;
     _importsVerifier = new ImportsVerifier(library);
-    _enableDart2JSHints = context.analysisOptions.dart2jsHint;
-    _manager = new InheritanceManager(compilationUnits[0].element.library);
+    _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
+    _manager = new InheritanceManager(_compilationUnits[0].element.library);
   }
 
   void generateForLibrary() {
@@ -3980,12 +3967,12 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The inheritance manager used to find overridden methods.
    */
-  InheritanceManager _manager;
+  final InheritanceManager _manager;
 
   /**
    * The error reporter used to report errors.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * Initialize a newly created verifier to look for inappropriate uses of the override annotation.
@@ -3993,10 +3980,7 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
    * @param manager the inheritance manager used to find overridden methods
    * @param errorReporter the error reporter used to report errors
    */
-  OverrideVerifier(InheritanceManager manager, ErrorReporter errorReporter) {
-    this._manager = manager;
-    this._errorReporter = errorReporter;
-  }
+  OverrideVerifier(this._manager, this._errorReporter);
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
@@ -4054,17 +4038,14 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The analysis context containing the sources to be analyzed
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
-  PubVerifier(AnalysisContext context, ErrorReporter errorReporter) {
-    this._context = context;
-    this._errorReporter = errorReporter;
-  }
+  PubVerifier(this._context, this._errorReporter);
 
   @override
   Object visitImportDirective(ImportDirective directive) {
@@ -4213,16 +4194,14 @@ class ToDoFinder {
   /**
    * The error reporter by which to-do comments will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * Initialize a newly created to-do finder to report to-do comments to the given reporter.
    *
    * @param errorReporter the error reporter by which to-do comments will be reported
    */
-  ToDoFinder(ErrorReporter errorReporter) {
-    this._errorReporter = errorReporter;
-  }
+  ToDoFinder(this._errorReporter);
 
   /**
    * Search the comments in the given compilation unit for to-do comments and report an error for
@@ -4244,7 +4223,7 @@ class ToDoFinder {
     while (token != null && token.type != sc.TokenType.EOF) {
       sc.Token commentToken = token.precedingComments;
       while (commentToken != null) {
-        if (identical(commentToken.type, sc.TokenType.SINGLE_LINE_COMMENT) || identical(commentToken.type, sc.TokenType.MULTI_LINE_COMMENT)) {
+        if (commentToken.type == sc.TokenType.SINGLE_LINE_COMMENT || commentToken.type == sc.TokenType.MULTI_LINE_COMMENT) {
           _scrapeTodoComment(commentToken);
         }
         commentToken = commentToken.next;
@@ -4485,7 +4464,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
         }
       } else {
         PropertyAccessorElement accessor = _findIdentifier(_enclosingUnit.accessors, functionName);
-        if (identical((property as sc.KeywordToken).keyword, sc.Keyword.SET)) {
+        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
           accessor = accessor.variable.setter;
         }
         _enclosingExecutable = accessor;
@@ -4580,7 +4559,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
         methodName.staticElement = _enclosingExecutable;
       } else {
         PropertyAccessorElement accessor = _findIdentifier(_enclosingClass.accessors, methodName);
-        if (identical((property as sc.KeywordToken).keyword, sc.Keyword.SET)) {
+        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
           accessor = accessor.variable.setter;
           methodName.staticElement = accessor;
         }
@@ -5083,7 +5062,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
       } else {
         PropertyAccessorElement accessor = _findIdentifier(_enclosingUnit.accessors, functionName);
-        if (identical((property as sc.KeywordToken).keyword, sc.Keyword.SET)) {
+        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
           accessor = accessor.variable.setter;
           functionName.staticElement = accessor;
         }
@@ -5181,7 +5160,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         methodName.staticElement = _enclosingExecutable;
       } else {
         PropertyAccessorElement accessor = _findIdentifier(_enclosingClass.accessors, methodName);
-        if (identical((property as sc.KeywordToken).keyword, sc.Keyword.SET)) {
+        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
           accessor = accessor.variable.setter;
           methodName.staticElement = accessor;
         }
@@ -5565,7 +5544,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * The resolver driving this participant.
    */
-  ResolverVisitor _resolver;
+  final ResolverVisitor _resolver;
 
   /**
    * The element for the library containing the compilation unit being visited.
@@ -5614,15 +5593,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    *
    * @param resolver the resolver driving this participant
    */
-  ElementResolver(ResolverVisitor resolver) {
-    this._resolver = resolver;
-    this._definingLibrary = resolver.definingLibrary;
+  ElementResolver(this._resolver) {
+    this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
-    _dynamicType = resolver.typeProvider.dynamicType;
-    _typeType = resolver.typeProvider.typeType;
+    _dynamicType = _resolver.typeProvider.dynamicType;
+    _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
-    _promoteManager = resolver.promoteManager;
+    _promoteManager = _resolver.promoteManager;
   }
 
   @override
@@ -6230,7 +6208,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitPrefixExpression(PrefixExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
-    if (operatorType.isUserDefinableOperator || identical(operatorType, sc.TokenType.PLUS_PLUS) || identical(operatorType, sc.TokenType.MINUS_MINUS)) {
+    if (operatorType.isUserDefinableOperator || operatorType == sc.TokenType.PLUS_PLUS || operatorType == sc.TokenType.MINUS_MINUS) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
       DartType staticType = _getStaticType(operand);
@@ -6323,9 +6301,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     Element element = _resolveSimpleIdentifier(node);
     ClassElement enclosingClass = _resolver.enclosingClass;
-    if (_isFactoryConstructorReturnType(node) && element != enclosingClass) {
+    if (_isFactoryConstructorReturnType(node) && !identical(element, enclosingClass)) {
       _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node, []);
-    } else if (_isConstructorReturnType(node) && element != enclosingClass) {
+    } else if (_isConstructorReturnType(node) && !identical(element, enclosingClass)) {
       _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node, []);
       element = null;
     } else if (element == null || (element is PrefixElement && !_isValidAsPrefix(node))) {
@@ -6649,7 +6627,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * @param node the postfix expression being invoked
    * @return the name of the method invoked by the expression
    */
-  String _getPostfixOperator(PostfixExpression node) => (identical(node.operator.type, sc.TokenType.PLUS_PLUS)) ? sc.TokenType.PLUS.lexeme : sc.TokenType.MINUS.lexeme;
+  String _getPostfixOperator(PostfixExpression node) => (node.operator.type == sc.TokenType.PLUS_PLUS) ? sc.TokenType.PLUS.lexeme : sc.TokenType.MINUS.lexeme;
 
   /**
    * Return the name of the method invoked by the given postfix expression.
@@ -6660,11 +6638,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   String _getPrefixOperator(PrefixExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
-    if (identical(operatorType, sc.TokenType.PLUS_PLUS)) {
+    if (operatorType == sc.TokenType.PLUS_PLUS) {
       return sc.TokenType.PLUS.lexeme;
-    } else if (identical(operatorType, sc.TokenType.MINUS_MINUS)) {
+    } else if (operatorType == sc.TokenType.MINUS_MINUS) {
       return sc.TokenType.MINUS.lexeme;
-    } else if (identical(operatorType, sc.TokenType.MINUS)) {
+    } else if (operatorType == sc.TokenType.MINUS) {
       return "unary-";
     } else {
       return operator.lexeme;
@@ -6959,7 +6937,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     if (labelElement != null) {
       ExecutableElement labelContainer = labelElement.getAncestor((element) => element is ExecutableElement);
-      if (labelContainer != _resolver.enclosingFunction) {
+      if (!identical(labelContainer, _resolver.enclosingFunction)) {
         _resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, labelNode, [labelNode.name]);
         labelElement = null;
       }
@@ -7346,9 +7324,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Map<String, ParameterElement> namedParameters = new Map<String, ParameterElement>();
     for (ParameterElement parameter in parameters) {
       ParameterKind kind = parameter.parameterKind;
-      if (identical(kind, ParameterKind.REQUIRED)) {
+      if (kind == ParameterKind.REQUIRED) {
         requiredParameters.add(parameter);
-      } else if (identical(kind, ParameterKind.POSITIONAL)) {
+      } else if (kind == ParameterKind.POSITIONAL) {
         positionalParameters.add(parameter);
       } else {
         namedParameters[parameter.name] = parameter;
@@ -7773,16 +7751,14 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   /**
    * The name of the synthetic identifier.
    */
-  String name;
+  final String name;
 
   /**
    * Initialize a newly created synthetic identifier to have the given name.
    *
    * @param name the name of the synthetic identifier
    */
-  ElementResolver_SyntheticIdentifier(String name) {
-    this.name = name;
-  }
+  ElementResolver_SyntheticIdentifier(this.name);
 
   @override
   accept(AstVisitor visitor) => null;
@@ -7818,22 +7794,22 @@ class IncrementalResolver {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement _definingLibrary;
+  final LibraryElement _definingLibrary;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The error listener that will be informed of any errors that are found during resolution.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * Initialize a newly created incremental resolver to resolve a node in the given source in the
@@ -7846,12 +7822,7 @@ class IncrementalResolver {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  IncrementalResolver(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this._source = source;
-    this._typeProvider = typeProvider;
-    this._errorListener = errorListener;
-  }
+  IncrementalResolver(this._definingLibrary, this._source, this._typeProvider, this._errorListener);
 
   /**
    * Resolve the given node, reporting any errors or warnings to the given listener.
@@ -8052,7 +8023,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
-      if (identical(parameterElement.parameterKind, ParameterKind.NAMED)) {
+      if (parameterElement.parameterKind == ParameterKind.NAMED) {
         namedParameterNames.add(parameterElement.name);
       }
     }
@@ -8067,7 +8038,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
-      if (identical(parameterElement.parameterKind, parameterKind)) {
+      if (parameterElement.parameterKind == parameterKind) {
         parameterCount++;
       }
     }
@@ -8596,7 +8567,7 @@ class InheritanceManager {
           bool isMethod1 = newExecutableElementEntry is MethodElement;
           for (ExecutableElement executableElementInList in list) {
             bool isMethod2 = executableElementInList is MethodElement;
-            if (identical(isMethod1, isMethod2) && executableElementInList.type == newExecutableElementEntry.type) {
+            if (isMethod1 == isMethod2 && executableElementInList.type == newExecutableElementEntry.type) {
               alreadyInList = true;
               break;
             }
@@ -8820,7 +8791,7 @@ class Library {
   /**
    * The analysis context in which this library is being analyzed.
    */
-  InternalAnalysisContext _analysisContext;
+  final InternalAnalysisContext _analysisContext;
 
   /**
    * The inheritance manager which is used for this member lookups in this library.
@@ -8830,12 +8801,12 @@ class Library {
   /**
    * The listener to which analysis errors will be reported.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * The source specifying the defining compilation unit of this library.
    */
-  Source librarySource;
+  final Source librarySource;
 
   /**
    * The library element representing this library.
@@ -8890,11 +8861,8 @@ class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, Source librarySource) {
-    this._analysisContext = analysisContext;
-    this._errorListener = errorListener;
-    this.librarySource = librarySource;
-    this._libraryElement = analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
+  Library(this._analysisContext, this._errorListener, this.librarySource) {
+    this._libraryElement = _analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
 
   /**
@@ -9127,12 +9095,12 @@ class LibraryElementBuilder {
   /**
    * The analysis context in which the element model will be built.
    */
-  InternalAnalysisContext _analysisContext;
+  final InternalAnalysisContext _analysisContext;
 
   /**
    * The listener to which errors will be reported.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * The name of the function used as an entry point.
@@ -9145,10 +9113,7 @@ class LibraryElementBuilder {
    * @param analysisContext the analysis context in which the element model will be built
    * @param errorListener the listener to which errors will be reported
    */
-  LibraryElementBuilder(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener) {
-    this._analysisContext = analysisContext;
-    this._errorListener = errorListener;
-  }
+  LibraryElementBuilder(this._analysisContext, this._errorListener);
 
   /**
    * Build the library element for the given library.
@@ -9183,14 +9148,14 @@ class LibraryElementBuilder {
       } else if (directive is PartDirective) {
         PartDirective partDirective = directive;
         StringLiteral partUri = partDirective.uri;
-        Source partSource = library.getSource(partDirective);
+        Source partSource = partDirective.source;
         if (_analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);
           CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
           part.uriOffset = partUri.offset;
           part.uriEnd = partUri.end;
-          part.uri = library.getUri(partDirective);
+          part.uri = partDirective.uriContent;
           //
           // Validate that the part contains a part-of directive with the same name as the library.
           //
@@ -9408,7 +9373,7 @@ class LibraryResolver {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  InternalAnalysisContext analysisContext;
+  final InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -9447,8 +9412,7 @@ class LibraryResolver {
    *
    * @param analysisContext the analysis context in which the library is being analyzed
    */
-  LibraryResolver(InternalAnalysisContext analysisContext) {
-    this.analysisContext = analysisContext;
+  LibraryResolver(this.analysisContext) {
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
   }
@@ -9702,7 +9666,7 @@ class LibraryResolver {
         _addDependencyToMap(dependencyMap, library, referencedLibrary);
         _addToDependencyMap(referencedLibrary, dependencyMap, visitedLibraries);
       }
-      if (!library.explicitlyImportsCore && library != _coreLibrary) {
+      if (!library.explicitlyImportsCore && !identical(library, _coreLibrary)) {
         _addDependencyToMap(dependencyMap, library, _coreLibrary);
       }
     }
@@ -9747,7 +9711,11 @@ class LibraryResolver {
       for (Directive directive in library.definingCompilationUnit.directives) {
         if (directive is ImportDirective) {
           ImportDirective importDirective = directive;
-          Source importedSource = library.getSource(importDirective);
+          String uriContent = importDirective.uriContent;
+          if (DartUriResolver.isDartExtUri(uriContent)) {
+            library.libraryElement.hasExtUri = true;
+          }
+          Source importedSource = importDirective.source;
           if (importedSource != null) {
             // The imported source will be null if the URI in the import directive was invalid.
             Library importedLibrary = _libraryMap[importedSource];
@@ -9756,7 +9724,7 @@ class LibraryResolver {
               StringLiteral uriLiteral = importDirective.uri;
               importElement.uriOffset = uriLiteral.offset;
               importElement.uriEnd = uriLiteral.end;
-              importElement.uri = library.getUri(importDirective);
+              importElement.uri = uriContent;
               importElement.combinators = _buildCombinators(importDirective);
               LibraryElement importedLibraryElement = importedLibrary.libraryElement;
               if (importedLibraryElement != null) {
@@ -9783,7 +9751,7 @@ class LibraryResolver {
           }
         } else if (directive is ExportDirective) {
           ExportDirective exportDirective = directive;
-          Source exportedSource = library.getSource(exportDirective);
+          Source exportedSource = exportDirective.source;
           if (exportedSource != null) {
             // The exported source will be null if the URI in the export directive was invalid.
             Library exportedLibrary = _libraryMap[exportedSource];
@@ -9792,7 +9760,7 @@ class LibraryResolver {
               StringLiteral uriLiteral = exportDirective.uri;
               exportElement.uriOffset = uriLiteral.offset;
               exportElement.uriEnd = uriLiteral.end;
-              exportElement.uri = library.getUri(exportDirective);
+              exportElement.uri = exportDirective.uriContent;
               exportElement.combinators = _buildCombinators(exportDirective);
               LibraryElement exportedLibraryElement = exportedLibrary.libraryElement;
               if (exportedLibraryElement != null) {
@@ -10138,7 +10106,7 @@ class LibraryResolver2 {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  InternalAnalysisContext analysisContext;
+  final InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -10177,8 +10145,7 @@ class LibraryResolver2 {
    *
    * @param analysisContext the analysis context in which the library is being analyzed
    */
-  LibraryResolver2(InternalAnalysisContext analysisContext) {
-    this.analysisContext = analysisContext;
+  LibraryResolver2(this.analysisContext) {
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
   }
@@ -10313,6 +10280,10 @@ class LibraryResolver2 {
       for (Directive directive in library.definingCompilationUnit.directives) {
         if (directive is ImportDirective) {
           ImportDirective importDirective = directive;
+          String uriContent = importDirective.uriContent;
+          if (DartUriResolver.isDartExtUri(uriContent)) {
+            library.libraryElement.hasExtUri = true;
+          }
           Source importedSource = importDirective.source;
           if (importedSource != null && analysisContext.exists(importedSource)) {
             // The imported source will be null if the URI in the import directive was invalid.
@@ -10324,7 +10295,7 @@ class LibraryResolver2 {
                 importElement.uriOffset = uriLiteral.offset;
                 importElement.uriEnd = uriLiteral.end;
               }
-              importElement.uri = importDirective.uriContent;
+              importElement.uri = uriContent;
               importElement.combinators = _buildCombinators(importDirective);
               LibraryElement importedLibraryElement = importedLibrary.libraryElement;
               if (importedLibraryElement != null) {
@@ -10714,12 +10685,12 @@ class ProxyConditionalAnalysisError {
    * The enclosing [ClassElement], this is what will determine if the error code should, or
    * should not, be generated on the source.
    */
-  Element _enclosingElement;
+  final Element _enclosingElement;
 
   /**
    * The conditional analysis error.
    */
-  AnalysisError analysisError;
+  final AnalysisError analysisError;
 
   /**
    * Instantiate a new [ProxyConditionalAnalysisError] with some enclosing element and the
@@ -10728,10 +10699,7 @@ class ProxyConditionalAnalysisError {
    * @param enclosingElement the enclosing element
    * @param analysisError the conditional analysis error
    */
-  ProxyConditionalAnalysisError(Element enclosingElement, AnalysisError analysisError) {
-    this._enclosingElement = enclosingElement;
-    this.analysisError = analysisError;
-  }
+  ProxyConditionalAnalysisError(this._enclosingElement, this.analysisError);
 
   /**
    * Return `true` iff the enclosing class has the proxy annotation.
@@ -10755,7 +10723,7 @@ class ResolvableLibrary {
   /**
    * The source specifying the defining compilation unit of this library.
    */
-  Source librarySource;
+  final Source librarySource;
 
   /**
    * A list containing all of the libraries that are imported into this library.
@@ -10809,9 +10777,7 @@ class ResolvableLibrary {
    * @param librarySource the source specifying the defining compilation unit of this library
    * @param errorListener the listener to which analysis errors will be reported
    */
-  ResolvableLibrary(Source librarySource) {
-    this.librarySource = librarySource;
-  }
+  ResolvableLibrary(this.librarySource);
 
   /**
    * Return the AST structure associated with the given source, or `null` if the source does
@@ -11158,7 +11124,7 @@ class ResolverVisitor extends ScopedVisitor {
     sc.TokenType operatorType = node.operator.type;
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
-    if (identical(operatorType, sc.TokenType.AMPERSAND_AMPERSAND)) {
+    if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
@@ -11177,7 +11143,7 @@ class ResolverVisitor extends ScopedVisitor {
           _promoteManager.exitScope();
         }
       }
-    } else if (identical(operatorType, sc.TokenType.BAR_BAR)) {
+    } else if (operatorType == sc.TokenType.BAR_BAR) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
@@ -11236,7 +11202,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitComment(Comment node) {
     if (node.parent is FunctionDeclaration || node.parent is ConstructorDeclaration || node.parent is MethodDeclaration) {
-      if (node != _commentBeforeFunction) {
+      if (!identical(node, _commentBeforeFunction)) {
         _commentBeforeFunction = node;
         return null;
       }
@@ -11774,10 +11740,10 @@ class ResolverVisitor extends ScopedVisitor {
       return null;
     }
     ElementKind kind = element.kind;
-    if (identical(kind, ElementKind.LOCAL_VARIABLE)) {
+    if (kind == ElementKind.LOCAL_VARIABLE) {
       return element as VariableElement;
     }
-    if (identical(kind, ElementKind.PARAMETER)) {
+    if (kind == ElementKind.PARAMETER) {
       return element as VariableElement;
     }
     return null;
@@ -12168,7 +12134,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _promoteTypes(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (identical(binary.operator.type, sc.TokenType.AMPERSAND_AMPERSAND)) {
+      if (binary.operator.type == sc.TokenType.AMPERSAND_AMPERSAND) {
         Expression left = binary.leftOperand;
         Expression right = binary.rightOperand;
         _promoteTypes(left);
@@ -12194,7 +12160,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _propagateFalseState(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (identical(binary.operator.type, sc.TokenType.BAR_BAR)) {
+      if (binary.operator.type == sc.TokenType.BAR_BAR) {
         _propagateFalseState(binary.leftOperand);
         _propagateFalseState(binary.rightOperand);
       }
@@ -12205,7 +12171,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
-      if (identical(prefix.operator.type, sc.TokenType.BANG)) {
+      if (prefix.operator.type == sc.TokenType.BANG) {
         _propagateTrueState(prefix.operand);
       }
     } else if (condition is ParenthesizedExpression) {
@@ -12231,7 +12197,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _propagateTrueState(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (identical(binary.operator.type, sc.TokenType.AMPERSAND_AMPERSAND)) {
+      if (binary.operator.type == sc.TokenType.AMPERSAND_AMPERSAND) {
         _propagateTrueState(binary.leftOperand);
         _propagateTrueState(binary.rightOperand);
       }
@@ -12242,7 +12208,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
-      if (identical(prefix.operator.type, sc.TokenType.BANG)) {
+      if (prefix.operator.type == sc.TokenType.BANG) {
         _propagateFalseState(prefix.operand);
       }
     } else if (condition is ParenthesizedExpression) {
@@ -12349,7 +12315,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The source representing the compilation unit being visited.
    */
-  Source source;
+  final Source source;
 
   /**
    * The error listener that will be informed of any errors that are found during resolution.
@@ -12364,7 +12330,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider typeProvider;
+  final TypeProvider typeProvider;
 
   /**
    * The scope used to resolve labels for `break` and `continue` statements, or
@@ -12379,13 +12345,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
    */
-  ScopedVisitor.con1(Library library, Source source, TypeProvider typeProvider) {
+  ScopedVisitor.con1(Library library, this.source, this.typeProvider) {
     this._definingLibrary = library.libraryElement;
-    this.source = source;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
     this._nameScope = libraryScope;
-    this.typeProvider = typeProvider;
   }
 
   /**
@@ -12398,12 +12362,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
+  ScopedVisitor.con2(LibraryElement definingLibrary, this.source, this.typeProvider, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
-    this.source = source;
     this._errorListener = errorListener;
     this._nameScope = new LibraryScope(definingLibrary, errorListener);
-    this.typeProvider = typeProvider;
   }
 
   /**
@@ -12417,12 +12379,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con3(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
+  ScopedVisitor.con3(LibraryElement definingLibrary, this.source, this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
-    this.source = source;
     this._errorListener = errorListener;
     this._nameScope = nameScope;
-    this.typeProvider = typeProvider;
   }
 
   /**
@@ -12432,13 +12392,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
    */
-  ScopedVisitor.con4(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+  ScopedVisitor.con4(ResolvableLibrary library, this.source, this.typeProvider) {
     this._definingLibrary = library.libraryElement;
-    this.source = source;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
     this._nameScope = libraryScope;
-    this.typeProvider = typeProvider;
   }
 
   /**
@@ -13047,7 +13005,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * The resolver driving the resolution and type analysis.
    */
-  ResolverVisitor _resolver;
+  final ResolverVisitor _resolver;
 
   /**
    * The object providing access to the types defined by the language.
@@ -13091,12 +13049,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(ResolverVisitor resolver) {
-    this._resolver = resolver;
-    _typeProvider = resolver.typeProvider;
+  StaticTypeAnalyzer(this._resolver) {
+    _typeProvider = _resolver.typeProvider;
     _dynamicType = _typeProvider.dynamicType;
-    _overrideManager = resolver.overrideManager;
-    _promoteManager = resolver.promoteManager;
+    _overrideManager = _resolver.overrideManager;
+    _promoteManager = _resolver.promoteManager;
   }
 
   /**
@@ -13184,7 +13141,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.TokenType operator = node.operator.type;
-    if (identical(operator, sc.TokenType.EQ)) {
+    if (operator == sc.TokenType.EQ) {
       Expression rightHandSide = node.rightHandSide;
       DartType staticType = _getStaticType(rightHandSide);
       _recordStaticType(node, staticType);
@@ -13202,7 +13159,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
-      if (propagatedMethodElement != staticMethodElement) {
+      if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
         if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
@@ -13256,7 +13213,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     staticType = _refineBinaryExpressionType(node, staticType);
     _recordStaticType(node, staticType);
     MethodElement propagatedMethodElement = node.propagatedElement;
-    if (propagatedMethodElement != staticMethodElement) {
+    if (!identical(propagatedMethodElement, staticMethodElement)) {
       DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
       if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
         _recordPropagatedType(node, propagatedType);
@@ -13417,7 +13374,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordPropagatedType(node, staticPropagatedType);
     }
     ExecutableElement propagatedMethodElement = node.propagatedElement;
-    if (propagatedMethodElement != staticMethodElement) {
+    if (!identical(propagatedMethodElement, staticMethodElement)) {
       // Record static return type of the propagated element.
       DartType propagatedStaticType = _computeStaticReturnType(propagatedMethodElement);
       if (propagatedStaticType != null && (staticStaticType == null || propagatedStaticType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
@@ -13444,7 +13401,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = _computeArgumentType(staticMethodElement);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
-      if (propagatedMethodElement != staticMethodElement) {
+      if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType = _computeArgumentType(propagatedMethodElement);
         if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
@@ -13455,7 +13412,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
-      if (propagatedMethodElement != staticMethodElement) {
+      if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
         if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
@@ -13789,7 +13746,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     } else {
       Element propagatedElement = methodNameNode.propagatedElement;
-      if (propagatedElement != staticMethodElement) {
+      if (!identical(propagatedElement, staticMethodElement)) {
         // Record static return type of the propagated element.
         DartType propagatedStaticType = _computeStaticReturnType(propagatedElement);
         if (propagatedStaticType != null && (staticStaticType == null || propagatedStaticType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
@@ -13862,7 +13819,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand);
     sc.TokenType operator = node.operator.type;
-    if (identical(operator, sc.TokenType.MINUS_MINUS) || identical(operator, sc.TokenType.PLUS_PLUS)) {
+    if (operator == sc.TokenType.MINUS_MINUS || operator == sc.TokenType.PLUS_PLUS) {
       DartType intType = _typeProvider.intType;
       if (identical(_getStaticType(node.operand), intType)) {
         staticType = intType;
@@ -13946,13 +13903,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitPrefixExpression(PrefixExpression node) {
     sc.TokenType operator = node.operator.type;
-    if (identical(operator, sc.TokenType.BANG)) {
+    if (operator == sc.TokenType.BANG) {
       _recordStaticType(node, _typeProvider.boolType);
     } else {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
-      if (identical(operator, sc.TokenType.MINUS_MINUS) || identical(operator, sc.TokenType.PLUS_PLUS)) {
+      if (operator == sc.TokenType.MINUS_MINUS || operator == sc.TokenType.PLUS_PLUS) {
         DartType intType = _typeProvider.intType;
         if (identical(_getStaticType(node.operand), intType)) {
           staticType = intType;
@@ -13960,7 +13917,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
-      if (propagatedMethodElement != staticMethodElement) {
+      if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
         if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
@@ -14615,20 +14572,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _refineBinaryExpressionType(BinaryExpression node, DartType staticType) {
     sc.TokenType operator = node.operator.type;
     // bool
-    if (identical(operator, sc.TokenType.AMPERSAND_AMPERSAND) || identical(operator, sc.TokenType.BAR_BAR) || identical(operator, sc.TokenType.EQ_EQ) || identical(operator, sc.TokenType.BANG_EQ)) {
+    if (operator == sc.TokenType.AMPERSAND_AMPERSAND || operator == sc.TokenType.BAR_BAR || operator == sc.TokenType.EQ_EQ || operator == sc.TokenType.BANG_EQ) {
       return _typeProvider.boolType;
     }
     DartType intType = _typeProvider.intType;
     if (_getStaticType(node.leftOperand) == intType) {
       // int op double
-      if (identical(operator, sc.TokenType.MINUS) || identical(operator, sc.TokenType.PERCENT) || identical(operator, sc.TokenType.PLUS) || identical(operator, sc.TokenType.STAR)) {
+      if (operator == sc.TokenType.MINUS || operator == sc.TokenType.PERCENT || operator == sc.TokenType.PLUS || operator == sc.TokenType.STAR) {
         DartType doubleType = _typeProvider.doubleType;
         if (_getStaticType(node.rightOperand) == doubleType) {
           return doubleType;
         }
       }
       // int op int
-      if (identical(operator, sc.TokenType.MINUS) || identical(operator, sc.TokenType.PERCENT) || identical(operator, sc.TokenType.PLUS) || identical(operator, sc.TokenType.STAR) || identical(operator, sc.TokenType.TILDE_SLASH)) {
+      if (operator == sc.TokenType.MINUS || operator == sc.TokenType.PERCENT || operator == sc.TokenType.PLUS || operator == sc.TokenType.STAR || operator == sc.TokenType.TILDE_SLASH) {
         if (_getStaticType(node.rightOperand) == intType) {
           staticType = intType;
         }
@@ -14925,7 +14882,7 @@ class TypeOverrideManager_TypeOverrideScope {
   /**
    * The outer scope in which types might be overridden.
    */
-  TypeOverrideManager_TypeOverrideScope _outerScope;
+  final TypeOverrideManager_TypeOverrideScope _outerScope;
 
   /**
    * A table mapping elements to the overridden type of that element.
@@ -14937,9 +14894,7 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @param outerScope the outer scope in which types might be overridden
    */
-  TypeOverrideManager_TypeOverrideScope(TypeOverrideManager_TypeOverrideScope outerScope) {
-    this._outerScope = outerScope;
-  }
+  TypeOverrideManager_TypeOverrideScope(this._outerScope);
 
   /**
    * Apply a set of overrides that were previously captured.
@@ -15095,7 +15050,7 @@ class TypePromotionManager_TypePromoteScope {
   /**
    * The outer scope in which types might be promoter.
    */
-  TypePromotionManager_TypePromoteScope _outerScope;
+  final TypePromotionManager_TypePromoteScope _outerScope;
 
   /**
    * A table mapping elements to the promoted type of that element.
@@ -15107,9 +15062,7 @@ class TypePromotionManager_TypePromoteScope {
    *
    * @param outerScope the outer scope in which types might be promoted
    */
-  TypePromotionManager_TypePromoteScope(TypePromotionManager_TypePromoteScope outerScope) {
-    this._outerScope = outerScope;
-  }
+  TypePromotionManager_TypePromoteScope(this._outerScope);
 
   /**
    * Returns the elements with promoted types.
@@ -15462,7 +15415,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   static bool _isBuiltInIdentifier(TypeName node) {
     sc.Token token = node.name.beginToken;
-    return identical(token.type, sc.TokenType.KEYWORD);
+    return token.type == sc.TokenType.KEYWORD;
   }
 
   /**
@@ -15580,14 +15533,14 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (extendsClause != null) {
       ErrorCode errorCode = (node.withClause == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
       superclassType = _resolveType(extendsClause.superclass, errorCode, errorCode);
-      if (superclassType != typeProvider.objectType) {
+      if (!identical(superclassType, typeProvider.objectType)) {
         classElement.validMixin = false;
       }
     }
     if (classElement != null) {
       if (superclassType == null) {
         InterfaceType objectType = typeProvider.objectType;
-        if (classElement.type != objectType) {
+        if (!identical(classElement.type, objectType)) {
           superclassType = objectType;
         }
       }
@@ -15636,11 +15589,14 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
-    ClassElement definingClass = element.enclosingElement as ClassElement;
-    element.returnType = definingClass.type;
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
-    type.typeArguments = definingClass.type.typeArguments;
-    element.type = type;
+    if (element != null) {
+      // TODO(brianwilkerson) Figure out how the element could ever be null.
+      ClassElement definingClass = element.enclosingElement as ClassElement;
+      element.returnType = definingClass.type;
+      FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
+      type.typeArguments = definingClass.type.typeArguments;
+      element.type = type;
+    }
     return null;
   }
 
@@ -15874,7 +15830,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       } else if ((redirectingConstructorKind = _getRedirectingConstructorKind(node)) != null) {
-        ErrorCode errorCode = (identical(redirectingConstructorKind, RedirectingConstructorKind.CONST) ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
+        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, [typeName.name]);
@@ -15921,7 +15877,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       } else if ((redirectingConstructorKind = _getRedirectingConstructorKind(node)) != null) {
-        ErrorCode errorCode = (identical(redirectingConstructorKind, RedirectingConstructorKind.CONST) ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
+        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, [typeName.name]);
@@ -16523,13 +16479,13 @@ class TypeResolverVisitor extends ScopedVisitor {
  * Kind of the redirecting constructor.
  */
 class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
-  static final RedirectingConstructorKind CONST = new RedirectingConstructorKind('CONST', 0);
+  static const RedirectingConstructorKind CONST = const RedirectingConstructorKind('CONST', 0);
 
-  static final RedirectingConstructorKind NORMAL = new RedirectingConstructorKind('NORMAL', 1);
+  static const RedirectingConstructorKind NORMAL = const RedirectingConstructorKind('NORMAL', 1);
 
-  static final List<RedirectingConstructorKind> values = [CONST, NORMAL];
+  static const List<RedirectingConstructorKind> values = const [CONST, NORMAL];
 
-  RedirectingConstructorKind(String name, int ordinal) : super(name, ordinal);
+  const RedirectingConstructorKind(String name, int ordinal) : super(name, ordinal);
 }
 
 class UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope extends UnifyingAstVisitor<Object> {
@@ -16652,7 +16608,7 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
     // Must be local or parameter.
     ElementKind kind = element.kind;
-    if (identical(kind, ElementKind.LOCAL_VARIABLE)) {
+    if (kind == ElementKind.LOCAL_VARIABLE) {
       node.staticElement = element;
       if (node.inSetterContext()) {
         LocalVariableElementImpl variableImpl = element as LocalVariableElementImpl;
@@ -16661,7 +16617,7 @@ class VariableResolverVisitor extends ScopedVisitor {
           variableImpl.markPotentiallyMutatedInClosure();
         }
       }
-    } else if (identical(kind, ElementKind.PARAMETER)) {
+    } else if (kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
         ParameterElementImpl parameterImpl = element as ParameterElementImpl;
@@ -16741,7 +16697,7 @@ class EnclosedScope extends Scope {
   /**
    * The scope in which this scope is lexically enclosed.
    */
-  Scope enclosingScope;
+  final Scope enclosingScope;
 
   /**
    * A table mapping names that will be defined in this scope, but right now are not initialized.
@@ -16760,9 +16716,7 @@ class EnclosedScope extends Scope {
    *
    * @param enclosingScope the scope in which this scope is lexically enclosed
    */
-  EnclosedScope(Scope enclosingScope) {
-    this.enclosingScope = enclosingScope;
-  }
+  EnclosedScope(this.enclosingScope);
 
   @override
   AnalysisErrorListener get errorListener => enclosingScope.errorListener;
@@ -16807,7 +16761,7 @@ class EnclosedScope extends Scope {
  * Instances of the class `FunctionScope` implement the scope defined by a function.
  */
 class FunctionScope extends EnclosedScope {
-  ExecutableElement _functionElement;
+  final ExecutableElement _functionElement;
 
   bool _parametersDefined = false;
 
@@ -16817,11 +16771,10 @@ class FunctionScope extends EnclosedScope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    * @param functionElement the element representing the type represented by this scope
    */
-  FunctionScope(Scope enclosingScope, ExecutableElement functionElement) : super(new EnclosedScope(enclosingScope)) {
-    if (functionElement == null) {
+  FunctionScope(Scope enclosingScope, this._functionElement) : super(new EnclosedScope(enclosingScope)) {
+    if (_functionElement == null) {
       throw new IllegalArgumentException("function element cannot be null");
     }
-    this._functionElement = functionElement;
   }
 
   /**
@@ -16852,7 +16805,7 @@ class FunctionScope extends EnclosedScope {
  * alias.
  */
 class FunctionTypeScope extends EnclosedScope {
-  FunctionTypeAliasElement _typeElement;
+  final FunctionTypeAliasElement _typeElement;
 
   bool _parametersDefined = false;
 
@@ -16862,8 +16815,7 @@ class FunctionTypeScope extends EnclosedScope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    * @param typeElement the element representing the type alias represented by this scope
    */
-  FunctionTypeScope(Scope enclosingScope, FunctionTypeAliasElement typeElement) : super(new EnclosedScope(enclosingScope)) {
-    this._typeElement = typeElement;
+  FunctionTypeScope(Scope enclosingScope, this._typeElement) : super(new EnclosedScope(enclosingScope)) {
     _defineTypeParameters();
   }
 
@@ -16902,17 +16854,17 @@ class LabelScope {
   /**
    * The label scope enclosing this label scope.
    */
-  LabelScope _outerScope;
+  final LabelScope _outerScope;
 
   /**
    * The label defined in this scope.
    */
-  String _label;
+  final String _label;
 
   /**
    * The element to which the label resolves.
    */
-  LabelElement _element;
+  final LabelElement _element;
 
   /**
    * The marker used to look up a label element for an unlabeled `break` or `continue`.
@@ -16943,11 +16895,7 @@ class LabelScope {
    * @param label the label defined in this scope
    * @param element the element to which the label resolves
    */
-  LabelScope.con2(LabelScope outerScope, String label, LabelElement element) {
-    this._outerScope = outerScope;
-    this._label = label;
-    this._element = element;
-  }
+  LabelScope.con2(this._outerScope, this._label, this._element);
 
   /**
    * Return the label element corresponding to the given label, or `null` if the given label
@@ -16975,12 +16923,12 @@ class LibraryImportScope extends Scope {
   /**
    * The element representing the library in which this scope is enclosed.
    */
-  LibraryElement _definingLibrary;
+  final LibraryElement _definingLibrary;
 
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  AnalysisErrorListener errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
@@ -16995,10 +16943,8 @@ class LibraryImportScope extends Scope {
    *          this scope
    * @param errorListener the listener that is to be informed when an error is encountered
    */
-  LibraryImportScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this.errorListener = errorListener;
-    _createImportedNamespaces(definingLibrary);
+  LibraryImportScope(this._definingLibrary, this.errorListener) {
+    _createImportedNamespaces(_definingLibrary);
   }
 
   @override
@@ -17019,7 +16965,7 @@ class LibraryImportScope extends Scope {
       if (element != null) {
         if (foundElement == null) {
           foundElement = element;
-        } else if (foundElement != element) {
+        } else if (!identical(foundElement, element)) {
           foundElement = MultiplyDefinedElementImpl.fromElements(_definingLibrary.context, foundElement, element);
         }
       }
@@ -17201,7 +17147,7 @@ class Namespace {
    * A table mapping names that are defined in this namespace to the element representing the thing
    * declared with that name.
    */
-  Map<String, Element> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /**
    * An empty namespace.
@@ -17214,9 +17160,7 @@ class Namespace {
    * @param definedNames the mapping from names that are defined in this namespace to the
    *          corresponding elements
    */
-  Namespace(Map<String, Element> definedNames) {
-    this._definedNames = definedNames;
-  }
+  Namespace(this._definedNames);
 
   /**
    * Return the element in this namespace that is available to the containing scope using the given
@@ -17689,7 +17633,7 @@ class ScopeBuilder {
   /**
    * The listener to which analysis errors will be reported.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * Initialize a newly created scope builder to generate a scope that will report errors to the
@@ -17697,9 +17641,7 @@ class ScopeBuilder {
    *
    * @param errorListener the listener to which analysis errors will be reported
    */
-  ScopeBuilder(AnalysisErrorListener errorListener) {
-    this._errorListener = errorListener;
-  }
+  ScopeBuilder(this._errorListener);
 
   /**
    * Return the scope in which the given AST structure should be resolved.
@@ -17785,12 +17727,12 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * The type provider used to access the known types.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The type representing the type 'bool'.
@@ -17817,13 +17759,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
-    this._errorReporter = errorReporter;
-    this._typeProvider = typeProvider;
-    this._boolType = typeProvider.boolType;
-    this._intType = typeProvider.intType;
-    this._numType = typeProvider.numType;
-    this._stringType = typeProvider.stringType;
+  ConstantVerifier(this._errorReporter, this._typeProvider) {
+    this._boolType = _typeProvider.boolType;
+    this._intType = _typeProvider.intType;
+    this._numType = _typeProvider.numType;
+    this._stringType = _typeProvider.stringType;
   }
 
   @override
@@ -18148,12 +18088,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
-  ErrorReporter _errorReporter;
+  final ErrorReporter _errorReporter;
 
   /**
    * The current library that is being analyzed.
    */
-  LibraryElement _currentLibrary;
+  final LibraryElement _currentLibrary;
 
   /**
    * The type representing the type 'dynamic'.
@@ -18173,12 +18113,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The object providing access to the types defined by the language.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The manager for the inheritance mappings.
    */
-  InheritanceManager _inheritanceManager;
+  final InheritanceManager _inheritanceManager;
 
   /**
    * This is set to `true` iff the visitor is currently visiting children nodes of a
@@ -18263,6 +18203,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _hasExtUri = false;
 
   /**
+   * This is set to `false` on the entry of every [BlockFunctionBody], and is restored
+   * to the enclosing value on exit. The value is used in
+   * [checkForMixedReturns] to prevent both
+   * [StaticWarningCode#MIXED_RETURN_TYPES] and [StaticWarningCode#RETURN_WITHOUT_VALUE]
+   * from being generated in the same function body.
+   */
+  bool _hasReturnWithoutValue = false;
+
+  /**
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
    * a class.
    */
@@ -18328,13 +18277,30 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
-  ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary, TypeProvider typeProvider, InheritanceManager inheritanceManager) {
-    this._errorReporter = errorReporter;
-    this._currentLibrary = currentLibrary;
-    this._isInSystemLibrary = currentLibrary.source.isInSystemLibrary;
-    this._hasExtUri = currentLibrary.hasExtUri;
-    this._typeProvider = typeProvider;
-    this._inheritanceManager = inheritanceManager;
+  /**
+   * Static final string with value `"getter "` used in the construction of the
+   * [StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
+   * code messages.
+   *
+   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   */
+  static String _GETTER_SPACE = "getter ";
+
+  /**
+   * Static final string with value `"setter "` used in the construction of the
+   * [StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
+   * code messages.
+   *
+   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   */
+  static String _SETTER_SPACE = "setter ";
+
+  /**
+   * Initialize the [ErrorVerifier] visitor.
+   */
+  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider, this._inheritanceManager) {
+    this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
+    this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
@@ -18342,16 +18308,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _isInInstanceVariableInitializer = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
-    _boolType = typeProvider.boolType;
-    _intType = typeProvider.intType;
-    _dynamicType = typeProvider.dynamicType;
+    _dynamicType = _typeProvider.dynamicType;
+    _boolType = _typeProvider.boolType;
+    _intType = _typeProvider.intType;
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = <InterfaceType> [
-        typeProvider.nullType,
-        typeProvider.numType,
+        _typeProvider.nullType,
+        _typeProvider.numType,
         _intType,
-        typeProvider.doubleType,
+        _typeProvider.doubleType,
         _boolType,
-        typeProvider.stringType];
+        _typeProvider.stringType];
   }
 
   @override
@@ -18370,7 +18336,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
-    if (identical(operatorType, sc.TokenType.EQ)) {
+    if (operatorType == sc.TokenType.EQ) {
       _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
     } else {
       _checkForInvalidCompoundAssignment(node);
@@ -18388,6 +18354,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    bool previousHasReturnWithoutValue = _hasReturnWithoutValue;
+    _hasReturnWithoutValue = false;
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
     try {
@@ -18398,6 +18366,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       _returnsWith = previousReturnsWith;
       _returnsWithout = previousReturnsWithout;
+      _hasReturnWithoutValue = previousHasReturnWithoutValue;
     }
     return null;
   }
@@ -18785,6 +18754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
       if (node.isGetter) {
+        _checkForVoidReturnType(node);
         _checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter) {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
@@ -18855,7 +18825,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitPrefixExpression(PrefixExpression node) {
     sc.TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (identical(operatorType, sc.TokenType.BANG)) {
+    if (operatorType == sc.TokenType.BANG) {
       _checkForNonBoolNegationExpression(operand);
     } else if (operatorType.isIncrementOperator) {
       _checkForAssignmentToFinal(operand);
@@ -19057,14 +19027,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (parameter is FieldFormalParameter) {
         FieldElement fieldElement = (parameter.element as FieldFormalParameterElementImpl).field;
         INIT_STATE state = fieldElementsMap[fieldElement];
-        if (identical(state, INIT_STATE.NOT_INIT)) {
+        if (state == INIT_STATE.NOT_INIT) {
           fieldElementsMap[fieldElement] = INIT_STATE.INIT_IN_FIELD_FORMAL;
-        } else if (identical(state, INIT_STATE.INIT_IN_DECLARATION)) {
+        } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             _errorReporter.reportErrorForNode(StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, formalParameter.identifier, [fieldElement.displayName]);
             foundError = true;
           }
-        } else if (identical(state, INIT_STATE.INIT_IN_FIELD_FORMAL)) {
+        } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES, formalParameter.identifier, [fieldElement.displayName]);
             foundError = true;
@@ -19085,17 +19055,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (element is FieldElement) {
           FieldElement fieldElement = element;
           INIT_STATE state = fieldElementsMap[fieldElement];
-          if (identical(state, INIT_STATE.NOT_INIT)) {
+          if (state == INIT_STATE.NOT_INIT) {
             fieldElementsMap[fieldElement] = INIT_STATE.INIT_IN_INITIALIZERS;
-          } else if (identical(state, INIT_STATE.INIT_IN_DECLARATION)) {
+          } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
             if (fieldElement.isFinal || fieldElement.isConst) {
               _errorReporter.reportErrorForNode(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, fieldName, []);
               foundError = true;
             }
-          } else if (identical(state, INIT_STATE.INIT_IN_FIELD_FORMAL)) {
+          } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, fieldName, []);
             foundError = true;
-          } else if (identical(state, INIT_STATE.INIT_IN_INITIALIZERS)) {
+          } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, fieldName, [fieldElement.displayName]);
             foundError = true;
           }
@@ -19104,7 +19074,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // Visit all of the states in the map to ensure that none were never initialized.
     for (MapEntry<FieldElement, INIT_STATE> entry in getMapEntrySet(fieldElementsMap)) {
-      if (identical(entry.getValue(), INIT_STATE.NOT_INIT)) {
+      if (entry.getValue() == INIT_STATE.NOT_INIT) {
         FieldElement fieldElement = entry.getKey();
         if (fieldElement.isConst) {
           _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
@@ -19294,7 +19264,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
-          if (identical(parameter.parameterKind, ParameterKind.NAMED) && overriddenNamedPTEntry.getKey() == parameter.name) {
+          if (parameter.parameterKind == ParameterKind.NAMED && overriddenNamedPTEntry.getKey() == parameter.name) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
@@ -19339,7 +19309,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // parameter elements.
     //
     if (parameterElts.length > 0) {
-      if (identical(parameterElts[0].parameterKind, ParameterKind.NAMED)) {
+      if (parameterElts[0].parameterKind == ParameterKind.NAMED) {
         // Named parameters, consider the names when matching the parameterElts to the overriddenParameterElts
         for (int i = 0; i < parameterElts.length; i++) {
           ParameterElementImpl parameterElt = parameterElts[i];
@@ -19614,6 +19584,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (VoidTypeImpl.instance.isAssignableTo(expectedReturnType)) {
         return false;
       }
+      _hasReturnWithoutValue = true;
       _errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node, []);
       return true;
     }
@@ -19762,11 +19733,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForAssignmentToFinal(Expression expression) {
     // prepare element
     Element element = null;
+    AstNode highlightedNode = expression;
     if (expression is Identifier) {
       element = expression.staticElement;
-    }
-    if (expression is PropertyAccess) {
-      element = expression.propertyName.staticElement;
+      if (expression is PrefixedIdentifier) {
+        highlightedNode = expression.identifier;
+      }
+    } else if (expression is PropertyAccess) {
+      PropertyAccess propertyAccess = expression;
+      element = propertyAccess.propertyName.staticElement;
+      highlightedNode = propertyAccess.propertyName;
     }
     // check if element is assignable
     if (element is PropertyAccessorElement) {
@@ -19780,7 +19756,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return true;
       }
       if (variable.isFinal) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression, [variable.name]);
+        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL, highlightedNode, [variable.name]);
         return true;
       }
       return false;
@@ -19809,7 +19785,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
     sc.Token token = identifier.token;
-    if (identical(token.type, sc.TokenType.KEYWORD)) {
+    if (token.type == sc.TokenType.KEYWORD) {
       _errorReporter.reportErrorForNode(errorCode, identifier, [identifier.name]);
       return true;
     }
@@ -20311,7 +20287,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // default constructor is not 'const', report problem
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node.returnType, []);
     return true;
   }
 
@@ -20411,7 +20387,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = node.staticElement;
       if (element != null && !element.isFactory) {
-        if (identical((node.keyword as sc.KeywordToken).keyword, sc.Keyword.CONST)) {
+        if ((node.keyword as sc.KeywordToken).keyword == sc.Keyword.CONST) {
           _errorReporter.reportErrorForNode(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName, []);
         } else {
           _errorReporter.reportErrorForNode(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName, []);
@@ -21502,6 +21478,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see StaticWarningCode#MIXED_RETURN_TYPES
    */
   bool _checkForMixedReturns(BlockFunctionBody node) {
+    if (_hasReturnWithoutValue) {
+      return false;
+    }
     int withCount = _returnsWith.length;
     int withoutCount = _returnsWithout.length;
     if (withCount > 0 && withoutCount > 0) {
@@ -21774,14 +21753,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     List<String> stringMembersArrayListSet = new List<String>();
     for (int i = 0; i < missingOverridesArray.length; i++) {
       String newStrMember;
-      if (missingOverridesArray[i].enclosingElement != null) {
-        newStrMember = "${missingOverridesArray[i].enclosingElement.displayName}.${missingOverridesArray[i].displayName}";
+      Element enclosingElement = missingOverridesArray[i].enclosingElement;
+      String prefix = StringUtilities.EMPTY;
+      if (missingOverridesArray[i] is PropertyAccessorElement) {
+        PropertyAccessorElement propertyAccessorElement = missingOverridesArray[i] as PropertyAccessorElement;
+        if (propertyAccessorElement.isGetter) {
+          prefix = _GETTER_SPACE;
+        } else {
+          prefix = _SETTER_SPACE;
+        }
+      }
+      if (enclosingElement != null) {
+        newStrMember = "${prefix}'${enclosingElement.displayName}.${missingOverridesArray[i].displayName}'";
       } else {
-        newStrMember = missingOverridesArray[i].displayName;
+        newStrMember = "${prefix}'${missingOverridesArray[i].displayName}'";
       }
-      if (!stringMembersArrayListSet.contains(newStrMember)) {
-        stringMembersArrayListSet.add(newStrMember);
-      }
+      stringMembersArrayListSet.add(newStrMember);
     }
     List<String> stringMembersArray = new List.from(stringMembersArrayListSet);
     AnalysisErrorWithProperties analysisError;
@@ -21896,7 +21883,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // OK, statement does not start with map
-    if (statement.beginToken != node.beginToken) {
+    if (!identical(statement.beginToken, node.beginToken)) {
       return false;
     }
     // report problem
@@ -22538,6 +22525,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * This verifies that the given getter does not have a return type of 'void'.
+   *
+   * @param node the method declaration to evaluate
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#VOID_RETURN_FOR_GETTER
+   */
+  bool _checkForVoidReturnType(MethodDeclaration node) {
+    TypeName returnType = node.returnType;
+    if (returnType == null || returnType.name.name != "void") {
+      return false;
+    }
+    _errorReporter.reportErrorForNode(StaticWarningCode.VOID_RETURN_FOR_GETTER, returnType, []);
+    return true;
+  }
+
+  /**
    * This verifies the passed operator-method declaration, has correct number of parameters.
    *
    * This method assumes that the method declaration was tested to be an operator declaration before
@@ -22850,7 +22853,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` iff the passed member is found in the passed class element
    */
   bool _isMemberInClassOrMixin(ExecutableElement executableElt, ClassElement classElt) {
-    ExecutableElement foundElt;
+    ExecutableElement foundElt = null;
     String executableName = executableElt.name;
     if (executableElt is MethodElement) {
       foundElt = classElt.getMethod(executableName);
@@ -22865,8 +22868,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return true;
       }
     } else if (executableElt is PropertyAccessorElement) {
-      foundElt = classElt.getGetter(executableElt.name);
-      if (foundElt == null) {
+      PropertyAccessorElement propertyAccessorElement = executableElt;
+      if (propertyAccessorElement.isGetter) {
+        foundElt = classElt.getGetter(executableName);
+      }
+      if (foundElt == null && propertyAccessorElement.isSetter) {
         foundElt = classElt.getSetter(executableName);
       }
       if (foundElt != null) {
@@ -23005,21 +23011,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
  * formal, and finally, initialized in the initializers list.
  */
 class INIT_STATE extends Enum<INIT_STATE> {
-  static final INIT_STATE NOT_INIT = new INIT_STATE('NOT_INIT', 0);
+  static const INIT_STATE NOT_INIT = const INIT_STATE('NOT_INIT', 0);
 
-  static final INIT_STATE INIT_IN_DECLARATION = new INIT_STATE('INIT_IN_DECLARATION', 1);
+  static const INIT_STATE INIT_IN_DECLARATION = const INIT_STATE('INIT_IN_DECLARATION', 1);
 
-  static final INIT_STATE INIT_IN_FIELD_FORMAL = new INIT_STATE('INIT_IN_FIELD_FORMAL', 2);
+  static const INIT_STATE INIT_IN_FIELD_FORMAL = const INIT_STATE('INIT_IN_FIELD_FORMAL', 2);
 
-  static final INIT_STATE INIT_IN_INITIALIZERS = new INIT_STATE('INIT_IN_INITIALIZERS', 3);
+  static const INIT_STATE INIT_IN_INITIALIZERS = const INIT_STATE('INIT_IN_INITIALIZERS', 3);
 
-  static final List<INIT_STATE> values = [
+  static const List<INIT_STATE> values = const [
       NOT_INIT,
       INIT_IN_DECLARATION,
       INIT_IN_FIELD_FORMAL,
       INIT_IN_INITIALIZERS];
 
-  INIT_STATE(String name, int ordinal) : super(name, ordinal);
+  const INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
 
 class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends GeneralizingElementVisitor<Object> {
@@ -23106,13 +23112,13 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
  * when appropriate, how the problem can be corrected.
  */
 class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
-  static final ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER = new ResolverErrorCode.con1('BREAK_LABEL_ON_SWITCH_MEMBER', 0, ErrorType.COMPILE_TIME_ERROR, "Break label resolves to case or default statement");
+  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER = const ResolverErrorCode.con1('BREAK_LABEL_ON_SWITCH_MEMBER', 0, ErrorType.COMPILE_TIME_ERROR, "Break label resolves to case or default statement");
 
-  static final ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = new ResolverErrorCode.con1('CONTINUE_LABEL_ON_SWITCH', 1, ErrorType.COMPILE_TIME_ERROR, "A continue label resolves to switch, must be loop or switch member");
+  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = const ResolverErrorCode.con1('CONTINUE_LABEL_ON_SWITCH', 1, ErrorType.COMPILE_TIME_ERROR, "A continue label resolves to switch, must be loop or switch member");
 
-  static final ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART = new ResolverErrorCode.con1('MISSING_LIBRARY_DIRECTIVE_WITH_PART', 2, ErrorType.COMPILE_TIME_ERROR, "Libraries that have parts must have a library directive");
+  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART = const ResolverErrorCode.con1('MISSING_LIBRARY_DIRECTIVE_WITH_PART', 2, ErrorType.COMPILE_TIME_ERROR, "Libraries that have parts must have a library directive");
 
-  static final List<ResolverErrorCode> values = [
+  static const List<ResolverErrorCode> values = const [
       BREAK_LABEL_ON_SWITCH_MEMBER,
       CONTINUE_LABEL_ON_SWITCH,
       MISSING_LIBRARY_DIRECTIVE_WITH_PART];
@@ -23120,18 +23126,18 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   /**
    * The type of this error.
    */
-  ErrorType type;
+  final ErrorType type;
 
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction9;
+  final String correction;
 
   /**
    * Initialize a newly created error code to have the given type and message.
@@ -23139,10 +23145,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param type the type of this error
    * @param message the message template used to create the message to be displayed for the error
    */
-  ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : super(name, ordinal) {
-    this.type = type;
-    this.message = message;
-  }
+  const ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : this.con2(name, ordinal, type, message, null);
 
   /**
    * Initialize a newly created error code to have the given type, message and correction.
@@ -23151,14 +23154,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  ResolverErrorCode.con2(String name, int ordinal, ErrorType type, String message, String correction) : super(name, ordinal) {
-    this.type = type;
-    this.message = message;
-    this.correction9 = correction;
-  }
-
-  @override
-  String get correction => correction9;
+  const ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, this.correction) : super(name, ordinal);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

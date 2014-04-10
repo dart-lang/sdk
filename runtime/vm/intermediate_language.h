@@ -779,6 +779,7 @@ class EmbeddedArray<T, 0> {
   M(Simd64x2Shuffle)                                                           \
   M(Float64x2ZeroArg)                                                          \
   M(Float64x2OneArg)                                                           \
+  M(ExtractNthOutput)                                                          \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -1764,7 +1765,10 @@ class Definition : public Instruction {
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
-
+  bool HasPairRepresentation() const {
+    return (representation() == kPairOfTagged) ||
+           (representation() == kPairOfUnboxedDouble);
+  }
   bool is_used() const { return (use_kind_ != kEffect); }
   void set_use_kind(UseKind kind) { use_kind_ = kind; }
 
@@ -7286,11 +7290,67 @@ class InvokeMathCFunctionInstr : public Definition {
 };
 
 
+class ExtractNthOutputInstr : public TemplateDefinition<1> {
+ public:
+  // Extract the Nth output register from value.
+  ExtractNthOutputInstr(Value* value,
+                        intptr_t n,
+                        Representation definition_rep,
+                        intptr_t definition_cid)
+      : index_(n),
+        definition_rep_(definition_rep),
+        definition_cid_(definition_cid) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(ExtractNthOutput)
+
+  virtual CompileType ComputeType() const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual bool CanDeoptimize() const { return false; }
+
+  intptr_t index() const { return index_; }
+
+  virtual Representation representation() const {
+    return definition_rep_;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    if (representation() == kTagged) {
+      return kPairOfTagged;
+    } else if (representation() == kUnboxedDouble) {
+      return kPairOfUnboxedDouble;
+    }
+    UNREACHABLE();
+    return definition_rep_;
+  }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    ExtractNthOutputInstr* other_extract = other->AsExtractNthOutput();
+    return (other_extract->representation() == representation()) &&
+           (other_extract->index() == index());
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const intptr_t index_;
+  const Representation definition_rep_;
+  const intptr_t definition_cid_;
+  DISALLOW_COPY_AND_ASSIGN(ExtractNthOutputInstr);
+};
+
+
 class MergedMathInstr : public Definition {
  public:
   enum Kind {
     kTruncDivMod,
-    kTruncDivRem,
     kSinCos,
   };
 
@@ -7317,6 +7377,9 @@ class MergedMathInstr : public Definition {
     return (*inputs_)[i];
   }
 
+  static intptr_t OutputIndexOf(intptr_t kind);
+  static intptr_t OutputIndexOf(Token::Kind token);
+
   virtual CompileType ComputeType() const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -7333,9 +7396,9 @@ class MergedMathInstr : public Definition {
 
   virtual Representation representation() const {
     if (kind_ == kTruncDivMod) {
-      return kTagged;
+      return kPairOfTagged;
     } else if (kind_ == kSinCos) {
-      return kTagged;
+      return kPairOfUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -7355,10 +7418,6 @@ class MergedMathInstr : public Definition {
   }
 
   virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
-
-  // Returns the result index for one of the merged instructjons
-  static intptr_t ResultIndexOf(MethodRecognizer::Kind kind);
-  static intptr_t ResultIndexOf(Token::Kind token);
 
   DECLARE_INSTRUCTION(MergedMath)
 
@@ -7383,10 +7442,8 @@ class MergedMathInstr : public Definition {
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }
-
   ZoneGrowableArray<Value*>* inputs_;
   MergedMathInstr::Kind kind_;
-
   DISALLOW_COPY_AND_ASSIGN(MergedMathInstr);
 };
 

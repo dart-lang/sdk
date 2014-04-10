@@ -6,7 +6,7 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 // The stopwatch is more precise than the Timer.
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more
@@ -19,7 +19,7 @@ main() {
     Stopwatch watch = new Stopwatch()..start();
     Stream stream = new Stream.periodic(const Duration(milliseconds: 1),
                                         (x) => x);
-    stream.take(10).listen((_) { }, onDone: expectAsync0(() {
+    stream.take(10).listen((_) { }, onDone: expectAsync(() {
       int millis = watch.elapsedMilliseconds + safetyMargin;
       expect(millis, greaterThan(10));
     }));

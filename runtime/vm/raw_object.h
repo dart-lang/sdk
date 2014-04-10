@@ -867,7 +867,7 @@ class RawInstructions : public RawObject {
 class RawPcDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
-  RawSmi* length_;  // Number of descriptors.
+  intptr_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
   intptr_t data_[0];
@@ -885,8 +885,6 @@ class RawPcDescriptors : public RawObject {
 // is optimized for dense and small bit maps, without any upper bound.
 class RawStackmap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
-
-  RawCode* code_;  // Code object corresponding to the frame described.
 
   // TODO(kmillikin): We need a small number of bits to encode the register
   // count.  Consider packing them in with the length.

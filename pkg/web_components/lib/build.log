@@ -1,48 +1,43 @@
 BUILD LOG
 ---------
-Build Time: 2014-03-04T18:07:47
+Build Time: 2014-04-01T15:17:50
 
 NODEJS INFORMATION
 ==================
-nodejs: v0.8.21
-chai: 1.9.0
-grunt: 0.4.2
-grunt-audit: 0.0.2
+nodejs: v0.10.26
+chai: 1.9.1
+grunt: 0.4.4
+grunt-audit: 0.0.3
 grunt-concat-sourcemap: 0.4.1
-grunt-contrib-concat: 0.3.0
-grunt-contrib-uglify: 0.3.2
-grunt-contrib-yuidoc: 0.5.0
-grunt-karma: 0.6.2
-karma: 0.10.9
-karma-chrome-launcher: 0.1.2
-karma-coffee-preprocessor: 0.1.2
+grunt-contrib-concat: 0.4.0
+grunt-karma: 0.8.2
+grunt-contrib-uglify: 0.3.3
+grunt-contrib-yuidoc: 0.5.2
+karma: 0.12.2
 karma-crbot-reporter: 0.0.4
 karma-firefox-launcher: 0.1.3
-karma-html2js-preprocessor: 0.1.0
-karma-ie-launcher: 0.1.1
-karma-jasmine: 0.1.5
-karma-mocha: 0.1.1
-karma-phantomjs-launcher: 0.1.2
-karma-requirejs: 0.2.1
+karma-ie-launcher: 0.1.4
 karma-safari-launcher: 0.1.1
+mocha: 1.18.2
+karma-mocha: 0.1.3
 karma-script-launcher: 0.1.0
-mocha: 1.17.1
-requirejs: 2.1.10
+Platform: 0.2.2
 
 REPO REVISIONS
 ==============
-CustomElements: f68d8e2f1e624b427ccd2630303ecbf407b06f73
-HTMLImports: cae0c94f3be4b492c0db686ffdd0288b49dbdfe7
-NodeBind: 62f7e53baee55d5821747227de9b407da1c261ec
-PointerEvents: f2964bcc070231c41391cb864fa0c6578031592c
-PointerGestures: 96be1f398a50dadd8ec359060cceb6b24fd38452
-ShadowDOM: e1d3e2629473c50b6dd14cce3b82a48602bc150a
-TemplateBinding: 08008af605298aaf2d56ef34d4af4df70679ea61
+CustomElements: 9b997ca97533147f5f17bd666c06e5fa1a13219e
+HTMLImports: 5f44b337ef6508271dd594f1ec086fac2be3cb0c
+NodeBind: b040e791f573b04cf06fdbc7d407712d46f4fca6
+PointerEvents: 86c341c7ef946dc295cb93a2b5ebebde69dbdcb7
+PointerGestures: e5ec43dcef5a20d789c7e4c09dd206cdb6664a27
+ShadowDOM: 4fe518f54bfdace322866822f9a5c99f41169a10
+TemplateBinding: 9dc4c42334b00716cec2826cb17dda6044c4aeb4
 WeakMap: a0947a9a0f58f5733f464755c3b86de624b00a5d
-observe-js: 3d7b5aa5eb7b403ee7be398280113f7cc36e448a
-platform: 8135b9beaffb6fa77843dbd06370bc9dc1919db4
-polymer-expressions: 470cced7cf167bd164f0b924ceb088dd7a8240b9
+observe-js: 5db3ef588f3fdca7d44cdd24e3bf59b6d547b8c0
+platform: b4641125892409501e82ba3f44add15ab10be274
+polymer-expressions: 1749343a75fc3aa84d691f14c4582a6d1a7f39f1
+platform-dev: ccb7c307ee78d6694b4ca9e2422996f0cbe4a07c
 
 BUILD HASHES
 ============
-build/platform.js: edb4c188b2f609c3da6f4e650703539f440919bb
+build/platform.js: 8edd41e9de6172d38ace4a17f2aad8ec0556abd8

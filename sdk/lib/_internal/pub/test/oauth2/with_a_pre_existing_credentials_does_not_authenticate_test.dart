@@ -4,6 +4,7 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -19,10 +20,10 @@ main() {
     confirmPublish(pub);
 
     server.handle('GET', '/api/packages/versions/new', (request) {
-      expect(request.headers.value('authorization'),
-          equals('Bearer access token'));
+      expect(request.headers,
+          containsPair('authorization', 'Bearer access token'));
 
-      request.response.close();
+      return new shelf.Response(200);
     });
 
     pub.kill();

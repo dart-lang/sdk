@@ -137,7 +137,7 @@ intptr_t RawObject::SizeFromClass() const {
       case kPcDescriptorsCid: {
         const RawPcDescriptors* raw_descriptors =
             reinterpret_cast<const RawPcDescriptors*>(this);
-        intptr_t num_descriptors = Smi::Value(raw_descriptors->ptr()->length_);
+        intptr_t num_descriptors = raw_descriptors->ptr()->length_;
         instance_size = PcDescriptors::InstanceSize(num_descriptors);
         break;
       }
@@ -371,7 +371,7 @@ bool RawFunction::SkipCode(RawFunction* raw_fun) {
   Code code;
   code = fn.CurrentCode();
 
-  if (!code.IsNull() &&  // The function may not have code.
+  if (fn.HasCode() &&  // The function may not have code.
       !code.is_optimized() &&
       (fn.CurrentCode() == fn.unoptimized_code()) &&
       !code.HasBreakpoint() &&
@@ -495,19 +495,13 @@ bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
 
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
-  RawPcDescriptors* obj = raw_obj->ptr();
-  intptr_t length = Smi::Value(obj->length_);
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
-  return PcDescriptors::InstanceSize(length);
+  return PcDescriptors::InstanceSize(raw_obj->ptr()->length_);
 }
 
 
 intptr_t RawStackmap::VisitStackmapPointers(RawStackmap* raw_obj,
                                             ObjectPointerVisitor* visitor) {
-  RawStackmap* obj = raw_obj->ptr();
-  intptr_t length = obj->length_;
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->code_));
-  return Stackmap::InstanceSize(length);
+  return Stackmap::InstanceSize(raw_obj->ptr()->length_);
 }
 
 

@@ -45,22 +45,23 @@ class ObservableTransformer extends Transformer {
     return files;
   }
 
-  Future<bool> isPrimary(Asset input) {
-    if (input.id.extension != '.dart' ||
-        (_files != null && !_files.contains(input.id.path))) {
-      return new Future.value(false);
-    }
-    // Note: technically we should parse the file to find accurately the
-    // observable annotation, but that seems expensive. It would require almost
-    // as much work as applying the transform. We rather have some false
-    // positives here, and then generate no outputs when we apply this
-    // transform.
-    return input.readAsString().then(
-      (c) => c.contains("@observable") || c.contains("@published"));
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(id.extension == '.dart' &&
+        (_files == null || _files.contains(id.path)));
   }
 
   Future apply(Transform transform) {
     return transform.primaryInput.readAsString().then((content) {
+      // Do a quick string check to determine if this is this file even
+      // plausibly might need to be transformed. If not, we can avoid an
+      // expensive parse.
+      if (!content.contains("@observable") && !content.contains("@published")) {
+        return;
+      }
+
       var id = transform.primaryInput.id;
       // TODO(sigmund): improve how we compute this url
       var url = id.path.startsWith('lib/')

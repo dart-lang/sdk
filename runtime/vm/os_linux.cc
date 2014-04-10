@@ -59,6 +59,8 @@ class LowLevelProfileCodeObserver : public CodeObserver {
     const char arch[] = "x64";
 #elif defined(TARGET_ARCH_ARM)
     const char arch[] = "arm";
+#elif defined(TARGET_ARCH_ARM64)
+    const char arch[] = "arm64";
 #elif defined(TARGET_ARCH_MIPS)
     const char arch[] = "mips";
 #else
@@ -355,6 +357,8 @@ class JitdumpCodeObserver : public CodeObserver {
   static const uint32_t kElfMachIA32 = 3;
   static const uint32_t kElfMachX64 = 62;
   static const uint32_t kElfMachARM = 40;
+  // TODO(zra): Find the right ARM64 constant.
+  static const uint32_t kElfMachARM64 = 40;
   static const uint32_t kElfMachMIPS = 10;
   static const int kInvalidClockId = -1;
 
@@ -405,6 +409,8 @@ class JitdumpCodeObserver : public CodeObserver {
     return kElfMachX64;
 #elif defined(TARGET_ARCH_ARM)
     return kElfMachARM;
+#elif defined(TARGET_ARCH_ARM64)
+    return kElfMachARM64;
 #elif defined(TARGET_ARCH_MIPS)
     return kElfMachMIPS;
 #else
@@ -570,7 +576,9 @@ void OS::AlignedFree(void* ptr) {
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_linux.cc
 word OS::ActivationFrameAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 8;
@@ -588,7 +596,9 @@ word OS::ActivationFrameAlignment() {
 
 
 word OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 32;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 16;

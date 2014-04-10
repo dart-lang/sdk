@@ -12,12 +12,12 @@ fi
 
 PREFIX="vmservice/client"
 echo "For resources_sources.gypi:"
-for i in `find deployed/web/ -not -type d -not -path '*/\.*'`; do
+for i in `find deployed/web/ -not -type d -not -path '*/\.*' -not -path '*~'`; do
   echo "'$PREFIX/$i',"
 done
 
 PREFIX="../../../../dart/runtime/bin/vmservice/client"
 echo "For devtools.gypi:"
-for i in `find deployed/web/ -not -type d -not -path '*/\.*'`; do
+for i in `find deployed/web/ -not -type d -not -path '*/\.*' -not -path '*~'`; do
   echo "'$PREFIX/$i',"
 done

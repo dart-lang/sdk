@@ -20,6 +20,12 @@ UNIT_TEST_CASE(Id) {
 #else  // defined(HOST_ARCH_ARM)
   EXPECT_STREQ("simarm", CPU::Id());
 #endif  // defined(HOST_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64)
+  EXPECT_STREQ("arm64", CPU::Id());
+#else  // defined(HOST_ARCH_ARM64)
+  EXPECT_STREQ("simarm64", CPU::Id());
+#endif  // defined(HOST_ARCH_ARM64)
 #elif defined(TARGET_ARCH_MIPS)
 #if defined(HOST_ARCH_MIPS)
   EXPECT_STREQ("mips", CPU::Id());

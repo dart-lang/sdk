@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
@@ -26,10 +27,9 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request) {
-      request.response.write(JSON.encode({
+      return new shelf.Response.ok(JSON.encode({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
-      request.response.close();
     });
 
     pub.stdout.expect(startsWith('Uploading...'));

@@ -60,6 +60,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Instance':
       case 'Smi':
       case 'String':
+      case 'Type':
         InstanceViewElement element = new Element.tag('instance-view');
         element.instance = object;
         return element;
@@ -98,7 +99,9 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.vm = object;
         return element;
       default:
-        return null;
+        JsonViewElement element = new Element.tag('json-view');
+        element.map = object;
+        return element;
     }
   }
 

@@ -13,6 +13,8 @@
 #include "vm/instructions_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/instructions_arm.h"
+#elif defined(TARGET_ARCH_ARM64)
+#include "vm/instructions_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/instructions_mips.h"
 #else

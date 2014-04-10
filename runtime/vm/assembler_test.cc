@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when test is ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/os.h"
@@ -73,3 +77,5 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

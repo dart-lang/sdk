@@ -1,0 +1,9 @@
+name: simple_transformer
+description: This hello world example implements a simple
+             transformer that inserts a copyright string into
+             an input asset - a file that ends with ".txt".
+dependencies:
+  barback: any
+
+transformers:
+- simple_transformer

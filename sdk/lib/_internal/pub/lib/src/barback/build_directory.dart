@@ -21,9 +21,18 @@ class BuildDirectory {
   /// The relative directory path within the package.
   final String directory;
 
+  /// The hostname to serve this directory on.
+  final String hostname;
+
+  /// The port to serve this directory on.
+  final int port;
+
   /// The server bound to this directory.
-  BarbackServer get server => _server;
-  BarbackServer _server;
+  ///
+  /// This is a future that will complete once [serve] has been called and the
+  /// server has been successfully spun up.
+  Future<BarbackServer> get server => _serverCompleter.future;
+  final _serverCompleter = new Completer<BarbackServer>();
 
   /// The subscription to the [DirectoryWatcher] used to watch this directory
   /// for changes.
@@ -31,26 +40,31 @@ class BuildDirectory {
   /// If the directory is not being watched, this will be `null`.
   StreamSubscription<WatchEvent> watchSubscription;
 
-  BuildDirectory(this._environment, this.directory);
+  BuildDirectory(this._environment, this.directory, this.hostname, this.port);
 
   /// Binds a server running on [hostname]:[port] to this directory.
-  Future<BarbackServer> serve(String hostname, int port) {
+  Future<BarbackServer> serve() {
     return BarbackServer.bind(_environment, hostname, port, directory)
-        .then((server) => _server = server);
+        .then((server) {
+      _serverCompleter.complete(server);
+      return server;
+    });
   }
 
   /// Removes the build directory from the build environment.
   ///
   /// Closes the server, removes the assets from barback, and stops watching it.
   Future close() {
-    var futures = [server.close()];
+    return server.then((server) {
+      var futures = [server.close()];
 
-    // Stop watching the directory.
-    if (watchSubscription != null) {
-      var cancel = watchSubscription.cancel();
-      if (cancel != null) futures.add(cancel);
-    }
+      // Stop watching the directory.
+      if (watchSubscription != null) {
+        var cancel = watchSubscription.cancel();
+        if (cancel != null) futures.add(cancel);
+      }
 
-    return Future.wait(futures);
+      return Future.wait(futures);
+    });
   }
 }

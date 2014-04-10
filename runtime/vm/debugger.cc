@@ -710,18 +710,11 @@ const char* ActivationFrame::ToCString() {
 
 
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
-  intptr_t line = LineNumber();
   const Script& script = Script::Handle(SourceScript());
-
   jsobj->AddProperty("script", script);
-  jsobj->AddProperty("line", line);
-  jsobj->AddProperty("col", ColumnNumber());
+  jsobj->AddProperty("tokenPos", TokenPos());
   jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
-
-  // TODO(turnidge): Consider dropping lineString from the frame.
-  String& line_string = String::Handle(script.GetLine(line));
-  jsobj->AddProperty("lineString", line_string.ToCString());
   {
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();

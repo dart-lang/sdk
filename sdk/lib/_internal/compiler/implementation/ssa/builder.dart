@@ -63,10 +63,9 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
             Constant constant =
-                compiler.constantHandler.getConstantForVariable(parameter);
+                backend.constants.getConstantForVariable(parameter);
             backend.registerCompileTimeConstant(constant, work.resolutionTree);
-            compiler.constantHandler.addCompileTimeConstantForEmission(
-                constant);
+            backend.constants.addCompileTimeConstantForEmission(constant);
           });
         }
         if (compiler.tracer.enabled) {
@@ -924,9 +923,10 @@ class SsaBuilder extends ResolvedVisitor {
   bool isReachable = true;
 
   /**
-   * True if we are visiting the expression of a throw statement.
+   * True if we are visiting the expression of a throw statement; we assume this
+   * is a slow path.
    */
-  bool inThrowExpression = false;
+  bool inExpressionOfThrow = false;
 
   /**
    * The loop nesting is consulted when inlining a function invocation in
@@ -1225,11 +1225,11 @@ class SsaBuilder extends ResolvedVisitor {
         return false;
       }
 
+      if (inExpressionOfThrow) return false;
+
       if (element.isSynthesized) return true;
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
-
-      if (inThrowExpression) return false;
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
@@ -1309,7 +1309,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
     Constant constant =
-        compiler.constantHandler.getConstantForVariable(parameter);
+        backend.constants.getConstantForVariable(parameter);
     assert(invariant(parameter, constant != null,
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
@@ -1348,7 +1348,8 @@ class SsaBuilder extends ResolvedVisitor {
   bool inTryStatement = false;
 
   Constant getConstantForNode(ast.Node node) {
-    Constant constant = elements.getConstant(node);
+    Constant constant =
+        backend.constants.getConstantForNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
@@ -1360,7 +1361,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   bool isLazilyInitialized(VariableElement element) {
     Constant initialValue =
-        compiler.constantHandler.getConstantForVariable(element);
+        backend.constants.getConstantForVariable(element);
     return initialValue == null;
   }
 
@@ -2299,12 +2300,12 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitThrowExpression(ast.Expression expression) {
-    bool old = inThrowExpression;
+    bool old = inExpressionOfThrow;
     try {
-      inThrowExpression = true;
+      inExpressionOfThrow = true;
       visit(expression);
     } finally {
-      inThrowExpression = old;
+      inExpressionOfThrow = old;
     }
   }
 
@@ -2936,7 +2937,7 @@ class SsaBuilder extends ResolvedVisitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = compiler.constantHandler.getConstantForVariable(element);
+        value = backend.constants.getConstantForVariable(element);
       }
       if (value != null) {
         HConstant instruction = graph.addConstant(value, compiler);
@@ -3319,7 +3320,15 @@ class SsaBuilder extends ResolvedVisitor {
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
                       effects: nativeBehavior.sideEffects,
                       nativeBehavior: nativeBehavior));
-    return;
+  }
+
+  void handleJsStringConcat(ast.Send node) {
+    List<HInstruction> inputs = <HInstruction>[];
+    addGenericSendArgumentsToList(node.arguments, inputs);
+    if (inputs.length != 2) {
+      compiler.internalError(node.argumentsNode, 'Two arguments expected.');
+    }
+    push(new HStringConcat(inputs[0], inputs[1], node, backend.stringType));
   }
 
   void handleForeignJsCurrentIsolateContext(ast.Send node) {
@@ -3610,6 +3619,8 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(graph.addConstantNull(compiler));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
       handleJsInterceptorConstant(node);
+    } else if (name == 'JS_STRING_CONCAT') {
+      handleJsStringConcat(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }
@@ -4330,7 +4341,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (node.isConst()) {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
-        ConstructedConstant symbol = elements.getConstant(node);
+        ConstructedConstant symbol = getConstantForNode(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
         compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
@@ -5028,19 +5039,61 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(addConstant(node));
       return;
     }
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> listInputs = <HInstruction>[];
     for (Link<ast.Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
-      inputs.add(pop());
-      inputs.add(pop());
+      listInputs.add(pop());
+      listInputs.add(pop());
     }
-    HLiteralList keyValuePairs = buildLiteralList(inputs);
-    add(keyValuePairs);
+
+    Element constructor;
+    List<HInstruction> inputs = <HInstruction>[];
+
+    if (listInputs.isEmpty) {
+      constructor = backend.mapLiteralConstructorEmpty;
+    } else {
+      constructor = backend.mapLiteralConstructor;
+      HLiteralList keyValuePairs = buildLiteralList(listInputs);
+      add(keyValuePairs);
+      inputs.add(keyValuePairs);
+    }
+
+    assert(constructor.isFactoryConstructor());
+
+    FunctionElement functionElement = constructor;
+    constructor = functionElement.redirectionTarget;
+
+    InterfaceType type = elements.getType(node);
+    InterfaceType expectedType = functionElement.computeTargetType(type);
+
+    if (constructor.isFactoryConstructor()) {
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+    }
+
+    ClassElement cls = constructor.getEnclosingClass();
+
+    if (backend.classNeedsRti(cls)) {
+      Link<DartType> typeVariable = cls.typeVariables;
+      expectedType.typeArguments.forEach((DartType argument) {
+            inputs.add(analyzeTypeArgument(argument));
+            typeVariable = typeVariable.tail;
+          });
+      assert(typeVariable.isEmpty);
+    }
+
+    // The instruction type will always be a subtype of the mapLiteralClass, but
+    // type inference might discover a more specific type, or find nothing (in
+    // dart2js unit tests).
     TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
-    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
-    stack.add(setRtiIfNeeded(pop(), node));
+    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
+        constructor, compiler);
+    TypeMask instructionType = mapType.intersection(returnTypeMask, compiler);
+
+    addInlinedInstantiation(expectedType);
+    pushInvokeStatic(node, constructor, inputs, instructionType);
+    removeInlinedInstantiation(expectedType);
   }
 
   visitLiteralMapEntry(ast.LiteralMapEntry node) {
@@ -5661,8 +5714,6 @@ class SsaBuilder extends ResolvedVisitor {
  * Visitor that handles generation of string literals (LiteralString,
  * StringInterpolation), and otherwise delegates to the given visitor for
  * non-literal subexpressions.
- * TODO(lrn): Consider whether to handle compile time constant int/boolean
- * expressions as well.
  */
 class StringBuilderVisitor extends ast.Visitor {
   final SsaBuilder builder;
@@ -5675,6 +5726,8 @@ class StringBuilderVisitor extends ast.Visitor {
 
   StringBuilderVisitor(this.builder, this.diagnosticNode);
 
+  Compiler get compiler => builder.compiler;
+
   void visit(ast.Node node) {
     node.accept(this);
   }
@@ -5686,11 +5739,31 @@ class StringBuilderVisitor extends ast.Visitor {
   void visitExpression(ast.Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
-    if (!expression.isConstantString()) {
-      expression = new HStringify(expression, node, builder.backend.stringType);
-      builder.add(expression);
+
+    // We want to use HStringify when:
+    //   1. The value is known to be a primitive type, because it might get
+    //      constant-folded and codegen has some tricks with JavaScript
+    //      conversions.
+    //   2. The value can be primitive, because the library stringifier has
+    //      fast-path code for most primitives.
+    if (expression.canBePrimitive(compiler)) {
+      append(stringify(node, expression));
+      return;
     }
-    result = (result == null) ? expression : concat(result, expression);
+
+    // If the `toString` method is guaranteed to return a string we can call it
+    // directly.
+    Selector selector =
+        new TypedSelector(expression.instructionType,
+            new Selector.call('toString', null, 0));
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
+    if (type.containsOnlyString(compiler)) {
+      builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);
+      append(builder.pop());
+      return;
+    }
+
+    append(stringify(node, expression));
   }
 
   void visitStringInterpolation(ast.StringInterpolation node) {
@@ -5710,9 +5783,20 @@ class StringBuilderVisitor extends ast.Visitor {
      node.visitChildren(this);
   }
 
+  void append(HInstruction expression) {
+    result = (result == null) ? expression : concat(result, expression);
+  }
+
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction = new HStringConcat(
         left, right, diagnosticNode, builder.backend.stringType);
+    builder.add(instruction);
+    return instruction;
+  }
+
+  HInstruction stringify(ast.Node node, HInstruction expression) {
+    HInstruction instruction =
+        new HStringify(expression, node, builder.backend.stringType);
     builder.add(instruction);
     return instruction;
   }

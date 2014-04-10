@@ -365,7 +365,7 @@ abstract class Enqueuer {
     task.ensureAllElementsByName();
     for (Link link in task.allElementsByName.values) {
       for (Element element in link) {
-        pretendElementWasUsed(element, compiler.globalDependencies);
+        pretendElementWasUsed(element, compiler.mirrorDependencies);
       }
     }
     hasEnqueuedEverything = true;
@@ -378,7 +378,7 @@ abstract class Enqueuer {
     if (hasEnqueuedReflectiveStaticFields) return;
     hasEnqueuedReflectiveStaticFields = true;
     for (Element element in elements) {
-      pretendElementWasUsed(element, compiler.globalDependencies);
+      pretendElementWasUsed(element, compiler.mirrorDependencies);
     }
   }
 

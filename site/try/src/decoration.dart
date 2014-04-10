@@ -122,8 +122,7 @@ class CodeCompletionDecoration extends Decoration {
   Element applyTo(text) {
     var codeCompletion = new DivElement()
         ..contentEditable = 'false'
-        ..classes.add('dart-code-completion')
-        ..appendText('Completion goes here');
+        ..classes.add('dart-code-completion');
     return super.applyTo(text)
         ..classes.add('dart-code-completion-holder')
         ..nodes.add(codeCompletion);

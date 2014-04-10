@@ -66,12 +66,12 @@ class ConstantEvaluator {
   /**
    * The source containing the expression(s) that will be evaluated.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The type provider used to access the known types.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * Initialize a newly created evaluator to evaluate expressions in the given source.
@@ -79,10 +79,7 @@ class ConstantEvaluator {
    * @param source the source containing the expression(s) that will be evaluated
    * @param typeProvider the type provider used to access known types
    */
-  ConstantEvaluator(Source source, TypeProvider typeProvider) {
-    this._source = source;
-    this._typeProvider = typeProvider;
-  }
+  ConstantEvaluator(this._source, this._typeProvider);
 
   EvaluationResult evaluate(Expression expression) {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor(_typeProvider));
@@ -206,12 +203,12 @@ class EvaluationResult {
   /**
    * The value of the expression.
    */
-  DartObject value;
+  final DartObject value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
    */
-  List<AnalysisError> _errors;
+  final List<AnalysisError> _errors;
 
   /**
    * Initialize a newly created result object with the given state. Clients should use one of the
@@ -220,10 +217,7 @@ class EvaluationResult {
    * @param value the value of the expression
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
-  EvaluationResult(DartObject value, List<AnalysisError> errors) {
-    this.value = value;
-    this._errors = errors;
-  }
+  EvaluationResult(this.value, this._errors);
 
   /**
    * Return an array containing the errors that should be reported for the expression(s) that were
@@ -278,7 +272,7 @@ class ConstantValueComputer {
   /**
    * The type provider used to access the known types.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The object used to find constant variables in the compilation units that were added.
@@ -301,9 +295,7 @@ class ConstantValueComputer {
    *
    * @param typeProvider the type provider used to access known types
    */
-  ConstantValueComputer(TypeProvider typeProvider) {
-    this._typeProvider = typeProvider;
-  }
+  ConstantValueComputer(this._typeProvider);
 
   /**
    * Add the constant variables in the given compilation unit to the list of constant variables
@@ -438,7 +430,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   /**
    * The type provider used to access the known types.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * An shared object representing the value 'null'.
@@ -450,9 +442,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    *
    * @param typeProvider the type provider used to access known types
    */
-  ConstantVisitor(TypeProvider typeProvider) {
-    this._typeProvider = typeProvider;
-  }
+  ConstantVisitor(this._typeProvider);
 
   @override
   EvaluationResultImpl visitAdjacentStrings(AdjacentStrings node) {
@@ -601,14 +591,17 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       for (int i = 0; i < parameterCount; i++) {
         ParameterElement parameter = parameters[i];
         if (parameter.isInitializingFormal) {
-          String fieldName = (parameter as FieldFormalParameterElement).field.name;
-          if (identical(parameter.parameterKind, ParameterKind.NAMED)) {
-            DartObjectImpl argumentValue = namedArgumentValues[parameter.name];
-            if (argumentValue != null) {
-              fieldMap[fieldName] = argumentValue;
+          FieldElement field = (parameter as FieldFormalParameterElement).field;
+          if (field != null) {
+            String fieldName = field.name;
+            if (parameter.parameterKind == ParameterKind.NAMED) {
+              DartObjectImpl argumentValue = namedArgumentValues[parameter.name];
+              if (argumentValue != null) {
+                fieldMap[fieldName] = argumentValue;
+              }
+            } else if (i < argumentCount) {
+              fieldMap[fieldName] = argumentValues[i];
             }
-          } else if (i < argumentCount) {
-            fieldMap[fieldName] = argumentValues[i];
           }
         }
       }
@@ -1127,12 +1120,12 @@ class ErrorResult_ErrorData {
   /**
    * The node against which the error should be reported.
    */
-  AstNode node;
+  final AstNode node;
 
   /**
    * The error code for the error to be generated.
    */
-  ErrorCode errorCode;
+  final ErrorCode errorCode;
 
   /**
    * Initialize a newly created data holder to represent the error with the given code reported
@@ -1141,10 +1134,7 @@ class ErrorResult_ErrorData {
    * @param node the node against which the error should be reported
    * @param errorCode the error code for the error to be generated
    */
-  ErrorResult_ErrorData(AstNode node, ErrorCode errorCode) {
-    this.node = node;
-    this.errorCode = errorCode;
-  }
+  ErrorResult_ErrorData(this.node, this.errorCode);
 }
 
 /**
@@ -1300,13 +1290,13 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * The element representing the variable whose initializer will be visited.
    */
-  VariableElement _source;
+  final VariableElement _source;
 
   /**
    * A graph in which the nodes are the constant variables and the edges are from each variable to
    * the other constant variables that are referenced in the head's initializer.
    */
-  DirectedGraph<VariableElement> _referenceGraph;
+  final DirectedGraph<VariableElement> _referenceGraph;
 
   /**
    * Initialize a newly created reference finder to find references from the given variable to other
@@ -1316,10 +1306,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
    * @param referenceGraph a graph recording which variables (heads) reference which other variables
    *          (tails) in their initializers
    */
-  ReferenceFinder(VariableElement source, DirectedGraph<VariableElement> referenceGraph) {
-    this._source = source;
-    this._referenceGraph = referenceGraph;
-  }
+  ReferenceFinder(this._source, this._referenceGraph);
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
@@ -1345,16 +1332,14 @@ class ValidResult extends EvaluationResultImpl {
   /**
    * The value of the expression.
    */
-  DartObjectImpl value;
+  final DartObjectImpl value;
 
   /**
    * Initialize a newly created result to represent the given value.
    *
    * @param value the value of the expression
    */
-  ValidResult(DartObjectImpl value) {
-    this.value = value;
-  }
+  ValidResult(this.value);
 
   @override
   EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(typeProvider, node, this);
@@ -1792,7 +1777,7 @@ class BoolState extends InstanceState {
   /**
    * The value of this instance.
    */
-  bool value = false;
+  final bool value;
 
   /**
    * An instance representing the boolean value 'false'.
@@ -1822,9 +1807,7 @@ class BoolState extends InstanceState {
    *
    * @param value the value of this instance
    */
-  BoolState(bool value) {
-    this.value = value;
-  }
+  BoolState(this.value);
 
   @override
   BoolState convertToBool() => this;
@@ -1915,12 +1898,12 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
-  InterfaceType type;
+  final InterfaceType type;
 
   /**
    * The state of the object.
    */
-  InstanceState _state;
+  final InstanceState _state;
 
   /**
    * Initialize a newly created object to have the given type and state.
@@ -1928,10 +1911,7 @@ class DartObjectImpl implements DartObject {
    * @param type the run-time type of this object
    * @param state the state of the object
    */
-  DartObjectImpl(InterfaceType type, InstanceState state) {
-    this.type = type;
-    this._state = state;
-  }
+  DartObjectImpl(this.type, this._state);
 
   /**
    * Return the result of invoking the '+' operator on this object with the given argument.
@@ -2365,7 +2345,7 @@ class DoubleState extends NumState {
   /**
    * The value of this instance.
    */
-  double value = 0.0;
+  final double value;
 
   /**
    * A state that can be used to represent a double whose value is not known.
@@ -2377,9 +2357,7 @@ class DoubleState extends NumState {
    *
    * @param value the value of this instance
    */
-  DoubleState(double value) {
-    this.value = value;
-  }
+  DoubleState(this.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -2855,16 +2833,14 @@ class EvaluationException extends JavaException {
   /**
    * The error code associated with the exception.
    */
-  ErrorCode errorCode;
+  final ErrorCode errorCode;
 
   /**
    * Initialize a newly created exception to have the given error code.
    *
    * @param errorCode the error code associated with the exception
    */
-  EvaluationException(ErrorCode errorCode) {
-    this.errorCode = errorCode;
-  }
+  EvaluationException(this.errorCode);
 }
 
 /**
@@ -2875,16 +2851,14 @@ class FunctionState extends InstanceState {
   /**
    * The element representing the function being modeled.
    */
-  ExecutableElement _element;
+  final ExecutableElement _element;
 
   /**
    * Initialize a newly created state to represent the given function.
    *
    * @param element the element representing the function being modeled
    */
-  FunctionState(ExecutableElement element) {
-    this._element = element;
-  }
+  FunctionState(this._element);
 
   @override
   StringState convertToString() {
@@ -2932,7 +2906,7 @@ class GenericState extends InstanceState {
   /**
    * The values of the fields of this instance.
    */
-  Map<String, DartObjectImpl> _fieldMap = new Map<String, DartObjectImpl>();
+  final Map<String, DartObjectImpl> _fieldMap;
 
   /**
    * A state that can be used to represent an object whose state is not known.
@@ -2944,9 +2918,7 @@ class GenericState extends InstanceState {
    *
    * @param fieldMap the values of the fields of this instance
    */
-  GenericState(Map<String, DartObjectImpl> fieldMap) {
-    this._fieldMap = fieldMap;
-  }
+  GenericState(this._fieldMap);
 
   @override
   StringState convertToString() => StringState.UNKNOWN_VALUE;
@@ -3400,7 +3372,7 @@ class IntState extends NumState {
   /**
    * The value of this instance.
    */
-  int value = 0;
+  final int value;
 
   /**
    * A state that can be used to represent an int whose value is not known.
@@ -3412,9 +3384,7 @@ class IntState extends NumState {
    *
    * @param value the value of this instance
    */
-  IntState(int value) {
-    this.value = value;
-  }
+  IntState(this.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -3847,16 +3817,14 @@ class ListState extends InstanceState {
   /**
    * The elements of the list.
    */
-  List<DartObjectImpl> _elements;
+  final List<DartObjectImpl> _elements;
 
   /**
    * Initialize a newly created state to represent a list with the given elements.
    *
    * @param elements the elements of the list
    */
-  ListState(List<DartObjectImpl> elements) {
-    this._elements = elements;
-  }
+  ListState(this._elements);
 
   @override
   StringState convertToString() => StringState.UNKNOWN_VALUE;
@@ -3937,16 +3905,14 @@ class MapState extends InstanceState {
   /**
    * The entries in the map.
    */
-  Map<DartObjectImpl, DartObjectImpl> _entries;
+  final Map<DartObjectImpl, DartObjectImpl> _entries;
 
   /**
    * Initialize a newly created state to represent a map with the given entries.
    *
    * @param entries the entries in the map
    */
-  MapState(Map<DartObjectImpl, DartObjectImpl> entries) {
-    this._entries = entries;
-  }
+  MapState(this._entries);
 
   @override
   StringState convertToString() => StringState.UNKNOWN_VALUE;
@@ -4186,7 +4152,7 @@ class StringState extends InstanceState {
   /**
    * The value of this instance.
    */
-  String value;
+  final String value;
 
   /**
    * A state that can be used to represent a double whose value is not known.
@@ -4198,9 +4164,7 @@ class StringState extends InstanceState {
    *
    * @param value the value of this instance
    */
-  StringState(String value) {
-    this.value = value;
-  }
+  StringState(this.value);
 
   @override
   StringState concatenate(InstanceState rightOperand) {
@@ -4267,16 +4231,14 @@ class SymbolState extends InstanceState {
   /**
    * The value of this instance.
    */
-  String value;
+  final String value;
 
   /**
    * Initialize a newly created state to represent the given value.
    *
    * @param value the value of this instance
    */
-  SymbolState(String value) {
-    this.value = value;
-  }
+  SymbolState(this.value);
 
   @override
   StringState convertToString() {
@@ -4327,16 +4289,14 @@ class TypeState extends InstanceState {
   /**
    * The element representing the type being modeled.
    */
-  Element _element;
+  final Element _element;
 
   /**
    * Initialize a newly created state to represent the given value.
    *
    * @param element the element representing the type being modeled
    */
-  TypeState(Element element) {
-    this._element = element;
-  }
+  TypeState(this._element);
 
   @override
   StringState convertToString() {

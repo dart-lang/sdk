@@ -66,8 +66,7 @@ class AnalysisServer {
   AnalysisServer(this.channel) {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    // TODO set running=false on done or error
-    channel.listen(handleRequest);
+    channel.listen(handleRequest, onDone: done, onError: error);
   }
 
   /**
@@ -92,7 +91,7 @@ class AnalysisServer {
    * There was an error related to the socket from which requests are being
    * read.
    */
-  void error() {
+  void error(argument) {
     running = false;
   }
 
@@ -102,9 +101,14 @@ class AnalysisServer {
   void handleRequest(Request request) {
     int count = handlers.length;
     for (int i = 0; i < count; i++) {
-      Response response = handlers[i].handleRequest(request);
-      if (response != null) {
-        channel.sendResponse(response);
+      try {
+        Response response = handlers[i].handleRequest(request);
+        if (response != null) {
+          channel.sendResponse(response);
+          return;
+        }
+      } on RequestFailure catch (exception) {
+        channel.sendResponse(exception.response);
         return;
       }
     }

@@ -27,8 +27,7 @@ makeOutputFrame(String scriptUrl) {
   return new IFrameElement()
       ..src = Url.createObjectUrl(new Blob([outputHtml], "text/html"))
       ..style.width = '100%'
-      ..style.height = '0px'
-      ..seamless = false;
+      ..style.height = '0px';
 }
 
 final String outputHelper =

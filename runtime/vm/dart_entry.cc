@@ -58,12 +58,22 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
 #if defined(USING_SIMULATOR)
+#if defined(ARCH_IS_64_BIT)
+  // TODO(zra): Change to intptr_t so we have only one case.
+    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+        reinterpret_cast<int64_t>(entrypoint),
+        static_cast<int64_t>(code.EntryPoint()),
+        reinterpret_cast<int64_t>(&arguments_descriptor),
+        reinterpret_cast<int64_t>(&arguments),
+        reinterpret_cast<int64_t>(&context)));
+#else
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
         reinterpret_cast<int32_t>(&context)));
+#endif
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,
@@ -493,9 +503,9 @@ RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
 }
 
 
-bool DartLibraryCalls::IsSendPort(const Instance& send_port) {
+bool DartLibraryCalls::IsSendPort(const Instance& obj) {
   // Get instance class.
-  const Class& cls = Class::Handle(send_port.clazz());
+  const Class& cls = Class::Handle(obj.clazz());
   // Get send port class from isolate library.
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   const Class& send_port_cls = Class::Handle(
@@ -503,6 +513,19 @@ bool DartLibraryCalls::IsSendPort(const Instance& send_port) {
   // Check for the same class id.
   ASSERT(!send_port_cls.IsNull());
   return cls.id() == send_port_cls.id();
+}
+
+
+bool DartLibraryCalls::IsReceivePort(const Instance& obj) {
+  // Get instance class.
+  const Class& cls = Class::Handle(obj.clazz());
+  // Get send port class from isolate library.
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  const Class& recv_port_cls = Class::Handle(
+      isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl()));
+  // Check for the same class id.
+  ASSERT(!recv_port_cls.IsNull());
+  return cls.id() == recv_port_cls.id();
 }
 
 }  // namespace dart

@@ -46,7 +46,7 @@ void main() {
 
   test('dromaeo runs', () {
     new Timer.periodic(new Duration(milliseconds: 500),
-                       expectAsyncUntil1((timer) {
+                       expectAsyncUntil((timer) {
       if (document.query('.alldone') != null) {
         timer.cancel();
         isDone = true;

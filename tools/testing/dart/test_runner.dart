@@ -726,6 +726,14 @@ class TestCase extends UniqueObject {
     }
   }
 
+  /// Returns `true` if this test case should result in a compile-time error,
+  /// either unconditionally or if the configuration is 'checked'.
+  bool get expectCompileError {
+    if (info == null) return false;
+    return info.hasCompileError ||
+        (configuration['checked'] && info.hasCompileErrorIfChecked);
+  }
+
   bool get unexpectedOutput {
     var outcome = lastCommandOutput.result(this);
     return !expectedOutcomes.any((expectation) {
@@ -1396,6 +1404,8 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
     // Handle errors / missing errors
     if (testCase.info.hasCompileError) {
+      // Don't use [TestCase.expectCompileError] since the analyzer does not
+      // (currently) report checked-mode only compile time errors.
       if (errors.length > 0) {
         return Expectation.PASS;
       }
@@ -1482,7 +1492,7 @@ class VmCommandOutputImpl extends CommandOutputImpl
 
     // Multitests are handled specially
     if (testCase.info != null) {
-      if (testCase.info.hasCompileError) {
+      if (testCase.expectCompileError) {
         if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
           return Expectation.PASS;
         }
@@ -1539,7 +1549,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
 
     // Multitests are handled specially
     if (testCase.info != null) {
-    if (testCase.info.hasCompileError) {
+    if (testCase.expectCompileError) {
         // Nonzero exit code of the compiler means compilation failed
         // TODO(kustermann): Do we have a special exit code in that case???
         if (exitCode != 0) {
@@ -2597,6 +2607,7 @@ class TestCaseCompleter {
 
   TestCaseCompleter(this.graph, this.enqueuer, this.commandQueue) {
     var eventCondition = graph.events.where;
+    bool finishedRemainingTestCases = false;
 
     // Store all the command outputs -- they will be delivered synchronously
     // (i.e. before state changes in the graph)
@@ -2604,6 +2615,7 @@ class TestCaseCompleter {
       _outputs[output.command] = output;
     }, onDone: () {
       _completeTestCasesIfPossible(new List.from(enqueuer.remainingTestCases));
+      finishedRemainingTestCases = true;
       assert(enqueuer.remainingTestCases.isEmpty);
       _checkDone();
     });
@@ -2612,7 +2624,8 @@ class TestCaseCompleter {
     // changes.
     eventCondition((event) => event is dgraph.StateChangedEvent)
         .listen((dgraph.StateChangedEvent event) {
-          if (event.from == dgraph.NodeState.Processing) {
+          if (event.from == dgraph.NodeState.Processing &&
+              !finishedRemainingTestCases ) {
             var command = event.node.userData;
 
             assert(COMPLETED_STATES.contains(event.to));
@@ -2643,7 +2656,7 @@ class TestCaseCompleter {
     }
   }
 
-  void _completeTestCasesIfPossible(Iterable<TestCase> testCases){
+  void _completeTestCasesIfPossible(Iterable<TestCase> testCases) {
     // Update TestCases with command outputs
     for (TestCase test in testCases) {
       for (var icommand in test.commands) {

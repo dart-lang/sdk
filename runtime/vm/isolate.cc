@@ -899,6 +899,8 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
     jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
   }
 
+  // TODO(turnidge): Don't compute a full stack trace every time we
+  // request an isolate's info.
   DebuggerStackTrace* stack = debugger()->StackTrace();
   if (stack->Length() > 0) {
     JSONObject jsframe(&jsobj, "topFrame");
@@ -924,7 +926,10 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   jsobj.AddProperty("rootLib", lib);
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
-
+  {
+    JSONObject tagCounters(&jsobj, "tagCounters");
+    vm_tag_counters()->PrintToJSONObject(&tagCounters);
+  }
   if (object_store()->sticky_error() != Object::null()) {
     Error& error = Error::Handle(this, object_store()->sticky_error());
     ASSERT(!error.IsNull());

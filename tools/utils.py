@@ -220,6 +220,7 @@ ARCH_FAMILY = {
   'mips': 'mips',
   'simarm': 'ia32',
   'simmips': 'ia32',
+  'simarm64': 'ia32',
 }
 
 ARCH_GUESS = GuessArchitecture()

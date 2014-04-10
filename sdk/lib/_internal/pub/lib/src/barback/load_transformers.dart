@@ -91,10 +91,10 @@ class _ForeignTransformer extends Transformer {
       : _port = map['port'],
         _toString = map['toString'];
 
-  Future<bool> isPrimary(Asset asset) {
+  Future<bool> isPrimary(AssetId id) {
     return call(_port, {
       'type': 'isPrimary',
-      'asset': serializeAsset(asset)
+      'id': serializeId(id)
     });
   }
 

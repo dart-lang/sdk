@@ -70,8 +70,9 @@ testBindings() {
   test('Path unreachable', () {
     var text = testDiv.append(new Text('hi'));
     var model = 1;
-    nodeBind(text).bind('text', new PathObserver(model, 'a'));
-    expect(text.text, '');
+    var pathObserver = new PathObserver(model, 'a');
+    expect(() => nodeBind(text).bind('text', pathObserver), throws);
+    expect(text.text, 'hi');
   });
 
   test('Observer is Model', () {

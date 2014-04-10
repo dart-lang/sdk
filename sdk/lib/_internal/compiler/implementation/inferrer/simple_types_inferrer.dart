@@ -946,7 +946,7 @@ class SimpleTypeInferrerVisitor<T>
                && Elements.isStaticOrTopLevelField(element)
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
-          compiler.constantHandler.getConstantForVariable(element);
+          compiler.backend.constants.getConstantForVariable(element);
       if (constant != null && constant.isInt) {
         return constant.value;
       }
@@ -1027,7 +1027,8 @@ class SimpleTypeInferrerVisitor<T>
                || name == 'JS_NULL_CLASS_NAME'
                || name == 'JS_OBJECT_CLASS_NAME'
                || name == 'JS_OPERATOR_IS_PREFIX'
-               || name == 'JS_OPERATOR_AS_PREFIX') {
+               || name == 'JS_OPERATOR_AS_PREFIX'
+               || name == 'JS_STRING_CONCAT') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();

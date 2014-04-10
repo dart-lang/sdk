@@ -279,3 +279,12 @@ class JS_CONST {
   final String code;
   const JS_CONST(this.code);
 }
+
+/**
+ * JavaScript string concatenation. Inputs must be Strings.  Corresponds to the
+ * HStringConcat SSA instruction and may be constant-folded.
+ */
+String JS_STRING_CONCAT(String a, String b) {
+  // This body is unused, only here for type analysis.
+  return JS('String', '# + #', a, b);
+}

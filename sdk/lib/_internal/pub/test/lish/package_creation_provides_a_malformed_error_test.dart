@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -26,9 +27,7 @@ main() {
 
     var body = {'error': 'Your package was too boring.'};
     server.handle('GET', '/create', (request) {
-      request.response.statusCode = 400;
-      request.response.write(JSON.encode(body));
-      request.response.close();
+      return new shelf.Response.notFound(JSON.encode(body));
     });
 
     pub.stderr.expect('Invalid server response:');

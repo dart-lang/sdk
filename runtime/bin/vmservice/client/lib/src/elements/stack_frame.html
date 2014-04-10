@@ -28,7 +28,8 @@
       </div>
       <div class="col-md-9">
         <function-ref ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        ( <script-ref ref="{{ frame['script'] }}"
+                      pos="{{ frame['tokenPos'] }}">
         </script-ref> )
 
         <curly-block>

@@ -34,6 +34,8 @@ DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+DEFINE_FLAG(int, new_gen_ext_limit, 64,
+            "maximum total external size (MB) in new gen before triggering GC");
 
 Heap::Heap() : read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
@@ -94,6 +96,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 void Heap::AllocateExternal(intptr_t size, Space space) {
   if (space == kNew) {
     new_space_->AllocateExternal(size);
+    if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
+      // Attempt to free some external allocation by a scavenge. (If the total
+      // remains above the limit, next external alloc will trigger another.)
+      CollectGarbage(kNew);
+    }
   } else {
     ASSERT(space == kOld);
     old_space_->AllocateExternal(size);
@@ -198,6 +205,7 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
@@ -207,6 +215,8 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
+      // TODO(koda): Replace promotion failure tracking with
+      // old_space_->NeedsGarbageCollection.
       if (new_space_->HadPromotionFailure() || old_space_->NeedExternalGC()) {
         // Old collections should call the API callbacks.
         CollectGarbage(kOld, kInvokeApiCallbacks);
@@ -254,6 +264,7 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_gc);
   {
     VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
     RecordBeforeGC(kNew, kFull);
@@ -460,12 +471,8 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.space_ = space;
   stats_.reason_ = reason;
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
-  stats_.before_.new_used_in_words_ = new_space_->UsedInWords();
-  stats_.before_.new_capacity_in_words_ = new_space_->CapacityInWords();
-  stats_.before_.new_external_in_words_ = new_space_->ExternalInWords();
-  stats_.before_.old_used_in_words_ = old_space_->UsedInWords();
-  stats_.before_.old_capacity_in_words_ = old_space_->CapacityInWords();
-  stats_.before_.old_external_in_words_ = old_space_->ExternalInWords();
+  stats_.before_.new_ = new_space_->GetCurrentUsage();
+  stats_.before_.old_ = old_space_->GetCurrentUsage();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -487,12 +494,8 @@ void Heap::RecordAfterGC() {
     old_space_->AddGCTime(delta);
     old_space_->IncrementCollections();
   }
-  stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
-  stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
-  stats_.after_.new_external_in_words_ = new_space_->ExternalInWords();
-  stats_.after_.old_used_in_words_ = old_space_->UsedInWords();
-  stats_.after_.old_capacity_in_words_ = old_space_->CapacityInWords();
-  stats_.after_.old_external_in_words_ = old_space_->ExternalInWords();
+  stats_.after_.new_ = new_space_->GetCurrentUsage();
+  stats_.after_.old_ = old_space_->GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
 }
@@ -530,18 +533,18 @@ void Heap::PrintStats() {
     MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
-    RoundWordsToKB(stats_.before_.new_used_in_words_),
-    RoundWordsToKB(stats_.after_.new_used_in_words_),
-    RoundWordsToKB(stats_.before_.new_capacity_in_words_),
-    RoundWordsToKB(stats_.after_.new_capacity_in_words_),
-    RoundWordsToKB(stats_.before_.new_external_in_words_),
-    RoundWordsToKB(stats_.after_.new_external_in_words_),
-    RoundWordsToKB(stats_.before_.old_used_in_words_),
-    RoundWordsToKB(stats_.after_.old_used_in_words_),
-    RoundWordsToKB(stats_.before_.old_capacity_in_words_),
-    RoundWordsToKB(stats_.after_.old_capacity_in_words_),
-    RoundWordsToKB(stats_.before_.old_external_in_words_),
-    RoundWordsToKB(stats_.after_.old_external_in_words_),
+    RoundWordsToKB(stats_.before_.new_.used_in_words),
+    RoundWordsToKB(stats_.after_.new_.used_in_words),
+    RoundWordsToKB(stats_.before_.new_.capacity_in_words),
+    RoundWordsToKB(stats_.after_.new_.capacity_in_words),
+    RoundWordsToKB(stats_.before_.new_.external_in_words),
+    RoundWordsToKB(stats_.after_.new_.external_in_words),
+    RoundWordsToKB(stats_.before_.old_.used_in_words),
+    RoundWordsToKB(stats_.after_.old_.used_in_words),
+    RoundWordsToKB(stats_.before_.old_.capacity_in_words),
+    RoundWordsToKB(stats_.after_.old_.capacity_in_words),
+    RoundWordsToKB(stats_.before_.old_.external_in_words),
+    RoundWordsToKB(stats_.after_.old_.external_in_words),
     MicrosecondsToMilliseconds(stats_.times_[0]),
     MicrosecondsToMilliseconds(stats_.times_[1]),
     MicrosecondsToMilliseconds(stats_.times_[2]),

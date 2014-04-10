@@ -17,9 +17,8 @@
  */
 library custom_element;
 
-import 'dart:async';
 import 'dart:html';
-import 'src/custom_tag_name.dart';
+import 'dart:async';
 
 /**
  * *Deprecated* -- do not use. Extend [HtmlElement] and use
@@ -120,7 +119,7 @@ class CustomElement implements Element {
       host.getAttributeNS(namespaceUri, localName);
 
   @deprecated
-  String setAttributeNS(
+  void setAttributeNS(
       String namespaceUri, String localName, String value) {
     host.setAttributeNS(namespaceUri, localName, value);
   }
@@ -144,7 +143,7 @@ class CustomElement implements Element {
   /**
    * Replaces this node with another node.
    */
-  Node replaceWith(Node otherNode) { host.replaceWith(otherNode); }
+  Node replaceWith(Node otherNode) => host.replaceWith(otherNode);
 
   /**
    * Removes this node from the DOM.

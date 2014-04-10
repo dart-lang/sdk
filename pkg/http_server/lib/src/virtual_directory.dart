@@ -255,16 +255,17 @@ class VirtualDirectory {
       }
 
       response.headers.set(HttpHeaders.LAST_MODIFIED, stats.modified);
-      var path = request.uri.path;
+      var path = Uri.decodeComponent(request.uri.path);
+      var encodedPath = new HtmlEscape().convert(path);
       var header =
 '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Index of $path</title>
+<title>Index of $encodedPath</title>
 </head>
 <body>
-<h1>Index of $path</h1>
+<h1>Index of $encodedPath</h1>
 <table>
   <tr>
     <td>Name</td>
@@ -284,16 +285,25 @@ $server
       response.write(header);
 
       void add(String name, String modified, var size) {
+        try {
         if (size == null) size = "-";
         if (modified == null) modified = "";
-        var p = normalize(join(path, name));
+        var encodedSize = new HtmlEscape().convert(size.toString());
+        var encodedModified = new HtmlEscape().convert(modified);
+        var encodedLink = new HtmlEscape(HtmlEscapeMode.ATTRIBUTE)
+            .convert(Uri.encodeComponent(normalize(join(path, name))));
+        var encodedName = new HtmlEscape().convert(name);
+
         var entry =
 '''  <tr>
-    <td><a href="$p">$name</a></td>
-    <td>$modified</td>
-    <td style="text-align: right">$size</td>
+    <td><a href="$encodedLink">$encodedName</a></td>
+    <td>$encodedModified</td>
+    <td style="text-align: right">$encodedSize</td>
   </tr>''';
         response.write(entry);
+        } catch (e) {
+          print(e);
+        }
       }
 
       if (path != '/') {
@@ -331,8 +341,10 @@ $server
       return;
     }
     // Default error page.
-    var path = request.uri.path;
-    var reason = response.reasonPhrase;
+    var path = Uri.decodeComponent(request.uri.path);
+    var encodedPath = new HtmlEscape().convert(path);
+    var encodedReason = new HtmlEscape().convert(response.reasonPhrase);
+    var encodedError = new HtmlEscape().convert(error.toString());
 
     var server = response.headers.value(HttpHeaders.SERVER);
     if (server == null) server = "";
@@ -341,10 +353,10 @@ $server
 http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>$reason: $path</title>
+<title>$encodedReason: $encodedPath</title>
 </head>
 <body>
-<h1>Error $error at \'$path\': $reason</h1>
+<h1>Error $encodedError at \'$encodedPath\': $encodedReason</h1>
 $server
 </body>
 </html>''';

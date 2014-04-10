@@ -159,6 +159,23 @@ main() {
       expect(() => parse('a + 1 ? b + 1 :: c.d + 3'), throws);
     });
 
+    test('ternary operators have lowest associativity', () {
+      expectParse('a == b ? c + d : e - f', ternary(
+            binary(ident('a'), '==', ident('b')),
+            binary(ident('c'), '+', ident('d')),
+            binary(ident('e'), '-', ident('f'))));
+
+      expectParse('a.x == b.y ? c + d : e - f', ternary(
+            binary(getter(ident('a'), 'x'), '==', getter(ident('b'), 'y')),
+            binary(ident('c'), '+', ident('d')),
+            binary(ident('e'), '-', ident('f'))));
+
+      expectParse('a.x == b.y ? c + d : e - f', ternary(
+            binary(getter(ident('a'), 'x'), '==', getter(ident('b'), 'y')),
+            binary(ident('c'), '+', ident('d')),
+            binary(ident('e'), '-', ident('f'))));
+    });
+
     test('should parse a filter chain', () {
       expectParse('a | b | c', binary(binary(ident('a'), '|', ident('b')),
           '|', ident('c')));

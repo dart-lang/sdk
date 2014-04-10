@@ -7,6 +7,7 @@ library dart2js.ir_builder;
 import 'ir_nodes.dart' as ir;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
+import '../dart_types.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token;
@@ -93,7 +94,7 @@ class IrBuilderTask extends CompilerTask {
         compiler.enableConcreteTypeInference) {
       return false;
     }
-    return const bool.fromEnvironment('enable_ir', defaultValue: false);
+    return const bool.fromEnvironment('enable_ir', defaultValue: true);
   }
 
   bool canBuild(Element element) {
@@ -101,13 +102,18 @@ class IrBuilderTask extends CompilerTask {
     FunctionElement function = element.asFunctionElement();
     if (function == null) return false;
 
-    // TODO(lry): support functions with parameters.
+    // TODO(kmillikin): support functions with optional parameters.
     FunctionSignature signature = function.functionSignature;
-    if (signature.parameterCount > 0) return false;
+    if (signature.optionalParameterCount > 0) return false;
 
-    // TODO(kmillikin): support return types.  With the current Dart Tree
-    // emitter they require constructing an AST and tokens from a type element.
-    if (!signature.type.returnType.isDynamic) return false;
+    SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
+    if (!signature.type.returnType.accept(typeVerifier, null)) return false;
+    bool parameters_ok = true;
+    signature.forEachParameter((parameter) {
+      parameters_ok =
+          parameters_ok && parameter.type.accept(typeVerifier, null);
+    });
+    if (!parameters_ok) return false;
 
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
@@ -230,11 +236,14 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     current = null;
   }
 
+  // Build(EmptyStatement, C) = C
   ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
     assert(isOpen);
     return null;
   }
 
+  // Build(Block(stamements), C) = C'
+  //   where C' = statements.fold(Build, C)
   ir.Definition visitBlock(ast.Block node) {
     assert(isOpen);
     for (var n in node.statements.nodes) {
@@ -244,9 +253,18 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     return null;
   }
 
-  // Build(Return)    = let val x = null in InvokeContinuation(return, x)
-  // Build(Return(e)) = C[InvokeContinuation(return, x)]
-  //   where (C, x) = Build(e)
+  // Build(ExpressionStatement(e), C) = C'
+  //   where (C', _) = Build(e, C)
+  ir.Definition visitExpressionStatement(ast.ExpressionStatement node) {
+    assert(isOpen);
+    node.expression.accept(this);
+    return null;
+  }
+
+  // Build(Return(e), C) = C'[InvokeContinuation(return, x)]
+  //   where (C', x) = Build(e, C)
+  //
+  // Return without a subexpression is translated as if it were return null.
   ir.Definition visitReturn(ast.Return node) {
     assert(isOpen);
     // TODO(lry): support native returns.
@@ -265,7 +283,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   }
 
   // For all simple literals:
-  // Build(Literal(c)) = (let val x = Constant(c) in [], x)
+  // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Definition visitLiteralBool(ast.LiteralBool node) {
     assert(isOpen);
     ir.Constant constant =
@@ -326,13 +344,15 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     return giveup();
   }
 
-  // Build(StaticSend(f, a...)) = C[InvokeStatic(f, x...)]
-  //   where (C, x...) = BuildList(a...)
+  // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
+  //   where (C', xs) = arguments.fold(Build, C)
   ir.Definition visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support static fields. (separate IR instruction?)
     if (element.isField() || element.isGetter()) return giveup();
+    // TODO(kmillikin): support static setters.
+    if (element.isSetter()) return giveup();
     // TODO(lry): support constructors / factory calls.
     if (element.isConstructor()) return giveup();
     // TODO(lry): support foreign functions.
@@ -395,4 +415,15 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   void internalError(String reason, {ast.Node node}) {
     giveup();
   }
+}
+
+// Verify that types are ones that can be reconstructed by the type emitter.
+class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
+  bool visitType(DartType type, Null _) => false;
+
+  bool visitVoidType(VoidType type, Null _) => true;
+
+  // Currently, InterfaceType and TypedefType are supported so long as they
+  // do not have type parameters.  They are subclasses of GenericType.
+  bool visitGenericType(GenericType type, Null _) => !type.isGeneric;
 }

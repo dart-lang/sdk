@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/src/byte_stream.dart';
+import 'package:http/http.dart';
 import 'package:http/src/utils.dart';
 import 'package:unittest/unittest.dart';
 
@@ -50,6 +50,14 @@ Future startServer() {
         response.statusCode = 302;
         response.headers.set('location', serverUrl.resolve('/').toString());
         response.contentLength = 0;
+        response.close();
+        return;
+      }
+
+      if (path == '/no-content-length') {
+        response.statusCode = 200;
+        response.contentLength = -1;
+        response.write('body');
         response.close();
         return;
       }
@@ -166,17 +174,9 @@ class _Parse extends Matcher {
   }
 }
 
-/// A matcher for HttpExceptions.
-const isHttpException = const _HttpException();
-
 /// A matcher for functions that throw HttpException.
-const Matcher throwsHttpException =
-    const Throws(isHttpException);
-
-class _HttpException extends TypeMatcher {
-  const _HttpException() : super("HttpException");
-  bool matches(item, Map matchState) => item is HttpException;
-}
+Matcher get throwsClientException =>
+    throwsA(new isInstanceOf<ClientException>());
 
 /// A matcher for RedirectLimitExceededExceptions.
 const isRedirectLimitExceededException =

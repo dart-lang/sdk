@@ -48,6 +48,7 @@ typedef void CreateTest(Path filePath,
                         bool hasCompileError,
                         bool hasRuntimeError,
                         {bool isNegativeIfChecked,
+                         bool hasCompileErrorIfChecked,
                          bool hasStaticWarning,
                          Set<String> multitestOutcome,
                          String multitestKey,
@@ -279,7 +280,7 @@ abstract class TestSuite {
     if (configuration['report']) {
       SummaryReport.add(expectations);
       if (testCase.info != null &&
-          testCase.info.hasCompileError &&
+          testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
         SummaryReport.addCompileErrorSkipTest();
@@ -300,7 +301,7 @@ abstract class TestSuite {
       String name, String dirname, Path testPath, String optionsName) {
     Path relative = testPath.relativeTo(TestUtils.dartDir());
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = relative.toString().replaceAll('/', '_');
+    String testUniqueName = TestUtils.getShortName(relative.toString());
     if (!optionsName.isEmpty) {
       testUniqueName = '$testUniqueName-$optionsName';
     }
@@ -342,12 +343,11 @@ abstract class TestSuite {
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
-    var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages = configuration['use_public_packages']
         ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-                  "$checked$minified$csp$packages$sdk";
+                  "$checked$minified$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "tests", dirName, testPath, optionsName);
   }
@@ -355,10 +355,12 @@ abstract class TestSuite {
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
+    var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages = configuration['use_public_packages']
         ? '-public_packages' : '';
-    var dirName = "${configuration['compiler']}$checked$minified$packages$sdk";
+    var dirName = "${configuration['compiler']}"
+                  "$checked$minified$csp$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath, "");
   }
@@ -571,13 +573,15 @@ class TestInformation {
   bool hasCompileError;
   bool hasRuntimeError;
   bool isNegativeIfChecked;
+  bool hasCompileErrorIfChecked;
   bool hasStaticWarning;
   Set<String> multitestOutcome;
   String multitestKey;
 
   TestInformation(this.filePath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
-                  this.isNegativeIfChecked, this.hasStaticWarning,
+                  this.isNegativeIfChecked, this.hasCompileErrorIfChecked,
+                  this.hasStaticWarning,
                   this.multitestOutcome,
                   {this.multitestKey, this.originTestPath}) {
     assert(filePath.isAbsolute);
@@ -893,7 +897,7 @@ class StandardTestSuite extends TestSuite {
 
     Set<Expectation> expectations = testExpectations.expectations(testName);
     if (new CompilerConfiguration(configuration).hasCompiler &&
-        info.hasCompileError) {
+        expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -949,8 +953,13 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
+  bool expectCompileError(TestInformation info) {
+    return info.hasCompileError ||
+        (configuration['checked'] && info.hasCompileErrorIfChecked);
+  }
+
   bool isNegative(TestInformation info) {
-    bool negative = info.hasCompileError ||
+    bool negative = expectCompileError(info) ||
         (configuration['checked'] && info.isNegativeIfChecked);
     if (info.hasRuntimeError && hasRuntime) {
       negative = true;
@@ -983,7 +992,7 @@ class StandardTestSuite extends TestSuite {
             environmentOverrides);
     commands.addAll(compilationArtifact.commands);
 
-    if (info.hasCompileError && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;
@@ -1014,6 +1023,7 @@ class StandardTestSuite extends TestSuite {
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
+             bool hasCompileErrorIfChecked: false,
              bool hasStaticWarning: false,
              Set<String> multitestOutcome: null,
              String multitestKey,
@@ -1024,6 +1034,7 @@ class StandardTestSuite extends TestSuite {
                                      hasCompileError,
                                      hasRuntimeError,
                                      isNegativeIfChecked,
+                                     hasCompileErrorIfChecked,
                                      hasStaticWarning,
                                      multitestOutcome,
                                      multitestKey: multitestKey,
@@ -1141,8 +1152,6 @@ class StandardTestSuite extends TestSuite {
 
       String dartWrapperFilename = '$tempDir/test.dart';
       String compiledDartWrapperFilename = '$compilationTempDir/test.js';
-      String precompiledDartWrapperFilename =
-          '$compilationTempDir/test.precompiled.js';
 
       String content = null;
       Path dir = filePath.directoryPath;
@@ -1191,9 +1200,6 @@ class StandardTestSuite extends TestSuite {
           } else {
             compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
             var jsFile = '$nameNoExt.js';
-            if (configuration['csp']) {
-              jsFile = '$nameNoExt.precompiled.js';
-            }
             htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
               '<script src="$jsFile"></script>');
           }
@@ -1215,9 +1221,6 @@ class StandardTestSuite extends TestSuite {
         String scriptPath = dartWrapperFilename;
         if (compiler != 'none') {
           scriptPath = compiledDartWrapperFilename;
-          if (configuration['csp']) {
-            scriptPath = precompiledDartWrapperFilename;
-          }
         }
         scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
@@ -1325,6 +1328,7 @@ class StandardTestSuite extends TestSuite {
       args.add(packageRoot);
     }
     args.add('--out=$outputFile');
+    if (configuration['csp']) args.add('--csp');
     args.add(inputFile);
     args.addAll(optionsFromFile['sharedOptions']);
     if (executable.endsWith('.dart')) {
@@ -1346,29 +1350,9 @@ class StandardTestSuite extends TestSuite {
     args..add('package:polymer/deploy.dart')
         ..add('--test')..add(inputFile)
         ..add('--out')..add(outputDir);
-    if (configuration['csp']) args.add('--csp');
 
     return CommandBuilder.instance.getProcessCommand(
         'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);
-  }
-
-  String createGeneratedTestDirectoryHelper(
-      String name, String dirname, Path testPath, String optionsName) {
-    Path relative = testPath.relativeTo(TestUtils.dartDir());
-    relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = relative.toString().replaceAll('/', '_');
-    if (!optionsName.isEmpty) {
-      testUniqueName = '$testUniqueName-$optionsName';
-    }
-
-    Path generatedTestPath = new Path(buildDir)
-        .append('generated_$name')
-        .append(dirname)
-        .append(testUniqueName);
-
-    TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
-    return new File(generatedTestPath.toNativePath()).absolute.path
-        .replaceAll('\\', '/');
   }
 
   String get scriptType {
@@ -1806,14 +1790,14 @@ class PkgBuildTestSuite extends TestSuite {
           var dartBinary = new File(dartVmBinaryFileName).absolute.path;
 
           commands.add(CommandBuilder.instance.getProcessCommand(
-              "custom_build", dartBinary, ['build.dart'], null,
-              checkoutDir));
+              "custom_build", dartBinary, ['build.dart'],
+              {'PUB_CACHE': cacheDir}, checkoutDir));
 
           // We only try to deploy the application if it's a webapp.
           if (containsWebDirectory) {
             commands.add(CommandBuilder.instance.getProcessCommand(
-                 "custom_deploy", dartBinary, ['build.dart', '--deploy'], null,
-                 checkoutDir));
+                 "custom_deploy", dartBinary, ['build.dart', '--deploy'],
+                 {'PUB_CACHE': cacheDir}, checkoutDir));
           }
         } else if (containsWebDirectory)  {
           commands.add(CommandBuilder.instance.getPubCommand(
@@ -2043,7 +2027,7 @@ class TestUtils {
       'dartium',
       'ie9',
       'ie10',
-      'ie11',      
+      'ie11',
       'safari',
       'opera',
       'chrome',
@@ -2069,7 +2053,7 @@ class TestUtils {
     if (configuration['build_directory'] != '') {
       return configuration['build_directory'];
     }
-    
+
     return "${outputDir(configuration)}${configurationDir(configuration)}";
   }
 
@@ -2130,6 +2114,49 @@ class TestUtils {
       extraVmOptions.removeWhere((s) => s.trim() == "");
     }
     return extraVmOptions;
+  }
+
+  static String getShortName(String path) {
+    final PATH_REPLACEMENTS = const {
+      "tests_co19_src_WebPlatformTest1_shadow-dom_shadow-trees_":
+          "co19_shadow-trees_",
+      "tests_co19_src_WebPlatformTest1_shadow-dom_elements-and-dom-objects_":
+          "co19_shadowdom_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_additions-to-": "co19_htmltemplates_add_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_clearing-the-stack-back-to-a-given-context_":
+          "co19_htmltemplates_clearstack_",
+      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+          "templates_creating-an-element-for-the-token_":
+          "co19_htmltemplates_create_",
+      "tests_co19_src_WebPlatformTest1_html-templates_additions-to-"
+          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+      "caretRangeFromPoint-": "co19_caretrangefrompoint_",
+      "pkg_polymer_example_canonicalization_test_canonicalization": "polymer_c16n"
+    };
+
+    // Some tests are already in [build_dir]/generated_tests.
+    String GEN_TESTS = 'generated_tests/';
+    if (path.contains(GEN_TESTS)) {
+      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
+      path = 'multitest/${path.substring(index)}';
+    }
+    path = path.replaceAll('/', '_');
+    final int WINDOWS_SHORTEN_PATH_LIMIT = 60;
+    if (Platform.operatingSystem == 'windows' &&
+        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
+      for (var key in PATH_REPLACEMENTS.keys) {
+        if (path.startsWith(key)) {
+          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
+          break;
+        }
+      }
+    }
+    return path;
   }
 }
 
@@ -2200,5 +2227,5 @@ class SummaryReport {
  * $compileErrorSkip tests are skipped on browsers due to compile-time error
 """;
     print(report);
-   }
+  }
 }

@@ -31,7 +31,7 @@ void main([args, port]) {
     Isolate.spawn(countMessages, local.sendPort);
     SendPort remote;
     int count = 0;
-    var done = expectAsync0((){});
+    var done = expectAsync((){});
     local.listen((msg) {
       switch (msg[0]) {
         case "init":

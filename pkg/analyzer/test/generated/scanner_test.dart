@@ -265,7 +265,7 @@ class TokenStreamValidator {
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       _validateStream(builder, currentToken.precedingComments);
       TokenType type = currentToken.type;
-      if (identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
         if (currentToken is! BeginToken) {
           builder.append("\r\nExpected BeginToken, found ");
           builder.append(currentToken.runtimeType.toString());
@@ -1145,10 +1145,10 @@ class ScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(0, originalToken.offset);
     JUnitTestCase.assertEquals(source.length, originalToken.length);
     JUnitTestCase.assertEquals(source, originalToken.lexeme);
-    if (identical(expectedType, TokenType.SCRIPT_TAG)) {
+    if (expectedType == TokenType.SCRIPT_TAG) {
       // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
       return originalToken;
-    } else if (identical(expectedType, TokenType.SINGLE_LINE_COMMENT)) {
+    } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
       Token tokenWithSpaces = _scan(" ${source}");
       JUnitTestCase.assertNotNull(tokenWithSpaces);
@@ -1157,7 +1157,7 @@ class ScannerTest extends JUnitTestCase {
       JUnitTestCase.assertEquals(source.length, tokenWithSpaces.length);
       JUnitTestCase.assertEquals(source, tokenWithSpaces.lexeme);
       return originalToken;
-    } else if (identical(expectedType, TokenType.INT) || identical(expectedType, TokenType.DOUBLE)) {
+    } else if (expectedType == TokenType.INT || expectedType == TokenType.DOUBLE) {
       Token tokenWithLowerD = _scan("${source}d");
       JUnitTestCase.assertNotNull(tokenWithLowerD);
       JUnitTestCase.assertEquals(expectedType, tokenWithLowerD.type);
@@ -1880,17 +1880,13 @@ class ScannerTest extends JUnitTestCase {
  * of a given offset in source code.
  */
 class ScannerTest_ExpectedLocation {
-  int _offset = 0;
+  final int _offset;
 
-  int _lineNumber = 0;
+  final int _lineNumber;
 
-  int _columnNumber = 0;
+  final int _columnNumber;
 
-  ScannerTest_ExpectedLocation(int offset, int lineNumber, int columnNumber) {
-    this._offset = offset;
-    this._lineNumber = lineNumber;
-    this._columnNumber = columnNumber;
-  }
+  ScannerTest_ExpectedLocation(this._offset, this._lineNumber, this._columnNumber);
 }
 
 class IncrementalScannerTest extends EngineTestCase {

@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdio.h>
-
 #include "vm/unit_test.h"
+
+#include <stdio.h>
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 
+#include "platform/globals.h"
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
@@ -24,7 +25,6 @@ using dart::bin::DartUtils;
 namespace dart {
 
 DECLARE_FLAG(bool, disassemble);
-
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
@@ -48,6 +48,8 @@ void TestCaseBase::RunAll() {
   }
 }
 
+// TODO(zra): Remove when tests that need these functions are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -142,6 +144,7 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
+#endif
 
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
@@ -165,6 +168,9 @@ void AssemblerTest::Assemble() {
   entry_ = instructions.EntryPoint();
 }
 
+
+// TODO(zra): Remove once supported.
+#if !defined(TARGET_ARCH_ARM64)
 
 CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
@@ -232,5 +238,7 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   const Error& error = Error::Handle(Compiler::CompileFunction(function));
   return error.IsNull();
 }
+
+#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

@@ -99,11 +99,11 @@ void main([args, port]) {
   test("send objects and receive them back", () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(pingPong, port.sendPort);
-    port.first.then(expectAsync1((remote) {
+    port.first.then(expectAsync((remote) {
       // Send objects and receive them back.
       for (int i = 0; i < MessageTest.elms.length; i++) {
         var sentObject = MessageTest.elms[i];
-        remoteCall(remote, sentObject).then(expectAsync1((var receivedObject) {
+        remoteCall(remote, sentObject).then(expectAsync((var receivedObject) {
           MessageTest.VerifyObject(i, receivedObject);
         }));
       }
@@ -133,7 +133,7 @@ void main([args, port]) {
       });
 
       // Shutdown the MessageServer.
-      remoteCall(remote, -1).then(expectAsync1((int message) {
+      remoteCall(remote, -1).then(expectAsync((int message) {
           expect(message, MessageTest.elms.length + 1);
       }));
     }));

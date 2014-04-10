@@ -140,6 +140,7 @@ class _LinterVisitor extends TreeVisitor {
   TransformLogger _logger;
   bool _inPolymerElement = false;
   bool _dartTagSeen = false;
+  bool _polymerHtmlSeen = false;
   bool _isEntrypoint;
   Map<String, _ElementSummary> _elements;
 
@@ -169,8 +170,8 @@ class _LinterVisitor extends TreeVisitor {
   void run(Document doc) {
     visit(doc);
 
-    if (_isEntrypoint && !_dartTagSeen) {
-      _logger.error(USE_INIT_DART, span: doc.body.sourceSpan);
+    if (_isEntrypoint && !_polymerHtmlSeen) {
+      _logger.warning(USE_POLYMER_HTML, span: doc.body.sourceSpan);
     }
   }
 
@@ -186,10 +187,15 @@ class _LinterVisitor extends TreeVisitor {
     }
 
     var href = node.attributes['href'];
-    if (href != null && href != '') return;
+    if (href == null || href == '') {
+      _logger.warning('link rel="$rel" missing href.', span: node.sourceSpan);
+      return;
+    }
 
+    if (href == 'packages/polymer/polymer.html') {
+      _polymerHtmlSeen = true;
+    }
     // TODO(sigmund): warn also if href can't be resolved.
-    _logger.warning('link rel="$rel" missing href.', span: node.sourceSpan);
   }
 
   /// Produce warnings if using `<element>` instead of `<polymer-element>`.
@@ -214,14 +220,14 @@ class _LinterVisitor extends TreeVisitor {
       _logger.error('Missing tag name of the custom element. Please include an '
           'attribute like \'name="your-tag-name"\'.',
           span: node.sourceSpan);
-    } else if (!_isCustomTag(tagName)) {
+    } else if (!isCustomTagName(tagName)) {
       _logger.error('Invalid name "$tagName". Custom element names must have '
           'at least one dash and can\'t be any of the following names: '
-          '${_invalidTagNames.keys.join(", ")}.',
+          '${invalidTagNames.keys.join(", ")}.',
           span: node.sourceSpan);
     }
 
-    if (_elements[extendsTag] == null && _isCustomTag(extendsTag)) {
+    if (_elements[extendsTag] == null && isCustomTagName(extendsTag)) {
       _logger.warning('custom element with name "$extendsTag" not found.',
           span: node.sourceSpan);
     }
@@ -232,10 +238,8 @@ class _LinterVisitor extends TreeVisitor {
 
       // names='a b c' or names='a,b,c'
       // record each name for publishing
-      for (var attr in attrs.split(attrs.contains(',') ? ',' : ' ')) {
-        // remove excess ws
-        attr = attr.trim();
-        if (!_validateCustomAttributeName(attr, attrsSpan)) break;
+      for (var attr in attrs.split(ATTRIBUTES_REGEX)) {
+        if (!_validateCustomAttributeName(attr.trim(), attrsSpan)) break;
       }
     }
 
@@ -247,34 +251,20 @@ class _LinterVisitor extends TreeVisitor {
 
   /// Checks for multiple Dart script tags in the same page, which is invalid.
   void _validateScriptElement(Element node) {
-    var scriptType = node.attributes['type'];
-    var isDart = scriptType == 'application/dart';
     var src = node.attributes['src'];
-
-    if (isDart) {
-      if (_dartTagSeen) {
-        _logger.warning('Only one "application/dart" script tag per document '
-            'is allowed.', span: node.sourceSpan);
-      }
-      _dartTagSeen = true;
-    }
-
     if (src == null) return;
-
-    if (src == 'packages/polymer/boot.js') {
-      _logger.warning(BOOT_JS_DEPRECATED, span: node.sourceSpan);
-      return;
-    }
+    var type = node.attributes['type'];
+    bool isDart = type == 'application/dart;component=1' ||
+        type == 'application/dart';
 
     if (src.endsWith('.dart') && !isDart) {
-      _logger.warning('Wrong script type, expected type="application/dart".',
-          span: node.sourceSpan);
+      _logger.warning('Wrong script type, expected type="application/dart" '
+          'or type="application/dart;component=1".', span: node.sourceSpan);
       return;
     }
 
     if (!src.endsWith('.dart') && isDart) {
-      _logger.warning('"application/dart" scripts should '
-          'use the .dart file extension.',
+      _logger.warning('"$type" scripts should use the .dart file extension.',
           span: node.sourceSpan);
       return;
     }
@@ -299,7 +289,7 @@ class _LinterVisitor extends TreeVisitor {
     var nodeTag = node.localName;
     var hasIsAttribute;
     var customTagName;
-    if (_isCustomTag(nodeTag)) {
+    if (isCustomTagName(nodeTag)) {
       // <fancy-button>
       customTagName = nodeTag;
       hasIsAttribute = false;
@@ -387,39 +377,10 @@ class _LinterVisitor extends TreeVisitor {
   }
 }
 
+const String USE_POLYMER_HTML =
+    'To run a polymer application you need to include the following HTML '
+    'import: <link rel="import" href="packages/polymer/polymer.html">. This '
+    'will include the common polymer logic needed to boostrap your '
+    'application. The old style of initializing polymer with boot.js or '
+    'initPolymer are now deprecated. ';
 
-// These names have meaning in SVG or MathML, so they aren't allowed as custom
-// tags.
-var _invalidTagNames = const {
-  'annotation-xml': '',
-  'color-profile': '',
-  'font-face': '',
-  'font-face-src': '',
-  'font-face-uri': '',
-  'font-face-format': '',
-  'font-face-name': '',
-  'missing-glyph': '',
-};
-
-/// Returns true if this is a valid custom element name. See:
-/// <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-name>
-bool _isCustomTag(String name) {
-  if (name == null || !name.contains('-')) return false;
-  return !_invalidTagNames.containsKey(name);
-}
-
-const String USE_INIT_DART =
-    'To run a polymer application, you need to call "initPolymer". You can '
-    'either include a generic script tag that does this for you:'
-    '\'<script type="application/dart">export "package:polymer/init.dart";'
-    '</script>\' or add your own script tag and call that function. '
-    'Make sure the script tag is placed after all HTML imports.';
-
-const String BOOT_JS_DEPRECATED =
-    '"boot.js" is now deprecated. Instead, you can initialize your polymer '
-    'application by calling "initPolymer()" in your main. If you don\'t have a '
-    'main, then you can include our generic main by adding the following '
-    'script tag to your page: \'<script type="application/dart">export '
-    '"package:polymer/init.dart";</script>\'. Additionally you need to '
-    'include: \'<script src="packages/browser/dart.js"></script>\' in the page '
-    'too. Make sure these script tags come after all HTML imports.';

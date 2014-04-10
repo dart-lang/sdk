@@ -6,8 +6,9 @@ library response;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+
+import 'package:http_parser/http_parser.dart';
 
 import 'base_request.dart';
 import 'base_response.dart';
@@ -84,12 +85,13 @@ class Response extends BaseResponse {
 /// defaults to [LATIN1] if the headers don't specify a charset or
 /// if that charset is unknown.
 Encoding _encodingForHeaders(Map<String, String> headers) =>
-  encodingForCharset(_contentTypeForHeaders(headers).charset);
+  encodingForCharset(_contentTypeForHeaders(headers).parameters['charset']);
 
-/// Returns the [ContentType] object for the given headers. Defaults to
-/// `application/octet-stream`.
-ContentType _contentTypeForHeaders(Map<String, String> headers) {
-  var contentType = headers[HttpHeaders.CONTENT_TYPE];
-  if (contentType != null) return ContentType.parse(contentType);
-  return new ContentType("application", "octet-stream");
+/// Returns the [MediaType] object for the given headers's content-type.
+///
+/// Defaults to `application/octet-stream`.
+MediaType _contentTypeForHeaders(Map<String, String> headers) {
+  var contentType = headers['content-type'];
+  if (contentType != null) return new MediaType.parse(contentType);
+  return new MediaType("application", "octet-stream");
 }

@@ -33,7 +33,10 @@ class Null {}
 class TypeError {}
 class Type {}
 class StackTrace {}
-class LinkedHashMap {}
+class LinkedHashMap {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+}
 class Math {
   static double parseDouble(String s) => 1.0;
 }
@@ -387,7 +390,7 @@ main() {
     'class A{foo(){}}'
     'A_topfoo(){var x=5;}'
     'class A_A{num foo(){}A_A.fromFoo(){}A myliba;List<A_A> mylist;}'
-    'A getA()=>null;'
+    'A getA(){}'
     'main(){var a=new A();a.foo();var b=new A_A.fromFoo();b.foo();'
         'var GREATVAR=b.myliba;b.mylist;a=getA();A_topfoo();topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,

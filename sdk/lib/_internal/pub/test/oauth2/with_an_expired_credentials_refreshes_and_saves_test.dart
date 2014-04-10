@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
@@ -28,26 +29,22 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request) {
-      return new ByteStream(request).toBytes().then((bytes) {
-        var body = new String.fromCharCodes(bytes);
+      return request.readAsString().then((body) {
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
-        request.response.headers.contentType =
-            new ContentType("application", "json");
-        request.response.write(JSON.encode({
+        return new shelf.Response.ok(JSON.encode({
           "access_token": "new access token",
           "token_type": "bearer"
-        }));
-        request.response.close();
+        }), headers: {'content-type': 'application/json'});
       });
     });
 
     server.handle('GET', '/api/packages/versions/new', (request) {
-      expect(request.headers.value('authorization'),
-          equals('Bearer new access token'));
+      expect(request.headers,
+          containsPair('authorization', 'Bearer new access token'));
 
-      request.response.close();
+      return new shelf.Response(200);
     });
 
     pub.shouldExit();

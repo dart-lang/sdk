@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
@@ -31,13 +32,10 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request) {
-      return new ByteStream(request).toBytes().then((bytes) {
-        var response = request.response;
-        response.statusCode = 400;
-        response.reasonPhrase = 'Bad request';
-        response.headers.contentType = new ContentType("application", "json");
-        response.write(JSON.encode({"error": "invalid_request"}));
-        response.close();
+      return drainStream(request.read()).then((_) {
+        return new shelf.Response(400,
+            body: JSON.encode({"error": "invalid_request"}),
+            headers: {'content-type': 'application/json'});
       });
     });
 
@@ -45,10 +43,10 @@ main() {
     authorizePub(pub, server, 'new access token');
 
     server.handle('GET', '/api/packages/versions/new', (request) {
-      expect(request.headers.value('authorization'),
-          equals('Bearer new access token'));
+      expect(request.headers,
+          containsPair('authorization', 'Bearer new access token'));
 
-      request.response.close();
+      return new shelf.Response(200);
     });
 
     pub.kill();

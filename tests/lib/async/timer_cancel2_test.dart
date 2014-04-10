@@ -5,7 +5,7 @@
 library timer_cancel2_test;
 
 import 'dart:async';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   // Test that a timeout handler can cancel itself.
@@ -17,6 +17,6 @@ main() {
     }
 
     cancelTimer = new Timer.periodic(const Duration(milliseconds: 1),
-                                     expectAsync1(cancelHandler));
+                                     expectAsync(cancelHandler));
   });
 }

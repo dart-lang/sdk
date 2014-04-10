@@ -761,8 +761,6 @@ abstract class TypedefElement extends Element
   FunctionSignature get functionSignature;
   Link<DartType> get typeVariables;
 
-  bool get isResolved;
-
   // TODO(kasperl): Try to get rid of these setters.
   void set alias(DartType value);
   void set functionSignature(FunctionSignature value);
@@ -872,6 +870,8 @@ abstract class TypeDeclarationElement extends Element {
    * [computeType].
    */
   Link<DartType> get typeVariables;
+
+  bool get isResolved;
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -901,7 +901,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   int get supertypeLoadState;
   int get resolutionState;
-  bool get isResolved;
   String get nativeTagInfo;
 
   bool get isMixinApplication;
@@ -1041,6 +1040,7 @@ abstract class TypeVariableElement extends Element implements TypedElement {
 }
 
 abstract class MetadataAnnotation implements Spannable {
+  /// The front-end constant of this metadata annotation.
   Constant get value;
   Element get annotatedElement;
   int get resolutionState;
@@ -1049,7 +1049,6 @@ abstract class MetadataAnnotation implements Spannable {
 
   // TODO(kasperl): Try to get rid of these.
   void set annotatedElement(Element value);
-  void set resolutionState(int value);
 
   MetadataAnnotation ensureResolved(Compiler compiler);
 }

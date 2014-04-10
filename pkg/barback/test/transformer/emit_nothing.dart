@@ -16,8 +16,8 @@ class EmitNothingTransformer extends MockTransformer {
 
   EmitNothingTransformer(this.extension);
 
-  Future<bool> doIsPrimary(Asset asset) =>
-    new Future.value(asset.id.extension == ".$extension");
+  Future<bool> doIsPrimary(AssetId id) =>
+    new Future.value(id.extension == ".$extension");
 
   Future doApply(Transform transform) => new Future.value();
 

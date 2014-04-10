@@ -4,7 +4,6 @@
 
 library source_map_builder;
 
-
 import 'util/util.dart';
 import 'scanner/scannerlib.dart' show Token;
 import 'source_file.dart';
@@ -21,6 +20,7 @@ class SourceMapBuilder {
   final Uri uri;
   final Uri fileUri;
 
+  SourceFile targetFile;
   List<SourceMapEntry> entries;
 
   Map<String, int> sourceUrlMap;
@@ -36,7 +36,7 @@ class SourceMapBuilder {
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder(this.uri, this.fileUri) {
+  SourceMapBuilder(this.uri, this.fileUri, this.targetFile) {
     entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
@@ -53,7 +53,59 @@ class SourceMapBuilder {
     firstEntryInLine = true;
   }
 
+  resetPreviousSourceLocation() {
+    previousSourceUrlIndex = 0;
+    previousSourceLine = 0;
+    previousSourceColumn = 0;
+    previousSourceNameIndex = 0;
+  }
+
+  updatePreviousSourceLocation(SourceFileLocation sourceLocation) {
+    previousSourceLine = sourceLocation.getLine();
+    previousSourceColumn = sourceLocation.getColumn();
+    String sourceUrl = sourceLocation.getSourceUrl();
+    previousSourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
+    String sourceName = sourceLocation.getSourceName();
+    if (sourceName != null) {
+      previousSourceNameIndex =
+          indexOf(sourceNameList, sourceName, sourceNameMap);
+    }
+  }
+
+  bool sameAsPreviousLocation(SourceFileLocation sourceLocation) {
+    if (sourceLocation == null) {
+      return true;
+    }
+    int sourceUrlIndex =
+        indexOf(sourceUrlList, sourceLocation.getSourceUrl(), sourceUrlMap);
+    return
+       sourceUrlIndex == previousSourceUrlIndex &&
+       sourceLocation.getLine() == previousSourceLine &&
+       sourceLocation.getColumn() == previousSourceColumn;
+  }
+
   void addMapping(int targetOffset, SourceFileLocation sourceLocation) {
+
+    bool sameLine(int position, otherPosition) {
+      return targetFile.getLine(position) == targetFile.getLine(otherPosition);
+    }
+
+    if (!entries.isEmpty && sameLine(targetOffset, entries.last.targetOffset)) {
+      if (sameAsPreviousLocation(sourceLocation)) {
+        // The entry points to the same source location as the previous entry in
+        // the same line, hence it is not needed for the source map.
+        //
+        // TODO(zarah): Remove this check and make sure that [addMapping] is not
+        // called for this position. Instead, when consecutive lines in the
+        // generated code point to the same source location, record this and use
+        // it to generate the entries of the source map.
+        return;
+      }
+    }
+
+    if (sourceLocation != null) {
+      updatePreviousSourceLocation(sourceLocation);
+    }
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
   }
 
@@ -70,7 +122,8 @@ class SourceMapBuilder {
     buffer.write(']');
   }
 
-  String build(SourceFile targetFile) {
+  String build() {
+    resetPreviousSourceLocation();
     StringBuffer mappingsBuffer = new StringBuffer();
     entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile,
                                                          mappingsBuffer));
@@ -128,12 +181,9 @@ class SourceMapBuilder {
 
     int sourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
     encodeVLQ(output, sourceUrlIndex - previousSourceUrlIndex);
-    previousSourceUrlIndex = sourceUrlIndex;
-
     encodeVLQ(output, sourceLine - previousSourceLine);
-    previousSourceLine = sourceLine;
     encodeVLQ(output, sourceColumn - previousSourceColumn);
-    previousSourceColumn = sourceColumn;
+    updatePreviousSourceLocation(entry.sourceLocation);
 
     if (sourceName == null) {
       return;
@@ -141,7 +191,7 @@ class SourceMapBuilder {
 
     int sourceNameIndex = indexOf(sourceNameList, sourceName, sourceNameMap);
     encodeVLQ(output, sourceNameIndex - previousSourceNameIndex);
-    previousSourceNameIndex = sourceNameIndex;
+
   }
 
   int indexOf(List<String> list, String value, Map<String, int> map) {
@@ -214,13 +264,4 @@ class TokenSourceFileLocation extends SourceFileLocation {
     if (token.isIdentifier()) return token.value;
     return null;
   }
-}
-
-class OffsetSourceFileLocation extends SourceFileLocation {
-  final int offset;
-  final String sourceName;
-  OffsetSourceFileLocation(SourceFile sourceFile, this.offset,
-      [this.sourceName]) : super(sourceFile);
-
-  String getSourceName() => sourceName;
 }

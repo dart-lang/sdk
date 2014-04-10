@@ -44,8 +44,8 @@ class TestC extends TestBase {
   TestC.created() : super.created();
 }
 
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

@@ -188,6 +188,80 @@ _runTests() {
     expect(map.toString(), '{a: 1, b: 2}');
   });
 
+  group('observe keys/values', () {
+    ObservableMap map;
+    int keysChanged;
+    int valuesChanged;
+
+    setUp(() {
+      map = toObservable({'a': 1, 'b': 2, 'c': 3});
+      keysChanged = 0;
+      valuesChanged = 0;
+      sub = map.changes.listen((records) {
+        keysChanged += getPropertyChangeRecords(records, #keys).length;
+        valuesChanged += getPropertyChangeRecords(records, #values).length;
+      });
+    });
+
+    tearDown(sharedTearDown);
+
+    test('add item changes keys/values', () {
+      map['d'] = 4;
+      expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
+      return new Future(() {
+        expect(keysChanged, 1);
+        expect(valuesChanged, 1);
+      });
+    });
+
+    test('putIfAbsent changes keys/values', () {
+      map.putIfAbsent('d', () => 4);
+      expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
+      return new Future(() {
+        expect(keysChanged, 1);
+        expect(valuesChanged, 1);
+      });
+    });
+
+    test('remove changes keys/values', () {
+      map.remove('c');
+      map.remove('a');
+      expect(map, {'b': 2});
+      return new Future(() {
+        expect(keysChanged, 2);
+        expect(valuesChanged, 2);
+      });
+    });
+
+    test('remove non-existent item does not change keys/values', () {
+      map.remove('d');
+      expect(map, {'a': 1, 'b': 2, 'c': 3});
+      return new Future(() {
+        expect(keysChanged, 0);
+        expect(valuesChanged, 0);
+      });
+    });
+
+    test('set existing item does not change keys', () {
+      map['c'] = 9000;
+      expect(map, {'a': 1, 'b': 2, 'c': 9000});
+      return new Future(() {
+        expect(keysChanged, 0);
+        expect(valuesChanged, 1);
+      });
+    });
+
+    test('clear changes keys/values', () {
+      map.clear();
+      expect(map, {});
+      return new Future(() {
+        expect(keysChanged, 1);
+        expect(valuesChanged, 1);
+      });
+    });
+  });
+
+
   group('change records', () {
     List<ChangeRecord> records;
     ObservableMap map;
@@ -232,6 +306,8 @@ _runTests() {
         expectChanges(records, [
           _lengthChange(map, 2, 3),
           _insertKey('c', 3),
+          _propChange(map, #keys),
+          _propChange(map, #values),
         ]);
       });
     });
@@ -246,8 +322,11 @@ _runTests() {
       return new Future(() {
         expectChanges(records, [
           _changeKey('a', 1, 42),
+          _propChange(map, #values),
           _lengthChange(map, 2, 3),
-          _insertKey('c', 3)
+          _insertKey('c', 3),
+          _propChange(map, #keys),
+          _propChange(map, #values),
         ]);
       });
     });
@@ -260,6 +339,8 @@ _runTests() {
         expectChanges(records, [
           _removeKey('b', 2),
           _lengthChange(map, 2, 1),
+          _propChange(map, #keys),
+          _propChange(map, #values),
         ]);
       });
     });
@@ -273,6 +354,8 @@ _runTests() {
           _removeKey('a', 1),
           _removeKey('b', 2),
           _lengthChange(map, 2, 0),
+          _propChange(map, #keys),
+          _propChange(map, #values),
         ]);
       });
     });
@@ -287,3 +370,5 @@ _changeKey(key, old, newValue) => new MapChangeRecord(key, old, newValue);
 _insertKey(key, newValue) => new MapChangeRecord.insert(key, newValue);
 
 _removeKey(key, oldValue) => new MapChangeRecord.remove(key, oldValue);
+
+_propChange(map, prop) => new PropertyChangeRecord(map, prop, null, null);

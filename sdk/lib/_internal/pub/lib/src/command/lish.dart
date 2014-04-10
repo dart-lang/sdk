@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 import '../command.dart';
-import '../directory_tree.dart';
+import '../ascii_tree.dart' as tree;
 import '../http.dart';
 import '../io.dart';
 import '../log.dart' as log;
@@ -103,7 +103,7 @@ class LishCommand extends PubCommand {
       var package = entrypoint.root;
       log.message(
           'Publishing ${package.name} ${package.version} to $server:\n'
-          '${generateTree(files, baseDir: entrypoint.root.dir)}');
+          '${tree.fromFiles(files, baseDir: entrypoint.root.dir)}');
 
       return createTarGz(files, baseDir: entrypoint.root.dir);
     }).then((stream) => stream.toBytes());

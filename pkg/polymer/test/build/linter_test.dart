@@ -6,30 +6,29 @@ library polymer.test.linter_test;
 
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/linter.dart';
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'common.dart';
 
 void main() {
-  useCompactVMConfiguration();
   _testLinter('nothing to report', {
       'a|lib/test.html': '<!DOCTYPE html><html></html>',
     }, []);
 
-  group('must have Dart code to invoke initPolymer, dart.js, not boot.js', () {
+  group('must have import to polymer.html', () {
     _testLinter('nothing to report', {
         'a|web/test.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="packages/polymer/polymer.html">'
             '<script type="application/dart" src="foo.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, []);
 
-    _testLinter('missing Dart code and dart.js', {
+    _testLinter('missing everything', {
         'a|web/test.html': '<!DOCTYPE html><html></html>',
       }, [
-        'error: $USE_INIT_DART',
+        'warning: $USE_POLYMER_HTML',
       ]);
 
     _testLinter('using deprecated boot.js', {
@@ -40,36 +39,23 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: $BOOT_JS_DEPRECATED (web/test.html 1 0)',
+        'warning: $USE_POLYMER_HTML',
       ]);
   });
-  group('single script tag per document', () {
+  group('multiple script tag per document allowed', () {
     _testLinter('two top-level tags', {
         'a|web/test.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="packages/polymer/polymer.html">'
             '<script type="application/dart" src="a.dart">'
             '</script>\n'
             '<script type="application/dart" src="b.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
-      }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (web/test.html 1 0)',
-      ]);
-
-    _testLinter('two top-level tags, non entrypoint', {
-        'a|lib/test.html': '<!DOCTYPE html><html>'
-            '<script type="application/dart" src="a.dart">'
-            '</script>\n'
-            '<script type="application/dart" src="b.dart">'
-            '</script>'
-            '<script src="packages/browser/dart.js"></script>'
-      }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (lib/test.html 1 0)',
-      ]);
+      }, []);
 
     _testLinter('tags inside elements', {
         'a|web/test.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="packages/polymer/polymer.html">'
             '<polymer-element name="x-a">'
             '<script type="application/dart" src="a.dart">'
             '</script>'
@@ -77,10 +63,7 @@ void main() {
             '<script type="application/dart" src="b.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
-      }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (web/test.html 1 0)',
-      ]);
+      }, []);
   });
 
   group('doctype warning', () {
@@ -89,7 +72,7 @@ void main() {
       }, [
         'warning: Unexpected start tag (html). Expected DOCTYPE. '
         '(web/test.html 0 0)',
-        'error: $USE_INIT_DART',
+        'warning: $USE_POLYMER_HTML',
       ]);
 
     _testLinter('in lib', {
@@ -227,8 +210,8 @@ void main() {
             <script src="foo.dart"></script>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: Wrong script type, expected type="application/dart".'
-        ' (lib/test.html 1 0)'
+        'warning: Wrong script type, expected type="application/dart" or'
+        ' type="application/dart;component=1". (lib/test.html 1 0)'
       ]);
 
     _testLinter('in polymer-element, .dart url', {
@@ -238,8 +221,8 @@ void main() {
             </polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: Wrong script type, expected type="application/dart".'
-        ' (lib/test.html 2 0)'
+        'warning: Wrong script type, expected type="application/dart" or'
+        ' type="application/dart;component=1". (lib/test.html 2 0)'
       ]);
 
     _testLinter('in polymer-element, .js url', {
@@ -457,11 +440,12 @@ void main() {
     }, []);
 }
 
-_testLinter(String name, Map inputFiles, List outputMessages) {
+_testLinter(String name, Map inputFiles, List outputMessages,
+    [bool solo = false]) {
   var linter = new Linter(new TransformOptions());
   var outputFiles = {};
   if (outputMessages.every((m) => m.startsWith('warning:'))) {
     inputFiles.forEach((k, v) => outputFiles[k] = v);
   }
-  testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages);
+  testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages, solo);
 }

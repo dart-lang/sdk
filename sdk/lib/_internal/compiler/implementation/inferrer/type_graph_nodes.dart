@@ -1102,18 +1102,11 @@ class MapTypeInformation extends TypeInformation {
   }
 
   TypeMask toTypeMask(TypeGraphInferrerEngine inferrer) {
-    Map<String, TypeMask> mappings;
     if (isDictionary) {
-      mappings = new Map<String, TypeMask>();
+      Map<String, TypeMask> mappings = new Map<String, TypeMask>();
       for (var key in typeInfoMap.keys) {
-        // We strip out entries that contain no information
-        if (!typeInfoMap[key].type.containsAll(inferrer.compiler) ||
-            !typeInfoMap[key].type.isNullable) {
-          mappings[key] = typeInfoMap[key].type;
-        }
+        mappings[key] = typeInfoMap[key].type;
       }
-    }
-    if (mappings != null && !mappings.isEmpty) {
       return new DictionaryTypeMask(initialType.forwardTo,
                                     initialType.allocationNode,
                                     initialType.allocationElement,
@@ -1130,9 +1123,9 @@ class MapTypeInformation extends TypeInformation {
   }
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    if (type.isDictionary != isDictionary) {
+    if (!bailedOut && type.isDictionary != isDictionary) {
       return toTypeMask(inferrer);
-    } else if (type.isDictionary) {
+    } else if (!bailedOut && type.isDictionary) {
       DictionaryTypeMask mask = type;
       for (var key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];

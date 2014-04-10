@@ -6,8 +6,16 @@ library code_ref_element;
 
 import 'package:polymer/polymer.dart';
 import 'service_ref.dart';
+import 'package:observatory/service.dart';
 
 @CustomTag('code-ref')
 class CodeRefElement extends ServiceRefElement {
+  @observable Code get code => ref;
+
+  refChanged(oldValue) {
+    super.refChanged(oldValue);
+    notifyPropertyChange(#code, 0, 1);
+  }
+
   CodeRefElement.created() : super.created();
 }

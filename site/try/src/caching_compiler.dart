@@ -4,6 +4,8 @@
 
 library trydart.caching_compiler;
 
+import 'dart:async' show EventSink;
+
 import 'package:compiler/compiler.dart' show
     CompilerOutputProvider,
     Diagnostic,
@@ -28,11 +30,13 @@ class MemorySourceFileProvider extends SourceFileProvider {
   var memorySourceFiles;
   MemorySourceFileProvider(a);
 }
-class NullSink extends EventSink {
+class NullSink extends EventSink<String> {
   NullSink(a);
+  add(a) {}
+  addError(a, [b]) {}
+  close() {}
 }
 var expando;
-abstract class EventSink<T> {}
 
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
                                           SourceFileProvider provider,

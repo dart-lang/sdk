@@ -188,3 +188,27 @@ class _ErrorCollector extends AnalysisErrorListener {
   final errors = <AnalysisError>[];
   onError(error) => errors.add(error);
 }
+
+/// These names have meaning in SVG or MathML, so they aren't allowed as custom
+/// tags. See [isCustomTagName].
+const invalidTagNames = const {
+  'annotation-xml': '',
+  'color-profile': '',
+  'font-face': '',
+  'font-face-src': '',
+  'font-face-uri': '',
+  'font-face-format': '',
+  'font-face-name': '',
+  'missing-glyph': '',
+};
+
+/// Returns true if this is a valid custom element name. See:
+/// <http://w3c.github.io/webcomponents/spec/custom/#dfn-custom-element-type>
+bool isCustomTagName(String name) {
+  if (name == null || !name.contains('-')) return false;
+  return !invalidTagNames.containsKey(name);
+}
+
+/// Regex to split names in the 'attributes' attribute, which supports 'a b c',
+/// 'a,b,c', or even 'a b,c'. This is the same as in `lib/src/declaration.dart`.
+final ATTRIBUTES_REGEX = new RegExp(r'\s|,');

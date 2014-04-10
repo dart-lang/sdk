@@ -61,7 +61,7 @@ void main([args, port]) {
   test("map is equal after it is sent back and forth", () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(pingPong, port.sendPort);
-    port.first.then(expectAsync1((remote) {
+    port.first.then(expectAsync((remote) {
       Map m = new Map();
       m[1] = "eins";
       m[2] = "deux";
@@ -69,7 +69,7 @@ void main([args, port]) {
       m[4] = "four";
       ReceivePort replyPort = new ReceivePort();
       remote.send([m, replyPort.sendPort]);
-      replyPort.first.then(expectAsync1((var received) {
+      replyPort.first.then(expectAsync((var received) {
         MessageTest.mapEqualsDeep(m, received);
         remote.send(null);
       }));

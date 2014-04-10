@@ -6,7 +6,7 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("stream-periodic2", () {
@@ -14,7 +14,7 @@ main() {
                                         (x) => x);
     int receivedCount = 0;
     var subscription;
-    subscription = stream.listen(expectAsync1((data) {
+    subscription = stream.listen(expectAsync((data) {
       expect(data, receivedCount);
       receivedCount++;
       if (receivedCount == 5) subscription.cancel();

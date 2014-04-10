@@ -19,6 +19,8 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
 
@@ -104,39 +106,20 @@ void serve([List<d.Descriptor> contents]) {
 
   schedule(() {
     return _closeServer().then((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
-        _server = server;
-        server.listen((request) {
-          currentSchedule.heartbeat();
-          var response = request.response;
-          try {
-            var path = request.uri.path.replaceFirst("/", "");
-            _requestedPaths.add(path);
+      return shelf_io.serve((request) {
+        currentSchedule.heartbeat();
+        var path = request.url.path.replaceFirst("/", "");
+        _requestedPaths.add(path);
 
-            response.persistentConnection = false;
-            var stream = baseDir.load(path);
-
-            new ByteStream(stream).toBytes().then((data) {
-              currentSchedule.heartbeat();
-              response.statusCode = 200;
-              response.contentLength = data.length;
-              response.add(data);
-              response.close();
-            }).catchError((e) {
-              response.statusCode = 404;
-              response.contentLength = 0;
-              response.close();
-            });
-          } catch (e) {
-            currentSchedule.signalError(e);
-            response.statusCode = 500;
-            response.close();
-            return;
-          }
+        return validateStream(baseDir.load(path))
+            .then((stream) => new shelf.Response.ok(stream))
+            .catchError((error) {
+          return new shelf.Response.notFound('File "$path" not found.');
         });
+      }, '127.0.0.1', 0).then((server) {
+        _server = server;
         _portCompleter.complete(_server.port);
         currentSchedule.onComplete.schedule(_closeServer);
-        return null;
       });
     });
   }, 'starting a server serving:\n${baseDir.describe()}');
@@ -383,10 +366,12 @@ void scheduleSymlink(String target, String symlink) {
 /// Runs Pub with [args] and validates that its results match [output] (or
 /// [outputJson]), [error], and [exitCode].
 ///
+/// [output] and [error] can be [String]s, [RegExp]s, or [Matcher]s.
+///
 /// If [outputJson] is given, validates that pub outputs stringified JSON
 /// matching that object, which can be a literal JSON object or any other
 /// [Matcher].
-void schedulePub({List args, Pattern output, Pattern error, outputJson,
+void schedulePub({List args, output, error, outputJson,
     Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
@@ -737,71 +722,61 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
   return map;
 }
 
-/// Compares the [actual] output from running pub with [expected]. For [String]
-/// patterns, ignores leading and trailing whitespace differences and tries to
-/// report the offending difference in a nice way. For other [Pattern]s, just
-/// reports whether the output contained the pattern.
-void _validateOutput(List<String> failures, String pipe, Pattern expected,
+/// Compares the [actual] output from running pub with [expected].
+///
+/// If [expected] is a [String], ignores leading and trailing whitespace
+/// differences and tries to report the offending difference in a nice way.
+///
+/// If it's a [RegExp] or [Matcher], just reports whether the output matches.
+void _validateOutput(List<String> failures, String pipe, expected,
                      String actual) {
   if (expected == null) return;
 
-  var actualLines = actual.split("\n");
-  if (expected is RegExp) {
-    _validateOutputRegex(failures, pipe, expected, actualLines);
+  if (expected is String) {
+    _validateOutputString(failures, pipe, expected, actual);
   } else {
-    _validateOutputString(failures, pipe, expected, actualLines);
-  }
-}
-
-void _validateOutputRegex(List<String> failures, String pipe,
-                          RegExp expected, List<String> actual) {
-  var actualText = actual.join('\n');
-  if (actualText.contains(expected)) return;
-
-  if (actual.length == 0) {
-    failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
-  } else {
-    failures.add('Expected $pipe to match "${expected.pattern}" but got:');
-    failures.addAll(actual.map((line) => '| $line'));
+    if (expected is RegExp) expected = matches(expected);
+    expect(actual, expected);
   }
 }
 
 void _validateOutputString(List<String> failures, String pipe,
-                           String expectedText, List<String> actual) {
-  final expected = expectedText.split('\n');
+                           String expected, String actual) {
+  var actualLines = actual.split("\n");
+  var expectedLines = expected.split("\n");
 
   // Strip off the last line. This lets us have expected multiline strings
   // where the closing ''' is on its own line. It also fixes '' expected output
   // to expect zero lines of output, not a single empty line.
-  if (expected.last.trim() == '') {
-    expected.removeLast();
+  if (expectedLines.last.trim() == '') {
+    expectedLines.removeLast();
   }
 
   var results = [];
   var failed = false;
 
   // Compare them line by line to see which ones match.
-  var length = max(expected.length, actual.length);
+  var length = max(expectedLines.length, actualLines.length);
   for (var i = 0; i < length; i++) {
-    if (i >= actual.length) {
+    if (i >= actualLines.length) {
       // Missing output.
       failed = true;
-      results.add('? ${expected[i]}');
-    } else if (i >= expected.length) {
+      results.add('? ${expectedLines[i]}');
+    } else if (i >= expectedLines.length) {
       // Unexpected extra output.
       failed = true;
-      results.add('X ${actual[i]}');
+      results.add('X ${actualLines[i]}');
     } else {
-      var expectedLine = expected[i].trim();
-      var actualLine = actual[i].trim();
+      var expectedLine = expectedLines[i].trim();
+      var actualLine = actualLines[i].trim();
 
       if (expectedLine != actualLine) {
         // Mismatched lines.
         failed = true;
-        results.add('X ${actual[i]}');
+        results.add('X ${actualLines[i]}');
       } else {
         // Output is OK, but include it in case other lines are wrong.
-        results.add('| ${actual[i]}');
+        results.add('| ${actualLines[i]}');
       }
     }
   }
@@ -809,7 +784,7 @@ void _validateOutputString(List<String> failures, String pipe,
   // If any lines mismatched, show the expected and actual.
   if (failed) {
     failures.add('Expected $pipe:');
-    failures.addAll(expected.map((line) => '| $line'));
+    failures.addAll(expectedLines.map((line) => '| $line'));
     failures.add('Got:');
     failures.addAll(results);
   }

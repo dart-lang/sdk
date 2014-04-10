@@ -252,8 +252,7 @@ void DebuggerConnectionHandler::HandleMessages() {
         const char* end = r.EndOfObject();
         // Get debug message queue corresponding to isolate.
         MessageParser msg_parser(start, (end - start));
-        Dart_IsolateId isolate_id =
-            static_cast<Dart_IsolateId>(msg_parser.GetIntParam("isolateId"));
+        Dart_IsolateId isolate_id = msg_parser.GetInt64Param("isolateId");
         if (!DbgMsgQueueList::AddIsolateMessage(isolate_id,
                                                 cmd_idx,
                                                 msgbuf_->buf(),
@@ -430,8 +429,7 @@ void DebuggerConnectionHandler::AcceptDbgConnection(int debug_fd) {
 void DebuggerConnectionHandler::HandleInterruptCmd(DbgMessage* in_msg) {
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
   int msg_id = msg_parser.MessageId();
-  Dart_IsolateId isolate_id =
-      static_cast<Dart_IsolateId>(msg_parser.GetIntParam("isolateId"));
+  Dart_IsolateId isolate_id = msg_parser.GetInt64Param("isolateId");
   if (isolate_id == ILLEGAL_ISOLATE_ID || Dart_GetIsolate(isolate_id) == NULL) {
     in_msg->SendErrorReply(msg_id, "Invalid isolate specified");
     return;

@@ -54,6 +54,7 @@ abstract class HVisitor<R> {
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
+  R visitReadModifyWrite(HReadModifyWrite node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -321,6 +322,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
+  visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -858,8 +860,13 @@ abstract class HInstruction implements Spannable {
 
   bool canBePrimitiveNumber(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
+    // TODO(sra): It should be possible to test only jsDoubleClass and
+    // jsUInt31Class, since all others are superclasses of these two.
     return instructionType.contains(backend.jsNumberClass, compiler)
         || instructionType.contains(backend.jsIntClass, compiler)
+        || instructionType.contains(backend.jsPositiveIntClass, compiler)
+        || instructionType.contains(backend.jsUInt32Class, compiler)
+        || instructionType.contains(backend.jsUInt31Class, compiler)
         || instructionType.contains(backend.jsDoubleClass, compiler);
   }
 
@@ -1555,6 +1562,58 @@ class HFieldSet extends HFieldAccess {
 
   bool isJsStatement() => true;
   String toString() => "FieldSet $element";
+}
+
+/**
+ * HReadModifyWrite is a late stage instruction for a field (property) update
+ * via an assignment operation or pre- or post-increment.
+ */
+class HReadModifyWrite extends HLateInstruction {
+  static const ASSIGN_OP = 0;
+  static const PRE_OP = 1;
+  static const POST_OP = 2;
+  final Element element;
+  final String jsOp;
+  final int opKind;
+
+   HReadModifyWrite._(Element this.element, this.jsOp, this.opKind,
+      List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type) {
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    sideEffects.setChangesInstanceProperty();
+    sideEffects.setDependsOnInstancePropertyStore();
+  }
+
+  HReadModifyWrite.assignOp(Element element, String jsOp,
+      HInstruction receiver, HInstruction operand, TypeMask type)
+      : this._(element, jsOp, ASSIGN_OP,
+               <HInstruction>[receiver, operand], type);
+
+  HReadModifyWrite.preOp(Element element, String jsOp,
+      HInstruction receiver, TypeMask type)
+      : this._(element, jsOp, PRE_OP, <HInstruction>[receiver], type);
+
+  HReadModifyWrite.postOp(Element element, String jsOp,
+      HInstruction receiver, TypeMask type)
+      : this._(element, jsOp, POST_OP, <HInstruction>[receiver], type);
+
+  HInstruction get receiver => inputs[0];
+
+  bool get isPreOp => opKind == PRE_OP;
+  bool get isPostOp => opKind == POST_OP;
+  bool get isAssignOp => opKind == ASSIGN_OP;
+
+  bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
+  HInstruction get value => inputs[1];
+  accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
+
+  bool isJsStatement() => isAssignOp;
+  String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
 class HLocalGet extends HFieldAccess {

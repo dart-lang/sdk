@@ -17,23 +17,25 @@ main() {
   group("isPrimary", () {
     test("defaults to allowedExtensions", () {
       var transformer = new ExtensionTransformer(".txt .bin");
-      expect(transformer.isPrimary(makeAsset("foo.txt")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.txt")),
           completion(isTrue));
 
-      expect(transformer.isPrimary(makeAsset("foo.bin")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.bin")),
           completion(isTrue));
 
-      expect(transformer.isPrimary(makeAsset("foo.nottxt")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.nottxt")),
           completion(isFalse));
     });
 
     test("supports multi-level extensions with allowedExtensions", () {
       var transformer = new ExtensionTransformer(".dart.js");
-      expect(transformer.isPrimary(makeAsset("foo.dart.js")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.dart.js")),
           completion(isTrue));
 
-      expect(transformer.isPrimary(makeAsset("foo.js")), completion(isFalse));
-      expect(transformer.isPrimary(makeAsset("foo.dart")), completion(isFalse));
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.js")),
+          completion(isFalse));
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.dart")),
+          completion(isFalse));
     });
 
     test("throws an error for extensions without periods", () {
@@ -42,20 +44,17 @@ main() {
 
     test("allows all files if allowedExtensions is not overridden", () {
       var transformer = new MockTransformer();
-      expect(transformer.isPrimary(makeAsset("foo.txt")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.txt")),
           completion(isTrue));
 
-      expect(transformer.isPrimary(makeAsset("foo.bin")),
+      expect(transformer.isPrimary(new AssetId("pkg", "foo.bin")),
           completion(isTrue));
 
-      expect(transformer.isPrimary(makeAsset("anything")),
+      expect(transformer.isPrimary(new AssetId("pkg", "anything")),
           completion(isTrue));
     });
   });
 }
-
-Asset makeAsset(String path) =>
-    new Asset.fromString(new AssetId.parse("app|$path"), "");
 
 class MockTransformer extends Transformer {
   MockTransformer();

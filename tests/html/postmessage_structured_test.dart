@@ -38,7 +38,7 @@ main() {
             """;
           var completed = false;
           var subscription = null;
-          subscription = window.onMessage.listen(expectAsyncUntil1(
+          subscription = window.onMessage.listen(expectAsyncUntil(
             (e) {
               var data = e.data;
               if (data is String) return; // Messages from unit test protocol.
@@ -65,7 +65,7 @@ main() {
         """;
       var completed = false;
       var subscription = null;
-      subscription = window.onMessage.listen(expectAsyncUntil1(
+      subscription = window.onMessage.listen(expectAsyncUntil(
         (e) {
           var data = e.data;
           if (data is String) return;    // Messages from unit test protocol.
@@ -95,7 +95,7 @@ main() {
         """;
       var completed = false;
       var subscription = null;
-      subscription = window.onMessage.listen(expectAsyncUntil1(
+      subscription = window.onMessage.listen(expectAsyncUntil(
         (e) {
           var data = e.data;
           if (data is String) return;    // Messages from unit test protocol.

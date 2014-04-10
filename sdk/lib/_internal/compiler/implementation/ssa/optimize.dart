@@ -109,6 +109,12 @@ bool isFixedLength(mask, Compiler compiler) {
  */
 class SsaInstructionSimplifier extends HBaseVisitor
     implements OptimizationPhase {
+
+  // We don't produce constant-folded strings longer than this unless they have
+  // a single use.  This protects against exponentially large constant folded
+  // strings.
+  static const MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH = 512;
+
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
@@ -280,10 +286,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
+          // TODO(sra): Do this via [node.specializer].
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
               && !input.canBeNull()) {
-            target = backend.jsStringOperatorAdd;
+            return new HStringConcat(input, argument, null,
+                                     node.instructionType);
           }
         } else if (selector.applies(backend.jsStringToString, compiler)
                    && !input.canBeNull()) {
@@ -810,6 +818,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       prefix = leftConcat.left;
       leftString = getString(leftConcat.right);
       if (leftString == null) return node;
+    }
+
+    if (leftString.value.length + rightString.value.length >
+        MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH) {
+      if (node.usedBy.length > 1) return node;
     }
 
     HInstruction folded = graph.addConstant(

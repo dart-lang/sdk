@@ -101,19 +101,19 @@ void main() {
     // 1. The constructed constant for 'MirrorsUsed'.
     Expect.isTrue(compiler.backend.metadataConstants.length >= 1);
 
+    Set<Constant> compiledConstants =
+        compiler.backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
     for (var dependency in compiler.backend.metadataConstants) {
       Constant constant = dependency.constant;
-      Expect.isFalse(
-          compiler.constantHandler.compiledConstants.contains(constant),
-          '$constant');
+      Expect.isFalse(compiledConstants.contains(constant), '$constant');
     }
 
     // The type literal 'Foo' is both used as metadata, and as a plain value in
     // the program. Make sure that it isn't duplicated.
     int fooConstantCount = 0;
-    for (Constant constant in compiler.constantHandler.compiledConstants) {
+    for (Constant constant in compiledConstants) {
       if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
         fooConstantCount++;
       }

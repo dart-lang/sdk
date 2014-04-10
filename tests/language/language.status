@@ -20,18 +20,7 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
-# Issue 17521
-deferred_constraints_constants_test/default_argument2: Fail
-deferred_constraints_constants_test/metadata1: Fail
-deferred_constraints_constants_test/metadata3: Fail
-deferred_constraints_constants_test/metadata2: Fail
-
-
 # These test use the old syntax, and will be phased out.
-deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/is_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail, Ok
 deferred_constraints_constants_old_syntax_test/reference1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/reference2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/metadata1: Fail, Ok
@@ -42,30 +31,27 @@ deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
-cyclic_type_test: Fail, Pass # Issue 17629
-cyclic_type2_test: Fail, Pass # Issue 17629
-least_upper_bound_expansive_test/*: Fail, Pass # Issue 17629
-
-[ ($compiler == dart2dart)]
+[ $compiler == dart2dart]
 # Issue 17523
-deferred_constraints_type_annotation_test/as_operation: Fail
-deferred_constraints_type_annotation_test/is_check: Fail
-deferred_constraints_type_annotation_test/catch_check: Fail
-deferred_constraints_type_annotation_test/new_before_load: Fail
 deferred_load_library_wrong_args_test/none: Fail
-
-cyclic_type_test: Fail, OK # Issue 17629
-
-[ ($compiler == dart2dart)]
-# Issue 17523
+deferred_load_inval_code_test: Fail # dartbug.com/17933
 deferred_constraints_type_annotation_test/*: Fail, Pass
 deferred_constraints_constants_test/*: Fail, Pass
-deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail
-deferred_constraints_type_annotation_old_syntax_test/is_check: Fail
-deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail
-deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail
 deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
+
+[ $compiler == none || $compiler == dart2dart]
+# These test use the old syntax, and will be phased out.
+deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/is_check: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail, Ok
+deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail, Ok
+
+# Non-contractive types are not supported in the vm.
+cyclic_type_test/02: Fail, OK
+cyclic_type_test/04: Fail, OK
+cyclic_type2_test: Fail, OK
+least_upper_bound_expansive_test/*: Fail, OK
 
 [ ($compiler == none || $compiler == dart2dart) && $checked ]
 # Issue 17521, 17523
@@ -94,21 +80,7 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
-compile_time_constant_checked_test/02: Fail, OK
-compile_time_constant_checked2_test/01: Fail, OK
-compile_time_constant_checked2_test/02: Fail, OK
-compile_time_constant_checked2_test/03: Fail, OK
-compile_time_constant_checked2_test/04: Fail, OK
-compile_time_constant_checked2_test/05: Fail, OK
-compile_time_constant_checked2_test/06: Fail, OK
-compile_time_constant_checked3_test/01: Fail, OK
-compile_time_constant_checked3_test/02: Fail, OK
-compile_time_constant_checked3_test/03: Fail, OK
-compile_time_constant_checked3_test/04: Fail, OK
-compile_time_constant_checked3_test/05: Fail, OK
-compile_time_constant_checked3_test/06: Fail, OK
 type_check_const_function_typedef2_test/00: Fail, OK
-malformed2_test/01: Fail, OK
 
 [ ($compiler == none || $compiler == dart2dart) && $runtime != none ]
 dynamic_prefix_core_test/01: Fail # Issue 12478
@@ -121,16 +93,14 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 lazy_static3_test: Fail # Issue 13469
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
-named_parameters_type_test/01: Fail # Issue 17561.
-named_parameters_type_test/02: Fail # Issue 17561.
-named_parameters_type_test/03: Fail # Issue 17561.
-positional_parameters_type_test/01: Fail # Issue 17561.
-positional_parameters_type_test/02: Fail # Issue 17561.
-assertion_test: Fail # Issue 17561.
-generic_test: Fail # Issue 17561.
-list_literal1_test/01: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/03: Fail # Issue 13719: Please triage this failure.
+positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
+positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
+assertion_test: Fail # Issue 13719: Please triage this failure.
+generic_test: Fail # Issue 13719: Please triage this failure.
 list_literal4_test: Fail # Issue 13719: Please triage this failure.
-map_literal1_test/01: Fail # Issue 13719: Please triage this failure.
 map_literal4_test: Fail # Issue 13719: Please triage this failure.
 type_checks_in_factory_method_test: Fail # Issue 13719: Please triage this failure.
 vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
@@ -151,3 +121,6 @@ generic_instanceof3_test: Pass, Crash # Issue 17440.
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
+
+[ $compiler == none && $runtime == vm && $arch == simarm64 ]
+*: Skip

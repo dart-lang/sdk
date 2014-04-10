@@ -2,7 +2,9 @@
   <link rel="import" href="class_ref.html">
   <link rel="import" href="error_view.html">
   <link rel="import" href="eval_box.html">
+  <link rel="import" href="eval_link.html">
   <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
@@ -47,7 +49,12 @@
     <template if="{{ instance['error'] == null }}">
       <div class="content">
         <!-- TODO(turnidge): Handle null instances. -->
-        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <template if="{{ isType(instance.serviceType) }}">
+          <h1>type {{ instance['user_name'] }}</h1>
+        </template>
+        <template if="{{ !isType(instance.serviceType) }}">
+          <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        </template>
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">class</div>
@@ -56,15 +63,42 @@
               </class-ref>
             </div>
           </div>
-          <template if="{{ instance['preview'] != null }}">
+          <template if="{{ instance['valueAsString'] != null }}">
             <div class="memberItem">
-              <div class="memberName">preview</div>
-              <div class="memberValue">{{ instance['preview'] }}</div>
+              <div class="memberName">value</div>
+              <div class="memberValue">{{ instance['valueAsString'] }}</div>
             </div>
           </template>
           <div class="memberItem">
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+          </div>
+          <template if="{{ instance['type_class'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">type class</div>
+              <div class="memberValue">
+                <class-ref ref="{{ instance['type_class'] }}">
+                </class-ref>
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance['closureFunc'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">closure function</div>
+              <div class="memberValue">
+                <function-ref ref="{{ instance['closureFunc'] }}">
+                </function-ref>
+              </div>
+            </div>
+          </template>
+
+          <div class="memberItem">&nbsp;</div>
+
+          <div class="memberItem">
+            <div class="memberName">toString()</div>
+            <div class="memberValue">
+              <eval-link callback="{{ eval }}" expr="toString()"></eval-link>
+            </div>
           </div>
         </div>
       </div>

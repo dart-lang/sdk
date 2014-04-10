@@ -10,10 +10,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
+import '../utils.dart';
 import 'build_environment.dart';
-
-/// The error code for a directory not being served.
-const _NOT_SERVED = 1;
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
@@ -89,31 +87,32 @@ class WebSocketApi {
   ///
   /// This does *not* currently check to ensure the asset actually exists. It
   /// only maps what the corresponding asset *should* be for that URL.
-  Map _urlToAssetId(json_rpc.Parameters params) {
+  Future<Map> _urlToAssetId(json_rpc.Parameters params) {
     var url = params["url"].asUri;
 
     // If a line number was given, map it to the output line.
     var line = params["line"].asIntOr(null);
 
-    var id = _environment.getAssetIdForUrl(url);
-    if (id == null) {
-      throw new json_rpc.RpcException(_NOT_SERVED,
-          '"${url.host}:${url.port}" is not being served by pub.');
-    }
+    return _environment.getAssetIdForUrl(url).then((id) {
+      if (id == null) {
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
+            '"${url.host}:${url.port}" is not being served by pub.');
+      }
 
-    // TODO(rnystrom): When this is hooked up to actually talk to barback to
-    // see if assets exist, consider supporting implicit index.html at that
-    // point.
+      // TODO(rnystrom): When this is hooked up to actually talk to barback to
+      // see if assets exist, consider supporting implicit index.html at that
+      // point.
 
-    var result = {"package": id.package, "path": id.path};
+      var result = {"package": id.package, "path": id.path};
 
-    // Map the line.
-    // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using
-    // this API before we've fully implemented it. See #12339 and #16061.
-    if (line != null) result["line"] = line;
+      // Map the line.
+      // TODO(rnystrom): Right now, source maps are not supported and it just
+      // passes through the original line. This lets the editor start using
+      // this API before we've fully implemented it. See #12339 and #16061.
+      if (line != null) result["line"] = line;
 
-    return result;
+      return result;
+    });
   }
 
   /// Given a path on the filesystem, returns the URLs served by pub that can be
@@ -167,25 +166,26 @@ class WebSocketApi {
   /// If the asset is not in a directory being served by pub, returns an error:
   ///
   ///     example/index.html  -> NOT_SERVED error
-  Map _pathToUrls(json_rpc.Parameters params) {
+  Future<Map> _pathToUrls(json_rpc.Parameters params) {
     var assetPath = params["path"].asString;
     var line = params["line"].asIntOr(null);
 
-    var urls = _environment.getUrlsForAssetPath(assetPath);
-    if (urls.isEmpty) {
-      throw new json_rpc.RpcException(_NOT_SERVED,
-          'Asset path "$assetPath" is not currently being served.');
-    }
+    return _environment.getUrlsForAssetPath(assetPath).then((urls) {
+      if (urls.isEmpty) {
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
+            'Asset path "$assetPath" is not currently being served.');
+      }
 
-    var result = {"urls": urls.map((url) => url.toString()).toList()};
+      var result = {"urls": urls.map((url) => url.toString()).toList()};
 
-    // Map the line.
-    // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using
-    // this API before we've fully implemented it. See #12339 and #16061.
-    if (line != null) result["line"] = line;
+      // Map the line.
+      // TODO(rnystrom): Right now, source maps are not supported and it just
+      // passes through the original line. This lets the editor start using
+      // this API before we've fully implemented it. See #12339 and #16061.
+      if (line != null) result["line"] = line;
 
-    return result;
+      return result;
+    });
   }
 
   /// Given a relative directory path within the entrypoint package, binds a
@@ -213,6 +213,19 @@ class WebSocketApi {
       return {
         "url": server.url.toString()
       };
+    }).catchError((error) {
+      if (error is! OverlappingSourceDirectoryException) throw error;
+
+      var dir = pluralize("directory", error.overlappingDirectories.length,
+          plural: "directories");
+      var overlapping = toSentence(error.overlappingDirectories.map(
+          (dir) => '"$dir"'));
+      print("data: ${error.overlappingDirectories}");
+      throw new json_rpc.RpcException(_Error.OVERLAPPING,
+          'Path "$rootDirectory" overlaps already served $dir $overlapping.',
+          data: {
+            "directories": error.overlappingDirectories
+          });
     });
   }
 
@@ -240,7 +253,7 @@ class WebSocketApi {
     var rootDirectory = _validateRelativePath(params, "path");
     return _environment.unserveDirectory(rootDirectory).then((url) {
       if (url == null) {
-        throw new json_rpc.RpcException(_NOT_SERVED,
+        throw new json_rpc.RpcException(_Error.NOT_SERVED,
             'Directory "$rootDirectory" is not bound to a server.');
       }
 
@@ -270,4 +283,14 @@ class WebSocketApi {
 
     return pathString;
   }
+}
+
+
+/// The pub-specific JSON RPC error codes.
+class _Error {
+  /// The specified directory is not being served.
+  static const NOT_SERVED = 1;
+
+  /// The specified directory overlaps one or more ones already being served.
+  static const OVERLAPPING = 2;
 }

@@ -23,8 +23,8 @@ class CatchAssetNotFoundTransformer extends MockTransformer {
   CatchAssetNotFoundTransformer(this.extension, String input)
       : input = new AssetId.parse(input);
 
-  Future<bool> doIsPrimary(Asset asset) =>
-      new Future.value(asset.id.extension == extension);
+  Future<bool> doIsPrimary(AssetId id) =>
+      new Future.value(id.extension == extension);
 
   Future doApply(Transform transform) {
     return transform.getInput(input).then((_) {

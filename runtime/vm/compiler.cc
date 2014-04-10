@@ -566,7 +566,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                   Code::Handle(function.unoptimized_code()).EntryPoint());
             }
           }
-          function.SetCode(code);
+          function.AttachCode(code);
 
           for (intptr_t i = 0;
                i < flow_graph->guarded_fields()->length();
@@ -576,7 +576,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           }
         } else {
           function.set_unoptimized_code(code);
-          function.SetCode(code);
+          function.AttachCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
         }
         if (parsed_function->HasDeferredPrefixes()) {

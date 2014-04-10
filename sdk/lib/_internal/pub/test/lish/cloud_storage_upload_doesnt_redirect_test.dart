@@ -4,6 +4,7 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
@@ -23,10 +24,7 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request) {
-      return drainStream(request).then((_) {
-        // Don't set the location header.
-        request.response.close();
-      });
+      return drainStream(request.read()).then((_) => new shelf.Response(200));
     });
 
     pub.stderr.expect('Failed to upload the package.');

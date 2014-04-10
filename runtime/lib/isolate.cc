@@ -40,7 +40,7 @@ static RawObject* ReceivePortCreate(Dart_Port port_id) {
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
     const String& function_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
+        String::Handle(isolate_lib.PrivateName(Symbols::_create()));
     func = Resolver::ResolveStatic(isolate_lib,
                                    class_name,
                                    function_name,

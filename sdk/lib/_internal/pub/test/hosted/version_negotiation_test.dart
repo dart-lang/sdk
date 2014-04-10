@@ -6,6 +6,7 @@ library pub_tests;
 
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -29,7 +30,9 @@ main() {
       var pub = startPub(args: [command.name]);
 
       server.handle('GET', '/api/packages/foo', (request) {
-        expect(request.headers['Accept'], ['application/vnd.pub.v2+json']);
+        expect(request.headers['accept'],
+            equals('application/vnd.pub.v2+json'));
+        return new shelf.Response(200);
       });
 
       pub.kill();
@@ -49,16 +52,12 @@ main() {
 
       var pub = startPub(args: [command.name]);
 
-      server.handle('GET', '/api/packages/foo', (request) {
-        request.response.statusCode = 406;
-        request.response.close();
-      });
+      server.handle('GET', '/api/packages/foo',
+          (request) => new shelf.Response(406));
 
       // TODO(nweiz): this shouldn't request the versions twice (issue 11077).
-      server.handle('GET', '/api/packages/foo', (request) {
-        request.response.statusCode = 406;
-        request.response.close();
-      });
+      server.handle('GET', '/api/packages/foo',
+          (request) => new shelf.Response(406));
 
       pub.shouldExit(1);
 

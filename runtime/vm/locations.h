@@ -13,6 +13,7 @@ namespace dart {
 
 class BufferFormatter;
 class Value;
+class PairLocation;
 
 
 enum Representation {
@@ -24,6 +25,8 @@ enum Representation {
   kUnboxedFloat32x4,
   kUnboxedInt32x4,
   kUnboxedFloat64x2,
+  kPairOfTagged,
+  kPairOfUnboxedDouble,
   kNumRepresentations
 };
 
@@ -33,7 +36,7 @@ enum Representation {
 // LocationSummary object which specifies expected location for every input
 // and output.
 // Each location is encoded as a single word: for non-constant locations
-// low 3 bits denote location kind, rest is kind specific location payload
+// low 4 bits denote location kind, rest is kind specific location payload
 // e.g. for REGISTER kind payload is register code (value of the Register
 // enumeration), constant locations contain a tagged (low 2 bits are set to 01)
 // Object handle.
@@ -51,15 +54,12 @@ class Location : public ValueObject {
   };
 
   static const uword kInvalidLocation = 0;
-  static const uword kConstantMask = 0x3;
-
-  static const intptr_t kMachineRegisterMask = 0x6;
-  static const intptr_t kMachineRegister = 0x6;
+  static const uword kLocationTagMask = 0x3;
 
  public:
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
-  // the same as kConstant.
+  // the same as kConstantTag or kPairLocationTag.
   // Note that two locations with different kinds should never point to
   // the same place. For example kQuadStackSlot location should never intersect
   // with kDoubleStackSlot location.
@@ -68,30 +68,77 @@ class Location : public ValueObject {
     kInvalid = 0,
 
     // Constant value. This location contains a tagged Object handle.
-    kConstant = 1,
+    kConstantTag = 1,
+
+    // This location contains a tagged pointer to a PairLocation.
+    kPairLocationTag = 2,
 
     // Unallocated location represents a location that is not fixed and can be
     // allocated by a register allocator.  Each unallocated location has
     // a policy that specifies what kind of location is suitable. Payload
     // contains register allocation policy.
-    kUnallocated = 2,
+    kUnallocated = 3,
 
     // Spill slots allocated by the register allocator.  Payload contains
     // a spill index.
-    kStackSlot = 3,  // Word size slot.
-    kDoubleStackSlot = 4,  // 64bit stack slot.
-    kQuadStackSlot = 8,  // 128bit stack slot.
+    kStackSlot = 4,  // Word size slot.
+    kDoubleStackSlot = 7,  // 64bit stack slot.
+    kQuadStackSlot = 11,  // 128bit stack slot.
 
     // Register location represents a fixed register.  Payload contains
     // register code.
-    kRegister = 6,
+    kRegister = 8,
 
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
-    kFpuRegister = 7,
+    kFpuRegister = 12,
   };
 
   Location() : value_(kInvalidLocation) {
+    // Verify that non-tagged location kinds do not interfere with location tags
+    // (kConstantTag and kPairLocationTag).
+    COMPILE_ASSERT(((kInvalid & kLocationTagMask) != kConstantTag),
+                   invalid_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kInvalid & kLocationTagMask) != kPairLocationTag),
+                   invalid_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kUnallocated & kLocationTagMask) != kConstantTag),
+                   unallocated_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kUnallocated & kLocationTagMask) != kPairLocationTag),
+                   unallocated_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kStackSlot & kLocationTagMask) != kConstantTag),
+                   stackslot_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kStackSlot & kLocationTagMask) != kPairLocationTag),
+                   stackslot_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kDoubleStackSlot & kLocationTagMask) != kConstantTag),
+                   doublestackslot_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kDoubleStackSlot & kLocationTagMask) != kPairLocationTag),
+                   doublestackslot_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kQuadStackSlot & kLocationTagMask) != kConstantTag),
+                   quadstackslot_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kQuadStackSlot & kLocationTagMask) != kPairLocationTag),
+                   quadstackslot_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kRegister & kLocationTagMask) != kConstantTag),
+                   register_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kRegister & kLocationTagMask) != kPairLocationTag),
+                   register_conflicts_with_pair_tag);
+
+    COMPILE_ASSERT(((kFpuRegister & kLocationTagMask) != kConstantTag),
+                   fpuregister_conflicts_with_constant_tag);
+    COMPILE_ASSERT(((kFpuRegister & kLocationTagMask) != kPairLocationTag),
+                   fpuregister_conflicts_with_pair_tag);
+
+    // Verify tags and tagmask.
+    COMPILE_ASSERT(((kConstantTag & kLocationTagMask) == kConstantTag),
+                   bad_constant_tag);
+
+    COMPILE_ASSERT(((kPairLocationTag & kLocationTagMask) == kPairLocationTag),
+                  bad_pair_tag);
+
     ASSERT(IsInvalid());
   }
 
@@ -108,20 +155,27 @@ class Location : public ValueObject {
 
   // Constants.
   bool IsConstant() const {
-    ASSERT((kConstant & kConstantMask) == kConstant);
-    return (value_ & kConstantMask) == kConstant;
+    return (value_ & kLocationTagMask) == kConstantTag;
   }
 
   static Location Constant(const Object& obj) {
-    Location loc(reinterpret_cast<uword>(&obj) | kConstant);
+    Location loc(reinterpret_cast<uword>(&obj) | kConstantTag);
     ASSERT(&obj == &loc.constant());
     return loc;
   }
 
   const Object& constant() const {
     ASSERT(IsConstant());
-    return *reinterpret_cast<const Object*>(value_ & ~kConstantMask);
+    return *reinterpret_cast<const Object*>(value_ & ~kLocationTagMask);
   }
+
+  bool IsPairLocation() const {
+    return (value_ & kLocationTagMask) == kPairLocationTag;
+  }
+
+  static Location Pair(Location first, Location second);
+
+  PairLocation* AsPairLocation() const;
 
   // Unallocated locations.
   enum Policy {
@@ -211,7 +265,7 @@ class Location : public ValueObject {
   }
 
   static bool IsMachineRegisterKind(Kind kind) {
-    return (kind & kMachineRegisterMask) == kMachineRegister;
+    return (kind == kRegister) || (kind == kFpuRegister);
   }
 
   static Location MachineRegisterLocation(Kind kind,
@@ -337,6 +391,40 @@ class Location : public ValueObject {
 };
 
 
+class PairLocation : public ZoneAllocated {
+ public:
+  PairLocation() {
+    for (intptr_t i = 0; i < kPairLength; i++) {
+      ASSERT(locations_[i].IsInvalid());
+    }
+  }
+
+  intptr_t length() const { return kPairLength; }
+
+  Location At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < kPairLength);
+    return locations_[i];
+  }
+
+  void SetAt(intptr_t i, Location loc) {
+    ASSERT(i >= 0);
+    ASSERT(i < kPairLength);
+    locations_[i] = loc;
+  }
+
+  Location* SlotAt(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < kPairLength);
+    return &locations_[i];
+  }
+
+ private:
+  static const intptr_t kPairLength = 2;
+  Location locations_[kPairLength];
+};
+
+
 class RegisterSet : public ValueObject {
  public:
   RegisterSet() : cpu_registers_(0), fpu_registers_(0) {
@@ -456,7 +544,9 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_out(intptr_t index, Location loc) {
-    ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid()));
+    ASSERT(!always_calls() ||
+           (loc.IsMachineRegister() || loc.IsInvalid() ||
+            loc.IsPairLocation()));
     output_locations_[index] = loc;
   }
 

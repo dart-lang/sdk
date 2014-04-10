@@ -20,7 +20,7 @@ MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);
 intptr_t PortMap::capacity_ = 0;
 intptr_t PortMap::used_ = 0;
 intptr_t PortMap::deleted_ = 0;
-Dart_Port PortMap::next_port_ = 7111;
+Random* PortMap::prng_ = NULL;
 
 
 intptr_t PortMap::FindPort(Dart_Port port) {
@@ -63,15 +63,17 @@ void PortMap::Rehash(intptr_t new_capacity) {
 
 
 Dart_Port PortMap::AllocatePort() {
-  Dart_Port result = next_port_;
+  const Dart_Port kMASK = 0x3fffffff;
+  Dart_Port result = prng_->NextUInt32() & kMASK;
 
-  do {
-    // TODO(iposva): Use an approved hashing function to have less predictable
-    // port ids, or make them not accessible from Dart code or both.
-    next_port_++;
-  } while (FindPort(next_port_) >= 0);
+  // Keep getting new values while we have an illegal port number or the port
+  // number is already in use.
+  while ((result == 0) || (FindPort(result) >= 0)) {
+    result = prng_->NextUInt32() & kMASK;
+  }
 
   ASSERT(result != 0);
+  ASSERT(FindPort(result) < 0);
   return result;
 }
 
@@ -258,6 +260,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 
 void PortMap::InitOnce() {
   mutex_ = new Mutex();
+  prng_ = new Random();
 
   static const intptr_t kInitialCapacity = 8;
   // TODO(iposva): Verify whether we want to keep exponentially growing.

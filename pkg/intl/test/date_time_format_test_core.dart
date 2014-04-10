@@ -372,6 +372,12 @@ void runDateTests(Function subsetFunc) {
     expect(local.hour, equals(parsed.hour));
     });
 
+  test('Test 0-padding', () {
+    var someDate = new DateTime(123, 1, 2, 3, 4, 5);
+    var format = new DateFormat('yyyy-MM-dd HH:mm:ss');
+    expect(format.format(someDate), '0123-01-02 03:04:05');
+  });
+
   test('Test default format', () {
     var someDate = new DateTime(2012, 1, 27, 20, 58, 59, 1);
     var emptyFormat = new DateFormat(null, "en_US");

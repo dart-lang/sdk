@@ -99,7 +99,7 @@ void main() {
 
         return getAsString(virDir, '/')
           .then((result) {
-            expect(result, contains('Index of /'));
+            expect(result, contains('Index of &#x2F'));
           });
       });
 
@@ -112,7 +112,7 @@ void main() {
 
         return getAsString(virDir, '/')
           .then((result) {
-            expect(result, contains('Index of /'));
+            expect(result, contains('Index of &#x2F'));
           });
       });
 
@@ -125,7 +125,18 @@ void main() {
 
         return getAsString(virDir, '/')
           .then((result) {
-            expect(result, contains('Index of /'));
+            expect(result, contains('Index of &#x2F'));
+          });
+      });
+
+      testVirtualDir('encoded-dir', (dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        new Directory('${dir.path}/alert(\'hacked!\');').createSync();
+        virDir.allowDirectoryListing = true;
+
+        return getAsString(virDir, '/alert(\'hacked!\');')
+          .then((result) {
+            expect(result, contains('&#x2F;alert(&#x27;hacked!&#x27;);&#x2F;'));
           });
       });
 
@@ -137,19 +148,43 @@ void main() {
 
           return Future.wait([
               getAsString(virDir, '/').then(
-                  (s) => s.contains('recursive/')),
+                  (s) => s.contains('recursive&#x2F;')),
               getAsString(virDir, '/').then(
                   (s) => !s.contains('../')),
               getAsString(virDir, '/').then(
-                  (s) => s.contains('Index of /')),
+                  (s) => s.contains('Index of &#x2F;')),
               getAsString(virDir, '/recursive').then(
-                  (s) => s.contains('recursive/')),
+                  (s) => s.contains('recursive&#x2F;')),
               getAsString(virDir, '/recursive').then(
-                  (s) => s.contains('../')),
+                  (s) => s.contains('..&#x2F;')),
               getAsString(virDir, '/recursive').then(
-                  (s) => s.contains('Index of /recursive'))])
+                  (s) => s.contains('Index of &#x2F;recursive'))])
             .then((result) {
               expect(result, equals([true, true, true, true, true, true]));
+            });
+        });
+
+        testVirtualDir('encoded-path', (dir) {
+          var virDir = new VirtualDirectory(dir.path);
+          new Directory('${dir.path}/javascript:alert(document);"')
+              .createSync();
+          virDir.allowDirectoryListing = true;
+
+          return getAsString(virDir, '/')
+            .then((result) {
+              expect(result, contains('%2Fjavascript%3Aalert(document)%3B%22'));
+            });
+        });
+
+        testVirtualDir('encoded-special', (dir) {
+          var virDir = new VirtualDirectory(dir.path);
+          new Directory('${dir.path}/<>&"').createSync();
+          virDir.allowDirectoryListing = true;
+
+          return getAsString(virDir, '/')
+            .then((result) {
+              expect(result, contains('&lt;&gt;&amp;&quot;&#x2F;'));
+              expect(result, contains('href="%2F%3C%3E%26%22"'));
             });
         });
       }
@@ -193,9 +228,9 @@ void main() {
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
-        virDir.directoryHandler = protectAsync2((dir2, request) {
+        virDir.directoryHandler = (dir2, request) {
           fail('not expected');
-        });
+        };
 
         return getStatusCodeForVirtDir(virDir, '/dir', followRedirects: false)
           .then((result) {

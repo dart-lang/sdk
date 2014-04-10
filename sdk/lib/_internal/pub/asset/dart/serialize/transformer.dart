@@ -19,7 +19,7 @@ Map serializeTransformer(Transformer transformer) {
   port.listen((wrappedMessage) {
     respond(wrappedMessage, (message) {
       if (message['type'] == 'isPrimary') {
-        return transformer.isPrimary(deserializeAsset(message['asset']));
+        return transformer.isPrimary(deserializeId(message['id']));
       } else {
         assert(message['type'] == 'apply');
 

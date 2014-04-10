@@ -4,6 +4,7 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -25,10 +26,10 @@ main() {
     authorizePub(pub, server, "new access token");
 
     server.handle('GET', '/api/packages/versions/new', (request) {
-      expect(request.headers.value('authorization'),
-          equals('Bearer new access token'));
+      expect(request.headers,
+          containsPair('authorization', 'Bearer new access token'));
 
-      request.response.close();
+      return new shelf.Response(200);
     });
 
     // After we give pub an invalid response, it should crash. We wait for it to

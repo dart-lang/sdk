@@ -23,6 +23,9 @@
       'Dart_Win_simarm_Base': {
         'abstract': 1,
       },
+      'Dart_Win_simarm64_Base': {
+        'abstract': 1,
+      },
       'Dart_Win_simmips_Base': {
         'abstract': 1,
       },

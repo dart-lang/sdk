@@ -17,7 +17,7 @@ import 'spawn_uri_child_isolate.dart';
 main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
-    port.first.then(expectAsync1((msg) {
+    port.first.then(expectAsync((msg) {
       String expectedMessage = 're: hi';
       // Should be hi, not hello.
       expectedMessage = 're: hello'; /// 01: runtime error

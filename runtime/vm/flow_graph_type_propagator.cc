@@ -1292,14 +1292,13 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
 
 
 CompileType MergedMathInstr::ComputeType() const {
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    return CompileType::FromCid(kArrayCid);
-  } else if (kind() == MergedMathInstr::kSinCos) {
-    return CompileType::FromCid(kTypedDataFloat64ArrayCid);
-  } else {
-    UNIMPLEMENTED();
-    return CompileType::Dynamic();
-  }
+  return CompileType::Dynamic();
 }
+
+
+CompileType ExtractNthOutputInstr::ComputeType() const {
+  return CompileType::FromCid(definition_cid_);
+}
+
 
 }  // namespace dart

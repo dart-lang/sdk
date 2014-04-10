@@ -13,7 +13,7 @@ main() {
 
   test('readAsText', () {
       var reader = new FileReader();
-      reader.onLoad.listen(expectAsync1((event) {
+      reader.onLoad.listen(expectAsync((event) {
         var result = reader.result;
         expect(result, equals('hello world'));
       }));
@@ -22,7 +22,7 @@ main() {
 
   test('readAsArrayBuffer', () {
       var reader = new FileReader();
-      reader.onLoad.listen(expectAsync1((event) {
+      reader.onLoad.listen(expectAsync((event) {
         var result = reader.result;
         expect(result is Uint8List, isTrue);
         expect(result, orderedEquals([65, 66, 67]));
@@ -32,7 +32,7 @@ main() {
 
   test('readDataUrl', () {
       var reader = new FileReader();
-      reader.onLoad.listen(expectAsync1((event) {
+      reader.onLoad.listen(expectAsync((event) {
         var result = reader.result;
         expect(result is String, isTrue);
         expect(result.startsWith('data:'), isTrue);

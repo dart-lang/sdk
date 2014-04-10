@@ -1320,25 +1320,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ sll(T1, T3, 2);
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
+
   __ lw(T1, FieldAddress(T0, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
-                      &is_compiled);
-    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    __ lw(T1, FieldAddress(T0, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ lw(T0, FieldAddress(T1, Code::instructions_offset()));
+  __ lw(T1, FieldAddress(T1, Code::instructions_offset()));
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jalr(T0);
+  __ AddImmediate(T1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jalr(T1);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);

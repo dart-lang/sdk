@@ -32,35 +32,38 @@ main() {
 const String TEST_BAILOUT = r"""
 class A {
   var x;
-  foo() {
+  foo(_) { // make sure only g has no arguments
     var f = function g() { return 499;  };
     return 499 + x + f();
   }
 }
 
-main() { new A().foo(); }
+main() { new A().foo(1); }
 """;
 
-closureInvocation() {
-  String generated = compile(TEST_INVOCATION0);
-  Expect.isTrue(generated.contains(r".call$0()"));
-  generated = compile(TEST_INVOCATION1);
-  Expect.isTrue(generated.contains(r".call$1(1)"));
-  generated = compile(TEST_INVOCATION2);
-  Expect.isTrue(generated.contains(r".call$2(1, 2)"));
+closureInvocation(bool minify, String prefix) {
+  String generated = compile(TEST_INVOCATION0, minify: minify);
+  Expect.isTrue(generated.contains(".$prefix\$0()"));
+  generated = compile(TEST_INVOCATION1, minify: minify);
+  Expect.isTrue(generated.contains(".$prefix\$1(1)"));
+  generated = compile(TEST_INVOCATION2, minify: minify);
+  Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
 }
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
-closureBailout() {
-  asyncTest(() => compileAll(TEST_BAILOUT).then((generated) {
-    RegExp regexp = new RegExp(r'call\$0: function');
+closureBailout(bool minify, String prefix) {
+  asyncTest(() => compileAll(TEST_BAILOUT, minify: minify)
+      .then((generated) {
+    RegExp regexp = new RegExp("$prefix\\\$0:${minify ? "" : " "}function");
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }));
 }
 
 main() {
-  closureInvocation();
-  closureBailout();
+  closureInvocation(false, "call");
+  closureInvocation(true, "");
+  closureBailout(false, "call");
+  closureBailout(true, "");
 }

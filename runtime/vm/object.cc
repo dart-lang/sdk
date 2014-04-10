@@ -667,7 +667,7 @@ void Object::InitOnce() {
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
-    empty_descriptors_->raw_ptr()->length_ = Smi::New(0);
+    empty_descriptors_->raw_ptr()->length_ = 0;
   }
 
 
@@ -3197,9 +3197,6 @@ bool Class::IsMixinApplication() const {
   return mixin() != Type::null();
 }
 
-bool Class::IsAnonymousMixinApplication() const {
-  return IsMixinApplication() && !is_mixin_app_alias();
-}
 
 void Class::set_patch_class(const Class& cls) const {
   ASSERT(patch_class() == Class::null());
@@ -3863,12 +3860,8 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    intptr_t line_number = 0;
-    intptr_t column_number = 0;
-    script.GetTokenLocation(token_pos(), &line_number, &column_number);
     jsobj.AddProperty("script", script);
-    jsobj.AddProperty("line", line_number);
-    jsobj.AddProperty("col", column_number);
+    jsobj.AddProperty("tokenPos", token_pos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -4020,9 +4013,17 @@ void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-static intptr_t FinalizeHash(uword hash) {
+static uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
+  hash += other_hash;
+  hash += hash << 10;
+  hash ^= hash >> 6;  // Logical shift, unsigned hash.
+  return hash;
+}
+
+
+static uint32_t FinalizeHash(uint32_t hash) {
   hash += hash << 3;
-  hash ^= hash >> 11;
+  hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
   return hash;
 }
@@ -4032,13 +4033,13 @@ intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
   if (IsRaw(0, num_types)) return 0;
-  intptr_t result = 0;
+  uint32_t result = 0;
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    result += type.Hash();
-    result += result << 10;
-    result ^= result >> 6;
+    // The hash may be calculated during type finalization (for debugging
+    // purposes only) while a type argument is still temporarily null.
+    result = CombineHashes(result, type.IsNull() ? 0 : type.Hash());
   }
   return FinalizeHash(result);
 }
@@ -4069,8 +4070,10 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
 }
 
 
-bool TypeArguments::IsEquivalent(const TypeArguments& other,
-                                 GrowableObjectArray* trail) const {
+bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
+                                          intptr_t from_index,
+                                          intptr_t len,
+                                          GrowableObjectArray* trail) const {
   if (this->raw() == other.raw()) {
     return true;
   }
@@ -4083,7 +4086,7 @@ bool TypeArguments::IsEquivalent(const TypeArguments& other,
   }
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
+  for (intptr_t i = from_index; i < from_index + len; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
     if (!type.IsEquivalent(other_type, trail)) {
@@ -4091,6 +4094,24 @@ bool TypeArguments::IsEquivalent(const TypeArguments& other,
     }
   }
   return true;
+}
+
+
+bool TypeArguments::IsRecursive() const {
+  if (IsNull()) return false;
+  const intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    // If this type argument is null, the type parameterized with this type
+    // argument is still being finalized and is definitely recursive. The null
+    // type argument will be replaced by a non-null type before the type is
+    // marked as finalized.
+    if (type.IsNull() || type.IsRecursive()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -4102,7 +4123,6 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
         // An uninstantiated type parameter is equivalent to dynamic (even in
@@ -4239,21 +4259,9 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 }
 
 
-void TypeArguments::set_type_at(intptr_t index,
+void TypeArguments::SetTypeAt(intptr_t index,
                                 const AbstractType& value) const {
   StorePointer(TypeAddr(index), value.raw());
-}
-
-
-void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
-  const AbstractType& type_arg = AbstractType::Handle(TypeAt(index));
-  if (type_arg.IsTypeRef()) {
-    if (value.raw() != type_arg.raw()) {
-      TypeRef::Cast(type_arg).set_type(value);
-    }
-  } else {
-    set_type_at(index, value);
-  }
 }
 
 
@@ -4270,12 +4278,16 @@ bool TypeArguments::IsResolved() const {
 }
 
 
-bool TypeArguments::IsInstantiated(GrowableObjectArray* trail) const {
+bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
+                                            intptr_t len,
+                                            GrowableObjectArray* trail) const {
+  ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
-  const intptr_t num_types = Length();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    if (!type.IsBeingFinalized() && !type.IsInstantiated(trail)) {
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
+    // If the type argument is null, the type parameterized with this type
+    // argument is still being finalized. Skip this null type argument.
+    if (!type.IsNull() && !type.IsInstantiated(trail)) {
       return false;
     }
   }
@@ -4439,7 +4451,13 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsBeingFinalized() && !type.IsInstantiated()) {
+    // If this type argument T is null, the type A containing T in its flattened
+    // type argument vector V is recursive and is still being finalized.
+    // T is the type argument of a super type of A. T is being instantiated
+    // during finalization of V, which is also the instantiator. T depends
+    // solely on the type parameters of A and will be replaced by a non-null
+    // type before A is marked as finalized.
+    if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
                                   trail);
@@ -4555,7 +4573,7 @@ static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
   for (intptr_t i = 0; i < table_size; i++) {
     element ^= table.At(i);
     if (!element.IsNull()) {
-      intptr_t hash = element.Hash();
+      const intptr_t hash = element.Hash();
       ASSERT(Utils::IsPowerOfTwo(new_table_size));
       intptr_t index = hash & (new_table_size - 1);
       new_element = new_table.At(index);
@@ -4587,6 +4605,24 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
       Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
   const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
   table.SetAt(table_size, used);
+
+#ifdef DEBUG
+  // Verify that there are no duplicates.
+  // Duplicates could appear if hash values are not kept constant across
+  // snapshots, e.g. if class ids are not preserved by the snapshots.
+  TypeArguments& other_arguments = TypeArguments::Handle();
+  for (intptr_t i = 0; i < table_size; i++) {
+    if ((i != index) && (table.At(i) != TypeArguments::null())) {
+      other_arguments ^= table.At(i);
+      if (arguments.Equals(other_arguments)) {
+        // Recursive types may be equal, but have different hashes.
+        ASSERT(arguments.IsRecursive());
+        ASSERT(other_arguments.IsRecursive());
+        ASSERT(arguments.Hash() != other_arguments.Hash());
+      }
+    }
+  }
+#endif
 
   // Rehash if table is 75% full.
   if (used_elements > ((table_size / 4) * 3)) {
@@ -4649,7 +4685,7 @@ RawTypeArguments* TypeArguments::Canonicalize(
   Array& table = Array::Handle(isolate,
                                object_store->canonical_type_arguments());
   // Last element of the array is the number of used elements.
-  const intptr_t used_elements =
+  const intptr_t num_used =
       Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
   const intptr_t hash = Hash();
   intptr_t index =
@@ -4665,16 +4701,18 @@ RawTypeArguments* TypeArguments::Canonicalize(
       SetTypeAt(i, type_arg);
     }
     // Canonicalization of a recursive type may change its hash.
-    const intptr_t new_hash = Hash();
+    intptr_t canonical_hash = hash;
+    if (IsRecursive()) {
+      canonical_hash = Hash();
+    }
     // Canonicalization of the type argument's own type arguments may add an
     // entry to the table, or even grow the table, and thereby change the
     // previously calculated index.
     table = object_store->canonical_type_arguments();
-    if ((new_hash != hash) ||
-        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1)))
-         != used_elements)) {
-      index =
-          FindIndexInCanonicalTypeArguments(isolate, table, *this, new_hash);
+    if ((canonical_hash != hash) ||
+        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used)) {
+      index = FindIndexInCanonicalTypeArguments(
+          isolate, table, *this, canonical_hash);
       result ^= table.At(index);
     }
     if (result.IsNull()) {
@@ -4769,16 +4807,26 @@ bool Function::HasBreakpoint() const {
 }
 
 
-void Function::SetCode(const Code& value) const {
+void Function::set_code(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
+}
+
+void Function::AttachCode(const Code& value) const {
+  set_code(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
   value.set_owner(*this);
 }
 
 
+bool Function::HasCode() const {
+  ASSERT(raw_ptr()->code_ != Code::null());
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+}
+
+
 void Function::ClearCode() const {
-  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->code_, StubCode::LazyCompile_entry()->code());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
 }
 
@@ -4805,7 +4853,7 @@ void Function::SwitchToUnoptimizedCode() const {
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
   // Use previously compiled unoptimized code.
-  SetCode(Code::Handle(unoptimized_code()));
+  AttachCode(Code::Handle(unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
 }
 
@@ -5822,6 +5870,13 @@ RawFunction* Function::New(const String& name,
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
+
+// TODO(zra): Remove when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#else
+  result.set_code(Code::Handle());
+#endif
   return result.raw();
 }
 
@@ -5834,8 +5889,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
-  clone.StorePointer(&clone.raw_ptr()->code_, Code::null());
-  clone.StorePointer(&clone.raw_ptr()->unoptimized_code_, Code::null());
+  clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
@@ -5862,6 +5916,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
+
   return result.raw();
 }
 
@@ -6353,7 +6408,12 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
-  jsobj.AddProperty("class", cls);
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
+  }
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("parent", parent);
@@ -6373,6 +6433,13 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("code", Object::Handle(CurrentCode()));
   jsobj.AddProperty("deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
+
+  const Script& script = Script::Handle(this->script());
+  if (!script.IsNull()) {
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("tokenPos", token_pos());
+    jsobj.AddProperty("endTokenPos", end_token_pos());
+  }
 }
 
 
@@ -6669,16 +6736,15 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("value", valueObj);
   }
 
-  jsobj.AddProperty("owner", cls);
-
-  // TODO(turnidge): Once the vmservice supports returning types,
-  // return the type here instead of the class.
-  AbstractType& declared_type = AbstractType::Handle(type());
-  if (declared_type.HasResolvedTypeClass()) {
-    cls = declared_type.type_class();
-    jsobj.AddProperty("declared_type", cls);
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
   }
 
+  AbstractType& declared_type = AbstractType::Handle(type());
+  jsobj.AddProperty("declared_type", declared_type);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
@@ -6702,6 +6768,12 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("guard_length", "variable");
   } else {
     jsobj.AddProperty("guard_length", guarded_list_length());
+  }
+  const Class& origin_cls = Class::Handle(origin());
+  const Script& script = Script::Handle(origin_cls.script());
+  if (!script.IsNull()) {
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("token_pos", token_pos());
   }
 }
 
@@ -7524,6 +7596,82 @@ RawString* Script::GenerateSource() const {
 }
 
 
+RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
+  const GrowableObjectArray& info =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const String& source = String::Handle(Source());
+  const String& key = Symbols::Empty();
+  const Object& line_separator = Object::Handle();
+  const TokenStream& tkns = TokenStream::Handle(tokens());
+  ASSERT(!tkns.IsNull());
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  int current_line = -1;
+  Scanner s(source, key);
+  s.Scan();
+  bool skippedNewline = false;
+  while (tkit.CurrentTokenKind() != Token::kEOS) {
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      // Skip newlines from the token stream.
+      skippedNewline = true;
+      tkit.Advance();
+      continue;
+    }
+    if (s.current_token().kind != tkit.CurrentTokenKind()) {
+      // Suppose we have a multiline string with interpolation:
+      //
+      // 10    '''
+      // 11    bar
+      // 12    baz
+      // 13    foo is $foo
+      // 14    '''
+      //
+      // In the token stream, this becomes something like:
+      //
+      // 10    string('bar\nbaz\nfoo is\n')
+      // 11    newline
+      // 12    newline
+      // 13    string('') interpol_var(foo) string('\n')
+      // 14
+      //
+      // In order to keep the token iterator and the scanner in sync,
+      // we need to skip the extra empty string before the
+      // interpolation.
+      if (skippedNewline &&
+          (s.current_token().kind == Token::kINTERPOL_VAR ||
+           s.current_token().kind == Token::kINTERPOL_START) &&
+          tkit.CurrentTokenKind() == Token::kSTRING) {
+        const String& tokenValue = String::Handle(tkit.CurrentLiteral());
+        if (tokenValue.Length() == 0) {
+          tkit.Advance();
+        }
+      }
+    }
+    skippedNewline = false;
+    ASSERT(s.current_token().kind == tkit.CurrentTokenKind());
+    int token_line = s.current_token().position.line;
+    if (token_line != current_line) {
+      // emit line
+      info.Add(line_separator);
+      info.Add(Smi::Handle(Smi::New(token_line + line_offset())));
+      current_line = token_line;
+    }
+    // TODO(hausner): Could optimize here by not reporting tokens
+    // that will never be a location used by the debugger, e.g.
+    // braces, semicolons, most keywords etc.
+    info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
+    int column = s.current_token().position.column;
+    // On the first line of the script we must add the column offset.
+    if (token_line == 1) {
+      column += col_offset();
+    }
+    info.Add(Smi::Handle(Smi::New(column)));
+    tkit.Advance();
+    s.Scan();
+  }
+  return info.raw();
+}
+
+
 const char* Script::GetKindAsCString() const {
   switch (kind()) {
     case RawScript::kScriptTag:
@@ -7791,6 +7939,7 @@ const char* Script::ToCString() const {
 }
 
 
+// See also Dart_ScriptGetTokenInfo.
 void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -7807,6 +7956,35 @@ void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
+
+  // Print the line number table
+  {
+    JSONArray tokenPosTable(&jsobj, "tokenPosTable");
+
+    const GrowableObjectArray& lineNumberArray =
+        GrowableObjectArray::Handle(GenerateLineNumberArray());
+    Object& value = Object::Handle();
+    intptr_t pos = 0;
+
+    // Skip leading null.
+    ASSERT(lineNumberArray.Length() > 0);
+    value = lineNumberArray.At(pos);
+    ASSERT(value.IsNull());
+    pos++;
+
+    while (pos < lineNumberArray.Length()) {
+      JSONArray lineInfo(&tokenPosTable);
+      while (pos < lineNumberArray.Length()) {
+        value = lineNumberArray.At(pos);
+        pos++;
+        if (value.IsNull()) {
+          break;
+        }
+        const Smi& smi = Smi::Cast(value);
+        lineInfo.AddValue(smi.Value());
+      }
+    }
+  }
 }
 
 
@@ -7980,8 +8158,14 @@ void Library::AddMetadata(const Class& cls,
 }
 
 
-void Library::AddClassMetadata(const Class& cls, intptr_t token_pos) const {
-  AddMetadata(cls, String::Handle(MakeClassMetaName(cls)), token_pos);
+void Library::AddClassMetadata(const Class& cls,
+                               const Class& toplevel_class,
+                               intptr_t token_pos) const {
+  // We use the toplevel class as the owner of a class's metadata field because
+  // a class's metadata is in scope of the library, not the class.
+  AddMetadata(toplevel_class,
+              String::Handle(MakeClassMetaName(cls)),
+              token_pos);
 }
 
 
@@ -9036,7 +9220,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
       if (!klass.IsCanonicalSignatureClass() &&
-          !klass.IsAnonymousMixinApplication()) {
+          !klass.IsMixinApplication()) {
         jsarr.AddValue(klass);
       }
     }
@@ -9638,14 +9822,12 @@ void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 intptr_t PcDescriptors::Length() const {
-  return Smi::Value(raw_ptr()->length_);
+  return raw_ptr()->length_;
 }
 
 
 void PcDescriptors::SetLength(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  raw_ptr()->length_ = value;
 }
 
 
@@ -9844,11 +10026,6 @@ uword PcDescriptors::GetPcForKind(Kind kind) const {
     }
   }
   return 0;
-}
-
-
-void Stackmap::SetCode(const dart::Code& code) const {
-  StorePointer(&raw_ptr()->code_, code.raw());
 }
 
 
@@ -12551,69 +12728,23 @@ const char* Instance::ToCString() const {
 }
 
 
-const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
-  if (IsNull()) {
-    return "null";
-  } else if (raw() == Object::sentinel().raw()) {
-    return "<not initialized>";
-  } else if (raw() == Object::transition_sentinel().raw()) {
-    return "<being initialized>";
-  } else {
-    return ToCString();
-  }
-}
-
-
-void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
+  jsobj->AddProperty("type", JSONType(ref));
   Class& cls = Class::Handle(this->clazz());
-
-  // TODO(turnidge): Handle <optimized out> like other null-like values.
-  if (IsNull()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/null");
-    jsobj.AddProperty("preview", "null");
-    return;
-  } else if (raw() == Object::sentinel().raw()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/not-initialized");
-    jsobj.AddProperty("preview", "<not initialized>");
-    return;
-  } else if (raw() == Object::transition_sentinel().raw()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/being-initialized");
-    jsobj.AddProperty("preview", "<being initialized>");
-    return;
-  } else if (raw() == Symbols::OptimizedOut().raw()) {
-    // TODO(turnidge): This is a hack.  The user could have this
-    // special string in their program.  Fixing this involves updating
-    // the debugging api a bit.
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/optimized-out");
-    jsobj.AddProperty("preview", "<optimized out>");
-    return;
-  } else {
-    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    const intptr_t id = ring->GetIdForObject(raw());
-    if (IsClosure()) {
-      const Function& closureFunc = Function::Handle(Closure::function(*this));
-      jsobj.AddProperty("closureFunc", closureFunc);
-      jsobj.AddProperty("type", ref ? "@Closure" : "Closure");
-    } else {
-      jsobj.AddProperty("type", JSONType(ref));
-    }
-    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-    jsobj.AddProperty("class", cls);
-    jsobj.AddProperty("preview", ToUserCString(40));
-  }
+  jsobj->AddProperty("class", cls);
+  // TODO(turnidge): Provide the type arguments here too.
   if (ref) {
     return;
+  }
+
+  if (raw()->IsHeapObject()) {
+    jsobj->AddProperty("size", raw()->Size());
   }
 
   // Walk the superclass chain, adding all instance fields.
   {
     Instance& fieldValue = Instance::Handle();
-    JSONArray jsarr(&jsobj, "fields");
+    JSONArray jsarr(jsobj, "fields");
     while (!cls.IsNull()) {
       const Array& field_array = Array::Handle(cls.fields());
       Field& field = Field::Handle();
@@ -12633,7 +12764,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
 
   if (NumNativeFields() > 0) {
-    JSONArray jsarr(&jsobj, "nativeFields");
+    JSONArray jsarr(jsobj, "nativeFields");
     for (intptr_t i = 0; i < NumNativeFields(); i++) {
       intptr_t value = GetNativeField(i);
       JSONObject jsfield(&jsarr);
@@ -12641,8 +12772,41 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
       jsfield.AddProperty("value", value);
     }
   }
+}
 
-  jsobj.AddProperty("size", raw()->Size());
+
+void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+
+  // Handle certain special instance values.
+  if (IsNull()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/null");
+    jsobj.AddProperty("valueAsString", "null");
+    return;
+  } else if (raw() == Object::sentinel().raw()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/not-initialized");
+    jsobj.AddProperty("valueAsString", "<not initialized>");
+    return;
+  } else if (raw() == Object::transition_sentinel().raw()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/being-initialized");
+    jsobj.AddProperty("valueAsString", "<being initialized>");
+    return;
+  }
+
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  if (IsClosure()) {
+    const Function& closureFunc = Function::Handle(Closure::function(*this));
+    jsobj.AddProperty("closureFunc", closureFunc);
+  }
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
 }
 
 
@@ -12751,6 +12915,13 @@ bool AbstractType::IsEquivalent(const Instance& other,
 }
 
 
+bool AbstractType::IsRecursive() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
@@ -12772,6 +12943,34 @@ RawAbstractType* AbstractType::Canonicalize(GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
+}
+
+
+RawObject* AbstractType::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
+  if (trail == NULL) {
+    return Object::null();
+  }
+  const intptr_t len = trail->Length();
+  ASSERT((len % 2) == 0);
+  for (intptr_t i = 0; i < len; i += 2) {
+    if (trail->At(i) == this->raw()) {
+      ASSERT(trail->At(i + 1) != Object::null());
+      return trail->At(i + 1);
+    }
+  }
+  return Object::null();
+}
+
+
+void AbstractType::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                                       const Object& buddy) const {
+  if (*trail == NULL) {
+    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  } else {
+    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
+  }
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
 }
 
 
@@ -12814,7 +13013,14 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   intptr_t num_type_params;  // Number of type parameters to print.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
-    num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
+    if (IsResolved() || !cls.IsMixinApplication()) {
+      // Do not print the full vector, but only the declared type parameters.
+      num_type_params = cls.NumTypeParameters();
+    } else {
+      // Do not print the type parameters of an unresolved mixin application,
+      // since it would prematurely trigger the application of the mixin type.
+      num_type_params = 0;
+    }
     if (name_visibility == kInternalName) {
       class_name = cls.Name();
     } else {
@@ -13266,8 +13472,25 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated) {
     return false;
   }
+  if (arguments() == TypeArguments::null()) {
+    return true;
+  }
   const TypeArguments& args = TypeArguments::Handle(arguments());
-  return args.IsNull() || args.IsInstantiated(trail);
+  const intptr_t num_type_args = args.Length();
+  intptr_t len = num_type_args;  // Check the full vector of type args.
+  ASSERT(num_type_args > 0);
+  // This type is not instantiated if it refers to type parameters.
+  // This IsInstantiated() call may be invoked on an unresolved signature type.
+  // Although this type may still be unresolved, the type parameters it may
+  // refer to are resolved by definition. We can therefore return the correct
+  // result even for an unresolved type. We just need to look at all type
+  // arguments and not just at the type parameters.
+  if (HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(type_class());
+    len = cls.NumTypeParameters();  // Check the type parameters only.
+    ASSERT(num_type_args == cls.NumTypeArguments());
+  }
+  return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
 }
 
 
@@ -13281,20 +13504,40 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsMalformed()) {
     return raw();
   }
+  // Instantiating this type with its own type arguments as instantiator can
+  // occur during finalization and bounds checking. Return the type unchanged.
+  if (arguments() == instantiator_type_arguments.raw()) {
+    return raw();
+  }
+  // If this type is recursive, we may already be instantiating it.
+  Type& instantiated_type = Type::Handle();
+  instantiated_type ^= OnlyBuddyInTrail(trail);
+  if (!instantiated_type.IsNull()) {
+    ASSERT(IsRecursive());
+    return instantiated_type.raw();
+  }
+  // Note that the type class has to be resolved at this time, but not
+  // necessarily finalized yet. We may be checking bounds at compile time or
+  // finalizing the type argument vector of a recursive type.
+  const Class& cls = Class::Handle(type_class());
+
+  // This uninstantiated type is not modified, as it can be instantiated
+  // with different instantiators. Allocate a new instantiated version of it.
+  instantiated_type = Type::New(cls, TypeArguments::Handle(), token_pos());
   TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+  if (type_arguments.IsRecursive()) {
+    AddOnlyBuddyToTrail(&trail, instantiated_type);
+  }
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                   bound_error,
                                                   trail);
-  // Note that the type class has to be resolved at this time, but not
-  // necessarily finalized yet. We may be checking bounds at compile time.
-  const Class& cls = Class::Handle(type_class());
-  // This uninstantiated type is not modified, as it can be instantiated
-  // with different instantiators.
-  Type& instantiated_type = Type::Handle(
-      Type::New(cls, type_arguments, token_pos()));
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.Length() == cls.NumTypeArguments()));
-  instantiated_type.SetIsFinalized();
+  instantiated_type.set_arguments(type_arguments);
+  if (IsFinalized()) {
+    instantiated_type.SetIsFinalized();
+  } else {
+    instantiated_type.set_is_resolved();
+  }
   // Canonicalization is not part of instantiation.
   return instantiated_type.raw();
 }
@@ -13343,23 +13586,39 @@ bool Type::IsEquivalent(const Instance& other,
   const TypeArguments& other_type_args = TypeArguments::Handle(
       isolate, other_type.arguments());
   if (type_args.IsNull()) {
-    return other_type_args.IsRaw(from_index, num_type_params);
+    // Ignore from_index.
+    return other_type_args.IsRaw(0, num_type_params);
   }
   if (other_type_args.IsNull()) {
-    return type_args.IsRaw(from_index, num_type_params);
+    // Ignore from_index.
+    return type_args.IsRaw(0, num_type_params);
   }
-  ASSERT(type_args.Length() >= (from_index + num_type_params));
-  ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-  AbstractType& type_arg = AbstractType::Handle(isolate);
-  AbstractType& other_type_arg = AbstractType::Handle(isolate);
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    type_arg = type_args.TypeAt(from_index + i);
-    other_type_arg = other_type_args.TypeAt(from_index + i);
-    if (!type_arg.IsEquivalent(other_type_arg, trail)) {
-      return false;
+  if (!type_args.IsSubvectorEquivalent(other_type_args,
+                                       from_index,
+                                       num_type_params)) {
+    return false;
+  }
+#ifdef DEBUG
+  if (from_index > 0) {
+    // Verify that the type arguments of the super class match, since they
+    // depend solely on the type parameters that were just verified to match.
+    ASSERT(type_args.Length() >= (from_index + num_type_params));
+    ASSERT(other_type_args.Length() >= (from_index + num_type_params));
+    AbstractType& type_arg = AbstractType::Handle(isolate);
+    AbstractType& other_type_arg = AbstractType::Handle(isolate);
+    for (intptr_t i = 0; i < from_index; i++) {
+      type_arg = type_args.TypeAt(i);
+      other_type_arg = other_type_args.TypeAt(i);
+      ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
     }
   }
+#endif
   return true;
+}
+
+
+bool Type::IsRecursive() const {
+  return TypeArguments::Handle(arguments()).IsRecursive();
 }
 
 
@@ -13500,10 +13759,10 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
 
 intptr_t Type::Hash() const {
   ASSERT(IsFinalized());
-  uword result = 1;
+  uint32_t result = 1;
   if (IsMalformed()) return result;
-  result += Class::Handle(type_class()).id();
-  result += TypeArguments::Handle(arguments()).Hash();
+  result = CombineHashes(result, Class::Handle(type_class()).id());
+  result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   return FinalizeHash(result);
 }
 
@@ -13570,10 +13829,20 @@ const char* Type::ToCString() const {
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
+    } else if (IsFinalized() && IsRecursive()) {
+      const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
+      const intptr_t hash = Hash();
+      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+      const intptr_t len =
+          OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+      OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
+      return chars;
     } else {
       const char* format = "Type: class '%s', args:[%s]";
       const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
+      const intptr_t len =
+          OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name, args_cstr);
       return chars;
@@ -13585,18 +13854,20 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  // TODO(koda): Decide whether to assign stable ids to non-canonical types.
-  if (!IsCanonical()) {
-    return Object::PrintToJSONStream(stream, ref);
-  }
-  ASSERT(IsCanonical());
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
-  const Class& type_cls = Class::Handle(type_class());
-  intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
-  ASSERT(id >= 0);
-  intptr_t cid = type_cls.id();
-  jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  if (IsCanonical()) {
+    const Class& type_cls = Class::Handle(type_class());
+    intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
+    ASSERT(id >= 0);
+    intptr_t cid = type_cls.id();
+    jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+    jsobj.AddProperty("type_class", type_cls);
+  } else {
+    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+    const intptr_t id = ring->GetIdForObject(raw());
+    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  }
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("name", name);
@@ -13604,7 +13875,6 @@ void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("type_class", type_cls);
   jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
 }
 
@@ -13629,7 +13899,7 @@ bool TypeRef::IsEquivalent(const Instance& other,
 }
 
 
-RawAbstractType* TypeRef::InstantiateFrom(
+RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
     GrowableObjectArray* trail) const {
@@ -13638,21 +13908,21 @@ RawAbstractType* TypeRef::InstantiateFrom(
   if (!instantiated_type_ref.IsNull()) {
     return instantiated_type_ref.raw();
   }
-  instantiated_type_ref = TypeRef::New(Type::Handle(Type::DynamicType()));
-  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
-  const AbstractType& ref_type = AbstractType::Handle(type());
+  AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
-  const AbstractType& instantiated_ref_type = AbstractType::Handle(
-      ref_type.InstantiateFrom(instantiator_type_arguments,
-                               bound_error,
-                               trail));
-  instantiated_type_ref.set_type(instantiated_ref_type);
+  AbstractType& instantiated_ref_type = AbstractType::Handle();
+  instantiated_ref_type = ref_type.InstantiateFrom(
+        instantiator_type_arguments, bound_error, trail);
+  ASSERT(!instantiated_ref_type.IsTypeRef());
+  instantiated_type_ref = TypeRef::New(instantiated_ref_type);
+  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
   return instantiated_type_ref.raw();
 }
 
 
 void TypeRef::set_type(const AbstractType& value) const {
   ASSERT(value.HasResolvedTypeClass());
+  ASSERT(!value.IsTypeRef());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
 
@@ -13660,11 +13930,13 @@ void TypeRef::set_type(const AbstractType& value) const {
 // A TypeRef cannot be canonical by definition. Only its referenced type can be.
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
-// i.e. itself, but pointer equality is not possible.
+// represented by a TypeRef pointing to itself.
 RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
   }
+  // TODO(regis): Try to reduce the number of nodes required to represent the
+  // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
   ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);
@@ -13674,7 +13946,8 @@ RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
 
 intptr_t TypeRef::Hash() const {
   // Do not calculate the hash of the referenced type to avoid divergence.
-  uword result = Class::Handle(AbstractType::Handle(type()).type_class()).id();
+  const uint32_t result =
+      Class::Handle(AbstractType::Handle(type()).type_class()).id();
   return FinalizeHash(result);
 }
 
@@ -13715,34 +13988,6 @@ bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
 }
 
 
-RawObject* TypeRef::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
-  if (trail == NULL) {
-    return Object::null();
-  }
-  const intptr_t len = trail->Length();
-  ASSERT((len % 2) == 0);
-  for (intptr_t i = 0; i < len; i += 2) {
-    if (trail->At(i) == this->raw()) {
-      ASSERT(trail->At(i + 1) != Object::null());
-      return trail->At(i + 1);
-    }
-  }
-  return Object::null();
-}
-
-
-void TypeRef::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                                  const Object& buddy) const {
-  if (*trail == NULL) {
-    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
-  } else {
-    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
-  }
-  (*trail)->Add(*this);
-  (*trail)->Add(buddy);
-}
-
-
 RawTypeRef* TypeRef::New() {
   ASSERT(Isolate::Current()->object_store()->type_ref_class() != Class::null());
   RawObject* raw = Object::Allocate(TypeRef::kClassId,
@@ -13760,23 +14005,32 @@ RawTypeRef* TypeRef::New(const AbstractType& type) {
 
 
 const char* TypeRef::ToCString() const {
-  const char* format = "TypeRef: %s%s";
-  const char* type_cstr = String::Handle(Class::Handle(AbstractType::Handle(
-      type()).type_class()).Name()).ToCString();
-  const char* args_cstr = (AbstractType::Handle(
-      type()).arguments() == TypeArguments::null()) ? "" : "<...>";
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, args_cstr) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, args_cstr);
-  return chars;
+  const char* type_cstr = String::Handle(Class::Handle(
+      type_class()).Name()).ToCString();
+  AbstractType& ref_type = AbstractType::Handle(type());
+  if (ref_type.IsFinalized()) {
+    const char* format = "TypeRef: %s<...> (@%" Px " H%" Px ")";
+    const intptr_t hash = ref_type.Hash();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, type_cstr, ref_type.raw(), hash) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, type_cstr, ref_type.raw(), hash);
+    return chars;
+  } else {
+    const char* format = "TypeRef: %s<...>";
+    const intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, type_cstr);
+    return chars;
+  }
 }
 
 
 void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
@@ -13923,10 +14177,10 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
-  uword result = Class::Handle(parameterized_class()).id();
+  uint32_t result = Class::Handle(parameterized_class()).id();
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
-  result <<= index();
+  result = CombineHashes(result, index());
   return FinalizeHash(result);
 }
 
@@ -13990,16 +14244,16 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("name", name);
   jsobj.AddProperty("user_name", user_name);
-  const Class& cls = Class::Handle(parameterized_class());
-  jsobj.AddProperty("parameterized_class", cls);
+  const Class& param_cls = Class::Handle(parameterized_class());
+  jsobj.AddProperty("parameterized_class", param_cls);
   if (ref) {
     return;
   }
@@ -14060,6 +14314,11 @@ bool BoundedType::IsEquivalent(const Instance& other,
   return this_bound.IsFinalized() &&
          other_bound.IsFinalized() &&
          this_bound.Equals(other_bound);  // Different graph, do not pass trail.
+}
+
+
+bool BoundedType::IsRecursive() const {
+  return AbstractType::Handle(type()).IsRecursive();
 }
 
 
@@ -14137,11 +14396,12 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 
 intptr_t BoundedType::Hash() const {
-  uword result = AbstractType::Handle(type()).Hash();
+  uint32_t result = AbstractType::Handle(type()).Hash();
   // No need to include the hash of the bound, since the bound is defined by the
   // type parameter (modulo instantiation state).
-  result += TypeParameter::Handle(type_parameter()).Hash();
-return FinalizeHash(result);
+  result = CombineHashes(result,
+                         TypeParameter::Handle(type_parameter()).Hash());
+  return FinalizeHash(result);
 }
 
 
@@ -14187,9 +14447,9 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
@@ -14281,7 +14541,12 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -14723,11 +14988,9 @@ const char* Smi::ToCString() const {
 
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
-  class Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-  jsobj.AddPropertyF("preview", "%" Pd "", Value());
+  jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
 }
 
 
@@ -15142,16 +15405,12 @@ class StringHasher : ValueObject {
  public:
   StringHasher() : hash_(0) {}
   void Add(int32_t ch) {
-    hash_ += ch;
-    hash_ += hash_ << 10;
-    hash_ ^= hash_ >> 6;
+    hash_ = CombineHashes(hash_, ch);
   }
   // Return a non-zero hash of at most 'bits' bits.
   intptr_t Finalize(int bits) {
     ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
-    hash_ += hash_ << 3;
-    hash_ ^= hash_ >> 11;
-    hash_ += hash_ << 15;
+    hash_ = FinalizeHash(hash_);
     hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
     ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
     return hash_ == 0 ? 1 : hash_;
@@ -15960,7 +16219,7 @@ intptr_t String::EscapedStringLen(intptr_t too_long) const {
 }
 
 
-const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
+const char* String::ToUserCString(intptr_t max_len) const {
   // Compute the needed length for the buffer.
   const intptr_t escaped_len = EscapedStringLen(max_len);
   intptr_t print_len = escaped_len;
@@ -15997,7 +16256,21 @@ const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 
 
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  if (raw() == Symbols::OptimizedOut().raw()) {
+    // TODO(turnidge): This is a hack.  The user could have this
+    // special string in their program.  Fixing this involves updating
+    // the debugging api a bit.
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/optimized-out");
+    jsobj.AddProperty("valueAsString", "<optimized out>");
+    return;
+  }
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToUserCString(1024));
 }
 
 
@@ -16795,7 +17068,7 @@ void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
-  jsobj.AddPropertyF("preview", "%s", str);
+  jsobj.AddPropertyF("valueAsString", "%s", str);
 }
 
 
@@ -16880,12 +17153,10 @@ const char* Array::ToCString() const {
 
 void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(this->clazz());
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("class", cls);
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;
@@ -17116,115 +17387,13 @@ const char* GrowableObjectArray::ToCString() const {
 }
 
 
-const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
-                                               intptr_t nesting) const {
-  if (Length() == 0) {
-    return "[]";
-  }
-  if (nesting > 3) {
-    return "[...]";
-  }
-
-  Isolate* isolate = Isolate::Current();
-  Zone* zone = isolate->current_zone();
-  Object& obj = Object::Handle(isolate);
-  Instance& element = Instance::Handle(isolate);
-
-  // Pre-print the suffix that we will use if the string is truncated.
-  // It is important to know the suffix length when deciding where to
-  // limit the list.
-  const intptr_t kMaxTruncSuffixLen = 16;
-  char trunc_suffix[kMaxTruncSuffixLen];
-  intptr_t trunc_suffix_len;
-  if (nesting == 0) {
-    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...](length:%" Pd ")",
-                                   Length());
-  } else {
-    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...]");
-  }
-  bool truncate = false;
-
-  const int kMaxPrintElements = 128;
-  const char* strings[kMaxPrintElements];
-  intptr_t print_len = 1;  // +1 for "["
-
-  // Figure out how many elements will fit in the string.
-  int i = 0;
-  while (i < Length()) {
-    if (i == kMaxPrintElements) {
-      if (i < Length()) {
-        truncate = true;
-      }
-      break;
-    }
-    obj = At(i);
-    if (!obj.IsNull() && !obj.IsInstance()) {
-      UNREACHABLE();
-      return "[<invalid list>]";
-    }
-    element ^= obj.raw();
-
-    // Choose max child length.  This is chosen so that it is small
-    // enough to maybe fit but not so small that we can't print
-    // anything.
-    int child_max_len = max_len - print_len;
-    if ((i + 1) < Length()) {
-      child_max_len -= (trunc_suffix_len + 1);  // 1 for ","
-    } else {
-      child_max_len -= 1;  // 1 for "]"
-    }
-    if (child_max_len < 8) {
-      child_max_len = 8;
-    }
-
-    strings[i] = element.ToUserCString(child_max_len,  nesting + 1);
-    print_len += strlen(strings[i]) + 1;  // +1 for "," or "]"
-    i++;
-    if (print_len > max_len) {
-      truncate = true;
-      break;
-    }
-  }
-  if (truncate) {
-    // Go backwards until there is enough room for the truncation suffix.
-    while (i >= 0 && (print_len + trunc_suffix_len) > max_len) {
-      i--;
-      print_len -= (strlen(strings[i]) + 1);  // +1 for ","
-    }
-  }
-
-  // Finally, allocate and print the string.
-  int num_to_print = i;
-  char* buffer = zone->Alloc<char>(print_len + 1);  // +1 for "\0"
-  intptr_t pos = 0;
-  buffer[pos++] = '[';
-  for (i = 0; i < num_to_print; i++) {
-    if ((i + 1) == Length()) {
-      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
-                         "%s]", strings[i]);
-    } else {
-      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
-                         "%s,", strings[i]);
-    }
-  }
-  if (i < Length()) {
-    pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos), "%s", trunc_suffix);
-  }
-  ASSERT(pos <= max_len);
-  buffer[pos] = '\0';
-  return buffer;
-}
-
-
 void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(this->clazz());
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("class", cls);
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;

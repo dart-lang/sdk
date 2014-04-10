@@ -251,8 +251,9 @@ void MessageHandler::ClosePort(Dart_Port port) {
   if (FLAG_trace_isolates) {
     OS::Print("[-] Closing port:\n"
               "\thandler:    %s\n"
-              "\tport:       %" Pd64 "\n",
-              name(), port);
+              "\tport:       %" Pd64 "\n"
+              "\tports:      control(%" Pd ") live(%" Pd ")\n",
+              name(), port, control_ports_, live_ports_);
   }
 }
 

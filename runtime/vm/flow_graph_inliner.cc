@@ -34,6 +34,8 @@ DEFINE_FLAG(int, inlining_size_threshold, 25,
     "Always inline functions that have threshold or fewer instructions");
 DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
     "Always inline functions containing threshold or fewer calls.");
+DEFINE_FLAG(int, inlining_callee_size_threshold, 80,
+    "Do not inline callees larger than threshold");
 DEFINE_FLAG(int, inlining_caller_size_threshold, 50000,
     "Stop inlining once caller reaches the threshold.");
 DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
@@ -423,6 +425,9 @@ class CallSiteInliner : public ValueObject {
                       intptr_t const_arg_count) {
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
       // Prevent methods becoming humongous and thus slow to compile.
+      return false;
+    }
+    if (instr_count > FLAG_inlining_callee_size_threshold) {
       return false;
     }
     // 'instr_count' can be 0 if it was not computed yet.

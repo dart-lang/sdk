@@ -10,9 +10,9 @@ import "test_suite.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 
-List<String> defaultTestSelectors =
+const List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
+           'isolate', 'vm', 'html', 'benchmark_smoke',
            'utils', 'lib', 'pkg', 'analyze_library'];
 
 /**
@@ -107,7 +107,8 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm', 'simmips', 'arm', 'mips'],
+              ['all', 'ia32', 'x64', 'arm', 'mips',
+               'simarm', 'simarm64', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
@@ -634,7 +635,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simmips';
+      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
@@ -675,7 +676,7 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        selectors = new List.from(defaultTestSelectors);
+        selectors = defaultTestSelectors;
       }
       Map<String, RegExp> selectorMap = new Map<String, RegExp>();
       for (var i = 0; i < selectors.length; i++) {

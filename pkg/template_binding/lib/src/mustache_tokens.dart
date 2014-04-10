@@ -5,7 +5,11 @@
 library template_binding.src.mustache_tokens;
 
 import 'package:observe/observe.dart';
-import 'package:template_binding/template_binding.dart';
+
+// Dart note: this was added to decouple the parse function below from the rest
+// of template_binding. This allows using this code in command-line tools as
+// well.
+typedef Function DelegateFunctionFactory(String pathString);
 
 /**
  * Represents a set of parsed tokens from a {{ mustache binding expression }}.
@@ -74,8 +78,7 @@ class MustacheTokens {
    *
    * Returns null if there are no matches. Otherwise returns the parsed tokens.
    */
-  static MustacheTokens parse(String s, String name, node,
-      BindingDelegate delegate) {
+  static MustacheTokens parse(String s, [DelegateFunctionFactory fnFactory]) {
     if (s == null || s.isEmpty) return null;
 
     var tokens = null;
@@ -112,15 +115,18 @@ class MustacheTokens {
       var pathString = s.substring(startIndex + 2, endIndex).trim();
       tokens.add(oneTime); // ONETIME?
       onlyOneTime = onlyOneTime && oneTime;
-      tokens.add(new PropertyPath(pathString)); // PATH
-      var delegateFn = delegate == null ? null :
-          delegate.prepareBinding(pathString, name, node);
-      tokens.add(delegateFn);
+      var delegateFn = fnFactory == null ? null : fnFactory(pathString);
+      if (delegateFn == null) {
+        tokens.add(new PropertyPath(pathString)); // PATH
+      } else {
+        tokens.add(null);
+      }
+      tokens.add(delegateFn); // DELEGATE_FN
 
       lastIndex = endIndex + 2;
     }
 
-    if (lastIndex == length) tokens.add('');
+    if (lastIndex == length) tokens.add(''); // TEXT
 
     return new MustacheTokens._(tokens, onlyOneTime);
   }

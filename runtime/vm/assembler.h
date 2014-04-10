@@ -13,7 +13,9 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#if defined(TARGET_ARCH_ARM) ||                                                \
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_MIPS)
 DECLARE_FLAG(bool, use_far_branches);
 #endif
 
@@ -217,6 +219,8 @@ class AssemblerBuffer : public ValueObject {
 #include "vm/assembler_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/assembler_arm.h"
+#elif defined(TARGET_ARCH_ARM64)
+#include "vm/assembler_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/assembler_mips.h"
 #else

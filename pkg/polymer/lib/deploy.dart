@@ -23,7 +23,9 @@ library polymer.deploy;
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:path/path.dart' as path;
+
 import 'src/build/common.dart' show TransformOptions, phasesForPolymer;
 import 'src/build/runner.dart';
 import 'transformer.dart';
@@ -60,8 +62,6 @@ main(List<String> arguments) {
       .catchError(_reportErrorAndExit);
 }
 
-createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
-
 BarbackOptions _createTestOptions(String testFile, String outDir,
     bool directlyIncludeJS, bool contentSecurityPolicy, bool releaseMode) {
 
@@ -78,8 +78,8 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
   }
   var packageName = readCurrentPackageFromPubspec(pubspecDir);
 
-  // Find the dart-root so we can include both polymer and smoke as additional
-  // packages whose transformers we need to run.
+  // Find the dart-root so we can include all package dependencies and
+  // transformers from other packages.
   var pkgDir = path.join(_findDirWithDir(path.absolute(testDir), 'pkg'), 'pkg');
 
   var phases = createDeployPhases(new TransformOptions(
@@ -87,17 +87,17 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
       directlyIncludeJS: directlyIncludeJS,
       contentSecurityPolicy: contentSecurityPolicy,
       releaseMode: releaseMode,
-      lint: false));
+      lint: false), sdkDir: testingDartSdkDirectory);
+  var dirs = {};
+  // Note: we include all packages in pkg/ to keep things simple. Ideally this
+  // should be restricted to the transitive dependencies of this package.
+  _subDirs(pkgDir).forEach((p) { dirs[path.basename(p)] = p; });
+  // Note: packageName may be a duplicate of 'polymer', but that's ok (they
+  // should be the same value).
+  dirs[packageName]= pubspecDir;
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
-      packageDirs: {
-        'polymer': path.join(pkgDir, 'polymer'),
-        'smoke': path.join(pkgDir, 'smoke'),
-        // packageName may be a duplicate of 'polymer', but that's ok, the
-        // following will be the value used in the map (they should also be the
-        // same value).
-        packageName: pubspecDir,
-      },
+      packageDirs: dirs,
       // TODO(sigmund): include here also smoke transformer when it's on by
       // default.
       packagePhases: {'polymer': phasesForPolymer},
@@ -123,6 +123,10 @@ String _findDirWithDir(String dir, String subdir) {
   }
   return dir;
 }
+
+List<String> _subDirs(String dir) =>
+    new Directory(dir).listSync(followLinks: false)
+        .where((d) => d is Directory).map((d) => d.path).toList();
 
 void _reportErrorAndExit(e, trace) {
   print('Uncaught error: $e');

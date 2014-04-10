@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "vm/runtime_entry.h"
 
 #include "vm/object.h"
@@ -26,7 +30,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   owner_class.SetFunctions(functions);
   Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(owner_class);
-  function.SetCode(code);
+  function.AttachCode(code);
   return function;
 }
 
@@ -59,3 +63,5 @@ DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, 2,
 END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

@@ -19,7 +19,7 @@ class HasInputTransformer extends MockTransformer {
   HasInputTransformer(Iterable<String> inputs)
       : inputs = inputs.map((input) => new AssetId.parse(input)).toList();
 
-  Future<bool> doIsPrimary(Asset asset) => new Future.value(true);
+  Future<bool> doIsPrimary(_) => new Future.value(true);
 
   Future doApply(Transform transform) {
     return Future.wait(inputs.map((input) {

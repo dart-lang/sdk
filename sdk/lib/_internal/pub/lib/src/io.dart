@@ -318,7 +318,7 @@ void deleteEntry(String path) {
 /// new empty directory will be created.
 void cleanDir(String dir) {
   if (entryExists(dir)) deleteEntry(dir);
-  createDir(dir);
+  ensureDir(dir);
 }
 
 /// Renames (i.e. moves) the directory [from] to [to].

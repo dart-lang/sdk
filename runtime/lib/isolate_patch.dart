@@ -84,16 +84,17 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   SendPort get sendPort {
-    return new _SendPortImpl(_id);
+    return new _SendPortImpl._from(this);
   }
 
   /**** Internal implementation details ****/
   // Called from the VM to create a new RawReceivePort instance.
-  static _RawReceivePortImpl _get_or_create(int id) {
-    _RawReceivePortImpl port = _portMap[id];
-    if (port != null) {
-      return port;
-    }
+  static _RawReceivePortImpl _get(int id) {
+    return _portMap[id];
+  }
+
+  static _RawReceivePortImpl _create(int id) {
+    assert(_portMap[id]== null);
     return new _RawReceivePortImpl._internal(id);
   }
 
@@ -157,12 +158,13 @@ class _SendPortImpl implements SendPort {
   }
 
   /*--- private implementation ---*/
-  const _SendPortImpl(int id) : _id = id;
+  _SendPortImpl._from(_RawReceivePortImpl from) : _id = from._id;
+  _SendPortImpl._with(int id) : _id = id;
 
   // _SendPortImpl._create is called from the VM when a new SendPort instance is
   // needed by the VM code.
   static SendPort _create(int id) {
-    return new _SendPortImpl(id);
+    return new _SendPortImpl._with(id);
   }
 
   // Forward the implementation of sending messages to the VM. Only port ids

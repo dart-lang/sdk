@@ -179,15 +179,13 @@ least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 # test issue 15467
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
+proxy3_test/03: StaticWarning # Issue 15467
+proxy3_test/04: StaticWarning # Issue 15467
 
 # analyzer does not handle @proxy and noSuchMethod correctly
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
-
-# missing warning for unimplemented getter/setter
-override_inheritance_abstract_test/13: MissingStaticWarning # Issue 16133
-override_inheritance_abstract_test/26: MissingStaticWarning # Issue 16133
 
 # unexpected warning for override
 override_inheritance_abstract_test/27: StaticWarning # Issue 16134
@@ -221,15 +219,6 @@ bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
-compile_time_constant_checked2_test/02: MissingCompileTimeError
-compile_time_constant_checked2_test/03: MissingCompileTimeError
-compile_time_constant_checked2_test/04: MissingCompileTimeError
-compile_time_constant_checked2_test/06: MissingCompileTimeError
-compile_time_constant_checked3_test/02: MissingCompileTimeError
-compile_time_constant_checked3_test/03: MissingCompileTimeError
-compile_time_constant_checked3_test/04: MissingCompileTimeError
-compile_time_constant_checked3_test/06: MissingCompileTimeError
-compile_time_constant_checked_test/02: MissingCompileTimeError
 const_counter_negative_test: CompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
@@ -324,7 +313,6 @@ list_test: StaticWarning
 malbounded_type_cast_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
 malformed_type_test: StaticWarning
-malformed2_test/01: MissingCompileTimeError
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning
 map_literal4_test: StaticWarning
@@ -475,6 +463,21 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
+
+# Issue 16392.
+const_constructor2_test/20: MissingStaticWarning # Issue 16392.
+const_constructor2_test/22: MissingStaticWarning # Issue 16392.
+const_constructor2_test/24: MissingStaticWarning # Issue 16392.
+
+# Issue 16391. The analyzer handle compile-time error in checked only in these
+# cases:
+compile_time_constant_checked2_test/01: CompileTimeError # Issue 16391
+compile_time_constant_checked2_test/05: CompileTimeError # Issue 16391
+compile_time_constant_checked3_test/01: CompileTimeError # Issue 16391
+compile_time_constant_checked3_test/05: CompileTimeError # Issue 16391
+list_literal1_test/01: CompileTimeError # Issue 16391
+map_literal1_test/01: CompileTimeError # Issue 16391
+
 # Issue 17522
 deferred_constraints_type_annotation_test/*: Pass, Fail
 deferred_constraints_constants_test/*: Pass, Fail
@@ -484,3 +487,5 @@ deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
 deferred_load_library_wrong_args_test/01: Fail
 deferred_load_library_wrong_args_test/none: Fail
+deferred_load_inval_code_test: Fail
+

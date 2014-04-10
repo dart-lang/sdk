@@ -68,6 +68,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('Window|=Object|Null')",
     ],
 
+    'Document.getElementsByTagName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'Document.getElementsByClassName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'Window': [
@@ -86,6 +96,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'Element.webkitGetRegionFlowRanges': [
       "@Creates('JSExtendableArray')",
       "@Returns('JSExtendableArray')",
+    ],
+
+    'Element.getElementsByTagName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'Element.getElementsByClassName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
     ],
 
     "ErrorEvent.error": [
@@ -253,6 +273,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'SerializedScriptValue': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    'ShadowRoot.getElementsByTagName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'ShadowRoot.getElementsByClassName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
     ],
 
     'SQLResultSetRowList.item': ["@Creates('=Object')"],

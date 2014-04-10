@@ -6,5 +6,5 @@
 [ $compiler != dart2js || ($runtime != drt && $runtime != chrome) ]
 *: Skip
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome) ]
-paste_content_rewriting_test: Fail # http://dartbug.com/17726
+[ $csp ]
+end_to_end_test: Fail, OK # http://dartbug.com/17935

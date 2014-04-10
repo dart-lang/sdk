@@ -59,6 +59,7 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
+string_case_test/01: Fail # Bug 18061
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
@@ -111,6 +112,26 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt || $runtime == safari) ]
 string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
 
+[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+string_case_test/02: Fail, OK  # Bug in our version of V8.
+
+[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
+string_case_test/01: Fail, OK  # Bug in IE.
+string_case_test/02: Fail, OK  # Bug in IE.
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
+string_case_test/01: Fail, OK  # Bug in Firefox.
+
+[ $compiler == dart2js && $runtime == dartium ]
+string_case_test/02: Fail, OK  # Bug in dartium version of V8.
+string_case_test/03: Fail, OK  # Bug in dartium version of V8.
+
+[ $compiler == dart2js && $runtime == chrome ]
+string_case_test/02: Fail, OK  # Bug in Chrome.  Please file issue.
+
+[ $compiler == dart2js && $checked ]
+map_test: Crash # Issue 17829
+
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
@@ -139,6 +160,9 @@ int_parse_radix_test: Skip # Timeout
 
 [ $arch == simarm && $checked ]
 num_parse_test: Pass, Timeout
+
+[ $arch == simarm64 ]
+*: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.

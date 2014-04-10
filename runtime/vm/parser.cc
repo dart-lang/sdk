@@ -906,6 +906,13 @@ RawArray* Parser::EvaluateMetadata() {
     if (!IsIdentifier()) {
       ExpectIdentifier("identifier expected");
     }
+    // Reject expressions with deferred library prefix eagerly.
+    Object& obj = Object::Handle(library_.LookupLocalObject(*CurrentLiteral()));
+    if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+      if (LibraryPrefix::Cast(obj).is_deferred_load()) {
+        ErrorMsg("Metadata must be compile-time constant");
+      }
+    }
     AstNode* expr = NULL;
     if ((LookaheadToken(1) == Token::kLPAREN) ||
         ((LookaheadToken(1) == Token::kPERIOD) &&
@@ -2000,9 +2007,9 @@ AstNode* Parser::ParseSuperOperator() {
 }
 
 
-AstNode* Parser::CreateImplicitClosureNode(const Function& func,
-                                           intptr_t token_pos,
-                                           AstNode* receiver) {
+ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
+                                               intptr_t token_pos,
+                                               AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(func.ImplicitClosureFunction());
   if (receiver != NULL) {
@@ -3808,6 +3815,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
 
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                                   const Class& toplevel_class,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
@@ -3910,7 +3918,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_abstract();
   }
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, metadata_pos);
+    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
   }
 
   const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
@@ -4109,6 +4117,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 
 void Parser::ParseMixinAppAlias(
     const GrowableObjectArray& pending_classes,
+    const Class& toplevel_class,
     intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
@@ -4161,7 +4170,7 @@ void Parser::ParseMixinAppAlias(
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(mixin_application, metadata_pos);
+    library_.AddClassMetadata(mixin_application, toplevel_class, metadata_pos);
   }
 }
 
@@ -4207,6 +4216,7 @@ bool Parser::IsMixinAppAlias() {
 
 
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
+                          const Class& toplevel_class,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
@@ -4215,7 +4225,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     if (FLAG_warn_mixin_typedef) {
       Warning("deprecated mixin application typedef");
     }
-    ParseMixinAppAlias(pending_classes, metadata_pos);
+    ParseMixinAppAlias(pending_classes, toplevel_class, metadata_pos);
     return;
   }
 
@@ -4322,7 +4332,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(function_type_alias, metadata_pos);
+    library_.AddClassMetadata(function_type_alias,
+                              toplevel_class,
+                              metadata_pos);
   }
 }
 
@@ -5182,17 +5194,17 @@ void Parser::ParseTopLevel() {
     set_current_class(cls);  // No current class.
     intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes, metadata_pos);
+      ParseTypedef(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
@@ -8028,9 +8040,10 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
       return ParseCascades(expr);
     }
-    expr = LiteralIfStaticConst(expr);
     if (require_compiletime_const) {
       expr = FoldConstExpr(expr_pos, expr);
+    } else {
+      expr = LiteralIfStaticConst(expr);
     }
     return expr;
   }
@@ -8380,11 +8393,14 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      return new StaticGetterNode(primary->token_pos(),
-                                  NULL,  // No receiver.
-                                  false,  // Not a super getter.
-                                  Class::ZoneHandle(current_class().raw()),
-                                  name);
+      StaticGetterNode* getter =
+          new StaticGetterNode(primary->token_pos(),
+                               NULL,  // No receiver.
+                               false,  // Not a super getter.
+                               Class::ZoneHandle(current_class().raw()),
+                               name);
+      getter->set_is_deferred(primary->is_deferred_reference());
+      return getter;
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -8396,13 +8412,15 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
 
 AstNode* Parser::LoadClosure(PrimaryNode* primary) {
   ASSERT(primary->primary().IsFunction());
-  AstNode* closure = NULL;
   const Function& func =
       Function::CheckedZoneHandle(primary->primary().raw());
   const String& funcname = String::ZoneHandle(func.name());
   if (func.is_static()) {
     // Static function access.
-    closure = CreateImplicitClosureNode(func, primary->token_pos(), NULL);
+    ClosureNode* closure =
+        CreateImplicitClosureNode(func, primary->token_pos(), NULL);
+    closure->set_is_deferred(primary->is_deferred_reference());
+    return closure;
   } else {
     // Instance function access.
     if (parsing_metadata_) {
@@ -8417,9 +8435,10 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
                funcname.ToCString());
     }
     AstNode* receiver = LoadReceiver(primary->token_pos());
-    closure = CallGetter(primary->token_pos(), receiver, funcname);
+    return CallGetter(primary->token_pos(), receiver, funcname);
   }
-  return closure;
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -9095,7 +9114,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // Check if an instance/static function exists.
   func = cls.LookupFunction(ident);
   if (!func.IsNull() &&
-      (func.IsDynamicFunction() || func.IsStaticFunction())) {
+      (func.IsDynamicFunction() ||
+      func.IsStaticFunction() ||
+      func.is_abstract())) {
     if (node != NULL) {
       *node = new PrimaryNode(ident_pos,
                               Function::ZoneHandle(isolate(), func.raw()));
@@ -9107,7 +9128,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // it is still a field.
   func = cls.LookupGetterFunction(ident);
   if (!func.IsNull()) {
-    if (func.IsDynamicFunction()) {
+    if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -9137,7 +9158,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   func = cls.LookupSetterFunction(ident);
   if (!func.IsNull()) {
-    if (func.IsDynamicFunction()) {
+    if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
         // We create a getter node even though a getter doesn't exist as
         // it could be followed by an assignment which will convert it to
@@ -9242,31 +9263,52 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     obj = prefix.LookupObject(ident);
   } else {
     // Remember that this function depends on an import prefix of an
-    // unloaded deferred library.
-    parsed_function()->AddDeferredPrefix(prefix);
+    // unloaded deferred library. Note that parsed_function() can be
+    // NULL when parsing expressions outside the scope of a function.
+    if (parsed_function() != NULL) {
+      parsed_function()->AddDeferredPrefix(prefix);
+    }
   }
+  const bool is_deferred = prefix.is_deferred_load();
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
     return NULL;
   } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
-    return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+    PrimaryNode* primary =
+        new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+    primary->set_is_deferred(is_deferred);
+    return primary;
   } else if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
     ASSERT(field.is_static());
-    return GenerateStaticFieldLookup(field, ident_pos);
+    AstNode* get_field = GenerateStaticFieldLookup(field, ident_pos);
+    ASSERT(get_field != NULL);
+    ASSERT(get_field->IsLoadStaticFieldNode() ||
+           get_field->IsStaticGetterNode());
+    if (get_field->IsLoadStaticFieldNode()) {
+      get_field->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
+    } else if (get_field->IsStaticGetterNode()) {
+      get_field->AsStaticGetterNode()->set_is_deferred(is_deferred);
+    }
+    return get_field;
   } else if (obj.IsFunction()) {
     const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
-      return new StaticGetterNode(ident_pos,
-                                  /* receiver */ NULL,
-                                  /* is_super_getter */ false,
-                                  Class::ZoneHandle(func.Owner()),
-                                  ident);
-
+      StaticGetterNode* getter =
+          new StaticGetterNode(ident_pos,
+                               /* receiver */ NULL,
+                               /* is_super_getter */ false,
+                               Class::ZoneHandle(func.Owner()),
+                               ident);
+      getter->set_is_deferred(is_deferred);
+      return getter;
     } else {
-      return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+      PrimaryNode* primary =
+          new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+      primary->set_is_deferred(is_deferred);
+      return primary;
     }
   }
   // All possible object types are handled above.
@@ -10518,6 +10560,14 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
   } else if (expr->IsLoadLocalNode() &&
       expr->AsLoadLocalNode()->local().IsConst()) {
     return *expr->AsLoadLocalNode()->local().ConstValue();
+  } else if (expr->IsLoadStaticFieldNode()) {
+    const Field& field = expr->AsLoadStaticFieldNode()->field();
+    // We already checked that this field is const and has been
+    // initialized.
+    ASSERT(field.is_const());
+    ASSERT(field.value() != Object::sentinel().raw());
+    ASSERT(field.value() != Object::transition_sentinel().raw());
+    return Instance::ZoneHandle(field.value());
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new ReturnNode(expr->token_pos(), expr);

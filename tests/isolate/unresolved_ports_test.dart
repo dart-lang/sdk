@@ -18,7 +18,7 @@ import "remote_unittest_helper.dart";
 
 bethIsolate(init) {
   ReceivePort port = initIsolate(init);
-  // TODO(sigmund): use expectAsync2 when it is OK to use it within an isolate
+  // TODO(sigmund): use expectAsync when it is OK to use it within an isolate
   // (issue #6856)
   port.first.then((msg) => msg[1].send([
         '${msg[0]}\nBeth says: Tim are you coming? And Bob?', msg[2]]));
@@ -54,7 +54,7 @@ ReceivePort initIsolate(SendPort starter) {
 baseTest({bool failForNegativeTest: false}) {
   test('Message chain with unresolved ports', () {
     ReceivePort port = new ReceivePort();
-    port.listen(expectAsync1((msg) {
+    port.listen(expectAsync((msg) {
       expect(msg, equals('main says: Beth, find out if Tim is coming.'
         '\nBeth says: Tim are you coming? And Bob?'
         '\nTim says: Can you tell "main" that we are all coming?'

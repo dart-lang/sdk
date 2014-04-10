@@ -92,6 +92,22 @@ void main() {
     }), completion(isNull));
   });
 
+  test("includes the error data in the response", () {
+    server.registerMethod('foo', (params) {
+      throw new json_rpc.RpcException(5, 'Error message.', data: 'data value');
+    });
+
+    expectErrorResponse(server, {
+      'jsonrpc': '2.0',
+      'method': 'foo',
+      'params': {},
+      'id': 1234
+    },
+        5,
+        'Error message.',
+        data: 'data value');
+  });
+
   group("JSON", () {
     test("handles a request parsed from JSON", () {
       server.registerMethod('foo', (params) {

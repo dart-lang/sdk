@@ -6,14 +6,14 @@ library run_async_test;
 
 import 'package:expect/expect.dart';
 import 'dart:async';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   // Check that the callbacks are executed in order.
   test("run async in order test", () {
     int lastCallback = -1;
     for (int i = 0; i < 100; i++) {
-      scheduleMicrotask(expectAsync0(() {
+      scheduleMicrotask(expectAsync(() {
         Expect.equals(lastCallback, i - 1);
         lastCallback = i;
       }));

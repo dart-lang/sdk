@@ -84,17 +84,15 @@ main() {
       var url =  '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
       var xhr = new HttpRequest();
       xhr.open('GET', url, async: true);
-      var validate = expectAsync1((data) {
+      var validate = expectAsync((data) {
         expect(data, contains('feed'));
         expect(data['feed'], contains('entry'));
         expect(data, isMap);
       });
       xhr.onReadyStateChange.listen((e) {
-        guardAsync(() {
-          if (xhr.readyState == HttpRequest.DONE) {
-            validate(JSON.decode(xhr.response));
-          }
-        });
+        if (xhr.readyState == HttpRequest.DONE) {
+          validate(JSON.decode(xhr.response));
+        }
       });
       xhr.send();
     });

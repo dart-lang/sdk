@@ -11,7 +11,8 @@ import 'dart:html' show
     IFrameElement,
     MessageEvent,
     Url,
-    Worker;
+    Worker,
+    window;
 
 import 'dart:async' show
     Timer;
@@ -22,7 +23,6 @@ import 'dart:isolate' show
 
 import 'editor.dart' show
     addDiagnostic,
-    currentSource,
     isMalformedInput;
 
 import 'run.dart' show
@@ -62,6 +62,13 @@ const String PRIVATE_SCHEME = 'org-trydart';
 
 SendPort compilerPort;
 Timer compilerTimer;
+
+// TODO(ahe): Remove this.
+String get currentSource => window.localStorage['currentSource'];
+
+void set currentSource(String text) {
+  window.localStorage['currentSource'] = text;
+}
 
 void scheduleCompilation() {
   if (compilationPaused) return;
@@ -212,8 +219,7 @@ self.importScripts("$url");
       var frame = new IFrameElement()
           ..src = 'iframe.html'
           ..style.width = '100%'
-          ..style.height = '0px'
-          ..seamless = false;
+          ..style.height = '0px';
       frame.onLoad.listen((_) {
         frame.contentWindow.postMessage(['source', code], '*');
       });
@@ -285,6 +291,10 @@ self.importScripts("$url");
   }
 
   void consolePrint(message) {
+    if (window.parent != window) {
+      // Test support.
+      window.parent.postMessage('$message\n', '/');
+    }
     console.appendText('$message\n');
   }
 }
@@ -302,5 +312,8 @@ void compilerIsolate(SendPort port) {
       port.send('$exception\n$stack');
     }
   });
-  // cacheCompiler.compilerFor(null);
+  var notTrue = false; // Confuse the analyzer.
+  if (notTrue) {
+    cacheCompiler.compilerFor(null);
+  }
 }

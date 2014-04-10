@@ -37,7 +37,7 @@ main() {
       var blob = new Blob([workerScript], 'text/javascript');
       var url = Url.createObjectUrl(blob);
       var worker = new Worker(url);
-      var test = expectAsync1((e) {
+      var test = expectAsync((e) {
         expect(e.data, 'WorkerMessage');
       });
       worker.onMessage.first.then(test);

@@ -83,7 +83,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     }
     String path = uri.path;
     for (String file in whiteListMap.keys) {
-      if (path.endsWith(file)) {
+      if (path.contains(file)) {
         for (String messagePart in whiteListMap[file].keys) {
           if (message.contains(messagePart)) {
             whiteListMap[file][messagePart]++;
@@ -129,9 +129,13 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
+typedef bool CheckResults(Compiler compiler,
+                          CollectingDiagnosticHandler handler);
+
 Future analyze(List<Uri> uriList,
                Map<String, List<String>> whiteList,
-               {bool analyzeAll: true}) {
+               {bool analyzeAll: true,
+                CheckResults checkResults}) {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
 
@@ -168,7 +172,12 @@ Future analyze(List<Uri> uriList,
 """;
 
   void onCompletion(_) {
-    bool result = handler.checkResults();
+    bool result;
+    if (checkResults != null) {
+      result = checkResults(compiler, handler);
+    } else {
+      result = handler.checkResults();
+    }
     if (!result) {
       print(MESSAGE);
       exit(1);

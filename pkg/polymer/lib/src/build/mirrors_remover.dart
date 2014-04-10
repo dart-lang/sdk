@@ -14,26 +14,27 @@ class MirrorsRemover extends Transformer {
   MirrorsRemover.asPlugin();
 
   /// Only apply to `lib/polymer.dart`.
-  Future<bool> isPrimary(Asset input) => new Future.value(
-      input.id.package == 'polymer' &&
-      input.id.path == 'lib/polymer.dart');
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(
+        id.package == 'polymer' && id.path == 'lib/polymer.dart');
+  }
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;
     return transform.primaryInput.readAsString().then((code) {
       // Note: this rewrite is highly-coupled with how polymer.dart is
       // written. Make sure both are updated in sync.
-      var start = code.indexOf('@MirrorsUsed');
+      var start = code.indexOf('@MirrorsUsed(');
       if (start == -1) _error();
       var end = code.indexOf('show MirrorsUsed;', start);
       if (end == -1) _error();
-      var loaderImport = code.indexOf(
-          "import 'src/mirror_loader.dart' as loader;", end);
-      if (loaderImport == -1) _error();
+      end = code.indexOf('\n', end);
       var sb = new StringBuffer()
           ..write(code.substring(0, start))
-          ..write(code.susbtring(end)
-              .replaceAll('src/mirror_loader.dart', 'src/static_loader.dart'));
+          ..write(code.substring(end));
 
       transform.addOutput(new Asset.fromString(id, sb.toString()));
     });

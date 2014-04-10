@@ -28,22 +28,12 @@ class AnalysisLogger implements Logger {
   }
 
   @override
-  void logError3(Exception exception) {
-    baseLogger.severe("Exception", exception);
-  }
-
-  @override
   void logInformation(String message) {
     baseLogger.info(message);
   }
 
   @override
   void logInformation2(String message, Exception exception) {
-    baseLogger.info(message, exception);
-  }
-
-  @override
-  void logInformation3(String message, Exception exception) {
     baseLogger.info(message, exception);
   }
 }

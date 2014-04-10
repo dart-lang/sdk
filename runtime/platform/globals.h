@@ -196,6 +196,7 @@ typedef double fpu_register_t;
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
 #if !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_ARM64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_MIPS)
 #define TARGET_ARCH_MIPS 1
@@ -205,8 +206,11 @@ typedef double fpu_register_t;
 #define TARGET_ARCH_X64 1
 #elif defined(HOST_ARCH_IA32)
 #define TARGET_ARCH_IA32 1
+#elif defined(HOST_ARCH_ARM64)
+#define TARGET_ARCH_ARM64 1
 #else
 #error Automatic target architecture detection failed.
+#endif
 #endif
 #endif
 #endif
@@ -215,7 +219,8 @@ typedef double fpu_register_t;
 
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64)
 #if !defined(ARCH_IS_64_BIT)
 #error Mismatched Host/Target architectures.
 #endif

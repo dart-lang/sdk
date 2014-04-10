@@ -47,16 +47,15 @@ main() => dirtyCheckZone().run(() {
           '<template><span>{{x}}</span></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
 
+      var el;
       return new Future(() {
-        var el = testDiv.query("span");
+        el = testDiv.query("span");
         expect(el.text, 'abcde');
         expect(model.x, 'abcde');
         model.x = '___';
-
-        return new Future(() {
-          expect(model.x, '___');
-          expect(el.text, '___');
-        });
+      }).then(_nextMicrotask).then((_) {
+        expect(model.x, '___');
+        expect(el.text, '___');
       });
     });
 
@@ -69,7 +68,7 @@ main() => dirtyCheckZone().run(() {
         testDiv.append(template.createInstance(model,
             new PolymerExpressions()));
 
-        return new Future(() {});
+        return _nextMicrotask(null);
       }, onError: (e) {
         expect('$e', startsWith("Error evaluating expression 'foo':"));
         completer.complete(true);
@@ -118,8 +117,31 @@ main() => dirtyCheckZone().run(() {
         subscription.cancel();
       });
     });
+
+
+    test('detects changes to ObservableMap keys/values', () {
+      var map = new ObservableMap.from({'a': 1, 'b': 2});
+      var template = templateBind(new Element.html('<template>'
+          '<template repeat="{{k in x.keys}}">{{k}}:{{x[k]}},</template>'
+          '</template>'));
+      var model = new NotifyModel(map);
+      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+
+      return new Future(() {
+        expect(testDiv.text, 'a:1,b:2,');
+        map.remove('b');
+        map['c'] = 3;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, 'a:1,c:3,');
+        map['a'] = 4;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, 'a:4,c:3,');
+      });
+    });
   });
 });
+
+_nextMicrotask(_) => new Future(() {});
 
 @reflectable
 class NotifyModel extends ChangeNotifier {

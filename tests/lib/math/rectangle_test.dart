@@ -177,5 +177,74 @@ main() {
     expect(identical(r.width, 0.0), isTrue);
     expect(identical(r.height, 0.0), isTrue);
   });
+
+  // A NaN-value in any rectangle value means the rectange is considered
+  // empty (contains no points, doesn't intersect any other rectangle).
+  const NaN = double.NAN;
+  var isNaN = predicate((x) => x is double && x.isNaN, "NaN");
+
+  test('NaN left', () {
+    var rectangles = [
+      const Rectangle(NaN, 1, 2, 3),
+      new MutableRectangle(NaN, 1, 2, 3),
+      new Rectangle.fromPoints(new Point(NaN, 1), new Point(2, 4)),
+      new MutableRectangle.fromPoints(new Point(NaN, 1), new Point(2, 4)),
+    ];
+    for (var r in rectangles) {
+      expect(r.containsPoint(new Point(0, 1)), false);
+      expect(r.containsRectangle(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.intersects(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.left, isNaN);
+      expect(r.right, isNaN);
+    }
+  });
+
+  test('NaN top', () {
+    var rectangles = [
+      const Rectangle(0, NaN, 2, 3),
+      new MutableRectangle(0, NaN, 2, 3),
+      new Rectangle.fromPoints(new Point(0, NaN), new Point(2, 4)),
+      new MutableRectangle.fromPoints(new Point(0, NaN), new Point(2, 4)),
+    ];
+    for (var r in rectangles) {
+      expect(r.containsPoint(new Point(0, 1)), false);
+      expect(r.containsRectangle(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.intersects(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.top, isNaN);
+      expect(r.bottom, isNaN);
+    }
+  });
+
+  test('NaN width', () {
+    var rectangles = [
+      const Rectangle(0, 1, NaN, 3),
+      new MutableRectangle(0, 1, NaN, 3),
+      new Rectangle.fromPoints(new Point(0, 1), new Point(NaN, 4)),
+      new MutableRectangle.fromPoints(new Point(0, 1), new Point(NaN, 4)),
+    ];
+    for (var r in rectangles) {
+      expect(r.containsPoint(new Point(0, 1)), false);
+      expect(r.containsRectangle(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.intersects(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.right, isNaN);
+      expect(r.width, isNaN);
+    }
+  });
+
+  test('NaN heigth', () {
+    var rectangles = [
+      const Rectangle(0, 1, 2, NaN),
+      new MutableRectangle(0, 1, 2, NaN),
+      new Rectangle.fromPoints(new Point(0, 1), new Point(2, NaN)),
+      new MutableRectangle.fromPoints(new Point(0, 1), new Point(2, NaN)),
+    ];
+    for (var r in rectangles) {
+      expect(r.containsPoint(new Point(0, 1)), false);
+      expect(r.containsRectangle(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.intersects(new Rectangle(0, 1, 2, 3)), false);
+      expect(r.bottom, isNaN);
+      expect(r.height, isNaN);
+    }
+  });
 }
 

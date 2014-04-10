@@ -711,11 +711,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  // During from/to flip and promoted stack use, move external allocation
-  // out of tospace temporarily.
-  intptr_t saved_external = external_size_;
-  FreeExternal(saved_external);
-
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
@@ -725,9 +720,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ProcessToSpace(&visitor);
   int64_t middle = OS::GetCurrentTimeMicros();
   IterateWeakReferences(isolate, &visitor);
-  // Done with promoted stack; restore external allocation.
-  ASSERT(!PromotedStackHasMore());
-  AllocateExternal(saved_external);
   ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
   // Include the prologue weak handles, since we must process any promotion.
   const bool visit_prologue_weak_handles = true;
@@ -774,8 +766,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
 void Scavenger::AllocateExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
-  intptr_t remaining = end_ - top_;
-  end_ -= Utils::Minimum(remaining, size);
 }
 
 
@@ -783,7 +773,6 @@ void Scavenger::FreeExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ -= size;
   ASSERT(external_size_ >= 0);
-  end_ = Utils::Minimum(to_->end(), end_ + size);
 }
 
 }  // namespace dart

@@ -4,10 +4,10 @@
 
 library handle_access_token_response;
 
-import 'dart:io';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import 'credentials.dart';
 import 'authorization_exception.dart';
@@ -31,15 +31,13 @@ Credentials handleAccessTokenResponse(
     _validate(response, tokenEndpoint, condition, message);
 
   var contentType = response.headers['content-type'];
-  if (contentType != null) {
-    contentType = ContentType.parse(contentType);
-  }
+  if (contentType != null) contentType = new MediaType.parse(contentType);
 
   // The spec requires a content-type of application/json, but some endpoints
   // (e.g. Dropbox) serve it as text/javascript instead.
   validate(contentType != null &&
-      (contentType.value == "application/json" ||
-       contentType.value == "text/javascript"),
+      (contentType.mimeType == "application/json" ||
+       contentType.mimeType == "text/javascript"),
       'content-type was "$contentType", expected "application/json"');
 
   var parameters;
@@ -105,10 +103,8 @@ void _handleErrorResponse(http.Response response, Uri tokenEndpoint) {
   }
 
   var contentType = response.headers['content-type'];
-  if (contentType != null) {
-    contentType = ContentType.parse(contentType);
-  }
-  validate(contentType != null && contentType.value == "application/json",
+  if (contentType != null) contentType = new MediaType.parse(contentType);
+  validate(contentType != null && contentType.mimeType == "application/json",
       'content-type was "$contentType", expected "application/json"');
 
   var parameters;

@@ -39,7 +39,10 @@ class BoundClosure {}
 class Dynamic_ {}
 class Null {}
 class StackTrace {}
-class LinkedHashMap {}
+class LinkedHashMap {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+}
 identical(a, b) => true;
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}

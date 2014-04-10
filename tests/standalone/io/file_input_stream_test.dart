@@ -55,7 +55,7 @@ void testOpenStreamAsync() {
 int writeLongFileSync(File file) {
   file.createSync();
   StringBuffer buffer = new StringBuffer();
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 50000; i++) {
     buffer.write("Hello, world");
   }
   file.writeAsStringSync(buffer.toString());

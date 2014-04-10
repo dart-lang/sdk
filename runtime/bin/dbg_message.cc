@@ -68,6 +68,16 @@ intptr_t MessageParser::GetIntParam(const char* name) const {
 }
 
 
+int64_t MessageParser::GetInt64Param(const char* name) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader r(params);
+  r.Seek(name);
+  ASSERT(r.Type() == dart::JSONReader::kInteger);
+  return strtoll(r.ValueChars(), NULL, 10);
+}
+
+
 intptr_t MessageParser::GetOptIntParam(const char* name,
                                        intptr_t default_val) const {
   const char* params = Params();

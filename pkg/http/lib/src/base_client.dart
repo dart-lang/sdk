@@ -6,11 +6,11 @@ library base_client;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'base_request.dart';
 import 'client.dart';
+import 'exception.dart';
 import 'request.dart';
 import 'response.dart';
 import 'streamed_response.dart';
@@ -89,7 +89,7 @@ abstract class BaseClient implements Client {
   /// can be a [Uri] or a [String], and returns a Future that completes to the
   /// body of the response as a String.
   ///
-  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// The Future will emit a [ClientException] if the response doesn't have a
   /// success status code.
   ///
   /// For more fine-grained control over the request and response, use [send] or
@@ -105,7 +105,7 @@ abstract class BaseClient implements Client {
   /// can be a [Uri] or a [String], and returns a Future that completes to the
   /// body of the response as a list of bytes.
   ///
-  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// The Future will emit an [ClientException] if the response doesn't have a
   /// success status code.
   ///
   /// For more fine-grained control over the request and response, use [send] or
@@ -122,7 +122,8 @@ abstract class BaseClient implements Client {
   /// Implementers should call [BaseRequest.finalize] to get the body of the
   /// request as a [ByteStream]. They shouldn't make any assumptions about the
   /// state of the stream; it could have data written to it asynchronously at a
-  /// later point, or it could already be closed when it's returned.
+  /// later point, or it could already be closed when it's returned. Any
+  /// internal HTTP errors should be wrapped as [ClientException]s.
   Future<StreamedResponse> send(BaseRequest request);
 
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].
@@ -157,7 +158,8 @@ abstract class BaseClient implements Client {
     if (response.reasonPhrase != null) {
       message = "$message: ${response.reasonPhrase}";
     }
-    throw new HttpException("$message.");
+    if (url is String) url = Uri.parse(url);
+    throw new ClientException("$message.", url);
   }
 
   /// Closes the client and cleans up any resources associated with it. It's

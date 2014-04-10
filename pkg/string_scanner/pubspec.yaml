@@ -1,0 +1,10 @@
+name: string_scanner
+version: 0.0.1
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+  A class for parsing strings using a sequence of patterns.
+dev_dependencies:
+  unittest: ">=0.10.0 <0.11.0"
+environment:
+  sdk: ">=1.2.0 <2.0.0"

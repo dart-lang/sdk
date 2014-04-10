@@ -20,7 +20,7 @@ main() {
 
     d.dir(appPath, [
       d.appPubspec({"browser": "1.0.0"}),
-      d.dir('example', [
+      d.dir('foo', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [
           d.file('subfile.dart', 'void main() => print("subhello");')
@@ -36,12 +36,12 @@ main() {
 
     pubGet();
 
-    schedulePub(args: ["build", "--all"],
+    schedulePub(args: ["build", "foo", "web"],
         output: new RegExp(r'Built 16 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.dir('example', [
+        d.dir('foo', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [

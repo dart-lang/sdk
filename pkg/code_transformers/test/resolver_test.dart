@@ -5,12 +5,10 @@
 library code_transformers.test.resolver_test;
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -19,7 +17,7 @@ main() {
   var entryPoint = new AssetId('a', 'web/main.dart');
   var resolvers = new Resolvers(testingDartSdkDirectory);
 
-  Future validateResolver({Map<String, String> inputs, void validator(Resolver),
+  Future validateResolver({Map<String, String> inputs, validator(Resolver),
       List<String> messages: const[]}) {
     return applyTransformers(
           [[new TestTransformer(resolvers, entryPoint, validator)]],
@@ -120,15 +118,30 @@ main() {
           });
     });
 
+    test('handles missing files', () {
+      return validateResolver(
+          inputs: {
+            'a|web/main.dart': '''
+              import 'package:b/missing.dart';
+
+              main() {
+              } ''',
+          },
+          validator: (resolver) {
+            var lib = resolver.getLibrary(entryPoint);
+            expect(lib.importedLibraries.length, 1);
+          });
+    });
+
     test('should update on changed package imports', () {
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
-              import 'package:b/b.dart';
+              import 'package:b/missing.dart';
 
               main() {
               } ''',
-            'b|lib/b.dart': '''
+            'b|lib/missing.dart': '''
               library b;
               class Bar {}
               ''',
@@ -145,14 +158,11 @@ main() {
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
-              import 'package:b/b.dart';
+              import 'package:b/missing.dart';
 
               main() {
               } ''',
           },
-          messages: [
-            'error: Unable to find asset for "package:b/b.dart"',
-          ],
           validator: (resolver) {
             var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 1);
@@ -160,6 +170,7 @@ main() {
     });
 
     test('should fail on absolute URIs', () {
+      var warningPrefix = 'warning: absolute paths not allowed';
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
@@ -170,10 +181,8 @@ main() {
           },
           messages: [
             // First from the AST walker
-            'error: absolute paths not allowed: "/b.dart" (web/main.dart 0 14)',
-            // Then two from the resolver.
-            'error: absolute paths not allowed: "/b.dart"',
-            'error: absolute paths not allowed: "/b.dart"',
+            '$warningPrefix: "/b.dart" (web/main.dart 0 14)',
+            '$warningPrefix: "/b.dart"',
           ],
           validator: (resolver) {
             var lib = resolver.getLibrary(entryPoint);
@@ -345,10 +354,12 @@ class TestTransformer extends Transformer with ResolverTransformer {
     this.resolvers = resolvers;
   }
 
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(input.id == primary);
-
-  applyResolver(Transform transform, Resolver resolver) {
-    return validator(resolver);
+  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
+  // is dropped.
+  Future<bool> isPrimary(idOrAsset) {
+    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
+    return new Future.value(id == primary);
   }
+
+  applyResolver(Transform transform, Resolver resolver) => validator(resolver);
 }
