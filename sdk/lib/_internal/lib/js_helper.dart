@@ -1671,12 +1671,19 @@ unwrapException(ex) {
 
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
-  if (ex == null) return null;
-  if (JS('bool', 'typeof # !== "object"', ex)) return ex;
+  if (ex == null) {
+    print('Null exception');
+    return null;
+  }
+  if (JS('bool', 'typeof # !== "object"', ex)) {
+    print('Exception not an object?');
+    return ex;
+  }
 
   if (JS('bool', r'"dartException" in #', ex)) {
     return saveStackTrace(JS('', r'#.dartException', ex));
   } else if (!JS('bool', r'"message" in #', ex)) {
+    print('Exception just has message.');
     return ex;
   }
 
@@ -1688,6 +1695,7 @@ unwrapException(ex) {
   // detect specific errors, so check for this first.
   if (JS('bool', '"number" in #', ex)
       && JS('bool', 'typeof #.number == "number"', ex)) {
+    print('In IE error number handler.');
     int number = JS('int', '#.number', ex);
 
     // From http://msdn.microsoft.com/en-us/library/ie/hc53e755(v=vs.94).aspx
@@ -1712,6 +1720,7 @@ unwrapException(ex) {
   }
 
   if (JS('bool', r'# instanceof TypeError', ex)) {
+    print('In TypeError.');
     var match;
     // Using JS to give type hints to the compiler to help tree-shaking.
     // TODO(ahe): That should be unnecessary due to type inference.
@@ -1785,6 +1794,7 @@ unwrapException(ex) {
     }
   }
 
+  print('Unwrapped exception.');
   // Just return the exception. We should not wrap it because in case
   // the exception comes from the DOM, it is a JavaScript
   // object backed by a native Dart class.
