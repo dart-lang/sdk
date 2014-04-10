@@ -43,6 +43,9 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   final BuildEnvironment _environment;
   final BarbackSettings _settings;
 
+  /// Whether source maps should be generated for the compiled JS.
+  bool get _generateSourceMaps => _settings.mode != BarbackMode.RELEASE;
+
   Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions = _settings.configuration.keys.toSet()
         .difference(_validOptions);
@@ -88,8 +91,10 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   Future declareOutputs(DeclaringTransform transform) {
     var primaryId = transform.primaryId;
     transform.declareOutput(primaryId.addExtension(".js"));
-    transform.declareOutput(primaryId.addExtension(".js.map"));
     transform.declareOutput(primaryId.addExtension(".precompiled.js"));
+    if (_generateSourceMaps) {
+      transform.declareOutput(primaryId.addExtension(".js.map"));
+    }
     return new Future.value();
   }
 
@@ -115,7 +120,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   /// Run the dart2js compiler.
   Future _doCompilation(Transform transform) {
     var provider = new _BarbackCompilerProvider(_environment, transform,
-        generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
+        generateSourceMaps: _generateSourceMaps);
 
     // Create a "path" to the entrypoint script. The entrypoint may not actually
     // be on disk, but this gives dart2js a root to resolve relative paths

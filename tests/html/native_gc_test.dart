@@ -1,6 +1,6 @@
 library NativeGCTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 var testEvent = new EventStreamProvider<Event>('test');

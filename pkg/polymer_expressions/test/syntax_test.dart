@@ -33,11 +33,11 @@ main() {
             <input id="input" value="{{ firstName }}">
           </template>'''));
       var person = new Person('John', 'Messerly', ['A', 'B', 'C']);
-      templateBind(query('#test'))
+      templateBind(querySelector('#test'))
           ..bindingDelegate = new PolymerExpressions()
           ..model = person;
       return new Future(() {}).then((_) {
-        InputElement input = query('#input');
+        InputElement input = querySelector('#input');
         expect(input.value, 'John');
         input.focus();
         input.value = 'Justin';
@@ -55,7 +55,7 @@ main() {
               {{ item }}
             </template>
           </template>'''));
-      templateBind(query('#test')).bindingDelegate =
+      templateBind(querySelector('#test')).bindingDelegate =
           new PolymerExpressions(globals: {'items': null});
       // the template should be the only node
       expect(testDiv.nodes.length, 1);
@@ -67,7 +67,7 @@ main() {
       runZoned(() {
         testDiv.nodes.add(new Element.html('''
             <template id="test" bind>{{ foo }}</template>'''));
-        templateBind(query('#test'))
+        templateBind(querySelector('#test'))
             ..bindingDelegate = new PolymerExpressions()
             ..model = [];
         return new Future(() {});

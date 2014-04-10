@@ -13,8 +13,8 @@ abstract class I {
   var member5; /// 05: ok
   var member6; /// 06: static type warning
   get member7; /// 07: static type warning
-  get member8; /// 08: compile-time error
-  get member9; /// 09: compile-time error
+  get member8; /// 08: static type warning
+  get member9; /// 09: static type warning
 }
 
 abstract class J {

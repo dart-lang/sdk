@@ -4,8 +4,8 @@
 
 library EventTest;
 import "package:expect/expect.dart";
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 // TODO(nweiz): Make this private to testEvents when Frog supports closures with

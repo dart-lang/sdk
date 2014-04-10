@@ -1,6 +1,6 @@
 library SerializedScriptValueTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'dart:html';
 import 'utils.dart';
 

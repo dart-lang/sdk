@@ -611,6 +611,15 @@ class SourceRange {
    */
   SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
 
+  /**
+   * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
+   */
+  SourceRange getUnion(SourceRange other) {
+    int newOffset = Math.min(offset, other.offset);
+    int newEnd = Math.max(offset + length, other.offset + other.length);
+    return new SourceRange(newOffset, newEnd - newOffset);
+  }
+
   @override
   int get hashCode => 31 * offset + length;
 

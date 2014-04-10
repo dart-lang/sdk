@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file
 
 library ElementAddTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'util.dart';
 import 'dart:html';
 

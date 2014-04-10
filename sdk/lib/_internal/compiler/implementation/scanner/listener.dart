@@ -1977,19 +1977,22 @@ class PartialFieldList extends VariableList {
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
     if (definitions != null) return definitions;
-    definitions = parse(listener,
-                       element.getCompilationUnit(),
-                       (p) => p.parseVariablesDeclaration(beginToken));
-    if (!definitions.modifiers.isVar() &&
-        !definitions.modifiers.isFinal() &&
-        !definitions.modifiers.isConst() &&
-        definitions.type == null) {
-      listener.reportError(
-          definitions,
-          MessageKind.GENERIC,
-          { 'text': 'A field declaration must start with var, final, '
-                    'const, or a type annotation.' });
-    }
+    listener.withCurrentElement(element, () {
+      definitions = parse(listener,
+                          element.getCompilationUnit(),
+                          (p) => p.parseVariablesDeclaration(beginToken));
+
+      if (!definitions.modifiers.isVar() &&
+          !definitions.modifiers.isFinal() &&
+          !definitions.modifiers.isConst() &&
+          definitions.type == null) {
+        listener.reportError(
+            definitions,
+            MessageKind.GENERIC,
+            { 'text': 'A field declaration must start with var, final, '
+                      'const, or a type annotation.' });
+      }
+    });
     return definitions;
   }
 

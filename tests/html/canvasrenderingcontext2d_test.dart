@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library canvas_rendering_context_2d_test; import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+library canvas_rendering_context_2d_test;
+
 import 'dart:html';
 import 'dart:math';
+
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 // Some rounding errors in the browsers.
 checkPixel(List<int> pixel, List<int> expected) {

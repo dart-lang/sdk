@@ -13,6 +13,17 @@ void main(_, message) {
 
   setUpTimeout();
 
+  expectTests('a scheduled test with an out-of-band error should fail', () {
+    mock_clock.mock().run();
+    test('test 1', () {
+      sleep(1).then((_) => throw 'error');
+    });
+
+    test('test 2', () {
+      return sleep(2);
+    });
+  }, {'test 1': ERROR, 'test 2': PASS});
+
   expectTestsPass('currentSchedule.errors contains the error in the onComplete '
       'queue', () {
     var errors;

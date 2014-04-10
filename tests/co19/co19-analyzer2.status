@@ -69,8 +69,8 @@ LibTest/isolate/ReceivePort/receive_A01_t03: Fail # co19-roll r706: Please triag
 LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/SendPort/call_A01_t01: Fail # co19-roll r706: Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t03: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t04: Fail # co19-roll r706: Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t03: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t05: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t06: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/SendPort/send_A03_t01: Fail # co19-roll r706: Please triage this failure.
@@ -131,9 +131,9 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
-#co19 issue 677
 WebPlatformTest1/shadow-dom/*: CompileTimeError # co19 issue 677
 WebPlatformTest1/html-templates/*: CompileTimeError # co19 issue 677
+WebPlatformTest1/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 # co19 roll to r706: Please triage all these issues.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03: StaticWarning # co19-roll r706: Please triage this failure.

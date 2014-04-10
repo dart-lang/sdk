@@ -10,8 +10,8 @@ import 'dart:typed_data' show ByteBuffer, Int32List;
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 _injectJs() {
   final script = new ScriptElement();

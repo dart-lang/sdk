@@ -670,8 +670,9 @@ class CommandBuilder {
   }
 
   Command _getUniqueCommand(Command command) {
-    // All Command classes have hashCode/operator==, so we check if this command
-    // has already been build, if so we return the cached one, otherwise we
+    // All Command classes implement hashCode and operator==.
+    // We check if this command has already been built.
+    //  If so, we return the cached one. Otherwise we
     // store the one given as [command] argument.
     var cachedCommand = _cachedCommands[command];
     if (cachedCommand != null) {
@@ -1674,6 +1675,69 @@ CommandOutput createCommandOutput(Command command,
 
 
 /**
+ * An OutputLog records the output from a test, but truncates it if
+ * it is longer than MAX_HEAD characters, and just keeps the head and
+ * the last TAIL_LENGTH characters of the output.
+ */
+class OutputLog {
+  static const int MAX_HEAD = 100 * 1024;
+  static const int TAIL_LENGTH = 10 * 1024;
+  List<int> head = <int>[];
+  List<int> tail;
+  List<int> complete;
+  bool dataDropped = false;
+
+  OutputLog();
+
+  void add(List<int> data) {
+    if (complete != null) {
+      throw new StateError("Cannot add to OutputLog after calling toList");
+    }
+    if (tail == null) {
+      head.addAll(data);
+      if (head.length > MAX_HEAD) {
+        tail = head.sublist(MAX_HEAD);
+        head.length = MAX_HEAD;
+      }
+    } else {
+      tail.addAll(data);
+    }
+    if (tail != null && tail.length > 2 * TAIL_LENGTH) {
+      tail = _truncatedTail();
+      dataDropped = true;
+    }
+  }
+
+  List<int> _truncatedTail() =>
+    tail.length > TAIL_LENGTH ?
+        tail.sublist(tail.length - TAIL_LENGTH) :
+        tail;
+
+  List<int> toList() {
+    if (complete == null) {
+      complete = head;
+      if (dataDropped) {
+        complete.addAll("""
+
+*****************************************************************************
+
+Data removed due to excessive length
+
+*****************************************************************************
+
+""".codeUnits);
+        complete.addAll(_truncatedTail());
+      } else if (tail != null) {
+        complete.addAll(tail);
+      }
+      head = null;
+      tail = null;
+    }
+    return complete;
+  }
+}
+
+/**
  * A RunningProcess actually runs a test, getting the command lines from
  * its [TestCase], starting the test process (and first, a compilation
  * process if the TestCase is a [BrowserTestCase]), creating a timeout
@@ -1690,8 +1754,8 @@ class RunningProcess {
   DateTime startTime;
   Timer timeoutTimer;
   int pid;
-  List<int> stdout = <int>[];
-  List<int> stderr = <int>[];
+  OutputLog stdout = new OutputLog();
+  OutputLog stderr = new OutputLog();
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
 
@@ -1814,8 +1878,8 @@ class RunningProcess {
         command,
         exitCode,
         timedOut,
-        stdout,
-        stderr,
+        stdout.toList(),
+        stderr.toList(),
         new DateTime.now().difference(startTime),
         compilationSkipped,
         pid);
@@ -1823,8 +1887,8 @@ class RunningProcess {
   }
 
   StreamSubscription _drainStream(Stream<List<int>> source,
-                                  List<int> destination) {
-    return source.listen(destination.addAll);
+                                  OutputLog destination) {
+    return source.listen(destination.add);
   }
 
   Map<String, String> _createProcessEnvironment() {
@@ -1875,8 +1939,8 @@ class BatchRunnerProcess {
   Function _processExitHandler;
 
   bool _currentlyRunning = false;
-  List<int> _testStdout;
-  List<int> _testStderr;
+  OutputLog _testStdout;
+  OutputLog _testStderr;
   String _status;
   DateTime _startTime;
   Timer _timer;
@@ -1932,8 +1996,8 @@ class BatchRunnerProcess {
 
   void doStartTest(Command command, int timeout) {
     _startTime = new DateTime.now();
-    _testStdout = [];
-    _testStderr = [];
+    _testStdout = new OutputLog();
+    _testStderr = new OutputLog();
     _status = null;
     _stdoutCompleter = new Completer();
     _stderrCompleter = new Completer();
@@ -1963,8 +2027,8 @@ class BatchRunnerProcess {
     var output = createCommandOutput(_command,
                         exitCode,
                         (outcome == "TIMEOUT"),
-                        _testStdout,
-                        _testStderr,
+                        _testStdout.toList(),
+                        _testStderr.toList(),
                         new DateTime.now().difference(_startTime),
                         false);
     assert(_completer != null);
@@ -2020,8 +2084,8 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> ')) {
           throw new Exception("Unexpected command from batch runner: '$line'.");
         } else {
-          _testStdout.addAll(encodeUtf8(line));
-          _testStdout.addAll("\n".codeUnits);
+          _testStdout.add(encodeUtf8(line));
+          _testStdout.add("\n".codeUnits);
         }
         if (_status != null) {
           _stdoutSubscription.pause();
@@ -2040,8 +2104,8 @@ class BatchRunnerProcess {
           _stderrSubscription.pause();
           _stderrCompleter.complete(null);
         } else {
-          _testStderr.addAll(encodeUtf8(line));
-          _testStderr.addAll("\n".codeUnits);
+          _testStderr.add(encodeUtf8(line));
+          _testStderr.add("\n".codeUnits);
         }
       });
       _stderrSubscription.pause();

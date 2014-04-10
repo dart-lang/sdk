@@ -461,21 +461,24 @@ class _File extends FileSystemEntity implements File {
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var data;
-    var length = opened.lengthSync();
-    if (length == 0) {
-      // May be character device, try to read it in chunks.
-      var builder = new BytesBuilder(copy: false);
-      do {
-        data = opened.readSync(_BLOCK_SIZE);
-        if (data.length > 0) builder.add(data);
-      } while (data.length == _BLOCK_SIZE);
-      data = builder.takeBytes();
-    } else {
-      data = opened.readSync(length);
+    try {
+      var data;
+      var length = opened.lengthSync();
+      if (length == 0) {
+        // May be character device, try to read it in chunks.
+        var builder = new BytesBuilder(copy: false);
+        do {
+          data = opened.readSync(_BLOCK_SIZE);
+          if (data.length > 0) builder.add(data);
+        } while (data.length == _BLOCK_SIZE);
+        data = builder.takeBytes();
+      } else {
+        data = opened.readSync(length);
+      }
+      return data;
+    } finally {
+      opened.closeSync();
     }
-    opened.closeSync();
-    return data;
   }
 
   String _tryDecode(List<int> bytes, Encoding encoding) {
@@ -539,9 +542,12 @@ class _File extends FileSystemEntity implements File {
                         {FileMode mode: FileMode.WRITE,
                          bool flush: false}) {
     RandomAccessFile opened = openSync(mode: mode);
-    opened.writeFromSync(bytes, 0, bytes.length);
-    if (flush) opened.flushSync();
-    opened.closeSync();
+    try {
+      opened.writeFromSync(bytes, 0, bytes.length);
+      if (flush) opened.flushSync();
+    } finally {
+      opened.closeSync();
+    }
   }
 
   Future<File> writeAsString(String contents,

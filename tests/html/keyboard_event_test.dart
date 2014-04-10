@@ -1,6 +1,6 @@
 library KeyboardEventTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 // Test that we are correctly determining keyCode and charCode uniformly across

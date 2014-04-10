@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dromaeo;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import '../../samples/third_party/dromaeo/web/Dromaeo.dart' as originalTest;
 import 'dart:html';
 import 'dart:async';

@@ -8,7 +8,7 @@
 // OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test('isolate fromUri - send and reply', () {

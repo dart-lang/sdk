@@ -59,7 +59,6 @@ collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 docgen/test/multi_library_test: Slow, Pass # issue 17060
-shelf/test/message_test: RuntimeError # Issue 18109
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
@@ -73,6 +72,7 @@ serialization/test/serialization_test: Skip
 
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
+docgen/test/typedef_test: Slow, Pass # issue 17060
 
 [ $runtime == d8 || $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
@@ -191,7 +191,7 @@ matcher/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
-stack_trace/test/chain_test: Fail # Issues 15171 and 15105
+stack_trace/test/chain_test: Fail, Timeout # Issues 15171, 15105, and 18142
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
@@ -341,8 +341,6 @@ source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this fa
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 matcher/test/matchers_test: StaticWarning, OK # testing error creating abstract class
-scheduled_test/test/scheduled_test/on_complete_test: StaticWarning # Issue 18113
-scheduled_test/test/scheduled_test/set_up_test: StaticWarning # Issue 18113
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip

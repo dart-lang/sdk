@@ -437,6 +437,52 @@ class DirectedGraph_SccFinder<N> {
 }
 
 /**
+ * The interface `MapIterator` defines the behavior of objects that iterate over the entries
+ * in a map.
+ *
+ * This interface defines the concept of a current entry and provides methods to access the key and
+ * value in the current entry. When an iterator is first created it will be positioned before the
+ * first entry and there is no current entry until [moveNext] is invoked. When all of the
+ * entries have been accessed there will also be no current entry.
+ *
+ * There is no guarantee made about the order in which the entries are accessible.
+ */
+abstract class MapIterator<K, V> {
+  /**
+   * Return the key associated with the current element.
+   *
+   * @return the key associated with the current element
+   * @throws NoSuchElementException if there is no current element
+   */
+  K get key;
+
+  /**
+   * Return the value associated with the current element.
+   *
+   * @return the value associated with the current element
+   * @throws NoSuchElementException if there is no current element
+   */
+  V get value;
+
+  /**
+   * Advance to the next entry in the map. Return `true` if there is a current element that
+   * can be accessed after this method returns. It is safe to invoke this method even if the
+   * previous invocation returned `false`.
+   *
+   * @return `true` if there is a current element that can be accessed
+   */
+  bool moveNext();
+
+  /**
+   * Set the value associated with the current element to the given value.
+   *
+   * @param newValue the new value to be associated with the current element
+   * @throws NoSuchElementException if there is no current element
+   */
+  void set value(V newValue);
+}
+
+/**
  * The class `ListUtilities` defines utility methods useful for working with [List
  ].
  */
@@ -452,5 +498,183 @@ class ListUtilities {
     for (int i = 0; i < count; i++) {
       list.add(elements[i]);
     }
+  }
+}
+
+/**
+ * Instances of the class `MultipleMapIterator` implement an iterator that can be used to
+ * sequentially access the entries in multiple maps.
+ */
+class MultipleMapIterator<K, V> implements MapIterator<K, V> {
+  /**
+   * The iterators used to access the entries.
+   */
+  List<MapIterator<K, V>> _iterators;
+
+  /**
+   * The index of the iterator currently being used to access the entries.
+   */
+  int _iteratorIndex = -1;
+
+  /**
+   * The current iterator, or `null` if there is no current iterator.
+   */
+  MapIterator<K, V> _currentIterator;
+
+  /**
+   * Initialize a newly created iterator to return the entries from the given maps.
+   *
+   * @param maps the maps containing the entries to be iterated
+   */
+  MultipleMapIterator(List<Map<K, V>> maps) {
+    int count = maps.length;
+    _iterators = new List<MapIterator>(count);
+    for (int i = 0; i < count; i++) {
+      _iterators[i] = new SingleMapIterator<K, V>(maps[i]);
+    }
+  }
+
+  @override
+  K get key {
+    if (_currentIterator == null) {
+      throw new NoSuchElementException();
+    }
+    return _currentIterator.key;
+  }
+
+  @override
+  V get value {
+    if (_currentIterator == null) {
+      throw new NoSuchElementException();
+    }
+    return _currentIterator.value;
+  }
+
+  @override
+  bool moveNext() {
+    if (_iteratorIndex < 0) {
+      if (_iterators.length == 0) {
+        _currentIterator = null;
+        return false;
+      }
+      if (_advanceToNextIterator()) {
+        return true;
+      } else {
+        _currentIterator = null;
+        return false;
+      }
+    }
+    if (_currentIterator.moveNext()) {
+      return true;
+    } else if (_advanceToNextIterator()) {
+      return true;
+    } else {
+      _currentIterator = null;
+      return false;
+    }
+  }
+
+  @override
+  void set value(V newValue) {
+    if (_currentIterator == null) {
+      throw new NoSuchElementException();
+    }
+    _currentIterator.value = newValue;
+  }
+
+  /**
+   * Under the assumption that there are no more entries that can be returned using the current
+   * iterator, advance to the next iterator that has entries.
+   *
+   * @return `true` if there is a current iterator that has entries
+   */
+  bool _advanceToNextIterator() {
+    _iteratorIndex++;
+    while (_iteratorIndex < _iterators.length) {
+      MapIterator<K, V> iterator = _iterators[_iteratorIndex];
+      if (iterator.moveNext()) {
+        _currentIterator = iterator;
+        return true;
+      }
+      _iteratorIndex++;
+    }
+    return false;
+  }
+}
+
+/**
+ * Instances of the class `SingleMapIterator` implement an iterator that can be used to access
+ * the entries in a single map.
+ */
+class SingleMapIterator<K, V> implements MapIterator<K, V> {
+  /**
+   * Returns a new [SingleMapIterator] instance for the given [Map].
+   */
+  static SingleMapIterator forMap(Map map) => new SingleMapIterator(map);
+
+  /**
+   * The [Map] containing the entries to be iterated over.
+   */
+  final Map<K, V> _map;
+
+  /**
+   * The iterator used to access the entries.
+   */
+  Iterator<K> _keyIterator;
+
+  /**
+   * The current key, or `null` if there is no current key.
+   */
+  K _currentKey;
+
+  /**
+   * The current value.
+   */
+  V _currentValue;
+
+  /**
+   * Initialize a newly created iterator to return the entries from the given map.
+   *
+   * @param map the map containing the entries to be iterated over
+   */
+  SingleMapIterator(this._map) {
+    this._keyIterator = _map.keys.iterator;
+  }
+
+  @override
+  K get key {
+    if (_currentKey == null) {
+      throw new NoSuchElementException();
+    }
+    return _currentKey;
+  }
+
+  @override
+  V get value {
+    if (_currentKey == null) {
+      throw new NoSuchElementException();
+    }
+    return _currentValue;
+  }
+
+  @override
+  bool moveNext() {
+    if (_keyIterator.moveNext()) {
+      _currentKey = _keyIterator.current;
+      _currentValue = _map[_currentKey];
+      return true;
+    } else {
+      _currentKey = null;
+      return false;
+    }
+  }
+
+  @override
+  void set value(V newValue) {
+    if (_currentKey == null) {
+      throw new NoSuchElementException();
+    }
+    _currentValue = newValue;
+    _map[_currentKey] = newValue;
   }
 }

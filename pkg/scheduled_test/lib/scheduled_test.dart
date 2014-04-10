@@ -222,7 +222,7 @@ Function _setUpFn;
 ///
 /// If [body] returns a [Future], that future will automatically be wrapped with
 /// [wrapFuture].
-void test(String description, Future body()) =>
+void test(String description, body()) =>
   _test(description, body, unittest.test);
 
 /// Creates a new test case with the given description and body that will be the
@@ -232,10 +232,10 @@ void test(String description, Future body()) =>
 ///
 /// If [body] returns a [Future], that future will automatically be wrapped with
 /// [wrapFuture].
-void solo_test(String description, Future body()) =>
+void solo_test(String description, body()) =>
   _test(description, body, unittest.solo_test);
 
-void _test(String description, Future body(), Function testFn) {
+void _test(String description, body(), Function testFn) {
   maybeWrapFuture(future, description) {
     if (future != null) wrapFuture(future, description);
   }
@@ -245,8 +245,13 @@ void _test(String description, Future body(), Function testFn) {
   testFn(description, () {
     var completer = new Completer();
 
+    // Capture this in a local variable in case we capture an out-of-band error
+    // after the schedule completes.
+    var errorHandler;
+
     Chain.capture(() {
       _currentSchedule = new Schedule();
+      errorHandler = _currentSchedule.signalError;
       return currentSchedule.run(() {
         if (_setUpFn != null) maybeWrapFuture(_setUpFn(), "set up");
         maybeWrapFuture(body(), "test body");
@@ -259,7 +264,7 @@ void _test(String description, Future body(), Function testFn) {
           unittest.registerException(error, new Chain.forTrace(stackTrace));
         }
       }).then(completer.complete);
-    }, onError: (error, chain) => currentSchedule.signalError(error, chain));
+    }, onError: (error, stackTrace) => errorHandler(error, stackTrace));
 
     return completer.future;
   });
@@ -309,7 +314,7 @@ Future schedule(fn(), [String description]) =>
 /// be scheduled for [currentSchedule.onComplete] or
 /// [currentSchedule.onException]. These tasks will be run after each test's
 /// schedule is completed.
-void setUp(void setUpFn()) {
+void setUp(setUpFn()) {
   _setUpScheduledTest(setUpFn);
 }
 

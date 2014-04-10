@@ -2573,6 +2573,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (FLAG_use_osr) {
+      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
+      Register value = instruction_->locs()->temp(0).reg();
+      __ Comment("CheckStackOverflowSlowPathOsr");
+      __ Bind(osr_entry_label());
+      __ LoadImmediate(IP, flags_address);
+      __ LoadImmediate(value, Isolate::kOsrRequest);
+      __ str(value, Address(IP));
+    }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
@@ -2598,8 +2607,14 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     __ b(exit_label());
   }
 
+  Label* osr_entry_label() {
+    ASSERT(FLAG_use_osr);
+    return &osr_entry_label_;
+  }
+
  private:
   CheckStackOverflowInstr* instruction_;
+  Label osr_entry_label_;
 };
 
 
@@ -2621,7 +2636,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ ldr(temp, FieldAddress(temp, Function::usage_counter_offset()));
     __ CompareImmediate(temp, threshold);
-    __ b(slow_path->entry_label(), GE);
+    __ b(slow_path->osr_entry_label(), GE);
+  }
+  if (compiler->ForceSlowPathForStackOverflow()) {
+    __ b(slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());
 }

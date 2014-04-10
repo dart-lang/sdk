@@ -6469,6 +6469,7 @@ class ImplementsClause extends AstNode {
  * <pre>
  * importDirective ::=
  *     [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
+ *   | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
  * </pre>
  */
 class ImportDirective extends NamespaceDirective {
@@ -6564,6 +6565,11 @@ class ImportDirective extends NamespaceDirective {
   };
 
   /**
+   * The token representing the 'deferred' token, or `null` if the imported is not deferred.
+   */
+  Token deferredToken;
+
+  /**
    * The token representing the 'as' token, or `null` if the imported names are not prefixed.
    */
   Token asToken;
@@ -6581,12 +6587,13 @@ class ImportDirective extends NamespaceDirective {
    * @param metadata the annotations associated with the directive
    * @param keyword the token representing the 'import' keyword
    * @param libraryUri the URI of the library being imported
+   * @param deferredToken the token representing the 'deferred' token
    * @param asToken the token representing the 'as' token
    * @param prefix the prefix to be used with the imported names
    * @param combinators the combinators used to control how names are imported
    * @param semicolon the semicolon terminating the directive
    */
-  ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, this.asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
+  ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, this.deferredToken, this.asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
     this._prefix = becomeParentOf(prefix);
   }
 
@@ -12637,6 +12644,13 @@ class ElementLocator {
         return element;
       }
     }
+    // try to get Polymer specific Element
+    {
+      Element element = null;
+      if (element != null) {
+        return element;
+      }
+    }
     // no Element
     return null;
   }
@@ -15769,7 +15783,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
-    ImportDirective directive = new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), node.asToken, _cloneNode(node.prefix), _cloneNodeList(node.combinators), node.semicolon);
+    ImportDirective directive = new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), node.deferredToken, node.asToken, _cloneNode(node.prefix), _cloneNodeList(node.combinators), node.semicolon);
     directive.source = node.source;
     directive.uriContent = node.uriContent;
     return directive;
@@ -16964,7 +16978,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(_mapToken(node.keyword), _cloneNodeList(node.interfaces));
 
   @override
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _mapToken(node.keyword), _cloneNode(node.uri), _mapToken(node.asToken), _cloneNode(node.prefix), _cloneNodeList(node.combinators), _mapToken(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _mapToken(node.keyword), _cloneNode(node.uri), _mapToken(node.deferredToken), _mapToken(node.asToken), _cloneNode(node.prefix), _cloneNodeList(node.combinators), _mapToken(node.semicolon));
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {

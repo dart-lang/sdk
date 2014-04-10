@@ -160,7 +160,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                Map<String, String> environment,
                bool includeParentEnvironment,
                bool runInShell) {
-    runInShell = identical(runInShell, true);
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
       path = _getShellCommand();
@@ -193,22 +192,22 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     }
 
     _environment = [];
-    if (environment == null) {
-      environment = {};
-    }
-    if (environment is !Map) {
-      throw new ArgumentError("Environment is not a map: $environment");
-    }
-    if (identical(true, includeParentEnvironment)) {
-      environment = new Map.from(Platform.environment)..addAll(environment);
-    }
-    environment.forEach((key, value) {
+    var environmentEntryHandler = (key, value) {
       if (key is !String || value is !String) {
         throw new ArgumentError(
-            "Environment key or value is not a string: ($key, $value)");
+        "Environment key or value is not a string: ($key, $value)");
       }
       _environment.add('$key=$value');
-    });
+    };
+    if (environment != null) {
+      if (environment is !Map) {
+        throw new ArgumentError("Environment is not a map: $environment");
+      }
+      environment.forEach(environmentEntryHandler);
+    }
+    if (includeParentEnvironment) {
+      Platform.environment.forEach(environmentEntryHandler);
+    }
 
     // stdin going to process.
     _stdin = new _StdSink(new _Socket._writePipe());
@@ -321,6 +320,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                   _stderr._stream._nativeSocket,
                                   _exitHandler._nativeSocket,
                                   status);
+      _environment = null;  // The environment will not be needed going forward.
       if (!success) {
         completer.completeError(
             new ProcessException(_path,
@@ -376,6 +376,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                 _stderr._stream._nativeSocket,
                                 _exitHandler._nativeSocket,
                                 status);
+    _environment = null;  // The environment will not be needed going forward.
     if (!success) {
       throw new ProcessException(_path,
                                  _arguments,

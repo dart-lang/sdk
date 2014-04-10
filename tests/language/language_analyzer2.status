@@ -187,19 +187,17 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# unexpected warning for override
-override_inheritance_abstract_test/27: StaticWarning # Issue 16134
-override_inheritance_generic_test/03: StaticWarning # Issue 16134
+# analyzer issue 17983
+override_inheritance_generic_test/08: MissingStaticWarning # Issue 17983
+override_inheritance_field_test/32: MissingStaticWarning # Issue 17983
+override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
+override_inheritance_abstract_test/27: StaticWarning # Issue 17983
 
 # missing warning for override
 override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
-
-# missing compile-time error for getter/member override
-override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 16136
-override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16136
 
 # flaky override tests
 override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
@@ -464,11 +462,6 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
-# Issue 16392.
-const_constructor2_test/20: MissingStaticWarning # Issue 16392.
-const_constructor2_test/22: MissingStaticWarning # Issue 16392.
-const_constructor2_test/24: MissingStaticWarning # Issue 16392.
-
 # Issue 16391. The analyzer handle compile-time error in checked only in these
 # cases:
 compile_time_constant_checked2_test/01: CompileTimeError # Issue 16391
@@ -488,4 +481,3 @@ deferred_closurize_load_library_test: Fail
 deferred_load_library_wrong_args_test/01: Fail
 deferred_load_library_wrong_args_test/none: Fail
 deferred_load_inval_code_test: Fail
-

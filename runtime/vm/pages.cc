@@ -13,7 +13,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, heap_growth_space_ratio, 10,
+DEFINE_FLAG(int, heap_growth_space_ratio, 20,
             "The desired maximum percentage of free space after GC");
 DEFINE_FLAG(int, heap_growth_time_ratio, 3,
             "The desired maximum percentage of time spent in GC");
@@ -692,15 +692,16 @@ void PageSpaceController::EvaluateGarbageCollection(
   if (enough_free_space && enough_free_time) {
     grow_heap_ = 0;
   } else {
-    intptr_t growth_target = static_cast<intptr_t>(
+    intptr_t used_target = static_cast<intptr_t>(
         after_total_in_words /  desired_utilization_);
-    intptr_t growth_in_words = Utils::RoundUp(
-        growth_target - after_total_in_words,
-        PageSpace::kPageSizeInWords);
-    int growth_in_pages =
-        growth_in_words / PageSpace::kPageSizeInWords;
-    grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
-    heap->RecordData(PageSpace::kPageGrowth, growth_in_pages);
+    intptr_t capacity_growth_in_words =
+      Utils::RoundUp(Utils::Maximum(static_cast<intptr_t>(0),
+                                    used_target - after.capacity_in_words),
+                       PageSpace::kPageSizeInWords);
+    int capacity_growth_in_pages =
+        capacity_growth_in_words / PageSpace::kPageSizeInWords;
+    grow_heap_ = Utils::Maximum(capacity_growth_in_pages, heap_growth_rate_);
+    heap->RecordData(PageSpace::kPageGrowth, capacity_growth_in_pages);
   }
   heap->RecordData(PageSpace::kGarbageRatio, collected_garbage_ratio);
   heap->RecordData(PageSpace::kGCTimeFraction,

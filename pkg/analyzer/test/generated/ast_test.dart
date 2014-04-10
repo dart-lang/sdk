@@ -484,7 +484,7 @@ class AstFactory {
 
   static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause(TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), list(types));
 
-  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), null, prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
 

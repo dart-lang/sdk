@@ -8,7 +8,7 @@
 // OtherScripts=spawn_uri_nested_child1_vm_isolate.dart spawn_uri_nested_child2_vm_isolate.dart
 library NestedSpawnUriLibrary;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test('isolate fromUri - nested send and reply', () {

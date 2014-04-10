@@ -57,7 +57,10 @@ class Transform extends BaseTransform {
   /// Gets the asset for an input [id].
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
-  Future<Asset> getInput(AssetId id) => _node.getInput(id);
+  Future<Asset> getInput(AssetId id) {
+    if (id == _node.primary.id) return syncFuture(() => primaryInput);
+    return _node.getInput(id);
+  }
 
   /// A convenience method to the contents of the input with [id] as a string.
   ///

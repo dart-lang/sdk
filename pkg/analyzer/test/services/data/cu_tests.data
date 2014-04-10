@@ -216,12 +216,12 @@ class A extends B {
 >>> Single initializers can be on one line
 class Foo extends Bar {
   final int b;
-  Foo(int a, this.b): super(a);
+  Foo(int a, this.b) : super(a);
 }
 <<<
 class Foo extends Bar {
   final int b;
-  Foo(int a, this.b): super(a);
+  Foo(int a, this.b) : super(a);
 }
 >>> (or not)
 class Foo extends Bar {
@@ -246,4 +246,28 @@ class Foo extends Bar {
   Foo(int a, int b)
       : super(a),
         this.b = b == null ? 0 : b;
+}
+>>> dartbug.com/17837
+@meta class Foo {
+  @meta String foo;
+  @meta int bar() => 42;
+}
+@meta
+class Bar {
+  @meta
+  String foo;
+  @meta
+  int bar() => 42;
+}
+<<<
+@meta class Foo {
+  @meta String foo;
+  @meta int bar() => 42;
+}
+@meta
+class Bar {
+  @meta
+  String foo;
+  @meta
+  int bar() => 42;
 }

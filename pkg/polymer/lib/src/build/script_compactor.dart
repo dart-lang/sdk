@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' hide Element;
 import 'package:analyzer/src/generated/element.dart' as analyzer show Element;
 import 'package:barback/barback.dart';
-import 'package:code_transformers/assets.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show SourceFile;
 import 'package:smoke/codegen/generator.dart';
@@ -571,7 +570,7 @@ class _Mustaches {
   }
 }
 
-/// Holds types that are used in queries 
+/// Holds types that are used in queries
 class _ResolvedTypes {
   /// Element representing `HtmlElement`.
   final ClassElement htmlElementElement;

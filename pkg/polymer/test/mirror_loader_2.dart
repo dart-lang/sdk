@@ -1,6 +1,5 @@
 library mirror_loader_test2;
 
-import 'dart:html';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('x-a')

@@ -10,11 +10,12 @@
 # binary packages.
 
 import optparse
+import platform
 import sys
 import tarfile
 import subprocess
 import utils
-
+import os
 from os.path import join, exists, abspath
 from shutil import copyfile
 
@@ -30,7 +31,7 @@ def BuildOptions():
   result.add_option("--out_dir",
                     default=None,
                     help="Where to put the packages.")
- 
+
   return result
 
 def RunBuildPackage(opt, cwd):
@@ -49,7 +50,7 @@ def BuildDebianPackage(tarball, out_dir):
   tarroot = 'dart-%s' % version
   origtarname = 'dart_%s.orig.tar.gz' % version
 
-  if not exists(join(out_dir, tarball)):
+  if not exists(tarball):
     print 'Source tarball not found'
     return -1
 
@@ -85,6 +86,7 @@ def BuildDebianPackage(tarball, out_dir):
     amd64_package = [
       '%s-1_amd64.deb' % debbase
     ]
+
     for name in source_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
     for name in i386_package:
@@ -102,9 +104,13 @@ def Main():
   tar_filename = options.tar_filename
   if not options.out_dir:
     out_dir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
-  if not options.tar_filename:
-    raise Exception('Please specify the input filename.')
-  BuildDebianPackage(options.tar_filename, options.out_dir)
+
+  if not tar_filename:
+    tar_filename = join(DART_DIR,
+                        utils.GetBuildDir(HOST_OS, HOST_OS),
+                        'dart-%s.tar.gz' % utils.GetVersion())
+
+  BuildDebianPackage(tar_filename, out_dir)
 
 if __name__ == '__main__':
   sys.exit(Main())

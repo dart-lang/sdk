@@ -2745,10 +2745,22 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(clause.keyword);
   }
 
+  void test_parseImportDirective_deferred() {
+    ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' deferred as a;");
+    JUnitTestCase.assertNotNull(directive.keyword);
+    JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNotNull(directive.deferredToken);
+    JUnitTestCase.assertNotNull(directive.asToken);
+    JUnitTestCase.assertNotNull(directive.prefix);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    JUnitTestCase.assertNotNull(directive.semicolon);
+  }
+
   void test_parseImportDirective_hide() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' hide A, B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
@@ -2759,6 +2771,7 @@ class SimpleParserTest extends ParserTestCase {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart';");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
@@ -2769,6 +2782,7 @@ class SimpleParserTest extends ParserTestCase {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
@@ -2779,6 +2793,7 @@ class SimpleParserTest extends ParserTestCase {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a hide A show B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
@@ -2789,6 +2804,7 @@ class SimpleParserTest extends ParserTestCase {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a show B hide A;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
@@ -2799,6 +2815,7 @@ class SimpleParserTest extends ParserTestCase {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' show A, B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
+    JUnitTestCase.assertNull(directive.deferredToken);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
@@ -5887,6 +5904,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseImplementsClause_single);
       });
+      _ut.test('test_parseImportDirective_deferred', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseImportDirective_deferred);
+      });
       _ut.test('test_parseImportDirective_hide', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseImportDirective_hide);
@@ -7313,7 +7334,7 @@ class ParserTestCase extends EngineTestCase {
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
-   * @param errorCodes the error codes of the errors that should be generated
+   * @param errors the errors that should be generated
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
@@ -9995,6 +10016,13 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse4("parseStringLiteral", "'\$x\$'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
+  void test_expectedInterpolationIdentifier_emptyString() {
+    // The scanner inserts an empty string token between the two $'s; we need to make sure that the
+    // MISSING_IDENTIFIER error that is generated has a nonzero width so that it will show up in
+    // the editor UI.
+    ParserTestCase.parse2("parseStringLiteral", <Object> [], "'\$\$foo'", [new AnalysisError.con2(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER, [])]);
+  }
+
   void test_expectedStringLiteral() {
     StringLiteral expression = ParserTestCase.parse4("parseStringLiteral", "1", [ParserErrorCode.EXPECTED_STRING_LITERAL]);
     JUnitTestCase.assertTrue(expression.isSynthetic);
@@ -10420,6 +10448,10 @@ class ErrorParserTest extends ParserTestCase {
   void test_missingNameInPartOfDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part of;", [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE]);
     JUnitTestCase.assertNotNull(unit);
+  }
+
+  void test_missingPrefixInDeferredImport() {
+    ParserTestCase.parseCompilationUnit("import 'foo.dart' deferred;", [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT]);
   }
 
   void test_missingStatement() {
@@ -11003,6 +11035,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedInterpolationIdentifier);
       });
+      _ut.test('test_expectedInterpolationIdentifier_emptyString', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedInterpolationIdentifier_emptyString);
+      });
       _ut.test('test_expectedStringLiteral', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedStringLiteral);
@@ -11402,6 +11438,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingNameInPartOfDirective', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingNameInPartOfDirective);
+      });
+      _ut.test('test_missingPrefixInDeferredImport', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingPrefixInDeferredImport);
       });
       _ut.test('test_missingStatement', () {
         final __test = new ErrorParserTest();

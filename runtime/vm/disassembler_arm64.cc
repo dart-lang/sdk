@@ -347,6 +347,15 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       PrintMemOperand(instr);
       return 5;
     }
+    case 'b': {
+      ASSERT(STRING_STARTS_WITH(format, "bitimm"));
+      const uint64_t imm = instr->ImmLogical();
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 "0x%"Px64,
+                                 imm);
+      return 6;
+    }
     default: {
       UNREACHABLE();
       break;
@@ -414,11 +423,43 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
 
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
+    case 0: {
+      if ((instr->RdField() == R31) && (instr->SFField())) {
+        Format(instr, "cmni'sf 'rn, 'imm12s");
+      } else {
+        Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+      }
+      break;
+    }
+    case 1: {
+      if ((instr->RdField() == R31) && (instr->SFField())) {
+        Format(instr, "cmpi'sf 'rn, 'imm12s");
+      } else {
+        Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");
+      }
+      break;
+    }
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
+void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
+  int op = instr->Bits(29, 2);
+  switch (op) {
     case 0:
-      Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+      Format(instr, "andi'sf 'rd, 'rn, 'bitimm");
       break;
     case 1:
-      Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");
+      Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
+      break;
+    case 2:
+      Format(instr, "eori'sf 'rd, 'rn, 'bitimm");
+      break;
+    case 3:
+      Format(instr, "andi'sfs 'rd, 'rn, 'bitimm");
       break;
     default:
       Unknown(instr);
@@ -426,11 +467,14 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   }
 }
 
+
 void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
   if (instr->IsMoveWideOp()) {
     DecodeMoveWide(instr);
   } else if (instr->IsAddSubImmOp()) {
     DecodeAddSubImm(instr);
+  } else if (instr->IsLogicalImmOp()) {
+    DecodeLogicalImm(instr);
   } else {
     Unknown(instr);
   }
@@ -511,11 +555,55 @@ void ARM64Decoder::DecodeLoadStore(Instr* instr) {
 
 void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
   switch (instr->Bit(30)) {
+    case 0: {
+      if ((instr->RdField() == R31) && (instr->SFField())) {
+        Format(instr, "cmn'sf 'rn, 'shift_op");
+      } else {
+        Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
+      }
+      break;
+    }
+    case 1: {
+      if ((instr->RdField() == R31) && (instr->SFField())) {
+        Format(instr, "cmp'sf 'rn, 'shift_op");
+      } else {
+        Format(instr, "sub'sf's 'rd, 'rn, 'shift_op");
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
+  const int op = (instr->Bits(29, 2) << 1) | instr->Bit(21);
+  switch (op) {
     case 0:
-      Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
+      Format(instr, "and'sf 'rd, 'rn, 'shift_op");
       break;
     case 1:
-      Format(instr, "sub'sf's 'rd, 'rn, 'shift_op");
+      Format(instr, "bic'sf 'rd, 'rn, 'shift_op");
+      break;
+    case 2:
+      Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+      break;
+    case 3:
+      Format(instr, "orn'sf 'rd, 'rn, 'shift_op");
+      break;
+    case 4:
+      Format(instr, "eor'sf 'rd, 'rn, 'shift_op");
+      break;
+    case 5:
+      Format(instr, "eon'sf 'rd, 'rn, 'shift_op");
+      break;
+    case 6:
+      Format(instr, "and'sfs 'rd, 'rn, 'shift_op");
+      break;
+    case 7:
+      Format(instr, "bic'sfs 'rd, 'rn, 'shift_op");
       break;
     default:
       UNREACHABLE();
@@ -527,6 +615,8 @@ void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
+  } else if (instr->IsLogicalShiftOp()) {
+    DecodeLogicalShift(instr);
   } else {
     Unknown(instr);
   }

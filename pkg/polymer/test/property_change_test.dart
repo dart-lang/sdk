@@ -8,7 +8,6 @@ import 'dart:async';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:unittest/matcher.dart';
 
 // Dart note: this is a tad different from the JS code. We don't support putting
 // expandos on Dart objects and then observing them. On the other hand, we want

@@ -28,8 +28,7 @@ main() {
   Expect.throws(readFoo, isNoSuchMethodError);
   int counter = 0;
   asyncStart();
-  lazy.load().then((bool didLoad) {
-    Expect.isTrue(didLoad);
+  lazy.load().then((_) {
     Expect.equals(1, ++counter);
     print('lazy was loaded');
     Expect.equals(42, lib.foo('b'));
@@ -38,8 +37,7 @@ main() {
   });
   Expect.equals(0, counter);
   asyncStart();
-  lazy.load().then((bool didLoad) {
-    Expect.isFalse(didLoad);
+  lazy.load().then((_) {
     Expect.equals(2, ++counter);
     print('lazy was loaded');
     Expect.equals(42, lib.foo('b'));

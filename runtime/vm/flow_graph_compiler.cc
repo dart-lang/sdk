@@ -33,10 +33,13 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
+DECLARE_FLAG(int, stacktrace_every);
+DECLARE_FLAG(charp, stacktrace_filter);
+DECLARE_FLAG(int, deoptimize_every);
+DECLARE_FLAG(charp, deoptimize_filter);
+
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
-DEFINE_FLAG(charp, deoptimize_filter, NULL,
-            "Force deoptimization in named function");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -171,11 +174,22 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 }
 
 
-bool FlowGraphCompiler::ShouldDeoptimizeFunction() const {
-  return (is_optimizing() &&
-          (FLAG_deoptimize_filter != NULL) &&
-          (strstr(parsed_function().function().ToFullyQualifiedCString(),
-                  FLAG_deoptimize_filter) != NULL));
+bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
+  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0) {
+    return true;
+  }
+  if (FLAG_stacktrace_filter != NULL &&
+      strstr(parsed_function().function().ToFullyQualifiedCString(),
+             FLAG_stacktrace_filter) != NULL) {
+    return true;
+  }
+  if (is_optimizing() &&
+      FLAG_deoptimize_filter != NULL &&
+      strstr(parsed_function().function().ToFullyQualifiedCString(),
+             FLAG_deoptimize_filter) != NULL) {
+    return true;
+  }
+  return false;
 }
 
 

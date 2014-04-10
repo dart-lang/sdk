@@ -8,20 +8,12 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import 'rewrite.dart';
+import 'declaring_rewrite.dart';
 
 /// Like [RewriteTransformer], but returns a lazy asset that doesn't perform the
 /// rewrite until it's materialized.
-class LazyRewriteTransformer extends RewriteTransformer
+class LazyRewriteTransformer extends DeclaringRewriteTransformer
     implements LazyTransformer {
   LazyRewriteTransformer(String from, String to)
       : super(from, to);
-
-  Future declareOutputs(DeclaringTransform transform) {
-    if (consumePrimary) transform.consumePrimary();
-    for (var extension in to.split(" ")) {
-      var id = transform.primaryId.changeExtension(".$extension");
-      transform.declareOutput(id);
-    }
-  }
 }

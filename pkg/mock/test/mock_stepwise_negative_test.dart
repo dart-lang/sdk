@@ -5,7 +5,7 @@
 library mock.mock_stepwise_negative_test;
 
 import 'package:unittest/unittest.dart' show test;
-import 'package:unittest/mock.dart';
+import 'package:mock/mock.dart';
 
 main() {
   test('Mocking: stepwiseValidate', () {

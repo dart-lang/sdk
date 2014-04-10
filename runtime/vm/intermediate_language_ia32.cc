@@ -2536,6 +2536,13 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (FLAG_use_osr) {
+      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
+      __ Comment("CheckStackOverflowSlowPathOsr");
+      __ Bind(osr_entry_label());
+      __ movl(Address::Absolute(flags_address),
+              Immediate(Isolate::kOsrRequest));
+    }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
@@ -2561,8 +2568,14 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     __ jmp(exit_label());
   }
 
+  Label* osr_entry_label() {
+    ASSERT(FLAG_use_osr);
+    return &osr_entry_label_;
+  }
+
  private:
   CheckStackOverflowInstr* instruction_;
+  Label osr_entry_label_;
 };
 
 
@@ -2570,9 +2583,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->ShouldDeoptimizeFunction()) {
-    __ jmp(slow_path->entry_label());
-  }
   __ cmpl(ESP,
           Address::Absolute(Isolate::Current()->stack_limit_address()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
@@ -2585,7 +2595,12 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ cmpl(FieldAddress(EDI, Function::usage_counter_offset()),
             Immediate(threshold));
-    __ j(GREATER_EQUAL, slow_path->entry_label());
+    __ j(GREATER_EQUAL, slow_path->osr_entry_label());
+  }
+  if (compiler->ForceSlowPathForStackOverflow()) {
+    // TODO(turnidge): Implement stack overflow count in assembly to
+    // make --stacktrace-every and --deoptimize-every faster.
+    __ jmp(slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());
 }

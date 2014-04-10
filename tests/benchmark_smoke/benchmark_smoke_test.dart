@@ -8,9 +8,9 @@ library benchmarksmoketest;
 import 'benchmark_lib.dart';
 import 'dart:async';
 import 'dart:html';
-import '../../pkg/expect/lib/expect.dart';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 void main() {
   useHtmlConfiguration();

@@ -46,6 +46,9 @@ class FunctionLiteralsTest {
     Expect.equals(10, b.n);
     Expect.equals(101, (b.f)(10));
 
+    var c = new C(5);
+    Expect.equals("2*x is 10", c.s);
+
     int x = 0;
     int y = 1;
     // make sure this isn't parsed as a generic type
@@ -73,6 +76,10 @@ class B {
   B.withZ(z) : f = ((x) { return x * x + 1; }) { n = z; }
 }
 
+class C {
+  String s;
+  C(x) : s = "2*x is ${() { return 2*x; }()}";
+}
 main() {
   FunctionLiteralsTest.testMain();
 }

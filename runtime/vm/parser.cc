@@ -10323,7 +10323,9 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
       } else {
         ASSERT(CurrentToken() == Token::kINTERPOL_START);
         ConsumeToken();
+        const bool saved_mode = SetAllowFunctionLiterals(true);
         expr = ParseExpr(kAllowConst, kConsumeCascades);
+        SetAllowFunctionLiterals(saved_mode);
         ExpectToken(Token::kINTERPOL_END);
       }
       // Check if this interpolated string is still considered a compile time
@@ -10741,7 +10743,9 @@ void Parser::SkipStringLiteral() {
         ConsumeToken();
       } else if (CurrentToken() == Token::kINTERPOL_START) {
         ConsumeToken();
+        const bool saved_mode = SetAllowFunctionLiterals(true);
         SkipExpr();
+        SetAllowFunctionLiterals(saved_mode);
         ExpectToken(Token::kINTERPOL_END);
       } else {
         break;
