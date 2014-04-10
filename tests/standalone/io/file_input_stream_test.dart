@@ -214,9 +214,14 @@ void testInputStreamBadOffset() {
           streamedBytes += d.length;
         },
         onDone: () {
-          temp.delete(recursive: true);
+          if (temp.existsSync()) {
+            temp.deleteSync(recursive: true);
+          }
         },
         onError: (e) {
+          if (temp.existsSync()) {
+            temp.deleteSync(recursive: true);
+          }
           asyncEnd();
         });
   }
