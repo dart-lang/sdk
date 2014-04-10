@@ -30,6 +30,7 @@ class ObjectStore {
     kMath,
     kMirrors,
     kTypedData,
+    kProfiler,
   };
 
   ~ObjectStore();
@@ -274,6 +275,13 @@ class ObjectStore {
     mirror_reference_class_ = value.raw();
   }
 
+  RawClass* user_tag_class() const {
+    return user_tag_class_;
+  }
+  void set_user_tag_class(const Class& value) {
+    user_tag_class_ = value.raw();
+  }
+
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
@@ -294,6 +302,7 @@ class ObjectStore {
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
+  RawLibrary* profiler_library() const { return profiler_library_; }
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
       case kAsync:
@@ -322,6 +331,9 @@ class ObjectStore {
         break;
       case kTypedData:
         typed_data_library_ = value.raw();
+        break;
+      case kProfiler:
+        profiler_library_ = value.raw();
         break;
       default:
         UNREACHABLE();
@@ -475,6 +487,7 @@ class ObjectStore {
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
   RawClass* mirror_reference_class_;
+  RawClass* user_tag_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
@@ -489,6 +502,7 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
+  RawLibrary* profiler_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_functions_;

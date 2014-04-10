@@ -9,6 +9,7 @@
 #include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/bigint_operations.h"
+#include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
@@ -1141,6 +1142,25 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_mirror_reference_class(cls);
   RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
+  // Pre-register the profiler library so we can place the vm class
+  // UserTag there rather than the core library.
+  lib = Library::LookupLibrary(Symbols::DartProfiler());
+  if (lib.IsNull()) {
+    lib = Library::NewLibraryHelper(Symbols::DartProfiler(), true);
+    lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kProfiler,
+                                                   lib);
+  }
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::ProfilerLibrary());
+
+  lib = Library::LookupLibrary(Symbols::DartProfiler());
+  ASSERT(!lib.IsNull());
+  cls = Class::New<UserTag>();
+  object_store->set_user_tag_class(cls);
+  RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
+  pending_classes.Add(cls);
+
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
   Library::InitNativeWrappersLibrary(isolate);
@@ -1439,6 +1459,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<MirrorReference>();
   object_store->set_mirror_reference_class(cls);
+
+  cls = Class::New<UserTag>();
+  object_store->set_user_tag_class(cls);
 }
 
 
@@ -9187,6 +9210,11 @@ RawLibrary* Library::NativeWrappersLibrary() {
 
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typed_data_library();
+}
+
+
+RawLibrary* Library::ProfilerLibrary() {
+  return Isolate::Current()->object_store()->profiler_library();
 }
 
 
@@ -18265,6 +18293,131 @@ const char* MirrorReference::ToCString() const {
 
 
 void MirrorReference::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
+void UserTag::MakeActive() const {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->set_current_tag(*this);
+}
+
+
+void UserTag::ClearActive() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->clear_current_tag();
+}
+
+
+RawUserTag* UserTag::New(const String& label, Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->user_tag_class() != Class::null());
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  // Canonicalize by name.
+  UserTag& result = UserTag::Handle(FindTagInIsolate(isolate, label));
+  if (!result.IsNull()) {
+    // Tag already exists, return existing instance.
+    return result.raw();
+  }
+  if (TagTableIsFull(isolate)) {
+    const String& error = String::Handle(
+        String::NewFormatted("UserTag instance limit (%" Pd ") reached.",
+                             UserTags::kMaxUserTags));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  }
+  // No tag with label exists, create and register with isolate tag table.
+  {
+    RawObject* raw = Object::Allocate(UserTag::kClassId,
+                                      UserTag::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_label(label);
+  AddTagToIsolate(isolate, result);
+  return result.raw();
+}
+
+
+RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
+      isolate, isolate->tag_table());
+  UserTag& other = UserTag::Handle(isolate);
+  String& tag_label = String::Handle(isolate);
+  for (intptr_t i = 0; i < tag_table.Length(); i++) {
+    other ^= tag_table.At(i);
+    ASSERT(!other.IsNull());
+    tag_label ^= other.label();
+    ASSERT(!tag_label.IsNull());
+    if (tag_label.Equals(label)) {
+      return other.raw();
+    }
+  }
+  return UserTag::null();
+}
+
+
+void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
+      isolate, isolate->tag_table());
+  ASSERT(!TagTableIsFull(isolate));
+#if defined(DEBUG)
+  // Verify that no existing tag has the same tag id.
+  UserTag& other = UserTag::Handle(isolate);
+  for (intptr_t i = 0; i < tag_table.Length(); i++) {
+    other ^= tag_table.At(i);
+    ASSERT(!other.IsNull());
+    ASSERT(tag.tag() != other.tag());
+  }
+#endif
+  // Generate the UserTag tag id by taking the length of the isolate's
+  // tag table + kUserTagIdOffset.
+  uword tag_id = tag_table.Length() + UserTags::kUserTagIdOffset;
+  ASSERT(tag_id >= UserTags::kUserTagIdOffset);
+  ASSERT(tag_id < (UserTags::kUserTagIdOffset + UserTags::kMaxUserTags));
+  tag.set_tag(tag_id);
+  tag_table.Add(tag);
+}
+
+
+bool UserTag::TagTableIsFull(Isolate* isolate) {
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
+      isolate, isolate->tag_table());
+  ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
+  return tag_table.Length() == UserTags::kMaxUserTags;
+}
+
+
+RawUserTag* UserTag::FindTagById(uword tag_id) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
+      isolate, isolate->tag_table());
+  UserTag& tag = UserTag::Handle(isolate);
+  for (intptr_t i = 0; i < tag_table.Length(); i++) {
+    tag ^= tag_table.At(i);
+    if (tag.tag() == tag_id) {
+      return tag.raw();
+    }
+  }
+  return UserTag::null();
+}
+
+
+const char* UserTag::ToCString() const {
+  const String& tag_label = String::Handle(label());
+  return tag_label.ToCString();
+}
+
+
+void UserTag::PrintToJSONStream(JSONStream* stream, bool ref) const {
   Instance::PrintToJSONStream(stream, ref);
 }
 

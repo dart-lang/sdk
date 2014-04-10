@@ -336,11 +336,14 @@ Isolate::Isolate()
       object_id_ring_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
+      tag_table_(GrowableObjectArray::null()),
+      current_tag_(UserTag::null()),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   set_vm_tag(VMTag::kIdleTagId);
+  set_user_tag(UserTags::kNoUserTag);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
@@ -449,7 +452,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
                 "\tisolate:    %s\n", result->name());
     }
   }
-
 
   return result;
 }
@@ -849,6 +851,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
 
+  // Visit the current tag which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
+
+  // Visit the tag table which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
+
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
 
@@ -965,6 +973,24 @@ void Isolate::ProfileInterrupt() {
 
 void Isolate::ProfileIdle() {
   vm_tag_counters_.Increment(vm_tag());
+}
+
+
+void Isolate::set_tag_table(const GrowableObjectArray& value) {
+  tag_table_ = value.raw();
+}
+
+
+void Isolate::set_current_tag(const UserTag& tag) {
+  intptr_t user_tag = tag.tag();
+  set_user_tag(static_cast<uword>(user_tag));
+  current_tag_ = tag.raw();
+}
+
+
+void Isolate::clear_current_tag() {
+  set_user_tag(UserTags::kNoUserTag);
+  current_tag_ = UserTag::null();
 }
 
 

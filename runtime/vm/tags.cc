@@ -8,6 +8,7 @@
 #include "vm/json_stream.h"
 #include "vm/native_entry.h"
 #include "vm/runtime_entry.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -32,6 +33,9 @@ const char* VMTag::TagName(uword tag) {
 
 
 bool VMTag::IsNativeEntryTag(uword tag) {
+  if (tag == 0) {
+    return false;
+  }
   ASSERT(tag != kInvalidTagId);
   ASSERT(tag != kNumVMTags);
   return (tag > kNumVMTags) && !IsRuntimeEntryTag(tag);
@@ -137,5 +141,18 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
     }
   }
 }
+
+
+const char* UserTags::TagName(uword tag_id) {
+  ASSERT(tag_id >= kUserTagIdOffset);
+  ASSERT(tag_id < kUserTagIdOffset + kMaxUserTags);
+  Isolate* isolate = Isolate::Current();
+  const UserTag& tag =
+      UserTag::Handle(isolate, UserTag::FindTagById(tag_id));
+  ASSERT(!tag.IsNull());
+  const String& label = String::Handle(isolate, tag.label());
+  return label.ToCString();
+}
+
 
 }  // namespace dart

@@ -23,7 +23,6 @@ class RuntimeEntry;
   V(Runtime)                                                                   \
   V(Native)                                                                    \
 
-
 class VMTag : public AllStatic {
  public:
   enum VMTagId {
@@ -35,6 +34,9 @@ class VMTag : public AllStatic {
     kNumVMTags,
   };
 
+  static bool IsVMTag(uword id) {
+    return (id != kInvalidTagId) && (id < kNumVMTags);
+  }
   static const char* TagName(uword id);
   static bool IsNativeEntryTag(uword id);
 
@@ -77,6 +79,21 @@ class VMTagCounters {
  private:
   int64_t counters_[VMTag::kNumVMTags];
 };
+
+
+class UserTags : public AllStatic {
+ public:
+  static const uword kNoUserTag = 0;
+  // UserTag id space: [kUserTagIdOffset, kUserTagIdOffset + kMaxUserTags).
+  static const intptr_t kMaxUserTags = 64;
+  static const uword kUserTagIdOffset = 0x4096;
+  static const char* TagName(uword tag_id);
+  static bool IsUserTag(uword tag_id) {
+    return (tag_id >= kUserTagIdOffset) &&
+           (tag_id < kUserTagIdOffset + kMaxUserTags);
+  }
+};
+
 
 }  // namespace dart
 

@@ -255,6 +255,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Profiler::InitProfilingForIsolate(isolate);
 
   Service::SendIsolateStartupMessage();
+  // Create tag table.
+  isolate->set_tag_table(
+      GrowableObjectArray::Handle(GrowableObjectArray::New()));
   return Error::null();
 }
 

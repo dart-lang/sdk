@@ -566,9 +566,20 @@ class CodeRegion : public ZoneAllocated {
       PrintOverwrittenCode(&obj);
     } else if (kind() == kTagCode) {
       if (name() == NULL) {
-        const char* tag_name = start() == 0 ? "root" : VMTag::TagName(start());
-        ASSERT(tag_name != NULL);
-        SetName(tag_name);
+        if (UserTags::IsUserTag(start())) {
+          const char* tag_name = UserTags::TagName(start());
+          ASSERT(tag_name != NULL);
+          SetName(tag_name);
+        } else if (VMTag::IsVMTag(start()) ||
+                   VMTag::IsRuntimeEntryTag(start()) ||
+                   VMTag::IsNativeEntryTag(start())) {
+          const char* tag_name = VMTag::TagName(start());
+          ASSERT(tag_name != NULL);
+          SetName(tag_name);
+        } else {
+          ASSERT(start() == 0);
+          SetName("root");
+        }
       }
       PrintTagCode(&obj);
     } else {
@@ -934,6 +945,8 @@ class CodeRegionTableBuilder : public SampleVisitor {
       CreateTag(VMTag::kRuntimeTagId);
     }
     CreateTag(sample->vm_tag());
+    // Make sure user tag is created.
+    CreateUserTag(sample->user_tag());
     // Exclusive tick for bottom frame.
     Tick(sample->At(0), true, timestamp);
     // Inclusive tick for all frames.
@@ -955,6 +968,25 @@ class CodeRegionTableBuilder : public SampleVisitor {
 
  private:
   void CreateTag(uword tag) {
+    intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index >= 0) {
+      // Already created.
+      return;
+    }
+    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode,
+                                        tag,
+                                        tag + 1,
+                                        0);
+    index = tag_code_table_->InsertCodeRegion(region);
+    ASSERT(index >= 0);
+    region->set_creation_serial(visited());
+  }
+
+  void CreateUserTag(uword tag) {
+    if (tag == 0) {
+      // None set.
+      return;
+    }
     intptr_t index = tag_code_table_->FindIndex(tag);
     if (index >= 0) {
       // Already created.
@@ -1108,6 +1140,12 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     root_->Tick();
     CodeRegionTrieNode* current = root_;
     if (use_tags()) {
+      intptr_t user_tag_index = FindTagIndex(sample->user_tag());
+      if (user_tag_index >= 0) {
+        current = current->GetChild(user_tag_index);
+        // Give the tag a tick.
+        current->Tick();
+      }
       if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
         // Insert a dummy kNativeTagId node.
         intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
@@ -1151,7 +1189,13 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
 
  private:
   intptr_t FindTagIndex(uword tag) const {
+    if (tag == 0) {
+      return -1;
+    }
     intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index <= 0) {
+      return -1;
+    }
     ASSERT(index >= 0);
     ASSERT((tag_code_table_->At(index))->contains(tag));
     return tag_code_table_offset_ + index;
@@ -1523,6 +1567,9 @@ class ProfilerNativeStackWalker : public ValueObject {
         VerifyCodeAddress(heap, i, reinterpret_cast<uword>(pc));
       }
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
+      if (fp == NULL) {
+        return i + 1;
+      }
       if (!ValidFramePointer(fp)) {
         return i + 1;
       }
@@ -1530,9 +1577,18 @@ class ProfilerNativeStackWalker : public ValueObject {
       previous_fp = fp;
       fp = CallerFP(fp);
       intptr_t step = fp - previous_fp;
-      if ((step >= kMaxStep) || (fp <= previous_fp) || !ValidFramePointer(fp)) {
+      if (fp == NULL) {
+        return i + 1;
+      }
+      if ((step >= kMaxStep)) {
         // Frame pointer step is too large.
+        return i + 1;
+      }
+      if ((fp <= previous_fp)) {
         // Frame pointer did not move to a higher address.
+        return i + 1;
+      }
+      if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack bounds.
         return i + 1;
       }
@@ -1610,6 +1666,7 @@ void Profiler::RecordSampleInterruptCallback(
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
   sample->set_vm_tag(isolate->vm_tag());
+  sample->set_user_tag(isolate->user_tag());
   if (FLAG_profile_native_stack) {
     // Collect native and Dart frames.
     uword stack_lower = 0;

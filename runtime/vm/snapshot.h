@@ -554,6 +554,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTypeArguments;
   friend class RawMirrorReference;
   friend class SnapshotWriterVisitor;
+  friend class RawUserTag;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };
 

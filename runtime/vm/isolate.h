@@ -30,6 +30,7 @@ class DeoptContext;
 class Error;
 class Field;
 class Function;
+class GrowableObjectArray;
 class HandleScope;
 class HandleVisitor;
 class Heap;
@@ -42,18 +43,21 @@ class LongJumpScope;
 class MessageHandler;
 class Mutex;
 class Object;
+class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawInstance;
 class RawArray;
 class RawContext;
 class RawDouble;
+class RawGrowableObjectArray;
 class RawMint;
 class RawObject;
 class RawInteger;
 class RawError;
 class RawFloat32x4;
 class RawInt32x4;
+class RawUserTag;
 class SampleBuffer;
 class Simulator;
 class StackResource;
@@ -61,7 +65,7 @@ class StackZone;
 class StubCode;
 class TypeArguments;
 class TypeParameter;
-class ObjectIdRing;
+class UserTag;
 
 
 class IsolateVisitor {
@@ -470,6 +474,17 @@ class Isolate : public BaseIsolate {
     return &vm_tag_counters_;
   }
 
+  uword user_tag() const {
+    return user_tag_;
+  }
+
+  RawGrowableObjectArray* tag_table() const { return tag_table_; }
+  void set_tag_table(const GrowableObjectArray& value);
+
+  RawUserTag* current_tag() const { return current_tag_; }
+  void set_current_tag(const UserTag& tag);
+  void clear_current_tag();
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -498,6 +513,11 @@ class Isolate : public BaseIsolate {
   void PrintInvokedFunctions();
 
   void ProfileIdle();
+
+  void set_user_tag(uword tag) {
+    user_tag_ = tag;
+  }
+
 
   template<class T> T* AllocateReusableHandle();
 
@@ -553,6 +573,9 @@ class Isolate : public BaseIsolate {
   InterruptableThreadState* thread_state_;
 
   VMTagCounters vm_tag_counters_;
+  uword user_tag_;
+  RawGrowableObjectArray* tag_table_;
+  RawUserTag* current_tag_;
 
   // Isolate list next pointer.
   Isolate* next_;

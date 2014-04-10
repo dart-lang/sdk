@@ -69,6 +69,7 @@ namespace dart {
     V(Float32x4)                                                               \
     V(Int32x4)                                                                 \
     V(Float64x2)                                                               \
+    V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -1580,6 +1581,29 @@ class RawMirrorReference : public RawInstance {
   }
 };
 
+
+// UserTag are used by the profiler to track Dart script state.
+class RawUserTag : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->label_);
+  }
+
+  RawString* label_;
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->label_);
+  }
+
+  // Isolate unique tag.
+  uword tag_;
+
+  friend class SnapshotReader;
+
+ public:
+  uword tag() const { return tag_; }
+};
 
 // Class Id predicates.
 

@@ -836,4 +836,14 @@ intptr_t RawMirrorReference::VisitMirrorReferencePointers(
   return MirrorReference::InstanceSize();
 }
 
+
+intptr_t RawUserTag::VisitUserTagPointers(
+    RawUserTag* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UserTag::InstanceSize();
+}
+
+
 }  // namespace dart

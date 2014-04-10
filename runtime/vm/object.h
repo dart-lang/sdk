@@ -18,6 +18,7 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/scanner.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -2653,6 +2654,7 @@ class Library : public Object {
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* TypedDataLibrary();
+  static RawLibrary* ProfilerLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
@@ -6645,6 +6647,45 @@ class MirrorReference : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MirrorReference, Instance);
+  friend class Class;
+};
+
+
+class UserTag : public Instance {
+ public:
+  uword tag() const { return raw_ptr()->tag(); }
+  void set_tag(uword t) const {
+    ASSERT(t >= UserTags::kUserTagIdOffset);
+    ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
+    raw_ptr()->tag_ = t;
+  };
+
+  RawString* label() const {
+    return raw_ptr()->label_;
+  }
+
+  void MakeActive() const;
+  static void ClearActive();
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUserTag));
+  }
+
+  static RawUserTag* New(const String& label,
+                         Heap::Space space = Heap::kOld);
+
+  static bool TagTableIsFull(Isolate* isolate);
+  static RawUserTag* FindTagById(uword tag_id);
+
+ private:
+  static RawUserTag* FindTagInIsolate(Isolate* isolate, const String& label);
+  static void AddTagToIsolate(Isolate* isolate, const UserTag& tag);
+
+  void set_label(const String& tag_label) const {
+    StorePointer(&raw_ptr()->label_, tag_label.raw());
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
   friend class Class;
 };
 
