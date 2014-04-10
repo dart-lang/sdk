@@ -372,6 +372,7 @@ bool RawFunction::SkipCode(RawFunction* raw_fun) {
   code = fn.CurrentCode();
 
   if (fn.HasCode() &&  // The function may not have code.
+      !fn.is_intrinsic() &&  // These may not increment the usage counter.
       !code.is_optimized() &&
       (fn.CurrentCode() == fn.unoptimized_code()) &&
       !code.HasBreakpoint() &&
