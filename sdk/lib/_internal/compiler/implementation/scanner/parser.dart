@@ -1941,6 +1941,8 @@ class Parser {
   }
 
   Token parseLiteralString(Token token) {
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     token = parseSingleLiteralString(token);
     int count = 1;
     while (identical(token.kind, STRING_TOKEN)) {
@@ -1950,6 +1952,7 @@ class Parser {
     if (count > 1) {
       listener.handleStringJuxtaposition(count);
     }
+    mayParseFunctionExpressions = old;
     return token;
   }
 
