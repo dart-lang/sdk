@@ -18049,14 +18049,16 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
         // Traverse inlined frames.
         for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
           function = it.function();
-          code = it.code();
-          ASSERT(function.raw() == code.function());
-          uword pc = it.pc();
-          ASSERT(pc != 0);
-          ASSERT(code.EntryPoint() <= pc);
-          ASSERT(pc < (code.EntryPoint() + code.Size()));
-          total_len += PrintOneStacktrace(
-              isolate, &frame_strings, pc, function, code, *frame_index);
+          if (function.is_visible() || FLAG_verbose_stacktrace) {
+            code = it.code();
+            ASSERT(function.raw() == code.function());
+            uword pc = it.pc();
+            ASSERT(pc != 0);
+            ASSERT(code.EntryPoint() <= pc);
+            ASSERT(pc < (code.EntryPoint() + code.Size()));
+            total_len += PrintOneStacktrace(
+                isolate, &frame_strings, pc, function, code, *frame_index);
+          }
           (*frame_index)++;  // To account for inlined frames.
         }
       } else {

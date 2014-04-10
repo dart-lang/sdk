@@ -2980,6 +2980,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
   bool HasSingleRecognizedTarget() const;
 
+  bool HasSingleDispatcherTarget() const;
+
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)

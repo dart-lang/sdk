@@ -950,21 +950,6 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 }
 
 
-// A non-closure object was invoked as a closure, so call the "call" method
-// on it.
-// Arg0: arguments descriptor.
-// Arg1: arguments array, including non-closure object.
-DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 2) {
-  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(0));
-  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
-
-  const Object& result = Object::Handle(
-      DartEntry::InvokeClosure(function_args, args_descriptor));
-  CheckResultError(result);
-  arguments.SetReturn(result);
-}
-
-
 static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
   const intptr_t kLowInvocationCount = -100000000;
   if (isolate->debugger()->IsStepping() ||

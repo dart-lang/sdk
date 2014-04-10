@@ -28,7 +28,6 @@ class RawCode;
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \
   V(CallStaticFunction)                                                        \
-  V(CallClosureFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \

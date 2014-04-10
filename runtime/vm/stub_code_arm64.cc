@@ -71,11 +71,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
-}
-
-
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   UNIMPLEMENTED();
 }

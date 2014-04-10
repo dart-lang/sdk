@@ -182,31 +182,53 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* result =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_out(0, Location::RegisterLocation(R0));
-  result->set_temp(0, Location::RegisterLocation(R4));  // Arg. descriptor.
-  return result;
+  return MakeCallSummary();
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The arguments to the stub include the closure, as does the arguments
-  // descriptor.
-  Register temp_reg = locs()->temp(0).reg();
+  // Load closure object (first argument) in R1.
   int argument_count = ArgumentCount();
+  __ ldr(R1, Address(SP, (argument_count - 1) * kWordSize));
+
+  // Load arguments descriptor in R4.
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
-  __ LoadObject(temp_reg, arguments_descriptor);
-  ASSERT(temp_reg == R4);
-  compiler->GenerateDartCall(deopt_id(),
-                             token_pos(),
-                             &StubCode::CallClosureFunctionLabel(),
-                             PcDescriptors::kClosureCall,
-                             locs());
+  __ LoadObject(R4, arguments_descriptor);
+
+  // Load the closure function into R0.
+  __ ldr(R0, FieldAddress(R1, Closure::function_offset()));
+
+  // Load closure context in CTX; note that CTX has already been preserved.
+  __ ldr(CTX, FieldAddress(R1, Closure::context_offset()));
+
+  // R4: Arguments descriptor.
+  // R0: Function.
+  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
+
+  // R2: code.
+  // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ LoadImmediate(R5, 0);
+  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ blx(R2);
+  compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
+                                 deopt_id(),
+                                 token_pos());
+  compiler->RecordSafepoint(locs());
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_after,
+                                   token_pos());
+  }
   __ Drop(argument_count);
 }
 

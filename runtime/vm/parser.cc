@@ -1407,29 +1407,44 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
                                                        no_args);
 
   // Pass arguments 1..n to the closure call.
-  ArgumentListNode* closure_args = new ArgumentListNode(token_pos);
+  ArgumentListNode* args = new ArgumentListNode(token_pos);
   const Array& names = Array::Handle(Array::New(desc.NamedCount(), Heap::kOld));
   // Positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); ++i) {
-    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+    args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
   }
   // Named parameters.
   for (; i < desc.Count(); i++) {
-    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+    args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
     intptr_t index = i - desc.PositionalCount();
     names.SetAt(index, String::Handle(desc.NameAt(index)));
   }
-  closure_args->set_names(names);
+  args->set_names(names);
 
-  EnsureSavedCurrentContext();
-  ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
-                                                      getter_call,
-                                                      closure_args);
+  const Class& owner = Class::Handle(func.Owner());
+  ASSERT(!owner.IsNull());
+  AstNode* result = NULL;
+  if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
+    EnsureSavedCurrentContext();
+    result = new ClosureCallNode(token_pos, getter_call, args);
+  } else {
+    result = BuildClosureCall(token_pos, getter_call, args);
+  }
 
-  ReturnNode* return_node = new ReturnNode(token_pos, closure_call);
+  ReturnNode* return_node = new ReturnNode(token_pos, result);
   current_block_->statements->Add(return_node);
   return CloseBlock();
+}
+
+
+AstNode* Parser::BuildClosureCall(intptr_t token_pos,
+                                  AstNode* closure,
+                                  ArgumentListNode* arguments) {
+  return new InstanceCallNode(token_pos,
+                              closure,
+                              Symbols::Call(),
+                              arguments);
 }
 
 
@@ -1901,7 +1916,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
     for (int i = 1; i < arguments->length(); i++) {
       closure_arguments->Add(arguments->NodeAt(i));
     }
-    return new ClosureCallNode(supercall_pos, closure, closure_arguments);
+    return BuildClosureCall(supercall_pos, closure, closure_arguments);
   }
   if (is_no_such_method) {
     arguments = BuildNoSuchMethodArguments(
@@ -6722,7 +6737,7 @@ AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
     EnsureSavedCurrentContext();
     // Function literal in assert implies a call.
     const intptr_t pos = condition->token_pos();
-    condition = new ClosureCallNode(pos, condition, new ArgumentListNode(pos));
+    condition = BuildClosureCall(pos, condition, new ArgumentListNode(pos));
   } else if (condition->IsConditionalExprNode()) {
     ConditionalExprNode* cond_expr = condition->AsConditionalExprNode();
     cond_expr->set_true_expr(InsertClosureCallNodes(cond_expr->true_expr()));
@@ -8241,12 +8256,12 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                        false,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
-        return new ClosureCallNode(call_pos, closure, arguments);
+        return BuildClosureCall(call_pos, closure, arguments);
       }
     } else {
       EnsureSavedCurrentContext();
       closure = GenerateStaticFieldLookup(field, call_pos);
-      return new ClosureCallNode(call_pos, closure, arguments);
+      return BuildClosureCall(call_pos, closure, arguments);
     }
     // Could not resolve static method: throw a NoSuchMethodError.
     return ThrowNoSuchMethodError(ident_pos,
@@ -8286,7 +8301,7 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
   ASSERT(CurrentToken() == Token::kLPAREN);
   EnsureSavedCurrentContext();
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
-  return new ClosureCallNode(call_pos, closure, arguments);
+  return BuildClosureCall(call_pos, closure, arguments);
 }
 
 

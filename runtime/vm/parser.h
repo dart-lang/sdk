@@ -658,6 +658,10 @@ class Parser : public ValueObject {
 
   void AddEqualityNullCheck();
 
+  AstNode* BuildClosureCall(intptr_t token_pos,
+                            AstNode* closure,
+                            ArgumentListNode* arguments);
+
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
   Isolate* isolate() const { return isolate_; }
