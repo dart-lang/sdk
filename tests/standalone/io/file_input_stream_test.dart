@@ -209,20 +209,18 @@ void testInputStreamBadOffset() {
     var file = new File('${temp.path}/input_stream_bad_offset.txt');
     var originalLength = writeLongFileSync(file);
     var streamedBytes = 0;
+    bool error = false;
     file.openRead(start, end).listen(
         (d) {
           streamedBytes += d.length;
         },
         onDone: () {
-          if (temp.existsSync()) {
-            temp.deleteSync(recursive: true);
-          }
+          Expect.isTrue(error);
+          temp.deleteSync(recursive: true);
+          asyncEnd();
         },
         onError: (e) {
-          if (temp.existsSync()) {
-            temp.deleteSync(recursive: true);
-          }
-          asyncEnd();
+          error = true;
         });
   }
   test(-1, null);
