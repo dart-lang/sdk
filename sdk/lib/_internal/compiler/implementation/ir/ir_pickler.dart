@@ -28,7 +28,7 @@ part 'ir_unpickler.dart';
  *
  * pickle   ::= int(entries) function
  *
- * function ::= int(endSourceOffset) int(namePosition) node(body)
+ * function ::= int(parameter count) {element(parameter)} node(body)
  *
  * int      ::= see [writeInt] for number encoding
  *
@@ -168,7 +168,7 @@ class Pickler extends ir.Visitor {
    */
   ByteData doubleData = new ByteData(8);
 
-  List<int> pickle(ir.Function function) {
+  List<int> pickle(ir.FunctionDefinition function) {
     data = new Uint8List(INITIAL_SIZE);
     offset = 0;
     emitted = <Object, int>{};
@@ -356,11 +356,14 @@ class Pickler extends ir.Visitor {
     }
   }
 
-  void visitFunction(ir.Function node) {
-    writeInt(node.endOffset);
-    writeInt(node.namePosition);
+  void visitFunctionDefinition(ir.FunctionDefinition node) {
     // The continuation parameter is bound in the body.
     recordForBackReference(node.returnContinuation);
+    writeInt(node.parameters.length);
+    for (var parameter in node.parameters) {
+      recordForBackReference(parameter);
+      writeElement(parameter.element);
+    }
     node.body.accept(this);
   }
 

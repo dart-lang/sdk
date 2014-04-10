@@ -23,7 +23,7 @@ import 'ir_pickler.dart' show Unpickler, IrConstantPool;
  * have an IR or not, depending on the language features that are used. For
  * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not
  * used in the rest of the compilation. This is ensured by setting the element's
- * cached tree to [:null:] and also breaking the token stream to crash future
+ * cached tree to `null` and also breaking the token stream to crash future
  * attempts to parse.
  *
  * The type inferrer works on either IR nodes or tree nodes. The IR nodes are
@@ -32,7 +32,8 @@ import 'ir_pickler.dart' show Unpickler, IrConstantPool;
  * re-implemented to work directly on the IR.
  */
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, ir.Function> nodes = <Element, ir.Function>{};
+  final Map<Element, ir.FunctionDefinition> nodes =
+      <Element, ir.FunctionDefinition>{};
 
   IrBuilderTask(Compiler compiler) : super(compiler);
 
@@ -40,7 +41,7 @@ class IrBuilderTask extends CompilerTask {
 
   bool hasIr(Element element) => nodes.containsKey(element.implementation);
 
-  ir.Function getIr(Element element) => nodes[element.implementation];
+  ir.FunctionDefinition getIr(Element element) => nodes[element.implementation];
 
   void buildNodes() {
     if (!irEnabled()) return;
@@ -54,7 +55,7 @@ class IrBuilderTask extends CompilerTask {
           SourceFile sourceFile = elementSourceFile(element);
           IrBuilder builder =
               new IrBuilder(elementsMapping, compiler, sourceFile);
-          ir.Function function;
+          ir.FunctionDefinition function;
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
@@ -152,6 +153,7 @@ class IrBuilderTask extends CompilerTask {
 class IrBuilder extends ResolvedVisitor<ir.Definition> {
   final SourceFile sourceFile;
   ir.Continuation returnContinuation = null;
+  List<ir.Parameter> parameters = <ir.Parameter>[];
 
   // The IR builder maintains a context, which is an expression with a hole in
   // it.  The hole represents the focus where new expressions can be added.
@@ -179,33 +181,42 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   ir.Expression root = null;
   ir.Expression current = null;
 
+  Map<Element, int> variableIndex = <Element, int>{};
+  List<ir.Definition> assignedVars = <ir.Definition>[];
+
   IrBuilder(TreeElements elements, Compiler compiler, this.sourceFile)
       : super(elements, compiler);
 
   /**
-   * Builds the [ir.Function] for a function element. In case the function
-   * uses features that cannot be expressed in the IR, this function returns
-   * [:null:].
+   * Builds the [ir.FunctionDefinition] for a function element. In case the
+   * function uses features that cannot be expressed in the IR, this function
+   * returns `null`.
    */
-  ir.Function buildFunction(FunctionElement functionElement) {
+  ir.FunctionDefinition buildFunction(FunctionElement functionElement) {
     return nullIfGiveup(() => buildFunctionInternal(functionElement));
   }
 
-  ir.Function buildFunctionInternal(FunctionElement functionElement) {
-    assert(invariant(functionElement, functionElement.isImplementation));
-    ast.FunctionExpression function = functionElement.parseNode(compiler);
+  ir.FunctionDefinition buildFunctionInternal(FunctionElement element) {
+    assert(invariant(element, element.isImplementation));
+    ast.FunctionExpression function = element.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
 
     returnContinuation = new ir.Continuation.retrn();
     root = current = null;
+
+    FunctionSignature signature = element.functionSignature;
+    signature.orderedForEachParameter((parameterElement) {
+      ir.Parameter parameter = new ir.Parameter(parameterElement);
+      parameters.add(parameter);
+      variableIndex[parameterElement] = assignedVars.length;
+      assignedVars.add(parameter);
+    });
+
     function.body.accept(this);
     ensureReturn(function);
-    int endPosition = function.getEndToken().charOffset;
-    int namePosition = elements[function].position().charOffset;
-    return
-        new ir.Function(endPosition, namePosition, returnContinuation, root);
+    return new ir.FunctionDefinition(returnContinuation, parameters, root);
   }
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
@@ -226,9 +237,9 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   }
 
   /**
-   * Add an explicit [:return null:] for functions that don't have a return
+   * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
-   * such as [:foo(){ }:].
+   * such as `foo(){ }`.
    */
   void ensureReturn(ast.FunctionExpression node) {
     if (!isOpen) return;
@@ -339,7 +350,15 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   }
 
   ir.Definition visitGetterSend(ast.Send node) {
-    return giveup();
+    Element element = elements[node];
+    if ((element != null && element.isForeign(compiler))
+        || Elements.isStaticOrTopLevelField(element)
+        || Elements.isInstanceSend(node, elements)
+        || Elements.isStaticOrTopLevelFunction(element)
+        || Elements.isErroneousElement(element)) {
+      return giveup();
+    }
+    return assignedVars[variableIndex[element]];
   }
 
   ir.Definition visitOperatorSend(ast.Send node) {
@@ -385,7 +404,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
       return giveup();
     }
     if (!isOpen) return null;
-    ir.Parameter v = new ir.Parameter();
+    ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation(v);
     ir.Expression invoke =
         new ir.InvokeStatic(element, selector, k, arguments);
@@ -405,7 +424,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
 
   ir.Definition giveup() => throw ABORT_IRNODE_BUILDER;
 
-  ir.Function nullIfGiveup(ir.Function action()) {
+  ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
     try {
       return action();
     } catch(e) {

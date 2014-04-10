@@ -22,7 +22,7 @@ const String TRACE_FILTER = null;
 
 /**
  * Dumps the intermediate representation after each phase in a format
- * readable by Hydra IR. 
+ * readable by IR Hydra.
  */
 class Tracer extends TracerUtil {
   Compiler compiler;
@@ -30,10 +30,10 @@ class Tracer extends TracerUtil {
   bool traceActive = false;
   final EventSink<String> output;
   final bool enabled = GENERATE_TRACE;
-  
+
   Tracer(api.CompilerOutputProvider outputProvider) :
     output = GENERATE_TRACE ? outputProvider('dart', 'cfg') : null;
-  
+
   void traceCompilation(String methodName,
                         ItemCompilationContext compilationContext,
                         Compiler compiler) {
@@ -55,14 +55,14 @@ class Tracer extends TracerUtil {
     if (irObject is ssa.HGraph) {
       new HTracer(output, compiler, context).traceGraph(name, irObject);
     }
-    else if (irObject is ir.Function) {
+    else if (irObject is ir.FunctionDefinition) {
       new IRTracer(output).traceGraph(name, irObject);
     }
-    else if (irObject is tree.Expression) {
+    else if (irObject is tree.FunctionDefinition) {
       new TreeTracer(output).traceGraph(name, irObject);
     }
   }
-  
+
   void close() {
     if (output != null) {
       output.close();
@@ -74,7 +74,7 @@ class Tracer extends TracerUtil {
 abstract class TracerUtil {
   int indent = 0;
   EventSink<String> get output;
-  
+
 
   void tag(String tagName, Function f) {
     println("begin_$tagName");
@@ -89,11 +89,11 @@ abstract class TracerUtil {
     add(string);
     add("\n");
   }
-  
+
   void printEmptyProperty(String propertyName) {
     println(propertyName);
   }
-  
+
   String formatPrty(x) {
     if (x is num) {
       return '${x}';
@@ -105,7 +105,7 @@ abstract class TracerUtil {
       throw "invalid property type: ${x}";
     }
   }
-  
+
   void printProperty(String propertyName, value) {
     println("$propertyName ${formatPrty(value)}");
   }

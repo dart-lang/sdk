@@ -7,7 +7,8 @@ library dart_tree;
 import '../dart2jslib.dart' as dart2js;
 import '../dart_types.dart';
 import '../util/util.dart';
-import '../elements/elements.dart' show FunctionElement, FunctionSignature;
+import '../elements/elements.dart'
+    show Element, FunctionElement, FunctionSignature, ParameterElement;
 import '../ir/ir_nodes.dart' as ir;
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart';
@@ -50,11 +51,15 @@ class Variable extends Expression {
   static int counter = 0;
   static String _newName() => 'v${counter++}';
 
-  ast.Identifier identifier = null;
+  final Element element;
+  String name;
+  ast.Identifier identifier;
+
+  Variable(this.element);
 
   ast.Identifier assignIdentifier() {
     assert(identifier == null);
-    String name = _newName();
+    name = (element == null) ? _newName() : element.name;
     identifier = Emitter.makeIdentifier(name);
     return identifier;
   }
@@ -140,9 +145,21 @@ class Constant extends Expression {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
+class FunctionDefinition extends Node {
+  final List<Variable> parameters;
+  Expression body;
+
+  FunctionDefinition(this.parameters, this.body);
+
+  accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
+}
+
 abstract class Visitor<T> {
+  T visit(Node node) => node.accept(this);
+
   // Abstract classes.
-  T visitNode(Node node) => node.accept(this);
+  T visitNode(Node node) => null;
+  T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
   T visitExpression(Expression node) => visitNode(node);
 
   // Concrete classes.
@@ -193,27 +210,38 @@ class Builder extends ir.Visitor<Expression> {
   // mapping from definitions to variables.
   final Map<ir.Definition, Variable> variables = {};
 
+  FunctionDefinition function;
   ir.Continuation returnContinuation;
 
   Builder(this.compiler);
+
+  FunctionDefinition build(ir.FunctionDefinition node) {
+    node.accept(this);
+    return function;
+  }
 
   List<Expression> translateArguments(List<ir.Reference> args) {
     return new List.generate(args.length,
          (int index) => variables[args[index].definition]);
   }
 
-  Expression visitFunction(ir.Function node) {
-    // Functions are simplistically translated to their bodies.  For now this
-    // is good enough.
+  Expression visitFunctionDefinition(ir.FunctionDefinition node) {
     returnContinuation = node.returnContinuation;
-    return node.body.accept(this);
+    List<Variable> parameters = <Variable>[];
+    for (ir.Parameter p in node.parameters) {
+      Variable parameter = new Variable(p.element);
+      parameters.add(parameter);
+      variables[p] = parameter;
+    }
+    function = new FunctionDefinition(parameters, node.body.accept(this));
+    return null;
   }
 
   Expression visitLetPrim(ir.LetPrim node) {
     // LetPrim is translated to LetVal.
     Expression definition = node.primitive.accept(this);
     if (node.primitive.hasAtLeastOneUse) {
-      Variable variable = new Variable();
+      Variable variable = new Variable(null);
       variables[node.primitive] = variable;
       return new LetVal(variable, definition, node.body.accept(this));
     } else {
@@ -239,7 +267,7 @@ class Builder extends ir.Visitor<Expression> {
     } else {
       assert(cont.hasExactlyOneUse);
       if (cont.parameter.hasAtLeastOneUse) {
-        Variable variable = new Variable();
+        Variable variable = new Variable(null);
         variables[cont.parameter] = variable;
         return new LetVal(variable, invoke, cont.body.accept(this));
       } else {
@@ -298,15 +326,14 @@ class Unnamer extends Visitor<Expression> {
   // enclosing binding.
   List<LetVal> environment;
 
-  Expression unname(Expression body) {
+  void unname(FunctionDefinition definition) {
     environment = <LetVal>[];
-    body = body.accept(this);
+    definition.body = definition.body.accept(this);
 
     // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
     // this means rebuilding the binding with a recursively unnamed definition,
     // or else introducing a variable definition and an assignment.
     assert(environment.isEmpty);
-    return body;
   }
 
   Expression visitVariable(Variable node) {
@@ -444,7 +471,7 @@ class Emitter extends Visitor<ast.Node> {
    */
   ast.FunctionExpression emit(FunctionElement element,
                               dart2js.TreeElementMapping treeElements,
-                              Expression expr) {
+                              FunctionDefinition definition) {
     // Reset the variable index.  This function is not reentrant.
     Variable.counter = 0;
     this.treeElements = treeElements;
@@ -459,23 +486,25 @@ class Emitter extends Visitor<ast.Node> {
     }
 
     List<ast.VariableDefinitions> parameterList = <ast.VariableDefinitions>[];
-    signature.orderedForEachParameter((parameter) {
+    for (Variable parameter in definition.parameters) {
+      ParameterElement element = parameter.element;
+      parameter.assignIdentifier();
       ast.TypeAnnotation type;
-      if (!parameter.type.isDynamic) {
-        type = parameter.type.accept(typeEmitter, treeElements);
+      if (!element.type.isDynamic) {
+        type = element.type.accept(typeEmitter, treeElements);
       }
       parameterList.add(new ast.VariableDefinitions(
           type,
           ast.Modifiers.EMPTY,
-          new ast.NodeList.singleton(makeIdentifier(parameter.name))));
-    });
+          new ast.NodeList.singleton(parameter.identifier)));
+    }
     ast.NodeList parameters =
         new ast.NodeList(openParen,
                          new Link<ast.Node>.fromList(parameterList),
                          closeParen,
                          ',');
 
-    ast.Node body = expr.accept(this);
+    ast.Node body = definition.body.accept(this);
 
     if (!variables.isEmpty) {
       // Introduce hoisted definitions for all variables.
@@ -512,7 +541,7 @@ class Emitter extends Visitor<ast.Node> {
       // Remove a final 'return null' that ends the body block.
       Link<ast.Node> nodes = (body as ast.Block).statements.nodes;
       ast.Node last;
-      for (var n in nodes) {
+      for (ast.Node n in nodes) {
         last = n;
       }
       if (last is ast.Return
@@ -553,7 +582,7 @@ class Emitter extends Visitor<ast.Node> {
 
     addStatements(ast.Node node) {
       if (node is ast.Block) {
-        for (var n in node.statements.nodes) {
+        for (ast.Node n in node.statements.nodes) {
           statements.addLast(n);
         }
       } else if (node is ast.Expression) {

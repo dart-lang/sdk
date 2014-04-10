@@ -7,10 +7,10 @@
 library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' as dart2js show Constant;
-import '../elements/elements.dart' show FunctionElement, LibraryElement;
+import '../elements/elements.dart'
+    show FunctionElement, LibraryElement, ParameterElement;
 import 'ir_pickler.dart' show Pickler, IrConstantPool;
 import '../universe/universe.dart' show Selector, SelectorKind;
-import '../util/util.dart' show Spannable;
 
 abstract class Node {
   static int hashCount = 0;
@@ -133,7 +133,9 @@ class Constant extends Primitive {
 }
 
 class Parameter extends Primitive {
-  Parameter();
+  final ParameterElement element;
+
+  Parameter(this.element);
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -154,32 +156,30 @@ class Continuation extends Definition {
 
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
-class Function extends Node {
-  final int endOffset;
-  final int namePosition;
-
+class FunctionDefinition extends Node {
   final Continuation returnContinuation;
+  final List<Parameter> parameters;
   final Expression body;
 
-  Function(this.endOffset, this.namePosition, this.returnContinuation,
-           this.body);
+  FunctionDefinition(this.returnContinuation, this.parameters, this.body);
 
   List<int> pickle(IrConstantPool constantPool) {
     return new Pickler(constantPool).pickle(this);
   }
 
-  accept(Visitor visitor) => visitor.visitFunction(this);
+  accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }
 
 abstract class Visitor<T> {
+  T visit(Node node) => node.accept(this);
   // Abstract classes.
-  T visitNode(Node node) => node.accept(this);
+  T visitNode(Node node) => null;
   T visitExpression(Expression node) => visitNode(node);
   T visitDefinition(Definition node) => visitNode(node);
   T visitPrimitive(Primitive node) => visitDefinition(node);
 
   // Concrete classes.
-  T visitFunction(Function node) => visitNode(node);
+  T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
 
   T visitLetPrim(LetPrim node) => visitExpression(node);
   T visitLetCont(LetCont node) => visitExpression(node);
@@ -204,9 +204,16 @@ class SExpressionStringifier extends Visitor<String> {
   String newValueName() => 'v${_valueCounter++}';
   String newContinuationName() => 'k${_continuationCounter++}';
 
-  String visitFunction(Function node) {
+  String visitFunctionDefinition(FunctionDefinition node) {
     names[node.returnContinuation] = 'return';
-    return '(Function ${node.body.accept(this)})';
+    String parameters = node.parameters
+        .map((p) {
+          String name = p.element.name;
+          names[p] = name;
+          return name;
+        })
+        .join(' ');
+    return '(FunctionDefinition ($parameters) ${node.body.accept(this)})';
   }
 
   String visitLetPrim(LetPrim expr) {
@@ -230,9 +237,8 @@ class SExpressionStringifier extends Visitor<String> {
   String visitInvokeStatic(InvokeStatic expr) {
     String name = expr.target.name;
     String cont = names[expr.continuation.definition];
-    List<String> args =
-        expr.arguments.map((v) => names[v.definition]).toList(growable: false);
-    return '(InvokeStatic $name $cont ${args.join(' ')})';
+    String args = expr.arguments.map((v) => names[v.definition]).join(' ');
+    return '(InvokeStatic $name $cont $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation expr) {

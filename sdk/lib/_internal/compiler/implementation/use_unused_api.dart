@@ -218,7 +218,7 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
     ..visitContinuation(null)
     ..visitDefinition(null)
     ..visitExpression(null)
-    ..visitFunction(null)
+    ..visitFunctionDefinition(null)
     ..visitInvokeStatic(null)
     ..visitLetCont(null)
     ..visitNode(null)
