@@ -612,7 +612,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  V _get(K key) {
+  V _get(Object key) {
     var rest = _rest;
     if (rest == null) return null;
     var bucket = _getBucket(rest, key);
@@ -1110,7 +1110,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     }
   }
 
-  bool _remove(object) {
+  bool _remove(Object object) {
     var rest = _rest;
     if (rest == null) return false;
     var bucket = _getBucket(rest, object);

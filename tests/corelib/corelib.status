@@ -131,7 +131,6 @@ string_case_test/02: Fail, OK  # Bug in Chrome.  Please file issue.
 
 [ $compiler == dart2js && $checked ]
 map_test: Crash # Issue 17829
-map_index_test: Pass, RuntimeError # Issue 18130
 
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
