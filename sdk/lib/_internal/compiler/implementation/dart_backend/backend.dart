@@ -236,9 +236,11 @@ class DartBackend extends Backend {
         ir.Function function = compiler.irBuilder.getIr(element);
         tree.Builder builder = new tree.Builder(compiler);
         tree.Expression expr = function.accept(builder);
+        compiler.tracer.traceGraph('Tree builder', expr);
         treeElements = new TreeElementMapping(element);
         tree.Unnamer unnamer = new tree.Unnamer();
         expr = unnamer.unname(expr);
+        compiler.tracer.traceGraph('Unnamer', expr);
         tree.Emitter emitter = new tree.Emitter();
         node = emitter.emit(element, treeElements, expr);
       }

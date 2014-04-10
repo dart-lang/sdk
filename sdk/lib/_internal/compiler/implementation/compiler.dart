@@ -437,7 +437,7 @@ abstract class Compiler implements DiagnosticListener {
 
   List<Uri> librariesToAnalyzeWhenRun;
 
-  final Tracer tracer;
+  Tracer tracer;
 
   CompilerTask measuredTask;
   Element _currentElement;
@@ -638,8 +638,7 @@ abstract class Compiler implements DiagnosticListener {
   /// Set by the backend if real reflection is detected in use of dart:mirrors.
   bool disableTypeInferenceForMirrors = false;
 
-  Compiler({this.tracer: const Tracer(),
-            this.enableTypeAssertions: false,
+  Compiler({this.enableTypeAssertions: false,
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
@@ -671,6 +670,7 @@ abstract class Compiler implements DiagnosticListener {
             ? NullSink.outputProvider
             : outputProvider {
     world = new World(this);
+    tracer = new Tracer(this.outputProvider);
 
     closureMapping.ClosureNamer closureNamer;
     if (emitJavaScript) {
@@ -1718,23 +1718,6 @@ class CompilerCancelledException implements Exception {
   String toString() {
     String banner = 'compiler cancelled';
     return (reason != null) ? '$banner: $reason' : '$banner';
-  }
-}
-
-class Tracer {
-  final bool enabled = false;
-
-  const Tracer();
-
-  void traceCompilation(String methodName,
-                        ItemCompilationContext context,
-                        Compiler compiler) {
-  }
-
-  void traceGraph(String name, var graph) {
-  }
-
-  void close() {
   }
 }
 

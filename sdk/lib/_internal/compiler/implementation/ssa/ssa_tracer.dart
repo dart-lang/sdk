@@ -2,49 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library tracer;
+library ssa.tracer;
 
 import 'dart:async' show EventSink;
 
 import 'ssa.dart';
 import '../js_backend/js_backend.dart';
 import '../dart2jslib.dart';
+import '../tracer.dart';
 
-const bool GENERATE_SSA_TRACE = false;
-const String SSA_TRACE_FILTER = null;
-
-class HTracer extends HGraphVisitor implements Tracer {
+/**
+ * Outputs SSA code in a format readable by Hydra IR.
+ * Tracing is disabled by default, see ../tracer.dart for how
+ * to enable it.
+ */
+class HTracer extends HGraphVisitor with TracerUtil {
   Compiler compiler;
   JavaScriptItemCompilationContext context;
-  int indent = 0;
   final EventSink<String> output;
-  final bool enabled = GENERATE_SSA_TRACE;
-  bool traceActive = false;
 
-  HTracer(this.output);
-
-  void close() {
-    if (enabled) output.close();
-  }
-
-  void traceCompilation(String methodName,
-                        JavaScriptItemCompilationContext compilationContext,
-                        Compiler compiler) {
-    if (!enabled) return;
-    this.context = compilationContext;
-    this.compiler = compiler;
-    traceActive =
-        SSA_TRACE_FILTER == null || methodName.contains(SSA_TRACE_FILTER);
-    if (!traceActive) return;
-    tag("compilation", () {
-      printProperty("name", methodName);
-      printProperty("method", methodName);
-      printProperty("date", new DateTime.now().millisecondsSinceEpoch);
-    });
-  }
+  HTracer(this.output, this.compiler, this.context);
 
   void traceGraph(String name, HGraph graph) {
-    if (!traceActive) return;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);
@@ -128,42 +107,6 @@ class HTracer extends HGraphVisitor implements Tracer {
         addInstructions(stringifier, block);
       });
     });
-  }
-
-  void tag(String tagName, Function f) {
-    println("begin_$tagName");
-    indent++;
-    f();
-    indent--;
-    println("end_$tagName");
-  }
-
-  void println(String string) {
-    addIndent();
-    add(string);
-    add("\n");
-  }
-
-  void printEmptyProperty(String propertyName) {
-    println(propertyName);
-  }
-
-  void printProperty(String propertyName, var value) {
-    if (value is num) {
-      println("$propertyName $value");
-    } else {
-      println('$propertyName "$value"');
-    }
-  }
-
-  void add(String string) {
-    output.add(string);
-  }
-
-  void addIndent() {
-    for (int i = 0; i < indent; i++) {
-      add("  ");
-    }
   }
 }
 
