@@ -9,7 +9,6 @@ import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:unittest/matcher.dart';
 
 @reflectable
 class XOuter extends PolymerElement {

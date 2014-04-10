@@ -6,7 +6,6 @@
 library polymer.src.build.common;
 
 import 'dart:async';
-import 'dart:math' show min, max;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';

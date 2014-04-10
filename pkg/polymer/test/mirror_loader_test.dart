@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
 
 import 'dart:mirrors';
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:path/path.dart' show url;
 
 import 'package:polymer/src/mirror_loader.dart';
 import 'mirror_loader_1.dart' as m1;

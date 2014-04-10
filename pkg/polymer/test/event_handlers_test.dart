@@ -7,7 +7,6 @@ library polymer.test.event_handlers_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:unittest/unittest.dart';

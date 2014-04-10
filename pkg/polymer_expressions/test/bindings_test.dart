@@ -84,7 +84,7 @@ main() => dirtyCheckZone().run(() {
 
       return new Future(() {
         var el = testDiv.query("#i1");
-        var subscription = el.onInput.listen(expectAsync1((_) {}, count: 1));
+        var subscription = el.onInput.listen(expectAsync((_) {}, count: 1));
         el.focus();
 
         expect(el.value, 'abcde');
