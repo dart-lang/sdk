@@ -52,6 +52,38 @@ void expectTestsPass(String description, void body(), {List<String> passing}) {
   });
 }
 
+/// Declares a test with the given [description] and [body].
+///
+/// [body] corresponds
+/// to the `main` method of a test file, and will be run in an isolate.
+///
+/// All tests must have an expected result in [expectedResults].
+void expectTests(String description, void body(),
+                 Map<String, String> expectedResults) {
+  _setUpTest(description, body, (results) {
+    expectedResults = new Map.from(expectedResults);
+
+    for (var testResult in results['results']) {
+      var description = testResult['description'];
+
+      expect(expectedResults, contains(description),
+          reason: '"$description" did not have an expected result set.\n'
+            '${_summarizeTests(results)}');
+
+      var result = testResult['result'];
+
+      expect(expectedResults, containsPair(description, result),
+          reason: 'The test "$description" not not have the expected result.\n'
+            '${_summarizeTests(results)}');
+
+      expectedResults.remove(description);
+    }
+    expect(expectedResults, isEmpty,
+        reason: 'Unexpected additional test results\n'
+            '${_summarizeTests(results)}');
+  });
+}
+
 /// Declares a test with the given [description] and [body]. [body] corresponds
 /// to the `main` method of a test file, and will be run in an isolate. Expects
 /// all tests defined by [body] to fail.

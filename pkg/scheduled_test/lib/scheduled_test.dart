@@ -245,8 +245,13 @@ void _test(String description, body(), Function testFn) {
   testFn(description, () {
     var completer = new Completer();
 
+    // Capture this in a local variable in case we capture an out-of-band error
+    // after the schedule completes.
+    var errorHandler;
+
     Chain.capture(() {
       _currentSchedule = new Schedule();
+      errorHandler = _currentSchedule.signalError;
       return currentSchedule.run(() {
         if (_setUpFn != null) maybeWrapFuture(_setUpFn(), "set up");
         maybeWrapFuture(body(), "test body");
@@ -259,7 +264,7 @@ void _test(String description, body(), Function testFn) {
           unittest.registerException(error, new Chain.forTrace(stackTrace));
         }
       }).then(completer.complete);
-    }, onError: (error, chain) => currentSchedule.signalError(error, chain));
+    }, onError: (error, stackTrace) => errorHandler(error, stackTrace));
 
     return completer.future;
   });
