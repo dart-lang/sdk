@@ -165,7 +165,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                                    {});
   if (cachedCompiler != null) {
     compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
-    compiler.types = cachedCompiler.types;
+    compiler.types = cachedCompiler.types.copy(compiler);
     cachedCompiler.libraries.forEach((String uri, library) {
       if (library.isPlatformLibrary) {
         compiler.libraries[uri] = library;
@@ -193,6 +193,27 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
             treeElements;
       }
     });
+
+    // One potential problem that can occur when reusing elements is that there
+    // is a stale reference to an old compiler object.  By nulling out the old
+    // compiler's fields, such stale references are easier to identify.
+    cachedCompiler.scanner = null;
+    cachedCompiler.dietParser = null;
+    cachedCompiler.parser = null;
+    cachedCompiler.patchParser = null;
+    cachedCompiler.libraryLoader = null;
+    cachedCompiler.validator = null;
+    cachedCompiler.resolver = null;
+    cachedCompiler.closureToClassMapper = null;
+    cachedCompiler.checker = null;
+    cachedCompiler.irBuilder = null;
+    cachedCompiler.typesTask = null;
+    cachedCompiler.backend = null;
+    cachedCompiler.enqueuer = null;
+    cachedCompiler.deferredLoadTask = null;
+    cachedCompiler.mirrorUsageAnalyzerTask = null;
+    cachedCompiler.dumpInfoTask = null;
+    cachedCompiler.buildId = null;
   }
   return compiler;
 }
