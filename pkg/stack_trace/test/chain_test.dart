@@ -92,16 +92,20 @@ void main() {
         inMicrotask(() => throw 'first error');
         inPeriodicTimer(() => throw 'second error');
       }, onError: (error, chain) {
-        if (first) {
-          expect(error, equals('first error'));
-          expect(chain.traces[1].frames,
-              contains(frameMember(startsWith('inMicrotask'))));
-          first = false;
-        } else {
-          expect(error, equals('second error'));
-          expect(chain.traces[1].frames,
-              contains(frameMember(startsWith('inPeriodicTimer'))));
-          completer.complete();
+        try {
+          if (first) {
+            expect(error, equals('first error'));
+            expect(chain.traces[1].frames,
+                contains(frameMember(startsWith('inMicrotask'))));
+            first = false;
+          } else {
+            expect(error, equals('second error'));
+            expect(chain.traces[1].frames,
+                contains(frameMember(startsWith('inPeriodicTimer'))));
+            completer.complete();
+          }
+        } catch (error, stackTrace) {
+          completer.completeError(error, stackTrace);
         }
       });
 
@@ -121,11 +125,15 @@ void main() {
           throw error;
         });
       }, onError: (error, chain) {
-        expect(error, equals('error'));
-        expect(chain, new isInstanceOf<Chain>());
-        expect(chain.traces[1].frames,
-            contains(frameMember(startsWith('inMicrotask'))));
-        completer.complete();
+        try {
+          expect(error, equals('error'));
+          expect(chain, new isInstanceOf<Chain>());
+          expect(chain.traces[1].frames,
+              contains(frameMember(startsWith('inMicrotask'))));
+          completer.complete();
+        } catch (error, stackTrace) {
+          completer.completeError(error, stackTrace);
+        }
       });
 
       return completer.future;
@@ -138,11 +146,15 @@ void main() {
     runZoned(() {
       Chain.capture(() => inMicrotask(() => throw 'error'));
     }, onError: (error, chain) {
-      expect(error, equals('error'));
-      expect(chain, new isInstanceOf<Chain>());
-      expect(chain.traces[1].frames,
-          contains(frameMember(startsWith('inMicrotask'))));
-      completer.complete();
+      try {
+        expect(error, equals('error'));
+        expect(chain, new isInstanceOf<Chain>());
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+        completer.complete();
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
     });
 
     return completer.future;

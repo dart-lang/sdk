@@ -191,7 +191,7 @@ matcher/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
-stack_trace/test/chain_test: Fail, Timeout # Issues 15171, 15105, and 18142
+stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
