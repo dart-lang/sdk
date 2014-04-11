@@ -431,6 +431,8 @@ abstract class Compiler implements DiagnosticListener {
   /// suppressed for each library.
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
+  final bool suppressWarnings;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -660,6 +662,7 @@ abstract class Compiler implements DiagnosticListener {
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
+            this.suppressWarnings: true,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly =
@@ -1116,7 +1119,7 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
-    if (!showPackageWarnings) {
+    if (!showPackageWarnings && !suppressWarnings) {
       suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
         MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
         if (info.warnings == 0) {
@@ -1312,7 +1315,8 @@ abstract class Compiler implements DiagnosticListener {
     assert(invariant(element, !element.isSynthesized || tree == null));
     if (tree != null) validator.validate(tree);
     elements = resolver.resolve(element);
-    if (tree != null && elements != null && !analyzeSignaturesOnly) {
+    if (tree != null && elements != null && !analyzeSignaturesOnly &&
+        !suppressWarnings) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(elements);
     }

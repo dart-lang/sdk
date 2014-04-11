@@ -63,7 +63,8 @@ class Compiler extends leg.Compiler {
                 "build number could not be determined"),
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
-            useContentSecurityPolicy: hasOption(options, '--csp')) {
+            useContentSecurityPolicy: hasOption(options, '--csp'),
+            suppressWarnings: hasOption(options, '--suppress-warnings')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }

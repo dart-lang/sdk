@@ -261,8 +261,10 @@ Future compile(List<String> argv) {
     new OptionHandler('-[chvm?]+', handleShortOptions),
     new OptionHandler('--throw-on-error',
                       (_) => diagnosticHandler.throwOnError = true),
-    new OptionHandler('--suppress-warnings',
-                      (_) => diagnosticHandler.showWarnings = false),
+    new OptionHandler('--suppress-warnings', (_) {
+      diagnosticHandler.showWarnings = false;
+      passThrough('--suppress-warnings');
+    }),
     new OptionHandler('--suppress-hints',
                       (_) => diagnosticHandler.showHints = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
