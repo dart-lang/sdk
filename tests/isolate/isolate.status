@@ -22,6 +22,10 @@ start_paused_test: Fail # Not implemented yet
 ondone_test: Skip       # Not implemented yet, hangs.
 ping_test: Fail         # Not implemented yet
 ping_pause_test: Fail   # Not implemented yet
+kill_test: Skip         # Not implemented yet, hangs.
+kill2_test: Skip        # Not implemented yet, hangs.
+kill3_test: Skip        # Not implemented yet, hangs.
+kill_self_test: Skip    # Not implemented yet, hangs.
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests

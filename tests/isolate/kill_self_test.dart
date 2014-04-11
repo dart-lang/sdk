@@ -9,9 +9,17 @@ import "package:async_helper/async_helper.dart";
 
 isomain1(replyPort) {
   RawReceivePort port = new RawReceivePort();
+  bool firstEvent = true;
   port.handler = (v) {
-    replyPort.send(v);
-    if (v == 0) port.close();
+    if (!firstEvent) {
+      throw "Survived suicide";
+    }
+    var controlPort = v[0];
+    var killCapability = v[1];
+    firstEvent = false;
+    var isolate = new Isolate(controlPort,
+                              terminateCapability: killCapability);
+    isolate.kill(Isolate.IMMEDIATE);
   };
   replyPort.send(port.sendPort);
 }
@@ -21,29 +29,15 @@ void main() {
   var completer = new Completer();  // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
-    List result = [];
-    completer.future.then((echoPort) {
-      reply.handler = (v) {
-        result.add(v);
-        if (v == 0) {
-          Expect.listEquals([4, 3, 2, 1, 0], result);
-          reply.close();
-          asyncEnd();
-        }
-      };
-      echoPort.send(4);
-      echoPort.send(3);
-      Capability resume = isolate.pause();
-      var pingPort = new RawReceivePort();
-      pingPort.handler = (_) {
-        Expect.isTrue(result.length <= 2);
-        echoPort.send(0);
-        isolate.resume(resume);
-        pingPort.close();
-      };
-      isolate.ping(pingPort.sendPort, Isolate.BEFORE_NEXT_EVENT);
-      echoPort.send(2);
-      echoPort.send(1);
+    completer.future.then((isolatePort) {
+      RawReceivePort exitSignal;
+      exitSignal = new RawReceivePort((_) {
+        exitSignal.close();
+        asyncEnd();
+      });
+      isolate.addOnExitListener(exitSignal.sendPort);
+      isolatePort.send([isolate.controlPort, isolate.terminateCapability]);
+      reply.close();
     });
   });
 }

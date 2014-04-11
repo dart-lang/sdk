@@ -21,29 +21,24 @@ void main() {
   var completer = new Completer();  // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
-    List result = [];
-    completer.future.then((echoPort) {
+    completer.future.then((SendPort echoPort) {
+      List result = [];
       reply.handler = (v) {
         result.add(v);
-        if (v == 0) {
-          Expect.listEquals([4, 3, 2, 1, 0], result);
-          reply.close();
-          asyncEnd();
+        if (v == 2) {
+          isolate.kill(Isolate.IMMEDIATE);
         }
+        echoPort.send(v - 1);
       };
+      RawReceivePort exitSignal;
+      exitSignal = new RawReceivePort((_) {
+        Expect.listEquals([4, 3, 2], result);
+        exitSignal.close();
+        reply.close();
+        asyncEnd();
+      });
+      isolate.addOnExitListener(exitSignal.sendPort);
       echoPort.send(4);
-      echoPort.send(3);
-      Capability resume = isolate.pause();
-      var pingPort = new RawReceivePort();
-      pingPort.handler = (_) {
-        Expect.isTrue(result.length <= 2);
-        echoPort.send(0);
-        isolate.resume(resume);
-        pingPort.close();
-      };
-      isolate.ping(pingPort.sendPort, Isolate.BEFORE_NEXT_EVENT);
-      echoPort.send(2);
-      echoPort.send(1);
     });
   });
 }

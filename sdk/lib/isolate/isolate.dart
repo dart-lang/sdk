@@ -29,12 +29,12 @@ class IsolateSpawnException implements Exception {
 }
 
 class Isolate {
-  /** Argument to `ping`: Ask for immediate response. */
-  static const int PING_ALIVE = 0;
-  /** Argument to `ping`: Ask for response after control events. */
-  static const int PING_CONTROL = 1;
-  /** Argument to `ping`: Ask for response after normal events. */
-  static const int PING_EVENT = 2;
+  /** Argument to `ping` and `kill`: Ask for immediate action. */
+  static const int IMMEDIATE = 0;
+  /** Argument to `ping` and `kill`: Ask for action before the next event. */
+  static const int BEFORE_NEXT_EVENT = 1;
+  /** Argument to `ping` and `kill`: Ask for action after normal events. */
+  static const int AS_EVENT = 2;
 
   /**
    * Control port used to send control messages to the isolate.
@@ -114,7 +114,6 @@ class Isolate {
    */
   external static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message, { bool paused: false });
-
 
   /**
    * Requests the isolate to pause.
@@ -232,6 +231,41 @@ class Isolate {
   }
 
   /**
+   * Requests the isolate to shut down.
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * The isolate is requested to terminate itself.
+   * The [priority] argument specifies when this must happen.
+   *
+   * The [priority] must be one of [IMMEDIATE], [BEFORE_NEXT_EVENT] or
+   * [AS_EVENT].
+   * The shutdown is performed at different times depending on the priority:
+   *
+   * * `IMMEDIATE`: The the isolate shuts down as soon as possible.
+   *     Control messages are handled in order, so all previously sent control
+   *     events from this isolate will all have been processed.
+   *     The shutdown should happen no later than if sent with
+   *     `BEFORE_NEXT_EVENT`.
+   *     It may happen earlier if the system has a way to shut down cleanly
+   *     at an earlier time, even during the execution of another event.
+   * * `BEFORE_NEXT_EVENT`: The shutdown is scheduled for the next time
+   *     control returns to the event loop of the receiving isolate.
+   *     If more than one such event are scheduled, they are executed in
+   *     the order their control messages were received.
+   * * `AS_EVENT`: The shutdown does not happen until all prevously sent
+   *     non-control messages from the current isolate to the receiving isolate
+   *     have been processed.
+   *     The kill operation effectively puts the shutdown into the normal event
+   *     queue after previously sent messages, and it is affected by any control
+   *     messages that affect normal events, including `pause`.
+   *     This can be used to wait for a another event to be processed.
+   */
+  void kill([int priority = BEFORE_NEXT_EVENT]) {
+    controlPort.send(["kill", terminateCapability, priority]);
+  }
+
+  /**
    * Request that the isolate send a response on the [responsePort].
    *
    * WARNING: This method is experimental and not handled on every platform yet.
@@ -239,24 +273,25 @@ class Isolate {
    * If the isolate is alive, it will eventually send a `null` response on
    * the response port.
    *
-   * The [pingType] must be one of [PING_ALIVE], [PING_CONTROL] or [PING_EVENT].
+   * The [pingType] must be one of [IMMEDIATE], [BEFORE_NEXT_EVENT] or
+   * [AS_EVENT].
    * The response is sent at different times depending on the ping type:
    *
-   * * `PING_ALIVE`: The the isolate responds as soon as possible.
-   *     The response should happen no later than if sent with `PING_CONTROL`.
-   *     It may be sent earlier if the system has a way to do so.
-   * * `PING_CONTROL`: The response it not sent until all previously sent
-   *     control messages from the current isolate to the receiving isolate
-   *     have been processed. This can be used to wait for
-   *     previously sent control messages.
-   * * `PING_EVENT`: The response is not sent until all prevously sent
+   * * `IMMEDIATE`: The the isolate responds as soon as it receives the
+   *     control message.
+   * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
+   *     control returns to the event loop of the receiving isolate.
+   *     If more than one such event are scheduled, they are executed in
+   *     the order their control messages were received.
+   * * `AS_EVENT`: The response is not sent until all prevously sent
    *     non-control messages from the current isolate to the receiving isolate
    *     have been processed.
-   *     The ping effectively puts the resonse into the normal event queue after
-   *     previously sent messages.
+   *     The ping effectively puts the response into the normal event queue
+   *     after previously sent messages, and it is affected by any control
+   *     messages that affect normal events, including `pause`.
    *     This can be used to wait for a another event to be processed.
    */
-  void ping(SendPort responsePort, [int pingType = PING_ALIVE]) {
+  void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
     var message = new List(3)
         ..[0] = "ping"
         ..[1] = responsePort
