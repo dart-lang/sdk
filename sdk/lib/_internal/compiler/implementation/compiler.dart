@@ -662,7 +662,7 @@ abstract class Compiler implements DiagnosticListener {
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
-            this.suppressWarnings: true,
+            this.suppressWarnings: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly =
