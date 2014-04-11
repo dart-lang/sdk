@@ -491,8 +491,6 @@ ASSEMBLER_TEST_RUN(EonRegs, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
-// TODO(zra): ands and bics after branches are implemented.
-
 
 // Logical immediate operations.
 ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
@@ -553,7 +551,332 @@ ASSEMBLER_TEST_RUN(EorImm, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
-// TODO(zra): andis after branches are implemented.
+
+// Comparisons, branching.
+ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
+  Label l;
+  __ movz(R0, 42, 0);
+  __ b(&l, AL);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BranchALForward, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
+  Label l, leave;
+  __ movz(R0, 42, 0);
+  __ b(&l, AL);
+
+  __ movz(R0, 0, 0);
+  __ Bind(&leave);
+  __ ret();
+  __ movz(R0, 0, 0);
+
+  __ Bind(&l);
+  __ b(&leave, AL);
+  __ movz(R0, 0, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BranchALBackwards, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 234, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEqBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 233, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEqBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 1, 0);
+
+  __ cmp(R1, Operand(1));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEq1Branch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movn(R1, 0, 0);  // R1 <- -1
+
+  __ cmn(R1, Operand(1));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmnEq1Branch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 233, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, LT);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpLtBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 235, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, LT);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 1, 0);
+
+  __ ands(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndsBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 2, 0);
+
+  __ ands(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndsBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 2, 0);
+
+  __ bics(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BicsBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 1, 0);
+
+  __ bics(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BicsBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+
+  __ andis(R3, R1, 1);
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndisBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+
+  __ andis(R3, R1, 2);
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndisBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Address of PC-rel offset, br, blr.
+ASSEMBLER_TEST_GENERATE(AdrBr, assembler) {
+  __ movz(R0, 123, 0);
+  __ adr(R1, 3 * Instr::kInstrSize);  // R1 <- PC + 3*Instr::kInstrSize
+  __ br(R1);
+  __ ret();
+
+  // br goes here.
+  __ movz(R0, 42, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AdrBr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
+  __ movz(R0, 123, 0);
+  __ add(R3, ZR, Operand(LR));  // Save LR.
+  __ adr(R1, 4 * Instr::kInstrSize);  // R1 <- PC + 4*Instr::kInstrSize
+  __ blr(R1);
+  __ add(LR, ZR, Operand(R3));
+  __ ret();
+
+  // blr goes here.
+  __ movz(R0, 42, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AdrBlr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
 
 }  // namespace dart
 

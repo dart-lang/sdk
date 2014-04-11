@@ -74,6 +74,23 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 }
 
 
+// TODO(zra): Support for far branches. Requires loading large immediates.
+void Assembler::Bind(Label* label) {
+  ASSERT(!label->IsBound());
+  intptr_t bound_pc = buffer_.Size();
+
+  while (label->IsLinked()) {
+    const int64_t position = label->Position();
+    const int64_t dest = bound_pc - position;
+    const int32_t next = buffer_.Load<int32_t>(position);
+    const int32_t encoded = EncodeImm19BranchOffset(dest, next);
+    buffer_.Store<int32_t>(position, encoded);
+    label->position_ = DecodeImm19BranchOffset(next);
+  }
+  label->BindTo(bound_pc);
+}
+
+
 static int CountLeadingZeros(uint64_t value, int width) {
   ASSERT((width == 32) || (width == 64));
   if (value == 0) {

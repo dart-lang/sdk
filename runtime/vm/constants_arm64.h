@@ -259,6 +259,21 @@ enum MainOp {
   DPSimd2Fixed = B28 | DPSimd1Fixed,
 };
 
+// C3.2.1
+enum CompareAndBranchOp {
+  CompareAndBranchMask = 0x7e000000,
+  CompareAndBranchFixed = CompareBranchFixed | B29,
+  CBZ = CompareBranchFixed,
+  CBNZ = CompareBranchFixed | B24,
+};
+
+// C.3.2.2
+enum ConditionalBranchOp {
+  ConditionalBranchMask = 0xfe000000,
+  ConditionalBranchFixed = CompareBranchFixed | B30,
+  BCOND = ConditionalBranchFixed,
+};
+
 // C3.2.3
 enum ExceptionGenOp {
   ExceptionGenMask = 0xff000000,
@@ -273,6 +288,22 @@ enum SystemOp {
   SystemMask = 0xffc00000,
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
+};
+
+// C3.2.5
+enum TestAndBranchOp {
+  TestAndBranchMask = 0x7e000000,
+  TestAndBranchFixed = CompareBranchFixed | B29 | B25,
+  TBZ = TestAndBranchFixed,
+  TBNZ = TestAndBranchFixed | B24,
+};
+
+// C3.2.6
+enum UnconditionalBranchOp {
+  UnconditionalBranchMask = 0x7c000000,
+  UnconditionalBranchFixed = CompareBranchFixed,
+  B = UnconditionalBranchFixed,
+  BL = UnconditionalBranchFixed | B31,
 };
 
 // C3.2.7
@@ -318,6 +349,14 @@ enum MoveWideOp {
   MOVK = MoveWideFixed | B30 | B29,
 };
 
+// C3.4.6
+enum PCRelOp {
+  PCRelMask = 0x1f000000,
+  PCRelFixed = DPImmediateFixed,
+  ADR = PCRelFixed,
+  ADRP = PCRelFixed | B31,
+};
+
 // C3.5.1
 enum AddSubShiftExtOp {
   AddSubShiftExtMask = 0x1f000000,
@@ -346,13 +385,18 @@ _V(LoadStore)                                                                  \
 _V(DPRegister)                                                                 \
 _V(DPSimd1)                                                                    \
 _V(DPSimd2)                                                                    \
+_V(CompareAndBranch)                                                           \
+_V(ConditionalBranch)                                                          \
 _V(ExceptionGen)                                                               \
 _V(System)                                                                     \
-_V(LoadStoreReg)                                                               \
+_V(TestAndBranch)                                                              \
+_V(UnconditionalBranch)                                                        \
 _V(UnconditionalBranchReg)                                                     \
+_V(LoadStoreReg)                                                               \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
+_V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
 _V(LogicalShift)                                                               \
 
@@ -423,8 +467,18 @@ enum InstructionFields {
   kImm12Bits = 12,
   kImm12ShiftShift = 22,
   kImm12ShiftBits = 2,
+  kImm14Shift = 5,
+  kImm14Bits = 14,
   kImm16Shift = 5,
   kImm16Bits = 16,
+  kImm19Shift = 5,
+  kImm19Bits = 19,
+  kImm19Mask = 0x7ffff,
+  kImm26Shift = 0,
+  kImm26Bits = 26,
+
+  kCondShift = 0,
+  kCondBits = 4,
 
   // Bitfield immediates.
   kNShift = 22,
@@ -556,6 +610,20 @@ class Instr {
 
   inline int ImmRField() const { return Bits(kImmRShift, kImmRBits); }
   inline int ImmSField() const { return Bits(kImmSShift, kImmSBits); }
+
+  inline int Imm14Field() const { return Bits(kImm14Shift, kImm14Bits); }
+  inline int64_t SImm14Field() const {
+      return (static_cast<int32_t>(Imm14Field()) << 18) >> 18; }
+  inline int Imm19Field() const { return Bits(kImm19Shift, kImm19Bits); }
+  inline int64_t SImm19Field() const {
+      return (static_cast<int32_t>(Imm19Field()) << 13) >> 13; }
+  inline int Imm26Field() const { return Bits(kImm26Shift, kImm26Bits); }
+  inline int64_t SImm26Field() const {
+      return (static_cast<int32_t>(Imm26Field()) << 6) >> 6; }
+
+  inline Condition ConditionField() const {
+    return static_cast<Condition>(Bits(kCondShift, kCondBits));
+  }
 
   // Shift and Extend.
   inline bool IsShift() const {

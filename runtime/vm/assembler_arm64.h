@@ -278,9 +278,7 @@ class Assembler : public ValueObject {
     UNIMPLEMENTED();
   }
 
-  void Bind(Label* label) {
-    UNIMPLEMENTED();
-  }
+  void Bind(Label* label);
 
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
@@ -356,6 +354,11 @@ class Assembler : public ValueObject {
     AddSubHelper(kDoubleWord, true, true, rd, rn, o);
   }
 
+  // PC relative immediate add. imm is in bytes.
+  void adr(Register rd, int64_t imm) {
+    EmitPCRelOp(ADR, rd, imm);
+  }
+
   // Logical immediate operations.
   // TODO(zra): Add macros that check IsImmLogical, and fall back on a longer
   // sequence on failure.
@@ -410,16 +413,6 @@ class Assembler : public ValueObject {
     EmitLogicalShiftOp(BICS, rd, rn, o, kDoubleWord);
   }
 
-  // Comparison.
-  // rn cmp o.
-  void cmp(Register rn, Operand o) {
-    subs(ZR, rn, o);
-  }
-  // rn cmp -o.
-  void cmn(Register rn, Operand o) {
-    adds(ZR, rn, o);
-  }
-
   // Move wide immediate.
   void movk(Register rd, int32_t imm, int32_t hw_idx) {
     ASSERT(rd != SP);
@@ -451,7 +444,31 @@ class Assembler : public ValueObject {
     EmitLoadStoreReg(STR, rt, a, kDoubleWord);
   }
 
-  // Function return.
+  // Comparison.
+  // rn cmp o.
+  void cmp(Register rn, Operand o) {
+    subs(ZR, rn, o);
+  }
+  // rn cmp -o.
+  void cmn(Register rn, Operand o) {
+    adds(ZR, rn, o);
+  }
+
+  // Conditional branch.
+  void b(Label* label, Condition cond = AL) {
+    EmitBranch(BCOND, cond, label);
+  }
+
+  // TODO(zra): branch and link with imm26 offset.
+  // TODO(zra): cbz, cbnz.
+
+  // Branch, link, return.
+  void br(Register rn) {
+    EmitUnconditionalBranchRegOp(BR, rn);
+  }
+  void blr(Register rn) {
+    EmitUnconditionalBranchRegOp(BLR, rn);
+  }
   void ret(Register rn = R30) {
     EmitUnconditionalBranchRegOp(RET, rn);
   }
@@ -488,7 +505,7 @@ class Assembler : public ValueObject {
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);
     if (o.type() == Operand::Immediate) {
-      ASSERT((rd != ZR) && (rn != ZR));
+      ASSERT(rn != ZR);
       EmitAddSubImmOp(subtract ? SUBI : ADDI, crd, crn, o, os, set_flags);
     } else if (o.type() == Operand::Shifted) {
       ASSERT((rd != SP) && (rn != SP));
@@ -563,6 +580,59 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
+  int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) & kImm19Mask) << kImm19Shift);
+    return (instr & ~(kImm19Mask << kImm19Shift)) | off;
+  }
+
+  int64_t DecodeImm19BranchOffset(int32_t instr) {
+    const int32_t off = (((instr >> kImm19Shift) & kImm19Shift) << 13) >> 13;
+    return static_cast<int64_t>(off);
+  }
+
+  void EmitCompareAndBranch(CompareAndBranchOp op, Register rt, int64_t imm,
+                            OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(rt) << kRtShift) |
+        encoded_offset;
+    Emit(encoding);
+  }
+
+  void EmitConditionalBranch(ConditionalBranchOp op, Condition cond,
+                             int64_t imm) {
+    ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(cond) << kCondShift) |
+        (((imm >> 2) & kImm19Mask) << kImm19Shift);
+    Emit(encoding);
+  }
+
+  bool CanEncodeImm19BranchOffset(int64_t offset) {
+    ASSERT(Utils::IsAligned(offset, 4));
+    return Utils::IsInt(19, offset);
+  }
+
+  // TODO(zra): Implement far branches. Requires loading large immediates.
+  void EmitBranch(ConditionalBranchOp op, Condition cond, Label* label) {
+    if (label->IsBound()) {
+      const int64_t dest = label->Position() - buffer_.Size();
+      ASSERT(CanEncodeImm19BranchOffset(dest));
+      EmitConditionalBranch(op, cond, dest);
+    } else {
+      const int64_t position = buffer_.Size();
+      ASSERT(CanEncodeImm19BranchOffset(position));
+      EmitConditionalBranch(op, cond, label->position_);
+      label->LinkTo(position);
+    }
+  }
+
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
     const int32_t encoding =
         op | (static_cast<int32_t>(rn) << kRnShift);
@@ -590,6 +660,18 @@ class Assembler : public ValueObject {
         op | (size << kSzShift) |
         (static_cast<int32_t>(rt) << kRtShift) |
         a.encoding();
+    Emit(encoding);
+  }
+
+  void EmitPCRelOp(PCRelOp op, Register rd, int64_t imm) {
+    ASSERT(Utils::IsInt(21, imm));
+    ASSERT((rd != R31) && (rd != SP));
+    const Register crd = ConcreteRegister(rd);
+    const int32_t loimm = (imm & 0x3) << 29;
+    const int32_t hiimm = ((imm >> 2) & kImm19Mask) << kImm19Shift;
+    const int32_t encoding =
+        op | loimm | hiimm |
+        (static_cast<int32_t>(crd) << kRdShift);
     Emit(encoding);
   }
 

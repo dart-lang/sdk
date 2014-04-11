@@ -160,6 +160,8 @@ class Simulator {
 
   int64_t DecodeShiftExtendOperand(Instr* instr);
 
+  bool ConditionallyExecute(Instr* instr);
+
   // Decode instructions.
   void InstructionDecode(Instr* instr);
   #define DECODE_OP(op)                                                        \

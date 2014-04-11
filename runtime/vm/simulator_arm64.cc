@@ -528,6 +528,22 @@ void Simulator::DecodeLogicalImm(Instr* instr) {
 }
 
 
+void Simulator::DecodePCRel(Instr* instr) {
+  const int op = instr->Bit(31);
+  if (op == 0) {
+    // Format(instr, "adr 'rd, 'pcrel")
+    const Register rd = instr->RdField();
+    const int64_t immhi = instr->SImm19Field();
+    const int64_t immlo = instr->Bits(29, 2);
+    const int64_t off = (immhi << 2) | immlo;
+    const int64_t dest = get_pc() + off;
+    set_register(rd, dest, instr->RdMode());
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 void Simulator::DecodeDPImmediate(Instr* instr) {
   if (instr->IsMoveWideOp()) {
     DecodeMoveWide(instr);
@@ -535,8 +551,67 @@ void Simulator::DecodeDPImmediate(Instr* instr) {
     DecodeAddSubImm(instr);
   } else if (instr->IsLogicalImmOp()) {
     DecodeLogicalImm(instr);
+  } else if (instr->IsPCRelOp()) {
+    DecodePCRel(instr);
   } else {
     UnimplementedInstruction(instr);
+  }
+}
+
+
+void Simulator::DecodeCompareAndBranch(Instr* instr) {
+  const int op = instr->Bit(24);
+  const Register rt = instr->RtField();
+  const int64_t imm19 = instr->SImm19Field();
+  const int64_t dest = get_pc() + (imm19 << 2);
+  const int64_t mask = instr->SFField() == 1 ? kXRegMask : kWRegMask;
+  const int64_t rt_val = get_register(rt, R31IsZR) & mask;
+  if (op == 0) {
+    // Format(instr, "cbz'sf 'rt, 'dest19");
+    if (rt_val == 0) {
+      set_pc(dest);
+    }
+  } else {
+    // Format(instr, "cbnz'sf 'rt, 'dest19");
+    if (rt_val != 0) {
+      set_pc(dest);
+    }
+  }
+}
+
+
+bool Simulator::ConditionallyExecute(Instr* instr) {
+  switch (instr->ConditionField()) {
+    case EQ: return z_flag_;
+    case NE: return !z_flag_;
+    case CS: return c_flag_;
+    case CC: return !c_flag_;
+    case MI: return n_flag_;
+    case PL: return !n_flag_;
+    case VS: return v_flag_;
+    case VC: return !v_flag_;
+    case HI: return c_flag_ && !z_flag_;
+    case LS: return !c_flag_ || z_flag_;
+    case GE: return n_flag_ == v_flag_;
+    case LT: return n_flag_ != v_flag_;
+    case GT: return !z_flag_ && (n_flag_ == v_flag_);
+    case LE: return z_flag_ || (n_flag_ != v_flag_);
+    case AL: return true;
+    default: UNREACHABLE();
+  }
+  return false;
+}
+
+
+void Simulator::DecodeConditionalBranch(Instr* instr) {
+  // Format(instr, "b'cond 'dest19");
+  if ((instr->Bit(24) != 0) || (instr->Bit(4) != 0)) {
+    UnimplementedInstruction(instr);
+  }
+  const int64_t imm19 = instr->SImm19Field();
+  const int64_t dest = get_pc() + (imm19 << 2);
+  if (ConditionallyExecute(instr)) {
+    set_pc(dest);
   }
 }
 
@@ -561,10 +636,59 @@ void Simulator::DecodeSystem(Instr* instr) {
 }
 
 
+void Simulator::DecodeTestAndBranch(Instr* instr) {
+  const int op = instr->Bit(24);
+  const int bitpos = instr->Bits(19, 4) | (instr->Bit(31) << 5);
+  const int64_t imm14 = instr->SImm14Field();
+  const int64_t dest = get_pc() + (imm14 << 2);
+  const Register rt = instr->RtField();
+  const int64_t rt_val = get_register(rt, R31IsZR);
+  if (op == 0) {
+    // Format(instr, "tbz'sf 'rt, 'bitpos, 'dest14");
+    if ((rt_val & (1 << bitpos)) == 0) {
+      set_pc(dest);
+    }
+  } else {
+    // Format(instr, "tbnz'sf 'rt, 'bitpos, 'dest14");
+    if ((rt_val & (1 << bitpos)) != 0) {
+      set_pc(dest);
+    }
+  }
+}
+
+
+void Simulator::DecodeUnconditionalBranch(Instr* instr) {
+  const bool link = instr->Bit(31) == 1;
+  const int64_t imm26 = instr->SImm26Field();
+  const int64_t dest = get_pc() + (imm26 << 2);
+  const int64_t ret = get_pc() + Instr::kInstrSize;
+  set_pc(dest);
+  if (link) {
+    set_register(LR, ret);
+  }
+}
+
+
 void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
   if ((instr->Bits(0, 5) == 0) && (instr->Bits(10, 6) == 0) &&
       (instr->Bits(16, 5) == 0x1f)) {
     switch (instr->Bits(21, 4)) {
+      case 0: {
+        // Format(instr, "br 'rn");
+        const Register rn = instr->RnField();
+        const int64_t dest = get_register(rn, instr->RnMode());
+        set_pc(dest);
+        break;
+      }
+      case 1: {
+        // Format(instr, "blr 'rn");
+        const Register rn = instr->RnField();
+        const int64_t dest = get_register(rn, instr->RnMode());
+        const int64_t ret = get_pc() + Instr::kInstrSize;
+        set_pc(dest);
+        set_register(LR, ret);
+        break;
+      }
       case 2: {
         // Format(instr, "ret 'rn");
         const Register rn = instr->RnField();
@@ -583,10 +707,18 @@ void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
 
 
 void Simulator::DecodeCompareBranch(Instr* instr) {
-  if (instr->IsExceptionGenOp()) {
+  if (instr->IsCompareAndBranchOp()) {
+    DecodeCompareAndBranch(instr);
+  } else if (instr->IsConditionalBranchOp()) {
+    DecodeConditionalBranch(instr);
+  } else if (instr->IsExceptionGenOp()) {
     DecodeExceptionGen(instr);
   } else if (instr->IsSystemOp()) {
     DecodeSystem(instr);
+  } else if (instr->IsTestAndBranchOp()) {
+    DecodeTestAndBranch(instr);
+  } else if (instr->IsUnconditionalBranchOp()) {
+    DecodeUnconditionalBranch(instr);
   } else if (instr->IsUnconditionalBranchRegOp()) {
     DecodeUnconditionalBranchReg(instr);
   } else {
@@ -811,6 +943,7 @@ int64_t Simulator::ExtendOperand(uint8_t reg_size,
       break;
     default:
       UNREACHABLE();
+      break;
   }
   int64_t mask = (reg_size == kXRegSizeInBits) ? kXRegMask : kWRegMask;
   return (value << amount) & mask;
@@ -837,39 +970,43 @@ int64_t Simulator::DecodeShiftExtendOperand(Instr* instr) {
 
 
 void Simulator::DecodeAddSubShiftExt(Instr* instr) {
-  switch (instr->Bit(30)) {
-    case 0: {
-      // Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
-      const Register rd = instr->RdField();
-      const Register rn = instr->RnField();
-      const int64_t rm_val = DecodeShiftExtendOperand(instr);
-      if (instr->SFField()) {
-        // 64-bit add.
-        const int64_t rn_val = get_register(rn, instr->RnMode());
-        const int64_t alu_out = rn_val + rm_val;
-        set_register(rd, alu_out, instr->RdMode());
-        if (instr->HasS()) {
-          SetNZFlagsX(alu_out);
-          SetCFlag(CarryFromX(rn_val, rm_val));
-          SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, true));
-        }
-      } else {
-        // 32-bit add.
-        const int32_t rn_val = get_wregister(rn, instr->RnMode());
-        const int32_t rm_val32 = static_cast<int32_t>(rm_val & kWRegMask);
-        const int32_t alu_out = rn_val + rm_val32;
-        set_wregister(rd, alu_out, instr->RdMode());
-        if (instr->HasS()) {
-          SetNZFlagsW(alu_out);
-          SetCFlag(CarryFromW(rn_val, rm_val32));
-          SetVFlag(OverflowFromW(alu_out, rn_val, rm_val32, true));
-        }
-      }
-      break;
+  // Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
+  // also, sub, cmp, etc.
+  const bool subtract = instr->Bit(30) == 1;
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const int64_t rm_val = DecodeShiftExtendOperand(instr);
+  if (instr->SFField()) {
+    // 64-bit add.
+    const int64_t rn_val = get_register(rn, instr->RnMode());
+    int64_t alu_out = 0;
+    if (subtract) {
+      alu_out = rn_val - rm_val;
+    } else {
+      alu_out = rn_val + rm_val;
     }
-    default:
-      UnimplementedInstruction(instr);
-      break;
+    set_register(rd, alu_out, instr->RdMode());
+    if (instr->HasS()) {
+      SetNZFlagsX(alu_out);
+      SetCFlag(CarryFromX(rn_val, rm_val));
+      SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, !subtract));
+    }
+  } else {
+    // 32-bit add.
+    const int32_t rn_val = get_wregister(rn, instr->RnMode());
+    const int32_t rm_val32 = static_cast<int32_t>(rm_val & kWRegMask);
+    int32_t alu_out = 0;
+    if (subtract) {
+      alu_out = rn_val - rm_val32;
+    } else {
+      alu_out = rn_val + rm_val32;
+    }
+    set_wregister(rd, alu_out, instr->RdMode());
+    if (instr->HasS()) {
+      SetNZFlagsW(alu_out);
+      SetCFlag(CarryFromW(rn_val, rm_val32));
+      SetVFlag(OverflowFromW(alu_out, rn_val, rm_val32, !subtract));
+    }
   }
 }
 
