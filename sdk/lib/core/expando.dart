@@ -41,7 +41,7 @@ class Expando<T> {
   /**
    * Expando toString method override.
    */
-  String toString() => (name == null) ? "Expando" : "Expando:$name";
+  String toString() => "Expando:$name";
 
   /**
    * Gets the value of this [Expando]'s property on the given
