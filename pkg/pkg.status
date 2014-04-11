@@ -75,11 +75,13 @@ analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 docgen/test/typedef_test: Slow, Pass # issue 17060
 
 [ $runtime == d8 || $runtime == jsshell ]
-async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+
+[ $runtime == jsshell ]
+async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
