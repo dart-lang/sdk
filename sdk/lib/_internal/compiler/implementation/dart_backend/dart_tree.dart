@@ -90,10 +90,11 @@ class Sequence extends Expression {
  */
 class LetVal extends Expression {
   final Variable variable;
-  final Expression definition;
-  final Expression body;
+  Expression definition;
+  Expression body;
+  final bool hasExactlyOneUse;
 
-  LetVal(this.variable, this.definition, this.body);
+  LetVal(this.variable, this.definition, this.body, this.hasExactlyOneUse);
 
   bool get isPure => definition.isPure && body.isPure;
 
@@ -243,7 +244,8 @@ class Builder extends ir.Visitor<Expression> {
     if (node.primitive.hasAtLeastOneUse) {
       Variable variable = new Variable(null);
       variables[node.primitive] = variable;
-      return new LetVal(variable, definition, node.body.accept(this));
+      return new LetVal(variable, definition, node.body.accept(this),
+          node.primitive.hasExactlyOneUse);
     } else {
       return new Sequence([definition, node.body.accept(this)]);
     }
@@ -269,7 +271,8 @@ class Builder extends ir.Visitor<Expression> {
       if (cont.parameter.hasAtLeastOneUse) {
         Variable variable = new Variable(null);
         variables[cont.parameter] = variable;
-        return new LetVal(variable, invoke, cont.body.accept(this));
+        return new LetVal(variable, invoke, cont.body.accept(this),
+            cont.parameter.hasExactlyOneUse);
       } else {
         return new Sequence([invoke, cont.body.accept(this)]);
       }
@@ -353,7 +356,8 @@ class Unnamer extends Visitor<Expression> {
     bool seenImpure = false;
     for (int i = environment.length - 1; i >= 0; --i) {
       if (environment[i].variable == node) {
-        if (!seenImpure || environment[i].definition.isPure) {
+        if ((!seenImpure || environment[i].definition.isPure)
+            && environment[i].hasExactlyOneUse) {
           // Use the definition if it is pure or if it is the first impure
           // definition (i.e., propagating past only pure expressions).
           return environment.removeAt(i).definition.accept(this);
@@ -380,9 +384,13 @@ class Unnamer extends Visitor<Expression> {
     environment.add(node);
     Expression body = node.body.accept(this);
 
-    // TODO(kmillikin): Allow definitions that are not propagated.  Currently,
-    // the only bindings are anonymous intermediate values (which only have one
-    // use in the absence of optimizations) and they are not reordered.
+    if (!environment.isEmpty && environment.last == node) {
+      // The definition could not be propagated.  Residualize the let binding.
+      node.body = body;
+      environment.removeLast();
+      node.definition = node.definition.accept(this);
+      return node;
+    }
     assert(!environment.contains(node));
     return body;
   }

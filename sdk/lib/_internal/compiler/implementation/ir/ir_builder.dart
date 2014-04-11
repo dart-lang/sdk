@@ -351,13 +351,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
 
   ir.Definition visitGetterSend(ast.Send node) {
     Element element = elements[node];
-    if ((element != null && element.isForeign(compiler))
-        || Elements.isStaticOrTopLevelField(element)
-        || Elements.isInstanceSend(node, elements)
-        || Elements.isStaticOrTopLevelFunction(element)
-        || Elements.isErroneousElement(element)) {
-      return giveup();
-    }
+    if (!Elements.isLocal(element)) return giveup();
     return assignedVars[variableIndex[element]];
   }
 
@@ -418,6 +412,17 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
 
   ir.Definition visitTypeReferenceSend(ast.Send node) {
     return giveup();
+  }
+
+  ir.Definition visitSendSet(ast.SendSet node) {
+    Element element = elements[node];
+    if (!Elements.isLocal(element)) return giveup();
+    if (node.assignmentOperator.source != '=') return giveup();
+    // Exactly one argument expected for a simple assignment.
+    assert(!node.arguments.isEmpty && node.arguments.tail.isEmpty);
+    ir.Definition result = node.arguments.head.accept(this);
+    assignedVars[variableIndex[element]] = result;
+    return result;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
