@@ -1773,10 +1773,6 @@ unwrapException(ex) {
     }
   }
 
-  // TODO(efortuna): Remove debugging statements.
-  var stack = JS('String', 'new Error().stack');
-  print('Exception error stack: $stack');
-
   // Just return the exception. We should not wrap it because in case
   // the exception comes from the DOM, it is a JavaScript
   // object backed by a native Dart class.
