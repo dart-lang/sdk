@@ -5,8 +5,9 @@
 library code_transformers.src.resolvers;
 
 import 'dart:async';
-import 'package:barback/barback.dart' show AssetId, Transformer, Transform;
+import 'package:barback/barback.dart';
 
+import 'entry_point.dart';
 import 'resolver.dart';
 import 'resolver_impl.dart';
 
@@ -47,6 +48,24 @@ abstract class ResolverTransformer implements Transformer {
   /// The cache of resolvers- must be set from subclass.
   Resolvers resolvers;
 
+  /// By default only process prossible entry point assets.
+  ///
+  /// This is only a preliminary check based on the asset ID.
+  Future<bool> isPrimary(assetOrId) {
+    // assetOrId is to handle the transition from Asset to AssetID between
+    // pub 1.3 and 1.4. Once support for 1.3 is dropped this should only
+    // support AssetId.
+    var id = assetOrId is AssetId ? assetOrId : assetOrId.id;
+    return new Future.value(isPossibleDartEntryId(id));
+  }
+
+  /// Check to see if this should apply with the resolver on the provided asset.
+  ///
+  /// By default this will only apply on possible Dart entry points (see
+  /// [isPossibleDartEntry]).
+  Future<bool> shouldApplyResolver(Asset asset) => isPossibleDartEntry(asset);
+
+
   /// This provides a default implementation of `Transformer.apply` that will
   /// get and release resolvers automatically. Internally this:
   ///   * Gets a resolver associated with the transform primary input.
@@ -56,7 +75,11 @@ abstract class ResolverTransformer implements Transformer {
   ///
   /// Use [applyToEntryPoints] instead if you need to override the entry points
   /// to run the resolver on.
-  Future apply(Transform transform) => applyToEntryPoints(transform);
+  Future apply(Transform transform) =>
+      shouldApplyResolver(transform.primaryInput).then((result) {
+        if (result) return applyToEntryPoints(transform);
+      });
+
 
   /// Helper function to make it easy to write an `Transformer.apply` method
   /// that automatically gets and releases the resolver. This is typically used
