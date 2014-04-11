@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-third_party/pkg/route_hierarchical: Fail
-
 samples/third_party/angular_todo: Pass, Slow
 samples/third_party/dromaeo: Pass, Slow
 samples/third_party/todomvc_performance: Pass, Slow
