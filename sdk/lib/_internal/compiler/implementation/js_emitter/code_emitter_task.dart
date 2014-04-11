@@ -948,6 +948,13 @@ class CodeEmitterTask extends CompilerTask {
     int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
     int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
     if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+
+    // Emit constant interceptors first. Constant intercpetors for primitives
+    // might be used by code that builds other constants.  See Issue 19183.
+    if (a.isInterceptor != b.isInterceptor) {
+      return a.isInterceptor ? -1 : 1;
+    }
+
     // Sorting by the long name clusters constants with the same constructor
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
