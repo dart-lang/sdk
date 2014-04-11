@@ -217,7 +217,7 @@ class Builder extends ir.Visitor<Expression> {
   Builder(this.compiler);
 
   FunctionDefinition build(ir.FunctionDefinition node) {
-    node.accept(this);
+    visit(node);
     return function;
   }
 
@@ -234,20 +234,24 @@ class Builder extends ir.Visitor<Expression> {
       parameters.add(parameter);
       variables[p] = parameter;
     }
-    function = new FunctionDefinition(parameters, node.body.accept(this));
+    function = new FunctionDefinition(parameters, visit(node.body));
     return null;
   }
 
   Expression visitLetPrim(ir.LetPrim node) {
     // LetPrim is translated to LetVal.
-    Expression definition = node.primitive.accept(this);
+    Expression definition = visit(node.primitive);
     if (node.primitive.hasAtLeastOneUse) {
       Variable variable = new Variable(null);
       variables[node.primitive] = variable;
       return new LetVal(variable, definition, node.body.accept(this),
           node.primitive.hasExactlyOneUse);
+    } else if (node.primitive is ir.Constant) {
+      // TODO(kmillikin): Implement more systematic treatment of pure CPS
+      // values (e.g., as part of a shrinking reductions pass).
+      return visit(node.body);
     } else {
-      return new Sequence([definition, node.body.accept(this)]);
+      return new Sequence([definition, visit(node.body)]);
     }
   }
 
@@ -256,7 +260,7 @@ class Builder extends ir.Visitor<Expression> {
     // arise due to the representation of local control flow or due to
     // optimization.
     assert(node.continuation.hasAtMostOneUse);
-    return node.body.accept(this);
+    return visit(node.body);
   }
 
   Expression visitInvokeStatic(ir.InvokeStatic node) {
@@ -274,7 +278,7 @@ class Builder extends ir.Visitor<Expression> {
         return new LetVal(variable, invoke, cont.body.accept(this),
             cont.parameter.hasExactlyOneUse);
       } else {
-        return new Sequence([invoke, cont.body.accept(this)]);
+        return new Sequence([invoke, visit(cont.body)]);
       }
     }
   }
@@ -331,7 +335,7 @@ class Unnamer extends Visitor<Expression> {
 
   void unname(FunctionDefinition definition) {
     environment = <LetVal>[];
-    definition.body = definition.body.accept(this);
+    definition.body = visit(definition.body);
 
     // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
     // this means rebuilding the binding with a recursively unnamed definition,
@@ -360,7 +364,7 @@ class Unnamer extends Visitor<Expression> {
             && environment[i].hasExactlyOneUse) {
           // Use the definition if it is pure or if it is the first impure
           // definition (i.e., propagating past only pure expressions).
-          return environment.removeAt(i).definition.accept(this);
+          return visit(environment.removeAt(i).definition);
         }
         break;
       } else if (!environment[i].definition.isPure) {
@@ -375,20 +379,20 @@ class Unnamer extends Visitor<Expression> {
 
   Expression visitSequence(Sequence node) {
     for (int i = 0; i < node.expressions.length; ++i) {
-      node.expressions[i] = node.expressions[i].accept(this);
+      node.expressions[i] = visit(node.expressions[i]);
     }
     return node;
   }
 
   Expression visitLetVal(LetVal node) {
     environment.add(node);
-    Expression body = node.body.accept(this);
+    Expression body = visit(node.body);
 
     if (!environment.isEmpty && environment.last == node) {
       // The definition could not be propagated.  Residualize the let binding.
       node.body = body;
       environment.removeLast();
-      node.definition = node.definition.accept(this);
+      node.definition = visit(node.definition);
       return node;
     }
     assert(!environment.contains(node));
@@ -398,13 +402,13 @@ class Unnamer extends Visitor<Expression> {
   Expression visitInvokeStatic(InvokeStatic node) {
     // Process arguments right-to-left, the opposite of evaluation order.
     for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = node.arguments[i].accept(this);
+      node.arguments[i] = visit(node.arguments[i]);
     }
     return node;
   }
 
   Expression visitReturn(Return node) {
-    node.value = node.value.accept(this);
+    node.value = visit(node.value);
     return node;
   }
 
@@ -490,7 +494,7 @@ class Emitter extends Visitor<ast.Node> {
     ast.TypeAnnotation returnType;
     if (!signature.type.returnType.isDynamic) {
       returnType =
-          signature.type.returnType.accept(typeEmitter, treeElements);
+          typeEmitter.visitType(signature.type.returnType, treeElements);
     }
 
     List<ast.VariableDefinitions> parameterList = <ast.VariableDefinitions>[];
@@ -499,7 +503,7 @@ class Emitter extends Visitor<ast.Node> {
       parameter.assignIdentifier();
       ast.TypeAnnotation type;
       if (!element.type.isDynamic) {
-        type = element.type.accept(typeEmitter, treeElements);
+        type = typeEmitter.visitType(element.type, treeElements);
       }
       parameterList.add(new ast.VariableDefinitions(
           type,
@@ -512,7 +516,7 @@ class Emitter extends Visitor<ast.Node> {
                          closeParen,
                          ',');
 
-    ast.Node body = definition.body.accept(this);
+    ast.Node body = visit(definition.body);
 
     if (!variables.isEmpty) {
       // Introduce hoisted definitions for all variables.
@@ -569,8 +573,7 @@ class Emitter extends Visitor<ast.Node> {
    * Translate a list of arguments to an AST NodeList.
    */
   ast.NodeList translateArguments(List<Expression> args) {
-    List<ast.Expression> arguments =
-        args.map((e) => e.accept(this)).toList(growable: false);
+    List<ast.Expression> arguments = args.map(visit).toList(growable: false);
     return makeArgumentList(arguments);
   }
 
@@ -615,7 +618,7 @@ class Emitter extends Visitor<ast.Node> {
   }
 
   ast.Node visitSequence(Sequence node) {
-    return node.expressions.map((e) => e.accept(this)).reduce(concatenate);
+    return node.expressions.map(visit).reduce(concatenate);
   }
 
   ast.Node visitLetVal(LetVal node) {
@@ -623,10 +626,10 @@ class Emitter extends Visitor<ast.Node> {
     ast.Identifier identifier = node.variable.assignIdentifier();
     variables.add(identifier);
 
-    ast.Expression expression = node.definition.accept(this);
+    ast.Expression expression = visit(node.definition);
     ast.Expression assignment = makeAssignment(identifier, expression);
 
-    ast.Node rest = node.body.accept(this);
+    ast.Node rest = visit(node.body);
     return concatenate(assignment, rest);
   }
 
@@ -639,7 +642,7 @@ class Emitter extends Visitor<ast.Node> {
   }
 
   ast.Node visitReturn(Return node) {
-    ast.Expression expression = node.value.accept(this);
+    ast.Expression expression = visit(node.value);
     return new ast.Return(
         new KeywordToken(Keyword.keywords['return'], -1),
         semicolon,
@@ -669,7 +672,7 @@ class TypeEmitter extends
 
   ast.TypeAnnotation visitType(DartType type,
                                dart2js.TreeElementMapping treeElements) {
-    return unimplemented();
+    return type.accept(this, treeElements);
   }
 
   ast.TypeAnnotation visitVoidType(VoidType type,

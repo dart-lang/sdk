@@ -419,10 +419,38 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     if (!Elements.isLocal(element)) return giveup();
     if (node.assignmentOperator.source != '=') return giveup();
     // Exactly one argument expected for a simple assignment.
-    assert(!node.arguments.isEmpty && node.arguments.tail.isEmpty);
+    assert(!node.arguments.isEmpty);
+    assert(node.arguments.tail.isEmpty);
     ir.Definition result = node.arguments.head.accept(this);
     assignedVars[variableIndex[element]] = result;
     return result;
+  }
+
+  ir.Definition visitVariableDefinitions(ast.VariableDefinitions node) {
+    assert(isOpen);
+    for (ast.Node definition in node.definitions.nodes) {
+      Element element = elements[definition];
+      // Definitions are either SendSets if there is an initializer, or
+      // Identifiers if there is no initializer.
+      if (definition is ast.SendSet) {
+        assert(!definition.arguments.isEmpty);
+        assert(definition.arguments.tail.isEmpty);
+        ir.Definition initialValue = definition.arguments.head.accept(this);
+        // Do not continue adding instructions if the initializer throws.
+        if (!isOpen) return null;
+        variableIndex[element] = assignedVars.length;
+        assignedVars.add(initialValue);
+      } else {
+        assert(definition is ast.Identifier);
+        // The initial value is null.
+        // TODO(kmillikin): Consider pooling constants.
+        ir.Constant constant = new ir.Constant(constantSystem.createNull());
+        add(new ir.LetPrim(constant));
+        variableIndex[element] = assignedVars.length;
+        assignedVars.add(constant);
+      }
+    }
+    return null;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
