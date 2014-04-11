@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 samples/third_party/angular_todo: Pass, Slow
+samples/third_party/angular_todo: Fail # requires Angular 0.9.11+
 samples/third_party/dromaeo: Pass, Slow
 samples/third_party/todomvc_performance: Pass, Slow
 samples/pop_pop_win: Pass, Slow
