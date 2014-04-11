@@ -537,8 +537,27 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
+  Map<String, ClassElement> tagOwner = new Map<String, ClassElement>();
+
   NativeResolutionEnqueuer(Enqueuer world, Compiler compiler)
     : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
+
+  void processNativeClass(ClassElement classElement) {
+    super.processNativeClass(classElement);
+
+    // Since we map from dispatch tags to classes, a dispatch tag must be used
+    // on only one native class.
+    for (String tag in nativeTagsOfClass(classElement)) {
+      ClassElement owner = tagOwner[tag];
+      if (owner != null) {
+        compiler.reportError(classElement,
+            MessageKind.GENERIC,
+            {'text': "Tag '$tag' already in use by '${owner.name}'"});
+      } else {
+        tagOwner[tag] = classElement;
+      }
+    }
+  }
 
   void logSummary(log(message)) {
     log('Resolved ${registeredClasses.length} native elements used, '
@@ -1047,6 +1066,22 @@ String checkForNativeClass(ElementListener listener) {
   }
   return nativeTagInfo;
 }
+
+// The tags string contains comma-separated 'words' which are either dispatch
+// tags (having JavaScript identifier syntax) and directives that begin with
+// `!`.
+List<String> nativeTagsOfClassRaw(ClassElement cls) {
+  String quotedName = cls.nativeTagInfo;
+  return quotedName.substring(1, quotedName.length - 1).split(',');
+}
+
+List<String> nativeTagsOfClass(ClassElement cls) {
+  return nativeTagsOfClassRaw(cls).where((s) => !s.startsWith('!')).toList();
+}
+
+bool nativeTagsForcedNonLeaf(ClassElement cls) =>
+    nativeTagsOfClassRaw(cls).contains('!nonleaf');
+
 
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 

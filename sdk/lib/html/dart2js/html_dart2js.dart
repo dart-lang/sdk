@@ -15298,7 +15298,7 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
+class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload" {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 }
