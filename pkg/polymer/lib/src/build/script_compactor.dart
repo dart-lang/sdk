@@ -148,7 +148,9 @@ class _ScriptCompactor extends PolymerTransformer {
     return _initResolver()
         .then(_extractUsesOfMirrors)
         .then(_emitFiles)
-        .whenComplete(() => resolver.release());
+        .whenComplete(() {
+          if (resolver != null) resolver.release();
+        });
   }
 
   /// Load a resolver that computes information for every library in

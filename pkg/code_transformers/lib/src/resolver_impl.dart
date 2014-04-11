@@ -159,8 +159,11 @@ class ResolverImpl implements Resolver {
       _context.applyChanges(changeSet);
       // Force resolve each entry point (the getter will ensure the library is
       // computed first).
-      _entryLibraries = entryPoints
-          .map((id) => _context.computeLibraryElement(sources[id])).toList();
+      _entryLibraries = entryPoints.map((id) {
+        var source = sources[id];
+        if (source == null) return null;
+        return _context.computeLibraryElement(source);
+      }).toList();
     });
   }
 
