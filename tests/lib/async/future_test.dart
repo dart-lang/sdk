@@ -745,6 +745,8 @@ void testSyncFuture_i13368() {
 }
 
 main() {
+  asyncStart();
+
   testValue();
   testSync();
   testNeverComplete();
@@ -797,6 +799,8 @@ main() {
   testChainedFutureError();
 
   testSyncFuture_i13368();
+
+  asyncEnd();
 }
 
 /// A Future that isn't recognizable as a _Future.

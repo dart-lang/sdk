@@ -135,7 +135,7 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
-[ $compiler == dart2js && $jscl ]
+[ $compiler == dart2js && $runtime == jsshell ]
 async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer3_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -190,9 +190,9 @@ mirrors/globalized_closures_test/00: RuntimeError # Issue 17118. Please remove t
 mirrors/globalized_closures2_test/00: RuntimeError # Issue 17118. Please remove the multi-test comments when this test starts succeeding.
 
 
-[ $compiler == dart2js && $browser ]
+[ $compiler == dart2js && ( $browser || $runtime == d8 ) ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                         # implement timer (currently only in d8)
+                                         # implement timer (currently only in jsshell)
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
@@ -309,7 +309,7 @@ async/deferred/deferred_fail_to_load_test: Fail
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/deferred/deferred_in_isolate_test: Fail
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $runtime != d8 ]
 async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
