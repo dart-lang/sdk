@@ -907,53 +907,47 @@ LibTest/typed_data/Uint8List/hashCode_A01_t01: fail # co19-roll r559: Please tri
 LibTest/typed_data/Uint8List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
-LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Stream/first_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A02_t01: fail # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/cancel_A01_t01: fail # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/Timer_A01_t01: fail # Issue 7728, timer not supported in d8/jsshell
-
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/isActive_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/isActive_A01_t02: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Zone/createTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
+LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+
+[ $compiler == dart2js && $runtime == jsshell ]
+LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
+LibTest/async/Stream/first_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.periodic_A02_t01: fail # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/cancel_A01_t01: fail # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/Timer_A01_t01: fail # Issue 7728, timer not supported in jsshell
+
+LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/isActive_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/isActive_A01_t02: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Zone/createTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/start_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # Please triage this failure
 
-LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
+LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
 [ $compiler == dart2js && $runtime == d8 ]
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # Issue 7728, timer not supported in d8/jsshell
-LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in d8/jsshell
 LibTest/math/sin_A01_t02: RuntimeError # V8 issue 3006, https://code.google.com/p/v8/issues/detail?id=3006
 
 [ $compiler == dart2js && $minified ]

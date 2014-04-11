@@ -134,6 +134,8 @@ var scheduleImmediate;
       }
       return new originalDate(originalNow() + timeOffset).toString();
     };
+    NewDate.UTC = originalDate.UTC;
+    NewDate.parse = originalDate.parse;
     NewDate.now = function now() { return originalNow() + timeOffset; };
     NewDate.prototype = originalDate.prototype;
     originalDate.prototype.constructor = NewDate;
