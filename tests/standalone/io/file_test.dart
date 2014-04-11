@@ -262,17 +262,24 @@ class FileTest {
     Expect.equals(103, buffer[9]);  // represents 'g' in the file.
     Expect.equals(104, buffer[10]);  // represents 'h' in the file.
     Expect.equals(116, buffer[11]);  // represents 't' in the file.
+    raf.closeSync();
 
     filename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(filename);
     int len = file.lengthSync();
-    Expect.equals(0, file.openSync().readSync(0).length);
-    Expect.equals(1, file.openSync().readSync(1).length);
-    Expect.equals(len - 1, file.openSync().readSync(len - 1).length);
-    Expect.equals(len, file.openSync().readSync(len).length);
-    Expect.equals(len, file.openSync().readSync(len + 1).length);
-    Expect.equals(len, file.openSync().readSync(len * 2).length);
-    Expect.equals(len, file.openSync().readSync(len * 10).length);
+    int read(int length) {
+      var f = file.openSync();
+      int res = f.readSync(length).length;
+      f.closeSync();
+      return res;
+    }
+    Expect.equals(0, read(0));
+    Expect.equals(1, read(1));
+    Expect.equals(len - 1, read(len - 1));
+    Expect.equals(len, read(len));
+    Expect.equals(len, read(len + 1));
+    Expect.equals(len, read(len * 2));
+    Expect.equals(len, read(len * 10));
   }
 
   // Test for file read and write functionality.

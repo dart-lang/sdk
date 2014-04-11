@@ -16,6 +16,7 @@ void testReadInvalidArgs(arg) {
 
   Expect.throws(() => file.read(arg),
                 (e) => e is ArgumentError);
+  file.closeSync();
 }
 
 void testReadIntoInvalidArgs(buffer, start, end) {
@@ -26,6 +27,7 @@ void testReadIntoInvalidArgs(buffer, start, end) {
 
   Expect.throws(() => file.readInto(buffer, start, end),
                 (e) => e is ArgumentError);
+  file.closeSync();
 }
 
 void testWriteByteInvalidArgs(value) {
@@ -36,6 +38,7 @@ void testWriteByteInvalidArgs(value) {
 
   Expect.throws(() => file.writeByte(value),
                 (e) => e is ArgumentError);
+  file.closeSync();
 }
 
 void testWriteFromInvalidArgs(buffer, start, end) {
@@ -46,6 +49,7 @@ void testWriteFromInvalidArgs(buffer, start, end) {
 
   Expect.throws(() => file.writeFrom(buffer, start, end),
                 (e) => e is ArgumentError);
+  file.closeSync();
 }
 
 void testWriteStringInvalidArgs(string, encoding) {
@@ -56,6 +60,7 @@ void testWriteStringInvalidArgs(string, encoding) {
 
   Expect.throws(() => file.writeString(string, encoding: encoding),
                 (e) => e is ArgumentError);
+  file.closeSync();
 }
 
 Future futureThrows(Future result) {

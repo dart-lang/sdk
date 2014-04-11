@@ -266,10 +266,10 @@ bool File::Copy(const char* old_path, const char* new_path) {
         }
       }
     }
+    int e = errno;
+    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    VOID_TEMP_FAILURE_RETRY(close(new_fd));
     if (result < 0) {
-      int e = errno;
-      VOID_TEMP_FAILURE_RETRY(close(old_fd));
-      VOID_TEMP_FAILURE_RETRY(close(new_fd));
       VOID_NO_RETRY_EXPECTED(unlink(new_path));
       errno = e;
       return false;
