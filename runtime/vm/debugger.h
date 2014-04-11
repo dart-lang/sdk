@@ -27,10 +27,14 @@ class StackFrame;
 // SourceBreakpoint.
 class SourceBreakpoint {
  public:
-  SourceBreakpoint(intptr_t id, const Script& script, intptr_t token_pos);
+  SourceBreakpoint(intptr_t id,
+                   const Script& script,
+                   intptr_t token_pos,
+                   intptr_t end_token_pos);
 
   RawFunction* function() const { return function_; }
   intptr_t token_pos() const { return token_pos_; }
+  intptr_t end_token_pos() const { return end_token_pos_; }
   intptr_t id() const { return id_; }
 
   RawScript* script() { return script_; }
@@ -56,6 +60,7 @@ class SourceBreakpoint {
   const intptr_t id_;
   RawScript* script_;
   intptr_t token_pos_;
+  intptr_t end_token_pos_;
   bool is_resolved_;
   bool is_enabled_;
   SourceBreakpoint* next_;
@@ -392,12 +397,12 @@ class Debugger {
   RawFunction* FindInnermostClosure(const Function& function,
                                     intptr_t token_pos);
   intptr_t ResolveBreakpointPos(const Function& func,
-                                intptr_t requested_token_pos);
+                                intptr_t requested_token_pos,
+                                intptr_t last_token_pos);
   void DeoptimizeWorld();
   void SetInternalBreakpoints(const Function& target_function);
-  SourceBreakpoint* SetBreakpoint(const Script& script, intptr_t token_pos);
-  SourceBreakpoint* SetBreakpoint(const Function& target_function,
-                                  intptr_t first_token_pos,
+  SourceBreakpoint* SetBreakpoint(const Script& script,
+                                  intptr_t token_pos,
                                   intptr_t last_token_pos);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);

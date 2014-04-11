@@ -51,10 +51,12 @@ class RemoteObjectCache : public ZoneAllocated {
 
 SourceBreakpoint::SourceBreakpoint(intptr_t id,
                                    const Script& script,
-                                   intptr_t token_pos)
+                                   intptr_t token_pos,
+                                   intptr_t end_token_pos)
     : id_(id),
       script_(script.raw()),
       token_pos_(token_pos),
+      end_token_pos_(end_token_pos),
       is_resolved_(false),
       is_enabled_(false),
       next_(NULL),
@@ -84,6 +86,7 @@ void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
          (token_pos <= func.end_token_pos()));
   function_ = func.raw();
   token_pos_ = token_pos;
+  end_token_pos_ = token_pos;
   line_number_ = -1;  // Recalcualte lazily.
   is_resolved_ = true;
 }
@@ -1302,14 +1305,22 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
 }
 
 
-// Given a function and a token position, return the best fit
+// Given a function and a token range, return the best fit
 // token position to set a breakpoint. The best fit is the safe point
-// with the lowest compiled code address that follows the requsted
-// token position.
+// with the lowest compiled code address within the token range.
 intptr_t Debugger::ResolveBreakpointPos(const Function& func,
-                                        intptr_t requested_token_pos) {
+                                        intptr_t requested_token_pos,
+                                        intptr_t last_token_pos) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
+
+  if (requested_token_pos < func.token_pos()) {
+    requested_token_pos = func.token_pos();
+  }
+  if (last_token_pos > func.end_token_pos()) {
+    last_token_pos = func.end_token_pos();
+  }
+
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -1317,20 +1328,14 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   intptr_t best_fit_pos = INT_MAX;
   uword lowest_pc = kUwordMax;
   intptr_t lowest_pc_index = -1;
+
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     ASSERT(desc_token_pos >= 0);
     if (IsSafePoint(desc, i)) {
-      if ((desc_token_pos < func.token_pos()) ||
-          (desc_token_pos > func.end_token_pos())) {
-        // The position is outside of the function token range. This can
-        // happen in constructors, for initializer expressions that are
-        // inlined in the field declaration.
-        ASSERT(func.IsConstructor());
-        continue;
-      }
-      if (desc_token_pos < requested_token_pos) {
-        // This descriptor is before the first acceptable token position.
+      if ((desc_token_pos < requested_token_pos) ||
+          (desc_token_pos > last_token_pos)) {
+        // This descriptor is outside the desired token range.
         continue;
       }
       if (desc_token_pos < best_fit_pos) {
@@ -1542,7 +1547,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
 
 
 SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
-                                          intptr_t token_pos) {
+                                          intptr_t token_pos,
+                                          intptr_t last_token_pos) {
   Function& func = Function::Handle(isolate_);
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
@@ -1565,14 +1571,15 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
     // have already been compiled. We can resolve the breakpoint now.
     DeoptimizeWorld();
     func ^= functions.At(0);
-    intptr_t breakpoint_pos = ResolveBreakpointPos(func, token_pos);
+    intptr_t breakpoint_pos =
+        ResolveBreakpointPos(func, token_pos, last_token_pos);
     if (breakpoint_pos >= 0) {
       SourceBreakpoint* bpt = GetSourceBreakpoint(script, breakpoint_pos);
       if (bpt != NULL) {
         // A source breakpoint for this location already exists.
         return bpt;
       }
-      bpt = new SourceBreakpoint(nextId(), script, token_pos);
+      bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
       bpt->SetResolved(func, breakpoint_pos);
       RegisterSourceBreakpoint(bpt);
 
@@ -1584,6 +1591,14 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
         MakeCodeBreakpointsAt(func, bpt);
       }
       bpt->Enable();
+      if (FLAG_verbose_debug) {
+        intptr_t line_number;
+        script.GetTokenLocation(breakpoint_pos, &line_number, NULL);
+        OS::Print("Resolved breakpoint for "
+                  "function '%s' at line %" Pd "\n",
+                  func.ToFullyQualifiedCString(),
+                  line_number);
+      }
       SignalBpResolved(bpt);
       return bpt;
     }
@@ -1600,7 +1615,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   }
   SourceBreakpoint* bpt = GetSourceBreakpoint(script, token_pos);
   if (bpt == NULL) {
-    bpt = new SourceBreakpoint(nextId(), script, token_pos);
+    bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
   }
   RegisterSourceBreakpoint(bpt);
   bpt->Enable();
@@ -1639,7 +1654,9 @@ SourceBreakpoint* Debugger::SetBreakpointAtEntry(
       const Function& target_function) {
   ASSERT(!target_function.IsNull());
   const Script& script = Script::Handle(target_function.script());
-  return SetBreakpoint(script, target_function.token_pos());
+  return SetBreakpoint(script,
+                       target_function.token_pos(),
+                       target_function.end_token_pos());
 }
 
 
@@ -1684,7 +1701,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   SourceBreakpoint* bpt = NULL;
   ASSERT(first_token_idx <= last_token_idx);
   while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
-    bpt = SetBreakpoint(script, first_token_idx);
+    bpt = SetBreakpoint(script, first_token_idx, last_token_idx);
     first_token_idx++;
   }
   if ((bpt == NULL) && FLAG_verbose_debug) {
@@ -2150,7 +2167,8 @@ void Debugger::NotifyCompilation(const Function& func) {
       // and set the code breakpoints.
       if (!bpt->IsResolved()) {
         // Resolve source breakpoint in the newly compiled function.
-        intptr_t bp_pos = ResolveBreakpointPos(func, bpt->token_pos());
+        intptr_t bp_pos =
+            ResolveBreakpointPos(func, bpt->token_pos(), bpt->end_token_pos());
         if (bp_pos < 0) {
           if (FLAG_verbose_debug) {
             OS::Print("Failed resolving breakpoint for function '%s'\n",
