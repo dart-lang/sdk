@@ -949,8 +949,8 @@ class CodeEmitterTask extends CompilerTask {
     int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
     if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
 
-    // Emit constant interceptors first. Constant intercpetors for primitives
-    // might be used by code that builds other constants.  See Issue 19183.
+    // Emit constant interceptors first. Constant interceptors for primitives
+    // might be used by code that builds other constants.  See Issue 18173.
     if (a.isInterceptor != b.isInterceptor) {
       return a.isInterceptor ? -1 : 1;
     }
