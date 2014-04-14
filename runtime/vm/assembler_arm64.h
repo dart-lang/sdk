@@ -413,6 +413,26 @@ class Assembler : public ValueObject {
     EmitLogicalShiftOp(BICS, rd, rn, o, kDoubleWord);
   }
 
+  // Misc. arithmetic.
+  void udiv(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(UDIV, rd, rn, rm, kDoubleWord);
+  }
+  void sdiv(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(SDIV, rd, rn, rm, kDoubleWord);
+  }
+  void lslv(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSLV, rd, rn, rm, kDoubleWord);
+  }
+  void lsrv(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSRV, rd, rn, rm, kDoubleWord);
+  }
+  void asrv(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(ASRV, rd, rn, rm, kDoubleWord);
+  }
+  void madd(Register rd, Register rn, Register rm, Register ra) {
+    EmitMiscDP3Source(MADD, rd, rn, rm, ra, kDoubleWord);
+  }
+
   // Move wide immediate.
   void movk(Register rd, int32_t imm, int32_t hw_idx) {
     ASSERT(rd != SP);
@@ -471,6 +491,27 @@ class Assembler : public ValueObject {
   }
   void ret(Register rn = R30) {
     EmitUnconditionalBranchRegOp(RET, rn);
+  }
+
+  // Aliases.
+  void mov(Register rd, Register rn) {
+    if ((rd == SP) || (rn == SP)) {
+      add(rd, rn, Operand(0));
+    } else {
+      orr(rd, ZR, Operand(rn));
+    }
+  }
+  void mvn(Register rd, Register rm) {
+    orr(rd, ZR, Operand(rm));
+  }
+  void neg(Register rd, Register rm) {
+    sub(rd, ZR, Operand(rm));
+  }
+  void negs(Register rd, Register rm) {
+    subs(rd, ZR, Operand(rm));
+  }
+  void mul(Register rd, Register rn, Register rm) {
+    madd(rd, rn, rm, ZR);
   }
 
  private:
@@ -672,6 +713,40 @@ class Assembler : public ValueObject {
     const int32_t encoding =
         op | loimm | hiimm |
         (static_cast<int32_t>(crd) << kRdShift);
+    Emit(encoding);
+  }
+
+  void EmitMiscDP2Source(MiscDP2SourceOp op,
+                         Register rd, Register rn, Register rm,
+                         OperandSize sz) {
+    ASSERT((rd != SP) && (rn != SP) && (rm != SP));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift);
+    Emit(encoding);
+  }
+
+  void EmitMiscDP3Source(MiscDP3SourceOp op,
+                         Register rd, Register rn, Register rm, Register ra,
+                         OperandSize sz) {
+    ASSERT((rd != SP) && (rn != SP) && (rm != SP) && (ra != SP));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const Register cra = ConcreteRegister(ra);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift) |
+        (static_cast<int32_t>(cra) << kRaShift);
     Emit(encoding);
   }
 

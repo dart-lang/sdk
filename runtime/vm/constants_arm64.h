@@ -365,6 +365,25 @@ enum AddSubShiftExtOp {
   SUB = AddSubShiftExtFixed | B30,
 };
 
+// C3.5.8
+enum MiscDP2SourceOp {
+  MiscDP2SourceMask = 0x5fe00000,
+  MiscDP2SourceFixed = DPRegisterFixed | B28 | B23 | B22,
+  UDIV = MiscDP2SourceFixed | B11,
+  SDIV = MiscDP2SourceFixed | B11 | B10,
+  LSLV = MiscDP2SourceFixed | B13,
+  LSRV = MiscDP2SourceFixed | B13 | B10,
+  ASRV = MiscDP2SourceFixed | B13 | B11,
+};
+
+// C3.5.9
+enum MiscDP3SourceOp {
+  MiscDP3SourceMask = 0x1f000000,
+  MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
+  MADD = MiscDP3SourceFixed,
+};
+
+// C3.5.10
 enum LogicalShiftOp {
   LogicalShiftMask = 0x1f000000,
   LogicalShiftFixed = DPRegisterFixed,
@@ -398,6 +417,8 @@ _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
 _V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
+_V(MiscDP2Source)                                                              \
+_V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
 
 

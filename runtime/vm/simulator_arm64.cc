@@ -1075,11 +1075,156 @@ void Simulator::DecodeLogicalShift(Instr* instr) {
 }
 
 
+static int64_t divide64(int64_t top, int64_t bottom, bool signd) {
+  // ARM64 does not trap on integer division by zero. The destination register
+  // is instead set to 0.
+  if (bottom == 0) {
+    return 0;
+  }
+
+  if (signd) {
+    // INT_MIN / -1 = INT_MIN.
+    if ((top == static_cast<int64_t>(0x8000000000000000LL)) &&
+        (bottom == static_cast<int64_t>(0xffffffffffffffffLL))) {
+      return static_cast<int64_t>(0x8000000000000000LL);
+    } else {
+      return top / bottom;
+    }
+  } else {
+    const uint64_t utop = static_cast<uint64_t>(top);
+    const uint64_t ubottom = static_cast<uint64_t>(bottom);
+    return static_cast<int64_t>(utop / ubottom);
+  }
+}
+
+
+static int32_t divide32(int32_t top, int32_t bottom, bool signd) {
+  // ARM64 does not trap on integer division by zero. The destination register
+  // is instead set to 0.
+  if (bottom == 0) {
+    return 0;
+  }
+
+  if (signd) {
+    // INT_MIN / -1 = INT_MIN.
+    if ((top == static_cast<int32_t>(0x80000000)) &&
+        (bottom == static_cast<int32_t>(0xffffffff))) {
+      return static_cast<int32_t>(0x80000000);
+    } else {
+      return top / bottom;
+    }
+  } else {
+    const uint32_t utop = static_cast<uint32_t>(top);
+    const uint32_t ubottom = static_cast<uint32_t>(bottom);
+    return static_cast<int32_t>(utop / ubottom);
+  }
+}
+
+
+void Simulator::DecodeMiscDP2Source(Instr* instr) {
+  if (instr->Bit(29) != 0) {
+    UnimplementedInstruction(instr);
+  }
+
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const int op = instr->Bits(10, 6);
+  const int64_t rn_val64 = get_register(rn, R31IsZR);
+  const int64_t rm_val64 = get_register(rm, R31IsZR);
+  const int32_t rn_val32 = get_wregister(rn, R31IsZR);
+  const int32_t rm_val32 = get_wregister(rm, R31IsZR);
+  switch (op) {
+    case 2:
+    case 3: {
+      // Format(instr, "udiv'sf 'rd, 'rn, 'rm");
+      // Format(instr, "sdiv'sf 'rd, 'rn, 'rm");
+      const bool signd = instr->Bit(10) == 1;
+      if (instr->SFField() == 1) {
+        set_register(rd, divide64(rn_val64, rm_val64, signd), R31IsZR);
+      } else {
+        set_wregister(rd, divide32(rn_val32, rm_val32, signd), R31IsZR);
+      }
+      break;
+    }
+    case 8: {
+      // Format(instr, "lsl'sf 'rd, 'rn, 'rm");
+      if (instr->SFField() == 1) {
+        const int64_t alu_out = rn_val64 << (rm_val64 & (kXRegSizeInBits - 1));
+        set_register(rd, alu_out, R31IsZR);
+      } else {
+        const int32_t alu_out = rn_val32 << (rm_val32 & (kXRegSizeInBits - 1));
+        set_wregister(rd, alu_out, R31IsZR);
+      }
+      break;
+    }
+    case 9: {
+      // Format(instr, "lsr'sf 'rd, 'rn, 'rm");
+      if (instr->SFField() == 1) {
+        const uint64_t rn_u64 = static_cast<uint64_t>(rn_val64);
+        const int64_t alu_out = rn_u64 >> (rm_val64 & (kXRegSizeInBits - 1));
+        set_register(rd, alu_out, R31IsZR);
+      } else {
+        const uint32_t rn_u32 = static_cast<uint32_t>(rn_val32);
+        const int32_t alu_out = rn_u32 >> (rm_val32 & (kXRegSizeInBits - 1));
+        set_wregister(rd, alu_out, R31IsZR);
+      }
+      break;
+    }
+    case 10: {
+      // Format(instr, "asr'sf 'rd, 'rn, 'rm");
+      if (instr->SFField() == 1) {
+        const int64_t alu_out = rn_val64 >> (rm_val64 & (kXRegSizeInBits - 1));
+        set_register(rd, alu_out, R31IsZR);
+      } else {
+        const int32_t alu_out = rn_val32 >> (rm_val32 & (kXRegSizeInBits - 1));
+        set_wregister(rd, alu_out, R31IsZR);
+      }
+      break;
+    }
+    default:
+      UnimplementedInstruction(instr);
+      break;
+  }
+}
+
+
+void Simulator::DecodeMiscDP3Source(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+      (instr->Bit(15) == 0)) {
+    // Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
+    const Register rd = instr->RdField();
+    const Register rn = instr->RnField();
+    const Register rm = instr->RmField();
+    const Register ra = instr->RaField();
+    if (instr->SFField() == 1) {
+      const int64_t rn_val = get_register(rn, R31IsZR);
+      const int64_t rm_val = get_register(rm, R31IsZR);
+      const int64_t ra_val = get_register(ra, R31IsZR);
+      const int64_t alu_out = ra_val + (rn_val * rm_val);
+      set_register(rd, alu_out, R31IsZR);
+    } else {
+      const int32_t rn_val = get_wregister(rn, R31IsZR);
+      const int32_t rm_val = get_wregister(rm, R31IsZR);
+      const int32_t ra_val = get_wregister(ra, R31IsZR);
+      const int32_t alu_out = ra_val + (rn_val * rm_val);
+      set_wregister(rd, alu_out, R31IsZR);
+    }
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 void Simulator::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
+  } else if (instr->IsMiscDP2SourceOp()) {
+    DecodeMiscDP2Source(instr);
+  } else if (instr->IsMiscDP3SourceOp()) {
+    DecodeMiscDP3Source(instr);
   } else {
     UnimplementedInstruction(instr);
   }

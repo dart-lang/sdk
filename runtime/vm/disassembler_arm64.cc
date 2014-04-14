@@ -265,6 +265,10 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
     int reg = instr->RtField();
     PrintRegister(reg, R31IsZR);
     return 2;
+  } else if (format[1] == 'a') {  // 'ra: Ra register
+    int reg = instr->RaField();
+    PrintRegister(reg, R31IsZR);
+    return 2;
   }
   UNREACHABLE();
   return -1;
@@ -500,7 +504,12 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
       if ((instr->RdField() == R31) && (instr->SFField())) {
         Format(instr, "cmni'sf 'rn, 'imm12s");
       } else {
-        Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+        if (((instr->RdField() == R31) || (instr->RnField() == R31)) &&
+            (instr->Imm12Field() == 0) && (instr->Bit(29) == 0)) {
+          Format(instr, "mov'sf 'rd, 'rn");
+        } else {
+          Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+        }
       }
       break;
     }
@@ -525,9 +534,14 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
     case 0:
       Format(instr, "andi'sf 'rd, 'rn, 'bitimm");
       break;
-    case 1:
-      Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
+    case 1: {
+      if (instr->RnField() == R31) {
+        Format(instr, "mov'sf 'rd, 'bitimm");
+      } else {
+        Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
+      }
       break;
+    }
     case 2:
       Format(instr, "eori'sf 'rd, 'rn, 'bitimm");
       break;
@@ -718,9 +732,15 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
     case 1:
       Format(instr, "bic'sf 'rd, 'rn, 'shift_op");
       break;
-    case 2:
-      Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+    case 2: {
+      if ((instr->RnField() == R31) && (instr->IsShift()) &&
+          (instr->Imm16Field() == 0) && (instr->ShiftTypeField() == LSL)) {
+        Format(instr, "mov'sf 'rd, 'rm");
+      } else {
+        Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+      }
       break;
+    }
     case 3:
       Format(instr, "orn'sf 'rd, 'rn, 'shift_op");
       break;
@@ -743,11 +763,58 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
+  if (instr->Bit(29) != 0) {
+    Unknown(instr);
+  }
+
+  const int op = instr->Bits(10, 5);
+  switch (op) {
+    case 2:
+      Format(instr, "udiv'sf 'rd, 'rn, 'rm");
+      break;
+    case 3:
+      Format(instr, "sdiv'sf 'rd, 'rn, 'rm");
+      break;
+    case 8:
+      Format(instr, "lsl'sf 'rd, 'rn, 'rm");
+      break;
+    case 9:
+      Format(instr, "lsr'sf 'rd, 'rn, 'rm");
+      break;
+    case 10:
+      Format(instr, "asr'sf 'rd, 'rn, 'rm");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
+void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+      (instr->Bit(15) == 0)) {
+    if (instr->RaField() == R31) {
+      Format(instr, "mul'sf, 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
+    }
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
+  } else if (instr->IsMiscDP2SourceOp()) {
+    DecodeMiscDP2Source(instr);
+  } else if (instr->IsMiscDP3SourceOp()) {
+    DecodeMiscDP3Source(instr);
   } else {
     Unknown(instr);
   }

@@ -878,6 +878,192 @@ ASSEMBLER_TEST_RUN(AdrBlr, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
+
+// Misc. arithmetic.
+ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 9, 0);
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 9, 0);
+  __ neg(R1, R1);
+  __ sdiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 0, 0);
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 0, 0);
+  __ sdiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
+  __ movz(R0, 0x8000, 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
+  __ movz(R3, 0x8000, 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ sdiv(R2, R3, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(static_cast<int64_t>(0x8000000000000000),
+            EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
+  __ movz(R1, 21, 0);
+  __ movz(R2, 1, 0);
+  __ lslv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Lslv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
+  __ movz(R1, 84, 0);
+  __ movz(R2, 1, 0);
+  __ lsrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Lsrv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
+  __ movz(R1, 1, 0);
+  __ movz(R2, 63, 0);
+  __ lslv(R1, R1, R2);
+  __ lsrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
+  __ movz(R1, 1, 0);
+  __ movz(R2, 63, 0);
+  __ lslv(R1, R1, R2);
+  __ asrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(RShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ mul(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_pos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ neg(R2, R2);
+  __ mul(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)
