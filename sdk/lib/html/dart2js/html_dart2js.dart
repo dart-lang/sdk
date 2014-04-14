@@ -10170,7 +10170,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
       // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
       var base = _parseDocument.createElement('base');
-      base.href = document._baseUri;
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -19904,7 +19904,7 @@ class Node extends EventTarget native "Node" {
   @JSName('baseURI')
   @DomName('Node.baseURI')
   @DocsEditable()
-  final String _baseUri;
+  final String baseUri;
 
   /**
    * A list of this node's children.

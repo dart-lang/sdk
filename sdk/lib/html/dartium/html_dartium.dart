@@ -10469,7 +10469,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
       // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
       var base = _parseDocument.createElement('base');
-      base.href = document._baseUri;
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -21631,7 +21631,7 @@ class Node extends EventTarget {
 
   @DomName('Node.baseURI')
   @DocsEditable()
-  String get _baseUri native "Node_baseURI_Getter";
+  String get baseUri native "Node_baseURI_Getter";
 
   /**
    * A list of this node's children.
@@ -28952,13 +28952,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
