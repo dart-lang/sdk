@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+// Must use relative paths because library imports mirrors via relative paths
 import '../lib/docgen.dart';
 
 /**

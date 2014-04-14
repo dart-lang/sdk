@@ -4,6 +4,8 @@
 
 library docgen.model_helpers;
 
+import 'dart:collection';
+
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
     as dart2js_mirrors;
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
@@ -47,7 +49,7 @@ bool isHidden(DeclarationSourceMirror mirror) {
 
 /// Transforms the map by calling toMap on each value in it.
 Map recurseMap(Map inputMap) {
-  var outputMap = {};
+  var outputMap = new SplayTreeMap();
   inputMap.forEach((key, value) {
     if (value is Map) {
       outputMap[key] = recurseMap(value);

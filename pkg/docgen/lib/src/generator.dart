@@ -5,6 +5,7 @@
 library docgen.generator;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -171,6 +172,21 @@ String _readIntroductionFile(String fileName, bool includeSdk) {
       inlineSyntaxes: MARKDOWN_SYNTAXES);
 }
 
+int _indexableComparer(Indexable a, Indexable b) {
+  if (a is Library && b is Library) {
+    var compare = a.packageName.compareTo(b.packageName);
+    if (compare == 0) {
+      compare = a.name.compareTo(b.name);
+    }
+    return compare;
+  }
+
+  if (a is Library) return -1;
+  if (b is Library) return 1;
+
+  return a.qualifiedName.compareTo(b.qualifiedName);
+}
+
 /// Creates documentation for filtered libraries.
 void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false, bool
     outputToYaml: true, bool append: false, bool parseSdk: false, String
@@ -182,7 +198,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false, bool
     }
   });
 
-  var filteredEntities = new Set<Indexable>();
+  var filteredEntities = new SplayTreeSet<Indexable>(_indexableComparer);
   for (Map<String, Set<Indexable>> firstLevel in mirrorToDocgen.values) {
     for (Set<Indexable> items in firstLevel.values) {
       for (Indexable item in items) {
@@ -245,8 +261,9 @@ void _writeOutputFiles(Map<String, dynamic> libraryMap, Iterable<Indexable>
       '${e.qualifiedName} ${e.typeName}').toList()..sort();
 
   _writeToFile(sortedEntities.join('\n') + '\n', 'index.txt', append: append);
-  var index = new Map.fromIterables(filteredEntities.map((e) => e.qualifiedName
-      ), filteredEntities.map((e) => e.typeName));
+  var index = new SplayTreeMap.fromIterable(filteredEntities,
+      key: (e) => e.qualifiedName, value: (e) => e.typeName);
+
   if (append) {
     var previousIndex = JSON.decode(new File('$_outputDirectory/index.json'
         ).readAsStringSync());
@@ -437,7 +454,6 @@ void generateLibrary(dart2js_mirrors.Dart2JsLibraryMirror library) {
   result.updateLibraryPackage(library);
   logger.fine('Generated library for ${result.name}');
 }
-
 
 /// If we can't find the SDK introduction text, which will happen if running
 /// from a snapshot and using --parse-sdk or --include-sdk, then use this

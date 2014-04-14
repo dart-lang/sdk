@@ -397,12 +397,12 @@ class Library extends Indexable {
       '' : '$packageName/';
 
   Map get previewMap {
-    var basic = super.previewMap;
-    basic['packageName'] = packageName;
+    var map = {'packageName': packageName};
+    map.addAll(super.previewMap);
     if (packageIntro != null) {
-      basic['packageIntro'] = packageIntro;
+      map['packageIntro'] = packageIntro;
     }
-    return basic;
+    return map;
   }
 
   String get name => docName;
