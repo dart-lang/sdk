@@ -11,6 +11,7 @@ import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_context.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/get_handler.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:args/args.dart';
 
 /**
@@ -98,10 +99,6 @@ class HttpAnalysisServer {
     httServer.listen((HttpRequest request) {
       List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
       if (updateValues != null && updateValues.indexOf('websocket') >= 0) {
-        if (analysisServer != null) {
-          _returnServerAlreadyStarted(request);
-          return;
-        }
         WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
           _handleWebSocket(websocket);
         });
@@ -129,6 +126,17 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
+    ServerCommunicationChannel serverChannel = new WebSocketServerChannel(socket);
+    if (analysisServer != null) {
+      // TODO(paulberry): add a message to the protocol so that the server can
+      // inform the client of a successful connection.
+      var error = new RequestError.serverAlreadyStarted();
+      serverChannel.sendResponse(new Response('', error));
+      serverChannel.listen((Request request) {
+        serverChannel.sendResponse(new Response(request.id, error));
+      });
+      return;
+    }
     analysisServer = new AnalysisServer(new WebSocketServerChannel(socket));
     _initializeHandlers(analysisServer);
     if (getHandler != null) {
@@ -155,18 +163,6 @@ class HttpAnalysisServer {
     print('');
     print('Supported flags are:');
     print(parser.getUsage());
-  }
-
-  /**
-   * Return an error in response to an UPGRADE request received after the server
-   * has already been started by a previous UPGRADE request.
-   */
-  void _returnServerAlreadyStarted(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.SERVICE_UNAVAILABLE;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
-    response.write('The server has already been started');
-    response.close();
   }
 
   /**

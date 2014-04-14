@@ -38,6 +38,8 @@ main() {
     test('create_invalidRequest', RequestErrorTest.create_invalidRequest);
     test('create_internalError', RequestErrorTest.create_internalError);
     test('create_parseError', RequestErrorTest.create_parseError);
+    test('create_serverAlreadyStarted',
+        RequestErrorTest.create_serverAlreadyStarted);
     test('fromJson', RequestErrorTest.fromJson);
     test('toJson', RequestErrorTest.toJson);
   });
@@ -236,6 +238,12 @@ class RequestErrorTest {
     RequestError error = new RequestError.internalError();
     expect(error.code, RequestError.CODE_INTERNAL_ERROR);
     expect(error.message, "Internal error");
+  }
+
+  static void create_serverAlreadyStarted() {
+    RequestError error = new RequestError.serverAlreadyStarted();
+    expect(error.code, RequestError.CODE_SERVER_ALREADY_STARTED);
+    expect(error.message, "Server already started");
   }
 
   static void fromJson() {
