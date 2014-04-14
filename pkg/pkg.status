@@ -169,7 +169,6 @@ polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
-docgen/test/*: StaticWarning # Issue 17896
 
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
