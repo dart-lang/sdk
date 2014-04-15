@@ -62,7 +62,7 @@ void setUpTimeout() {
 /// Creates a metatest with [body] and asserts that it passes.
 ///
 /// This is like [expectTestsPass], but the [test] is set up automatically.
-void expectTestPasses(String description, Future body()) =>
+void expectTestPasses(String description, body()) =>
   expectTestsPass(description, () => test('test', body));
 
 /// Creates a metatest that runs [testBody], captures its schedule errors, and
