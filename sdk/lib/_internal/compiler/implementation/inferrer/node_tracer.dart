@@ -353,6 +353,10 @@ abstract class TracerVisitor<T extends TypeInformation>
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
     }
+    if (!inferrer.compiler.backend
+        .canBeUsedForGlobalOptimizations(info.element)) {
+      bailout('Escape to code that has special backend treatment');
+    }
     if (isParameterOfListAddingMethod(info.element) ||
         isParameterOfMapAddingMethod(info.element)) {
       // These elements are being handled in

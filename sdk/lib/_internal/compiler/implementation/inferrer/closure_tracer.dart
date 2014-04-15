@@ -75,7 +75,9 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
       // where `foo` is a getter.
       analyzeCall(info);
     }
-    if (checkIfFunctionApply(called) && info.arguments.contains(currentUser)) {
+    if (checkIfFunctionApply(called) &&
+        info.arguments != null &&
+        info.arguments.contains(currentUser)) {
       tagAsFunctionApplyTarget("static call");
     }
   }
