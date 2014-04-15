@@ -136,6 +136,29 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a lazy asset piped into a non-lazy transformer that doesn't use its "
+      "outputs isn't eagerly compiled", () {
+    var transformer = new LazyRewriteTransformer("blub", "blab");
+    initGraph(["app|foo.blub"], {"app": [
+      [transformer],
+      [new RewriteTransformer("txt", "out")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+    expect(transformer.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped into a non-lazy transformer that doesn't use its "
+      "outputs is compiled on-demand", () {
+    initGraph(["app|foo.blub"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")],
+      [new RewriteTransformer("txt", "out")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
+  });
+
   test("a lazy transformer followed by a non-lazy transformer is re-run "
       "eagerly", () {
     var rewrite = new LazyRewriteTransformer("one", "two");

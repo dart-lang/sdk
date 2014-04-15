@@ -139,8 +139,6 @@ class TransformNode {
 
     _onLogPool.add(_onLogController.stream);
 
-    if (!deferred) primary.force();
-
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
@@ -253,6 +251,7 @@ class TransformNode {
     }).then((isPrimary) {
       if (_isRemoved) return null;
       if (isPrimary) {
+        if (!deferred) primary.force();
         return _declareOutputs().then((_) {
           if (_isRemoved) return;
           if (_awaitingForce) {
