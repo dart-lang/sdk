@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/get_handler.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:args/args.dart';
 
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
@@ -17,22 +16,6 @@ import 'package:args/args.dart';
  * to start an analysis server.
  */
 class HttpAnalysisServer {
-  /**
-   * The name of the application that is used to start a server.
-   */
-  static const BINARY_NAME = 'server';
-
-  /**
-   * The name of the option used to print usage information.
-   */
-  static const String HELP_OPTION = "help";
-
-  /**
-   * The name of the option used to specify the port to which the server will
-   * connect.
-   */
-  static const String PORT_OPTION = "port";
-
   /**
    * An object that can handle either a WebSocket connection or a connection
    * to the client over stdio.
@@ -47,47 +30,7 @@ class HttpAnalysisServer {
   /**
    * Initialize a newly created HTTP server.
    */
-  HttpAnalysisServer();
-
-  /**
-   * Use the given command-line arguments to start this server.
-   */
-  void start(List<String> args) {
-    ArgParser parser = new ArgParser();
-    parser.addFlag(
-        HELP_OPTION,
-        help: "print this help message without starting a server",
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(
-        PORT_OPTION,
-        help: "[port] the port on which the server will listen");
-
-    ArgResults results = parser.parse(args);
-    if (results[HELP_OPTION]) {
-      _printUsage(parser);
-      return;
-    }
-    if (results[PORT_OPTION] == null) {
-      print('Missing required port number');
-      print('');
-      _printUsage(parser);
-      exitCode = 1;
-      return;
-    }
-
-    try {
-      int port = int.parse(results[PORT_OPTION]);
-      HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then(_handleServer);
-      print('Listening on port $port');
-    } on FormatException {
-      print('Invalid port number: ${results[PORT_OPTION]}');
-      print('');
-      _printUsage(parser);
-      exitCode = 1;
-      return;
-    }
-  }
+  HttpAnalysisServer(this.socketServer);
 
   /**
    * Attach a listener to a newly created HTTP server.
@@ -126,16 +69,6 @@ class HttpAnalysisServer {
   }
 
   /**
-   * Print information about how to use the server.
-   */
-  void _printUsage(ArgParser parser) {
-    print('Usage: $BINARY_NAME [flags]');
-    print('');
-    print('Supported flags are:');
-    print(parser.getUsage());
-  }
-
-  /**
    * Return an error in response to an unrecognized request received by the HTTP
    * server.
    */
@@ -145,5 +78,13 @@ class HttpAnalysisServer {
     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
     response.write('Not found');
     response.close();
+  }
+
+  /**
+   * Begin serving HTTP requests over the given port.
+   */
+  void serveHttp(int port) {
+    HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then(_handleServer);
+    print('Listening on port $port');
   }
 }
