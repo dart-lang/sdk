@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
 
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/socket_server.dart';
 
 /**
  * Instances of the class [GetHandler] handle GET requests.
@@ -20,15 +20,14 @@ class GetHandler {
   static const String STATUS_PATH = '/status';
 
   /**
-   * The analysis server whose status is to be reported on, or `null` if the
-   * server has not yet been created.
+   * The socket server whose status is to be reported on.
    */
-  AnalysisServer server;
+  SocketServer _server;
 
   /**
    * Initialize a newly created handler for GET requests.
    */
-  GetHandler();
+  GetHandler(SocketServer this._server);
 
   /**
    * Handle a GET request received by the HTTP server.
@@ -55,7 +54,7 @@ class GetHandler {
     response.write('</head>');
     response.write('<body>');
     response.write('<h1>Analysis Server</h1>');
-    if (server == null) {
+    if (_server.analysisServer == null) {
       response.write('<p>Not running</p>');
     } else {
       response.write('<p>Running</p>');
@@ -66,7 +65,7 @@ class GetHandler {
           response,
           ['Context', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
           true);
-      server.contextMap.forEach((String key, AnalysisContext context) {
+      _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
         AnalysisContentStatistics statistics =
             (context as AnalysisContextImpl).statistics;
         int errorCount = 0;
@@ -90,7 +89,7 @@ class GetHandler {
             validCount]);
       });
       response.write('</table>');
-      server.contextMap.forEach((String key, AnalysisContext context) {
+      _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
         response.write('<h2><a name="context_$key">Analysis Context: $key}</a></h2>');
         AnalysisContentStatistics statistics = (context as AnalysisContextImpl).statistics;
         response.write('<table>');

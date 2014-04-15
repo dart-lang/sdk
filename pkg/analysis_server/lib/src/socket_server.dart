@@ -1,0 +1,56 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library socket.server;
+
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/domain_context.dart';
+import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/protocol.dart';
+
+/**
+ * Instances of the class [SocketServer] implement the common parts of
+ * http-based and stdio-based analysis servers.  The primary responsibility of
+ * the SocketServer is to manage the lifetime of the AnalysisServer and to
+ * encode and decode the JSON messages exchanged with the client.
+ */
+class SocketServer {
+  /**
+   * The analysis server that was created when a client established a
+   * connection, or `null` if no such connection has yet been established.
+   */
+  AnalysisServer analysisServer;
+
+  /**
+   * Create an analysis server which will communicate with the client using the
+   * given serverChannel.
+   */
+  void createAnalysisServer(ServerCommunicationChannel serverChannel) {
+    if (analysisServer != null) {
+      // TODO(paulberry): add a message to the protocol so that the server can
+      // inform the client of a successful connection.
+      var error = new RequestError.serverAlreadyStarted();
+      serverChannel.sendResponse(new Response('', error));
+      serverChannel.listen((Request request) {
+        serverChannel.sendResponse(new Response(request.id, error));
+      });
+      return;
+    }
+    analysisServer = new AnalysisServer(serverChannel);
+    _initializeHandlers(analysisServer);
+    analysisServer.run();
+  }
+
+  /**
+   * Initialize the handlers to be used by the given [server].
+   */
+  void _initializeHandlers(AnalysisServer server) {
+    server.handlers = [
+        new ServerDomainHandler(server),
+        new ContextDomainHandler(server),
+    ];
+  }
+
+}

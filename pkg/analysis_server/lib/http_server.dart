@@ -6,12 +6,9 @@ library http.server;
 
 import 'dart:io';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/domain_context.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/get_handler.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/socket_server.dart';
 import 'package:args/args.dart';
 
 /**
@@ -37,10 +34,10 @@ class HttpAnalysisServer {
   static const String PORT_OPTION = "port";
 
   /**
-   * The analysis server that was created when an UPGRADE request was received,
-   * or `null` if no such request has yet been received.
+   * An object that can handle either a WebSocket connection or a connection
+   * to the client over stdio.
    */
-  AnalysisServer analysisServer;
+  SocketServer socketServer = new SocketServer();
 
   /**
    * An object that can handle GET requests.
@@ -115,8 +112,7 @@ class HttpAnalysisServer {
    */
   void _handleGetRequest(HttpRequest request) {
     if (getHandler == null) {
-      getHandler = new GetHandler();
-      getHandler.server = analysisServer;
+      getHandler = new GetHandler(socketServer);
     }
     getHandler.handleGetRequest(request);
   }
@@ -126,33 +122,7 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
-    ServerCommunicationChannel serverChannel = new WebSocketServerChannel(socket);
-    if (analysisServer != null) {
-      // TODO(paulberry): add a message to the protocol so that the server can
-      // inform the client of a successful connection.
-      var error = new RequestError.serverAlreadyStarted();
-      serverChannel.sendResponse(new Response('', error));
-      serverChannel.listen((Request request) {
-        serverChannel.sendResponse(new Response(request.id, error));
-      });
-      return;
-    }
-    analysisServer = new AnalysisServer(new WebSocketServerChannel(socket));
-    _initializeHandlers(analysisServer);
-    if (getHandler != null) {
-      getHandler.server = analysisServer;
-    }
-    analysisServer.run();
-  }
-
-  /**
-   * Initialize the handlers to be used by the given [server].
-   */
-  void _initializeHandlers(AnalysisServer server) {
-    server.handlers = [
-        new ServerDomainHandler(server),
-        new ContextDomainHandler(server),
-    ];
+    socketServer.createAnalysisServer(new WebSocketServerChannel(socket));
   }
 
   /**
