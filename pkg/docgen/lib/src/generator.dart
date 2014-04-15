@@ -59,12 +59,12 @@ String _dartBinary;
 /// This option is useful when only the SDK libraries are needed.
 ///
 /// Returned Future completes with true if document generation is successful.
-Future<bool> generateDocumentation(List<String> files, {String packageRoot, bool
-    outputToYaml: true, bool includePrivate: false, bool includeSdk: false, bool
-    parseSdk: false, String introFileName: '', out:
-    DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries: const [], bool
-    includeDependentPackages: false, String startPage, String dartBinary, String
-    pubScript}) {
+Future<bool> generateDocumentation(List<String> files, {String packageRoot,
+    bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
+    bool parseSdk: false, String introFileName: '',
+    out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries: const [], bool
+    includeDependentPackages: false, String startPage, String dartBinary,
+    String pubScript, bool indentJSON: false}) {
   _excluded = excludeLibraries;
   _pubScript = pubScript;
   _dartBinary = dartBinary;
@@ -103,8 +103,8 @@ Future<bool> generateDocumentation(List<String> files, {String packageRoot, bool
     librariesToDocument.addAll((includeSdk || parseSdk) ? sdkLibraries : []);
     librariesToDocument.removeWhere((x) => _excluded.contains(
         dart2js_util.nameOf(x)));
-    _documentLibraries(librariesToDocument, includeSdk: includeSdk,
-        parseSdk: parseSdk, introFileName: introFileName, startPage: startPage);
+    _documentLibraries(librariesToDocument, includeSdk, parseSdk, introFileName,
+        startPage, indentJSON);
     return true;
   });
 }
@@ -134,25 +134,14 @@ Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
 /// Writes [text] to a file in the output directory.
 void _writeToFile(String text, String filename) {
   if (text == null) return;
-  Directory dir = new Directory(_outputDirectory);
-  if (!dir.existsSync()) {
-    dir.createSync();
-  }
-  if (path.split(filename).length > 1) {
-    var splitList = path.split(filename);
-    for (int i = 0; i < splitList.length; i++) {
-      var level = splitList[i];
-    }
-    for (var level in path.split(filename)) {
-      var subdir = new Directory(path.join(_outputDirectory, path.dirname(
-          filename)));
-      if (!subdir.existsSync()) {
-        subdir.createSync();
-      }
-    }
-  }
-  File file = new File(path.join(_outputDirectory, filename));
-  file.writeAsStringSync(text, mode: FileMode.WRITE);
+
+  var filePath = path.join(_outputDirectory, filename);
+
+  var parentDir = new Directory(path.dirname(filePath));
+  if (!parentDir.existsSync()) parentDir.createSync(recursive: true);
+
+  new File(filePath)
+      .writeAsStringSync(text, mode: FileMode.WRITE);
 }
 
 /// Resolve all the links in the introductory comments for a given library or
@@ -186,8 +175,8 @@ int _indexableComparer(Indexable a, Indexable b) {
 }
 
 /// Creates documentation for filtered libraries.
-void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
-  bool parseSdk: false, String introFileName: '', String startPage}) {
+void _documentLibraries(List<LibraryMirror> libs, bool includeSdk,
+  bool parseSdk, String introFileName, String startPage, bool indentJson) {
   libs.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -217,38 +206,49 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
       'introduction': _readIntroductionFile(introFileName, includeSdk),
       'filetype': 'json'
     };
-  _writeOutputFiles(libraryMap, filteredEntities, startPage);
+
+  var encoder = new JsonEncoder.withIndent(indentJson ? '  ' : null);
+
+  _writeOutputFiles(libraryMap, filteredEntities, startPage, encoder);
 }
 
 /// Output all of the libraries and classes into json files for consumption by a
 /// viewer.
 void _writeOutputFiles(Map<String, dynamic> libraryMap, Iterable<Indexable>
-    filteredEntities, String startPage) {
+    filteredEntities, String startPage, JsonEncoder encoder) {
   if (startPage != null) libraryMap['start-page'] = startPage;
 
-  _writeToFile(JSON.encode(libraryMap), 'library_list.json');
+  _writeToFile(encoder.convert(libraryMap), 'library_list.json');
 
   // Output libraries and classes to file after all information is generated.
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
-    _writeIndexableToFile(output);
+    _writeIndexableToFile(output, encoder);
   });
 
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
-  var sortedEntities = filteredEntities.map((e) =>
-      '${e.qualifiedName} ${e.typeName}').toList()..sort();
+  var sortedEntities = filteredEntities
+      .map((e) => '${e.qualifiedName} ${e.typeName}')
+      .toList();
 
-  _writeToFile(sortedEntities.join('\n') + '\n', 'index.txt');
+  sortedEntities.sort();
+
+  var buffer = new StringBuffer()
+    ..writeAll(sortedEntities, '\n')
+    ..write('\n');
+
+  _writeToFile(buffer.toString(), 'index.txt');
+
   var index = new SplayTreeMap.fromIterable(filteredEntities,
       key: (e) => e.qualifiedName, value: (e) => e.typeName);
 
-  _writeToFile(JSON.encode(index), 'index.json');
+  _writeToFile(encoder.convert(index), 'index.json');
 }
 
 /// Helper method to serialize the given Indexable out to a file.
-void _writeIndexableToFile(Indexable result) {
+void _writeIndexableToFile(Indexable result, JsonEncoder encoder) {
   var outputFile = result.fileName + '.json';
-  var output = JSON.encode(result.toMap());
+  var output = encoder.convert(result.toMap());
   _writeToFile(output, outputFile);
 }
 

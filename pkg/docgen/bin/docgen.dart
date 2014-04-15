@@ -36,7 +36,9 @@ void main(List<String> arguments) {
       path.join(options['sdk'], 'bin', 'dart') : 'dart';
 
   var excludedLibraries = options['exclude-lib'];
-  if(excludedLibraries == null) excludedLibraries = [];
+  if (excludedLibraries == null) excludedLibraries = [];
+
+  var indentJSON = options['indent-json'] as bool;
 
   docgen(files,
       packageRoot: options['package-root'],
@@ -52,7 +54,8 @@ void main(List<String> arguments) {
       dartBinary: dartBinary,
       pubScript: pubScript,
       noDocs: options['no-docs'],
-      startPage: startPage);
+      startPage: startPage,
+      indentJSON: indentJSON);
 }
 
 /**
@@ -144,6 +147,9 @@ ArgParser _initArgParser() {
         'of the package in this argument, e.g. --start-page=intl will make '
         'the start page of the viewer be the intl package.',
         defaultsTo: null);
+  parser.addFlag('indent-json',
+      help: 'Indents each level of JSON output by two spaces',
+      defaultsTo: false, negatable: true);
 
   return parser;
 }
