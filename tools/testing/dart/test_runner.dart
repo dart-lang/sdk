@@ -576,9 +576,15 @@ class MakeSymlinkCommand extends ScriptCommand {
 class CommandBuilder {
   static final CommandBuilder instance = new CommandBuilder._();
 
+  bool _cleared = false;
   final _cachedCommands = new Map<Command, Command>();
 
   CommandBuilder._();
+
+  void clearCommandCache() {
+    _cachedCommands.clear();
+    _cleared = true;
+  }
 
   ContentShellCommand getContentShellCommand(String executable,
                                              String htmlFile,
@@ -674,6 +680,10 @@ class CommandBuilder {
     // We check if this command has already been built.
     //  If so, we return the cached one. Otherwise we
     // store the one given as [command] argument.
+    if (_cleared) {
+      throw new Exception(
+          "CommandBuilder.get[type]Command called after cache cleared");
+    }
     var cachedCommand = _cachedCommands[command];
     if (cachedCommand != null) {
       return cachedCommand;
@@ -824,7 +834,7 @@ class UnittestSuiteMessagesMixin {
     return testOutput.contains("unittest-suite-wait-for-done");
   }
 
-  bool _isAsyncTestSuccessfull(String testOutput) {
+  bool _isAsyncTestSuccessful(String testOutput) {
     return testOutput.contains("unittest-suite-success");
   }
 
@@ -835,7 +845,7 @@ class UnittestSuiteMessagesMixin {
     // TODO: maybe we should introduce a AsyncIncomplete marker or so
     if (outcome == Expectation.PASS) {
       if (_isAsyncTest(testOutput) &&
-          !_isAsyncTestSuccessfull(testOutput)) {
+          !_isAsyncTestSuccessful(testOutput)) {
         return Expectation.FAIL;
       }
     }
@@ -2278,7 +2288,7 @@ class CommandEnqueuer {
  * [CommandQueue] will listen for nodes entering the NodeState.ENQUEUING state,
  * queue them up and run them. While nodes are processed they will be in the
  * NodeState.PROCESSING state. After running a command, the node will change
- * to a state of NodeState.Successfull or NodeState.Failed.
+ * to a state of NodeState.Successful or NodeState.Failed.
  *
  * It provides a synchronous stream [completedCommands] which provides the
  * [CommandOutputs] for the finished commands.
@@ -2322,7 +2332,7 @@ class CommandQueue {
           }
     });
     // We're finished if the graph is sealed and all nodes are in a finished
-    // state (Successfull, Failed or UnableToRun).
+    // state (Successful, Failed or UnableToRun).
     // So we're calling '_checkDone()' to check whether that condition is met
     // and we can cleanup.
     graph.events.listen((dgraph.GraphEvent event) {
@@ -2651,7 +2661,7 @@ bool shouldRetryCommand(CommandOutput output) {
 
 /*
  * [TestCaseCompleter] will listen for
- * NodeState.Processing -> NodeState.{Successfull,Failed} state changes and
+ * NodeState.Processing -> NodeState.{Successful,Failed} state changes and
  * will complete a TestCase if it is finished.
  *
  * It provides a stream [finishedTestCases], which will stream all TestCases
@@ -2684,7 +2694,7 @@ class TestCaseCompleter {
       _checkDone();
     });
 
-    // Listen for NodeState.Processing -> NodeState.{Successfull,Failed}
+    // Listen for NodeState.Processing -> NodeState.{Successful,Failed}
     // changes.
     eventCondition((event) => event is dgraph.StateChangedEvent)
         .listen((dgraph.StateChangedEvent event) {
@@ -2754,8 +2764,6 @@ class TestCaseCompleter {
 
 class ProcessQueue {
   Map _globalConfiguration;
-
-  bool _allTestsWereEnqueued = false;
 
   bool _listTests;
   Function _allDone;
@@ -2916,6 +2924,10 @@ class ProcessQueue {
     testCaseEnqueuer.enqueueTestSuites(testSuites);
   }
 
+  void freeEnqueueingStructures() {
+    CommandBuilder.instance.clearCommandCache();
+  }
+
   void eventFinishedTestCase(TestCase testCase) {
     for (var listener in _eventListener) {
       listener.done(testCase);
@@ -2929,6 +2941,7 @@ class ProcessQueue {
   }
 
   void eventAllTestsKnown() {
+    freeEnqueueingStructures();
     for (var listener in _eventListener) {
       listener.allTestsKnown();
     }

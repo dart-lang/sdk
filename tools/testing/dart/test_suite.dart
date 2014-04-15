@@ -50,7 +50,6 @@ typedef void CreateTest(Path filePath,
                         {bool isNegativeIfChecked,
                          bool hasCompileErrorIfChecked,
                          bool hasStaticWarning,
-                         Set<String> multitestOutcome,
                          String multitestKey,
                          Path originTestPath});
 
@@ -121,6 +120,9 @@ class FutureGroup {
 abstract class TestSuite {
   final Map configuration;
   final String suiteName;
+  // This function is set by subclasses before enqueueing starts.
+  Function doTest;
+
 
   TestSuite(this.configuration, this.suiteName);
 
@@ -244,10 +246,6 @@ abstract class TestSuite {
    * to be listed each time.
    */
   void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]);
-
-
-  // This function is set by subclasses before enqueueing starts.
-  Function doTest;
 
   // This function will be called for every TestCase of this test suite.
   // It will
@@ -575,14 +573,12 @@ class TestInformation {
   bool isNegativeIfChecked;
   bool hasCompileErrorIfChecked;
   bool hasStaticWarning;
-  Set<String> multitestOutcome;
   String multitestKey;
 
   TestInformation(this.filePath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
                   this.isNegativeIfChecked, this.hasCompileErrorIfChecked,
                   this.hasStaticWarning,
-                  this.multitestOutcome,
                   {this.multitestKey, this.originTestPath}) {
     assert(filePath.isAbsolute);
     if (originTestPath == null) originTestPath = filePath;
@@ -705,6 +701,9 @@ class StandardTestSuite extends TestSuite {
         });
       }
     }).then((_) {
+      testExpectations = null;
+      cachedTests = null;
+      doTest = null;
       if (onDone != null) onDone();
     });
   }
@@ -1025,7 +1024,6 @@ class StandardTestSuite extends TestSuite {
             {bool isNegativeIfChecked: false,
              bool hasCompileErrorIfChecked: false,
              bool hasStaticWarning: false,
-             Set<String> multitestOutcome: null,
              String multitestKey,
              Path originTestPath}) {
       // Cache the test information for each test case.
@@ -1036,7 +1034,6 @@ class StandardTestSuite extends TestSuite {
                                      isNegativeIfChecked,
                                      hasCompileErrorIfChecked,
                                      hasStaticWarning,
-                                     multitestOutcome,
                                      multitestKey: multitestKey,
                                      originTestPath: originTestPath);
       cachedTests.add(info);
