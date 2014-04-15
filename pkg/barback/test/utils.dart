@@ -78,30 +78,7 @@ void initGraph([assets,
   if (assets == null) assets = [];
   if (transformers == null) transformers = {};
 
-  var assetList;
-  if (assets is Map) {
-    assetList = assets.keys.map((asset) {
-      var id = new AssetId.parse(asset);
-      return new _MockAsset(id, assets[asset]);
-    });
-  } else if (assets is Iterable) {
-    assetList = assets.map((asset) {
-      var id = new AssetId.parse(asset);
-      var contents = pathos.basenameWithoutExtension(id.path);
-      return new _MockAsset(id, contents);
-    });
-  }
-
-  var assetMap = mapMapValues(groupBy(assetList, (asset) => asset.id.package),
-      (package, assets) => new AssetSet.from(assets));
-
-  // Make sure that packages that have transformers but no assets are considered
-  // by MockProvider to exist.
-  for (var package in transformers.keys) {
-    assetMap.putIfAbsent(package, () => new AssetSet());
-  }
-
-  _provider = new MockProvider(assetMap);
+  _provider = new MockProvider(assets, additionalPackages: transformers.keys);
   _barback = new Barback(_provider);
   // Add a dummy listener to the log so it doesn't print to stdout.
   _barback.log.listen((_) {});
@@ -484,7 +461,7 @@ Future _futureShouldNotCompleteUntil(Future future, Future delay,
 class MockProvider implements PackageProvider {
   Iterable<String> get packages => _assets.keys;
 
-  Map<String, AssetSet> _assets;
+  final Map<String, AssetSet> _assets;
 
   /// The set of assets for which [MockLoadException]s should be emitted if
   /// they're loaded.
@@ -508,13 +485,40 @@ class MockProvider implements PackageProvider {
     _pauseCompleter = null;
   }
 
-  MockProvider(this._assets) {
+  MockProvider(assets, {Iterable<String> additionalPackages})
+      : _assets = _normalizeAssets(assets, additionalPackages);
+
+  static Map<String, AssetSet> _normalizeAssets(assets,
+      Iterable<String> additionalPackages) {
+    var assetList;
+    if (assets is Map) {
+      assetList = assets.keys.map((asset) {
+        var id = new AssetId.parse(asset);
+        return new _MockAsset(id, assets[asset]);
+      });
+    } else if (assets is Iterable) {
+      assetList = assets.map((asset) {
+        var id = new AssetId.parse(asset);
+        var contents = pathos.basenameWithoutExtension(id.path);
+        return new _MockAsset(id, contents);
+      });
+    }
+
+    var assetMap = mapMapValues(groupBy(assetList, (asset) => asset.id.package),
+        (package, assets) => new AssetSet.from(assets));
+
+    // Make sure that packages that have transformers but no assets are
+    // considered by MockProvider to exist.
+    if (additionalPackages != null) {
+      for (var package in additionalPackages) {
+        assetMap.putIfAbsent(package, () => new AssetSet());
+      }
+    }
+
     // If there are no assets or transformers, add a dummy package. This better
     // simulates the real world, where there'll always be at least the
     // entrypoint package.
-    if (_assets.isEmpty) {
-      _assets = {"app": new AssetSet()};
-    }
+    return assetMap.isEmpty ? {"app": new AssetSet()} : assetMap;
   }
 
   void _modifyAsset(String name, String contents) {
