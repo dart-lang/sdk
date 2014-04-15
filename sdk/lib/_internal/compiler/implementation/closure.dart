@@ -10,8 +10,7 @@ import "dart_types.dart";
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
-import "elements/modelx.dart" show ElementX, SynthesizedCallMethodElementX,
-    ClassElementX;
+import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 import "elements/visitor.dart" show ElementVisitor;
 
 class ClosureNamer {
@@ -148,7 +147,7 @@ class ClosureClassElement extends ClassElementX {
   Node parseNode(DiagnosticListener listener) => node;
 
   /**
-   * The element for the declaration of the function expression.
+   * The most outer method this closure is declared into.
    */
   final TypedElement methodElement;
 
@@ -717,9 +716,9 @@ class ClosureTranslator extends Visitor {
     ClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
-        new SynthesizedCallMethodElementX(Compiler.CALL_OPERATOR_NAME,
-                                          element,
-                                          globalizedElement);
+        new FunctionElementX.from(Compiler.CALL_OPERATOR_NAME,
+                                  element,
+                                  globalizedElement);
     ClosureContainer enclosing = element.enclosingElement;
     enclosing.nestedClosures.add(callElement);
     globalizedElement.addMember(callElement, compiler);

@@ -353,9 +353,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
     bool isClosure = false;
-    bool isNotApplyTarget = !member.isFunction() ||
-                            member.isConstructor() ||
-                            member.isAccessor();
+    bool isNotApplyTarget =
+        !member.isFunction() || member.isConstructor() || member.isAccessor();
     String tearOffName;
     if (isNotApplyTarget) {
       canTearOff = false;
@@ -374,9 +373,9 @@ class ContainerBuilder extends CodeEmitterHelper {
           compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member);
       tearOffName = namer.getStaticClosureName(member);
     }
-    final bool canBeApplied = compiler.enabledFunctionApply &&
-                              compiler.world.getMightBePassedToApply(member);
-
+    final bool canBeApplied = !isNotApplyTarget &&
+        compiler.enabledFunctionApply &&
+        (canTearOff || member.name == 'call' || !member.isInstanceMember());
     final bool canBeReflected = backend.isAccessibleByReflection(member);
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;

@@ -126,7 +126,7 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
   ]);
 
 
-class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
+class ListTracerVisitor extends TracerVisitor {
   // The [List] of found assignments to the list.
   List<TypeInformation> assignments = <TypeInformation>[];
   bool callsGrowableMethod = false;

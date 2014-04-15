@@ -29,9 +29,6 @@ class World {
 
   final Set<Element> elementsThatCannotThrow = new Set<Element>();
 
-  final Set<Element> functionsThatMightBePassedToApply =
-      new Set<FunctionElement>();
-
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
   }
@@ -280,22 +277,5 @@ class World {
   void registerImplicitSuperCall(TreeElements elements,
                                  FunctionElement superConstructor) {
     elements.otherDependencies.add(superConstructor);
-  }
-
-  void registerMightBePassedToApply(Element element) {
-    functionsThatMightBePassedToApply.add(element);
-  }
-
-  bool getMightBePassedToApply(Element element) {
-    // We have to check whether the element we look at was created after
-    // type inference ran. This is currently only the case for the call
-    // method of function classes that were generated for function
-    // expressions. In such a case, we have to look at the original
-    // function expressions's element.
-    // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is SynthesizedCallMethodElementX) {
-      return getMightBePassedToApply(element.expression);
-    }
-    return functionsThatMightBePassedToApply.contains(element);
   }
 }

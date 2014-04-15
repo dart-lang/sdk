@@ -66,9 +66,8 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(
     'keys'
   ]);
 
-abstract class TracerVisitor<T extends TypeInformation>
-    implements TypeInformationVisitor {
-  final T tracedType;
+abstract class TracerVisitor implements TypeInformationVisitor {
+  final TypeInformation tracedType;
   final TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
 
@@ -344,7 +343,7 @@ abstract class TracerVisitor<T extends TypeInformation>
         && inferrer.isNativeElement(element.enclosingElement)) {
       bailout('Passed to a native method');
     }
-    if (info.isClosurized) {
+    if (info.isClosurized()) {
       bailout('Returned from a closurized method');
     }
     if (isClosure(info.element)) {
@@ -352,10 +351,6 @@ abstract class TracerVisitor<T extends TypeInformation>
     }
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
-    }
-    if (!inferrer.compiler.backend
-        .canBeUsedForGlobalOptimizations(info.element)) {
-      bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info.element) ||
         isParameterOfMapAddingMethod(info.element)) {
