@@ -553,7 +553,13 @@ class Printer implements NodeVisitor {
     String op = binary.op;
     int leftPrecedenceRequirement;
     int rightPrecedenceRequirement;
+    bool leftSpace = true;   // left<HERE>op right
     switch (op) {
+      case ',':
+        leftPrecedenceRequirement = EXPRESSION;
+        rightPrecedenceRequirement = LOGICAL_OR;
+        leftSpace = false;
+        break;
       case "||":
         leftPrecedenceRequirement = LOGICAL_OR;
         // x || (y || z) <=> (x || y) || z.
@@ -633,7 +639,7 @@ class Printer implements NodeVisitor {
       out(op);
       out(" ");
     } else {
-      spaceOut();
+      if (leftSpace) spaceOut();
       out(op);
       spaceOut();
     }

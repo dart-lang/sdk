@@ -233,32 +233,32 @@ class CodeEmitterTask extends CompilerTask {
     //  },
     // });
 
-    var defineClass = js.fun(['name', 'cls', 'fields'], [
-      js('var accessors = []'),
+    var defineClass = js('''function(name, cls, fields) {
+      var accessors = [];
 
-      js('var str = "function " + cls + "("'),
-      js('var body = ""'),
+      var str = "function " + cls + "(";
+      var body = "";
 
-      js.for_('var i = 0', 'i < fields.length', 'i++', [
-        js.if_('i != 0', js('str += ", "')),
+      for (var i = 0; i < fields.length; i++) {
+        if(i != 0) str += ", ";
 
-        js('var field = generateAccessor(fields[i], accessors, cls)'),
-        js('var parameter = "parameter_" + field'),
-        js('str += parameter'),
-        js('body += ("this." + field + " = " + parameter + ";\\n")')
-      ]),
-      js('str += ") {\\n" + body + "}\\n"'),
-      js('str += cls + ".builtin\$cls=\\"" + name + "\\";\\n"'),
-      js('str += "\$desc=\$collectedClasses." + cls + ";\\n"'),
-      js('str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n"'),
-      js('str += cls + ".prototype = \$desc;\\n"'),
-      js.if_(
-          'typeof defineClass.name != "string"',
-          [js('str += cls + ".name=\\"" + cls + "\\";\\n"')]),
-      js('str += accessors.join("")'),
+        var field = generateAccessor(fields[i], accessors, cls);
+        var parameter = "parameter_" + field;
+        str += parameter;
+        body += ("this." + field + " = " + parameter + ";\\n");
+      }
+      str += ") {\\n" + body + "}\\n";
+      str += cls + ".builtin\$cls=\\"" + name + "\\";\\n";
+      str += "\$desc=\$collectedClasses." + cls + ";\\n";
+      str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
+      str += cls + ".prototype = \$desc;\\n";
+      if (typeof defineClass.name != "string") {
+        str += cls + ".name=\\"" + cls + "\\";\\n";
+      }
+      str += accessors.join("");
 
-      js.return_('str')
-    ]);
+      return str;
+    }''');
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
     return [

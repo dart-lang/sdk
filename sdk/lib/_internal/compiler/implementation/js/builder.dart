@@ -198,13 +198,27 @@ LiteralString string(String value) => js.string(value);
 class MiniJsParserError {
   MiniJsParserError(this.parser, this.message) { }
 
-  MiniJsParser parser;
-  String message;
+  final MiniJsParser parser;
+  final String message;
 
   String toString() {
-    var codes = new List.filled(parser.lastPosition, charCodes.$SPACE);
-    var spaces = new String.fromCharCodes(codes);
-    return "Error in MiniJsParser:\n${parser.src}\n$spaces^\n$spaces$message\n";
+    int pos = parser.lastPosition;
+
+    // Discard lines following the line containing lastPosition.
+    String src = parser.src;
+    int newlinePos = src.indexOf('\n', pos);
+    if (newlinePos >= pos) src = src.substring(0, newlinePos);
+
+    // Extract the prefix of the error line before lastPosition.
+    String line = src;
+    int lastLineStart = line.lastIndexOf('\n');
+    if (lastLineStart >= 0) line = line.substring(lastLineStart + 1);
+    String prefix = line.substring(0, pos - (src.length - line.length));
+
+    // Replace non-tabs with spaces, giving a print indent that matches the text
+    // for tabbing.
+    String spaces = prefix.replaceAll(new RegExp(r'[^\t]'), ' ');
+    return 'Error in MiniJsParser:\n${src}\n$spaces^\n$spaces$message\n';
   }
 }
 
@@ -241,11 +255,12 @@ class MiniJsParser {
     getToken();
   }
 
-  int lastCategory;
-  String lastToken;
-  int lastPosition;
-  int position;
-  String src;
+  int lastCategory = NONE;
+  String lastToken = null;
+  int lastPosition = 0;
+  int position = 0;
+  bool skippedNewline = false;  // skipped newline in last getToken?
+  final String src;
   final List<InterpolatedExpression> interpolatedValues =
       <InterpolatedExpression>[];
 
@@ -265,9 +280,10 @@ class MiniJsParser {
   static const COMMA = 12;
   static const QUERY = 13;
   static const COLON = 14;
-  static const HASH = 15;
-  static const WHITESPACE = 16;
-  static const OTHER = 17;
+  static const SEMICOLON = 15;
+  static const HASH = 16;
+  static const WHITESPACE = 17;
+  static const OTHER = 18;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -290,6 +306,7 @@ class MiniJsParser {
       case COMMA: return "COMMA";
       case QUERY: return "QUERY";
       case COLON: return "COLON";
+      case SEMICOLON: return "SEMICOLON";
       case HASH: return "HASH";
       case WHITESPACE: return "WHITESPACE";
       case OTHER: return "OTHER";
@@ -307,7 +324,7 @@ class MiniJsParser {
       LPAREN, RPAREN, SYMBOL, SYMBOL, COMMA, SYMBOL, DOT, SYMBOL,   // ()*+,-./
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 01234
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 56789
-      COLON, OTHER, SYMBOL, SYMBOL, SYMBOL, QUERY, OTHER,           // :;<=>?@
+      COLON, SEMICOLON, SYMBOL, SYMBOL, SYMBOL, QUERY, OTHER,       // :;<=>?@
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // ABCDEFGH
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // IJKLMNOP
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // QRSTUVWX
@@ -370,10 +387,15 @@ class MiniJsParser {
   }
 
   void getToken() {
-    while (position < src.length &&
-           category(src.codeUnitAt(position)) == WHITESPACE) {
-      position++;
+    skippedNewline = false;
+    for(;;) {
+      if (position >= src.length) break;
+      int code = src.codeUnitAt(position);
+      if (category(code) != WHITESPACE) break;
+      if (code == charCodes.$LF) skippedNewline = true;
+      ++position;
     }
+
     if (position == src.length) {
       lastCategory = NONE;
       lastToken = null;
@@ -458,6 +480,20 @@ class MiniJsParser {
     return false;
   }
 
+  void expectSemicolon() {
+    if (acceptSemicolon()) return;
+    error('Expected SEMICOLON');
+  }
+
+  bool acceptSemicolon() {
+    // Accept semicolon or automatically inserted semicolon before close brace.
+    // Miniparser forbids other kinds of semicolon insertion.
+    if (skippedNewline) {
+      error('No automatic semicolon insertion at preceding newline');
+    }
+    return acceptCategory(SEMICOLON) || RBRACE == lastCategory;
+  }
+
   bool acceptString(String string) {
     if (lastToken == string) {
       getToken();
@@ -479,6 +515,8 @@ class MiniJsParser {
         return new LiteralBool(false);
       } else if (last == "null") {
         return new LiteralNull();
+      } else if (last == "function") {
+        return parseFunctionExpression();
       } else {
         return new VariableUse(last);
       }
@@ -497,7 +535,7 @@ class MiniJsParser {
       var values = <ArrayElement>[];
       if (!acceptCategory(RSQUARE)) {
         do {
-          values.add(new ArrayElement(values.length, parseExpression()));
+          values.add(new ArrayElement(values.length, parseAssignment()));
         } while (acceptCategory(COMMA));
         expectCategory(RSQUARE);
       }
@@ -516,6 +554,32 @@ class MiniJsParser {
     } else {
       error("Expected primary expression");
       return null;
+    }
+  }
+
+  Expression parseFunctionExpression() {
+    String functionName = null;
+    String last = lastToken;
+    if (acceptCategory(ALPHA)) functionName = last;
+    List<Parameter> params = <Parameter>[];
+    expectCategory(LPAREN);
+    String argumentName = lastToken;
+    if (acceptCategory(ALPHA)) {
+      params.add(new Parameter(argumentName));
+      while (acceptCategory(COMMA)) {
+        argumentName = lastToken;
+        expectCategory(ALPHA);
+        params.add(new Parameter(argumentName));
+      }
+    }
+    expectCategory(RPAREN);
+    expectCategory(LBRACE);
+    Block block = parseBlock();
+    Fun fun = new Fun(params, block);
+    if (functionName == null) {
+      return fun;
+    } else {
+      return new NamedFunction(new VariableDeclaration(functionName), fun);
     }
   }
 
@@ -543,7 +607,7 @@ class MiniJsParser {
         final arguments = <Expression>[];
         if (!acceptCategory(RPAREN)) {
           while (true) {
-            Expression argument = parseExpression();
+            Expression argument = parseAssignment();
             arguments.add(argument);
             if (acceptCategory(RPAREN)) break;
             expectCategory(COMMA);
@@ -585,9 +649,16 @@ class MiniJsParser {
   Expression parsePostfix() {
     Expression expression = parseCall();
     String operator = lastToken;
-    if (lastCategory == SYMBOL && (acceptString("++") || acceptString("--"))) {
+    // JavaScript grammar is:
+    //     LeftHandSideExpression [no LineTerminator here] ++
+    if (lastCategory == SYMBOL &&
+        !skippedNewline &&
+        (acceptString("++") || acceptString("--"))) {
       return new Postfix(operator, expression);
     }
+    // If we don't accept '++' or '--' due to skippedNewline a newline, no other
+    // part of the parser will accept the token and we will get an error at the
+    // whole expression level.
     return expression;
   }
 
@@ -664,23 +735,45 @@ class MiniJsParser {
     return lhs;
   }
 
-  Expression parseExpression() => parseAssignment();
+  Expression parseExpression() {
+    Expression expression = parseAssignment();
+    while (acceptCategory(COMMA)) {
+      Expression right = parseAssignment();
+      expression = new Binary(',', expression, right);
+    }
+    return expression;
+  }
+
+  VariableDeclarationList parseVariableDeclarationList() {
+    String firstVariable = lastToken;
+    expectCategory(ALPHA);
+    return finishVariableDeclarationList(firstVariable);
+  }
+
+  VariableDeclarationList finishVariableDeclarationList(String firstVariable) {
+    var initialization = [];
+
+    void declare(String variable) {
+      Expression initializer = null;
+      if (acceptString("=")) {
+        initializer = parseAssignment();
+      }
+      var declaration = new VariableDeclaration(variable);
+      initialization.add(new VariableInitialization(declaration, initializer));
+    }
+
+    declare(firstVariable);
+    while (acceptCategory(COMMA)) {
+      String variable = lastToken;
+      expectCategory(ALPHA);
+      declare(variable);
+    }
+    return new VariableDeclarationList(initialization);
+  }
 
   Expression parseVarDeclarationOrExpression() {
     if (acceptString("var")) {
-      var initialization = [];
-      do {
-        String variable = lastToken;
-        expectCategory(ALPHA);
-        Expression initializer = null;
-        if (acceptString("=")) {
-          initializer = parseExpression();
-        }
-        var declaration = new VariableDeclaration(variable);
-        initialization.add(
-            new VariableInitialization(declaration, initializer));
-      } while (acceptCategory(COMMA));
-      return new VariableDeclarationList(initialization);
+      return parseVariableDeclarationList();
     } else {
       return parseExpression();
     }
@@ -696,6 +789,126 @@ class MiniJsParser {
     }
     return expression;
   }
+
+  Block parseBlock() {
+    List<Statement> statements = <Statement>[];
+
+    while (!acceptCategory(RBRACE)) {
+      Statement statement = parseStatement();
+      statements.add(statement);
+    }
+    return new Block(statements);
+  }
+
+  Statement parseStatement() {
+    if (acceptCategory(LBRACE)) return parseBlock();
+
+    if (lastCategory == ALPHA) {
+      if (acceptString('return')) return parseReturn();
+
+      if (acceptString('break')) {
+        return parseBreakOrContinue((label) => new Break(label));
+      }
+
+      if (acceptString('continue')) {
+        return parseBreakOrContinue((label) => new Continue(label));
+      }
+
+      if (acceptString('if')) return parseIfThenElse();
+
+      if (acceptString('for')) return parseFor();
+
+      if (acceptString('var')) {
+        Expression declarations = parseVariableDeclarationList();
+        expectSemicolon();
+        return new ExpressionStatement(declarations);
+      }
+    }
+
+    // TODO:  label: statement
+
+    Expression expression = parseExpression();
+    expectSemicolon();
+    return new ExpressionStatement(expression);
+  }
+
+  Statement parseReturn() {
+    if (acceptSemicolon()) return new Return();
+    Expression expression = parseExpression();
+    expectSemicolon();
+    return new Return(expression);
+  }
+
+  Statement parseBreakOrContinue(constructor) {
+    var identifier = lastToken;
+    if (!skippedNewline && acceptCategory(ALPHA)) {
+      expectSemicolon();
+      return constructor(identifier);
+    }
+    expectSemicolon();
+    return constructor(null);
+  }
+
+  Statement parseIfThenElse() {
+    expectCategory(LPAREN);
+    Expression condition = parseExpression();
+    expectCategory(RPAREN);
+    Statement thenStatement = parseStatement();
+    if (acceptString('else')) {
+      // Resolves dangling else by binding 'else' to closest 'if'.
+      Statement elseStatement = parseStatement();
+      return new If(condition, thenStatement, elseStatement);
+    } else {
+      return new If.noElse(condition, thenStatement);
+    }
+  }
+
+  Statement parseFor() {
+    // For-init-condition-increment style loops are fully supported.
+    //
+    // Only one for-in variant is currently implemented:
+    //
+    //     for (var variable in Expression) Statement
+    //
+    Statement finishFor(Expression init) {
+      Expression condition = null;
+      if (!acceptCategory(SEMICOLON)) {
+        condition = parseExpression();
+        expectCategory(SEMICOLON);
+      }
+      Expression update = null;
+      if (!acceptCategory(RPAREN)) {
+        update = parseExpression();
+        expectCategory(RPAREN);
+      }
+      Statement body = parseStatement();
+      return new For(init, condition, update, body);
+    }
+
+    expectCategory(LPAREN);
+    if (acceptCategory(SEMICOLON)) {
+      return finishFor(null);
+    }
+
+    if (acceptString('var')) {
+      String identifier = lastToken;
+      expectCategory(ALPHA);
+      if (acceptString('in')) {
+        Expression objectExpression = parseExpression();
+        expectCategory(RPAREN);
+        Statement body = parseStatement();
+        return new ForIn(js.defineVar(identifier), objectExpression, body);
+      }
+      Expression declarations = finishVariableDeclarationList(identifier);
+      expectCategory(SEMICOLON);
+      return finishFor(declarations);
+    }
+
+    Expression init = parseExpression();
+    expectCategory(SEMICOLON);
+    return finishFor(init);
+  }
+
 }
 
 /**

@@ -702,6 +702,8 @@ class Binary extends Call {
         return LOGICAL_AND;
       case "||":
         return LOGICAL_OR;
+      case ',':
+        return EXPRESSION;
       default:
         throw new leg.CompilerCancelledException(
             "Internal Error: Unhandled binary operator: $op");
