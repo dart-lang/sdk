@@ -20,7 +20,7 @@ class HttpAnalysisServer {
    * An object that can handle either a WebSocket connection or a connection
    * to the client over stdio.
    */
-  SocketServer socketServer = new SocketServer();
+  SocketServer socketServer;
 
   /**
    * An object that can handle GET requests.
