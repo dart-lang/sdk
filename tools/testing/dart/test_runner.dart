@@ -1474,7 +1474,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
       // We only consider errors/warnings for files of interest.
-      if (fields.length > FILENAME) {
+      if (fields.length > FORMATTED_ERROR) {
         if (fields[ERROR_LEVEL] == 'ERROR') {
           outErrors.add(fields[FORMATTED_ERROR]);
         } else if (fields[ERROR_LEVEL] == 'WARNING') {
