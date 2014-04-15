@@ -1068,7 +1068,15 @@ class _RawServerSocket extends Stream<RawSocket>
         .then((socket) => new _RawServerSocket(socket));
   }
 
-  _RawServerSocket(this._socket) {
+  _RawServerSocket(this._socket);
+
+  StreamSubscription<RawSocket> listen(void onData(RawSocket event),
+                                       {Function onError,
+                                        void onDone(),
+                                        bool cancelOnError}) {
+    if (_controller != null) {
+      throw new StateError("Stream was already listened to");
+    }
     var zone = Zone.current;
     _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
@@ -1087,14 +1095,7 @@ class _RawServerSocket extends Stream<RawSocket>
         _controller.addError(e);
         _controller.close();
       }),
-      destroyed: _controller.close
-    );
-  }
-
-  StreamSubscription<RawSocket> listen(void onData(RawSocket event),
-                                       {Function onError,
-                                        void onDone(),
-                                        bool cancelOnError}) {
+      destroyed: _controller.close);
     return _controller.stream.listen(
         onData,
         onError: onError,
