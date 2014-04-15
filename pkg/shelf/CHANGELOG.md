@@ -1,3 +1,7 @@
+## 0.5.0+1
+
+* Allow `scheduled_test` development dependency up to v0.12.0
+
 ## 0.5.0
 
 * Renamed `Stack` to `Pipeline`.
