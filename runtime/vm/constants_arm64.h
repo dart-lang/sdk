@@ -27,8 +27,8 @@ enum Register {
   R13 = 13,
   R14 = 14,
   R15 = 15,
-  R16 = 16,
-  R17 = 17,
+  R16 = 16,  // IP0 aka TMP
+  R17 = 17,  // IP1 aka TMP2
   R18 = 18,
   R19 = 19,
   R20 = 20,
@@ -36,9 +36,9 @@ enum Register {
   R22 = 22,
   R23 = 23,
   R24 = 24,
-  kLastFreeCpuRegister = 24,
-  R25 = 25,  // IP0
-  R26 = 26,  // IP1
+  R25 = 25,
+  R26 = 26,
+  kLastFreeCpuRegister = 26,
   R27 = 27,  // PP
   R28 = 28,  // CTX
   R29 = 29,  // FP
@@ -53,8 +53,8 @@ enum Register {
   ZR = 33,
 
   // Aliases.
-  IP0 = R25,
-  IP1 = R26,
+  IP0 = R16,
+  IP1 = R17,
   FP = R29,
   LR = R30,
 };
@@ -107,9 +107,8 @@ const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
 // Register aliases.
-const Register TMP = R25;  // Used as scratch register by assembler.
-const Register TMP0 = R25;
-const Register TMP1 = R26;
+const Register TMP = R16;  // Used as scratch register by assembler.
+const Register TMP2 = R17;
 const Register CTX = R27;  // Caches current context in generated code.
 const Register PP = R26;  // Caches object pool pointer in generated code.
 const Register SPREG = R31;  // Stack pointer register.
@@ -154,14 +153,14 @@ const RegList kDartAvailableCpuRegs =
     (1 << R4)  | (1 << R5)  | (1 << R6)  | (1 << R7)  |
     (1 << R8)  | (1 << R9)  | (1 << R10) | (1 << R11) |
     (1 << R12) | (1 << R13) | (1 << R14) | (1 << R15) |
-    (1 << R16) | (1 << R17) | (1 << R18) | (1 << R19) |
-    (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
-    (1 << R24);
+    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) |
+    (1 << R22) | (1 << R23) | (1 << R24) | (1 << R25) |
+    (1 << R26);
 
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-const int kDartVolatileCpuRegCount = 19;
+const int kDartVolatileCpuRegCount = 17;
 const VRegister kDartFirstVolatileFpuReg = V0;
 const VRegister kDartLastVolatileFpuReg = V7;
 const int kDartVolatileFpuRegCount = 8;
