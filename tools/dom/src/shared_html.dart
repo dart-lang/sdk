@@ -68,3 +68,12 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
 ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
+
+/// A utility for changing the Dart wrapper type for elements.
+abstract class ElementUpgrader {
+  /// Upgrade the specified element to be of the Dart type this was created for.
+  ///
+  /// After upgrading the element passed in is invalid and the returned value
+  /// should be used instead.
+  Element upgrade(Element element);
+}

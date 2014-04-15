@@ -244,32 +244,6 @@ $endif
    * This custom element can also be instantiated via HTML using the syntax
    * `<input is="x-bar"></input>`
    *
-   * The [nativeTagName] parameter is needed by platforms without native support
-   * when subclassing a native type other than:
-   *
-   * * HtmlElement
-   * * SvgElement
-   * * AnchorElement
-   * * AudioElement
-   * * ButtonElement
-   * * CanvasElement
-   * * DivElement
-   * * ImageElement
-   * * InputElement
-   * * LIElement
-   * * LabelElement
-   * * MenuElement
-   * * MeterElement
-   * * OListElement
-   * * OptionElement
-   * * OutputElement
-   * * ParagraphElement
-   * * PreElement
-   * * ProgressElement
-   * * SelectElement
-   * * SpanElement
-   * * UListElement
-   * * VideoElement
    */
 $if DART2JS
   void register(String tag, Type customElementClass, {String extendsTag}) {
@@ -321,4 +295,21 @@ $endif
   @Experimental()
   Stream<Event> get onVisibilityChange =>
       visibilityChangeEvent.forTarget(this);
+
+  /// Creates an element upgrader which can be used to change the Dart wrapper
+  /// type for elements.
+  ///
+  /// The type specified must be a subclass of HtmlElement, when an element is
+  /// upgraded then the created constructor will be invoked on that element.
+  ///
+  /// If the type is not a direct subclass of HtmlElement then the extendsTag
+  /// parameter must be provided.
+  @Experimental()
+  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+$if DART2JS
+    return new _JSElementUpgrader(this, type, extendsTag);
+$else
+    return new _VMElementUpgrader(this, type, extendsTag);
+$endif
+  }
 }

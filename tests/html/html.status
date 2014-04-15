@@ -35,6 +35,7 @@ xhr_test/json: Fail # Issue 13069
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
+custom/element_upgrade_test: Skip # Issue 17298
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -440,6 +441,7 @@ element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning
 custom/document_register_basic_test: StaticWarning
+custom/element_upgrade_test: StaticWarning
 datalistelement_test: StaticWarning
 documentfragment_test: StaticWarning
 element_add_test: StaticWarning
