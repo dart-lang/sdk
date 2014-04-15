@@ -136,6 +136,63 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a lazy transformer followed by a non-lazy transformer is re-run "
+      "eagerly", () {
+    var rewrite = new LazyRewriteTransformer("one", "two");
+    initGraph(["app|foo.one"], {"app": [
+      [rewrite],
+      [new RewriteTransformer("two", "three")]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(rewrite.numRuns, completion(equals(2)));
+  });
+
+  test("a lazy transformer followed by a declaring transformer isn't re-run "
+      "eagerly", () {
+    var rewrite = new LazyRewriteTransformer("one", "two");
+    initGraph(["app|foo.one"], {"app": [
+      [rewrite],
+      [new DeclaringRewriteTransformer("two", "three")]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(rewrite.numRuns, completion(equals(1)));
+  });
+
+  test("a declaring transformer added after a materialized lazy transformer "
+      "is still deferred", () {
+    var lazy = new LazyRewriteTransformer("one", "two");
+    var declaring = new DeclaringRewriteTransformer("two", "three");
+    initGraph(["app|foo.one"], {"app": [[lazy]]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.two", "foo.two");
+    buildShouldSucceed();
+
+    updateTransformers("app", [[lazy], [declaring]]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(lazy.numRuns, completion(equals(1)));
+    expect(declaring.numRuns, completion(equals(1)));
+  });
+
   test("a lazy asset works as a cross-package input", () {
     initGraph({
       "pkg1|foo.blub": "foo",
@@ -164,8 +221,7 @@ main() {
     buildShouldSucceed();
   });
 
-  test("once a lazy transformer is materialized, it runs eagerly afterwards",
-      () {
+  test("after being materialized a lazy transformer is still lazy", () {
     var transformer = new LazyRewriteTransformer("blub", "blab");
     initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
@@ -179,7 +235,25 @@ main() {
     updateSources(["app|foo.blub"]);
     buildShouldSucceed();
 
-    expect(transformer.numRuns, completion(equals(2)));
+    expect(transformer.numRuns, completion(equals(1)));
+  });
+
+  test("after being materialized a lazy transformer can be materialized again",
+      () {
+    var transformer = new LazyRewriteTransformer("blub", "blab");
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
+
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+
+    // Request the asset once to force it to be materialized.
+    expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.blub", "bar");
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blab", "bar.blab");
+    buildShouldSucceed();
   });
 
   test("an error emitted in a lazy transformer's declareOutputs method is "

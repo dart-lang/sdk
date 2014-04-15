@@ -61,18 +61,19 @@ main() {
     buildShouldSucceed();
   });
 
-  test("fails to get a consumed asset before apply is finished", () {
-    var transformer = new DeclaringRewriteTransformer("blub", "blab")
-        ..consumePrimary = true;
-    initGraph(["app|foo.blub"], {"app": [[transformer]]});
-
-    transformer.pauseApply();
-    updateSources(["app|foo.blub"]);
-    expectNoAsset("app|foo.blub");
-
-    transformer.resumeApply();
-    buildShouldSucceed();
-  });
+  // TODO(nweiz): Enable this test when issue 18226 is fixed.
+  // test("fails to get a consumed asset before apply is finished", () {
+  //   var transformer = new DeclaringRewriteTransformer("blub", "blab")
+  //       ..consumePrimary = true;
+  //   initGraph(["app|foo.blub"], {"app": [[transformer]]});
+  //
+  //   transformer.pauseApply();
+  //   updateSources(["app|foo.blub"]);
+  //   expectNoAsset("app|foo.blub");
+  //
+  //   transformer.resumeApply();
+  //   buildShouldSucceed();
+  // });
 
   test("waits until apply is finished to get an overwritten asset", () {
     var transformer = new DeclaringRewriteTransformer("blub", "blub");
