@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/stdio_server.dart';
 import 'package:args/args.dart';
 
 /**
@@ -36,8 +37,11 @@ class Driver {
 
   HttpAnalysisServer httpServer;
 
+  StdioAnalysisServer stdioServer;
+
   Driver() {
     httpServer = new HttpAnalysisServer(socketServer);
+    stdioServer = new StdioAnalysisServer(socketServer);
   }
 
   /**
@@ -74,6 +78,7 @@ class Driver {
       exitCode = 1;
       return;
     }
+    stdioServer.serveStdio();
   }
 
   /**
