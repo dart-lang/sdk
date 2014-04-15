@@ -177,6 +177,8 @@ abstract class VM extends ServiceObjectOwner {
   @observable String version = 'unknown';
   @observable String architecture = 'unknown';
   @observable double uptime = 0.0;
+  @observable bool assertsEnabled = false;
+  @observable bool typeChecksEnabled = false;
 
   VM() : super._empty(null) {
     name = 'vm';
@@ -339,6 +341,8 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     architecture = map['architecture'];
     uptime = map['uptime'];
+    assertsEnabled = map['assertsEnabled'];
+    typeChecksEnabled = map['typeChecksEnabled'];
     _updateIsolates(map['isolates']);
   }
 

@@ -31,6 +31,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, enable_asserts);
 
 struct ResourcesEntry {
   const char* path_;
@@ -1768,7 +1770,8 @@ static bool HandleVM(JSONStream* js) {
   jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("architecture", CPU::Id());
   jsobj.AddProperty("version", Version::String());
-
+  jsobj.AddProperty("assertsEnabled", FLAG_enable_asserts);
+  jsobj.AddProperty("typeChecksEnabled", FLAG_enable_type_checks);
   int64_t start_time_micros = Dart::vm_isolate()->start_time();
   int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
   double seconds = (static_cast<double>(uptime_micros) /

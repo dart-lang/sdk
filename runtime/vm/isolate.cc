@@ -907,10 +907,14 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   }
   {
     JSONObject jsheap(&jsobj, "heap");
-    jsheap.AddProperty("usedNew", heap()->UsedInWords(Heap::kNew));
-    jsheap.AddProperty("capacityNew", heap()->CapacityInWords(Heap::kNew));
-    jsheap.AddProperty("usedOld", heap()->UsedInWords(Heap::kOld));
-    jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
+    jsheap.AddProperty("usedNew",
+                       heap()->UsedInWords(Heap::kNew) * kWordSize);
+    jsheap.AddProperty("capacityNew",
+                       heap()->CapacityInWords(Heap::kNew) * kWordSize);
+    jsheap.AddProperty("usedOld",
+                       heap()->UsedInWords(Heap::kOld) * kWordSize);
+    jsheap.AddProperty("capacityOld",
+                       heap()->CapacityInWords(Heap::kOld) * kWordSize);
   }
 
   // TODO(turnidge): Don't compute a full stack trace every time we
