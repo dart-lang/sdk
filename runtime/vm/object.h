@@ -4024,6 +4024,7 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
+  intptr_t* NativeFieldsDataAddr() const;
   inline intptr_t GetNativeField(int index) const;
   inline void GetNativeFields(uint16_t num_fields,
                               intptr_t* field_values) const;
@@ -4068,6 +4069,7 @@ class Instance : public Object {
   RawObject** NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(RawObject));
   }
+
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }

@@ -758,6 +758,10 @@ class ApiState {
     }
   }
 
+  void VisitPrologueWeakHandles(HandleVisitor* visitor) {
+    prologue_weak_persistent_handles().VisitHandles(visitor);
+  }
+
   bool IsValidLocalHandle(Dart_Handle object) const {
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {

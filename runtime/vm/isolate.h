@@ -117,8 +117,9 @@ class Isolate : public BaseIsolate {
                            bool validate_frames);
 
   // Visits weak object pointers.
-  void VisitWeakPersistentHandles(HandleVisitor* visit,
+  void VisitWeakPersistentHandles(HandleVisitor* visitor,
                                   bool visit_prologue_weak_persistent_handles);
+  void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
 
   StoreBuffer* store_buffer() { return &store_buffer_; }
   static intptr_t store_buffer_offset() {

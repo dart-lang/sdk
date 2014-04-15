@@ -12650,6 +12650,17 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 }
 
 
+intptr_t* Instance::NativeFieldsDataAddr() const {
+  NoGCScope no_gc;
+  RawTypedData* native_fields =
+      reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
+  if (native_fields == TypedData::null()) {
+    return NULL;
+  }
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+}
+
+
 void Instance::SetNativeField(int index, intptr_t value) const {
   ASSERT(IsValidNativeIndex(index));
   Object& native_fields = Object::Handle(*NativeFieldsAddr());

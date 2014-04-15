@@ -816,6 +816,52 @@ DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
 }
 
 
+class PrologueWeakVisitor : public HandleVisitor {
+ public:
+  PrologueWeakVisitor(Isolate* isolate,
+                      Dart_GcPrologueWeakHandleCallback callback)
+      :  HandleVisitor(isolate),
+         callback_(callback) {
+  }
+
+  void VisitHandle(uword addr) {
+    NoGCScope no_gc;
+    FinalizablePersistentHandle* handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    RawObject* raw_obj = handle->raw();
+    if (raw_obj->IsHeapObject()) {
+      ASSERT(handle->IsPrologueWeakPersistent());
+      ReusableInstanceHandleScope reused_instance_handle(isolate());
+      Instance& instance = reused_instance_handle.Handle();
+      instance ^= reinterpret_cast<RawInstance*>(handle->raw());
+      intptr_t num_native_fields = instance.NumNativeFields();
+      intptr_t* native_fields = instance.NativeFieldsDataAddr();
+      if (native_fields != NULL) {
+        callback_(isolate()->init_callback_data(),
+                  reinterpret_cast<Dart_WeakPersistentHandle>(addr),
+                  num_native_fields,
+                  native_fields);
+      }
+    }
+  }
+
+ private:
+  Dart_GcPrologueWeakHandleCallback callback_;
+
+  DISALLOW_COPY_AND_ASSIGN(PrologueWeakVisitor);
+};
+
+
+DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
+    Dart_GcPrologueWeakHandleCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  PrologueWeakVisitor visitor(isolate, callback);
+  isolate->VisitPrologueWeakPersistentHandles(&visitor);
+  return Api::Success();
+}
+
+
 // --- Initialization and Globals ---
 
 DART_EXPORT const char* Dart_VersionString() {
@@ -3130,6 +3176,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
+
   if (constructor.IsConstructor()) {
     ASSERT(result.IsNull());
   } else {
@@ -3872,8 +3919,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
