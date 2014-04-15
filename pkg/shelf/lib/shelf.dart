@@ -4,9 +4,9 @@
 
 library shelf;
 
+export 'src/handler.dart';
 export 'src/handlers/logger.dart';
 export 'src/middleware.dart';
+export 'src/pipeline.dart';
 export 'src/request.dart';
 export 'src/response.dart';
-export 'src/stack.dart';
-export 'src/handler.dart';

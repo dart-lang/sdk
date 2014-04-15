@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Renamed `Stack` to `Pipeline`.
+
 ## 0.4.0
 
 * Access to headers for `Request` and `Response` is now case-insensitive.

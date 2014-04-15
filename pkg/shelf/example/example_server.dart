@@ -6,7 +6,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
 void main() {
-  var handler = const shelf.Stack().addMiddleware(shelf.logRequests())
+  var handler = const shelf.Pipeline().addMiddleware(shelf.logRequests())
       .addHandler(_echoRequest);
 
   io.serve(handler, 'localhost', 8080).then((server) {

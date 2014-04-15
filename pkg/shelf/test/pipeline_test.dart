@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library shelf.shelf_stack_test;
+library shelf.pipeline_test;
 
 import 'package:shelf/shelf.dart';
 import 'package:unittest/unittest.dart';
@@ -10,7 +10,7 @@ import 'package:unittest/unittest.dart';
 import 'test_util.dart';
 
 void main() {
-  test('compose middleware with Stack', () {
+  test('compose middleware with Pipeline', () {
     int accessLocation = 0;
 
     var middlewareA = createMiddleware(requestHandler: (request) {
@@ -33,7 +33,7 @@ void main() {
       return response;
     });
 
-    var handler = const Stack()
+    var handler = const Pipeline()
         .addMiddleware(middlewareA)
         .addMiddleware(middlewareB)
         .addHandler((request) {
@@ -48,7 +48,7 @@ void main() {
     });
   });
 
-  test('Stack can be used as middleware', () {
+  test('Pipeline can be used as middleware', () {
     int accessLocation = 0;
 
     var middlewareA = createMiddleware(requestHandler: (request) {
@@ -71,12 +71,12 @@ void main() {
       return response;
     });
 
-    var innerStack = const Stack()
+    var innerPipeline = const Pipeline()
         .addMiddleware(middlewareA)
         .addMiddleware(middlewareB);
 
-    var handler = const Stack()
-        .addMiddleware(innerStack.middleware)
+    var handler = const Pipeline()
+        .addMiddleware(innerPipeline.middleware)
         .addHandler((request) {
       expect(accessLocation, 2);
       accessLocation = 3;
