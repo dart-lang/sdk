@@ -1523,14 +1523,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
                                 false);
 
-  FunctionElementX.from(String name,
-                        FunctionElement other,
-                        Element enclosing)
-      : this.tooMuchOverloading(name, other.node, other.kind,
-                                other.modifiers, enclosing,
-                                other.functionSignature,
-                                false);
-
   FunctionElementX.tooMuchOverloading(String name,
                                       FunctionExpression this.cachedNode,
                                       ElementKind kind,
@@ -1662,6 +1654,19 @@ class FunctionElementX extends ElementX with AnalyzableElement
   }
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+}
+
+class SynthesizedCallMethodElementX extends FunctionElementX {
+  final FunctionElement expression;
+
+  SynthesizedCallMethodElementX(String name,
+                                FunctionElement other,
+                                Element enclosing)
+      : expression = other,
+        super.tooMuchOverloading(name, other.node, other.kind,
+                                 other.modifiers, enclosing,
+                                 other.functionSignature,
+                                 false);
 }
 
 class DeferredLoaderGetterElementX extends FunctionElementX {

@@ -27,6 +27,7 @@ part 'node_tracer.dart';
 part 'map_tracer.dart';
 
 bool _VERBOSE = false;
+bool _PRINT_SUMMARY = false;
 
 /**
  * A set of selector names that [List] implements, that we know return
@@ -569,16 +570,46 @@ class TypeGraphInferrerEngine
       analyzeMapAndEnqueue(info);
     });
 
+    // Trace closures to potentially infer argument types.
     types.allocatedClosures.forEach((info) {
-      ClosureTracerVisitor tracer = info is ClosureTypeInformation
-          ? new ClosureTracerVisitor(info.element, info, this)
-          : new StaticTearOffClosureTracerVisitor(info.element, info, this);
-      tracer.run();
-      if (!tracer.continueAnalyzing) return;
-      FunctionElement element = info.element;
-      element.functionSignature.forEachParameter((parameter) {
-        workQueue.add(types.getInferredTypeOf(parameter));
-      });
+      void trace(Iterable<FunctionElement> elements,
+                 ClosureTracerVisitor tracer) {
+        tracer.run();
+        if (!tracer.continueAnalyzing) {
+          elements.forEach((FunctionElement e) {
+            compiler.world.registerMightBePassedToApply(e);
+            if (_VERBOSE) print("traced closure $e as ${true} (bail)");
+          });
+          return;
+        }
+        elements.forEach((FunctionElement e) {
+          e.functionSignature.forEachParameter((parameter) {
+            workQueue.add(types.getInferredTypeOf(parameter));
+          });
+          if (tracer.tracedType.mightBePassedToFunctionApply) {
+            compiler.world.registerMightBePassedToApply(e);
+          };
+          if (_VERBOSE) {
+            print("traced closure $e as "
+                "${compiler.world.getMightBePassedToApply(e)}");
+          }
+        });
+      }
+      if (info is ClosureTypeInformation) {
+        Iterable<FunctionElement> elements = [info.element];
+        trace(elements, new ClosureTracerVisitor(elements, info, this));
+      } else if (info is CallSiteTypeInformation) {
+        // We only are interested in functions here, as other targets
+        // of this closure call are not a root to trace but an intermediate
+        // for some other function.
+        Iterable<FunctionElement> elements = info.callees
+            .where((e) => e.isFunction()).toList();
+        trace(elements, new ClosureTracerVisitor(elements, info, this));
+      } else {
+        assert(info is ElementTypeInformation);
+        trace([info.element],
+            new StaticTearOffClosureTracerVisitor(info.element, info, this));
+      }
     });
 
     // Reset all nodes that use lists/maps that have been inferred, as well
@@ -596,7 +627,7 @@ class TypeGraphInferrerEngine
     workQueue.addAll(seenTypes);
     refine();
 
-    if (_VERBOSE) {
+    if (_PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
               'for ${info.originalContainerType.allocationNode} '
@@ -752,6 +783,8 @@ class TypeGraphInferrerEngine
     } else if (callee.isGetter()) {
       return;
     } else if (selector != null && selector.isGetter()) {
+      // We are tearing a function off and thus create a closure.
+      assert(callee.isFunction());
       ElementTypeInformation info = types.getInferredTypeOf(callee);
       if (remove) {
         info.closurizedCount--;
@@ -759,6 +792,10 @@ class TypeGraphInferrerEngine
         info.closurizedCount++;
         if (Elements.isStaticOrTopLevel(callee)) {
           types.allocatedClosures.add(info);
+        } else {
+          // We add the call-site type information here so that we
+          // can benefit from further refinement of the selector.
+          types.allocatedClosures.add(caller);
         }
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.functionSignature;
