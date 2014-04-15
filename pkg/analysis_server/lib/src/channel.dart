@@ -170,6 +170,51 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 }
 
 /**
+ * Instances of the class [ByteStreamServerChannel] implement a
+ * [ClientCommunicationChannel] that uses a stream and a sink (typically,
+ * standard input and standard output) to communicate with servers.
+ */
+class ByteStreamServerChannel implements ServerCommunicationChannel {
+  final Stream input;
+  final IOSink output;
+
+  ByteStreamServerChannel(this.input, this.output);
+
+  @override
+  void listen(void onRequest(Request request), {Function onError, void
+      onDone()}) {
+    input.transform((new Utf8Codec()).decoder).transform(new LineSplitter()
+        ).listen((String data) => _readRequest(data, onRequest), onError: onError,
+        onDone: onDone);
+  }
+
+  @override
+  void sendNotification(Notification notification) {
+    output.writeln(JSON.encode(notification.toJson()));
+  }
+
+  @override
+  void sendResponse(Response response) {
+    output.writeln(JSON.encode(response.toJson()));
+  }
+
+  /**
+   * Read a request from the given [data] and use the given function to handle
+   * the request.
+   */
+  void _readRequest(Object data, void onRequest(Request request)) {
+    // Parse the string as a JSON descriptor and process the resulting
+    // structure as a request.
+    Request request = new Request.fromString(data);
+    if (request == null) {
+      sendResponse(new Response.invalidRequestFormat());
+      return;
+    }
+    onRequest(request);
+  }
+}
+
+/**
  * Instances of the class [JsonStreamDecoder] convert JSON strings to JSON
  * maps.
  */
