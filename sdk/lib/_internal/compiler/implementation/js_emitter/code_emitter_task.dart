@@ -270,23 +270,23 @@ class CodeEmitterTask extends CompilerTask {
 
   /** Needs defineClass to be defined. */
   List buildInheritFrom() {
-    return [js(r'''
-        var inheritFrom = function() {
-          function tmp() {}
-          var hasOwnProperty = Object.prototype.hasOwnProperty;
-          return function (constructor, superConstructor) {
-            tmp.prototype = superConstructor.prototype;
-            var object = new tmp();
-            var properties = constructor.prototype;
-            for (var member in properties)
-              if (hasOwnProperty.call(properties, member))
-                object[member] = properties[member];
-            object.constructor = constructor;
-            constructor.prototype = object;
-            return object;
-          };
-        }()
-      ''')];
+    return [
+      js('var inheritFrom = #',
+          js.fun([], [
+              new jsAst.FunctionDeclaration(
+                  new jsAst.VariableDeclaration('tmp'), js.fun([], [])),
+              js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+              js.return_(js.fun(['constructor', 'superConstructor'], [
+                  js('tmp.prototype = superConstructor.prototype'),
+                  js('var object = new tmp()'),
+                  js('var properties = constructor.prototype'),
+                  js.forIn('member', 'properties',
+                    js.if_('hasOwnProperty.call(properties, member)',
+                           js('object[member] = properties[member]'))),
+                  js('object.constructor = constructor'),
+                  js('constructor.prototype = object'),
+                  js.return_('object')
+              ]))])())];
   }
 
   jsAst.Fun get finishClassesFunction {
@@ -385,15 +385,13 @@ class CodeEmitterTask extends CompilerTask {
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
-      js.statement('''
-          if (typeof dart_precompiled != "function") {
-            combinedConstructorFunction +=
-               "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]";
-             var constructors =
-              new Function("\$collectedClasses", combinedConstructorFunction)
-              (collectedClasses);
-            combinedConstructorFunction = null;
-          }'''),
+      js.if_('typeof dart_precompiled != "function"',
+          [js('combinedConstructorFunction +='
+              ' "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]"'),
+           js('var constructors ='
+              ' new Function("\$collectedClasses", combinedConstructorFunction)'
+              '(collectedClasses)'),
+           js('combinedConstructorFunction = null')]),
       js.for_('var i = 0', 'i < constructors.length', 'i++', [
         js('var constructor = constructors[i]'),
         js('var cls = constructor.name'),
@@ -420,9 +418,8 @@ class CodeEmitterTask extends CompilerTask {
     nsmEmitter.addTrivialNsmHandlers(statements);
 
     statements.add(
-        js.statement('for (var cls in pendingClasses) finishClass(cls);')
+      js.forIn('cls', 'pendingClasses', js('finishClass(cls)'))
     );
-
     // function(collectedClasses,
     //          isolateProperties,
     //          existingIsolateProperties)
@@ -522,34 +519,32 @@ class CodeEmitterTask extends CompilerTask {
     //
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
-    return js('''
-      function (oldIsolate) {
-        var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
-        function Isolate() {
-          var hasOwnProperty = Object.prototype.hasOwnProperty;
-          for (var staticName in isolateProperties)
-            if (hasOwnProperty.call(isolateProperties, staticName))
-              this[staticName] = isolateProperties[staticName];
-          // Use the newly created object as prototype. In Chrome,
-          // this creates a hidden class for the object and makes
-          // sure it is fast to access.
-          function ForceEfficientMap() {}
-          ForceEfficientMap.prototype = this;
-          new ForceEfficientMap();
-        }
-        Isolate.prototype = oldIsolate.prototype;
-        Isolate.prototype.constructor = Isolate;
-        Isolate.${namer.isolatePropertiesName} = isolateProperties;
-        #
-        #
-        return Isolate;
-      }''',
-      [ optional(needsDefineClass,
-            js('Isolate.$finishClassesProperty ='
-               ' oldIsolate.$finishClassesProperty')),
-        optional(hasMakeConstantList,
-            js('Isolate.makeConstantList = oldIsolate.makeConstantList'))
-      ]);
+    return js.fun('oldIsolate', [
+      js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
+      new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('Isolate'),
+          js.fun([], [
+            js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+            js.forIn('staticName', 'isolateProperties',
+              js.if_('hasOwnProperty.call(isolateProperties, staticName)',
+                js('this[staticName] = isolateProperties[staticName]'))),
+            // Use the newly created object as prototype. In Chrome,
+            // this creates a hidden class for the object and makes
+            // sure it is fast to access.
+            new jsAst.FunctionDeclaration(
+              new jsAst.VariableDeclaration('ForceEfficientMap'),
+              js.fun([], [])),
+            js('ForceEfficientMap.prototype = this'),
+            js('new ForceEfficientMap()')])),
+      js('Isolate.prototype = oldIsolate.prototype'),
+      js('Isolate.prototype.constructor = Isolate'),
+      js('Isolate.${namer.isolatePropertiesName} = isolateProperties'),
+      optional(needsDefineClass,
+               js('Isolate.$finishClassesProperty ='
+                  ' oldIsolate.$finishClassesProperty')),
+      optional(hasMakeConstantList,
+               js('Isolate.makeConstantList = oldIsolate.makeConstantList')),
+      js.return_('Isolate')]);
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -997,38 +992,37 @@ class CodeEmitterTask extends CompilerTask {
    * Emits code that sets `init.isolateTag` to a unique string.
    */
   jsAst.Expression generateIsolateAffinityTagInitialization() {
-    return js('''
-      !function() {
+    return js('!#', js.fun([], [
+
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
-        function intern(s) {
-          var o = {};
-          o[s] = 1;
-          return Object.keys(convertToFastObject(o))[0];
-        }
+        new jsAst.FunctionDeclaration(new jsAst.VariableDeclaration('intern'),
+            js.fun(['s'], [
+                js('var o = {}'),
+                js('o[s] = 1'),
+                js.return_(js('Object.keys(convertToFastObject(o))[0]'))])),
 
-        init.getIsolateTag = function(name) {
-          return intern("___dart_" + name + init.isolateTag);
-        };
+
+        js('init.getIsolateTag = #',
+            js.fun(['name'],
+                js.return_('intern("___dart_" + name + init.isolateTag)'))),
 
         // To ensure that different programs loaded into the same context (page)
         // use distinct dispatch properies, we place an object on `Object` to
         // contain the names already in use.
-        var tableProperty = "___dart_isolate_tags_";
-        var usedProperties = Object[tableProperty] ||
-            (Object[tableProperty] = Object.create(null));
+        js('var tableProperty = "___dart_isolate_tags_"'),
+        js('var usedProperties = Object[tableProperty] ||'
+            '(Object[tableProperty] = Object.create(null))'),
 
-        var rootProperty = "_${generateIsolateTagRoot()}";
-        for (var i = 0; ; i++) {
-          var property = intern(rootProperty + "_" + i + "_");
-          if (!(property in usedProperties)) {
-            usedProperties[property] = 1;
-            init.isolateTag = property;
-            break;
-          }
-        }
-      }()
-    ''');
+        js('var rootProperty = "_${generateIsolateTagRoot()}"'),
+        js.for_('var i = 0', null, 'i++', [
+            js('var property = intern(rootProperty + "_" + i + "_")'),
+            js.if_('!(property in usedProperties)', [
+                js('usedProperties[property] = 1'),
+                js('init.isolateTag = property'),
+                new jsAst.Break(null)])])])
+        ());
+
   }
 
   jsAst.Expression generateDispatchPropertyNameInitialization() {
@@ -1412,12 +1406,7 @@ mainBuffer.add(r'''
           }
         }
         mainBuffer
-            ..write('(')
-            ..write(
-                jsAst.prettyPrint(
-                    getReflectionDataParser(classesCollector, backend),
-                    compiler))
-            ..write(')')
+            ..write(getReflectionDataParser(classesCollector, backend))
             ..write('([$n');
 
         List<Element> sortedElements =
@@ -1675,12 +1664,7 @@ if (typeof $printHelperName === "function") {
                 '$_${namer.isolateName}.prototype$N$n'
                 // The classesCollector object ($$).
                 '$classesCollector$_=$_{};$n')
-        ..write('(')
-        ..write(
-            jsAst.prettyPrint(
-                getReflectionDataParser(classesCollector, backend),
-                compiler))
-        ..write(')')
+        ..write(getReflectionDataParser(classesCollector, backend))
         ..write('([$n')
         ..addBuffer(outputBuffer)
         ..write('])$N');
