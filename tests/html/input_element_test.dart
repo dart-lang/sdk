@@ -143,11 +143,6 @@ main() {
 
     test('number', () {
       check(new NumberInputElement(), 'number', NumberInputElement.supported);
-      if (NumberInputElement.supported) {
-        var element = new NumberInputElement();
-        element.value = '123';
-        expect(element.valueAsNumber, 123);
-      }
     });
 
     test('range', () {
