@@ -6,7 +6,6 @@ library pub.dart2js_transformer;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
@@ -21,7 +20,7 @@ import '../barback.dart';
 import '../dart.dart' as dart;
 import '../pool.dart';
 import '../utils.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
@@ -40,7 +39,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
   static final _pool = new Pool(1);
 
-  final BuildEnvironment _environment;
+  final AssetEnvironment _environment;
   final BarbackSettings _settings;
 
   /// Whether source maps should be generated for the compiled JS.
@@ -56,7 +55,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         "${toSentence(invalidOptions.map((option) => '"$option"'))}.");
   }
 
-  Dart2JSTransformer(BuildEnvironment environment, BarbackMode mode)
+  Dart2JSTransformer(AssetEnvironment environment, BarbackMode mode)
       : this.withSettings(environment, new BarbackSettings({}, mode));
 
   /// Only ".dart" entrypoint files within a buildable directory are processed.
@@ -202,7 +201,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
 class _BarbackCompilerProvider implements dart.CompilerProvider {
   Uri get libraryRoot => Uri.parse("${path.toUri(_libraryRootPath)}/");
 
-  final BuildEnvironment _environment;
+  final AssetEnvironment _environment;
   final Transform _transform;
   String _libraryRootPath;
 
@@ -246,10 +245,10 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // do that by placing them in a special "$sdk" pseudo-package. In order for
     // dart2js to generate the right URLs to point to that package, we give it
     // a library root that corresponds to where that package can be found
-    // relative to the public build directory containing that entrypoint.
+    // relative to the public source directory containing that entrypoint.
     //
     // For example, say the package being compiled is "/dev/myapp", the
-    // entrypoint is "web/sub/foo/bar.dart", and the build directory is
+    // entrypoint is "web/sub/foo/bar.dart", and the source directory is
     // "web/sub". This means the SDK sources will be (conceptually) at:
     //
     //     /dev/myapp/web/sub/packages/$sdk/lib/
@@ -259,7 +258,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     //     $sdk|lib/lib/...
     //
     // TODO(rnystrom): Fix this if #17751 is fixed.
-    var buildDir = _environment.getBuildDirectoryContaining(
+    var buildDir = _environment.getSourceDirectoryContaining(
         _transform.primaryInput.id.path);
     _libraryRootPath = path.join(_environment.rootPackage.dir,
         buildDir, "packages", r"$sdk");

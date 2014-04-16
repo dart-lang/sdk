@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.barback.build_environment;
+library pub.barback.asset_environment;
 
 import 'dart:async';
 import 'dart:io';
@@ -19,20 +19,21 @@ import '../package.dart';
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
 import 'admin_server.dart';
-import 'build_directory.dart';
+import 'barback_server.dart';
 import 'dart_forwarding_transformer.dart';
 import 'dart2js_transformer.dart';
 import 'load_all_transformers.dart';
 import 'pub_package_provider.dart';
-import 'barback_server.dart';
+import 'source_directory.dart';
 
 /// The entire "visible" state of the assets of a package and all of its
 /// dependencies, taking into account the user's configuration when running pub.
 ///
 /// Where [PackageGraph] just describes the entrypoint's dependencies as
 /// specified by pubspecs, this includes "transient" information like the mode
-/// that the user is running pub in, or which directories they want to build.
-class BuildEnvironment {
+/// that the user is running pub in, or which directories they want to
+/// transform.
+class AssetEnvironment {
   /// Creates a new build environment for working with the assets used by
   /// [entrypoint] and its dependencies.
   ///
@@ -53,7 +54,7 @@ class BuildEnvironment {
   ///
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
-  static Future<BuildEnvironment> create(Entrypoint entrypoint,
+  static Future<AssetEnvironment> create(Entrypoint entrypoint,
       String hostname, int basePort, BarbackMode mode, WatcherType watcherType,
       {bool useDart2JS: true}) {
     return entrypoint.loadPackageGraph().then((graph) {
@@ -61,7 +62,7 @@ class BuildEnvironment {
       var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
-      var environment = new BuildEnvironment._(graph, barback, mode,
+      var environment = new AssetEnvironment._(graph, barback, mode,
           watcherType, hostname, basePort);
 
       return environment._load(useDart2JS: useDart2JS)
@@ -72,9 +73,9 @@ class BuildEnvironment {
   /// The server for the Web Socket API and admin interface.
   AdminServer _adminServer;
 
-  /// The public directories in the root package that are available for
-  /// building, keyed by their root directory.
-  final _directories = new Map<String, BuildDirectory>();
+  /// The public directories in the root package that are included in the asset
+  /// environment, keyed by their root directory.
+  final _directories = new Map<String, SourceDirectory>();
 
   /// The [Barback] instance used to process assets in this environment.
   final Barback barback;
@@ -120,7 +121,7 @@ class BuildEnvironment {
   /// go to barback immediately.
   Set<AssetId> _modifiedSources;
 
-  BuildEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
+  AssetEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
       this._hostname, this._basePort);
 
   /// Gets the built-in [Transformer]s that should be added to [package].
@@ -190,14 +191,14 @@ class BuildEnvironment {
       }
     }
 
-    var buildDirectory = new BuildDirectory(
+    var sourceDirectory = new SourceDirectory(
         this, rootDirectory, _hostname, port);
-    _directories[rootDirectory] = buildDirectory;
+    _directories[rootDirectory] = sourceDirectory;
 
     return _provideDirectorySources(rootPackage, rootDirectory)
         .then((subscription) {
-      buildDirectory.watchSubscription = subscription;
-      return buildDirectory.serve();
+      sourceDirectory.watchSubscription = subscription;
+      return sourceDirectory.serve();
     });
   }
 
@@ -213,20 +214,18 @@ class BuildEnvironment {
 
     return directory.server.then((server) {
       var url = server.url;
-      return directory.close().then((_) {
-        // Remove the sources from barback, unless some other build directory
-        // includes them.
-        return _removeDirectorySources(rootDirectory);
-      }).then((_) => url);
+      return directory.close()
+          .then((_) => _removeDirectorySources(rootDirectory))
+          .then((_) => url);
     });
   }
 
-  /// Gets the build directory that contains [assetPath] within the entrypoint
+  /// Gets the source directory that contains [assetPath] within the entrypoint
   /// package.
   ///
-  /// If [assetPath] is not contained within a build directory, this will
-  /// throw an exception.
-  String getBuildDirectoryContaining(String assetPath) =>
+  /// If [assetPath] is not contained within a source directory, this throws
+  /// an exception.
+  String getSourceDirectoryContaining(String assetPath) =>
       _directories.values
           .firstWhere((dir) => path.isWithin(dir.directory, assetPath))
           .directory;
@@ -496,16 +495,9 @@ class BuildEnvironment {
     });
   }
 
-  /// Removes all of the files in [dir] in the root package from barback unless
-  /// some other build directory still contains them.
+  /// Removes all of the files in [dir] in the root package from barback.
   Future _removeDirectorySources(String dir) {
-    return _listDirectorySources(rootPackage, dir, where: (relative) {
-      // TODO(rnystrom): This is O(n*m) where n is the number of files and
-      // m is the number of served directories. Consider something more
-      // optimal if this becomes a bottleneck.
-      // Don't remove a source if some other directory still includes it.
-      return !_directories.keys.any((dir) => path.isWithin(dir, relative));
-    }).then((ids) {
+    return _listDirectorySources(rootPackage, dir).then((ids) {
       if (_modifiedSources == null) {
         barback.removeSources(ids);
       } else {
@@ -519,12 +511,7 @@ class BuildEnvironment {
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  ///
-  /// If [where] is given, then it is used to filter the resulting list of
-  /// packages. Only assets whose relative path within [package] matches that
-  /// will be included in the results.
-  Future<List<AssetId>> _listDirectorySources(Package package, String dir,
-      {bool where(String relativePath)}) {
+  Future<List<AssetId>> _listDirectorySources(Package package, String dir) {
     var subdirectory = path.join(package.dir, dir);
     if (!dirExists(subdirectory)) return new Future.value([]);
 
@@ -555,8 +542,6 @@ class BuildEnvironment {
       if (relative.endsWith(".dart.js")) return [];
       if (relative.endsWith(".dart.js.map")) return [];
       if (relative.endsWith(".dart.precompiled.js")) return [];
-
-      if (where != null && !where(relative)) return [];
 
       return [new AssetId(package.name, relative)];
     }).toList();

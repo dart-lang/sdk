@@ -13,12 +13,12 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
 import '../utils.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 
 /// Base class for a pub-controlled server.
 abstract class BaseServer<T> {
   /// The [BuildEnvironment] being served.
-  final BuildEnvironment environment;
+  final AssetEnvironment environment;
 
   /// The underlying HTTP server.
   final HttpServer _server;

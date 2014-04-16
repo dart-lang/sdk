@@ -16,7 +16,7 @@ import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'base_server.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 
 /// Callback for determining if an asset with [id] should be served or not.
 typedef bool AllowAsset(AssetId id);
@@ -44,7 +44,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   ///
   /// This server will serve assets from [barback], and use [rootDirectory] as
   /// the root directory.
-  static Future<BarbackServer> bind(BuildEnvironment environment,
+  static Future<BarbackServer> bind(AssetEnvironment environment,
       String host, int port, String rootDirectory) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
       log.fine('Bound "$rootDirectory" to $host:$port.');
@@ -52,7 +52,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
     });
   }
 
-  BarbackServer._(BuildEnvironment environment, HttpServer server,
+  BarbackServer._(AssetEnvironment environment, HttpServer server,
       this.rootDirectory)
       : super(environment, server);
 

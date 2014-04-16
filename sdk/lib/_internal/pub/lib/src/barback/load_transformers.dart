@@ -9,21 +9,19 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
-// TODO(nweiz): don't import from "src" once issue 14966 is fixed.
-import 'package:barback/src/internal_asset.dart';
 
 import '../../../asset/dart/serialize.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 import 'excluding_transformer.dart';
 import 'barback_server.dart';
 
 /// Load and return all transformers and groups from the library identified by
 /// [id].
-Future<Set> loadTransformers(BuildEnvironment environment,
+Future<Set> loadTransformers(AssetEnvironment environment,
     BarbackServer transformerServer, TransformerId id) {
   return id.getAssetId(environment.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
