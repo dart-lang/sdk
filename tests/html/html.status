@@ -11,6 +11,7 @@ custom/template_wrappers_test: Pass # Issue 16656 Override others
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
+custom/element_upgrade_test: Fail # Issue 17298
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
