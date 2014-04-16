@@ -60,26 +60,28 @@ class Driver {
       _printUsage(parser);
       return;
     }
-    if (results[PORT_OPTION] == null) {
-      print('Missing required port number');
-      print('');
-      _printUsage(parser);
-      exitCode = 1;
-      return;
+    int port;
+    bool serve_http = false;
+    if (results[PORT_OPTION] != null) {
+      serve_http = true;
+      try {
+        port = int.parse(results[PORT_OPTION]);
+      } on FormatException {
+        print('Invalid port number: ${results[PORT_OPTION]}');
+        print('');
+        _printUsage(parser);
+        exitCode = 1;
+        return;
+      }
     }
 
-    try {
-      int port = int.parse(results[PORT_OPTION]);
+    if (serve_http) {
       httpServer.serveHttp(port);
-    } on FormatException {
-      print('Invalid port number: ${results[PORT_OPTION]}');
-      print('');
-      _printUsage(parser);
-      exitCode = 1;
-      return;
     }
     stdioServer.serveStdio().then((_) {
-      httpServer.close();
+      if (serve_http) {
+        httpServer.close();
+      }
     });
   }
 
