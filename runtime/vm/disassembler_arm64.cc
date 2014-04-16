@@ -85,8 +85,8 @@ void ARM64Decoder::Print(const char* str) {
 static const char* reg_names[kNumberOfCpuRegisters] = {
   "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",
   "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-  "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-  "r24", "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "r31",
+  "ip0", "ip1", "r18", "r19", "r20", "r21", "r22", "r23",
+  "r24", "r25", "r26", "pp",  "ctx", "fp",  "lr",  "r31",
 };
 
 
@@ -378,16 +378,27 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       return 5;
     }
     case 'p': {
-      ASSERT(STRING_STARTS_WITH(format, "pcrel"));
-      const int64_t immhi = instr->SImm19Field();
-      const int64_t immlo = instr->Bits(29, 2);
-      const int64_t off = (immhi << 2) | immlo;
-      const int64_t pc = reinterpret_cast<int64_t>(instr);
-      const int64_t dest = pc + off;
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "0x%"Px64,
-                                 dest);
+      if (format[2] == 'a') {
+        ASSERT(STRING_STARTS_WITH(format, "pcadr"));
+        const int64_t immhi = instr->SImm19Field();
+        const int64_t immlo = instr->Bits(29, 2);
+        const int64_t off = (immhi << 2) | immlo;
+        const int64_t pc = reinterpret_cast<int64_t>(instr);
+        const int64_t dest = pc + off;
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   dest);
+      } else {
+        ASSERT(STRING_STARTS_WITH(format, "pcldr"));
+        const int64_t off = instr->SImm19Field() << 2;
+        const int64_t pc = reinterpret_cast<int64_t>(instr);
+        const int64_t dest = pc + off;
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   dest);
+      }
       return 5;
     }
     case 'r': {
@@ -498,6 +509,19 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
+  if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) ||
+      (instr->Bits(24, 3) != 0)) {
+    Unknown(instr);
+  }
+  if (instr->Bit(30)) {
+    Format(instr, "ldrx 'rt, 'pcldr");
+  } else {
+    Format(instr, "ldrw 'rt, 'pcldr");
+  }
+}
+
+
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
@@ -558,7 +582,7 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
 void ARM64Decoder::DecodePCRel(Instr* instr) {
   const int op = instr->Bit(31);
   if (op == 0) {
-    Format(instr, "adr 'rd, 'pcrel");
+    Format(instr, "adr 'rd, 'pcadr");
   } else {
     Unknown(instr);
   }
@@ -692,6 +716,8 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
+  } else if (instr->IsLoadRegLiteralOp()) {
+    DecodeLoadRegLiteral(instr);
   } else {
     Unknown(instr);
   }

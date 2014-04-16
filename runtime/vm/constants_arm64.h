@@ -109,8 +109,8 @@ const FpuRegister kNoFpuRegister = kNoVRegister;
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register CTX = R27;  // Caches current context in generated code.
-const Register PP = R26;  // Caches object pool pointer in generated code.
+const Register CTX = R28;  // Caches current context in generated code.
+const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register SPREG = R31;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register ICREG = R5;  // IC data register.
@@ -321,6 +321,13 @@ enum LoadStoreRegOp {
   LDR = LoadStoreRegFixed | B22,
 };
 
+// C3.3.5
+enum LoadRegLiteralOp {
+  LoadRegLiteralMask = 0x3b000000,
+  LoadRegLiteralFixed = LoadStoreFixed | B28,
+  LDRpc = LoadRegLiteralFixed,
+};
+
 // C3.4.1
 enum AddSubImmOp {
   AddSubImmMask = 0x1f000000,
@@ -411,6 +418,7 @@ _V(TestAndBranch)                                                              \
 _V(UnconditionalBranch)                                                        \
 _V(UnconditionalBranchReg)                                                     \
 _V(LoadStoreReg)                                                               \
+_V(LoadRegLiteral)                                                             \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \

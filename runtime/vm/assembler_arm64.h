@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm64.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -87,6 +88,8 @@ class Address : public ValueObject {
     PreIndex,
     PostIndex,
     Reg,
+    PCOffset,
+    Unknown,
   };
 
   // Offset is in bytes. For the unsigned imm12 case, we unscale based on the
@@ -117,8 +120,31 @@ class Address : public ValueObject {
     base_ = crn;
   }
 
-  // TODO(zra): Write CanHoldOffset(int32_t off, AddressType, OperandSize).
-  // TODO(zra): Write constructor for PC-relative load address.
+  static bool CanHoldOffset(int32_t offset, AddressType at = Offset,
+                            OperandSize sz = kDoubleWord) {
+    if (at == Offset) {
+      // Fits in 12 bit unsigned and right alignment for sz.
+      const int32_t scale = Log2OperandSizeBytes(sz);
+      return Utils::IsUint(12 + scale, offset) &&
+             (offset == ((offset >> scale) << scale));
+    } else if (at == PCOffset) {
+      return Utils::IsInt(21, offset) &&
+             (offset == ((offset >> 2) << 2));
+    } else {
+      ASSERT((at == PreIndex) || (at == PostIndex));
+      return Utils::IsInt(9, offset);
+    }
+  }
+
+  // PC-relative load address.
+  static Address PC(int32_t pc_off) {
+    ASSERT(CanHoldOffset(pc_off, PCOffset));
+    Address addr;
+    addr.encoding_ = (((pc_off >> 2) & kImm19Mask) << kImm19Shift);
+    addr.base_ = kNoRegister;
+    addr.type_ = PCOffset;
+    return addr;
+  }
 
   // Base register rn with offset rm. rm is sign-extended according to ext.
   // If ext is UXTX, rm may be optionally scaled by the
@@ -145,6 +171,8 @@ class Address : public ValueObject {
   AddressType type() const { return type_; }
   Register base() const { return base_; }
 
+  Address() : encoding_(0), type_(Unknown), base_(kNoRegister) {}
+
   uint32_t encoding_;
   AddressType type_;
   Register base_;
@@ -169,6 +197,14 @@ class FieldAddress : public Address {
 
 class Operand : public ValueObject {
  public:
+  enum OperandType {
+    Shifted,
+    Extended,
+    Immediate,
+    BitfieldImm,
+    Unknown,
+  };
+
   // Data-processing operand - Uninitialized.
   Operand() : encoding_(-1), type_(Unknown) { }
 
@@ -225,7 +261,7 @@ class Operand : public ValueObject {
 
   // Encodes the value of an immediate for a logical operation.
   // Since these values are difficult to craft by hand, instead pass the
-  // logical mask to the function Assembler::IsImmLogical to get n, imm_s, and
+  // logical mask to the function IsImmLogical to get n, imm_s, and
   // imm_r.
   Operand(uint8_t n, int8_t imm_s, int8_t imm_r) {
     ASSERT((n == 1) || (n == 0));
@@ -237,13 +273,37 @@ class Operand : public ValueObject {
       (static_cast<int32_t>(imm_r) << kImmRShift);
   }
 
-  enum OperandType {
-    Shifted,
-    Extended,
-    Immediate,
-    BitfieldImm,
-    Unknown,
-  };
+  // Test if a given value can be encoded in the immediate field of a logical
+  // instruction.
+  // If it can be encoded, the function returns true, and values pointed to by
+  // n, imm_s and imm_r are updated with immediates encoded in the format
+  // required by the corresponding fields in the logical instruction.
+  // If it can't be encoded, the function returns false, and the operand is
+  // undefined.
+  static bool IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op);
+
+  // An immediate imm can be an operand to add/sub when the return value is
+  // Immediate, or a logical operation over sz bits when the return value is
+  // BitfieldImm. If the return value is Unknown, then the immediate can't be
+  // used as an operand in either instruction. The encoded operand is written
+  // to op.
+  static OperandType CanHold(int64_t imm, uint8_t sz, Operand* op) {
+    ASSERT(op != NULL);
+    ASSERT((sz == kXRegSizeInBits) || (sz == kWRegSizeInBits));
+    if (Utils::IsUint(12, imm)) {
+      op->encoding_ = imm << kImm12Shift;
+      op->type_ = Immediate;
+    } else if (((imm & 0xfff) == 0) && (Utils::IsUint(12, imm >> 12))) {
+      op->encoding_ = B22 | ((imm >> 12) << kImm12Shift);
+      op->type_ = Immediate;
+    } else if (IsImmLogical(imm, sz, op)) {
+      op->type_ = BitfieldImm;
+    } else {
+      op->encoding_ = 0;
+      op->type_ = Unknown;
+    }
+    return op->type_;
+  }
 
  private:
   uint32_t encoding() const {
@@ -262,12 +322,7 @@ class Operand : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        object_pool_(GrowableObjectArray::Handle()),
-        prologue_offset_(-1),
-        use_far_branches_(use_far_branches),
-        comments_() { }
+  explicit Assembler(bool use_far_branches = false);
   ~Assembler() { }
 
   void PopRegister(Register r) {
@@ -364,25 +419,25 @@ class Assembler : public ValueObject {
   // sequence on failure.
   void andi(Register rd, Register rn, uint64_t imm) {
     Operand imm_op;
-    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDI, rd, rn, imm_op, kDoubleWord);
   }
   void orri(Register rd, Register rn, uint64_t imm) {
     Operand imm_op;
-    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ORRI, rd, rn, imm_op, kDoubleWord);
   }
   void eori(Register rd, Register rn, uint64_t imm) {
     Operand imm_op;
-    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(EORI, rd, rn, imm_op, kDoubleWord);
   }
   void andis(Register rd, Register rn, uint64_t imm) {
     Operand imm_op;
-    const bool immok = IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kDoubleWord);
   }
@@ -434,17 +489,17 @@ class Assembler : public ValueObject {
   }
 
   // Move wide immediate.
-  void movk(Register rd, int32_t imm, int32_t hw_idx) {
+  void movk(Register rd, uint16_t imm, int hw_idx) {
     ASSERT(rd != SP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVK, crd, imm, hw_idx, kDoubleWord);
   }
-  void movn(Register rd, int32_t imm, int32_t hw_idx) {
+  void movn(Register rd, uint16_t imm, int hw_idx) {
     ASSERT(rd != SP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVN, crd, imm, hw_idx, kDoubleWord);
   }
-  void movz(Register rd, int32_t imm, int32_t hw_idx) {
+  void movz(Register rd, uint16_t imm, int hw_idx) {
     ASSERT(rd != SP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
@@ -452,13 +507,17 @@ class Assembler : public ValueObject {
 
   // Loads and Stores.
   void ldr(Register rt, Address a) {
-    // If we are doing pre-/post-indexing, and the base and result registers
-    // are the same, then the result of the load will be clobbered by the
-    // writeback, which is unlikely to be useful.
-    ASSERT(((a.type() != Address::PreIndex) &&
-            (a.type() != Address::PostIndex)) ||
-           (rt != a.base()));
-    EmitLoadStoreReg(LDR, rt, a, kDoubleWord);
+    if (a.type() == Address::PCOffset) {
+      EmitLoadRegLiteral(LDRpc, rt, a, kDoubleWord);
+    } else {
+      // If we are doing pre-/post-indexing, and the base and result registers
+      // are the same, then the result of the load will be clobbered by the
+      // writeback, which is unlikely to be useful.
+      ASSERT(((a.type() != Address::PreIndex) &&
+              (a.type() != Address::PostIndex)) ||
+             (rt != a.base()));
+      EmitLoadStoreReg(LDR, rt, a, kDoubleWord);
+    }
   }
   void str(Register rt, Address a) {
     EmitLoadStoreReg(STR, rt, a, kDoubleWord);
@@ -513,10 +572,85 @@ class Assembler : public ValueObject {
   void mul(Register rd, Register rn, Register rm) {
     madd(rd, rn, rm, ZR);
   }
+  void Push(Register reg) {
+    str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+  void Pop(Register reg) {
+    ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
+
+  // Object pool, loading from pool, etc.
+  void LoadPoolPointer(Register pp) {
+    const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
+    // PP <- Read(PC - object_pool_pc_dist).
+    ldr(pp, Address::PC(-object_pool_pc_dist));
+  }
+
+  enum Patchability {
+    kPatchable,
+    kNotPatchable,
+  };
+
+  void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
+  intptr_t FindObject(const Object& obj, Patchability patchable);
+  intptr_t FindImmediate(int64_t imm);
+  bool CanLoadObjectFromPool(const Object& object);
+  bool CanLoadImmediateFromPool(int64_t imm, Register pp);
+  void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadImmediate(Register reg, int64_t imm, Register pp);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
+
+  // Objects and patchable jump targets.
+  GrowableObjectArray& object_pool_;
+
+  // Patchability of pool entries.
+  GrowableArray<Patchability> patchable_pool_entries_;
+
+  // Pair type parameter for DirectChainedHashMap.
+  class ObjIndexPair {
+   public:
+    // TODO(zra): A WeakTable should be used here instead, but then it would
+    // also have to be possible to register and de-register WeakTables with the
+    // heap. Also, the Assembler would need to become a StackResource.
+    // Issue 13305. In the meantime...
+    // CAUTION: the RawObject* below is only safe because:
+    // The HashMap that will use this pair type will not contain any RawObject*
+    // keys that are not in the object_pool_ array. Since the keys will be
+    // visited by the GC when it visits the object_pool_, and since all objects
+    // in the object_pool_ are Old (and so will not be moved) the GC does not
+    // also need to visit the keys here in the HashMap.
+
+    // Typedefs needed for the DirectChainedHashMap template.
+    typedef RawObject* Key;
+    typedef intptr_t Value;
+    typedef ObjIndexPair Pair;
+
+    ObjIndexPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(Pair kv) { return kv.key_; }
+
+    static Value ValueOf(Pair kv) { return kv.value_; }
+
+    static intptr_t Hashcode(Key key) {
+      return reinterpret_cast<intptr_t>(key) >> kObjectAlignmentLog2;
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return kv.key_ == key;
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  // Hashmap for fast lookup in object pool.
+  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+
   int32_t prologue_offset_;
 
   bool use_far_branches_;
@@ -537,8 +671,6 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
-
-  bool IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op);
 
   void AddSubHelper(OperandSize os, bool set_flags, bool subtract,
                     Register rd, Register rn, Operand o) {
@@ -680,17 +812,16 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitMoveWideOp(MoveWideOp op, Register rd, int32_t imm, int32_t hw_idx,
+  void EmitMoveWideOp(MoveWideOp op, Register rd, uint16_t imm, int hw_idx,
                       OperandSize sz) {
-    ASSERT(Utils::IsUint(16, imm));
     ASSERT((hw_idx >= 0) && (hw_idx <= 3));
     ASSERT((sz == kDoubleWord) || (sz == kWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoding =
         op | size |
         (static_cast<int32_t>(rd) << kRdShift) |
-        (hw_idx << kHWShift) |
-        (imm << kImm16Shift);
+        (static_cast<int32_t>(hw_idx) << kHWShift) |
+        (static_cast<int32_t>(imm) << kImm16Shift);
     Emit(encoding);
   }
 
@@ -699,6 +830,17 @@ class Assembler : public ValueObject {
     const int32_t size = Log2OperandSizeBytes(sz);
     const int32_t encoding =
         op | (size << kSzShift) |
+        (static_cast<int32_t>(rt) << kRtShift) |
+        a.encoding();
+    Emit(encoding);
+  }
+
+  void EmitLoadRegLiteral(LoadRegLiteralOp op, Register rt, Address a,
+                          OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B30 : 0;
+    const int32_t encoding =
+        op | size |
         (static_cast<int32_t>(rt) << kRtShift) |
         a.encoding();
     Emit(encoding);

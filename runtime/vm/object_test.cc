@@ -4,7 +4,6 @@
 
 // TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
@@ -2498,7 +2497,7 @@ TEST_CASE(Code) {
   intptr_t retval = 0;
 #if defined(USING_SIMULATOR)
   retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+      static_cast<intptr_t>(entry_point), 0, 0, 0, 0));
 #else
   typedef intptr_t (*IncrementCode)();
   retval = reinterpret_cast<IncrementCode>(entry_point)();
@@ -2523,7 +2522,7 @@ TEST_CASE(CodeImmutability) {
   intptr_t retval = 0;
 #if defined(USING_SIMULATOR)
   retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+      static_cast<intptr_t>(entry_point), 0, 0, 0, 0));
 #else
   typedef intptr_t (*IncrementCode)();
   retval = reinterpret_cast<IncrementCode>(entry_point)();
@@ -2551,7 +2550,7 @@ TEST_CASE(EmbedStringInCode) {
   uword retval = 0;
 #if defined(USING_SIMULATOR)
   retval = bit_copy<uword, int64_t>(Simulator::Current()->Call(
-      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
 #else
   typedef uword (*EmbedStringCode)();
   retval = reinterpret_cast<EmbedStringCode>(instructions.EntryPoint())();
@@ -2578,7 +2577,7 @@ TEST_CASE(EmbedSmiInCode) {
   intptr_t retval = 0;
 #if defined(USING_SIMULATOR)
   retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
 #else
   typedef intptr_t (*EmbedSmiCode)();
   retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
@@ -2600,7 +2599,7 @@ TEST_CASE(EmbedSmiIn64BitCode) {
   intptr_t retval = 0;
 #if defined(USING_SIMULATOR)
   retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
 #else
   typedef intptr_t (*EmbedSmiCode)();
   retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
@@ -2993,6 +2992,9 @@ TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+
 TEST_CASE(StackTraceFormat) {
   const char* kScriptChars =
       "void baz() {\n"
@@ -3053,6 +3055,7 @@ TEST_CASE(StackTraceFormat) {
       "#10     main (dart:test-lib:37:24)");
 }
 
+#endif  // !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
@@ -3461,6 +3464,9 @@ TEST_CASE(MirrorReference) {
 }
 
 
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
@@ -3600,6 +3606,8 @@ TEST_CASE(FindFunctionIndex) {
   EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
 }
 
+#endif  // !defined(TARGET_ARCH_ARM64)
+
 
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
@@ -3679,6 +3687,9 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   EXPECT_EQ(bad_invocation_dispatcher_index, -1);
 }
 
+
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
 
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
@@ -3885,6 +3896,8 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(!func_b.IsInlineable());
 }
 
+#endif  // !defined(TARGET_ARCH_ARM64)
+
 
 TEST_CASE(SpecialClassesHaveEmptyArrays) {
   ObjectStore* object_store = Isolate::Current()->object_store();
@@ -3916,6 +3929,9 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(array.IsArray());
 }
 
+
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(ToUserCString) {
   const char* kScriptChars =
@@ -4012,6 +4028,6 @@ TEST_CASE(PrintToJSONStream) {
   heap->IterateObjects(&verifier);
 }
 
-}  // namespace dart
-
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+}  // namespace dart

@@ -872,9 +872,32 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
 }
 
 
+void Simulator::DecodeLoadRegLiteral(Instr* instr) {
+  if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) ||
+      (instr->Bits(24, 3) != 0)) {
+    UnimplementedInstruction(instr);
+  }
+
+  const Register rt = instr->RtField();
+  const int64_t off = instr->SImm19Field() << 2;
+  const int64_t pc = reinterpret_cast<int64_t>(instr);
+  const int64_t address = pc + off;
+  const int64_t val = ReadX(address, instr);
+  if (instr->Bit(30)) {
+    // Format(instr, "ldrx 'rt, 'pcldr");
+    set_register(rt, val, R31IsZR);
+  } else {
+    // Format(instr, "ldrw 'rt, 'pcldr");
+    set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+  }
+}
+
+
 void Simulator::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
+  } else if (instr->IsLoadRegLiteralOp()) {
+    DecodeLoadRegLiteral(instr);
   } else {
     UnimplementedInstruction(instr);
   }

@@ -1064,6 +1064,227 @@ ASSEMBLER_TEST_RUN(Mult_neg, test) {
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
+
+// Loading immediate values without the object pool.
+ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
+  __ LoadImmediate(R0, 42, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateSmall, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMed, assembler) {
+  __ LoadImmediate(R0, 0xf1234123, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMed, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMed2, assembler) {
+  __ LoadImmediate(R0, 0x4321f1234123, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMed2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0x4321f1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateLarge, assembler) {
+  __ LoadImmediate(R0, 0x9287436598237465, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateLarge, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateSmallNeg, assembler) {
+  __ LoadImmediate(R0, -42, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateSmallNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg, assembler) {
+  __ LoadImmediate(R0, -0x1212341234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1212341234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg2, assembler) {
+  __ LoadImmediate(R0, -0x1212340000, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1212340000, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg3, assembler) {
+  __ LoadImmediate(R0, -0x1200001234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg3, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1200001234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg4, assembler) {
+  __ LoadImmediate(R0, -0x12341234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x12341234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Loading immediate values with the object pool.
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 42, PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0xf1234123, PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0x4321f1234124, PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0x4321f1234124, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0x9287436598237465, PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// LoadObject null.
+ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Object::null_object(), PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Object::null()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Bool::True(), PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::True().raw()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
+  __ Push(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Bool::False(), PP);
+  __ Pop(PP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::False().raw()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)
