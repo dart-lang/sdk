@@ -3295,6 +3295,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
+  // TODO(turnidge): Consider dropping this function and making
+  // everybody use owner().  Currently this function is misused - even
+  // while generating the snapshot.
   RawFunction* function() const {
     return reinterpret_cast<RawFunction*>(raw_ptr()->owner_);
   }
@@ -3465,6 +3468,8 @@ class Context : public Object {
     return *InstanceAddr(context_index);
   }
   inline void SetAt(intptr_t context_index, const Instance& value) const;
+
+  void Dump(int indent = 0) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;

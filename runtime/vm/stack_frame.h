@@ -56,8 +56,7 @@ class StackFrame : public ValueObject {
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Print a frame.
-  virtual void Print() const;
+  const char* ToCString() const;
 
   // Check validity of a frame, used for assertion purposes.
   virtual bool IsValid() const;

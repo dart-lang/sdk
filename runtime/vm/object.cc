@@ -10186,6 +10186,9 @@ const char* LocalVarDescriptors::ToCString() const {
       "%2" Pd " kind=%d scope=0x%04x begin=%" Pd " end=%" Pd " name=%s\n";
   for (intptr_t i = 0; i < Length(); i++) {
     String& var_name = String::Handle(GetName(i));
+    if (var_name.IsNull()) {
+      var_name = Symbols::Empty().raw();
+    }
     RawLocalVarDescriptors::VarInfo info;
     GetInfo(i, &info);
     len += OS::SNPrint(NULL, 0, kFormat,
@@ -10200,6 +10203,9 @@ const char* LocalVarDescriptors::ToCString() const {
   intptr_t num_chars = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     String& var_name = String::Handle(GetName(i));
+    if (var_name.IsNull()) {
+      var_name = Symbols::Empty().raw();
+    }
     RawLocalVarDescriptors::VarInfo info;
     GetInfo(i, &info);
     num_chars += OS::SNPrint((buffer + num_chars),
@@ -11197,22 +11203,49 @@ const char* Context::ToCString() const {
   if (IsNull()) {
     return "Context (Null)";
   }
+  Zone* zone = Isolate::Current()->current_zone();
   const Context& parent_ctx = Context::Handle(parent());
   if (parent_ctx.IsNull()) {
-    const char* kFormat = "Context num_variables:% " Pd "";
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat, num_variables()) + 1;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, kFormat, num_variables());
-    return chars;
+    return zone->PrintToString("Context@%p num_variables:% " Pd "",
+                               this->raw(), num_variables());
   } else {
     const char* parent_str = parent_ctx.ToCString();
-    const char* kFormat = "Context num_variables:% " Pd " parent:{ %s }";
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                               num_variables(), parent_str) + 1;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, kFormat, num_variables(), parent_str);
-    return chars;
+    return zone->PrintToString(
+        "Context@%p num_variables:% " Pd " parent:{ %s }",
+        this->raw(), num_variables(), parent_str);
   }
+}
+
+
+static void IndentN(int count) {
+  for (int i = 0; i < count; i++) {
+    OS::PrintErr(" ");
+  }
+}
+
+
+void Context::Dump(int indent) const {
+  if (IsNull()) {
+    IndentN(indent);
+    OS::PrintErr("Context@null\n");
+    return;
+  }
+
+  IndentN(indent);
+  OS::PrintErr("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < num_variables(); i++) {
+    IndentN(indent + 2);
+    obj = At(i);
+    OS::PrintErr("[%" Pd "] = %s\n", i, obj.ToCString());
+  }
+
+  const Context& parent_ctx = Context::Handle(parent());
+  if (!parent_ctx.IsNull()) {
+    parent_ctx.Dump(indent + 2);
+  }
+  IndentN(indent);
+  OS::PrintErr("}\n");
 }
 
 

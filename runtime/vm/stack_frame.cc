@@ -26,8 +26,30 @@ bool StackFrame::IsStubFrame() const {
 }
 
 
-void StackFrame::Print() const {
-  OS::Print("[%-8s : sp(%#" Px ") ]\n", GetName(), sp());
+const char* StackFrame::ToCString() const {
+  Zone* zone = Isolate::Current()->current_zone();
+  if (IsDartFrame()) {
+    const Code& code = Code::Handle(LookupDartCode());
+    ASSERT(!code.IsNull());
+    const Object& owner = Object::Handle(code.owner());
+    ASSERT(!owner.IsNull());
+    if (owner.IsFunction()) {
+      const Function& function = Function::Cast(owner);
+      return zone->PrintToString(
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]",
+          GetName(), sp(), fp(), pc(),
+          function.ToFullyQualifiedCString());
+    } else {
+      return zone->PrintToString(
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]",
+          GetName(), sp(), fp(), pc(),
+          owner.ToCString());
+    }
+  } else {
+    return zone->PrintToString(
+        "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ")]",
+        GetName(), sp(), fp(), pc());
+  }
 }
 
 

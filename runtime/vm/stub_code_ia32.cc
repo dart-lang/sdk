@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
 
 
 // Input parameters:
@@ -51,6 +52,19 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ movl(Address(EAX, Isolate::top_exit_frame_info_offset()), ESP);
+
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EAX, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: call to runtime stub");
+    __ Bind(&ok);
+  }
+#endif
 
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EAX, Isolate::top_context_offset()), CTX);
@@ -160,6 +174,20 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // to transition to dart VM code.
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
 
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: "
+            "call to native c function stub");
+    __ Bind(&ok);
+  }
+#endif
+
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
 
@@ -258,6 +286,20 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
+
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: "
+            "call to bootstrap c function stub");
+    __ Bind(&ok);
+  }
+#endif
 
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
@@ -761,6 +803,18 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(kSavedContextSlotFromEntryFp == -6);
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
+
+  // TODO(turnidge): This code should probably be emitted all the time
+  // on all architectures but I am leaving it under DEBUG/flag for
+  // now.
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    // Clear Context pointer in Isolate structure.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ movl(Address(EDI, Isolate::top_context_offset()), raw_null);
+  }
+#endif
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));

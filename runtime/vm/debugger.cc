@@ -28,6 +28,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
+DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
+            "Trace debugger stacktrace collection");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -449,6 +451,10 @@ RawContext* ActivationFrame::GetSavedEntryContext() {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
+      if (FLAG_trace_debugger_stacktrace) {
+        OS::PrintErr("\tFound saved entry ctx at index %" Pd "\n",
+                     var_info.index);
+      }
       return GetLocalContextVar(var_info.index);
     }
   }
@@ -467,6 +473,10 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      if (FLAG_trace_debugger_stacktrace) {
+        OS::PrintErr("\tFound saved current ctx at index %" Pd "\n",
+                     var_info.index);
+      }
       return GetLocalContextVar(var_info.index);
     }
   }
@@ -628,6 +638,52 @@ RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
 }
 
 
+void ActivationFrame::PrintContextMismatchError(
+    const String& var_name,
+    intptr_t ctx_slot,
+    intptr_t frame_ctx_level,
+    intptr_t var_ctx_level) {
+  OS::PrintErr("-------------------------\n"
+               "Encountered context mismatch\n"
+               "\tvar name: %s\n"
+               "\tctx_slot: %" Pd "\n"
+               "\tframe_ctx_level: %" Pd "\n"
+               "\tvar_ctx_level: %" Pd "\n\n",
+               var_name.ToCString(),
+               ctx_slot,
+               frame_ctx_level,
+               var_ctx_level);
+
+  OS::PrintErr("-------------------------\n"
+               "Current frame:\n%s\n",
+               this->ToCString());
+
+  OS::PrintErr("-------------------------\n"
+               "Context contents:\n");
+  ctx_.Dump(8);
+
+  OS::PrintErr("-------------------------\n"
+               "Debugger stack trace...\n\n");
+  DebuggerStackTrace* stack =
+      Isolate::Current()->debugger()->StackTrace();
+  intptr_t num_frames = stack->Length();
+  for (intptr_t i = 0; i < num_frames; i++) {
+    ActivationFrame* frame = stack->FrameAt(i);
+    OS::PrintErr("#%04" Pd " %s", i, frame->ToCString());
+  }
+
+  OS::PrintErr("-------------------------\n"
+               "All frames...\n\n");
+  StackFrameIterator iterator(false);
+  StackFrame* frame = iterator.NextFrame();
+  intptr_t num = 0;
+  while ((frame != NULL)) {
+    frame = iterator.NextFrame();
+    OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
+  }
+}
+
+
 void ActivationFrame::VariableAt(intptr_t i,
                                  String* name,
                                  intptr_t* token_pos,
@@ -651,6 +707,8 @@ void ActivationFrame::VariableAt(intptr_t i,
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
     if (ctx_.IsNull()) {
       // The context has been removed by the optimizing compiler.
+      //
+      // TODO(turnidge): This may be erroneous.  Revisit.
       *value = Symbols::OptimizedOut().raw();
       return;
     }
@@ -663,6 +721,11 @@ void ActivationFrame::VariableAt(intptr_t i,
     intptr_t level_diff = frame_ctx_level - var_ctx_level;
     intptr_t ctx_slot = var_info.index;
     if (level_diff == 0) {
+      if ((ctx_slot < 0) ||
+          (ctx_slot >= ctx_.num_variables())) {
+        PrintContextMismatchError(*name, ctx_slot,
+                                  frame_ctx_level, var_ctx_level);
+      }
       ASSERT((ctx_slot >= 0) && (ctx_slot < ctx_.num_variables()));
       *value = ctx_.At(ctx_slot);
     } else {
@@ -671,6 +734,12 @@ void ActivationFrame::VariableAt(intptr_t i,
       while (level_diff > 0 && !var_ctx.IsNull()) {
         level_diff--;
         var_ctx = var_ctx.parent();
+      }
+      if (var_ctx.IsNull() ||
+          (ctx_slot < 0) ||
+          (ctx_slot >= var_ctx.num_variables())) {
+        PrintContextMismatchError(*name, ctx_slot,
+                                  frame_ctx_level, var_ctx_level);
       }
       ASSERT(!var_ctx.IsNull());
       ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
@@ -697,18 +766,22 @@ RawArray* ActivationFrame::GetLocalVariables() {
 
 
 const char* ActivationFrame::ToCString() {
-  const char* kFormat = "Function: '%s' url: '%s' line: %d";
-
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
-
-  intptr_t len =
-      OS::SNPrint(NULL, 0, kFormat, func_name, url.ToCString(), line);
-  len++;  // String terminator.
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, func_name, url.ToCString(), line);
-  return chars;
+  return Isolate::Current()->current_zone()->
+      PrintToString("[ Frame pc(0x%" Px ") fp(0x%" Px ") sp(0x%" Px ")\n"
+                    "\tfunction = %s\n"
+                    "\turl = %s\n"
+                    "\tline = %" Pd "\n"
+                    "\tcontext = %s\n"
+                    "\tcontext level = %" Pd " ]\n",
+                    pc(), fp(), sp(),
+                    func_name,
+                    url.ToCString(),
+                    line,
+                    ctx_.ToCString(),
+                    ContextLevel());
 }
 
 
@@ -1068,21 +1141,42 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
       new ActivationFrame(pc, frame->fp(), frame->sp(), code,
                           deopt_frame, deopt_frame_offset);
 
-  // Recover the context for this frame.
-  if (callee_activation == NULL) {
-    // No callee.  Use incoming entry context.  Could be from
-    // isolate's top context or from an entry frame.
-    ASSERT(!entry_ctx.IsNull());
-    activation->SetContext(entry_ctx);
+  // Is there a closure call at the current PC?
+  //
+  // We can't just check the callee_activation to see if it is a
+  // closure function, because it may not be on the stack yet.
+  bool is_closure_call = false;
+  const PcDescriptors& pc_desc =
+      PcDescriptors::Handle(code.pc_descriptors());
+  ASSERT(code.ContainsInstructionAt(pc));
+  for (int i = 0; i < pc_desc.Length(); i++) {
+    if (pc_desc.PC(i) == pc &&
+        pc_desc.DescriptorKind(i) == PcDescriptors::kClosureCall) {
+      is_closure_call = true;
+      break;
+    }
+  }
 
-  } else if (callee_activation->function().IsClosureFunction()) {
+  // Recover the context for this frame.
+  if (is_closure_call) {
     // If the callee is a closure, we should have stored the context
     // in the current frame before making the call.
     const Context& closure_call_ctx =
         Context::Handle(isolate, activation->GetSavedCurrentContext());
     ASSERT(!closure_call_ctx.IsNull());
     activation->SetContext(closure_call_ctx);
-
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("\tUsing closure call ctx: %s\n",
+                   closure_call_ctx.ToCString());
+    }
+  } else if (callee_activation == NULL) {
+    // No callee available.  Use incoming entry context.  Could be from
+    // isolate's top context or from an entry frame.
+    ASSERT(!entry_ctx.IsNull());
+    activation->SetContext(entry_ctx);
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("\tUsing entry ctx: %s\n", entry_ctx.ToCString());
+    }
   } else {
     // Use the context provided by our callee.  This is either the
     // callee's context or a context that was saved in the callee's
@@ -1093,6 +1187,13 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
     const Context& callee_ctx =
         Context::Handle(isolate, callee_activation->GetSavedEntryContext());
     activation->SetContext(callee_ctx);
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("\tUsing callee call ctx: %s\n",
+                   callee_ctx.ToCString());
+    }
+  }
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());
   }
   return activation;
 }
@@ -1135,9 +1236,17 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
        frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
+                   frame->ToCString());
+    }
     if (frame->IsEntryFrame()) {
       current_activation = NULL;
       entry_ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
+      if (FLAG_trace_debugger_stacktrace) {
+        OS::PrintErr("\tFound saved ctx in  entry frame:\n\t%s\n",
+                     entry_ctx.ToCString());
+      }
 
     } else if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
@@ -1147,6 +1256,13 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
              !it.Done();
              it.Advance()) {
           inlined_code = it.code();
+          if (FLAG_trace_debugger_stacktrace) {
+            const Function& function =
+                Function::Handle(inlined_code.function());
+            ASSERT(!function.IsNull());
+            OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
+                         function.ToFullyQualifiedCString());
+          }
           intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
           current_activation = CollectDartFrame(isolate,
                                                 it.pc(),

@@ -182,6 +182,11 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObject(JSONObject* jsobj);
 
  private:
+  void PrintContextMismatchError(const String& var_name,
+                                 intptr_t ctx_slot,
+                                 intptr_t frame_ctx_level,
+                                 intptr_t var_ctx_level);
+
   intptr_t PcDescIndex();
   intptr_t TryIndex();
   void GetPcDescriptors();
