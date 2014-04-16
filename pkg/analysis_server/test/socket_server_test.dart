@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'mocks.dart';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
@@ -27,12 +28,15 @@ class SocketServerTest {
     SocketServer server = new SocketServer();
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
-    channel.expectMsgCount(responseCount: 0);
+    channel.expectMsgCount(notificationCount: 1);
+    expect(channel.notificationsReceived[0].event, equals(
+        AnalysisServer.CONNECTED_NOTIFICATION));
+    expect(channel.notificationsReceived[0].params, isEmpty);
     return channel.sendRequest(new Request('0',
         ServerDomainHandler.SHUTDOWN_METHOD)).then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
-      channel.expectMsgCount(responseCount: 1);
+      channel.expectMsgCount(responseCount: 1, notificationCount: 1);
     });
   }
 
@@ -41,8 +45,11 @@ class SocketServerTest {
     MockServerChannel channel1 = new MockServerChannel();
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);
+    expect(channel1.notificationsReceived[0].event, equals(
+        AnalysisServer.CONNECTED_NOTIFICATION));
+    expect(channel1.notificationsReceived[0].params, isEmpty);
     server.createAnalysisServer(channel2);
-    channel1.expectMsgCount(responseCount: 0);
+    channel1.expectMsgCount(notificationCount: 1);
     channel2.expectMsgCount(responseCount: 1);
     expect(channel2.responsesReceived[0].id, equals(''));
     expect(channel2.responsesReceived[0].error, isNotNull);

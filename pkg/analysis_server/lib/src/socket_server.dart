@@ -29,8 +29,6 @@ class SocketServer {
    */
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      // TODO(paulberry): add a message to the protocol so that the server can
-      // inform the client of a successful connection.
       var error = new RequestError.serverAlreadyStarted();
       serverChannel.sendResponse(new Response('', error));
       serverChannel.listen((Request request) {

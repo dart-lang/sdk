@@ -32,6 +32,11 @@ class AnalysisServer {
   static const String SOURCE_PARAM = 'source';
 
   /**
+   * The event name of the connected notification.
+   */
+  static const String CONNECTED_NOTIFICATION = 'server.connected';
+
+  /**
    * The channel from which requests are received and to which responses should
    * be sent.
    */
@@ -66,6 +71,8 @@ class AnalysisServer {
   AnalysisServer(this.channel) {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
+    Notification notification = new Notification(CONNECTED_NOTIFICATION);
+    channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
 
