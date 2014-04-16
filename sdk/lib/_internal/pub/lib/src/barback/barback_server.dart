@@ -40,11 +40,6 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// If this is `null`, all assets may be served.
   AllowAsset allowAsset;
 
-  // TODO(rnystrom): Remove this when the Editor is using the admin server.
-  // port. See #17640.
-  /// All currently open [WebSocket] connections.
-  final _webSockets = new Set<WebSocket>();
-
   /// Creates a new server and binds it to [port] of [host].
   ///
   /// This server will serve assets from [barback], and use [rootDirectory] as
@@ -60,15 +55,6 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   BarbackServer._(BuildEnvironment environment, HttpServer server,
       this.rootDirectory)
       : super(environment, server);
-
-  // TODO(rnystrom): Remove this when the Editor is using the admin server.
-  // port. See #17640.
-  /// Closes the server.
-  Future close() {
-    var futures = [super.close()];
-    futures.addAll(_webSockets.map((socket) => socket.close()));
-    return Future.wait(futures);
-  }
 
   /// Converts a [url] served by this server into an [AssetId] that can be
   /// requested from barback.
