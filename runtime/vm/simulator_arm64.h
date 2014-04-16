@@ -172,6 +172,7 @@ class Simulator {
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
 
+  friend class SimulatorDebugger;
   DISALLOW_COPY_AND_ASSIGN(Simulator);
 };
 

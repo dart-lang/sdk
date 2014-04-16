@@ -20,7 +20,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
 
@@ -60,11 +60,6 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
     *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
     data += 4;
   }
-}
-
-
-void Assembler::Stop(const char* message) {
-  UNIMPLEMENTED();
 }
 
 
@@ -116,6 +111,19 @@ void Assembler::Bind(Label* label) {
     label->position_ = DecodeImm19BranchOffset(next);
   }
   label->BindTo(bound_pc);
+}
+
+
+void Assembler::Stop(const char* message) {
+  if (FLAG_print_stop_message) {
+    UNIMPLEMENTED();
+  }
+  Label stop;
+  b(&stop);
+  Emit(Utils::Low32Bits(reinterpret_cast<int64_t>(message)));
+  Emit(Utils::High32Bits(reinterpret_cast<int64_t>(message)));
+  Bind(&stop);
+  hlt(kImmExceptionIsDebug);
 }
 
 

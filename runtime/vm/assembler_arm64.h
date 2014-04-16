@@ -326,11 +326,11 @@ class Assembler : public ValueObject {
   ~Assembler() { }
 
   void PopRegister(Register r) {
-    UNIMPLEMENTED();
+    Pop(r);
   }
 
   void Drop(intptr_t stack_elements) {
-    UNIMPLEMENTED();
+    add(SP, SP, Operand(stack_elements * kWordSize));
   }
 
   void Bind(Label* label);
@@ -552,6 +552,11 @@ class Assembler : public ValueObject {
     EmitUnconditionalBranchRegOp(RET, rn);
   }
 
+  // Exceptions.
+  void hlt(uint16_t imm) {
+    EmitExceptionGenOp(HLT, imm);
+  }
+
   // Aliases.
   void mov(Register rd, Register rn) {
     if ((rd == SP) || (rn == SP)) {
@@ -577,6 +582,12 @@ class Assembler : public ValueObject {
   }
   void Pop(Register reg) {
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
+  void tst(Register rn, Operand o) {
+    ands(ZR, rn, o);
+  }
+  void tsti(Register rn, uint64_t imm) {
+    andis(ZR, rn, imm);
   }
 
   // Object pool, loading from pool, etc.
@@ -809,6 +820,12 @@ class Assembler : public ValueObject {
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
     const int32_t encoding =
         op | (static_cast<int32_t>(rn) << kRnShift);
+    Emit(encoding);
+  }
+
+  void EmitExceptionGenOp(ExceptionGenOp op, uint16_t imm) {
+    const int32_t encoding =
+        op | (static_cast<int32_t>(imm) << kImm16Shift);
     Emit(encoding);
   }
 

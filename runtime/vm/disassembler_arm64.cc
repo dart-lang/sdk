@@ -870,9 +870,10 @@ void ARM64Decoder::InstructionDecode(uword pc) {
     DecodeDPRegister(instr);
   } else if (instr->IsDPSimd1Op()) {
     DecodeDPSimd1(instr);
-  } else {
-    ASSERT(instr->IsDPSimd2Op());
+  } else if (instr->IsDPSimd2Op()) {
     DecodeDPSimd2(instr);
+  } else {
+    Unknown(instr);
   }
 }
 

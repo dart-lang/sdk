@@ -22,89 +22,89 @@
 namespace dart {
 
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateCallToRuntimeStub");
 }
 
 
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GeneratePrintStopMessageStub");
 }
 
 
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateCallNativeCFunctionStub");
 }
 
 
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateCallBootstrapCFunctionStub");
 }
 
 
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateCallStaticFunctionStub");
 }
 
 
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateFixCallersTargetStub");
 }
 
 
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateDeoptimizeLazyStub");
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateDeoptimizeStub");
 }
 
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateMegamorphicMissStub");
 }
 
 
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateAllocateArrayStub");
 }
 
 
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateInvokeDartCodeStub");
 }
 
 
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateAllocateContextStub");
 }
 
 
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateUpdateStoreBufferStub");
 }
 
 
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateAllocationStubForClass");
 }
 
 
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateCallNoSuchMethodFunctionStub");
 }
 
 
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateOptimizedUsageCounterIncrement");
 }
 
 
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateUsageCounterIncrement");
 }
 
 
@@ -112,105 +112,105 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateNArgsCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateOneArgCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateTwoArgsCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateThreeArgsCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateOneArgOptimizedCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateTwoArgsOptimizedCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateThreeArgsOptimizedCheckInlineCacheStub");
 }
 
 
 void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateClosureCallInlineCacheStub");
 }
 
 
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateMegamorphicCallStub");
 }
 
 
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateZeroArgsUnoptimizedStaticCallStub");
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateTwoArgsUnoptimizedStaticCallStub");
 }
 
 
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateLazyCompileStub");
 }
 
 
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateBreakpointRuntimeStub");
 }
 
 
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateDebugStepCheckStub");
 }
 
 
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateSubtype1TestCacheStub");
 }
 
 
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateSubtype2TestCacheStub");
 }
 
 
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateSubtype3TestCacheStub");
 }
 
 
 void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateGetStackPointerStub");
 }
 
 
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateJumpToExceptionHandlerStub");
 }
 
 
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateOptimizeFunctionStub");
 }
 
 
@@ -219,19 +219,19 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                     const Register right,
                                                     const Register temp,
                                                     const Register unused) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateIdenticalWithNumberCheckStub");
 }
 
 
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateUnoptimizedIdenticalWithNumberCheckStub");
 }
 
 
 void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  UNIMPLEMENTED();
+  __ Stop("GenerateOptimizedIdenticalWithNumberCheckStub");
 }
 
 }  // namespace dart

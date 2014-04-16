@@ -35,6 +35,315 @@ DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 #define SScanF sscanf  // NOLINT
 
 
+// The SimulatorDebugger class is used by the simulator while debugging
+// simulated ARM64 code.
+class SimulatorDebugger {
+ public:
+  explicit SimulatorDebugger(Simulator* sim);
+  ~SimulatorDebugger();
+
+  void Stop(Instr* instr, const char* message);
+  void Debug();
+  char* ReadLine(const char* prompt);
+
+ private:
+  Simulator* sim_;
+
+  bool GetValue(char* desc, int64_t* value);
+  // TODO(zra): GetVValue for doubles.
+  // TODO(zra): Breakpoints.
+};
+
+
+SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
+  sim_ = sim;
+}
+
+
+SimulatorDebugger::~SimulatorDebugger() {
+}
+
+void SimulatorDebugger::Stop(Instr* instr, const char* message) {
+  OS::Print("Simulator hit %s\n", message);
+  Debug();
+}
+
+
+static Register LookupCpuRegisterByName(const char* name) {
+  static const char* kNames[] = {
+      "r0",  "r1",  "r2",  "r3",
+      "r4",  "r5",  "r6",  "r7",
+      "r8",  "r9",  "r10", "r11",
+      "r12", "r13", "r14", "r15",
+      "r16", "r17", "r18", "r19",
+      "r20", "r21", "r22", "r23",
+      "r24", "r25", "r26", "r27",
+      "r28", "r29", "r30",
+
+      "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "sp", "zr",
+  };
+  static const Register kRegisters[] = {
+      R0,  R1,  R2,  R3,  R4,  R5,  R6,  R7,
+      R8,  R9,  R10, R11, R12, R13, R14, R15,
+      R16, R17, R18, R19, R20, R21, R22, R23,
+      R24, R25, R26, R27, R28, R29, R30,
+
+      IP0, IP1, PP, CTX, FP, LR, SP, ZR,
+  };
+  ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
+  for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
+    if (strcmp(kNames[i], name) == 0) {
+      return kRegisters[i];
+    }
+  }
+  return kNoRegister;
+}
+
+
+bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
+  Register reg = LookupCpuRegisterByName(desc);
+  if (reg != kNoRegister) {
+    *value = sim_->get_register(reg);
+    return true;
+  }
+  if (desc[0] == '*') {
+    int64_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<int64_t*>(addr));
+      return true;
+    }
+  }
+  if (strcmp("pc", desc) == 0) {
+    *value = sim_->get_pc();
+    return true;
+  }
+  bool retval = SScanF(desc, "0x%"Px64, value) == 1;
+  if (!retval) {
+    retval = SScanF(desc, "%"Px64, value) == 1;
+  }
+  return retval;
+}
+
+
+void SimulatorDebugger::Debug() {
+  intptr_t last_pc = -1;
+  bool done = false;
+
+#define COMMAND_SIZE 63
+#define ARG_SIZE 255
+
+#define STR(a) #a
+#define XSTR(a) STR(a)
+
+  char cmd[COMMAND_SIZE + 1];
+  char arg1[ARG_SIZE + 1];
+  char arg2[ARG_SIZE + 1];
+
+  // make sure to have a proper terminating character if reaching the limit
+  cmd[COMMAND_SIZE] = 0;
+  arg1[ARG_SIZE] = 0;
+  arg2[ARG_SIZE] = 0;
+
+  // TODO(zra): Undo all set breakpoints while running in the debugger shell.
+  // This will make them invisible to all commands.
+  // UndoBreakpoints();
+
+  while (!done) {
+    if (last_pc != sim_->get_pc()) {
+      last_pc = sim_->get_pc();
+      if (Simulator::IsIllegalAddress(last_pc)) {
+        OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
+      } else {
+        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      }
+    }
+    char* line = ReadLine("sim> ");
+    if (line == NULL) {
+      FATAL("ReadLine failed");
+    } else {
+      // Use sscanf to parse the individual parts of the command line. At the
+      // moment no command expects more than two parameters.
+      int args = SScanF(line,
+                        "%" XSTR(COMMAND_SIZE) "s "
+                        "%" XSTR(ARG_SIZE) "s "
+                        "%" XSTR(ARG_SIZE) "s",
+                        cmd, arg1, arg2);
+      if ((strcmp(cmd, "h") == 0) || (strcmp(cmd, "help") == 0)) {
+        OS::Print("c/cont -- continue execution\n"
+                  "disasm -- disassemble instrs at current pc location\n"
+                  "  other variants are:\n"
+                  "    disasm <address>\n"
+                  "    disasm <address> <number_of_instructions>\n"
+                  "  by default 10 instrs are disassembled\n"
+                  "gdb -- transfer control to gdb\n"
+                  "h/help -- print this help string\n"
+                  "p/print <reg or value or *addr> -- print integer value\n"
+                  "po/printobject <*reg or *addr> -- print object\n"
+                  "si/stepi -- single step an instruction\n"
+                  "q/quit -- Quit the debugger and exit the program\n");
+      } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
+        OS::Print("Quitting\n");
+        OS::Exit(0);
+      } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+      } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
+        // Execute the one instruction we broke at with breakpoints disabled.
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        // Leave the debugger shell.
+        done = true;
+      } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
+        if (args == 2) {
+          int64_t value;
+          if (GetValue(arg1, &value)) {
+            OS::Print("%s: %"Pu64" 0x%"Px64"\n", arg1, value, value);
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("print <reg or value or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "po") == 0) ||
+                 (strcmp(cmd, "printobject") == 0)) {
+        if (args == 2) {
+          int64_t value;
+          // Make the dereferencing '*' optional.
+          if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
+              GetValue(arg1, &value)) {
+            if (Isolate::Current()->heap()->Contains(value)) {
+              OS::Print("%s: \n", arg1);
+#if defined(DEBUG)
+              const Object& obj = Object::Handle(
+                  reinterpret_cast<RawObject*>(value));
+              obj.Print();
+#endif  // defined(DEBUG)
+            } else {
+              OS::Print("0x%"Px64" is not an object reference\n", value);
+            }
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("printobject <*reg or *addr>\n");
+        }
+      } else if (strcmp(cmd, "disasm") == 0) {
+        int64_t start = 0;
+        int64_t end = 0;
+        if (args == 1) {
+          start = sim_->get_pc();
+          end = start + (10 * Instr::kInstrSize);
+        } else if (args == 2) {
+          if (GetValue(arg1, &start)) {
+            // no length parameter passed, assume 10 instructions
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead
+              OS::Print("First argument yields invalid address: 0x%"Px64"\n",
+                        start);
+              OS::Print("Using PC instead");
+              start = sim_->get_pc();
+            }
+            end = start + (10 * Instr::kInstrSize);
+          }
+        } else {
+          intptr_t length;
+          if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead
+              OS::Print("First argument yields invalid address: 0x%"Px64"\n",
+                        start);
+              OS::Print("Using PC instead\n");
+              start = sim_->get_pc();
+            }
+            end = start + (length * Instr::kInstrSize);
+          }
+        }
+        Disassembler::Disassemble(start, end);
+      } else if (strcmp(cmd, "gdb") == 0) {
+        OS::Print("relinquishing control to gdb\n");
+        OS::DebugBreak();
+        OS::Print("regaining control from gdb\n");
+      } else {
+        OS::Print("Unknown command: %s\n", cmd);
+      }
+    }
+    delete[] line;
+  }
+
+  // TODO(zra): Add all the breakpoints back to stop execution and enter the
+  // debugger shell when hit.
+  // RedoBreakpoints();
+
+#undef COMMAND_SIZE
+#undef ARG_SIZE
+
+#undef STR
+#undef XSTR
+}
+
+
+char* SimulatorDebugger::ReadLine(const char* prompt) {
+  char* result = NULL;
+  char line_buf[256];
+  intptr_t offset = 0;
+  bool keep_going = true;
+  OS::Print("%s", prompt);
+  while (keep_going) {
+    if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
+      // fgets got an error. Just give up.
+      if (result != NULL) {
+        delete[] result;
+      }
+      return NULL;
+    }
+    intptr_t len = strlen(line_buf);
+    if (len > 1 &&
+        line_buf[len - 2] == '\\' &&
+        line_buf[len - 1] == '\n') {
+      // When we read a line that ends with a "\" we remove the escape and
+      // append the remainder.
+      line_buf[len - 2] = '\n';
+      line_buf[len - 1] = 0;
+      len -= 1;
+    } else if ((len > 0) && (line_buf[len - 1] == '\n')) {
+      // Since we read a new line we are done reading the line. This
+      // will exit the loop after copying this buffer into the result.
+      keep_going = false;
+    }
+    if (result == NULL) {
+      // Allocate the initial result and make room for the terminating '\0'
+      result = new char[len + 1];
+      if (result == NULL) {
+        // OOM, so cannot readline anymore.
+        return NULL;
+      }
+    } else {
+      // Allocate a new result with enough room for the new addition.
+      intptr_t new_len = offset + len + 1;
+      char* new_result = new char[new_len];
+      if (new_result == NULL) {
+        // OOM, free the buffer allocated so far and return NULL.
+        delete[] result;
+        return NULL;
+      } else {
+        // Copy the existing input into the new array and set the new
+        // array as the result.
+        memmove(new_result, result, offset);
+        delete[] result;
+        result = new_result;
+      }
+    }
+    // Copy the newly read line into the result.
+    memmove(result + offset, line_buf, len);
+    offset += len;
+  }
+  ASSERT(result != NULL);
+  result[offset] = '\0';
+  return result;
+}
+
+
 Simulator::Simulator() {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
@@ -617,7 +926,32 @@ void Simulator::DecodeConditionalBranch(Instr* instr) {
 
 
 void Simulator::DecodeExceptionGen(Instr* instr) {
-  UnimplementedInstruction(instr);
+  if ((instr->Bits(0, 2) == 1) && (instr->Bits(2, 3) == 0) &&
+      (instr->Bits(21, 3) == 0)) {
+    // Format(instr, "svc 'imm16");
+    UnimplementedInstruction(instr);
+  } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
+             (instr->Bits(21, 3) == 1)) {
+    // Format(instr, "brk 'imm16");
+    UnimplementedInstruction(instr);
+  } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
+             (instr->Bits(21, 3) == 2)) {
+    // Format(instr, "hlt 'imm16");
+    uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
+    if (imm == kImmExceptionIsDebug) {
+      SimulatorDebugger dbg(this);
+      const char* message = *reinterpret_cast<const char**>(
+          reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
+      set_pc(get_pc() + Instr::kInstrSize);
+      dbg.Stop(instr, message);
+    } else if (imm == kImmExceptionIsPrintf) {
+      const char* message = *reinterpret_cast<const char**>(
+          reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
+      OS::Print("Simulator hit: %s", message);
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  }
 }
 
 

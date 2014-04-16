@@ -537,8 +537,8 @@ enum InstructionFields {
 
 const uint32_t kImmExceptionIsRedirectedCall = 0xca11;
 const uint32_t kImmExceptionIsUnreachable = 0xdebf;
-const uint32_t kImmExceptionIsPrintf = 0xdeb1;
 const uint32_t kImmExceptionIsDebug = 0xdeb0;
+const uint32_t kImmExceptionIsPrintf = 0xdeb1;
 
 // Helper functions for decoding logical immediates.
 static inline uint64_t RotateRight(
