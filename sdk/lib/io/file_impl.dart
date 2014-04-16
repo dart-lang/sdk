@@ -452,13 +452,16 @@ class _File extends FileSystemEntity implements File {
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var builder = new BytesBuilder();
-    var data;
-    while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
-      builder.add(data);
+    try {
+      var builder = new BytesBuilder();
+      var data;
+      while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
+        builder.add(data);
+      }
+      return builder.takeBytes();
+    } finally {
+      opened.closeSync();
     }
-    opened.closeSync();
-    return builder.takeBytes();
   }
 
   String _tryDecode(List<int> bytes, Encoding encoding) {
@@ -526,9 +529,12 @@ class _File extends FileSystemEntity implements File {
                         {FileMode mode: FileMode.WRITE,
                          bool flush: false}) {
     RandomAccessFile opened = openSync(mode: mode);
-    opened.writeFromSync(bytes, 0, bytes.length);
-    if (flush) opened.flushSync();
-    opened.closeSync();
+    try {
+      opened.writeFromSync(bytes, 0, bytes.length);
+      if (flush) opened.flushSync();
+    } finally {
+      opened.closeSync();
+    }
   }
 
   Future<File> writeAsString(String contents,
