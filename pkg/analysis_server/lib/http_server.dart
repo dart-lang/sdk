@@ -85,6 +85,5 @@ class HttpAnalysisServer {
    */
   void serveHttp(int port) {
     HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then(_handleServer);
-    print('Listening on port $port');
   }
 }
