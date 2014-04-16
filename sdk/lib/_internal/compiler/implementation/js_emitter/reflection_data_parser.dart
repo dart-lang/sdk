@@ -15,8 +15,15 @@ const DEFAULT_ARGUMENTS_INDEX = 5;
 const bool VALIDATE_DATA = false;
 
 // TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
-String getReflectionDataParser(String classesCollector,
-                               JavaScriptBackend backend) {
+jsAst.Expression getReflectionDataParser(String classesCollector,
+                                        JavaScriptBackend backend) {
+  var text = getReflectionDataParserAsString(classesCollector, backend);
+  return js(text);
+}
+
+
+String getReflectionDataParserAsString(String classesCollector,
+                                       JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   Element closureFromTearOff = compiler.findHelper('closureFromTearOff');
@@ -47,31 +54,107 @@ String getReflectionDataParser(String classesCollector,
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
 
-  String header = '''
-(function (reflectionData) {
-  "use strict";
-'''
-// [map] returns an object literal that V8 shouldn't try to optimize with a
-// hidden class. This prevents a potential performance problem where V8 tries
-// to build a hidden class for an object used as a hashMap.
-'''
-  function map(x){x={x:x};delete x.x;return x}
-''';
-
   String unmangledNameIndex = backend.mustRetainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
+
+
+  String header = '''
+(function (reflectionData) {
+  "use strict";
+
+// [map] returns an object literal that V8 shouldn't try to optimize with a
+// hidden class. This prevents a potential performance problem where V8 tries
+// to build a hidden class for an object used as a hashMap.
+
+  function map(x){x={x:x};delete x.x;return x}
+''';
+
+  String processStatics = '''
+    function processStatics(descriptor) {
+      for (var property in descriptor) {
+        if (!hasOwnProperty.call(descriptor, property)) continue;
+        if (property === "${namer.classDescriptorProperty}") continue;
+        var element = descriptor[property];
+        var firstChar = property.substring(0, 1);
+        var previousProperty;
+        if (firstChar === "+") {
+          mangledGlobalNames[previousProperty] = property.substring(1);
+          var flag = descriptor[property];
+          if (flag > 0)
+            descriptor[previousProperty].$reflectableField = flag;
+          if (element && element.length)
+            init.typeInformation[previousProperty] = element;
+        } else if (firstChar === "@") {
+          property = property.substring(1);
+          ${namer.currentIsolate}[property][$metadataField] = element;
+        } else if (firstChar === "*") {
+          globalObject[previousProperty].$defaultValuesField = element;
+          var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
+          if (!optionalMethods) {
+            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
+          }
+          optionalMethods[property] = previousProperty;
+        } else if (typeof element === "function") {
+          globalObject[previousProperty = property] = element;
+          functions.push(property);
+          init.globalFunctions[property] = element;
+        } else if (element.constructor === Array) {
+          addStubs(globalObject, element, property,
+                   true, descriptor, functions);
+        } else {
+          previousProperty = property;
+          var newDesc = {};
+          var previousProp;
+          for (var prop in element) {
+            if (!hasOwnProperty.call(element, prop)) continue;
+            firstChar = prop.substring(0, 1);
+            if (prop === "static") {
+              processStatics(init.statics[property] = element[prop]);
+            } else if (firstChar === "+") {
+              mangledNames[previousProp] = prop.substring(1);
+              var flag = element[prop];
+              if (flag > 0)
+                element[previousProp].$reflectableField = flag;
+            } else if (firstChar === "@" && prop !== "@") {
+              newDesc[prop.substring(1)][$metadataField] = element[prop];
+            } else if (firstChar === "*") {
+              newDesc[previousProp].$defaultValuesField = element[prop];
+              var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
+              if (!optionalMethods) {
+                newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
+              }
+              optionalMethods[prop] = previousProp;
+            } else {
+              var elem = element[prop];
+              if (prop !== "${namer.classDescriptorProperty}" &&
+                  elem != null &&
+                  elem.constructor === Array &&
+                  prop !== "<>") {
+                addStubs(newDesc, elem, prop, false, element, []);
+              } else {
+                newDesc[previousProp = prop] = elem;
+              }
+            }
+          }
+          $classesCollector[property] = [globalObject, newDesc];
+          classes.push(property);
+        }
+      }
+    }
+''';
+
 
   /**
    * See [dart2js.js_emitter.ContainerBuilder.addMemberMethod] for format of
    * [array].
    */
   String addStubs = '''
-  function addStubs(descriptor, array, name, isStatic,''' // Break long line.
-                ''' originalDescriptor, functions) {
-    var f, funcs =''' // Break long line.
-    ''' [originalDescriptor[name] =''' // Break long line.
-    ''' descriptor[name] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
+  function addStubs(descriptor, array, name, isStatic,
+                    originalDescriptor, functions) {
+    var f, funcs =
+        [originalDescriptor[name] =
+        descriptor[name] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
     f.\$stubName = name;
     functions.push(name);
     for (var index = $FUNCTION_INDEX; index < array.length; index += 2) {
@@ -97,8 +180,8 @@ String getReflectionDataParser(String classesCollector,
     var optionalParameterInfo = ${readInt("array", "1")};
     var optionalParameterCount = optionalParameterInfo >> 1;
     var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
-    var isIntercepted =''' // Break long line.
-       ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
+    var isIntercepted =
+           requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var unmangledNameIndex = $unmangledNameIndex;
     var isReflectable = array.length > unmangledNameIndex;
@@ -107,9 +190,7 @@ String getReflectionDataParser(String classesCollector,
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
       descriptor[name].\$getter = f;
       f.\$getterStub = true;
-'''
-      /* Used to create an isolate using spawnFunction.*/
-'''
+      // Used to create an isolate using spawnFunction.
       if (isStatic) init.globalFunctions[name] = f;
       originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
       funcs.push(f);
@@ -125,18 +206,16 @@ String getReflectionDataParser(String classesCollector,
       }
       var mangledNames = isStatic ? init.mangledGlobalNames : init.mangledNames;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
-'''
       // The function is either a getter, a setter, or a method.
       // If it is a method, it might also have a tear-off closure.
       // The unmangledName is the same as the getter-name.
-'''
       var reflectionName = unmangledName;
       if (getterStubName) mangledNames[getterStubName] = reflectionName;
       if (isSetter) {
         reflectionName += "=";
       } else if (!isGetter) {
-        reflectionName += ":" + requiredParameterCount +''' // Break long line.
-      ''' ":" + optionalParameterCount;
+        reflectionName += ":" + requiredParameterCount +
+          ":" + optionalParameterCount;
       }
       mangledNames[name] = reflectionName;
       funcs[0].$reflectionNameField = reflectionName;
@@ -149,41 +228,41 @@ String getReflectionDataParser(String classesCollector,
   String tearOff = '''
   function tearOffGetterNoCsp(funcs, reflectionInfo, name, isIntercepted) {
     return isIntercepted
-        ? new Function("funcs", "reflectionInfo", "name",''' // Break long line.
-                   ''' "$tearOffGlobalObjectName", "c",
+        ? new Function("funcs", "reflectionInfo", "name",
+                       "$tearOffGlobalObjectName", "c",
             "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
               "if (c === null) c = $tearOffAccess(" +
                   "this, funcs, reflectionInfo, false, [x], name);" +
               "return new c(this, funcs[0], x, name);" +
             "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
-        : new Function("funcs", "reflectionInfo", "name",''' // Break long line.
-                   ''' "$tearOffGlobalObjectName", "c",
+        : new Function("funcs", "reflectionInfo", "name",
+                       "$tearOffGlobalObjectName", "c",
             "return function tearOff_" + name + (functionCounter++)+ "() {" +
               "if (c === null) c = $tearOffAccess(" +
                   "this, funcs, reflectionInfo, false, [], name);" +
               "return new c(this, funcs[0], null, name);" +
-            "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+            "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
   }
   function tearOffGetterCsp(funcs, reflectionInfo, name, isIntercepted) {
     var cache = null;
     return isIntercepted
         ? function(x) {
-            if (cache === null) cache = $tearOffAccess(''' // Break long line.
-             '''this, funcs, reflectionInfo, false, [x], name);
-            return new cache(this, funcs[0], x, name)
+            if (cache === null) cache = $tearOffAccess(
+                this, funcs, reflectionInfo, false, [x], name);
+            return new cache(this, funcs[0], x, name);
           }
         : function() {
-            if (cache === null) cache = $tearOffAccess(''' // Break long line.
-             '''this, funcs, reflectionInfo, false, [], name);
-            return new cache(this, funcs[0], null, name)
-          }
+            if (cache === null) cache = $tearOffAccess(
+                this, funcs, reflectionInfo, false, [], name);
+            return new cache(this, funcs[0], null, name);
+          };
   }
   function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
     var cache;
     return isStatic
         ? function() {
-            if (cache === void 0) cache = $tearOffAccess(''' // Break long line.
-             '''this, funcs, reflectionInfo, true, [], name).prototype;
+            if (cache === void 0) cache = $tearOffAccess(
+                this, funcs, reflectionInfo, true, [], name).prototype;
             return cache;
           }
         : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
@@ -211,7 +290,7 @@ String getReflectionDataParser(String classesCollector,
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
-'''
+
 // [data] contains these elements:
 // 0. The library name (not unique).
 // 1. The library URI (unique).
@@ -222,7 +301,7 @@ String getReflectionDataParser(String classesCollector,
 // library is the root library (see dart:mirrors IsolateMirror.rootLibrary).
 //
 // The entries of [data] are built in [assembleProgram] above.
-'''
+
     var name = data[0];
     var uri = data[1];
     var metadata = data[2];
@@ -232,80 +311,6 @@ String getReflectionDataParser(String classesCollector,
     var fields = descriptor && descriptor["${namer.classDescriptorProperty}"];
     var classes = [];
     var functions = [];
-''';
-
-  String processStatics = '''
-    function processStatics(descriptor) {
-      for (var property in descriptor) {
-        if (!hasOwnProperty.call(descriptor, property)) continue;
-        if (property === "${namer.classDescriptorProperty}") continue;
-        var element = descriptor[property];
-        var firstChar = property.substring(0, 1);
-        var previousProperty;
-        if (firstChar === "+") {
-          mangledGlobalNames[previousProperty] = property.substring(1);
-          var flag = descriptor[property];
-          if (flag > 0) ''' // Break long line.
-         '''descriptor[previousProperty].$reflectableField = flag;
-          if (element && element.length) ''' // Break long line.
-         '''init.typeInformation[previousProperty] = element;
-        } else if (firstChar === "@") {
-          property = property.substring(1);
-          ${namer.currentIsolate}[property][$metadataField] = element;
-        } else if (firstChar === "*") {
-          globalObject[previousProperty].$defaultValuesField = element;
-          var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
-          if (!optionalMethods) {
-            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
-          }
-          optionalMethods[property] = previousProperty;
-        } else if (typeof element === "function") {
-          globalObject[previousProperty = property] = element;
-          functions.push(property);
-          init.globalFunctions[property] = element;
-        } else if (element.constructor === Array) {
-          addStubs(globalObject, element, property, ''' // Break long line.
-                '''true, descriptor, functions);
-        } else {
-          previousProperty = property;
-          var newDesc = {};
-          var previousProp;
-          for (var prop in element) {
-            if (!hasOwnProperty.call(element, prop)) continue;
-            firstChar = prop.substring(0, 1);
-            if (prop === "static") {
-              processStatics(init.statics[property] = element[prop]);
-            } else if (firstChar === "+") {
-              mangledNames[previousProp] = prop.substring(1);
-              var flag = element[prop];
-              if (flag > 0) ''' // Break long line.
-             '''element[previousProp].$reflectableField = flag;
-            } else if (firstChar === "@" && prop !== "@") {
-              newDesc[prop.substring(1)][$metadataField] = element[prop];
-            } else if (firstChar === "*") {
-              newDesc[previousProp].$defaultValuesField = element[prop];
-              var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
-              if (!optionalMethods) {
-                newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
-              }
-              optionalMethods[prop] = previousProp;
-            } else {
-              var elem = element[prop];
-              if (prop !== "${namer.classDescriptorProperty}" &&'''
-              ''' elem != null &&''' // Break long line.
-              ''' elem.constructor === Array &&''' // Break long line.
-              ''' prop !== "<>") {
-                addStubs(newDesc, elem, prop, false, element, []);
-              } else {
-                newDesc[previousProp = prop] = elem;
-              }
-            }
-          }
-          $classesCollector[property] = [globalObject, newDesc];
-          classes.push(property);
-        }
-      }
-    }
 ''';
 
 String footer = '''
