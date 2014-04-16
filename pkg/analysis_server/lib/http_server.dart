@@ -4,6 +4,7 @@
 
 library http.server;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/channel.dart';
@@ -31,6 +32,11 @@ class HttpAnalysisServer {
    * Initialize a newly created HTTP server.
    */
   HttpAnalysisServer(this.socketServer);
+
+  /**
+   * Future that is completed with the HTTP server once it is running.
+   */
+  Future<HttpServer> _server;
 
   /**
    * Attach a listener to a newly created HTTP server.
@@ -84,6 +90,13 @@ class HttpAnalysisServer {
    * Begin serving HTTP requests over the given port.
    */
   void serveHttp(int port) {
-    HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then(_handleServer);
+    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+    _server.then(_handleServer);
+  }
+
+  void close() {
+    _server.then((HttpServer server) {
+      server.close();
+    });
   }
 }

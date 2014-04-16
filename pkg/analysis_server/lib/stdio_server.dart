@@ -4,6 +4,7 @@
 
 library stdio.server;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/channel.dart';
@@ -29,9 +30,13 @@ class StdioAnalysisServer {
 
   /**
    * Begin serving requests over stdio.
+   *
+   * Return a future that will be completed when stdin closes.
    */
-  void serveStdio() {
-    socketServer.createAnalysisServer(new ByteStreamServerChannel(stdin, stdout)
-        );
+  Future serveStdio() {
+    ByteStreamServerChannel serverChannel = new ByteStreamServerChannel(stdin,
+        stdout);
+    socketServer.createAnalysisServer(serverChannel);
+    return serverChannel.closed;
   }
 }

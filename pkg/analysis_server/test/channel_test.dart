@@ -28,6 +28,7 @@ main() {
   });
   group('ByteStreamServerChannel', () {
     setUp(ByteStreamServerChannelTest.setUp);
+    test('closed', ByteStreamServerChannelTest.closed);
     test('listen_wellFormedRequest',
         ByteStreamServerChannelTest.listen_wellFormedRequest);
     test('listen_invalidRequest',
@@ -224,6 +225,11 @@ class ByteStreamServerChannelTest {
     }, onDone: () {
       doneCompleter.complete();
     });
+  }
+
+  static Future closed() {
+    return inputSink.close().then((_) => channel.closed.timeout(new Duration(
+        seconds: 1)));
   }
 
   static Future listen_wellFormedRequest() {

@@ -78,7 +78,9 @@ class Driver {
       exitCode = 1;
       return;
     }
-    stdioServer.serveStdio();
+    stdioServer.serveStdio().then((_) {
+      httpServer.close();
+    });
   }
 
   /**

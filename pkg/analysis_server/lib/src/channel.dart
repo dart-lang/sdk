@@ -178,14 +178,29 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   final Stream input;
   final IOSink output;
 
+  /**
+   * Completer that will be signalled when the input stream is closed.
+   */
+  final Completer _closed = new Completer();
+
   ByteStreamServerChannel(this.input, this.output);
+
+  /**
+   * Future that will be completed when the input stream is closed.
+   */
+  Future get closed {
+    return _closed.future;
+  }
 
   @override
   void listen(void onRequest(Request request), {Function onError, void
       onDone()}) {
     input.transform((new Utf8Codec()).decoder).transform(new LineSplitter()
         ).listen((String data) => _readRequest(data, onRequest), onError: onError,
-        onDone: onDone);
+        onDone: () {
+      _closed.complete();
+      onDone();
+    });
   }
 
   @override
