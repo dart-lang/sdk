@@ -96,7 +96,7 @@ void main() {
   // Empty object literal.
   testExpression('foo({}, {})');
   // *Can't handle non-empty object literals
-  testError('foo({meaning: 42})', 'Expected RBRACE');
+  testExpression('foo({meaning: 42})');
   // Literals.
   testExpression('x(false, true, null)');
   // *We should really throw here.

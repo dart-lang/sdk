@@ -10,28 +10,39 @@ part of js;
 class JsBuilder {
   const JsBuilder();
 
-  // Parse a bit of JavaScript, and return an expression.
-  // See the MiniJsParser class.
-  // You can provide an expression or a list of expressions, which will be
-  // interpolated into the source at the '#' signs.
+  /**
+   * Parses a bit of JavaScript, and returns an expression.
+   *
+   * See the MiniJsParser class.
+   *
+   * [expression] can be an [Expression] or a list of [Expression]s, which will
+   * be interpolated into the source at the '#' signs.
+   */
   Expression call(String source, [var expression]) {
     var result = new MiniJsParser(source).expression();
     if (expression == null) return result;
 
-    List<Expression> expressions;
+    List<Node> nodes;
     if (expression is List) {
-      expressions = expression;
+      nodes = expression;
     } else {
-      expressions = <Expression>[expression];
+      nodes = <Node>[expression];
     }
-    if (expressions.length != result.interpolatedExpressions.length) {
-      throw "Unmatched number of interpolated expressions";
+    if (nodes.length != result.interpolatedNodes.length) {
+      throw 'Unmatched number of interpolated expressions given ${nodes.length}'
+          ' expected ${result.interpolatedNodes.length}';
     }
-    for (int i = 0; i < expressions.length; i++) {
-      result.interpolatedExpressions[i].value = expressions[i];
+    for (int i = 0; i < nodes.length; i++) {
+      result.interpolatedNodes[i].assign(nodes[i]);
     }
 
     return result.value;
+  }
+
+  Statement statement(String source) {
+    var result = new MiniJsParser(source).statement();
+    // TODO(sra): Interpolation.
+    return result;
   }
 
   // Parse JavaScript written in the JS foreign instruction.
@@ -261,8 +272,7 @@ class MiniJsParser {
   int position = 0;
   bool skippedNewline = false;  // skipped newline in last getToken?
   final String src;
-  final List<InterpolatedExpression> interpolatedValues =
-      <InterpolatedExpression>[];
+  final List<InterpolatedNode> interpolatedValues = <InterpolatedNode>[];
 
   static const NONE = -1;
   static const ALPHA = 0;
@@ -372,6 +382,7 @@ class MiniJsParser {
       position++;
       if (position >= src.length) error("Unterminated literal");
       currentCode = src.codeUnitAt(position);
+      if (currentCode == charCodes.$LF) error("Unterminated literal");
       if (currentCode == charCodes.$BACKSLASH) {
         if (++position >= src.length) error("Unterminated literal");
         int escaped = src.codeUnitAt(position);
@@ -388,12 +399,21 @@ class MiniJsParser {
 
   void getToken() {
     skippedNewline = false;
-    for(;;) {
+    for (;;) {
       if (position >= src.length) break;
       int code = src.codeUnitAt(position);
-      if (category(code) != WHITESPACE) break;
-      if (code == charCodes.$LF) skippedNewline = true;
-      ++position;
+      //  Skip '//' style comment.
+      if (code == charCodes.$SLASH &&
+          position + 1 < src.length &&
+          src.codeUnitAt(position + 1) == charCodes.$SLASH) {
+        int nextPosition = src.indexOf('\n', position);
+        if (nextPosition == -1) nextPosition = src.length;
+        position = nextPosition;
+      } else {
+        if (category(code) != WHITESPACE) break;
+        if (code == charCodes.$LF) skippedNewline = true;
+        ++position;
+      }
     }
 
     if (position == src.length) {
@@ -488,10 +508,11 @@ class MiniJsParser {
   bool acceptSemicolon() {
     // Accept semicolon or automatically inserted semicolon before close brace.
     // Miniparser forbids other kinds of semicolon insertion.
+    if (RBRACE == lastCategory) return true;
     if (skippedNewline) {
       error('No automatic semicolon insertion at preceding newline');
     }
-    return acceptCategory(SEMICOLON) || RBRACE == lastCategory;
+    return acceptCategory(SEMICOLON);
   }
 
   bool acceptString(String string) {
@@ -529,8 +550,7 @@ class MiniJsParser {
     } else if (acceptCategory(NUMERIC)) {
       return new LiteralNumber(last);
     } else if (acceptCategory(LBRACE)) {
-      expectCategory(RBRACE);
-      return new ObjectInitializer([]);
+      return parseObjectInitializer();
     } else if (acceptCategory(LSQUARE)) {
       var values = <ArrayElement>[];
       if (!acceptCategory(RSQUARE)) {
@@ -558,9 +578,16 @@ class MiniJsParser {
   }
 
   Expression parseFunctionExpression() {
-    String functionName = null;
     String last = lastToken;
-    if (acceptCategory(ALPHA)) functionName = last;
+    if (acceptCategory(ALPHA)) {
+      String functionName = last;
+      return new NamedFunction(new VariableDeclaration(functionName),
+          parseFun());
+    }
+    return parseFun();
+  }
+
+  Expression parseFun() {
     List<Parameter> params = <Parameter>[];
     expectCategory(LPAREN);
     String argumentName = lastToken;
@@ -575,12 +602,30 @@ class MiniJsParser {
     expectCategory(RPAREN);
     expectCategory(LBRACE);
     Block block = parseBlock();
-    Fun fun = new Fun(params, block);
-    if (functionName == null) {
-      return fun;
-    } else {
-      return new NamedFunction(new VariableDeclaration(functionName), fun);
+    return new Fun(params, block);
+  }
+
+  Expression parseObjectInitializer() {
+    List<Property> properties = <Property>[];
+    for (;;) {
+      if (acceptCategory(RBRACE)) break;
+      // Limited subset: keys are identifiers, no 'get' or 'set' properties.
+      Literal propertyName;
+      String identifier = lastToken;
+      if (acceptCategory(ALPHA)) {
+        propertyName = new LiteralString('"$identifier"');
+      } else if (acceptCategory(STRING)) {
+        propertyName = new LiteralString(identifier);
+      } else {
+        error('Expected property name');
+      }
+      expectCategory(COLON);
+      Expression value = parseAssignment();
+      properties.add(new Property(propertyName, value));
+      if (acceptCategory(RBRACE)) break;
+      expectCategory(COMMA);
     }
+    return new ObjectInitializer(properties);
   }
 
   Expression parseMember() {
@@ -790,6 +835,15 @@ class MiniJsParser {
     return expression;
   }
 
+  Statement statement() {
+    Statement statement = parseStatement();
+    if (lastCategory != NONE || position != src.length) {
+      error("Unparsed junk: ${categoryToString(lastCategory)}");
+    }
+    // TODO(sra): interpolated capture here?
+    return statement;
+  }
+
   Block parseBlock() {
     List<Statement> statements = <Statement>[];
 
@@ -806,6 +860,8 @@ class MiniJsParser {
     if (lastCategory == ALPHA) {
       if (acceptString('return')) return parseReturn();
 
+      if (acceptString('throw')) return parseThrow();
+
       if (acceptString('break')) {
         return parseBreakOrContinue((label) => new Break(label));
       }
@@ -818,11 +874,28 @@ class MiniJsParser {
 
       if (acceptString('for')) return parseFor();
 
+      if (acceptString('function')) return parseFunctionDeclaration();
+
       if (acceptString('var')) {
         Expression declarations = parseVariableDeclarationList();
         expectSemicolon();
         return new ExpressionStatement(declarations);
       }
+
+      if (lastToken == 'case' ||
+          lastToken == 'do' ||
+          lastToken == 'while' ||
+          lastToken == 'switch' ||
+          lastToken == 'try' ||
+          lastToken == 'with') {
+        error('Not implemented in mini parser');
+      }
+    }
+
+    if (acceptCategory(HASH)) {
+      InterpolatedStatement statement = new InterpolatedStatement(null);
+      interpolatedValues.add(statement);
+      return statement;
     }
 
     // TODO:  label: statement
@@ -837,6 +910,13 @@ class MiniJsParser {
     Expression expression = parseExpression();
     expectSemicolon();
     return new Return(expression);
+  }
+
+  Statement parseThrow() {
+    if (skippedNewline) error('throw expression must be on same line');
+    Expression expression = parseExpression();
+    expectSemicolon();
+    return new Throw(expression);
   }
 
   Statement parseBreakOrContinue(constructor) {
@@ -909,6 +989,12 @@ class MiniJsParser {
     return finishFor(init);
   }
 
+  Statement parseFunctionDeclaration() {
+    String name = lastToken;
+    expectCategory(ALPHA);
+    Expression fun = parseFun();
+    return new FunctionDeclaration(new VariableDeclaration(name), fun);
+  }
 }
 
 /**
@@ -964,6 +1050,10 @@ class UninterpolateJSExpression extends BaseVisitor<Node> {
   }
 
   Node visitInterpolatedExpression(InterpolatedExpression expression) {
+    return arguments[argumentIndex++];
+  }
+
+  Node visitInterpolatedStatement(InterpolatedStatement statement) {
     return arguments[argumentIndex++];
   }
 
