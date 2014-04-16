@@ -4,10 +4,12 @@
 
 library pub.source_registry;
 
+import 'dart:collection';
+
 import 'source.dart';
 
 /// A class that keeps track of [Source]s used for getting packages.
-class SourceRegistry {
+class SourceRegistry extends IterableBase<Source> {
   final Map<String, Source> _map;
   Source _default;
 
@@ -16,6 +18,13 @@ class SourceRegistry {
 
   /// Returns the default source, which is used when no source is specified.
   Source get defaultSource => _default;
+
+  /// Iterates over the registered sources in name order.
+  Iterator<Source> get iterator {
+    var sources = _map.values.toList();
+    sources.sort((a, b) => a.name.compareTo(b.name));
+    return sources.iterator;
+  }
 
   /// Sets the default source. This takes a string, which must be the name of a
   /// registered source.

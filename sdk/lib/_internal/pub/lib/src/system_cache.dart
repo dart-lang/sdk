@@ -82,7 +82,10 @@ class SystemCache {
   ///
   /// It is an error to try downloading a package from a source with
   /// `shouldCache == false`.
-  Future<Package> download(PackageId id) {
+  ///
+  /// If [force] is `true`, then the package is downloaded even if it already
+  /// exists in the cache. The previous one will be deleted.
+  Future<Package> download(PackageId id, {bool force}) {
     var source = sources[id.source];
 
     if (!source.shouldCache) {
@@ -92,7 +95,8 @@ class SystemCache {
     var pending = _pendingDownloads[id];
     if (pending != null) return pending;
 
-    var future = source.downloadToSystemCache(id).whenComplete(() {
+    var future = source.downloadToSystemCache(id, force: force)
+        .whenComplete(() {
       _pendingDownloads.remove(id);
     });
 

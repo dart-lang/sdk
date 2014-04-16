@@ -78,28 +78,8 @@ class HostedSource extends Source {
 
   /// Downloads a package from the site and unpacks it.
   Future<bool> get(PackageId id, String destPath) {
-    return syncFuture(() {
-      var url = _makeVersionUrl(id, (server, package, version) =>
-          "$server/packages/$package/versions/$version.tar.gz");
-      log.io("Get package from $url.");
-
-      log.message('Downloading ${id.name} ${id.version}...');
-
-      // Download and extract the archive to a temp directory.
-      var tempDir = systemCache.createTempDir();
-      return httpClient.send(new http.Request("GET", url))
-          .then((response) => response.stream)
-          .then((stream) {
-        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
-            'fetching URL "$url"');
-      }).then((_) {
-        // Now that the get has succeeded, move it to the real location in the
-        // cache. This ensures that we don't leave half-busted ghost
-        // directories in the user's pub cache if a get fails.
-        renameDir(tempDir, destPath);
-        return true;
-      });
-    });
+    var parsed = _parseDescription(id.description);
+    return _download(parsed.last, parsed.first, id.version, destPath);
   }
 
   /// The system cache directory for the hosted source contains subdirectories
@@ -108,7 +88,7 @@ class HostedSource extends Source {
   /// from that site.
   Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
-    var dir = _getSourceDirectory(parsed.last);
+    var dir = _urlToDirectory(parsed.last);
 
     return new Future.value(
         path.join(systemCacheRoot, dir, "${parsed.first}-${id.version}"));
@@ -130,25 +110,80 @@ class HostedSource extends Source {
     return description;
   }
 
-  List<Package> getCachedPackages([String url]) {
-    if (url == null) url = defaultUrl;
+  /// Re-downloads all packages that have been previously downloaded into the
+  /// system cache from any server.
+  Future<Pair<int, int>> repairCachedPackages() {
+    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
 
-    var cacheDir = path.join(systemCacheRoot,
-                             _getSourceDirectory(url));
-    if (!dirExists(cacheDir)) return [];
+    var successes = 0;
+    var failures = 0;
 
-    return listDir(path.join(cacheDir)).map((entry) {
-      // TODO(keertip): instead of catching exception in pubspec parse with
-      // sdk dependency, fix to parse and report usage of sdk dependency.
-      // dartbug.com/10190
-      try {
-        return new Package.load(null, entry, systemCache.sources);
-      }  on ArgumentError catch (e) {
-        log.error(e);
-      }
-    }).where((package) => package != null).toList();
+    return Future.wait(listDir(systemCacheRoot).map((serverDir) {
+      var url = _directoryToUrl(path.basename(serverDir));
+      var packages = _getCachedPackagesInDirectory(path.basename(serverDir));
+      packages.sort(Package.orderByNameAndVersion);
+      return Future.wait(packages.map((package) {
+        return _download(url, package.name, package.version, package.dir)
+            .then((_) {
+          successes++;
+        }).catchError((error, stackTrace) {
+          failures++;
+          var message = "Failed to repair ${log.bold(package.name)} "
+              "${package.version}";
+          if (url != defaultUrl) message += " from $url";
+          log.error("$message. Error:\n$error");
+          log.fine(stackTrace);
+        });
+      }));
+    })).then((_) => new Pair(successes, failures));
   }
 
+  /// Gets all of the packages that have been downloaded into the system cache
+  /// from the default server.
+  List<Package> getCachedPackages() {
+    return _getCachedPackagesInDirectory(_urlToDirectory(defaultUrl));
+  }
+
+  /// Gets all of the packages that have been downloaded into the system cache
+  /// into [dir].
+  List<Package> _getCachedPackagesInDirectory(String dir) {
+    var cacheDir = path.join(systemCacheRoot, dir);
+    if (!dirExists(cacheDir)) return [];
+
+    return listDir(cacheDir)
+        .map((entry) => new Package.load(null, entry, systemCache.sources))
+        .toList();
+  }
+
+  /// Downloads package [package] at [version] from [server], and unpacks it
+  /// into [destPath].
+  Future<bool> _download(String server, String package, Version version,
+      String destPath) {
+    return syncFuture(() {
+      var url = Uri.parse("$server/packages/$package/versions/$version.tar.gz");
+      log.io("Get package from $url.");
+      log.message('Downloading ${log.bold(package)} ${version}...');
+
+      // Download and extract the archive to a temp directory.
+      var tempDir = systemCache.createTempDir();
+      return httpClient.send(new http.Request("GET", url))
+          .then((response) => response.stream)
+          .then((stream) {
+        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
+            'fetching URL "$url"');
+      }).then((_) {
+        // Remove the existing directory if it exists. This will happen if
+        // we're forcing a download to repair the cache.
+        if (dirExists(destPath)) deleteEntry(destPath);
+
+        // Now that the get has succeeded, move it to the real location in the
+        // cache. This ensures that we don't leave half-busted ghost
+        // directories in the user's pub cache if a get fails.
+        renameDir(tempDir, destPath);
+        return true;
+      });
+    });
+  }
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
@@ -185,8 +220,8 @@ class OfflineHostedSource extends HostedSource {
       var parsed = _parseDescription(description);
       var server = parsed.last;
       log.io("Finding versions of $name in "
-             "${systemCache.rootDir}/${_getSourceDirectory(server)}");
-      return getCachedPackages(server)
+             "$systemCacheRoot/${_urlToDirectory(server)}");
+      return _getCachedPackagesInDirectory(_urlToDirectory(server))
           .where((package) => package.name == name)
           .map((package) => package.version)
           .toList();
@@ -212,10 +247,56 @@ class OfflineHostedSource extends HostedSource {
   }
 }
 
-String _getSourceDirectory(String url) {
+/// Given a URL, returns a "normalized" string to be used as a directory name
+/// for packages downloaded from the server at that URL.
+///
+/// This normalization strips off the scheme (which is presumed to be HTTP or
+/// HTTPS) and *sort of* URL-encodes it. I say "sort of" because it does it
+/// incorrectly: it uses the character's *decimal* ASCII value instead of hex.
+///
+/// This could cause an ambiguity since some characters get encoded as three
+/// digits and others two. It's possible for one to be a prefix of the other.
+/// In practice, the set of characters that are encoded don't happen to have
+/// any collisions, so the encoding is reversible.
+///
+/// This behavior is a bug, but is being preserved for compatibility.
+String _urlToDirectory(String url) {
   url = url.replaceAll(new RegExp(r"^https?://"), "");
   return replace(url, new RegExp(r'[<>:"\\/|?*%]'),
       (match) => '%${match[0].codeUnitAt(0)}');
+}
+
+/// Given a directory name in the system cache, returns the URL of the server
+/// whose packages it contains.
+///
+/// See [_urlToDirectory] for details on the mapping. Note that because the
+/// directory name does not preserve the scheme, this has to guess at it. It
+/// chooses "http" for loopback URLs (mainly to support the pub tests) and
+/// "https" for all others.
+String _directoryToUrl(String url) {
+  // Decode the pseudo-URL-encoded characters.
+  var chars = '<>:"\\/|?*%';
+  for (var i = 0; i < chars.length; i++) {
+    var c = chars.substring(i, i + 1);
+    url = url.replaceAll("%${c.codeUnitAt(0)}", c);
+  }
+
+  // Figure out the scheme.
+  var scheme = "https";
+
+  // See if it's a loopback IP address.
+  try {
+    var urlWithoutPort = url.replaceAll(new RegExp(":.*"), "");
+    var address = new io.InternetAddress(urlWithoutPort);
+    if (address.isLoopback) scheme = "http";
+  } on ArgumentError catch(error) {
+    // If we got here, it's not a raw IP address, so it's probably a regular
+    // URL.
+  }
+
+  if (url == "localhost") scheme = "http";
+
+  return "$scheme://$url";
 }
 
 /// Parses [description] into its server and package name components, then

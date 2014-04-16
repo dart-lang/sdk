@@ -93,7 +93,8 @@ main() {
           -h, --help    Print usage information for this command.
 
           Available subcommands:
-            add   Install a package.
+            add      Install a package.
+            repair   Reinstall cached packages.
      ''');
   });
 
@@ -131,7 +132,8 @@ main() {
         -h, --help    Print usage information for this command.
 
         Available subcommands:
-          add   Install a package.
+          add      Install a package.
+          repair   Reinstall cached packages.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -176,7 +178,8 @@ main() {
         -h, --help    Print usage information for this command.
 
         Available subcommands:
-          add   Install a package.
+          add      Install a package.
+          repair   Reinstall cached packages.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -277,7 +280,8 @@ main() {
             -h, --help    Print usage information for this command.
 
             Available subcommands:
-              add   Install a package.
+              add      Install a package.
+              repair   Reinstall cached packages.
             ''',
             exitCode: exit_codes.USAGE);
     });

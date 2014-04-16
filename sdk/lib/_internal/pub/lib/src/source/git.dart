@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../git.dart' as git;
 import '../io.dart';
+import '../log.dart' as log;
 import '../package.dart';
 import '../source.dart';
 import '../utils.dart';
@@ -38,7 +39,11 @@ class GitSource extends Source {
   /// `<package name>-<url hash>`. These are used to check out the repository
   /// itself; each of the commit-specific directories are clones of a directory
   /// in `cache/`.
-  Future<Package> downloadToSystemCache(PackageId id) {
+  Future<Package> downloadToSystemCache(PackageId id, {bool force}) {
+    // Force is not supported because the cache repair command doesn't need it.
+    // Instead, it uses [resetCachedPackages].
+    assert(force != true);
+
     var revisionCachePath;
 
     return git.isInstalled.then((installed) {
@@ -116,6 +121,45 @@ class GitSource extends Source {
       description['resolved-ref'] = revision;
       return new PackageId(id.name, name, id.version, description);
     });
+  }
+
+  /// Resets all cached packages back to the pristine state of the Git
+  /// repository at the revision they are pinned to.
+  Future<Pair<int, int>> repairCachedPackages() {
+    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
+
+    var successes = 0;
+    var failures = 0;
+
+    var packages = listDir(systemCacheRoot)
+      .where((entry) => dirExists(path.join(entry, ".git")))
+      .map((packageDir) => new Package.load(null, packageDir,
+          systemCache.sources))
+      .toList();
+
+    // Note that there may be multiple packages with the same name and version
+    // (pinned to different commits). The sort order of those is unspecified.
+    packages.sort(Package.orderByNameAndVersion);
+
+    return Future.wait(packages.map((package) {
+      log.message("Resetting Git repository for "
+          "${log.bold(package.name)} ${package.version}...");
+
+      // Remove all untracked files.
+      return git.run(["clean", "-d", "--force", "-x"],
+          workingDir: package.dir).then((_) {
+        // Discard all changes to tracked files.
+        return git.run(["reset", "--hard", "HEAD"], workingDir: package.dir);
+      }).then((_) {
+        successes++;
+      }).catchError((error, stackTrace) {
+        failures++;
+        log.error("Failed to reset ${log.bold(package.name)} "
+            "${package.version}. Error:\n$error");
+        log.fine(stackTrace);
+        failures++;
+      }, test: (error) => error is git.GitException);
+    })).then((_) => new Pair(successes, failures));
   }
 
   // TODO(keertip): Implement getCachedPackages().
