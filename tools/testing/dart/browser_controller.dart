@@ -1374,13 +1374,18 @@ class BrowserTestingServer {
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
+          var embedded_iframe = document.getElementById('embedded_iframe');
+          embedded_iframe.parentNode.removeChild(embedded_iframe);
+
+          embedded_iframe = document.createElement('iframe');
+          embedded_iframe.id = 'embedded_iframe';
+          document.body.appendChild(embedded_iframe);
           embedded_iframe.src = url;
         } else {
-          if (testing_window == undefined) {
-            testing_window = window.open(url);
-          } else {
-            testing_window.location = url;
+          if (typeof testing_window != 'undefined') {
+            testing_window.close();
           }
+          testing_window = window.open(url);
         }
       }
 
