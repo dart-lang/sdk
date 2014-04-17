@@ -703,6 +703,11 @@ void PageSpaceController::EvaluateGarbageCollection(
     grow_heap_ = Utils::Maximum(capacity_growth_in_pages, heap_growth_rate_);
     heap->RecordData(PageSpace::kPageGrowth, capacity_growth_in_pages);
   }
+  // Limit shrinkage: allow growth by at least half the pages freed by GC.
+  intptr_t freed_pages =
+      (before.capacity_in_words - after.capacity_in_words) /
+      PageSpace::kPageSizeInWords;
+  grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);
   heap->RecordData(PageSpace::kGarbageRatio, collected_garbage_ratio);
   heap->RecordData(PageSpace::kGCTimeFraction,
                    garbage_collection_time_fraction);
