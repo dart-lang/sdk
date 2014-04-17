@@ -1252,6 +1252,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
 static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "ScriptList");
+  jsobj.AddProperty("id", "scripts");
   JSONArray members(&jsobj, "members");
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
