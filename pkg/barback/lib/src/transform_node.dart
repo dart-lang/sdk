@@ -411,16 +411,6 @@ class TransformNode {
       phase.cascade.reportError(new InvalidOutputException(info, id));
     }
 
-    if (_declaredOutputs != null) {
-      var missingOutputs = _declaredOutputs.difference(
-          newOutputs.map((asset) => asset.id).toSet());
-      if (missingOutputs.isNotEmpty) {
-        _warn("This transformer didn't emit declared "
-            "${pluralize('output asset', missingOutputs.length)} "
-            "${toSentence(missingOutputs)}.");
-      }
-    }
-
     // Remove outputs that used to exist but don't anymore.
     for (var id in _outputControllers.keys.toList()) {
       if (newOutputs.containsId(id)) continue;
