@@ -292,6 +292,8 @@ codegenTests(phases) {
           '<polymer-element name="foo-bar"><template>'
           '<div>{{a.node}}</div>'
           '<div>{{anotherNode}}</div>'
+          '<div>{{a.call1(a)}}</div>'
+          '<div>{{call2(a)}}</div>'
           '<div class="{{an.attribute}}"></div>'
           '<a href="path/{{within.an.attribute}}/foo/bar"></a>'
           '<div data-attribute="{{anotherAttribute}}"></div>'
@@ -322,6 +324,8 @@ codegenTests(phases) {
                   #anotherAttribute: (o) => o.anotherAttribute,
                   #anotherNode: (o) => o.anotherNode,
                   #attribute: (o) => o.attribute,
+                  #call1: (o) => o.call1,
+                  #call2: (o) => o.call2,
                   #here: (o) => o.here,
                   #intToStringTransformer: (o) => o.intToStringTransformer,
                   #is: (o) => o.is,
@@ -345,6 +349,8 @@ codegenTests(phases) {
                   #anotherAttribute: r'anotherAttribute',
                   #anotherNode: r'anotherNode',
                   #attribute: r'attribute',
+                  #call1: r'call1',
+                  #call2: r'call2',
                   #here: r'here',
                   #intToStringTransformer: r'intToStringTransformer',
                   #is: r'is',

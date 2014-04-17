@@ -540,7 +540,7 @@ class _SubExpressionVisitor extends pe.RecursiveVisitor {
 
   visitInvoke(pe.Invoke e) {
     _includeSetter = false; // Invoke is only valid as an r-value.
-    _add(e.method);
+    if (e.method != null) _add(e.method);
     super.visitInvoke(e);
   }
 }
