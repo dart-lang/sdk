@@ -59,7 +59,7 @@ class CallPattern : public ValueObject {
 
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
-  static int LengthInBytes();
+  static const int kLengthInBytes = 5 * Instr::kInstrSize;
 
   static void InsertAt(uword pc, uword target_address);
 
@@ -82,9 +82,11 @@ class JumpPattern : public ValueObject {
  public:
   JumpPattern(uword pc, const Code& code);
 
-  static const int kLengthInBytes = 3 * Instr::kInstrSize;
+  static const int kLengthInBytes = 5 * Instr::kInstrSize;
 
-  static int pattern_length_in_bytes();
+  int pattern_length_in_bytes() const {
+    return kLengthInBytes;
+  }
 
   bool IsValid() const;
   uword TargetAddress() const;

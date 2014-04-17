@@ -140,7 +140,7 @@ class Address : public ValueObject {
   static Address PC(int32_t pc_off) {
     ASSERT(CanHoldOffset(pc_off, PCOffset));
     Address addr;
-    addr.encoding_ = (((pc_off >> 2) & kImm19Mask) << kImm19Shift);
+    addr.encoding_ = (((pc_off >> 2) << kImm19Shift) & kImm19Mask);
     addr.base_ = kNoRegister;
     addr.type_ = PCOffset;
     return addr;
@@ -578,16 +578,53 @@ class Assembler : public ValueObject {
     madd(rd, rn, rm, ZR);
   }
   void Push(Register reg) {
+    ASSERT(reg != PP);  // Only push PP with PushPP().
     str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
   void Pop(Register reg) {
+    ASSERT(reg != PP);  // Only pop PP with PopPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
+  void PushPP() {
+    // Add the heap object tag back to PP before putting it on the stack.
+    add(PP, PP, Operand(kHeapObjectTag));
+    str(PP, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+  void PopPP() {
+    ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
+    sub(PP, PP, Operand(kHeapObjectTag));
   }
   void tst(Register rn, Operand o) {
     ands(ZR, rn, o);
   }
   void tsti(Register rn, uint64_t imm) {
     andis(ZR, rn, imm);
+  }
+
+  // Branching to ExternalLabels.
+  void Branch(const ExternalLabel* label) {
+    LoadExternalLabel(TMP, label, kPatchable, PP);
+    br(TMP);
+  }
+
+  void BranchPatchable(const ExternalLabel* label) {
+    LoadPatchableImmediate(TMP, label->address());
+    br(TMP);
+  }
+
+  void BranchLink(const ExternalLabel* label, Register pp) {
+    if (Isolate::Current() == Dart::vm_isolate()) {
+      LoadImmediate(TMP, label->address(), kNoRegister);
+      blr(TMP);
+    } else {
+      LoadExternalLabel(TMP, label, kNotPatchable, pp);
+      blr(TMP);
+    }
+  }
+
+  void BranchLinkPatchable(const ExternalLabel* label) {
+    LoadExternalLabel(TMP, label, kPatchable, PP);
+    blr(TMP);
   }
 
   // Object pool, loading from pool, etc.
@@ -597,6 +634,14 @@ class Assembler : public ValueObject {
       CodeSize();
     // PP <- Read(PC - object_pool_pc_dist).
     ldr(pp, Address::PC(-object_pool_pc_dist));
+
+    // When in the PP register, the pool pointer is untagged. When we
+    // push it on the stack with PushPP it is tagged again. PopPP then untags
+    // when restoring from the stack. This will make loading from the object
+    // pool only one instruction for the first 4096 entries. Otherwise, because
+    // the offset wouldn't be aligned, it would always be at least two
+    // instructions.
+    sub(pp, pp, Operand(kHeapObjectTag));
   }
 
   enum Patchability {
@@ -605,11 +650,17 @@ class Assembler : public ValueObject {
   };
 
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
+  intptr_t FindExternalLabel(const ExternalLabel* label,
+                             Patchability patchable);
   intptr_t FindObject(const Object& obj, Patchability patchable);
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadObjectFromPool(const Object& object);
   bool CanLoadImmediateFromPool(int64_t imm, Register pp);
+  void LoadExternalLabel(Register dst, const ExternalLabel* label,
+                         Patchability patchable, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
+  void LoadPatchableImmediate(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
 
  private:
@@ -766,8 +817,8 @@ class Assembler : public ValueObject {
 
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
     const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) & kImm19Mask) << kImm19Shift);
-    return (instr & ~(kImm19Mask << kImm19Shift)) | off;
+    const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
+    return (instr & ~kImm19Mask) | off;
   }
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
@@ -794,7 +845,7 @@ class Assembler : public ValueObject {
     const int32_t encoding =
         op |
         (static_cast<int32_t>(cond) << kCondShift) |
-        (((imm >> 2) & kImm19Mask) << kImm19Shift);
+        (((imm >> 2) << kImm19Shift) & kImm19Mask);
     Emit(encoding);
   }
 
@@ -868,7 +919,7 @@ class Assembler : public ValueObject {
     ASSERT((rd != R31) && (rd != SP));
     const Register crd = ConcreteRegister(rd);
     const int32_t loimm = (imm & 0x3) << 29;
-    const int32_t hiimm = ((imm >> 2) & kImm19Mask) << kImm19Shift;
+    const int32_t hiimm = ((imm >> 2) << kImm19Shift) & kImm19Mask;
     const int32_t encoding =
         op | loimm | hiimm |
         (static_cast<int32_t>(crd) << kRdShift);

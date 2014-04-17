@@ -274,6 +274,28 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
 }
 
 
+intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
+                                      Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
+  if (patchable == kNotPatchable) {
+    // If the call site is not patchable, we can try to re-use an existing
+    // entry.
+    return FindObject(smi, kNotPatchable);
+  }
+  // If the call is patchable, do not reuse an existing entry since each
+  // reference may be patched independently.
+  object_pool_.Add(smi, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  return object_pool_.Length() - 1;
+}
+
+
 intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   // The object pool cannot be used in the vm isolate.
   ASSERT(Isolate::Current() != Dart::vm_isolate());
@@ -342,17 +364,59 @@ bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
 }
 
 
+void Assembler::LoadExternalLabel(Register dst,
+                                  const ExternalLabel* label,
+                                  Patchability patchable,
+                                  Register pp) {
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(dst, pp, offset);
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadObjectFromPool(object)) {
     const int32_t offset =
         Array::element_offset(FindObject(object, kNotPatchable));
-    LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
+    LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
            object.IsSmi() ||
            object.InVMHeap());
-    LoadImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
+    LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
   }
+}
+
+
+void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
+  if ((pp != kNoRegister) && (Isolate::Current() != Dart::vm_isolate())) {
+    int64_t val_smi_tag = imm & kSmiTagMask;
+    imm &= ~kSmiTagMask;  // Mask off the tag bits.
+    const int32_t offset = Array::element_offset(FindImmediate(imm));
+    LoadWordFromPoolOffset(reg, pp, offset);
+    if (val_smi_tag != 0) {
+      // Add back the tag bits.
+      orri(reg, reg, val_smi_tag);
+    }
+  } else {
+    // TODO(zra): Since this sequence only needs to be decodable, it can be
+    // of variable length.
+    LoadPatchableImmediate(reg, imm);
+  }
+}
+
+
+void Assembler::LoadPatchableImmediate(Register reg, int64_t imm) {
+  const uint32_t w0 = Utils::Low32Bits(imm);
+  const uint32_t w1 = Utils::High32Bits(imm);
+  const uint16_t h0 = Utils::Low16Bits(w0);
+  const uint16_t h1 = Utils::High16Bits(w0);
+  const uint16_t h2 = Utils::Low16Bits(w1);
+  const uint16_t h3 = Utils::High16Bits(w1);
+  movz(reg, h0, 0);
+  movk(reg, h1, 1);
+  movk(reg, h2, 2);
+  movk(reg, h3, 3);
 }
 
 
@@ -365,7 +429,7 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     int64_t val_smi_tag = imm & kSmiTagMask;
     imm &= ~kSmiTagMask;  // Mask off the tag bits.
     const int32_t offset = Array::element_offset(FindImmediate(imm));
-    LoadWordFromPoolOffset(reg, pp, offset - kHeapObjectTag);
+    LoadWordFromPoolOffset(reg, pp, offset);
     if (val_smi_tag != 0) {
       // Add back the tag bits.
       orri(reg, reg, val_smi_tag);

@@ -499,9 +499,10 @@ enum InstructionFields {
   kImm14Bits = 14,
   kImm16Shift = 5,
   kImm16Bits = 16,
+  kImm16Mask = 0xffff << kImm16Shift,
   kImm19Shift = 5,
   kImm19Bits = 19,
-  kImm19Mask = 0x7ffff,
+  kImm19Mask = 0x7ffff << kImm19Shift,
   kImm26Shift = 0,
   kImm26Bits = 26,
 
@@ -585,6 +586,16 @@ class Instr {
       HLT | (kImmExceptionIsDebug << kImm16Shift);
   static const int kBreakPointInstructionSize = kInstrSize;
 
+  // Read one particular bit out of the instruction bits.
+  inline int Bit(int nr) const {
+    return (InstructionBits() >> nr) & 1;
+  }
+
+  // Read a bit field out of the instruction bits.
+  inline int Bits(int shift, int count) const {
+    return (InstructionBits() >> shift) & ((1 << count) - 1);
+  }
+
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
     return *reinterpret_cast<const int32_t*>(this);
@@ -595,14 +606,23 @@ class Instr {
     *reinterpret_cast<int32_t*>(this) = value;
   }
 
-  // Read one particular bit out of the instruction bits.
-  inline int Bit(int nr) const {
-    return (InstructionBits() >> nr) & 1;
+  inline void SetMoveWideBits(
+      MoveWideOp op, Register rd, uint16_t imm, int hw, OperandSize sz) {
+    ASSERT((hw >= 0) && (hw <= 3));
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    SetInstructionBits(
+        op | size |
+        (static_cast<int32_t>(rd) << kRdShift) |
+        (static_cast<int32_t>(hw) << kHWShift) |
+        (static_cast<int32_t>(imm) << kImm16Shift));
   }
 
-  // Read a bit field out of the instruction bits.
-  inline int Bits(int shift, int count) const {
-    return (InstructionBits() >> shift) & ((1 << count) - 1);
+  inline void SetUnconditionalBranchRegBits(
+      UnconditionalBranchRegOp op, Register rn) {
+    SetInstructionBits(
+        op |
+        (static_cast<int32_t>(rn) << kRnShift));
   }
 
   inline int NField() const { return Bit(22); }
