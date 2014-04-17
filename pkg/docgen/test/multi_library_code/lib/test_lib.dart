@@ -39,3 +39,22 @@ class A {
 B sampleMethod(C cInstance) {
   throw new UnimplementedError();
 }
+
+int positionalDefaultValues([int intConst = INT_CONST,
+    bool boolConst = BOOL_CONST, List listConst = LIST_CONST,
+    String stringConst = STRING_CONST, Map mapConst = MAP_CONST,
+    Map emptyMap = EMPTY_MAP_CONST]) {
+  throw new UnimplementedError();
+}
+
+const int INT_CONST = 42;
+
+const bool BOOL_CONST = true;
+
+const LIST_CONST = const [true, 42, 'Shanna', null, 3.14, const []];
+
+const STRING_CONST = 'Shanna';
+
+const MAP_CONST = const {'a':1, 2: true, 'c': const [1,null,true]};
+
+const EMPTY_MAP_CONST = const {};

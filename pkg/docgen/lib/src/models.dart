@@ -474,8 +474,7 @@ abstract class OwnedIndexable<TMirror extends DeclarationMirror>
 }
 
 /// A class containing contents of a Dart class.
-class Class
-    extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
+class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
     implements Comparable<Class> {
 
   /// List of the names of interfaces that this class implements.
@@ -982,7 +981,7 @@ class Parameter extends MirrorBased {
         isOptional = mirror.isOptional,
         isNamed = mirror.isNamed,
         hasDefaultValue = mirror.hasDefaultValue,
-        defaultValue = '${mirror.defaultValue}',
+        defaultValue = getDefaultValue(mirror),
         type = new Type(mirror.type, owningLibrary),
         annotations = createAnnotations(mirror, owningLibrary);
 
