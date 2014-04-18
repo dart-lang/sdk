@@ -16,7 +16,7 @@ import 'mocks.dart';
 main() {
   group('AnalysisServer', () {
     setUp(AnalysisServerTest.setUp);
-//    test('createContext', AnalysisServerTest.createContext);
+    test('createContext', AnalysisServerTest.createContext);
     test('echo', AnalysisServerTest.echo);
     test('shutdown', AnalysisServerTest.shutdown);
     test('unknownRequest', AnalysisServerTest.unknownRequest);
