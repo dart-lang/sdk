@@ -89,6 +89,10 @@ void ClassTable::Register(const Class& cls) {
       class_heap_stats_table_ = new_stats_table;
     }
     ASSERT(top_ < capacity_);
+    if (!Class::is_valid_id(top_)) {
+      FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
+             top_);
+    }
     cls.set_id(top_);
     table_[top_] = cls.raw();
     top_++;  // Increment next index.
@@ -102,7 +106,7 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
   if (index >= capacity_) {
     // Grow the capacity of the class table.
     intptr_t new_capacity = index + capacity_increment_;
-    if (new_capacity < capacity_) {
+    if (!Class::is_valid_id(index) || new_capacity < capacity_) {
       FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
              index);
     }

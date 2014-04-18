@@ -691,8 +691,12 @@ class Class : public Object {
     raw_ptr()->handle_vtable_ = value;
   }
 
+  static bool is_valid_id(intptr_t value) {
+    return RawObject::ClassIdTag::is_valid(value);
+  }
   intptr_t id() const { return raw_ptr()->id_; }
   void set_id(intptr_t value) const {
+    ASSERT(is_valid_id(value));
     raw_ptr()->id_ = value;
   }
 
