@@ -134,6 +134,9 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 [ $compiler == dart2js && $runtime != ff && $runtime != safari && $runtime != chrome && $runtime != ie9 && $runtime != ie10 ]
 mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15566
 
+[ $compiler == dart2js && $runtime == drt ]
+mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15566
+
 [ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
