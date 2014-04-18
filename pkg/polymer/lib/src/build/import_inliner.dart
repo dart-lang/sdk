@@ -28,6 +28,7 @@ class _HtmlInliner extends PolymerTransformer {
   final AssetId docId;
   final seen = new Set<AssetId>();
   final scriptIds = <AssetId>[];
+  final extractedFiles = new Set<AssetId>();
 
   /// The number of extracted inline Dart scripts. Used as a counter to give
   /// unique-ish filenames.
@@ -51,8 +52,10 @@ class _HtmlInliner extends PolymerTransformer {
       changed = _extractScripts(document, docId);
       return _visitImports(document);
     }).then((importsFound) {
-      bool scriptsRemoved = _removeScripts(document);
-      changed = changed || importsFound || scriptsRemoved;
+      changed = changed || importsFound;
+      return _removeScripts(document);
+    }).then((scriptsRemoved) {
+      changed = changed || scriptsRemoved;
 
       var output = transform.primaryInput;
       if (changed) output = new Asset.fromString(docId, document.outerHtml);
@@ -160,17 +163,32 @@ class _HtmlInliner extends PolymerTransformer {
   ///
   /// Dartium only allows a single script tag per page, so we can't inline
   /// the script tags. Instead we remove them entirely.
-  bool _removeScripts(Document doc) {
+  Future<bool> _removeScripts(Document doc) {
     bool changed = false;
-    for (var script in doc.querySelectorAll('script')) {
+    return Future.forEach(doc.querySelectorAll('script'), (script) {
       if (script.attributes['type'] == TYPE_DART_COMPONENT) {
         changed = true;
         script.remove();
         var src = script.attributes['src'];
-        scriptIds.add(uriToAssetId(docId, src, logger, script.sourceSpan));
+        var srcId = uriToAssetId(docId, src, logger, script.sourceSpan);
+
+        // We check for extractedFiles because 'hasInput' below is only true for
+        // assets that existed before this transformer runs (hasInput is false
+        // for files created by [_extractScripts]).
+        if (extractedFiles.contains(srcId)) {
+          scriptIds.add(srcId);
+          return true;
+        }
+        return transform.hasInput(srcId).then((exists) {
+          if (!exists) {
+            logger.warning('Script file at "$src" not found.',
+              span: script.sourceSpan);
+          } else {
+            scriptIds.add(srcId);
+          }
+        });
       }
-    }
-    return changed;
+    }).then((_) => changed);
   }
 
   /// Split inline scripts into their own files. We need to do this for dart2js
@@ -219,6 +237,7 @@ class _HtmlInliner extends PolymerTransformer {
 
         code = "library $libName;\n$code";
       }
+      extractedFiles.add(newId);
       transform.addOutput(new Asset.fromString(newId, code));
     }
     return changed;

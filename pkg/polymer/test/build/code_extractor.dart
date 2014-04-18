@@ -164,6 +164,7 @@ void codeExtractorTests() {
     });
 
   group('fixes import/export/part URIs', dartUriTests);
+  group('validates script-tag URIs', validateUriTests);
 }
 
 dartUriTests() {
@@ -311,4 +312,56 @@ dartUriTests() {
           '</script>'
           '</body></html>',
     });
+}
+
+validateUriTests() {
+
+  testPhases('script is inline', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><body>'
+          '<script type="application/dart;component=1">'
+          'main(){}'
+          '</script>'
+          '</body></html>',
+    }, {
+      'a|web/test.html.scriptUrls': '[["a","web/test.html.0.dart"]]',
+    }, []);
+
+  testPhases('script src is valid', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><body>'
+          '<script type="application/dart;component=1" src="a.dart"></script>'
+          '</body></html>',
+      'a|web/a.dart': 'main() {}',
+    }, {
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"]]',
+    }, []);
+
+  testPhases('script src is invalid', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><body>\n'
+          '<script type="application/dart;component=1" src="a.dart"></script>'
+          '</body></html>',
+    }, {
+      'a|web/test.html.scriptUrls': '[]',
+    }, [
+      'warning: Script file at "a.dart" not found. (web/test.html 1 0)',
+    ]);
+
+  testPhases('many script src around, valid and invalid', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><body>'
+          '<script type="application/dart;component=1" src="a.dart"></script>'
+          '\n<script type="application/dart;component=1" src="b.dart"></script>'
+          '\n<script type="application/dart;component=1" src="c.dart"></script>'
+          '\n<script type="application/dart;component=1" src="d.dart"></script>'
+          '</body></html>',
+      'a|web/a.dart': 'main() {}',
+      'a|web/c.dart': 'main() {}',
+    }, {
+      'a|web/test.html.scriptUrls': '[["a","web/a.dart"],["a","web/c.dart"]]',
+    }, [
+      'warning: Script file at "b.dart" not found. (web/test.html 1 0)',
+      'warning: Script file at "d.dart" not found. (web/test.html 3 0)',
+    ]);
 }
