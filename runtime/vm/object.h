@@ -6670,6 +6670,7 @@ class UserTag : public Instance {
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
     raw_ptr()->tag_ = t;
   };
+  static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
 
   RawString* label() const {
     return raw_ptr()->label_;

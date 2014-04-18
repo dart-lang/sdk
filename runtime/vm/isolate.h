@@ -478,6 +478,12 @@ class Isolate : public BaseIsolate {
   uword user_tag() const {
     return user_tag_;
   }
+  static intptr_t user_tag_offset() {
+    return OFFSET_OF(Isolate, user_tag_);
+  }
+  static intptr_t current_tag_offset() {
+    return OFFSET_OF(Isolate, current_tag_);
+  }
 
   RawGrowableObjectArray* tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);

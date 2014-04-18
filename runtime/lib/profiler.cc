@@ -14,6 +14,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_intrinsified_natives);
+
 // dart:profiler.
 
 DEFINE_NATIVE_ENTRY(UserTag_new, 2) {
@@ -31,12 +33,18 @@ DEFINE_NATIVE_ENTRY(UserTag_label, 1) {
 
 DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
   const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("UserTag_makeCurrent: %s\n", self.ToCString());
+  }
   self.MakeActive();
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0) {
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Profiler_getCurrentTag\n");
+  }
   return isolate->current_tag();
 }
 
@@ -46,6 +54,9 @@ DEFINE_NATIVE_ENTRY(Profiler_clearCurrentTag, 0) {
   NoGCScope no_gc;
   RawUserTag* old_current = isolate->current_tag();
   UserTag::ClearActive();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Profiler_clearCurrentTag\n");
+  }
   return old_current;
 }
 

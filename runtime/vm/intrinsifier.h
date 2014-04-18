@@ -134,6 +134,11 @@ namespace dart {
   V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 1654170890)          \
 
 
+#define PROFILER_LIB_INTRINSIC_LIST(V)                                         \
+  V(_UserTag, makeCurrent, UserTag_makeCurrent, 1038211262)                    \
+  V(::, _getCurrentTag, Profiler_getCurrentTag, 1559793589)                    \
+  V(::, _clearCurrentTag, Profiler_clearCurrentTag, 874694572)                 \
+
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.
 
@@ -158,6 +163,7 @@ class Intrinsifier : public AllStatic {
   CORE_INTEGER_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   MATH_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   TYPED_DATA_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+  PROFILER_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
 };
