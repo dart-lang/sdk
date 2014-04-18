@@ -22,6 +22,7 @@
 namespace dart {
 
 class Isolate;
+class SimulatorSetjmpBuffer;
 
 class Simulator {
  public:
@@ -35,12 +36,18 @@ class Simulator {
   static Simulator* Current();
 
   // Accessors for register state.
-  void set_register(Register reg, int64_t value, R31Type r31t = R31IsUndef);
-  int64_t get_register(Register reg, R31Type r31t = R31IsUndef) const;
-  void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsUndef);
-  int32_t get_wregister(Register reg, R31Type r31t = R31IsUndef) const;
+  // The default value for R31Type has to be R31IsSP because get_register is
+  // accessed from architecture independent code through SPREG without
+  // specifying the type. We also can't translate a dummy value for SPREG into
+  // a real value because the architecture independent code expects SPREG to
+  // be a real register value.
+  void set_register(Register reg, int64_t value, R31Type r31t = R31IsSP);
+  int64_t get_register(Register reg, R31Type r31t = R31IsSP) const;
+  void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsSP);
+  int32_t get_wregister(Register reg, R31Type r31t = R31IsSP) const;
 
   int64_t get_pc() const;
+  int64_t get_last_pc() const;
   void set_pc(int64_t pc);
 
   // Accessor to the internal simulator stack top.
@@ -64,6 +71,18 @@ class Simulator {
                int64_t parameter1,
                int64_t parameter2,
                int64_t parameter3);
+
+  // Runtime and native call support.
+  enum CallKind {
+    kRuntimeCall,
+    kLeafRuntimeCall,
+    kLeafFloatRuntimeCall,
+    kBootstrapNativeCall,
+    kNativeCall
+  };
+  static uword RedirectExternalReference(uword function,
+                                         CallKind call_kind,
+                                         int argument_count);
 
   void Longjmp(uword pc,
                uword sp,
@@ -91,11 +110,13 @@ class Simulator {
   bool v_flag_;
 
   // Simulator support.
+  int64_t last_pc_;
   int64_t pc_;
   char* stack_;
   bool pc_modified_;
   intptr_t icount_;
   static int64_t flag_stop_sim_at_;
+  SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
 
   // Registered breakpoints.
@@ -162,6 +183,8 @@ class Simulator {
 
   bool ConditionallyExecute(Instr* instr);
 
+  void DoRedirectedCall(Instr* instr);
+
   // Decode instructions.
   void InstructionDecode(Instr* instr);
   #define DECODE_OP(op)                                                        \
@@ -172,7 +195,16 @@ class Simulator {
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
 
+  // Longjmp support for exceptions.
+  SimulatorSetjmpBuffer* last_setjmp_buffer() {
+    return last_setjmp_buffer_;
+  }
+  void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
+    last_setjmp_buffer_ = buffer;
+  }
+
   friend class SimulatorDebugger;
+  friend class SimulatorSetjmpBuffer;
   DISALLOW_COPY_AND_ASSIGN(Simulator);
 };
 

@@ -665,6 +665,10 @@ class Assembler : public ValueObject {
   void MoveRegister(Register to, Register from);
   void PopRegister(Register r);
 
+  // Macros accepting a pp Register argument may attempt to load values from
+  // the object pool when possible. Unless you are sure that the untagged object
+  // pool pointer is in another register, or that it is not available at all,
+  // PP should be passed for pp.
   void AddImmediate(Register reg, const Immediate& imm, Register pp);
   void AddImmediate(const Address& address, const Immediate& imm, Register pp);
 

@@ -525,7 +525,7 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
-      if ((instr->RdField() == R31) && (instr->SFField())) {
+      if ((instr->RdField() == R31) && (instr->SField() == 1)) {
         Format(instr, "cmni'sf 'rn, 'imm12s");
       } else {
         if (((instr->RdField() == R31) || (instr->RnField() == R31)) &&

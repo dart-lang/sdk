@@ -378,6 +378,14 @@ class Assembler : public ValueObject {
 
   static const char* FpuRegisterName(FpuRegister reg);
 
+  void SetPrologueOffset() {
+    if (prologue_offset_ == -1) {
+      prologue_offset_ = CodeSize();
+    }
+  }
+
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
+
   // TODO(zra): Make sure this is right.
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -601,6 +609,10 @@ class Assembler : public ValueObject {
     andis(ZR, rn, imm);
   }
 
+  void SmiUntag(Register reg) {
+    add(reg, ZR, Operand(reg, ASR, kSmiTagSize));
+  }
+
   // Branching to ExternalLabels.
   void Branch(const ExternalLabel* label) {
     LoadExternalLabel(TMP, label, kPatchable, PP);
@@ -627,22 +639,23 @@ class Assembler : public ValueObject {
     blr(TMP);
   }
 
-  // Object pool, loading from pool, etc.
-  void LoadPoolPointer(Register pp) {
-    const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-    // PP <- Read(PC - object_pool_pc_dist).
-    ldr(pp, Address::PC(-object_pool_pc_dist));
-
-    // When in the PP register, the pool pointer is untagged. When we
-    // push it on the stack with PushPP it is tagged again. PopPP then untags
-    // when restoring from the stack. This will make loading from the object
-    // pool only one instruction for the first 4096 entries. Otherwise, because
-    // the offset wouldn't be aligned, it would always be at least two
-    // instructions.
-    sub(pp, pp, Operand(kHeapObjectTag));
+  // Macros accepting a pp Register argument may attempt to load values from
+  // the object pool when possible. Unless you are sure that the untagged object
+  // pool pointer is in another register, or that it is not available at all,
+  // PP should be passed for pp.
+  void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
+  void CompareImmediate(Register rn, int64_t imm, Register pp);
+  void LoadFromOffset(Register dest, Register base, int32_t offset);
+  void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
+    LoadFromOffset(dest, base, offset - kHeapObjectTag);
   }
+  void StoreToOffset(Register dest, Register base, int32_t offset);
+  void StoreFieldToOffset(Register dest, Register base, int32_t offset) {
+    StoreToOffset(dest, base, offset - kHeapObjectTag);
+  }
+
+  // Object pool, loading from pool, etc.
+  void LoadPoolPointer(Register pp);
 
   enum Patchability {
     kPatchable,
@@ -662,6 +675,19 @@ class Assembler : public ValueObject {
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadPatchableImmediate(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
+
+  void PushObject(const Object& object, Register pp) {
+    LoadObject(TMP, object, pp);
+    Push(TMP);
+  }
+
+  void EnterFrame(intptr_t frame_size);
+  void LeaveFrame();
+
+  void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
+
+  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
@@ -830,11 +856,13 @@ class Assembler : public ValueObject {
                             OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
+    ASSERT((rt != SP) && (rt != R31));
+    const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op | size |
-        (static_cast<int32_t>(rt) << kRtShift) |
+        (static_cast<int32_t>(crt) << kRtShift) |
         encoded_offset;
     Emit(encoding);
   }
@@ -869,8 +897,10 @@ class Assembler : public ValueObject {
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
+    ASSERT((rn != SP) && (rn != R31));
+    const Register crn = ConcreteRegister(rn);
     const int32_t encoding =
-        op | (static_cast<int32_t>(rn) << kRnShift);
+        op | (static_cast<int32_t>(crn) << kRnShift);
     Emit(encoding);
   }
 
@@ -895,10 +925,11 @@ class Assembler : public ValueObject {
 
   void EmitLoadStoreReg(LoadStoreRegOp op, Register rt, Address a,
                         OperandSize sz) {
+    const Register crt = ConcreteRegister(rt);
     const int32_t size = Log2OperandSizeBytes(sz);
     const int32_t encoding =
         op | (size << kSzShift) |
-        (static_cast<int32_t>(rt) << kRtShift) |
+        (static_cast<int32_t>(crt) << kRtShift) |
         a.encoding();
     Emit(encoding);
   }
@@ -906,10 +937,12 @@ class Assembler : public ValueObject {
   void EmitLoadRegLiteral(LoadRegLiteralOp op, Register rt, Address a,
                           OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((rt != SP) && (rt != R31));
+    const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B30 : 0;
     const int32_t encoding =
         op | size |
-        (static_cast<int32_t>(rt) << kRtShift) |
+        (static_cast<int32_t>(crt) << kRtShift) |
         a.encoding();
     Emit(encoding);
   }

@@ -35,6 +35,49 @@ DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 #define SScanF sscanf  // NOLINT
 
 
+// SimulatorSetjmpBuffer are linked together, and the last created one
+// is referenced by the Simulator. When an exception is thrown, the exception
+// runtime looks at where to jump and finds the corresponding
+// SimulatorSetjmpBuffer based on the stack pointer of the exception handler.
+// The runtime then does a Longjmp on that buffer to return to the simulator.
+class SimulatorSetjmpBuffer {
+ public:
+  int Setjmp() { return setjmp(buffer_); }
+  void Longjmp() {
+    // "This" is now the last setjmp buffer.
+    simulator_->set_last_setjmp_buffer(this);
+    longjmp(buffer_, 1);
+  }
+
+  explicit SimulatorSetjmpBuffer(Simulator* sim) {
+    simulator_ = sim;
+    link_ = sim->last_setjmp_buffer();
+    sim->set_last_setjmp_buffer(this);
+    sp_ = static_cast<uword>(sim->get_register(R31, R31IsSP));
+    native_sp_ = reinterpret_cast<uword>(&sim);  // Current C++ stack pointer.
+  }
+
+  ~SimulatorSetjmpBuffer() {
+    ASSERT(simulator_->last_setjmp_buffer() == this);
+    simulator_->set_last_setjmp_buffer(link_);
+  }
+
+  SimulatorSetjmpBuffer* link() { return link_; }
+
+  uword sp() { return sp_; }
+  uword native_sp() { return native_sp_; }
+
+ private:
+  uword sp_;
+  uword native_sp_;
+  Simulator* simulator_;
+  SimulatorSetjmpBuffer* link_;
+  jmp_buf buffer_;
+
+  friend class Simulator;
+};
+
+
 // The SimulatorDebugger class is used by the simulator while debugging
 // simulated ARM64 code.
 class SimulatorDebugger {
@@ -389,6 +432,76 @@ Simulator::~Simulator() {
 }
 
 
+// When the generated code calls an external reference we need to catch that in
+// the simulator.  The external reference will be a function compiled for the
+// host architecture.  We need to call that function instead of trying to
+// execute it with the simulator.  We do that by redirecting the external
+// reference to a svc (supervisor call) instruction that is handled by
+// the simulator.  We write the original destination of the jump just at a known
+// offset from the svc instruction so the simulator knows what to call.
+class Redirection {
+ public:
+  uword address_of_hlt_instruction() {
+    return reinterpret_cast<uword>(&hlt_instruction_);
+  }
+
+  uword external_function() const { return external_function_; }
+
+  Simulator::CallKind call_kind() const { return call_kind_; }
+
+  int argument_count() const { return argument_count_; }
+
+  static Redirection* Get(uword external_function,
+                          Simulator::CallKind call_kind,
+                          int argument_count) {
+    Redirection* current;
+    for (current = list_; current != NULL; current = current->next_) {
+      if (current->external_function_ == external_function) return current;
+    }
+    return new Redirection(external_function, call_kind, argument_count);
+  }
+
+  static Redirection* FromHltInstruction(Instr* hlt_instruction) {
+    char* addr_of_hlt = reinterpret_cast<char*>(hlt_instruction);
+    char* addr_of_redirection =
+        addr_of_hlt - OFFSET_OF(Redirection, hlt_instruction_);
+    return reinterpret_cast<Redirection*>(addr_of_redirection);
+  }
+
+ private:
+  static const int32_t kRedirectInstruction = Instr::kRedirectInstruction;
+  Redirection(uword external_function,
+              Simulator::CallKind call_kind,
+              int argument_count)
+      : external_function_(external_function),
+        call_kind_(call_kind),
+        argument_count_(argument_count),
+        hlt_instruction_(kRedirectInstruction),
+        next_(list_) {
+    list_ = this;
+  }
+
+  uword external_function_;
+  Simulator::CallKind call_kind_;
+  int argument_count_;
+  uint32_t hlt_instruction_;
+  Redirection* next_;
+  static Redirection* list_;
+};
+
+
+Redirection* Redirection::list_ = NULL;
+
+
+uword Simulator::RedirectExternalReference(uword function,
+                                           CallKind call_kind,
+                                           int argument_count) {
+  Redirection* redirection =
+      Redirection::Get(function, call_kind, argument_count);
+  return redirection->address_of_hlt_instruction();
+}
+
+
 // Get the active Simulator for the current isolate.
 Simulator* Simulator::Current() {
   Simulator* simulator = Isolate::Current()->simulator();
@@ -404,7 +517,6 @@ Simulator* Simulator::Current() {
 void Simulator::set_register(Register reg, int64_t value, R31Type r31t) {
   // register is in range, and if it is R31, a mode is specified.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-  ASSERT((reg != R31) || (r31t != R31IsUndef));
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = value;
   }
@@ -414,7 +526,6 @@ void Simulator::set_register(Register reg, int64_t value, R31Type r31t) {
 // Get the register from the architecture state.
 int64_t Simulator::get_register(Register reg, R31Type r31t) const {
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-  ASSERT((reg != R31) || (r31t != R31IsUndef));
   if ((reg == R31) && (r31t == R31IsZR)) {
     return 0;
   } else {
@@ -425,7 +536,6 @@ int64_t Simulator::get_register(Register reg, R31Type r31t) const {
 
 void Simulator::set_wregister(Register reg, int32_t value, R31Type r31t) {
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-  ASSERT((reg != R31) || (r31t != R31IsUndef));
   // When setting in W mode, clear the high bits.
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = Utils::LowHighTo64Bits(static_cast<uint32_t>(value), 0);
@@ -436,7 +546,6 @@ void Simulator::set_wregister(Register reg, int32_t value, R31Type r31t) {
 // Get the register from the architecture state.
 int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-  ASSERT((reg != R31) || (r31t != R31IsUndef));
   if ((reg == R31) && (r31t == R31IsZR)) {
     return 0;
   } else {
@@ -448,23 +557,32 @@ int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
 // Raw access to the PC register.
 void Simulator::set_pc(int64_t value) {
   pc_modified_ = true;
+  last_pc_ = pc_;
   pc_ = value;
 }
 
 
-// Raw access to the PC register without the special adjustment when reading.
+// Raw access to the pc.
 int64_t Simulator::get_pc() const {
   return pc_;
 }
 
 
+int64_t Simulator::get_last_pc() const {
+  return last_pc_;
+}
+
+
 void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   uword fault_pc = get_pc();
+  uword last_pc = get_last_pc();
   // TODO(zra): drop into debugger.
   char buffer[128];
   snprintf(buffer, sizeof(buffer),
-           "illegal memory access at 0x%" Px ", pc=0x%" Px "\n",
-           addr, fault_pc);
+      "illegal memory access at 0x%" Px ", pc=0x%" Px ", last_pc=0x%" Px"\n",
+      addr, fault_pc, last_pc);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
   // The debugger will return control in non-interactive mode.
   FATAL("Cannot continue execution after illegal memory access.");
 }
@@ -477,7 +595,8 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer),
            "unaligned %s at 0x%" Px ", pc=%p\n", msg, addr, instr);
-  // TODO(zra): Drop into the simulator debugger when it exists.
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
   // The debugger will not be able to single step past this instruction, but
   // it will be possible to disassemble the code and inspect registers.
   FATAL("Cannot continue execution after unaligned access.");
@@ -487,7 +606,8 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 void Simulator::UnimplementedInstruction(Instr* instr) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
-  // TODO(zra): drop into debugger.
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
   FATAL("Cannot continue execution after unimplemented instruction.");
 }
 
@@ -925,6 +1045,123 @@ void Simulator::DecodeConditionalBranch(Instr* instr) {
 }
 
 
+// Calls into the Dart runtime are based on this interface.
+typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
+
+// Calls to leaf Dart runtime functions are based on this interface.
+typedef int32_t (*SimulatorLeafRuntimeCall)(
+    int64_t r0, int64_t r1, int64_t r2, int64_t r3,
+    int64_t r4, int64_t r5, int64_t r6, int64_t r7);
+
+// Calls to leaf float Dart runtime functions are based on this interface.
+typedef double (*SimulatorLeafFloatRuntimeCall)(
+    double d0, double d1, double d2, double d3,
+    double d4, double d5, double d6, double d7);
+
+// Calls to native Dart functions are based on this interface.
+typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
+
+
+void Simulator::DoRedirectedCall(Instr* instr) {
+  SimulatorSetjmpBuffer buffer(this);
+  if (!setjmp(buffer.buffer_)) {
+    int64_t saved_lr = get_register(LR);
+    Redirection* redirection = Redirection::FromHltInstruction(instr);
+    uword external = redirection->external_function();
+    if (FLAG_trace_sim) {
+      OS::Print("Call to host function at 0x%" Pd "\n", external);
+    }
+
+    if ((redirection->call_kind() == kRuntimeCall) ||
+        (redirection->call_kind() == kBootstrapNativeCall) ||
+        (redirection->call_kind() == kNativeCall)) {
+      // Set the top_exit_frame_info of this simulator to the native stack.
+      set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
+    }
+    if (redirection->call_kind() == kRuntimeCall) {
+      NativeArguments arguments;
+      ASSERT(sizeof(NativeArguments) == 4*kWordSize);
+      arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
+      arguments.argc_tag_ = get_register(R1);
+      arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
+      arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
+      SimulatorRuntimeCall target =
+          reinterpret_cast<SimulatorRuntimeCall>(external);
+      target(arguments);
+      set_register(R0, icount_);  // Zap result register from void function.
+      set_register(R1, icount_);
+    } else if (redirection->call_kind() == kLeafRuntimeCall) {
+      ASSERT((0 <= redirection->argument_count()) &&
+             (redirection->argument_count() <= 8));
+      int64_t r0 = get_register(R0);
+      int64_t r1 = get_register(R1);
+      int64_t r2 = get_register(R2);
+      int64_t r3 = get_register(R3);
+      int64_t r4 = get_register(R4);
+      int64_t r5 = get_register(R5);
+      int64_t r6 = get_register(R6);
+      int64_t r7 = get_register(R7);
+      SimulatorLeafRuntimeCall target =
+          reinterpret_cast<SimulatorLeafRuntimeCall>(external);
+      r0 = target(r0, r1, r2, r3, r4, r5, r6, r7);
+      set_register(R0, r0);  // Set returned result from function.
+      set_register(R1, icount_);  // Zap unused result register.
+    } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
+      // TODO(zra): leaf float runtime calls.
+      UNIMPLEMENTED();
+    } else if (redirection->call_kind() == kBootstrapNativeCall) {
+      NativeArguments* arguments;
+      arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+      SimulatorBootstrapNativeCall target =
+          reinterpret_cast<SimulatorBootstrapNativeCall>(external);
+      target(arguments);
+      set_register(R0, icount_);  // Zap result register from void function.
+    } else {
+      ASSERT(redirection->call_kind() == kNativeCall);
+      NativeArguments* arguments;
+      arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+      uword target_func = get_register(R1);
+      SimulatorNativeCall target =
+          reinterpret_cast<SimulatorNativeCall>(external);
+      target(arguments, target_func);
+      set_register(R0, icount_);  // Zap result register from void function.
+      set_register(R1, icount_);
+    }
+    set_top_exit_frame_info(0);
+
+    // Zap caller-saved registers, since the actual runtime call could have
+    // used them.
+    set_register(R2, icount_);
+    set_register(R3, icount_);
+    set_register(R4, icount_);
+    set_register(R5, icount_);
+    set_register(R6, icount_);
+    set_register(R7, icount_);
+    set_register(R8, icount_);
+    set_register(R9, icount_);
+    set_register(R10, icount_);
+    set_register(R11, icount_);
+    set_register(R12, icount_);
+    set_register(R13, icount_);
+    set_register(R14, icount_);
+    set_register(R15, icount_);
+    set_register(IP0, icount_);
+    set_register(IP1, icount_);
+    set_register(R18, icount_);
+    set_register(LR, icount_);
+
+    // TODO(zra): Zap caller-saved fpu registers.
+
+    // Return.
+    set_pc(saved_lr);
+  } else {
+    // Coming via long jump from a throw. Continue to exception handler.
+    set_top_exit_frame_info(0);
+  }
+}
+
+
 void Simulator::DecodeExceptionGen(Instr* instr) {
   if ((instr->Bits(0, 2) == 1) && (instr->Bits(2, 3) == 0) &&
       (instr->Bits(21, 3) == 0)) {
@@ -948,6 +1185,8 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
       const char* message = *reinterpret_cast<const char**>(
           reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
       OS::Print("Simulator hit: %s", message);
+    } else if (imm == kImmExceptionIsRedirectedCall) {
+      DoRedirectedCall(instr);
     } else {
       UnimplementedInstruction(instr);
     }
@@ -1752,7 +1991,7 @@ int64_t Simulator::Call(int64_t entry,
   set_register(R28, r28_val);
   set_register(R29, r29_val);
 
-  // Restore the SP register and return R1:R0.
+  // Restore the SP register and return R0.
   set_register(R31, sp_before_call, R31IsSP);
   int64_t return_value;
   return_value = get_register(R0);

@@ -257,6 +257,22 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
 }
 
 
+void Assembler::LoadPoolPointer(Register pp) {
+  const intptr_t object_pool_pc_dist =
+    Instructions::HeaderSize() - Instructions::object_pool_offset() +
+    CodeSize();
+  // PP <- Read(PC - object_pool_pc_dist).
+  ldr(pp, Address::PC(-object_pool_pc_dist));
+
+  // When in the PP register, the pool pointer is untagged. When we
+  // push it on the stack with PushPP it is tagged again. PopPP then untags
+  // when restoring from the stack. This will make loading from the object
+  // pool only one instruction for the first 4096 entries. Otherwise, because
+  // the offset wouldn't be aligned, it would always be at least two
+  // instructions.
+  sub(pp, pp, Operand(kHeapObjectTag));
+}
+
 void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
                                        uint32_t offset) {
   ASSERT(dst != pp);
@@ -505,6 +521,129 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
       }
     }
   }
+}
+
+
+void Assembler::AddImmediate(
+    Register dest, Register rn, int64_t imm, Register pp) {
+  ASSERT(rn != TMP2);
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    add(dest, rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    sub(dest, rn, op);
+  } else {
+    LoadImmediate(TMP2, imm, pp);
+    add(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
+  ASSERT(rn != TMP2);
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    cmp(rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    cmn(rn, op);
+  } else {
+    LoadImmediate(TMP2, imm, pp);
+    cmp(rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::LoadFromOffset(Register dest, Register base, int32_t offset) {
+  ASSERT(base != TMP2);
+  if (Address::CanHoldOffset(offset)) {
+    ldr(dest, Address(base, offset));
+  } else if (Address::CanHoldOffset(offset, Address::PreIndex)) {
+    mov(TMP2, base);
+    ldr(dest, Address(TMP2, offset, Address::PreIndex));
+  } else {
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoRegister);
+    ldr(dest, Address(TMP2));
+  }
+}
+
+
+void Assembler::StoreToOffset(Register src, Register base, int32_t offset) {
+  ASSERT(src != TMP2);
+  ASSERT(base != TMP2);
+  if (Address::CanHoldOffset(offset)) {
+    str(src, Address(base, offset));
+  } else if (Address::CanHoldOffset(offset, Address::PreIndex)) {
+    mov(TMP2, base);
+    str(src, Address(TMP2, offset, Address::PreIndex));
+  } else {
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoRegister);
+    str(src, Address(TMP2));
+  }
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(SP, SP, -frame_space, kNoRegister);
+  if (OS::ActivationFrameAlignment() > 1) {
+    mov(TMP, SP);  // SP can't be register operand of andi.
+    andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));
+    mov(SP, TMP);
+  }
+}
+
+
+void Assembler::EnterFrame(intptr_t frame_size) {
+  Push(LR);
+  Push(FP);
+  mov(FP, SP);
+
+  if (frame_size > 0) {
+    sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+void Assembler::LeaveFrame() {
+  mov(SP, FP);
+  Pop(FP);
+  Pop(LR);
+}
+
+
+void Assembler::EnterDartFrame(intptr_t frame_size) {
+  // Setup the frame.
+  adr(TMP, 0);  // TMP gets PC of this instruction.
+  EnterFrame(0);
+  Push(TMP);  // Save PC Marker.
+  PushPP();  // Save PP.
+
+  // Load the pool pointer.
+  LoadPoolPointer(PP);
+
+  // Reserve space.
+  if (frame_size > 0) {
+    sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+void Assembler::LeaveDartFrame() {
+  // Restore and untag PP.
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  sub(PP, PP, Operand(kHeapObjectTag));
+  LeaveFrame();
+}
+
+
+void Assembler::CallRuntime(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  entry.Call(this, argument_count);
 }
 
 }  // namespace dart

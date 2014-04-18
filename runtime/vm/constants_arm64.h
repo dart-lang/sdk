@@ -111,8 +111,8 @@ const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
 const Register CTX = R28;  // Caches current context in generated code.
 const Register PP = R27;  // Caches object pool pointer in generated code.
-const Register SPREG = R31;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register SPREG = R31;  // Stack pointer register.
 const Register ICREG = R5;  // IC data register.
 
 // Exception object is passed in this register to the catch handlers when an
@@ -141,8 +141,8 @@ const RegList kAbiArgumentCpuRegs =
 const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
     (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
-    (1 << R27) | (1 << R28) | (1 << R29);
-const int kAbiPreservedCpuRegCount = 11;
+    (1 << R27) | (1 << R28);
+const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -454,7 +454,6 @@ enum Extend {
 enum R31Type {
   R31IsSP,
   R31IsZR,
-  R31IsUndef,
 };
 
 // Constants used for the decoding or encoding of the individual fields of
@@ -585,6 +584,8 @@ class Instr {
   static const int32_t kBreakPointInstruction =  // hlt #kImmExceptionIsDebug.
       HLT | (kImmExceptionIsDebug << kImm16Shift);
   static const int kBreakPointInstructionSize = kInstrSize;
+  static const int32_t kRedirectInstruction =
+      HLT | (kImmExceptionIsRedirectedCall << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.
   inline int Bit(int nr) const {
