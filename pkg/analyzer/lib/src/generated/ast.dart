@@ -12724,11 +12724,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
         }
       }
     }
-    Element element = node.bestElement;
-    if (element == null) {
-      element = node.staticElement;
-    }
-    return element;
+    return node.bestElement;
   }
 
   @override
@@ -15922,7 +15918,7 @@ class AstCloner implements AstVisitor<AstNode> {
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, _cloneNode(node.expression), node.rightParenthesis, node.leftBracket, _cloneNodeList(node.members), node.rightBracket);
 
   @override
-  AstNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
+  SymbolLiteral visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
 
   @override
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression(node.keyword);
@@ -15992,7 +15988,7 @@ class AstComparator implements AstVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the two AST nodes are equal
    */
-  static bool equalUnits(CompilationUnit first, CompilationUnit second) {
+  static bool equalNodes(AstNode first, AstNode second) {
     AstComparator comparator = new AstComparator();
     return comparator._isEqualNodes(first, second);
   }
@@ -16682,7 +16678,7 @@ class AstComparator implements AstVisitor<bool> {
       return false;
     }
     for (int i = 0; i < length; i++) {
-      if (_isEqualTokens(first[i], second[i])) {
+      if (!_isEqualTokens(first[i], second[i])) {
         return false;
       }
     }
@@ -16701,6 +16697,8 @@ class AstComparator implements AstVisitor<bool> {
       return second == null;
     } else if (second == null) {
       return false;
+    } else if (identical(first, second)) {
+      return true;
     }
     return first.offset == second.offset && first.length == second.length && first.lexeme == second.lexeme;
   }

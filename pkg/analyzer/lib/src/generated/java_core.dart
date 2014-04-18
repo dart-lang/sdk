@@ -220,6 +220,9 @@ class StringUtils {
     }
     return sb.toString();
   }
+  static String join(Iterable iter, [String separator = " "]) {
+    return iter.join(separator);
+  }
 }
 
 class Math {
@@ -257,7 +260,7 @@ class IllegalStateException extends JavaException {
 }
 
 class UnsupportedOperationException extends JavaException {
-  String toString() => "UnsupportedOperationException";
+  UnsupportedOperationException([message = ""]) : super(message);
 }
 
 class NoSuchElementException extends JavaException {

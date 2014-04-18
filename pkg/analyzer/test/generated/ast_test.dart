@@ -369,7 +369,7 @@ class AstFactory {
 
   static CatchClause catchClause4(TypeName exceptionType, String exceptionParameter, List<Statement> statements) => catchClause5(exceptionType, exceptionParameter, null, statements);
 
-  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause(exceptionType == null ? null : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.tokenFromKeyword(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.tokenFromType(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), block(statements));
+  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause(exceptionType == null ? null : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.tokenFromKeyword(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.OPEN_PAREN), exceptionParameter == null ? null : identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.tokenFromType(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), block(statements));
 
   static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration(null, null, abstractKeyword == null ? null : TokenFactory.tokenFromKeyword(abstractKeyword), TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
@@ -2408,8 +2408,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("A this.a", AstFactory.fieldFormalParameter(null, AstFactory.typeName4("A", []), "a"));
   }
 
-  void test_visitForEachStatement() {
+  void test_visitForEachStatement_declared() {
     _assertSource("for (a in b) {}", AstFactory.forEachStatement(AstFactory.declaredIdentifier3("a"), AstFactory.identifier3("b"), AstFactory.block([])));
+  }
+
+  void test_visitForEachStatement_variable() {
+    _assertSource("for (a in b) {}", new ForEachStatement.con2(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN), AstFactory.identifier3("b"), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), AstFactory.block([])));
   }
 
   void test_visitFormalParameterList_empty() {
@@ -3566,9 +3570,13 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFieldFormalParameter_type);
       });
-      _ut.test('test_visitForEachStatement', () {
+      _ut.test('test_visitForEachStatement_declared', () {
         final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitForEachStatement);
+        runJUnitTest(__test, __test.test_visitForEachStatement_declared);
+      });
+      _ut.test('test_visitForEachStatement_variable', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitForEachStatement_variable);
       });
       _ut.test('test_visitForStatement_c', () {
         final __test = new ToSourceVisitorTest();

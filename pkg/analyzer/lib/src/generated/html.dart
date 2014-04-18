@@ -1860,7 +1860,20 @@ class HtmlParser extends XmlParser {
   /**
    * A set containing the names of tags that do not have a closing tag.
    */
-  static Set<String> SELF_CLOSING = new Set<String>();
+  static Set<String> SELF_CLOSING = new Set<String>.from(JavaArrays.asList(<String> [
+      "area",
+      "base",
+      "basefont",
+      "br",
+      "col",
+      "frame",
+      "hr",
+      "img",
+      "input",
+      "link",
+      "meta",
+      "param",
+      "!"]));
 
   /**
    * Given the contents of an embedded expression that occurs at the given offset, parse it as a

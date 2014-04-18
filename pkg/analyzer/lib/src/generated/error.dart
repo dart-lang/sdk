@@ -192,34 +192,37 @@ class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
 class AngularCode extends Enum<AngularCode> implements ErrorCode {
   static const AngularCode CANNOT_PARSE_SELECTOR = const AngularCode('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
 
-  static const AngularCode INVALID_PROPERTY_KIND = const AngularCode('INVALID_PROPERTY_KIND', 1, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
+  static const AngularCode INVALID_FILTER_NAME = const AngularCode('INVALID_FILTER_NAME', 1, "Filter name must be a simple identifier");
 
-  static const AngularCode INVALID_PROPERTY_FIELD = const AngularCode('INVALID_PROPERTY_FIELD', 2, "Unknown property field '%s'");
+  static const AngularCode INVALID_PROPERTY_KIND = const AngularCode('INVALID_PROPERTY_KIND', 2, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
 
-  static const AngularCode INVALID_PROPERTY_MAP = const AngularCode('INVALID_PROPERTY_MAP', 3, "Argument 'map' must be a constant map literal");
+  static const AngularCode INVALID_PROPERTY_FIELD = const AngularCode('INVALID_PROPERTY_FIELD', 3, "Unknown property field '%s'");
 
-  static const AngularCode INVALID_PROPERTY_NAME = const AngularCode('INVALID_PROPERTY_NAME', 4, "Property name must be a string literal");
+  static const AngularCode INVALID_PROPERTY_MAP = const AngularCode('INVALID_PROPERTY_MAP', 4, "Argument 'map' must be a constant map literal");
 
-  static const AngularCode INVALID_PROPERTY_SPEC = const AngularCode('INVALID_PROPERTY_SPEC', 5, "Property binding specification must be a string literal");
+  static const AngularCode INVALID_PROPERTY_NAME = const AngularCode('INVALID_PROPERTY_NAME', 5, "Property name must be a string literal");
 
-  static const AngularCode INVALID_REPEAT_SYNTAX = const AngularCode('INVALID_REPEAT_SYNTAX', 6, "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
+  static const AngularCode INVALID_PROPERTY_SPEC = const AngularCode('INVALID_PROPERTY_SPEC', 6, "Property binding specification must be a string literal");
 
-  static const AngularCode INVALID_REPEAT_ITEM_SYNTAX = const AngularCode('INVALID_REPEAT_ITEM_SYNTAX', 7, "Item must by identifier or in '(_key_, _value_)' pair.");
+  static const AngularCode INVALID_REPEAT_SYNTAX = const AngularCode('INVALID_REPEAT_SYNTAX', 7, "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
 
-  static const AngularCode INVALID_URI = const AngularCode('INVALID_URI', 8, "Invalid URI syntax: '%s'");
+  static const AngularCode INVALID_REPEAT_ITEM_SYNTAX = const AngularCode('INVALID_REPEAT_ITEM_SYNTAX', 8, "Item must by identifier or in '(_key_, _value_)' pair.");
 
-  static const AngularCode MISSING_FILTER_COLON = const AngularCode('MISSING_FILTER_COLON', 9, "Missing ':' before filter argument");
+  static const AngularCode INVALID_URI = const AngularCode('INVALID_URI', 9, "Invalid URI syntax: '%s'");
 
-  static const AngularCode MISSING_NAME = const AngularCode('MISSING_NAME', 10, "Argument 'name' must be provided");
+  static const AngularCode MISSING_FILTER_COLON = const AngularCode('MISSING_FILTER_COLON', 10, "Missing ':' before filter argument");
 
-  static const AngularCode MISSING_PUBLISH_AS = const AngularCode('MISSING_PUBLISH_AS', 11, "Argument 'publishAs' must be provided");
+  static const AngularCode MISSING_NAME = const AngularCode('MISSING_NAME', 11, "Argument 'name' must be provided");
 
-  static const AngularCode MISSING_SELECTOR = const AngularCode('MISSING_SELECTOR', 12, "Argument 'selector' must be provided");
+  static const AngularCode MISSING_PUBLISH_AS = const AngularCode('MISSING_PUBLISH_AS', 12, "Argument 'publishAs' must be provided");
 
-  static const AngularCode URI_DOES_NOT_EXIST = const AngularCode('URI_DOES_NOT_EXIST', 13, "Target of URI does not exist: '%s'");
+  static const AngularCode MISSING_SELECTOR = const AngularCode('MISSING_SELECTOR', 13, "Argument 'selector' must be provided");
+
+  static const AngularCode URI_DOES_NOT_EXIST = const AngularCode('URI_DOES_NOT_EXIST', 14, "Target of URI does not exist: '%s'");
 
   static const List<AngularCode> values = const [
       CANNOT_PARSE_SELECTOR,
+      INVALID_FILTER_NAME,
       INVALID_PROPERTY_KIND,
       INVALID_PROPERTY_FIELD,
       INVALID_PROPERTY_MAP,
@@ -1534,7 +1537,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param expressionSource the expression source code that is the unexpected type
    * @param expectedType the name of the expected type
    */
-  static const CompileTimeErrorCode INCONSISTENT_CASE_EXPRESSION_TYPES = const CompileTimeErrorCode.con1('INCONSISTENT_CASE_EXPRESSION_TYPES', 65, "Case expressions must have the same types, '%s' is not a %s'");
+  static const CompileTimeErrorCode INCONSISTENT_CASE_EXPRESSION_TYPES = const CompileTimeErrorCode.con1('INCONSISTENT_CASE_EXPRESSION_TYPES', 65, "Case expressions must have the same types, '%s' is not a '%s'");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
@@ -2104,16 +2107,6 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = const CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT', 134, "The class '%s' does not have a default generative constructor");
 
   /**
-   * 12.14.3 Unqualified Invocation: If there exists a lexically visible declaration named
-   * <i>id</i>, let <i>f<sub>id</sub></i> be the innermost such declaration. Then: [skip].
-   * Otherwise, <i>i</i> is equivalent to <b>this</b>.<i>id</i>(<i>a<sub>1</sub></i>; ...
-   * <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
-   *
-   * @param methodName the name of the method that is undefined
-   */
-  static const CompileTimeErrorCode UNDEFINED_FUNCTION = const CompileTimeErrorCode.con1('UNDEFINED_FUNCTION', 135, "The function '%s' is not defined");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
    * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
@@ -2123,7 +2116,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the requested named parameter
    */
-  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = const CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 136, "The named parameter '%s' is not defined");
+  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = const CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 135, "The named parameter '%s' is not defined");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -2138,7 +2131,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param uri the URI pointing to a non-existent file
    * @see #INVALID_URI
    */
-  static const CompileTimeErrorCode URI_DOES_NOT_EXIST = const CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 137, "Target of URI does not exist: '%s'");
+  static const CompileTimeErrorCode URI_DOES_NOT_EXIST = const CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 136, "Target of URI does not exist: '%s'");
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
@@ -2150,7 +2143,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
-  static const CompileTimeErrorCode URI_WITH_INTERPOLATION = const CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 138, "URIs cannot use string interpolation");
+  static const CompileTimeErrorCode URI_WITH_INTERPOLATION = const CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 137, "URIs cannot use string interpolation");
 
   /**
    * 7.1.1 Operators: It is a compile-time error if the arity of the user-declared operator []= is
@@ -2163,7 +2156,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param expectedNumberOfParameters the number of parameters expected
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 139, "Operator '%s' should declare exactly %d parameter(s), but %d found");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 138, "Operator '%s' should declare exactly %d parameter(s), but %d found");
 
   /**
    * 7.1.1 Operators: It is a compile time error if the arity of the user-declared operator - is not
@@ -2171,13 +2164,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 140, "Operator '-' should declare 0 or 1 parameter, but %d found");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 139, "Operator '-' should declare 0 or 1 parameter, but %d found");
 
   /**
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 141, "Setters should declare exactly one required parameter");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 140, "Setters should declare exactly one required parameter");
 
   static const List<CompileTimeErrorCode> values = const [
       AMBIGUOUS_EXPORT,
@@ -2315,7 +2308,6 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       UNDEFINED_CLASS,
       UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
       UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-      UNDEFINED_FUNCTION,
       UNDEFINED_NAMED_PARAMETER,
       URI_DOES_NOT_EXIST,
       URI_WITH_INTERPOLATION,
@@ -2670,14 +2662,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAME = const StaticWarningCode.con1('IMPORT_DUPLICATED_LIBRARY_NAME', 25, "The imported libraries '%s' and '%s' should not have the same name '%s'");
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
-   * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
-   * identically named members existed in several superinterfaces) then at most one member is
-   * inherited.
+   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause multiple members
+   * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the same name <i>n</i> that would be
+   * inherited (because identically named members existed in several superinterfaces) then at most
+   * one member is inherited.
    *
-   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i>, are getters, or if some but
-   * not all of the <i>m<sub>i</sub></i> are setters, none of the <i>m<sub>i</sub></i> are
-   * inherited, and a static warning is issued.
+   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i> are getters none of the
+   * <i>m<sub>i</sub></i> are inherited, and a static warning is issued.
    */
   static const StaticWarningCode INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD = const StaticWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD', 26, "'%s' is inherited as a getter and also a method");
 
@@ -2807,7 +2798,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   static const StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = const StaticWarningCode.con1('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', 38, "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'");
 
   /**
-   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
+   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> &hellip;
    * <i>e<sub>n</sub></i>] is evaluated as follows:
    * * The operator []= is invoked on <i>a</i> with first argument <i>i</i> and second argument
    * <i>o<sub>i+1</sub></i><i>, 1 &lt;= i &lt;= n</i>
@@ -2822,7 +2813,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
-   * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
+   * <i>e<sub>1</sub></i> &hellip; <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as
+   * follows:
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
    *
@@ -2836,7 +2828,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
-   * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
+   * <i>e<sub>1</sub></i> &hellip; <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as
+   * follows:
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
    *
@@ -2899,7 +2892,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * static warning if <i>T.id</i> is not the name of a constructor declared by the type <i>T</i>.
    * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
+   * a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
   static const StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = const StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR', 48, "The class '%s' does not have a constructor '%s'");
@@ -2910,7 +2903,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * static warning if <i>T.id</i> is not the name of a constructor declared by the type <i>T</i>.
    * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
+   * a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
   static const StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = const StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 49, "The class '%s' does not have a default constructor");
@@ -3165,8 +3158,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   static const StaticWarningCode UNDEFINED_IDENTIFIER = const StaticWarningCode.con1('UNDEFINED_IDENTIFIER', 73, "Undefined name '%s'");
 
   /**
-   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
-   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
+   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
+   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> &hellip;
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
    *
    * @param name the name of the requested named parameter
@@ -3429,24 +3422,26 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   static const StaticTypeWarningCode INACCESSIBLE_SETTER = const StaticTypeWarningCode.con1('INACCESSIBLE_SETTER', 2, "");
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
-   * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
-   * identically named members existed in several superinterfaces) then at most one member is
-   * inherited.
+   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause multiple members
+   * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the same name <i>n</i> that would be
+   * inherited (because identically named members existed in several superinterfaces) then at most
+   * one member is inherited.
    *
    * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the members
    * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical, then there must be a member
-   * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt; T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
-   * all <i>i, 1 &lt;= i &lt; k</i>, or a static type warning occurs. The member that is inherited
+   * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt;: T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
+   * all <i>i, 1 &lt;= i &lt;= k</i>, or a static type warning occurs. The member that is inherited
    * is <i>m<sub>x</sub></i>, if it exists; otherwise:
-   * <ol>
-   * * If all of <i>m<sub>1</sub>, &hellip; m<sub>k</sub></i> have the same number <i>r</i> of
-   * required parameters and the same set of named parameters <i>s</i>, then let <i>h = max(
-   * numberOfOptionalPositionals( m<sub>i</sub> ) ), 1 &lt;= i &lt;= k</i>. <i>I</i> has a method
-   * named <i>n</i>, with <i>r</i> required parameters of type dynamic, <i>h</i> optional positional
-   * parameters of type dynamic, named parameters <i>s</i> of type dynamic and return type dynamic.
+   * * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
+   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
+   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
+   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
+   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
+   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i>
+   * If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters
+   * of type <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    * * Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
-   * </ol>
    */
   static const StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE = const StaticTypeWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE', 3, "'%s' is inherited by at least two interfaces inconsistently, from %s");
 
@@ -3500,7 +3495,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
 
   /**
    * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
-   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip; a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
+   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
    * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is an expression.
    *
    * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
@@ -3559,12 +3554,13 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * <i>G</i>.
    *
    * 15.8 Parameterized Types: If <i>S</i> is the static type of a member <i>m</i> of <i>G</i>, then
-   * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip; A<sub>n</sub>&gt;</i>
-   * is <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]S</i>
-   * where <i>T<sub>1</sub>, &hellip; T<sub>n</sub></i> are the formal type parameters of <i>G</i>.
-   * Let <i>B<sub>i</sub></i> be the bounds of <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>. It is a
-   * static type warning if <i>A<sub>i</sub></i> is not a subtype of <i>[A<sub>1</sub>, &hellip;,
-   * A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]B<sub>i</sub>, 1 &lt;= i &lt;= n</i>.
+   * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip;,
+   * A<sub>n</sub>&gt;</i> is <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>]S</i> where <i>T<sub>1</sub>, &hellip;, T<sub>n</sub></i> are the formal type
+   * parameters of <i>G</i>. Let <i>B<sub>i</sub></i> be the bounds of <i>T<sub>i</sub>, 1 &lt;= i
+   * &lt;= n</i>. It is a static type warning if <i>A<sub>i</sub></i> is not a subtype of
+   * <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>]B<sub>i</sub>, 1 &lt;= i &lt;= n</i>.
    *
    * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not
    * subtypes of the bounds of the corresponding formal type parameters of type.
@@ -3585,13 +3581,24 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND = const StaticTypeWarningCode.con1('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND', 14, "'%s' cannot be a supertype of its upper bound");
 
   /**
+   * 12.15.3 Unqualified Invocation: If there exists a lexically visible declaration named
+   * <i>id</i>, let <i>f<sub>id</sub></i> be the innermost such declaration. Then: [skip].
+   * Otherwise, <i>f<sub>id</sub></i> is considered equivalent to the ordinary method invocation
+   * <b>this</b>.<i>id</i>(<i>a<sub>1</sub></i>, ..., <i>a<sub>n</sub></i>, <i>x<sub>n+1</sub></i> :
+   * <i>a<sub>n+1</sub></i>, ..., <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
+   *
+   * @param methodName the name of the method that is undefined
+   */
+  static const StaticTypeWarningCode UNDEFINED_FUNCTION = const StaticTypeWarningCode.con1('UNDEFINED_FUNCTION', 15, "The function '%s' is not defined");
+
+  /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    *
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static const StaticTypeWarningCode UNDEFINED_GETTER = const StaticTypeWarningCode.con1('UNDEFINED_GETTER', 15, "There is no such getter '%s' in '%s'");
+  static const StaticTypeWarningCode UNDEFINED_GETTER = const StaticTypeWarningCode.con1('UNDEFINED_GETTER', 16, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>. It is a static type
@@ -3600,7 +3607,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening on
    */
-  static const StaticTypeWarningCode UNDEFINED_METHOD = const StaticTypeWarningCode.con1('UNDEFINED_METHOD', 16, "The method '%s' is not defined for the class '%s'");
+  static const StaticTypeWarningCode UNDEFINED_METHOD = const StaticTypeWarningCode.con1('UNDEFINED_METHOD', 17, "The method '%s' is not defined for the class '%s'");
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -3618,7 +3625,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param operator the name of the operator
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    */
-  static const StaticTypeWarningCode UNDEFINED_OPERATOR = const StaticTypeWarningCode.con1('UNDEFINED_OPERATOR', 17, "There is no such operator '%s' in '%s'");
+  static const StaticTypeWarningCode UNDEFINED_OPERATOR = const StaticTypeWarningCode.con1('UNDEFINED_OPERATOR', 18, "There is no such operator '%s' in '%s'");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
@@ -3628,7 +3635,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    * @see #INACCESSIBLE_SETTER
    */
-  static const StaticTypeWarningCode UNDEFINED_SETTER = const StaticTypeWarningCode.con1('UNDEFINED_SETTER', 18, "There is no such setter '%s' in '%s'");
+  static const StaticTypeWarningCode UNDEFINED_SETTER = const StaticTypeWarningCode.con1('UNDEFINED_SETTER', 19, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -3639,7 +3646,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening on
    */
-  static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD = const StaticTypeWarningCode.con1('UNDEFINED_SUPER_METHOD', 19, "There is no such method '%s' in '%s'");
+  static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD = const StaticTypeWarningCode.con1('UNDEFINED_SUPER_METHOD', 20, "There is no such method '%s' in '%s'");
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an
@@ -3649,7 +3656,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * able to find the name defined in a supertype. It exists to provide a more informative error
    * message.
    */
-  static const StaticTypeWarningCode UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = const StaticTypeWarningCode.con1('UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER', 20, "Static members from supertypes must be qualified by the name of the defining type");
+  static const StaticTypeWarningCode UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = const StaticTypeWarningCode.con1('UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER', 21, "Static members from supertypes must be qualified by the name of the defining type");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not a generic type with
@@ -3661,7 +3668,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
    * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
    */
-  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = const StaticTypeWarningCode.con1('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 21, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = const StaticTypeWarningCode.con1('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 22, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
 
   static const List<StaticTypeWarningCode> values = const [
       EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
@@ -3679,6 +3686,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
       RETURN_OF_INVALID_TYPE,
       TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
       TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+      UNDEFINED_FUNCTION,
       UNDEFINED_GETTER,
       UNDEFINED_METHOD,
       UNDEFINED_OPERATOR,

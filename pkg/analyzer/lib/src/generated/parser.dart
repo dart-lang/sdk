@@ -1458,6 +1458,12 @@ class Parser {
    */
   bool _inSwitch = false;
 
+  /**
+   * A flag indicating whether the parser is currently in a constructor field initializer, with no
+   * intervening parens, braces, or brackets.
+   */
+  bool _inInitializer = false;
+
   static String _HIDE = "hide";
 
   static String _OF = "of";
@@ -1629,28 +1635,34 @@ class Parser {
     // Even though unnamed arguments must all appear before any named arguments, we allow them to
     // appear in any order so that we can recover faster.
     //
-    Expression argument = parseArgument();
-    arguments.add(argument);
-    bool foundNamedArgument = argument is NamedExpression;
-    bool generatedError = false;
-    while (_optional(TokenType.COMMA)) {
-      argument = parseArgument();
+    bool wasInInitializer = _inInitializer;
+    _inInitializer = false;
+    try {
+      Expression argument = parseArgument();
       arguments.add(argument);
-      if (foundNamedArgument) {
-        if (!generatedError && argument is! NamedExpression) {
-          // Report the error, once, but allow the arguments to be in any order in the AST.
-          _reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
-          generatedError = true;
+      bool foundNamedArgument = argument is NamedExpression;
+      bool generatedError = false;
+      while (_optional(TokenType.COMMA)) {
+        argument = parseArgument();
+        arguments.add(argument);
+        if (foundNamedArgument) {
+          if (!generatedError && argument is! NamedExpression) {
+            // Report the error, once, but allow the arguments to be in any order in the AST.
+            _reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
+            generatedError = true;
+          }
+        } else if (argument is NamedExpression) {
+          foundNamedArgument = true;
         }
-      } else if (argument is NamedExpression) {
-        foundNamedArgument = true;
       }
+      // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
+      // matching right parenthesis. If there is, then we're more likely missing a comma and should
+      // go back to parsing arguments.
+      Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+      return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
+    } finally {
+      _inInitializer = wasInInitializer;
     }
-    // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
-    // matching right parenthesis. If there is, then we're more likely missing a comma and should
-    // go back to parsing arguments.
-    Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-    return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
 
   /**
@@ -3072,6 +3084,10 @@ class Parser {
    * @return `true` if the given token appears to be the beginning of a function expression
    */
   bool _isFunctionExpression(Token startToken) {
+    // Function expressions aren't allowed in initializer lists.
+    if (_inInitializer) {
+      return false;
+    }
     Token afterParameters = _skipFormalParameterList(startToken);
     if (afterParameters == null) {
       return false;
@@ -3504,9 +3520,15 @@ class Parser {
   Expression _parseAssignableSelector(Expression prefix, bool optional) {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = andAdvance;
-      Expression index = parseExpression2();
-      Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-      return new IndexExpression.forTarget(prefix, leftBracket, index, rightBracket);
+      bool wasInInitializer = _inInitializer;
+      _inInitializer = false;
+      try {
+        Expression index = parseExpression2();
+        Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
+        return new IndexExpression.forTarget(prefix, leftBracket, index, rightBracket);
+      } finally {
+        _inInitializer = wasInInitializer;
+      }
     } else if (_matches(TokenType.PERIOD)) {
       Token period = andAdvance;
       return new PropertyAccess(prefix, period, parseSimpleIdentifier());
@@ -3617,10 +3639,16 @@ class Parser {
       functionName = parseSimpleIdentifier();
     } else if (_currentToken.type == TokenType.OPEN_SQUARE_BRACKET) {
       Token leftBracket = andAdvance;
-      Expression index = parseExpression2();
-      Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-      expression = new IndexExpression.forCascade(period, leftBracket, index, rightBracket);
-      period = null;
+      bool wasInInitializer = _inInitializer;
+      _inInitializer = false;
+      try {
+        Expression index = parseExpression2();
+        Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
+        expression = new IndexExpression.forCascade(period, leftBracket, index, rightBracket);
+        period = null;
+      } finally {
+        _inInitializer = wasInInitializer;
+      }
     } else {
       _reportErrorForToken(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
       functionName = _createSyntheticIdentifier();
@@ -3830,13 +3858,12 @@ class Parser {
       typeParameters = parseTypeParameterList();
     }
     Token equals = _expect(TokenType.EQ);
-    if (_matchesKeyword(Keyword.ABSTRACT)) {
-      abstractKeyword = andAdvance;
-    }
     TypeName superclass = parseTypeName();
     WithClause withClause = null;
     if (_matchesKeyword(Keyword.WITH)) {
       withClause = parseWithClause();
+    } else {
+      _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [Keyword.WITH.syntax]);
     }
     ImplementsClause implementsClause = null;
     if (_matchesKeyword(Keyword.IMPLEMENTS)) {
@@ -4235,20 +4262,26 @@ class Parser {
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
     Token equals = _expect(TokenType.EQ);
-    Expression expression = parseConditionalExpression();
-    TokenType tokenType = _currentToken.type;
-    if (tokenType == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = new List<Expression>();
-      while (tokenType == TokenType.PERIOD_PERIOD) {
-        Expression section = _parseCascadeSection();
-        if (section != null) {
-          cascadeSections.add(section);
+    bool wasInInitializer = _inInitializer;
+    _inInitializer = true;
+    try {
+      Expression expression = parseConditionalExpression();
+      TokenType tokenType = _currentToken.type;
+      if (tokenType == TokenType.PERIOD_PERIOD) {
+        List<Expression> cascadeSections = new List<Expression>();
+        while (tokenType == TokenType.PERIOD_PERIOD) {
+          Expression section = _parseCascadeSection();
+          if (section != null) {
+            cascadeSections.add(section);
+          }
+          tokenType = _currentToken.type;
         }
-        tokenType = _currentToken.type;
+        expression = new CascadeExpression(expression, cascadeSections);
       }
-      expression = new CascadeExpression(expression, cascadeSections);
+      return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
+    } finally {
+      _inInitializer = wasInInitializer;
     }
-    return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
   }
 
   /**
@@ -5055,16 +5088,22 @@ class Parser {
     if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, andAdvance);
     }
-    List<Expression> elements = new List<Expression>();
-    elements.add(parseExpression2());
-    while (_optional(TokenType.COMMA)) {
-      if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-        return new ListLiteral(modifier, typeArguments, leftBracket, elements, andAdvance);
-      }
+    bool wasInInitializer = _inInitializer;
+    _inInitializer = false;
+    try {
+      List<Expression> elements = new List<Expression>();
       elements.add(parseExpression2());
+      while (_optional(TokenType.COMMA)) {
+        if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
+          return new ListLiteral(modifier, typeArguments, leftBracket, elements, andAdvance);
+        }
+        elements.add(parseExpression2());
+      }
+      Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
+      return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
+    } finally {
+      _inInitializer = wasInInitializer;
     }
-    Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-    return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
   }
 
   /**
@@ -5133,15 +5172,21 @@ class Parser {
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
       return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
     }
-    entries.add(parseMapLiteralEntry());
-    while (_optional(TokenType.COMMA)) {
-      if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
-      }
+    bool wasInInitializer = _inInitializer;
+    _inInitializer = false;
+    try {
       entries.add(parseMapLiteralEntry());
+      while (_optional(TokenType.COMMA)) {
+        if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
+        }
+        entries.add(parseMapLiteralEntry());
+      }
+      Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
+      return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
+    } finally {
+      _inInitializer = wasInInitializer;
     }
-    Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
   }
 
   /**
@@ -5679,9 +5724,15 @@ class Parser {
         return parseFunctionExpression();
       }
       Token leftParenthesis = andAdvance;
-      Expression expression = parseExpression2();
-      Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-      return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
+      bool wasInInitializer = _inInitializer;
+      _inInitializer = false;
+      try {
+        Expression expression = parseExpression2();
+        Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+        return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
+      } finally {
+        _inInitializer = wasInInitializer;
+      }
     } else if (_matches(TokenType.LT)) {
       return _parseListOrMapLiteral(null);
     } else if (_matches(TokenType.QUESTION)) {
@@ -5884,9 +5935,15 @@ class Parser {
     while (hasMore) {
       if (_matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = andAdvance;
-        Expression expression = parseExpression2();
-        Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-        elements.add(new InterpolationExpression(openToken, expression, rightBracket));
+        bool wasInInitializer = _inInitializer;
+        _inInitializer = false;
+        try {
+          Expression expression = parseExpression2();
+          Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
+          elements.add(new InterpolationExpression(openToken, expression, rightBracket));
+        } finally {
+          _inInitializer = wasInInitializer;
+        }
       } else {
         Token openToken = andAdvance;
         Expression expression = null;
