@@ -265,6 +265,9 @@ class Response {
   Response.unknownRequest(Request request)
     : this(request.id, new RequestError(-7, 'Unknown request'));
 
+  Response.contextAlreadyExists(Request request)
+    : this(request.id, new RequestError(-8, 'Context already exists'));
+
   /**
    * Initialize a newly created instance based upon the given JSON data
    */

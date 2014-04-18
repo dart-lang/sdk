@@ -36,13 +36,12 @@ class AnalysisServerTest {
     server.handlers = [new ServerDomainHandler(server)];
     var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
     return channel.sendRequest(request)
         .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('my27'));
           expect(response.error, isNull);
-          var contextId = response.result[ServerDomainHandler.CONTEXT_ID_RESULT];
-          expect(contextId is String, isTrue);
         });
   }
 
