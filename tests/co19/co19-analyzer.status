@@ -15,9 +15,6 @@ Language/12_Expressions/01_Constants_A16_t03: fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
-# TBF: it seems that "12.15.3 Unqualied Invocation" was changed, so it may be not an error anymore to call unknown function from top-level
-Language/13_Statements/04_Local_Function_Declaration_A04_t02: Fail # co19-roll r641: Please triage this failure
-
 # TBF: when we override "foo([x = 0]) {}" with "foo([x]) {}" we should report warning - different default value
 Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
 Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
@@ -28,17 +25,9 @@ Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: Missing
 # co19 issue #442, undefined name "Expect"
 Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 
-# co19 issue #455, undeclared identifier is static warning
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
-Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
-Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
-
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
-
-# co19 issue #454 (wrongly closed)
-Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
 
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
@@ -116,7 +105,6 @@ Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll 
 Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
 
@@ -131,8 +119,8 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
-WebPlatformTest1/shadow-dom/*: CompileTimeError # co19 issue 677
-WebPlatformTest1/html-templates/*: CompileTimeError # co19 issue 677
+WebPlatformTest1/shadow-dom/*: StaticWarning # co19 issue 677
+WebPlatformTest1/html-templates/*: StaticWarning # co19 issue 677
 WebPlatformTest1/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 # co19 roll to r706: Please triage all these issues.
