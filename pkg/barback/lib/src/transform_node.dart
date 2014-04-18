@@ -144,6 +144,9 @@ class TransformNode {
         remove();
       } else {
         if (state.isDirty && !deferred) primary.force();
+        // If this is deferred but applying, that means it must have been
+        // forced, so we should ensure its input remains forced as well.
+        if (deferred && _state == _State.APPLYING) primary.force();
         _dirty();
       }
     });

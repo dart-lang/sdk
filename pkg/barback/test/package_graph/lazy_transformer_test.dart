@@ -354,7 +354,8 @@ main() {
     buildShouldSucceed();
   });
 
-  // Regression test.
+  // Regression tests.
+
   test("a lazy transformer that doesn't apply updates its passed-through asset",
       () {
     initGraph(["app|foo.txt"], {"app": [
@@ -375,5 +376,37 @@ main() {
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt", "bar");
     buildShouldSucceed();
+  });
+
+  test("a lazy transformer is forced while the previous lazy transformer is "
+      "available, then the previous transformer becomes unavailable", () {
+    var assets = new LazyAssetsTransformer(["app|out.one", "app|out.two"]);
+    var rewrite = new LazyRewriteTransformer("two", "three");
+    initGraph(["app|foo.in"], {"app": [[assets], [rewrite]]});
+
+    updateSources(["app|foo.in"]);
+    // Request out.one so that [assets] runs but the second does not.
+    expectAsset("app|out.one", "app|out.one");
+    buildShouldSucceed();
+
+    // Start the [rewrite] running. The output from [assets] should still be
+    // available.
+    rewrite.pauseApply();
+    expectAssetDoesNotComplete("app|out.three");
+
+    // Mark [assets] as dirty. It should re-run, since [rewrite] still needs its
+    // input.
+    updateSources(["app|foo.in"]);
+    rewrite.resumeApply();
+
+    expectAsset("app|out.three", "app|out.two.three");
+    buildShouldSucceed();
+
+    // [assets] should run once for each time foo.in was updated.
+    expect(assets.numRuns, completion(equals(2)));
+
+    // [rewrite] should run once against [assets]'s original output and once
+    // against its new output.
+    expect(rewrite.numRuns, completion(equals(2)));
   });
 }

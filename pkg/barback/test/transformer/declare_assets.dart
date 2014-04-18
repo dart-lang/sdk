@@ -22,9 +22,10 @@ class DeclareAssetsTransformer extends MockTransformer
   /// These assets' contents will be identical to their ids.
   final List<AssetId> emitted;
 
-  DeclareAssetsTransformer(Iterable<String> declared, Iterable<String> emitted)
+  DeclareAssetsTransformer(Iterable<String> declared, [Iterable<String> emitted])
       : this.declared = declared.map((id) => new AssetId.parse(id)).toList(),
-        this.emitted = emitted.map((id) => new AssetId.parse(id)).toList();
+        this.emitted = (emitted == null ? declared : emitted)
+            .map((id) => new AssetId.parse(id)).toList();
 
   Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
 

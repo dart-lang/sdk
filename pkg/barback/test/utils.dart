@@ -28,6 +28,7 @@ export 'transformer/declaring_bad.dart';
 export 'transformer/declaring_rewrite.dart';
 export 'transformer/emit_nothing.dart';
 export 'transformer/has_input.dart';
+export 'transformer/lazy_assets.dart';
 export 'transformer/lazy_bad.dart';
 export 'transformer/lazy_many_to_one.dart';
 export 'transformer/lazy_rewrite.dart';
