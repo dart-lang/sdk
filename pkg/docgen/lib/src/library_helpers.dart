@@ -7,11 +7,12 @@ library docgen.library_helpers;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
+import 'exports/source_mirrors.dart';
+import 'exports/mirrors_util.dart' as dart2js_util;
 
-import 'models.dart';
+import 'models/indexable.dart';
+import 'models/library.dart';
+import 'models/dummy_mirror.dart';
 
 typedef DeclarationMirror LookupFunction(DeclarationSourceMirror declaration,
     String name);
@@ -40,7 +41,7 @@ bool _includePrivate;
 /// Return true if this item and all of its owners are all visible.
 bool isFullChainVisible(Indexable item) {
   return includePrivateMembers || (!item.isPrivate && (item.owner != null ?
-    isFullChainVisible(item.owner) : true));
+      isFullChainVisible(item.owner) : true));
 }
 
 /// Logger for printing out progress of documentation generation.

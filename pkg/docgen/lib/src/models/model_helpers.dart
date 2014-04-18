@@ -6,16 +6,36 @@ library docgen.model_helpers;
 
 import 'dart:collection';
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
-    as dart2js_mirrors;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../../sdk/lib/_internal/libraries.dart';
+import '../exports/dart2js_mirrors.dart' as dart2js_mirrors;
+import '../exports/mirrors_util.dart' as dart2js_util;
+import '../exports/source_mirrors.dart';
+import '../exports/libraries.dart';
 
-import 'library_helpers.dart' show includePrivateMembers;
-import 'models.dart';
-import 'package_helpers.dart';
+import '../library_helpers.dart' show includePrivateMembers;
+import '../package_helpers.dart';
+
+import 'annotation.dart';
+import 'generic.dart';
+import 'indexable.dart';
+import 'library.dart';
+import 'method.dart';
+import 'parameter.dart';
+import 'variable.dart';
+
+/// Expand the method map [mapToExpand] into a more detailed map that
+/// separates out setters, getters, constructors, operators, and methods.
+Map expandMethodMap(Map<String, Method> mapToExpand) => {
+  'setters': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isSetter)),
+  'getters': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isGetter)),
+  'constructors': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isConstructor)),
+  'operators': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isOperator)),
+  'methods': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isRegularMethod && !val.mirror.isOperator))
+};
 
 String getDefaultValue(ParameterMirror mirror) {
   if (!mirror.hasDefaultValue) return null;

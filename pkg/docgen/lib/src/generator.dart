@@ -16,13 +16,12 @@ import '../../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart'
     as dart2js;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
-    as dart2js_mirrors;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
-import '../../../../sdk/lib/_internal/libraries.dart';
+
+import 'exports/dart2js_mirrors.dart' as dart2js_mirrors;
+import 'exports/libraries.dart';
+import 'exports/mirrors_util.dart' as dart2js_util;
+import 'exports/source_mirrors.dart';
 
 import 'io.dart';
 import 'library_helpers.dart';
@@ -127,8 +126,7 @@ Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
     sdkRoot = path.normalize(path.absolute(path.join(root, 'dart-sdk')));
   }
   logger.info('SDK Root: ${sdkRoot}');
-  return analyzeLibraries(libraries, sdkRoot,
-      packageRoot: packageRoot);
+  return analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
 /// Writes [text] to a file in the output directory.
@@ -234,8 +232,8 @@ void _writeOutputFiles(Map<String, dynamic> libraryMap, Iterable<Indexable>
   sortedEntities.sort();
 
   var buffer = new StringBuffer()
-    ..writeAll(sortedEntities, '\n')
-    ..write('\n');
+      ..writeAll(sortedEntities, '\n')
+      ..write('\n');
 
   _writeToFile(buffer.toString(), 'index.txt');
 

@@ -4,7 +4,7 @@
 
 library docgen.package_helpers;
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
+import 'exports/source_mirrors.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;

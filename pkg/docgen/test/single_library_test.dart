@@ -9,9 +9,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+import '../lib/src/exports/mirrors_util.dart' as dart2js_util;
 import '../lib/docgen.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
 
 const String DART_LIBRARY = '''
   library test;

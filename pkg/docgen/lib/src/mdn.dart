@@ -17,24 +17,24 @@ Map<String, dynamic> _mdn;
 
 /// Generates MDN comments from database.json.
 String mdnComment(String root, Logger logger, String domName) {
-   //Check if MDN is loaded.
- if (_mdn == null) {
-   // Reading in MDN related json file.
-   var mdnPath = p.join(root, 'utils/apidoc/mdn/database.json');
-   var mdnFile = new File(mdnPath);
-   if (mdnFile.existsSync()) {
-     _mdn = JSON.decode(mdnFile.readAsStringSync());
-   } else {
-     logger.warning("Cannot find MDN docs expected at $mdnPath");
-     _mdn = {};
-   }
- }
+  //Check if MDN is loaded.
+  if (_mdn == null) {
+    // Reading in MDN related json file.
+    var mdnPath = p.join(root, 'utils/apidoc/mdn/database.json');
+    var mdnFile = new File(mdnPath);
+    if (mdnFile.existsSync()) {
+      _mdn = JSON.decode(mdnFile.readAsStringSync());
+    } else {
+      logger.warning("Cannot find MDN docs expected at $mdnPath");
+      _mdn = {};
+    }
+  }
 
- var parts = domName.split('.');
- if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
- if (parts.length == 1) return _mdnTypeComment(parts[0]);
+  var parts = domName.split('.');
+  if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
+  if (parts.length == 1) return _mdnTypeComment(parts[0]);
 
- throw new StateError('More than two items is not supported: $parts');
+  throw new StateError('More than two items is not supported: $parts');
 }
 
 /// Generates the MDN Comment for variables and method DOM elements.
