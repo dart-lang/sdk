@@ -61,7 +61,7 @@ class Typedef extends OwnedIndexable {
     return map;
   }
 
-  markdown.Node fixReference(String name) => null;
+  markdown.Node fixReference(String name) => owner.fixReference(name);
 
   String get typeName => 'typedef';
 

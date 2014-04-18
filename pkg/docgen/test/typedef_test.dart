@@ -52,12 +52,14 @@ void main() {
       var typeDefs = classes['typedef'] as Map<String, dynamic>;
       var comparator = typeDefs['AnATransformer'] as Map<String, dynamic>;
 
-      var expectedPreview = '<p>Processes a [C] instance for testing.</p>';
+      var expectedPreview =
+          '<p>Processes a <a>test_lib-bar.C</a> instance for testing.</p>';
 
       expect(comparator['preview'], expectedPreview);
 
       var expectedComment = expectedPreview + '\n'
-          '<p>To eliminate import warnings for [A] and to test typedefs.</p>';
+          '<p>To eliminate import warnings for <a>test_lib.A</a> and to test '
+          'typedefs.</p>';
 
       expect(comparator['comment'], expectedComment);
     });
