@@ -79,7 +79,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visited_count_(0),
         handled_count_(0),
         delayed_weak_stack_(),
-        growth_policy_(PageSpace::kControlGrowth),
         bytes_promoted_(0),
         visiting_old_object_(NULL),
         in_scavenge_pointer_(false) { }
@@ -200,32 +199,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
+        new_addr =
+            heap_->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
           class_table->UpdateAllocatedOld(cid, size);
-        } else if (!scavenger_->had_promotion_failure_) {
-          // Signal a promotion failure and set the growth policy for
-          // this, and all subsequent promotion allocations, to force
-          // growth.
-          scavenger_->had_promotion_failure_ = true;
-          growth_policy_ = PageSpace::kForceGrowth;
-          new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
-          if (new_addr != 0) {
-            scavenger_->PushToPromotedStack(new_addr);
-            bytes_promoted_ += size;
-            class_table->UpdateAllocatedOld(cid, size);
-          } else {
-            // Promotion did not succeed. Copy into the to space
-            // instead.
-            new_addr = scavenger_->TryAllocate(size);
-            class_table->UpdateLiveNew(cid, size);
-          }
         } else {
-          ASSERT(growth_policy_ == PageSpace::kForceGrowth);
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
           class_table->UpdateLiveNew(cid, size);
@@ -258,7 +240,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
-  PageSpace::GrowthPolicy growth_policy_;
   // TODO(cshapiro): use this value to compute survival statistics for
   // new space growth policy.
   intptr_t bytes_promoted_;
@@ -701,7 +682,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  had_promotion_failure_ = false;
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 

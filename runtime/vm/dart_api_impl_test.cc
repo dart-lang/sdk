@@ -2311,7 +2311,7 @@ TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
 }
 
 
-TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
+TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
@@ -2352,6 +2352,43 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
 }
 
 
+TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
+  // Check that external allocation in old space can trigger GC.
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  Dart_Handle live = Api::NewHandle(isolate, String::New("live", Heap::kOld));
+  EXPECT_VALID(live);
+  Dart_WeakPersistentHandle weak = NULL;
+  EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+  const intptr_t kSmallExternalSize = 1 * KB;
+  {
+    Dart_EnterScope();
+    Dart_Handle dead = Api::NewHandle(isolate, String::New("dead", Heap::kOld));
+    EXPECT_VALID(dead);
+    weak = Dart_NewWeakPersistentHandle(dead,
+                                        NULL,
+                                        kSmallExternalSize,
+                                        NopCallback);
+    EXPECT_VALID(AsHandle(weak));
+    Dart_ExitScope();
+  }
+  EXPECT_EQ(kSmallExternalSize,
+            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  // Large enough to trigger GC in old space. Not actually allocated.
+  const intptr_t kHugeExternalSize = 1000 * MB;
+  Dart_NewWeakPersistentHandle(live,
+                               NULL,
+                               kHugeExternalSize,
+                               NopCallback);
+  // Expect small garbage to be collected.
+  EXPECT_EQ(kHugeExternalSize,
+            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  Dart_DeleteWeakPersistentHandle(reinterpret_cast<Dart_Isolate>(isolate),
+                                  weak);
+  Dart_ExitScope();
+}
+
+
 TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
@@ -2360,13 +2397,13 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   static const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
-    Dart_Handle dart_null = Dart_Null();  // VM heap object.
-    EXPECT_VALID(dart_null);
+    Dart_Handle dart_true = Dart_True();  // VM heap object.
+    EXPECT_VALID(dart_true);
     weak1 = Dart_NewWeakPersistentHandle(
-        dart_null, NULL, kWeak1ExternalSize, NopCallback);
+        dart_true, NULL, kWeak1ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak1));
     Dart_Handle zero = Dart_NewInteger(0);  // Smi.
-    EXPECT_VALID(dart_null);
+    EXPECT_VALID(zero);
     weak2 = Dart_NewWeakPersistentHandle(
         zero, NULL, kWeak2ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak2));
@@ -2379,7 +2416,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
 }
 
 
@@ -2692,7 +2729,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
 
   // Garbage collect old space without invoking API callbacks.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
 
   {
     Dart_EnterScope();
@@ -2715,7 +2753,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   }
 
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kInvokeApiCallbacks);
+                                             Heap::kInvokeApiCallbacks,
+                                             Heap::kGCTestCase);
 
   {
     Dart_EnterScope();
@@ -3022,7 +3061,8 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
@@ -3072,7 +3112,8 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // Garbage collect old space again without invoking callbacks.
   // Nothing should change.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(28, global_epilogue_callback_status);
 

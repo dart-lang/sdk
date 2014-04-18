@@ -215,8 +215,6 @@ class FinalizablePersistentHandle {
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    // TODO(koda): On repeated/large external allocations for existing objects,
-    // without any intervening normal allocation, GC will not trigger.
     isolate->heap()->AllocateExternal(external_size(), SpaceForExternal());
   }
 
@@ -229,8 +227,7 @@ class FinalizablePersistentHandle {
   // Called when the referent has moved, potentially between generations.
   void UpdateRelocated(Isolate* isolate) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate->heap()->FreeExternal(external_size(), Heap::kNew);
-      isolate->heap()->AllocateExternal(external_size(), Heap::kOld);
+      isolate->heap()->PromoteExternal(external_size());
       ClearExternalNewSpaceBit();
     }
   }

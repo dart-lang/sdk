@@ -199,7 +199,8 @@ class PageSpace {
                     GrowthPolicy growth_policy = kControlGrowth);
 
   bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_);
+    return page_space_controller_.NeedsGarbageCollection(usage_) ||
+           NeedsExternalGC();
   }
 
   intptr_t UsedInWords() const { return usage_.used_in_words; }
@@ -242,7 +243,7 @@ class PageSpace {
     return page_space_controller_.is_enabled();
   }
 
-  bool NeedExternalGC() {
+  bool NeedsExternalGC() const {
     return UsedInWords() + ExternalInWords() > max_capacity_in_words_;
   }
 

@@ -98,11 +98,6 @@ class Scavenger {
     *end = to_->end();
   }
 
-  // Returns true if the last scavenge had a promotion failure.
-  bool HadPromotionFailure() {
-    return had_promotion_failure_;
-  }
-
   void WriteProtect(bool read_only);
 
   void AddGCTime(int64_t micros) {
@@ -209,8 +204,6 @@ class Scavenger {
 
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
-  // Keep track whether the scavenge had a promotion failure.
-  bool had_promotion_failure_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;

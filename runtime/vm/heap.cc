@@ -104,6 +104,9 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
   } else {
     ASSERT(space == kOld);
     old_space_->AllocateExternal(size);
+    if (old_space_->NeedsGarbageCollection()) {
+      CollectGarbage(kOld);
+    }
   }
 }
 
@@ -114,6 +117,11 @@ void Heap::FreeExternal(intptr_t size, Space space) {
     ASSERT(space == kOld);
     old_space_->FreeExternal(size);
   }
+}
+
+void Heap::PromoteExternal(intptr_t size) {
+  new_space_->FreeExternal(size);
+  old_space_->AllocateExternal(size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -203,31 +211,30 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
-void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
+void Heap::CollectGarbage(Space space,
+                          ApiCallbacks api_callbacks,
+                          GCReason reason) {
   Isolate* isolate = Isolate::Current();
   TIMERSCOPE(isolate, time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
       VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
-      RecordBeforeGC(kNew, kNewSpace);
+      RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
-      // TODO(koda): Replace promotion failure tracking with
-      // old_space_->NeedsGarbageCollection.
-      if (new_space_->HadPromotionFailure() || old_space_->NeedExternalGC()) {
+      if (old_space_->NeedsGarbageCollection()) {
         // Old collections should call the API callbacks.
-        CollectGarbage(kOld, kInvokeApiCallbacks);
+        CollectGarbage(kOld, kInvokeApiCallbacks, kPromotion);
       }
       break;
     }
     case kOld:
     case kCode: {
       VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
-      bool promotion_failure = new_space_->HadPromotionFailure();
-      RecordBeforeGC(kOld, promotion_failure ? kPromotionFailure : kOldSpace);
+      RecordBeforeGC(kOld, reason);
       UpdateClassHeapStatsBeforeGC(kOld);
       old_space_->MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
@@ -252,13 +259,12 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 
 
 void Heap::CollectGarbage(Space space) {
-  ApiCallbacks api_callbacks;
   if (space == kOld) {
-    api_callbacks = kInvokeApiCallbacks;
+    CollectGarbage(space, kInvokeApiCallbacks, kOldSpace);
   } else {
-    api_callbacks = kIgnoreApiCallbacks;
+    ASSERT(space == kNew);
+    CollectGarbage(space, kIgnoreApiCallbacks, kNewSpace);
   }
-  CollectGarbage(space, api_callbacks);
 }
 
 
@@ -408,8 +414,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
   switch (gc_reason) {
     case kNewSpace:
       return "new space";
-    case kPromotionFailure:
-      return "promotion failure";
+    case kPromotion:
+      return "promotion";
     case kOldSpace:
       return "old space";
     case kFull:

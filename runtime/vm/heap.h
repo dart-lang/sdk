@@ -48,7 +48,7 @@ class Heap {
 
   enum GCReason {
     kNewSpace,
-    kPromotionFailure,
+    kPromotion,
     kOldSpace,
     kFull,
     kGCAtAlloc,
@@ -106,6 +106,8 @@ class Heap {
   // Track external data.
   void AllocateExternal(intptr_t size, Space space);
   void FreeExternal(intptr_t size, Space space);
+  // Move external size from new to old space. Does not by itself trigger GC.
+  void PromoteExternal(intptr_t size);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
@@ -142,7 +144,7 @@ class Heap {
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   void CollectGarbage(Space space);
-  void CollectGarbage(Space space, ApiCallbacks api_callbacks);
+  void CollectGarbage(Space space, ApiCallbacks api_callbacks, GCReason reason);
   void CollectAllGarbage();
 
   // Enables growth control on the page space heaps.  This should be
