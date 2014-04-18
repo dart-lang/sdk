@@ -247,7 +247,7 @@ void SimulatorDebugger::Debug() {
             end = start + (10 * Instr::kInstrSize);
           }
         } else {
-          intptr_t length;
+          int64_t length;
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead
