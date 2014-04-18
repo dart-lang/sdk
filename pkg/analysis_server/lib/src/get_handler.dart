@@ -90,7 +90,7 @@ class GetHandler {
       });
       response.write('</table>');
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
-        response.write('<h2><a name="context_$key">Analysis Context: $key}</a></h2>');
+        response.write('<h2><a name="context_$key">Analysis Context: $key</a></h2>');
         AnalysisContentStatistics statistics = (context as AnalysisContextImpl).statistics;
         response.write('<table>');
         _writeRow(
