@@ -2375,7 +2375,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   EXPECT_EQ(kSmallExternalSize,
             isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
   // Large enough to trigger GC in old space. Not actually allocated.
-  const intptr_t kHugeExternalSize = 1000 * MB;
+  const intptr_t kHugeExternalSize = Heap::kHeapSizeInMB * MB;
   Dart_NewWeakPersistentHandle(live,
                                NULL,
                                kHugeExternalSize,
