@@ -263,7 +263,7 @@ void Heap::CollectGarbage(Space space) {
     CollectGarbage(space, kInvokeApiCallbacks, kOldSpace);
   } else {
     ASSERT(space == kNew);
-    CollectGarbage(space, kIgnoreApiCallbacks, kNewSpace);
+    CollectGarbage(space, kInvokeApiCallbacks, kNewSpace);
   }
 }
 
