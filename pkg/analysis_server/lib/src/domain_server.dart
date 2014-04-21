@@ -92,10 +92,10 @@ class ServerDomainHandler implements RequestHandler {
    * Clients, therefore, are responsible for managing the lifetime of contexts.
    */
   Response createContext(Request request) {
-    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM);
-    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM);
+    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM).asString();
+    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM, {}).asStringMap();
 
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM);
+    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
     if (server.contextMap.containsKey(contextId)) {
       return new Response.contextAlreadyExists(request);
     }
@@ -126,7 +126,7 @@ class ServerDomainHandler implements RequestHandler {
    * will result in an error being returned.
    */
   Response deleteContext(Request request) {
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM);
+    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
 
     AnalysisContext removedContext = server.contextMap.remove(contextId);
     if (removedContext == null) {

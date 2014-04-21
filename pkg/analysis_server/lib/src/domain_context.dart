@@ -135,7 +135,7 @@ class ContextDomainHandler implements RequestHandler {
    */
   Response applyChanges(Request request) {
     AnalysisContext context = getAnalysisContext(request);
-    Map<String, Object> changesData = request.getRequiredParameter(CHANGES_PARAM);
+    RequestDatum changesData = request.getRequiredParameter(CHANGES_PARAM);
     ChangeSet changeSet = createChangeSet(
         request,
         context.sourceFactory,
@@ -150,7 +150,8 @@ class ContextDomainHandler implements RequestHandler {
    * Convert the given JSON object into a [ChangeSet], using the given
    * [sourceFactory] to convert the embedded strings into sources.
    */
-  ChangeSet createChangeSet(Request request, SourceFactory sourceFactory, Map<String, Object> jsonData) {
+  ChangeSet createChangeSet(Request request, SourceFactory sourceFactory,
+                            RequestDatum jsonData) {
     ChangeSet changeSet = new ChangeSet();
     convertSources(request, sourceFactory, jsonData[ADDED_PARAM], (Source source) {
       changeSet.addedSource(source);
@@ -170,11 +171,8 @@ class ContextDomainHandler implements RequestHandler {
    * [handler]. Otherwise, throw an exception indicating that the data in the
    * request was not valid.
    */
-  void convertSources(Request request, SourceFactory sourceFactory, Object sources, void handler(Source source)) {
-    if (sources is! List<String>) {
-      throw new RequestFailure(new Response(request.id, new RequestError(1, 'Invalid sources')));
-    }
-    convertToSources(sourceFactory, sources).forEach(handler);
+  void convertSources(Request request, SourceFactory sourceFactory, RequestDatum sources, void handler(Source source)) {
+    convertToSources(sourceFactory, sources.asStringList()).forEach(handler);
   }
 
   /**
@@ -204,21 +202,21 @@ class ContextDomainHandler implements RequestHandler {
    * throw a [RequestFailure] exception if the analysis options are not valid.
    */
   AnalysisOptions createAnalysisOptions(Request request) {
-    Map<String, Object> optionsData = request.getRequiredParameter(OPTIONS_PARAM);
+    RequestDatum optionsData = request.getRequiredParameter(OPTIONS_PARAM);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    optionsData.forEach((String key, Object value) {
+    optionsData.forEachMap((String key, RequestDatum value) {
       if (key == CACHE_SIZE_OPTION) {
-        options.cacheSize = request.toInt(value);
+        options.cacheSize = value.asInt();
       } else if (key == GENERATE_HINTS_OPTION) {
-        options.hint = request.toBool(value);
+        options.hint = value.asBool();
       } else if (key == GENERATE_DART2JS_OPTION) {
-        options.dart2jsHint = request.toBool(value);
+        options.dart2jsHint = value.asBool();
       } else if (key == PROVIDE_ERRORS_OPTION) {
-//        options.provideErrors = toBool(request, value);
+//        options.provideErrors = value.asBool();
       } else if (key == PROVIDE_NAVIGATION_OPTION) {
-//        options.provideNavigation = toBool(request, value);
+//        options.provideNavigation = value.asBool();
       } else if (key == PROVIDE_OUTLINE_OPTION) {
-//        options.provideOutline = toBool(request, value);
+//        options.provideOutline = value.asBool();
       } else {
         throw new RequestFailure(new Response.unknownAnalysisOption(request, key));
       }
@@ -232,7 +230,7 @@ class ContextDomainHandler implements RequestHandler {
    */
   Response setPrioritySources(Request request) {
     AnalysisContext context = getAnalysisContext(request);
-    List<String> sourcesData = request.getRequiredParameter(SOURCES_PARAM);
+    List<String> sourcesData = request.getRequiredParameter(SOURCES_PARAM).asStringList();
     List<Source> sources = convertToSources(context.sourceFactory, sourcesData);
 
     context.analysisPriorityOrder = sources;
@@ -258,7 +256,7 @@ class ContextDomainHandler implements RequestHandler {
    * the specified context does not exist.
    */
   AnalysisContext getAnalysisContext(Request request) {
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM);
+    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
     AnalysisContext context = server.contextMap[contextId];
     if (context == null) {
       throw new RequestFailure(new Response.contextDoesNotExist(request));

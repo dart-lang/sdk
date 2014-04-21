@@ -94,22 +94,28 @@ class Request {
   }
 
   /**
-   * Return the value of the parameter with the given [name], or `null` if there
-   * is no such parameter associated with this request.
+   * Return the value of the parameter with the given [name], or [defaultValue]
+   * if there is no such parameter associated with this request.
    */
-  Object getParameter(String name) => params[name];
+  RequestDatum getParameter(String name, dynamic defaultValue) {
+    Object value = params[name];
+    if (value == null) {
+      return new RequestDatum(this, "default for $name", defaultValue);
+    }
+    return new RequestDatum(this, name, params[name]);
+  }
 
   /**
    * Return the value of the parameter with the given [name], or throw a
    * [RequestFailure] exception with an appropriate error message if there is no
    * such parameter associated with this request.
    */
-  Object getRequiredParameter(String name) {
+  RequestDatum getRequiredParameter(String name) {
     Object value = params[name];
     if (value == null) {
       throw new RequestFailure(new Response.missingRequiredParameter(this, name));
     }
-    return value;
+    return new RequestDatum(this, name, value);
   }
 
   /**
@@ -117,40 +123,6 @@ class Request {
    */
   void setParameter(String name, Object value) {
     params[name] = value;
-  }
-
-  /**
-   * Convert the given [value] to a boolean, or throw a [RequestFailure]
-   * exception if the [value] could not be converted.
-   *
-   * The value is typically the result of invoking either [getParameter] or
-   * [getRequiredParameter].
-   */
-  bool toBool(Object value) {
-    if (value is bool) {
-      return value;
-    } else if (value is String) {
-      return value == 'true';
-    }
-    throw new RequestFailure(new Response.expectedBoolean(this, value));
-  }
-
-  /**
-   * Convert the given [value] to an integer, or throw a [RequestFailure]
-   * exception if the [value] could not be converted.
-   *
-   * The value is typically the result of invoking either [getParameter] or
-   * [getRequiredParameter].
-   */
-  int toInt(Object value) {
-    if (value is int) {
-      return value;
-    } else if (value is String) {
-      return int.parse(value, onError: (String value) {
-        throw new RequestFailure(new Response.expectedInteger(this, value));
-      });
-    }
-    throw new RequestFailure(new Response.expectedInteger(this, value));
   }
 
   /**
@@ -165,6 +137,134 @@ class Request {
       jsonObject[PARAMS] = params;
     }
     return jsonObject;
+  }
+}
+
+/**
+ * Instances of the class [RequestDatum] wrap a piece of data from a
+ * request parameter, and contain accessor methods which automatically validate
+ * and convert the data into the appropriate form.
+ */
+class RequestDatum {
+  /**
+   * Request object that should be referred to in any errors that are
+   * generated.
+   */
+  final Request request;
+
+  /**
+   * String description of how [datum] was obtained from the request.
+   */
+  final String path;
+
+  /**
+   * Value to be decoded and validated.
+   */
+  final dynamic datum;
+
+  /**
+   * Create a RequestDatum for decoding and validating [datum], which refers to
+   * [request] in any errors it reports.
+   */
+  RequestDatum(this.request, this.path, this.datum);
+
+  /**
+   * Validate that the datum is a Map containing the given [key], and return
+   * a [RequestDatum] containing the corresponding value.
+   */
+  RequestDatum operator [](String key) {
+    if (datum is! Map<String, dynamic>) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a map"));
+    }
+    if (!datum.containsKey(key)) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "contain key '$key'"));
+    }
+    return new RequestDatum(request, "$path.$key", datum[key]);
+  }
+
+  /**
+   * Validate that the datum is a Map whose keys are strings, and call [f] on
+   * each key/value pair in the map.
+   */
+  void forEachMap(void f(String key, RequestDatum value)) {
+    if (datum is! Map<String, dynamic>) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a map"));
+    }
+    datum.forEach((String key, dynamic value) {
+      f(key, new RequestDatum(request, "$path.$key", value));
+    });
+  }
+
+  /**
+   * Validate that the datum is an integer (or a string that can be parsed
+   * as an integer), and return the int.
+   */
+  int asInt() {
+    if (datum is int) {
+      return datum;
+    } else if (datum is String) {
+      return int.parse(datum, onError: (String value) {
+        throw new RequestFailure(new Response.invalidParameter(request, path,
+            "be an integer"));
+      });
+    }
+    throw new RequestFailure(new Response.invalidParameter(request, path,
+        "be an integer"));
+  }
+
+  /**
+   * Validate that the datum is a boolean (or a string that can be parsed
+   * as a boolean), and return the bool.
+   *
+   * The value is typically the result of invoking either [getParameter] or
+   * [getRequiredParameter].
+   */
+  bool asBool() {
+    if (datum is bool) {
+      return datum;
+    } else if (datum == 'true') {
+      return datum == 'true';
+    } else if (datum == 'false') {
+      return datum == 'false';
+    }
+    throw new RequestFailure(new Response.invalidParameter(request, datum,
+        "be a boolean"));
+  }
+
+  /**
+   * Validate that the datum is a string, and return it.
+   */
+  String asString() {
+    if (datum is! String) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a string"));
+    }
+    return datum;
+  }
+
+  /**
+   * Validate that the datum is a list of strings, and return it.
+   */
+  List<String> asStringList() {
+    if (datum is! List<String>) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a list of strings"));
+    }
+    return datum;
+  }
+
+  /**
+   * Validate that the datum is a map from strings to strings, and return it.
+   */
+  Map<String, String> asStringMap() {
+    if (datum is! Map<String, String>) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a string map"));
+    }
+    return datum;
   }
 }
 
@@ -222,19 +322,14 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent an error condition caused
-   * by a [request] that was expected to have a boolean-valued parameter but was
-   * passed a non-boolean value.
+   * by a [request] that had invalid parameter.  [path] is the path to the
+   * invalid parameter, in Javascript notation (e.g. "foo.bar" means that the
+   * parameter "foo" contained a key "bar" whose value was the wrong type).
+   * [expectation] is a description of the type of data that was expected.
    */
-  Response.expectedBoolean(Request request, Object value)
-    : this(request.id, new RequestError(-2, 'Expected a boolean value, but found "$value"'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a [request] that was expected to have a integer-valued parameter but was
-   * passed a non-integer value.
-   */
-  Response.expectedInteger(Request request, Object value)
-    : this(request.id, new RequestError(-3, 'Expected an integer value, but found "$value"'));
+  Response.invalidParameter(Request request, String path, String expectation)
+      : this(request.id, new RequestError(-2,
+          "Expected parameter $path to $expectation"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
