@@ -29,19 +29,19 @@ void main() {
 
     schedule(() {
       var path = p.join(d.defaultRoot, 'docs', 'root_lib.json');
-      var dartCoreJson = new File(path).readAsStringSync();
+      var rootLibJson = new File(path).readAsStringSync();
 
-      var testLibBar = JSON.decode(dartCoreJson) as Map<String, dynamic>;
+      var rootLib = JSON.decode(rootLibJson) as Map<String, dynamic>;
 
       //
       // Validate function doc references
       //
-      var testMethod = testLibBar['functions']['methods']['testMethod']
+      var testMethod = rootLib['functions']['methods']['testMethod']
           as Map<String, dynamic>;
 
       expect(testMethod['comment'], _TEST_METHOD_COMMENT);
 
-      var classes = testLibBar['classes'] as Map<String, dynamic>;
+      var classes = rootLib['classes'] as Map<String, dynamic>;
 
       expect(classes, hasLength(3));
 
@@ -54,6 +54,17 @@ void main() {
       expect(comparator['preview'], _TEST_TYPEDEF_PREVIEW);
 
       expect(comparator['comment'], _TEST_TYPEDEF_COMMENT);
+    });
+
+    schedule(() {
+      var path = p.join(d.defaultRoot, 'docs', 'root_lib.RootClass.json');
+      var rootClassJson = new File(path).readAsStringSync();
+
+      var rootClass = JSON.decode(rootClassJson) as Map<String, dynamic>;
+
+      var defaultCtor = rootClass['methods']['constructors'][''] as Map;
+
+      expect(defaultCtor['qualifiedName'], 'root_lib.RootClass.RootClass-');
     });
   });
 }

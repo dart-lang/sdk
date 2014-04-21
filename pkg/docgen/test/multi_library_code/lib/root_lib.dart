@@ -7,3 +7,7 @@ library root_lib;
 export 'test_lib.dart';
 export 'test_lib_foo.dart';
 export 'test_lib_bar.dart';
+
+class RootClass {
+  RootClass(int a, int b);
+}

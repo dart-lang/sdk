@@ -183,15 +183,11 @@ void _documentLibraries(List<LibraryMirror> libs, bool includeSdk,
   });
 
   var filteredEntities = new SplayTreeSet<Indexable>(_indexableComparer);
-  for (Map<String, Set<Indexable>> firstLevel in mirrorToDocgen.values) {
-    for (Set<Indexable> items in firstLevel.values) {
-      for (Indexable item in items) {
-        if (isFullChainVisible(item)) {
-          if (item is! Method ||
-              (item is Method && item.methodInheritedFrom == null)) {
-            filteredEntities.add(item);
-          }
-        }
+  for (Indexable item in allIndexables) {
+    if (isFullChainVisible(item)) {
+      if (item is! Method ||
+          (item is Method && item.methodInheritedFrom == null)) {
+        filteredEntities.add(item);
       }
     }
   }
@@ -245,7 +241,7 @@ void _writeOutputFiles(Map<String, dynamic> libraryMap, Iterable<Indexable>
 
 /// Helper method to serialize the given Indexable out to a file.
 void _writeIndexableToFile(Indexable result, JsonEncoder encoder) {
-  var outputFile = result.fileName + '.json';
+  var outputFile = result.qualifiedName + '.json';
   var output = encoder.convert(result.toMap());
   _writeToFile(output, outputFile);
 }

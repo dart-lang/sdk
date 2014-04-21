@@ -12,7 +12,6 @@ import '../library_helpers.dart';
 
 import 'dummy_mirror.dart';
 import 'generic.dart';
-import 'indexable.dart';
 import 'library.dart';
 import 'method.dart';
 import 'model_helpers.dart';
@@ -43,7 +42,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
   /// Generic infomation about the class.
   final Map<String, Generic> generics;
 
-  Class superclass;
+  Class _superclass;
   bool get isAbstract => mirror.isAbstract;
 
   /// Make sure that we don't check for inherited comments more than once.
@@ -65,19 +64,15 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
   /// says it is.
   factory Class._possiblyDifferentOwner(ClassMirror mirror,
       Library originalOwner) {
-    if (mirror.owner is LibraryMirror) {
-      var realOwner = getDocgenObject(mirror.owner);
-      if (realOwner is Library) {
-        return new Class(mirror, realOwner);
-      } else {
-        return new Class(mirror, originalOwner);
-      }
+    var realOwner = getDocgenObject(mirror.owner);
+    if (realOwner is Library) {
+      return new Class(mirror, realOwner);
     } else {
       return new Class(mirror, originalOwner);
     }
   }
 
-  Class._(ClassSourceMirror classMirror, Indexable owner)
+  Class._(ClassSourceMirror classMirror, Library owner)
       : generics = createGenerics(classMirror),
         super(classMirror, owner) {
 
@@ -85,7 +80,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
     // not be this class's owner!! Example: BaseClient in http pkg.
     var superinterfaces = classMirror.superinterfaces.map(
         (interface) => new Class._possiblyDifferentOwner(interface, owner));
-    this.superclass = classMirror.superclass == null? null :
+    this._superclass = classMirror.superclass == null? null :
         new Class._possiblyDifferentOwner(classMirror.superclass, owner);
 
     interfaces = superinterfaces.toList();
@@ -96,11 +91,11 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
 
     // Tell superclass that you are a subclass, unless you are not
     // visible or an intermediary mixin class.
-    if (!classMirror.isNameSynthetic && isVisible && superclass != null) {
-      superclass.addSubclass(this);
+    if (!classMirror.isNameSynthetic && isVisible && _superclass != null) {
+      _superclass.addSubclass(this);
     }
 
-    if (this.superclass != null) addInherited(superclass);
+    if (this._superclass != null) addInherited(_superclass);
     interfaces.forEach((interface) => addInherited(interface));
   }
 
@@ -112,7 +107,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
       if (classFunc != null) {
         return packagePrefix + getDocgenObject(classFunc, owner).docName;
       }
-      classScope = classScope.superclass;
+      classScope = classScope._superclass;
     }
     return null;
   }
@@ -176,7 +171,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
     if (docName == 'dart-core.Object') return;
 
     if (!includePrivateMembers && isPrivate || mirror.isNameSynthetic) {
-      if (superclass != null) superclass.addSubclass(subclass);
+      if (_superclass != null) _superclass.addSubclass(subclass);
       interfaces.forEach((interface) {
         interface.addSubclass(subclass);
       });
@@ -193,15 +188,15 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
     for (var interface in interfaces) {
       if (interface.isError()) return true;
     }
-    if (superclass == null) return false;
-    return superclass.isError();
+    if (_superclass == null) return false;
+    return _superclass.isError();
   }
 
   /// Makes sure that all methods with inherited equivalents have comments.
   void ensureComments() {
     if (_commentsEnsured) return;
     _commentsEnsured = true;
-    if (superclass != null) superclass.ensureComments();
+    if (_superclass != null) _superclass.ensureComments();
     inheritedMethods.forEach((qualifiedName, inheritedMethod) {
       var method = methods[qualifiedName];
       if (method != null) {
@@ -220,9 +215,9 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
   /// If a class extends a private superclass, find the closest public
   /// superclass of the private superclass.
   String validSuperclass() {
-    if (superclass == null) return 'dart-core.Object';
-    if (superclass.isVisible) return superclass.qualifiedName;
-    return superclass.validSuperclass();
+    if (_superclass == null) return 'dart-core.Object';
+    if (_superclass.isVisible) return _superclass.qualifiedName;
+    return _superclass.validSuperclass();
   }
 
   /// Generates a map describing the [Class] object.

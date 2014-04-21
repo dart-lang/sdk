@@ -10,7 +10,6 @@ import '../exports/mirrors_util.dart' as dart2js_util;
 import '../exports/source_mirrors.dart';
 
 import '../library_helpers.dart';
-import 'dummy_mirror.dart';
 import 'library.dart';
 import 'mirror_based.dart';
 import 'model_helpers.dart';
@@ -30,7 +29,14 @@ abstract class Indexable<TMirror extends DeclarationMirror>
 
   Library get owningLibrary => owner.owningLibrary;
 
-  String get qualifiedName => fileName;
+  /// The reference to this element based on where it is printed as a
+  /// documentation file and also the unique URL to refer to this item.
+  ///
+  /// The qualified name (for URL purposes) and the file name are the same,
+  /// of the form packageName/ClassName or packageName/ClassName.methodName.
+  /// This defines both the URL and the directory structure.
+  String get qualifiedName => packagePrefix + ownerPrefix + name;
+
   final TMirror mirror;
   final bool isPrivate;
   /// The comment text pre-resolution. We keep this around because inherited
@@ -41,14 +47,21 @@ abstract class Indexable<TMirror extends DeclarationMirror>
       : this.mirror = mirror,
         this.isPrivate = isHidden(mirror) {
 
-    var map = mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)];
-    if (map == null) map = new Map<String, Set<Indexable>>();
+    var mirrorQualifiedName = dart2js_util.qualifiedNameOf(this.mirror);
 
-    var set = map[owner.docName];
-    if (set == null) set = new Set<Indexable>();
-    set.add(this);
-    map[owner.docName] = set;
-    mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)] = map;
+    var map = _mirrorToDocgen.putIfAbsent(mirrorQualifiedName,
+        () => new Map<String, Indexable>());
+
+    var added = false;
+    map.putIfAbsent(owner.docName, () {
+      added = true;
+      return this;
+    });
+
+    if (!added) {
+      throw new StateError('An indexable has already been stored for '
+          '${owner.docName}');
+    }
   }
 
   /// Returns this object's qualified name, but following the conventions
@@ -70,14 +83,6 @@ abstract class Indexable<TMirror extends DeclarationMirror>
   /// progressively working outward to the current library scope.
   String findElementInScope(String name) =>
       findElementInScopeWithPrefix(name, packagePrefix);
-
-  /// The reference to this element based on where it is printed as a
-  /// documentation file and also the unique URL to refer to this item.
-  ///
-  /// The qualified name (for URL purposes) and the file name are the same,
-  /// of the form packageName/ClassName or packageName/ClassName.methodName.
-  /// This defines both the URL and the directory structure.
-  String get fileName => packagePrefix + ownerPrefix + name;
 
   /// The full docName of the owner element, appended with a '.' for this
   /// object's name to be appended.
@@ -118,7 +123,7 @@ abstract class Indexable<TMirror extends DeclarationMirror>
   /// is defined. Ex: The owner for a top level class, would be its enclosing
   /// library. The owner of a local variable in a method would be the enclosing
   /// method.
-  Indexable get owner => new DummyMirror(mirror.owner);
+  Indexable get owner;
 
   /// Generates MDN comments from database.json.
   String getMdnComment();
@@ -190,4 +195,20 @@ abstract class Indexable<TMirror extends DeclarationMirror>
   /// Returns true if [mirror] is the correct type of mirror that this Docgen
   /// object wraps. (Workaround for the fact that Types are not first class.)
   bool isValidMirror(DeclarationMirror mirror);
+}
+
+/// Index of all the dart2js mirrors examined to corresponding MirrorBased
+/// docgen objects.
+///
+/// Used for lookup because of the dart2js mirrors exports
+/// issue. The second level map is indexed by owner docName for faster lookup.
+/// Why two levels of lookup? Speed, man. Speed.
+final Map<String, Map<String, Indexable>> _mirrorToDocgen =
+    new Map<String, Map<String, Indexable>>();
+
+Iterable<Indexable> get allIndexables =>
+    _mirrorToDocgen.values.expand((map) => map.values);
+
+Map<String, Indexable> lookupIndexableMap(DeclarationMirror mirror) {
+  return _mirrorToDocgen[dart2js_util.qualifiedNameOf(mirror)];
 }

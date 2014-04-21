@@ -24,9 +24,8 @@ class DummyMirror implements Indexable {
   DummyMirror(this.mirror, [this.owner]);
 
   String get docName {
-    if (mirror == null) return '';
     if (mirror is LibraryMirror) {
-      return dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
+      return getLibraryDocName(mirror);
     }
     var mirrorOwner = mirror.owner;
     if (mirrorOwner == null) return dart2js_util.qualifiedNameOf(mirror);
@@ -40,7 +39,7 @@ class DummyMirror implements Indexable {
         simpleName;
   }
 
-  bool get isPrivate => mirror == null ? false : mirror.isPrivate;
+  bool get isPrivate => mirror.isPrivate;
 
   String get packageName {
     var libMirror = _getOwningLibraryFromMirror(mirror);
@@ -53,13 +52,15 @@ class DummyMirror implements Indexable {
   String get packagePrefix => packageName == null || packageName.isEmpty ?
       '' : '$packageName/';
 
-  LibraryMirror _getOwningLibraryFromMirror(DeclarationMirror mirror) {
-    if (mirror is LibraryMirror) return mirror;
-    if (mirror == null) return null;
-    return _getOwningLibraryFromMirror(mirror.owner);
-  }
-
+  // This is a known incomplete implementation of Indexable
+  // overriding noSuchMethod to remove static warnings
   noSuchMethod(Invocation invocation) {
     throw new UnimplementedError(invocation.memberName.toString());
   }
+}
+
+LibraryMirror _getOwningLibraryFromMirror(DeclarationMirror mirror) {
+  if (mirror == null) return null;
+  if (mirror is LibraryMirror) return mirror;
+  return _getOwningLibraryFromMirror(mirror.owner);
 }

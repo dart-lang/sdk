@@ -92,7 +92,7 @@ class Method extends OwnedIndexable<MethodMirror> {
     return super.docName;
   }
 
-  String get fileName => packagePrefix + docName;
+  String get qualifiedName => packagePrefix + docName;
 
   /// Makes sure that the method with an inherited equivalent have comments.
   void ensureCommentFor(Method inheritedMethod) {

@@ -38,6 +38,8 @@ class Library extends Indexable {
   bool _hasBeenCheckedForPackage = false;
   String packageIntro;
 
+  Indexable get owner => const _LibraryOwner();
+
   Library get owningLibrary => this;
 
   /// Returns the [Library] for the given [mirror] if it has already been
@@ -145,9 +147,7 @@ class Library extends Indexable {
 
   String get name => docName;
 
-  String get docName {
-    return dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
-  }
+  String get docName => getLibraryDocName(mirror);
 
   /// Generates a map describing the [Library] object.
   Map toMap() => {
@@ -170,4 +170,21 @@ class Library extends Indexable {
   String get typeName => 'library';
 
   bool isValidMirror(DeclarationMirror mirror) => mirror is LibraryMirror;
+}
+
+/// Dummy implementation of Indexable to represent the owner of a Library.
+class _LibraryOwner implements Indexable {
+  const _LibraryOwner();
+
+  String get docName => '';
+
+  bool get isPrivate => false;
+
+  Indexable get owner => null;
+
+  // This is a known incomplete implementation of Indexable
+  // overriding noSuchMethod to remove static warnings
+  noSuchMethod(Invocation invocation) {
+    throw new UnimplementedError(invocation.memberName.toString());
+  }
 }

@@ -56,15 +56,6 @@ Library _coreLibrary;
 Iterable<LibraryMirror> get sdkLibraries => _sdkLibraries;
 Iterable<LibraryMirror> _sdkLibraries;
 
-/// Index of all the dart2js mirrors examined to corresponding MirrorBased
-/// docgen objects.
-///
-/// Used for lookup because of the dart2js mirrors exports
-/// issue. The second level map is indexed by owner docName for faster lookup.
-/// Why two levels of lookup? Speed, man. Speed.
-final Map<String, Map<String, Set<Indexable>>> mirrorToDocgen = new Map<String,
-    Map<String, Set<Indexable>>>();
-
 ////// Top level resolution functions
 /// Converts all [foo] references in comments to <a>libraryName.foo</a>.
 markdown.Node globalFixReference(String name) {
@@ -151,8 +142,8 @@ String findElementInScopeWithPrefix(String name, String packagePrefix) {
 /// [DummyMirror] that simply returns the original mirror's qualifiedName
 /// while behaving like a MirrorBased object.
 Indexable getDocgenObject(DeclarationMirror mirror, [Indexable owner]) {
-  Map<String, Set<Indexable>> docgenObj =
-      mirrorToDocgen[dart2js_util.qualifiedNameOf(mirror)];
+  Map<String, Indexable> docgenObj = lookupIndexableMap(mirror);
+
   if (docgenObj == null) {
     return new DummyMirror(mirror, owner);
   }
@@ -160,14 +151,12 @@ Indexable getDocgenObject(DeclarationMirror mirror, [Indexable owner]) {
   var setToExamine = new Set();
   if (owner != null) {
     var firstSet = docgenObj[owner.docName];
-    if (firstSet != null) setToExamine.addAll(firstSet);
+    if (firstSet != null) setToExamine.add(firstSet);
     if (_coreLibrary != null && docgenObj[_coreLibrary.docName] != null) {
-      setToExamine.addAll(docgenObj[_coreLibrary.docName]);
+      setToExamine.add(docgenObj[_coreLibrary.docName]);
     }
   } else {
-    for (var value in docgenObj.values) {
-      setToExamine.addAll(value);
-    }
+    setToExamine.addAll(docgenObj.values);
   }
 
   Set<Indexable> results = new Set<Indexable>();

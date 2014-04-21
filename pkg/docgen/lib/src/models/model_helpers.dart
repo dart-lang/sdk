@@ -22,6 +22,9 @@ import 'method.dart';
 import 'parameter.dart';
 import 'variable.dart';
 
+String getLibraryDocName(LibraryMirror mirror) =>
+    dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
+
 /// Expand the method map [mapToExpand] into a more detailed map that
 /// separates out setters, getters, constructors, operators, and methods.
 Map expandMethodMap(Map<String, Method> mapToExpand) => {
