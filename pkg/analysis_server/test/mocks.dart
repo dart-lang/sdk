@@ -31,6 +31,20 @@ String get sdkPath {
 }
 
 /**
+ * Returns a [Future] that completes after pumping the event queue [times]
+ * times. By default, this should pump the event queue enough times to allow
+ * any code to run, as long as it's not waiting on some external event.
+ */
+Future pumpEventQueue([int times = 20]) {
+  if (times == 0) return new Future.value();
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
+  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
+}
+
+/**
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {
@@ -69,6 +83,17 @@ class MockSocket<T> implements WebSocket {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class NoResponseException implements Exception {
+  /// The request that was not responded to.
+  final Request request;
+
+  NoResponseException(this.request);
+
+  String toString() {
+    return "NoResponseException after request ${request.toJson()}";
+  }
+}
+
 /**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
  */
@@ -100,7 +125,10 @@ class MockServerChannel implements ServerCommunicationChannel {
     var id = request.id;
     // Wrap send request in future to simulate websocket
     new Future(() => requestController.add(request));
-    return responseController.stream.firstWhere((response) => response.id == id);
+    pumpEventQueue().then((_) => responseController.addError(
+        new NoResponseException(request)));
+    return responseController.stream.firstWhere((response) => response.id == id
+        );
   }
 
   @override

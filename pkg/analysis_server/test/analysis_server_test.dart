@@ -16,7 +16,7 @@ import 'mocks.dart';
 main() {
   group('AnalysisServer', () {
     setUp(AnalysisServerTest.setUp);
-//    test('createContext', AnalysisServerTest.createContext);
+    test('createContext', AnalysisServerTest.createContext);
     test('echo', AnalysisServerTest.echo);
     test('shutdown', AnalysisServerTest.shutdown);
     test('unknownRequest', AnalysisServerTest.unknownRequest);
@@ -38,7 +38,6 @@ class AnalysisServerTest {
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
     request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
     return channel.sendRequest(request)
-        .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('my27'));
           expect(response.error, isNull);
@@ -49,7 +48,6 @@ class AnalysisServerTest {
     server.handlers = [new EchoHandler()];
     var request = new Request('my22', 'echo');
     return channel.sendRequest(request)
-        .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('my22'));
           expect(response.error, isNull);
@@ -61,7 +59,6 @@ class AnalysisServerTest {
     var request = new Request('my28', ServerDomainHandler.SHUTDOWN_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
     return channel.sendRequest(request)
-        .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('my28'));
           expect(response.error, isNull);
@@ -72,7 +69,6 @@ class AnalysisServerTest {
     server.handlers = [new EchoHandler()];
     var request = new Request('my22', 'randomRequest');
     return channel.sendRequest(request)
-        .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('my22'));
           expect(response.error, isNotNull);
