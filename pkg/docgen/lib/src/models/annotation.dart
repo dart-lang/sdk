@@ -30,9 +30,27 @@ class Annotation extends MirrorBased<ClassMirror> {
 }
 
 List<String> _createParamaters(InstanceMirror originalMirror) {
-  return dart2js_util.variablesOf(originalMirror.type.declarations)
-      .where((e) => e.isFinal)
-      .map((e) => originalMirror.getField(e.simpleName).reflectee)
-      .where((e) => e != null)
-      .toList();
+  var curMirror = originalMirror.type;
+  Map<Symbol, DeclarationMirror> allDeclarations =
+      new Map.from(curMirror.declarations);
+  // This method assumes that our users aren't creating deep inheritance
+  // chains of custom annotation inheritance. If this is not the case,
+  // re-write this section for performance.
+  while (curMirror.superclass !=  null &&
+      curMirror.superclass.simpleName.toString() != 'Object') {
+    allDeclarations.addAll(curMirror.superclass.declarations);
+    curMirror = curMirror.superclass;
+  }
+
+  // TODO(efortuna): Some originalMirrors, such as the
+  // Dart2JsMapConstantMirror and Dart2JsListConstantMirror don't have a
+  // reflectee field, but we want the value of the parameter from them.
+  // Gross workaround is to assemble the object manually.
+  // See issue 18346.
+  return dart2js_util.variablesOf(allDeclarations)
+      .where((e) => e.isFinal &&
+      originalMirror.getField(e.simpleName).hasReflectee)
+        .map((e) => originalMirror.getField(e.simpleName).reflectee)
+        .where((e) => e != null)
+        .toList();
 }
