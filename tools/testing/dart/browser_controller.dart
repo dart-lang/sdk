@@ -83,7 +83,7 @@ abstract class Browser {
     const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
            'ie11', 'dartium'];
 
-  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const ['ie11'];
 
   // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
@@ -1374,12 +1374,6 @@ class BrowserTestingServer {
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
-          var embedded_iframe = document.getElementById('embedded_iframe');
-          embedded_iframe.parentNode.removeChild(embedded_iframe);
-
-          embedded_iframe = document.createElement('iframe');
-          embedded_iframe.id = 'embedded_iframe';
-          document.body.appendChild(embedded_iframe);
           embedded_iframe.src = url;
         } else {
           if (typeof testing_window != 'undefined') {
