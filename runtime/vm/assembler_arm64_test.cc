@@ -304,8 +304,8 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ add(R2, SP, Operand(1));
-  __ str(R1, Address(R2, -1, Address::PreIndex));
-  __ ldr(R0, Address(R2, -1, Address::PostIndex));
+  __ str(R1, Address(R2, -1));
+  __ ldr(R0, Address(R2, -1));
   __ ret();
 }
 

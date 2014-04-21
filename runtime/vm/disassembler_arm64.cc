@@ -195,6 +195,18 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
     Print("]");
   } else {
     switch (instr->Bits(10, 2)) {
+      case 0: {
+        // rn + signed 9-bit immediate, pre-index, no writeback.
+        const int32_t imm9 = instr->SImm9Field();
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                           remaining_size_in_buffer(),
+                           ", #%d",
+                           imm9);
+        Print("]");
+        break;
+      }
       case 1: {
         const int32_t imm9 = instr->SImm9Field();
         // rn + signed 9-bit immediate, post-index, writeback.
@@ -205,18 +217,6 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
                                    remaining_size_in_buffer(),
                                    ", #%d !",
                                    imm9);
-        break;
-      }
-      case 3: {
-        const int32_t imm9 = instr->SImm9Field();
-        // rn + signed 9-bit immediate, pre-index, writeback.
-        Print("[");
-        PrintRegister(rn, R31IsSP);
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   ", #%d",
-                                   imm9);
-        Print("] !");
         break;
       }
       case 2: {
@@ -235,6 +235,18 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
           Print(" scaled");
         }
         Print("]");
+        break;
+      }
+      case 3: {
+        const int32_t imm9 = instr->SImm9Field();
+        // rn + signed 9-bit immediate, pre-index, writeback.
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   ", #%d",
+                                   imm9);
+        Print("] !");
         break;
       }
       default: {

@@ -268,8 +268,8 @@ void Assembler::LoadPoolPointer(Register pp) {
   // push it on the stack with PushPP it is tagged again. PopPP then untags
   // when restoring from the stack. This will make loading from the object
   // pool only one instruction for the first 4096 entries. Otherwise, because
-  // the offset wouldn't be aligned, it would always be at least two
-  // instructions.
+  // the offset wouldn't be aligned, it would be only one instruction for the
+  // first 64 entries.
   sub(pp, pp, Operand(kHeapObjectTag));
 }
 
@@ -559,9 +559,6 @@ void Assembler::LoadFromOffset(Register dest, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset)) {
     ldr(dest, Address(base, offset));
-  } else if (Address::CanHoldOffset(offset, Address::PreIndex)) {
-    mov(TMP2, base);
-    ldr(dest, Address(TMP2, offset, Address::PreIndex));
   } else {
     // Since offset is 32-bits, it won't be loaded from the pool.
     AddImmediate(TMP2, base, offset, kNoRegister);

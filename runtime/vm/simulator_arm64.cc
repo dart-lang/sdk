@@ -1321,6 +1321,12 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
     const uint32_t imm12 = static_cast<uint32_t>(instr->Imm12Field());
     const uint32_t offset = imm12 << size;
     address = rn_val + offset;
+  }  else if (instr->Bits(10, 2) == 0) {
+    // addr = rn + signed 9-bit immediate offset.
+    wb = false;
+    const int64_t offset = static_cast<int64_t>(instr->SImm9Field());
+    address = rn_val + offset;
+    wb_address = rn_val;
   } else if (instr->Bit(10) == 1) {
     // addr = rn + signed 9-bit immediate offset.
     wb = true;

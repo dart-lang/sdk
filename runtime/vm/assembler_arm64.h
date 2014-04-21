@@ -99,13 +99,20 @@ class Address : public ValueObject {
   Address(Register rn, int32_t offset = 0, AddressType at = Offset,
           OperandSize sz = kDoubleWord) {
     ASSERT((rn != R31) && (rn != ZR));
+    ASSERT(CanHoldOffset(offset, at, sz));
     const Register crn = ConcreteRegister(rn);
     const int32_t scale = Log2OperandSizeBytes(sz);
-    if (Utils::IsUint(12 + scale, offset) && (at == Offset)) {
-      ASSERT(offset == ((offset >> scale) << scale));
+    if ((at == Offset) &&
+         Utils::IsUint(12 + scale, offset) &&
+        (offset == ((offset >> scale) << scale))) {
       encoding_ =
           B24 |
           ((offset >> scale) << kImm12Shift) |
+          (static_cast<int32_t>(crn) << kRnShift);
+    } else if ((at == Offset) &&
+               Utils::IsInt(9, offset)) {
+      encoding_ =
+          ((offset & 0x1ff) << kImm9Shift) |
           (static_cast<int32_t>(crn) << kRnShift);
     } else {
       ASSERT(Utils::IsInt(9, offset));
@@ -123,10 +130,12 @@ class Address : public ValueObject {
   static bool CanHoldOffset(int32_t offset, AddressType at = Offset,
                             OperandSize sz = kDoubleWord) {
     if (at == Offset) {
-      // Fits in 12 bit unsigned and right alignment for sz.
+      // Offset fits in 12 bit unsigned and has right alignment for sz,
+      // or fits in 9 bit signed offset with no alignment restriction.
       const int32_t scale = Log2OperandSizeBytes(sz);
-      return Utils::IsUint(12 + scale, offset) &&
-             (offset == ((offset >> scale) << scale));
+      return (Utils::IsUint(12 + scale, offset) &&
+              (offset == ((offset >> scale) << scale))) ||
+             (Utils::IsInt(9, offset));
     } else if (at == PCOffset) {
       return Utils::IsInt(21, offset) &&
              (offset == ((offset >> 2) << 2));
