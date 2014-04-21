@@ -14,7 +14,7 @@
  * removed after those changes land to CLDR.
  */
 
-library date_symbol_data;
+library date_symbol_data_local;
 
 import 'dart:async';
 

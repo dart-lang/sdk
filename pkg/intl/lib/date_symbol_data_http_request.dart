@@ -6,7 +6,7 @@
  * This file should be imported, along with date_format.dart in order to read
  * locale data via http requests to a web server..
  */
-library date_symbol_data_json;
+library date_symbol_data_http_request;
 
 import 'dart:async';
 import 'date_symbols.dart';
