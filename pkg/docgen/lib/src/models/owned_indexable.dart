@@ -12,6 +12,7 @@ import '../mdn.dart';
 import '../package_helpers.dart';
 
 import 'annotation.dart';
+import 'dummy_mirror.dart';
 import 'indexable.dart';
 import 'model_helpers.dart';
 
@@ -48,4 +49,22 @@ abstract class OwnedIndexable<TMirror extends DeclarationMirror>
   }
 
   String get packagePrefix => owner.packagePrefix;
+
+  String findElementInScope(String name) {
+    var lookupFunc = determineLookupFunc(name);
+    var result = lookupFunc(mirror, name);
+    if (result != null) {
+      result = getDocgenObject(result);
+      if (result is DummyMirror) return packagePrefix + result.docName;
+      return result.packagePrefix + result.docName;
+    }
+
+    if (owner != null) {
+      var result = owner.findElementInScope(name);
+      if (result != null) {
+        return result;
+      }
+    }
+    return super.findElementInScope(name);
+  }
 }

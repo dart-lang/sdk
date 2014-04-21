@@ -16,32 +16,27 @@ import 'owned_indexable.dart';
 
 
 /// A class containing properties of a Dart variable.
-class Variable extends OwnedIndexable {
+class Variable extends OwnedIndexable<VariableMirror> {
+  final bool isFinal;
+  final bool isStatic;
+  final bool isConst;
+  final DocGenType type;
+  final String name;
 
-  bool isFinal;
-  bool isStatic;
-  bool isConst;
-  DocGenType type;
-  String _variableName;
-
-  factory Variable(String variableName, VariableMirror mirror,
-      Indexable owner) {
+  factory Variable(String name, VariableMirror mirror, Indexable owner) {
     var variable = getDocgenObject(mirror);
     if (variable is DummyMirror) {
-      return new Variable._(variableName, mirror, owner);
+      return new Variable._(name, mirror, owner);
     }
     return variable;
   }
 
-  Variable._(this._variableName, VariableMirror mirror, Indexable owner) :
-      super(mirror, owner) {
-    isFinal = mirror.isFinal;
-    isStatic = mirror.isStatic;
-    isConst = mirror.isConst;
-    type = new DocGenType(mirror.type, owner.owningLibrary);
-  }
-
-  String get name => _variableName;
+  Variable._(this.name, VariableMirror mirror, Indexable owner)
+      : isFinal = mirror.isFinal,
+        isStatic = mirror.isStatic,
+        isConst = mirror.isConst,
+        type = new DocGenType(mirror.type, owner.owningLibrary),
+        super(mirror, owner);
 
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
@@ -57,30 +52,12 @@ class Variable extends OwnedIndexable {
 
   String get typeName => 'property';
 
-  get comment {
+  String get comment {
     if (commentField != null) return commentField;
     if (owner is Class) {
       (owner as Class).ensureComments();
     }
     return super.comment;
-  }
-
-  String findElementInScope(String name) {
-    var lookupFunc = determineLookupFunc(name);
-    var result = lookupFunc(mirror, name);
-    if (result != null) {
-      result = getDocgenObject(result);
-      if (result is DummyMirror) return packagePrefix + result.docName;
-      return result.packagePrefix + result.docName;
-    }
-
-    if (owner != null) {
-      var result = owner.findElementInScope(name);
-      if (result != null) {
-        return result;
-      }
-    }
-    return super.findElementInScope(name);
   }
 
   bool isValidMirror(DeclarationMirror mirror) => mirror is VariableMirror;

@@ -20,6 +20,7 @@ class DummyMirror implements Indexable {
   /// determine which object we're referring to when looking up this mirror in
   /// our map.
   final Indexable owner;
+
   DummyMirror(this.mirror, [this.owner]);
 
   String get docName {

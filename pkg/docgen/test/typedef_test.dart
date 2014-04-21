@@ -28,7 +28,7 @@ void main() {
     });
 
     schedule(() {
-      var path = p.join(d.defaultRoot, 'docs', 'test_lib-bar.json');
+      var path = p.join(d.defaultRoot, 'docs', 'root_lib.json');
       var dartCoreJson = new File(path).readAsStringSync();
 
       var testLibBar = JSON.decode(dartCoreJson) as Map<String, dynamic>;
@@ -36,11 +36,10 @@ void main() {
       //
       // Validate function doc references
       //
-      var generateFoo = testLibBar['functions']['methods']['generateFoo']
+      var testMethod = testLibBar['functions']['methods']['testMethod']
           as Map<String, dynamic>;
 
-      expect(generateFoo['comment'], '<p><a>test_lib-bar.generateFoo.input</a> '
-          'is of type <a>test_lib-bar.C</a> returns an <a>test_lib.A</a>.</p>');
+      expect(testMethod['comment'], _TEST_METHOD_COMMENT);
 
       var classes = testLibBar['classes'] as Map<String, dynamic>;
 
@@ -50,18 +49,31 @@ void main() {
       expect(classes['error'], isList);
 
       var typeDefs = classes['typedef'] as Map<String, dynamic>;
-      var comparator = typeDefs['AnATransformer'] as Map<String, dynamic>;
+      var comparator = typeDefs['testTypedef'] as Map<String, dynamic>;
 
-      var expectedPreview =
-          '<p>Processes a <a>test_lib-bar.C</a> instance for testing.</p>';
+      expect(comparator['preview'], _TEST_TYPEDEF_PREVIEW);
 
-      expect(comparator['preview'], expectedPreview);
-
-      var expectedComment = expectedPreview + '\n'
-          '<p>To eliminate import warnings for <a>test_lib.A</a> and to test '
-          'typedefs.</p>';
-
-      expect(comparator['comment'], expectedComment);
+      expect(comparator['comment'], _TEST_TYPEDEF_COMMENT);
     });
   });
 }
+
+// TOOD: [List<A>] is not formatted correctly - issue 16771
+const _TEST_METHOD_COMMENT = '<p>Processes an '
+    '<a>root_lib.testMethod.input</a> of type <a>root_lib.C</a> '
+    'instance for testing.</p>\n<p>To eliminate import warnings for '
+    '<a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s important that the'
+    ' <a>dart-core</a>&lt;A> for param <a>root_lib.testMethod.listOfA</a> '
+    'is not empty.</p>';
+
+// TODO: [input] is not turned into a param refenece
+const _TEST_TYPEDEF_PREVIEW = '<p>Processes an input of type '
+    '<a>root_lib.C</a> instance for testing.</p>';
+
+// TOOD: [List<A>] is not formatted correctly - issue 16771
+// TODO: [listOfA] is not turned into a param reference
+final _TEST_TYPEDEF_COMMENT = _TEST_TYPEDEF_PREVIEW + '\n<p>To eliminate import'
+    ' warnings for <a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s '
+    'important that the <a>dart-core</a>&lt;A> for param listOfA is not '
+    'empty.</p>';
+

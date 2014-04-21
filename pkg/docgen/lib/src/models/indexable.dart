@@ -124,7 +124,7 @@ abstract class Indexable<TMirror extends DeclarationMirror>
   String getMdnComment();
 
   /// The type of this member to be used in index.txt.
-  String get typeName => '';
+  String get typeName;
 
   /// Creates a [Map] with this [Indexable]'s name and a preview comment.
   Map get previewMap {

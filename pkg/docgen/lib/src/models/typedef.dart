@@ -6,8 +6,6 @@ library docgen.models.typedef;
 
 import '../exports/source_mirrors.dart';
 
-import 'package:markdown/markdown.dart' as markdown;
-
 import '../library_helpers.dart';
 
 import 'dummy_mirror.dart';
@@ -17,7 +15,7 @@ import 'generic.dart';
 import 'parameter.dart';
 import 'owned_indexable.dart';
 
-class Typedef extends OwnedIndexable {
+class Typedef extends OwnedIndexable<TypedefMirror> {
   final String returnType;
 
   final Map<String, Parameter> parameters;
@@ -60,8 +58,6 @@ class Typedef extends OwnedIndexable {
 
     return map;
   }
-
-  markdown.Node fixReference(String name) => owner.fixReference(name);
 
   String get typeName => 'typedef';
 

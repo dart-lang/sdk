@@ -21,7 +21,7 @@ import 'parameter.dart';
 
 
 /// A class containing properties of a Dart method.
-class Method extends OwnedIndexable {
+class Method extends OwnedIndexable<MethodMirror> {
 
   /// Parameters for this method.
   final Map<String, Parameter> parameters;
@@ -83,7 +83,7 @@ class Method extends OwnedIndexable {
   }
 
   String get docName {
-    if ((mirror as MethodMirror).isConstructor) {
+    if (mirror.isConstructor) {
       // We name constructors specially -- including the class name again and a
       // "-" to separate the constructor from its name (if any).
       return '${owner.docName}.${dart2js_util.nameOf(mirror.owner)}-'
@@ -124,11 +124,10 @@ class Method extends OwnedIndexable {
   };
 
   String get typeName {
-    MethodMirror theMirror = mirror;
-    if (theMirror.isConstructor) return 'constructor';
-    if (theMirror.isGetter) return 'getter';
-    if (theMirror.isSetter) return 'setter';
-    if (theMirror.isOperator) return 'operator';
+    if (mirror.isConstructor) return 'constructor';
+    if (mirror.isGetter) return 'getter';
+    if (mirror.isSetter) return 'setter';
+    if (mirror.isOperator) return 'operator';
     return 'method';
   }
 
