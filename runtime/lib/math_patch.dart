@@ -20,14 +20,17 @@ double _doublePow(double base, double exponent) {
     return 1.0;  // ECMA-262 15.8.2.13
   }
   if (base == 1.0) return 1.0;
-  if (exponent == 1.0) return base;
-  if (exponent == 2.0) return base * base;
-  if (exponent == 3.0) return base * base * base;
-  
+
   if (base.isNaN || exponent.isNaN) {
     return double.NAN;
   }
-  return _pow(base, exponent);
+  if ((base != -double.INFINITY) && (exponent == 0.5)) {
+    if (base == 0.0) {
+      return 0.0;
+    }
+    return sqrt(base);
+  }
+  return _pow(base.toDouble(), exponent.toDouble());
 }
 
 double _pow(double base, double exponent) native "Math_doublePow";
