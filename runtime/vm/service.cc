@@ -251,6 +251,81 @@ static Dart_Port ExtractPort(Dart_Handle receivePort) {
 }
 
 
+// These must be kept in sync with service/constants.dart
+#define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
+#define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
+
+
+static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
+                                           const String& name) {
+  const Array& list = Array::Handle(Array::New(4));
+  ASSERT(!list.IsNull());
+  const Integer& code_int = Integer::Handle(Integer::New(code));
+  const Integer& port_int = Integer::Handle(Integer::New(port_id));
+  const Object& send_port = Object::Handle(
+      DartLibraryCalls::NewSendPort(port_id));
+  ASSERT(!send_port.IsNull());
+  list.SetAt(0, code_int);
+  list.SetAt(1, port_int);
+  list.SetAt(2, send_port);
+  list.SetAt(3, name);
+  return list.raw();
+}
+
+
+class RegisterRunningIsolatesVisitor : public IsolateVisitor {
+ public:
+  explicit RegisterRunningIsolatesVisitor(Isolate* service_isolate)
+      : IsolateVisitor(),
+        register_function_(Function::Handle(service_isolate)),
+        service_isolate_(service_isolate) {
+    ASSERT(Isolate::Current() == service_isolate_);
+    // Get library.
+    const String& library_url = Symbols::DartVMService();
+    ASSERT(!library_url.IsNull());
+    const Library& library =
+        Library::Handle(Library::LookupLibrary(library_url));
+    ASSERT(!library.IsNull());
+    // Get function.
+    const String& function_name =
+        String::Handle(String::New("_registerIsolate"));
+    ASSERT(!function_name.IsNull());
+    register_function_ = library.LookupFunctionAllowPrivate(function_name);
+    ASSERT(!register_function_.IsNull());
+  }
+
+  virtual void VisitIsolate(Isolate* isolate) {
+    ASSERT(Isolate::Current() == service_isolate_);
+    if ((isolate == service_isolate_) ||
+        (isolate == Dart::vm_isolate())) {
+      // We do not register the service or vm isolate.
+      return;
+    }
+    // Setup arguments for call.
+    intptr_t port_id = isolate->main_port();
+    const Integer& port_int = Integer::Handle(Integer::New(port_id));
+    ASSERT(!port_int.IsNull());
+    const Object& send_port = Object::Handle(
+        DartLibraryCalls::NewSendPort(port_id));
+    ASSERT(!send_port.IsNull());
+    const String& name = String::Handle(String::New(isolate->name()));
+    ASSERT(!name.IsNull());
+    const Array& args = Array::Handle(Array::New(3));
+    ASSERT(!args.IsNull());
+    args.SetAt(0, port_int);
+    args.SetAt(1, send_port);
+    args.SetAt(2, name);
+    Object& r = Object::Handle(service_isolate_);
+    r = DartEntry::InvokeFunction(register_function_, args);
+    ASSERT(!r.IsError());
+  }
+
+ private:
+  Function& register_function_;
+  Isolate* service_isolate_;
+};
+
+
 Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (service_isolate_ != NULL) {
     // Already initialized, return service isolate.
@@ -328,31 +403,16 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     ASSERT(port_ != ILLEGAL_PORT);
     Dart_ExitScope();
   }
+  {
+    // Register existing isolates.
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    RegisterRunningIsolatesVisitor register_isolates(isolate);
+    Isolate::VisitIsolates(&register_isolates);
+  }
   Isolate::SetCurrent(NULL);
   service_isolate_ = reinterpret_cast<Isolate*>(isolate);
   return service_isolate_;
-}
-
-
-// These must be kept in sync with service/constants.dart
-#define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
-#define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
-
-
-static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
-                                           const String& name) {
-  const Array& list = Array::Handle(Array::New(4));
-  ASSERT(!list.IsNull());
-  const Integer& code_int = Integer::Handle(Integer::New(code));
-  const Integer& port_int = Integer::Handle(Integer::New(port_id));
-  const Object& send_port = Object::Handle(
-      DartLibraryCalls::NewSendPort(port_id));
-  ASSERT(!send_port.IsNull());
-  list.SetAt(0, code_int);
-  list.SetAt(1, port_int);
-  list.SetAt(2, send_port);
-  list.SetAt(3, name);
-  return list.raw();
 }
 
 

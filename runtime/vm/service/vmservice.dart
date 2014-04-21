@@ -94,3 +94,8 @@ RawReceivePort boot() {
   // Return the port we expect isolate startup and shutdown messages on.
   return new VMService().receivePort;
 }
+
+void _registerIsolate(int port_id, SendPort sp, String name) {
+  var service = new VMService();
+  service.runningIsolates.isolateStartup(port_id, sp, name);
+}
