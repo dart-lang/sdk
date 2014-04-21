@@ -527,26 +527,85 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
 DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+typedef struct _Dart_WeakReferenceSetBuilder* Dart_WeakReferenceSetBuilder;
+typedef struct _Dart_WeakReferenceSet* Dart_WeakReferenceSet;
+
+/**
+ * Constructs a weak references set builder.
+ *
+ * \returns a pointer to the weak reference set builder if successful.
+ *   Otherwise, returns NULL.
+ */
+DART_EXPORT Dart_WeakReferenceSetBuilder Dart_NewWeakReferenceSetBuilder();
+
 /**
  * Constructs a set of weak references from the Cartesian product of
  * the objects in the key set and the objects in values set.
  *
- * \param keys A set of object references.  These references will be
+ * \param set_builder The weak references set builder which was created
+ *   using Dart_NewWeakReferenceSetBuilder().
+ * \param key An object reference.  This references will be
  *   considered weak by the garbage collector.
- * \param num_keys the number of objects in the keys set.
- * \param values A set of object references.  These references will be
+ * \param value An object reference.  This reference will be
  *   considered weak by garbage collector unless any object reference
  *   in 'keys' is found to be strong.
- * \param num_values the size of the values set
  *
- * \return Success if the weak reference set could be created.
- *   Otherwise, returns an error handle.
+ * \return a pointer to the weak reference set if successful.
+ *   Otherwise, returns NULL.
  */
-DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
-    Dart_WeakPersistentHandle* keys,
-    intptr_t num_keys,
-    Dart_WeakPersistentHandle* values,
-    intptr_t num_values);
+DART_EXPORT Dart_WeakReferenceSet Dart_NewWeakReferenceSet(
+    Dart_WeakReferenceSetBuilder set_builder,
+    Dart_WeakPersistentHandle key,
+    Dart_WeakPersistentHandle value);
+
+/**
+ * Append the pair of key/value object references to the weak references set.
+ *
+ * \param reference_set A weak references set into which the pair of key/value
+ *   needs to be added.
+ * \param key An object reference.  This references will be
+ *   considered weak by the garbage collector.
+ * \param value An object reference.  This reference will be
+ *   considered weak by garbage collector unless any object reference
+ *   in 'keys' is found to be strong.
+ *
+ * \return Success if the prologue weak persistent handle was created.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_AppendToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle key,
+    Dart_WeakPersistentHandle value);
+
+/**
+ * Append the key object reference to the weak references set.
+ *
+ * \param reference_set A weak references set into which the key
+ *   needs to be added.
+ * \param key An object reference.  This references will be
+ *   considered weak by the garbage collector.
+ *
+ * \return Success if the prologue weak persistent handle was created.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_AppendKeyToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle key);
+
+/**
+ * Append the value object reference to the weak references set.
+ *
+ * \param reference_set A weak references set into which the key
+ *   needs to be added.
+ * \param value An object reference.  This references will be
+ *   considered weak by the garbage collector.
+ *
+ * \return Success if the prologue weak persistent handle was created.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_AppendValueToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle value);
 
 
 /*

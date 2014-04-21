@@ -2506,21 +2506,24 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak3, weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak3, weak3);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak2, weak2));
+
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2538,26 +2541,28 @@ TEST_CASE(ObjectGroups) {
 
   {
     Dart_EnterScope();
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
+
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
 
     // Strong reference to weak3 to retain weak3 and weak4.
     Dart_PersistentHandle weak3_strong_ref =
         Dart_NewPersistentHandle(AsHandle(weak3));
     EXPECT_VALID(AsHandle(weak3_strong_ref));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 
@@ -2578,21 +2583,23 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2609,16 +2616,20 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
     Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
     // lweak3 is unreferenced so weak2 is unreferenced and should be cleared
-    Dart_WeakPersistentHandle array2[] = { weak2, lweak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2635,6 +2646,9 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
     Dart_WeakPersistentHandle lweak2 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
     Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
@@ -2642,17 +2656,16 @@ TEST_CASE(ObjectGroups) {
     Dart_WeakPersistentHandle lweak4 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
     // lweak{2,3,4} are cleared and should have no effect on weak1
-    Dart_WeakPersistentHandle array1[] = { strong_weak,
-                                           lweak2,
-                                           lweak3,
-                                           lweak4 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, strong_weak);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak2, lweak2));
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak4, lweak4));
 
     // weak1 is weakly reachable and should be cleared
-    Dart_WeakPersistentHandle array2[] = { weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2843,10 +2856,15 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   // A strongly referenced key should preserve all the values.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2863,10 +2881,13 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   // Key membership does not imply a strong reference.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak, weak3 };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak2));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2945,10 +2966,15 @@ TEST_CASE(ImplicitReferencesNewSpace) {
 
   // A strongly referenced key should preserve all the values.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
 
     GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
   }

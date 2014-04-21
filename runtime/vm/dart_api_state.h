@@ -558,63 +558,6 @@ class FinalizablePersistentHandles
 };
 
 
-class WeakReferenceSet {
- public:
-  WeakReferenceSet(Dart_WeakPersistentHandle* keys, intptr_t keys_length,
-                   Dart_WeakPersistentHandle* values, intptr_t values_length)
-      : next_(NULL),
-        keys_(keys), num_keys_(keys_length),
-        values_(values), num_values_(values_length) {
-  }
-  ~WeakReferenceSet() {}
-
-  WeakReferenceSet* next() const { return next_; }
-
-  intptr_t num_keys() const { return num_keys_; }
-  RawObject** get_key(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_keys_);
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(keys_[i]);
-    return ref->raw_addr();
-  }
-
-  intptr_t num_values() const { return num_values_; }
-  RawObject** get_value(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_values_);
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(values_[i]);
-    return ref->raw_addr();
-  }
-
-  static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
-    ASSERT(queue != NULL);
-    WeakReferenceSet* head = *queue;
-    if (head != NULL) {
-      *queue = head->next();
-      head->next_ = NULL;
-    }
-    return head;
-  }
-
-  static void Push(WeakReferenceSet* reference_set, WeakReferenceSet** queue) {
-    ASSERT(reference_set != NULL);
-    ASSERT(queue != NULL);
-    reference_set->next_ = *queue;
-    *queue = reference_set;
-  }
-
- private:
-  WeakReferenceSet* next_;
-  Dart_WeakPersistentHandle* keys_;
-  intptr_t num_keys_;
-  Dart_WeakPersistentHandle* values_;
-  intptr_t num_values_;
-  DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
-};
-
-
 // Structure used for the implementation of local scopes used in dart_api.
 // These local scopes manage handles and memory allocated in the scope.
 class ApiLocalScope {
@@ -655,6 +598,55 @@ class ApiLocalScope {
 
   DISALLOW_COPY_AND_ASSIGN(ApiLocalScope);
 };
+
+
+class ApiNativeScope {
+ public:
+  ApiNativeScope() {
+    // Currently no support for nesting native scopes.
+    ASSERT(Current() == NULL);
+    Thread::SetThreadLocal(Api::api_native_key_, reinterpret_cast<uword>(this));
+  }
+
+  ~ApiNativeScope() {
+    ASSERT(Current() == this);
+    Thread::SetThreadLocal(Api::api_native_key_, 0);
+  }
+
+  static inline ApiNativeScope* Current() {
+    return reinterpret_cast<ApiNativeScope*>(
+        Thread::GetThreadLocal(Api::api_native_key_));
+  }
+
+  Zone* zone() { return zone_.GetZone(); }
+
+ private:
+  ApiZone zone_;
+};
+
+
+// Api growable arrays use a zone for allocation. The constructor
+// picks the zone from the current isolate if in an isolate
+// environment. When outside an isolate environment it picks the zone
+// from the current native scope.
+template<typename T>
+class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
+ public:
+  explicit ApiGrowableArray(int initial_capacity)
+      : BaseGrowableArray<T, ValueObject>(
+          initial_capacity,
+          ApiNativeScope::Current()->zone()) {}
+  ApiGrowableArray()
+      : BaseGrowableArray<T, ValueObject>(
+          ApiNativeScope::Current()->zone()) {}
+  ApiGrowableArray(intptr_t initial_capacity, Zone* zone)
+      : BaseGrowableArray<T, ValueObject>(initial_capacity, zone) {}
+};
+
+
+// Forward declarations.
+class WeakReferenceSetBuilder;
+class WeakReferenceSet;
 
 
 // Implementation of the API State used in dart api for maintaining
@@ -823,9 +815,9 @@ class ApiState {
     return acquired_error_;
   }
 
-  void DelayWeakReferenceSet(WeakReferenceSet* reference_set) {
-    WeakReferenceSet::Push(reference_set, &delayed_weak_reference_sets_);
-  }
+  WeakReferenceSetBuilder* NewWeakReferenceSetBuilder();
+
+  void DelayWeakReferenceSet(WeakReferenceSet* reference_set);
 
  private:
   PersistentHandles persistent_handles_;
@@ -845,45 +837,107 @@ class ApiState {
 };
 
 
-class ApiNativeScope {
+class WeakReferenceSet {
  public:
-  ApiNativeScope() {
-    // Currently no support for nesting native scopes.
-    ASSERT(Current() == NULL);
-    Thread::SetThreadLocal(Api::api_native_key_, reinterpret_cast<uword>(this));
+  explicit WeakReferenceSet(Zone* zone)
+      : next_(NULL),
+        keys_(1, zone),
+        values_(1, zone) {
+  }
+  ~WeakReferenceSet() {}
+
+  WeakReferenceSet* next() const { return next_; }
+
+  intptr_t num_keys() const { return keys_.length(); }
+  RawObject** get_key(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < num_keys());
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(keys_[i]);
+    return ref->raw_addr();
   }
 
-  ~ApiNativeScope() {
-    ASSERT(Current() == this);
-    Thread::SetThreadLocal(Api::api_native_key_, 0);
+  intptr_t num_values() const { return values_.length(); }
+  RawObject** get_value(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < num_values());
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(values_[i]);
+    return ref->raw_addr();
   }
 
-  static inline ApiNativeScope* Current() {
-    return reinterpret_cast<ApiNativeScope*>(
-        Thread::GetThreadLocal(Api::api_native_key_));
+  bool SingletonKeyEqualsValue() const {
+    ASSERT((num_keys() == 1) && (num_values() == 1));
+    return (keys_[0] == values_[0]);
   }
 
-  Zone* zone() { return zone_.GetZone(); }
+  void Append(Dart_WeakPersistentHandle key, Dart_WeakPersistentHandle value) {
+    keys_.Add(key);
+    values_.Add(value);
+  }
+
+  void AppendKey(Dart_WeakPersistentHandle key) {
+    keys_.Add(key);
+  }
+
+  void AppendValue(Dart_WeakPersistentHandle value) {
+    values_.Add(value);
+  }
+
+  static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
+    ASSERT(queue != NULL);
+    WeakReferenceSet* head = *queue;
+    if (head != NULL) {
+      *queue = head->next();
+      head->next_ = NULL;
+    }
+    return head;
+  }
+
+  static void Push(WeakReferenceSet* reference_set, WeakReferenceSet** queue) {
+    ASSERT(reference_set != NULL);
+    ASSERT(queue != NULL);
+    reference_set->next_ = *queue;
+    *queue = reference_set;
+  }
+
+  void* operator new(uword size, Zone* zone) {
+    return reinterpret_cast<void*>(zone->AllocUnsafe(size));
+  }
+
+  // Disallow explicit deallocation of WeakReferenceSet.
+  void operator delete(void* pointer) { UNREACHABLE(); }
 
  private:
-  ApiZone zone_;
+  WeakReferenceSet* next_;
+  ApiGrowableArray<Dart_WeakPersistentHandle> keys_;
+  ApiGrowableArray<Dart_WeakPersistentHandle> values_;
+
+  DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
 };
 
 
-// Api growable arrays use a zone for allocation. The constructor
-// picks the zone from the current isolate if in an isolate
-// environment. When outside an isolate environment it picks the zone
-// from the current native scope.
-template<typename T>
-class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
+class WeakReferenceSetBuilder {
  public:
-  explicit ApiGrowableArray(int initial_capacity)
-      : BaseGrowableArray<T, ValueObject>(
-          initial_capacity,
-          ApiNativeScope::Current()->zone()) {}
-  ApiGrowableArray()
-      : BaseGrowableArray<T, ValueObject>(
-          ApiNativeScope::Current()->zone()) {}
+  ApiState* api_state() const {
+    return api_state_;
+  }
+
+  WeakReferenceSet* NewWeakReferenceSet() {
+    return new (zone_) WeakReferenceSet(zone_);
+  }
+
+ private:
+  explicit WeakReferenceSetBuilder(ApiState* api_state)
+      : api_state_(api_state),
+        zone_(api_state->top_scope()->zone()) {
+  }
+
+  ApiState* api_state_;
+  Zone* zone_;
+
+  friend class ApiState;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(WeakReferenceSetBuilder);
 };
 
 
