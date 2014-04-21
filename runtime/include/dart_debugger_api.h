@@ -479,6 +479,18 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
 
 
 /**
+ * Returns origin class of a function.
+ *
+ * Requires there to be a current isolate.
+ * 
+ * \return Returns the class id (a handle to an integer) of the class in
+ * which \function is defined. Returns a null handle if \function is defined
+ * at the top level. Returns an error object otherwise.
+ */
+DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function);
+
+
+/**
  * Returns an array containing all the global variable names and values of
  * the library with given \library_id.
  *

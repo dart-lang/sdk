@@ -308,6 +308,24 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(Function, function, function_in);
+
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+
+  const Class& cls = Class::Handle(function.origin());
+  if (!cls.IsTopLevel()) {
+    return Dart_NewInteger(cls.id());
+  }
+  return Api::Null();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetLocalVariables(
                             Dart_ActivationFrame activation_frame) {
   Isolate* isolate = Isolate::Current();

@@ -473,8 +473,9 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     res = Dart_GetActivationFrame(trace, i, &frame);
     ASSERT_NOT_ERROR(res);
     Dart_Handle func_name;
+    Dart_Handle func;
     Dart_CodeLocation location;
-    res = Dart_ActivationFrameGetLocation(frame, &func_name, NULL, &location);
+    res = Dart_ActivationFrameGetLocation(frame, &func_name, &func, &location);
     ASSERT_NOT_ERROR(res);
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
@@ -485,6 +486,13 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
       FormatEncodedString(msg, location.script_url);
       msg->Printf(",\"libraryId\":%d,", location.library_id);
       msg->Printf("\"tokenOffset\":%d}", location.token_pos);
+    }
+    ASSERT_NOT_ERROR(func);
+    Dart_Handle origin = Dart_GetFunctionOrigin(func);
+    ASSERT_NOT_ERROR(origin);
+    if (Dart_IsInteger(origin)) {
+      int64_t class_id = GetIntValue(origin);
+      msg->Printf(",\"classId\":%" Pd64 "", class_id);
     }
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
