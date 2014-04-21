@@ -9,13 +9,15 @@
 library date_symbol_data_http_request;
 
 import 'dart:async';
+
 import 'date_symbols.dart';
-import 'src/lazy_locale_data.dart';
+import 'intl.dart';
+import 'src/data/dates/locale_list.dart';
 import 'src/date_format_internal.dart';
 import 'src/http_request_data_reader.dart';
-import 'intl.dart';
+import 'src/lazy_locale_data.dart';
 
-part "src/data/dates/localeList.dart";
+export 'src/data/dates/locale_list.dart';
 
 /**
  * This should be called for at least one [locale] before any date formatting

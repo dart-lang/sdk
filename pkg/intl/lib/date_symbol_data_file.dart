@@ -10,13 +10,16 @@
 library date_symbol_data_file;
 
 import 'dart:async';
-import "date_symbols.dart";
-import "src/lazy_locale_data.dart";
-import 'src/date_format_internal.dart';
-import 'src/file_data_reader.dart';
+
 import 'package:path/path.dart' as path;
 
-part "src/data/dates/localeList.dart";
+import 'date_symbols.dart';
+import 'src/data/dates/locale_list.dart';
+import 'src/date_format_internal.dart';
+import 'src/file_data_reader.dart';
+import 'src/lazy_locale_data.dart';
+
+export 'src/data/dates/locale_list.dart';
 
 /**
  * This should be called for at least one [locale] before any date formatting
