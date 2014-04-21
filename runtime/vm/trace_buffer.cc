@@ -8,10 +8,7 @@
 
 namespace dart {
 
-TraceBuffer::TraceBuffer(intptr_t initial_capacity, intptr_t maximum_capacity)
-    : capacity_(initial_capacity),
-      max_capacity_(maximum_capacity) {
-  size_ = 0;
+TraceBuffer::TraceBuffer(intptr_t capacity) : ring_capacity_(capacity) {
   ring_cursor_ = 0;
   Init();
 }
@@ -26,37 +23,18 @@ TraceBuffer::~TraceBuffer() {
 
 void TraceBuffer::Init() {
   ring_ = reinterpret_cast<TraceBufferEntry*>(
-      calloc(capacity_, sizeof(TraceBufferEntry)));  // NOLINT
-}
-
-
-void TraceBuffer::Resize(intptr_t new_capacity) {
-  ASSERT(new_capacity > capacity_);
-  if (new_capacity > max_capacity_) {
-    // Clamp to max_capacity_.
-    new_capacity = max_capacity_;
-  }
-  ASSERT(new_capacity <= max_capacity_);
-  ring_ = reinterpret_cast<TraceBufferEntry*>(
-      realloc(ring_, sizeof(*ring_) * new_capacity));
-  // Initialize new TraceBufferEntries.
-  for (intptr_t i = capacity_; i < new_capacity; i++) {
-    ring_[i].micros = 0;
-    ring_[i].message = NULL;
-  }
-  capacity_ = new_capacity;
+      calloc(ring_capacity_, sizeof(TraceBufferEntry)));  // NOLINT
 }
 
 
 void TraceBuffer::Clear() {
-  for (intptr_t i = 0; i < capacity_; i++) {
+  for (intptr_t i = 0; i < ring_capacity_; i++) {
     TraceBufferEntry& entry = ring_[i];
     entry.micros = 0;
     free(entry.message);
     entry.message = NULL;
   }
   ring_cursor_ = 0;
-  size_ = 0;
 }
 
 
@@ -71,14 +49,6 @@ void TraceBuffer::Fill(TraceBufferEntry* entry, int64_t micros, char* msg) {
 
 
 void TraceBuffer::AppendTrace(int64_t micros, char* message) {
-  if (size_ < capacity_) {
-    size_++;
-    if ((size_ == capacity_) &&
-        (capacity_ < max_capacity_)) {
-      // Double size.
-      Resize(capacity_ * 2);
-    }
-  }
   const intptr_t index = ring_cursor_;
   TraceBufferEntry* trace_entry = &ring_[index];
   Fill(trace_entry, micros, message);
@@ -113,15 +83,15 @@ void TraceBuffer::TraceF(const char* format, ...) {
 }
 
 
-void TraceBuffer::PrintToJSONObject(JSONObject* json_trace_buffer) const {
-  json_trace_buffer->AddProperty("type", "TraceBuffer");
-  json_trace_buffer->AddProperty("id", "");
+void TraceBuffer::PrintToJSONStream(JSONStream* stream) const {
+  JSONObject json_trace_buffer(stream);
+  json_trace_buffer.AddProperty("type", "TraceBuffer");
   // TODO(johnmccutchan): Send cursor position in response.
-  JSONArray json_trace_buffer_array(json_trace_buffer, "members");
+  JSONArray json_trace_buffer_array(&json_trace_buffer, "members");
   // Scan forward until we find the first entry which isn't empty.
   // TODO(johnmccutchan): Accept cursor start position as input.
   intptr_t start = -1;
-  for (intptr_t i = 0; i < capacity_; i++) {
+  for (intptr_t i = 0; i < ring_capacity_; i++) {
     intptr_t index = RingIndex(i + ring_cursor_);
     if (!ring_[index].empty()) {
       start = index;
@@ -132,7 +102,7 @@ void TraceBuffer::PrintToJSONObject(JSONObject* json_trace_buffer) const {
   if (start == -1) {
     return;
   }
-  for (intptr_t i = 0; i < capacity_; i++) {
+  for (intptr_t i = 0; i < ring_capacity_; i++) {
     intptr_t index = RingIndex(start + i);
     const TraceBufferEntry& entry = ring_[index];
     if (entry.empty()) {
@@ -141,18 +111,11 @@ void TraceBuffer::PrintToJSONObject(JSONObject* json_trace_buffer) const {
     }
     JSONObject trace_entry(&json_trace_buffer_array);
     trace_entry.AddProperty("type", "TraceBufferEntry");
-    trace_entry.AddProperty("id", "");
-    intptr_t millis =
-        static_cast<intptr_t>(entry.micros / kMicrosecondsPerMillisecond);
-    trace_entry.AddProperty("time", millis);
+    double seconds = static_cast<double>(entry.micros) /
+                     static_cast<double>(kMicrosecondsPerSecond);
+    trace_entry.AddProperty("time", seconds);
     trace_entry.AddProperty("message", entry.message);
   }
-}
-
-
-void TraceBuffer::PrintToJSONStream(JSONStream* stream) const {
-  JSONObject json_trace_buffer(stream);
-  PrintToJSONObject(&json_trace_buffer);
 }
 
 }  // namespace dart

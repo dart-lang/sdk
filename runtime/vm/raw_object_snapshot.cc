@@ -8,7 +8,6 @@
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/trace_buffer.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -702,7 +701,6 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_kind_tag(reader->Read<uint16_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
-  func.set_log(new TraceBuffer());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though

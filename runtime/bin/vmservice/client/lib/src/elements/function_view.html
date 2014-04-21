@@ -3,7 +3,6 @@
   <link rel="import" href="code_ref.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="library_ref.html">
-  <link rel="import" href="log_view.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="script_inset.html">
@@ -68,10 +67,6 @@
           </div>
         </template>
         <div class="memberItem">
-          <div class="memberName">optimized</div>
-          <div class="memberValue">{{ function['optimizedCode'] != null }}</div>
-        </div>
-        <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
             <template if="{{ function['owner'].serviceType == 'Class' }}">
@@ -95,27 +90,25 @@
 
         <template if="{{ function['code'] != null }}">
           <div class="memberItem">
-            <div class="memberName">unoptimized code</div>
+            <div class="memberName">optimized code</div>
             <div class="memberValue">
               <code-ref ref="{{ function['code'] }}"></code-ref>
             </div>
-            <div class="memberValue">
-              <span title="This count is used to determine when a function will be optimized.  It is a combination of call counts and other factors.">
-                (usage count: {{ function['usage_counter'] }})
-              </span>
-            </div>
           </div>
         </template>
-
-        <template if="{{ function['optimizedCode'] != null }}">
+        <template if="{{ function['unoptimized_code'] != null }}">
           <div class="memberItem">
-            <div class="memberName">optimized code</div>
+            <div class="memberName">unoptimized code</div>
             <div class="memberValue">
-              <code-ref ref="{{ function['optimizedCode'] }}"></code-ref>
+              <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
             </div>
-          </div>
+              <div class="memberValue">
+                <span title="This count is used to determine when a function will be optimized.  It is a combination of call counts and other factors.">
+                  (usage count: {{ function['usage_counter'] }})
+                </span>
+             </div>
+           </div>
          </template>
-
          <div class="memberItem">
            <div class="memberName">deoptimizations</div>
            <div class="memberValue">{{ function['deoptimizations'] }}</div>
@@ -136,9 +129,6 @@
          </template>
        </div>
     </div>
-
-    <hr>
-    <log-view log="{{ function['log'] }}"></log-view>
 
     <hr>
     <script-inset script="{{ function['script'] }}" pos="{{ function['tokenPos'] }}" endPos="{{ function['endTokenPos'] }}">

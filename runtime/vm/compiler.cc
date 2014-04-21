@@ -32,7 +32,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timer.h"
-#include "vm/trace_buffer.h"
 
 namespace dart {
 
@@ -605,13 +604,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // If the error isn't due to an out of range branch offset, we don't
         // try again (done = true), and indicate that we did not finish
         // compiling (is_compiled = false).
-        const Error& bailout_error = Error::Handle(
-              isolate->object_store()->sticky_error());
         if (FLAG_trace_bailout) {
+          const Error& bailout_error = Error::Handle(
+              isolate->object_store()->sticky_error());
           OS::Print("%s\n", bailout_error.ToErrorCString());
         }
-        function.log()->TraceF("Failed to compile optimized code: %s",
-                               bailout_error.ToErrorCString());
         done = true;
         ASSERT(optimized);
       }
@@ -770,9 +767,6 @@ static RawError* CompileFunctionHelper(const Function& function,
     per_compile_timer.Start();
     ParsedFunction* parsed_function =
         new ParsedFunction(Function::ZoneHandle(function.raw()));
-    function.log()->TraceF("Compiled %s%s",
-                           (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
-                           (optimized ? "optimized " : ""));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
@@ -791,7 +785,6 @@ static RawError* CompileFunctionHelper(const Function& function,
         CompileParsedFunctionHelper(parsed_function, optimized, osr_id);
     if (optimized && !success) {
       // Optimizer bailed out. Disable optimizations and to never try again.
-      function.log()->TraceF("Optimizations disabled");
       if (FLAG_trace_compiler) {
         OS::Print("--> disabling optimizations for '%s'\n",
                   function.ToFullyQualifiedCString());

@@ -1899,16 +1899,6 @@ class Function : public Object {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
 
-  TraceBuffer* log() const {
-    ASSERT(raw_ptr()->log_ != NULL);
-    return raw_ptr()->log_;
-  }
-
-  void set_log(TraceBuffer* trace_buffer) const {
-    ASSERT(trace_buffer != NULL);
-    raw_ptr()->log_ = trace_buffer;
-  }
-
   static RawFunction* New(const String& name,
                           RawFunction::Kind kind,
                           bool is_static,

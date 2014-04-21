@@ -10,7 +10,6 @@
 #include "vm/locations.h"
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
-#include "vm/trace_buffer.h"
 
 namespace dart {
 
@@ -340,19 +339,12 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
 
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.
-  const Code& code = Code::Handle(code_);
-  ASSERT(!code.IsNull());
-  const Function& top_function = Function::Handle(code.function());
-  // TODO(johnmccutchan): Enable appending service objects to a trace message.
-  // Once that is possible, add the Code object which was deoptimized.
-  top_function.log()->TraceF("Deoptimized (reason %" Pd " '%s')",
-                              static_cast<intptr_t>(deopt_reason()),
-                              DeoptReasonToText(deopt_reason()));
-
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     DartFrameIterator iterator;
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);
+    const Code& code = Code::Handle(top_frame->LookupDartCode());
+    const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
     const intptr_t token_pos = code.GetTokenIndexOfPC(top_frame->pc());
     intptr_t line, column;
@@ -361,9 +353,6 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
     OS::PrintErr("  Line %" Pd ": '%s'\n", line, line_string.ToCString());
     OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arg_count);
-    top_function.log()->TraceF("Deoptimized at line %" Pd ": '%s'",
-                               line,
-                               line_string.ToCString());
   }
 
   return deopt_arg_count;

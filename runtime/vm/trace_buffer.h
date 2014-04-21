@@ -11,7 +11,6 @@
 
 namespace dart {
 
-class JSONObject;
 class JSONStream;
 
 struct TraceBufferEntry {
@@ -24,13 +23,9 @@ struct TraceBufferEntry {
 
 class TraceBuffer {
  public:
-  static const intptr_t kInitialCapacity = 16;
-  static const intptr_t kMaximumCapacity = 1024;
+  static const intptr_t kDefaultCapacity = 1024;
 
-  // TraceBuffer starts with kInitialCapacity and will expand itself until
-  // it reaches kMaximumCapacity.
-  TraceBuffer(intptr_t initial_capacity = kInitialCapacity,
-              intptr_t maximum_capacity = kMaximumCapacity);
+  explicit TraceBuffer(intptr_t capacity = kDefaultCapacity);
   ~TraceBuffer();
 
   void Clear();
@@ -41,26 +36,20 @@ class TraceBuffer {
   void Trace(const char* message);
   void TraceF(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
-  void PrintToJSONObject(JSONObject* obj) const;
   void PrintToJSONStream(JSONStream* stream) const;
-
-  intptr_t capacity() const { return capacity_; }
 
  private:
   void Init();
-  void Resize(intptr_t capacity);
   void Cleanup();
   void Fill(TraceBufferEntry* entry, int64_t micros, char* msg);
   void AppendTrace(int64_t micros, char* message);
 
   TraceBufferEntry* ring_;
-  intptr_t size_;
-  intptr_t capacity_;
+  const intptr_t ring_capacity_;
   intptr_t ring_cursor_;
-  const intptr_t max_capacity_;
 
   intptr_t RingIndex(intptr_t i) const {
-    return i % capacity_;
+    return i % ring_capacity_;
   }
 
   DISALLOW_COPY_AND_ASSIGN(TraceBuffer);
