@@ -115,6 +115,8 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class TraceBuffer;
+
 #define DEFINE_FORWARD_DECLARATION(clazz)                                      \
   class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
@@ -622,6 +624,7 @@ class RawFunction : public RawObject {
   intptr_t token_pos_;
   intptr_t end_token_pos_;
   intptr_t usage_counter_;  // Incremented while function is running.
+  TraceBuffer* log_;
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;

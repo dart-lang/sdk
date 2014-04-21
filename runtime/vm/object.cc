@@ -43,6 +43,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timer.h"
+#include "vm/trace_buffer.h"
 #include "vm/unicode.h"
 
 namespace dart {
@@ -5889,6 +5890,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
+  result.set_log(new TraceBuffer());
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -5917,6 +5919,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
+  clone.set_log(new TraceBuffer());
   return clone.raw();
 }
 
@@ -6450,10 +6453,12 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
   jsobj.AddProperty("is_inlinable", IsInlineable());
-  jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
+  jsobj.AddProperty("code", Object::Handle(unoptimized_code()));
+  if (HasOptimizedCode()) {
+    jsobj.AddProperty("optimizedCode", Object::Handle(CurrentCode()));
+  }
   jsobj.AddProperty("usage_counter", usage_counter());
   jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
-  jsobj.AddProperty("code", Object::Handle(CurrentCode()));
   jsobj.AddProperty("deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
 
@@ -6462,6 +6467,10 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("script", script);
     jsobj.AddProperty("tokenPos", token_pos());
     jsobj.AddProperty("endTokenPos", end_token_pos());
+  }
+  if (log() != NULL) {
+    JSONObject l(&jsobj, "log");
+    log()->PrintToJSONObject(&l);
   }
 }
 

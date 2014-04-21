@@ -734,7 +734,7 @@ class ServiceMap extends ServiceObject implements ObservableMap {
             _serviceType == 'Library') &&
            !_id.startsWith(objectIdRingPrefix);
   }
-  bool get immutable => canCache;
+  bool get immutable => canCache && (_serviceType != 'Function');
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
 

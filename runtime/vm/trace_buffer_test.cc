@@ -12,60 +12,62 @@ namespace dart {
 
 
 UNIT_TEST_CASE(TraceBufferEmpty) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+  TraceBuffer* trace_buffer = new TraceBuffer(3, 3);
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":[]}", js.ToCString());
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":[]}",
+                 js.ToCString());
   }
   delete trace_buffer;
 }
 
 
 UNIT_TEST_CASE(TraceBufferClear) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+  TraceBuffer* trace_buffer = new TraceBuffer(3, 3);
   trace_buffer->Trace(kMicrosecondsPerSecond * 1, "abc");
   trace_buffer->Clear();
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":[]}", js.ToCString());
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":[]}",
+                 js.ToCString());
   }
   delete trace_buffer;
 }
 
 
 UNIT_TEST_CASE(TraceBufferTrace) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+  TraceBuffer* trace_buffer = new TraceBuffer(3, 3);
 
   trace_buffer->Trace(kMicrosecondsPerSecond * 1, "abc");
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":["
-                 "{\"type\":\"TraceBufferEntry\",\"time\":1.000000,"
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":["
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":1000,"
                  "\"message\":\"abc\"}]}", js.ToCString());
   }
   trace_buffer->Trace(kMicrosecondsPerSecond * 2, "def");
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":["
-                 "{\"type\":\"TraceBufferEntry\",\"time\":1.000000,"
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":["
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":1000,"
                  "\"message\":\"abc\"},"
-                 "{\"type\":\"TraceBufferEntry\",\"time\":2.000000,"
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":2000,"
                  "\"message\":\"def\"}]}", js.ToCString());
   }
   trace_buffer->Trace(kMicrosecondsPerSecond * 3, "ghi");
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":["
-                 "{\"type\":\"TraceBufferEntry\",\"time\":1.000000,"
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":["
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":1000,"
                  "\"message\":\"abc\"},"
-                 "{\"type\":\"TraceBufferEntry\",\"time\":2.000000,"
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":2000,"
                  "\"message\":\"def\"},"
-                 "{\"type\":\"TraceBufferEntry\",\"time\":3.000000,"
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":3000,"
                  "\"message\":\"ghi\"}]}", js.ToCString());
   }
   // This will overwrite the first Trace.
@@ -73,12 +75,12 @@ UNIT_TEST_CASE(TraceBufferTrace) {
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
-    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"members\":["
-                 "{\"type\":\"TraceBufferEntry\",\"time\":2.000000,"
+    EXPECT_STREQ("{\"type\":\"TraceBuffer\",\"id\":\"\",\"members\":["
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":2000,"
                  "\"message\":\"def\"},"
-                 "{\"type\":\"TraceBufferEntry\",\"time\":3.000000,"
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":3000,"
                  "\"message\":\"ghi\"},"
-                 "{\"type\":\"TraceBufferEntry\",\"time\":4.000000,"
+                 "{\"type\":\"TraceBufferEntry\",\"id\":\"\",\"time\":4000,"
                  "\"message\":\"jkl\"}]}", js.ToCString());
   }
   delete trace_buffer;
@@ -86,7 +88,7 @@ UNIT_TEST_CASE(TraceBufferTrace) {
 
 
 UNIT_TEST_CASE(TraceBufferTraceF) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+  TraceBuffer* trace_buffer = new TraceBuffer(3, 3);
   trace_buffer->TraceF("foo %d %s", 99, "bar");
   {
     JSONStream js;
@@ -94,6 +96,14 @@ UNIT_TEST_CASE(TraceBufferTraceF) {
     EXPECT_SUBSTRING("foo 99 bar", js.ToCString());
   }
   delete trace_buffer;
+}
+
+
+UNIT_TEST_CASE(TraceBufferGrow) {
+  TraceBuffer* trace_buffer = new TraceBuffer(1);
+  EXPECT_EQ(1, trace_buffer->capacity());
+  trace_buffer->Trace(kMicrosecondsPerSecond * 1, "abc");
+  EXPECT_EQ(2, trace_buffer->capacity());
 }
 
 
