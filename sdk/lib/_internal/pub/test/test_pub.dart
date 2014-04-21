@@ -611,7 +611,7 @@ void ensureGit() {
 /// [hosted] is a list of package names to version strings for dependencies on
 /// hosted packages.
 void createLockFile(String package, {Iterable<String> sandbox,
-    Iterable<String> pkg, Map<String, Version> hosted}) {
+    Iterable<String> pkg, Map<String, String> hosted}) {
   var dependencies = {};
 
   if (sandbox != null) {

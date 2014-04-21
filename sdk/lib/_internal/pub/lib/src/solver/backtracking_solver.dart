@@ -144,14 +144,7 @@ class BacktrackingSolver {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
       buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
-      buffer.writeln(
-          '- Requested ${cache.versionCacheMisses} version lists');
-      buffer.writeln(
-          '- Looked up ${cache.versionCacheHits} cached version lists');
-      buffer.writeln(
-          '- Requested ${cache.pubspecCacheMisses} pubspecs');
-      buffer.writeln(
-          '- Looked up ${cache.pubspecCacheHits} cached pubspecs');
+      buffer.writeln(cache.describeResults());
       log.solver(buffer);
     });
   }
@@ -491,11 +484,11 @@ class Traverser {
       for (var dep in deps) {
         if (!dep.isRoot && !_solver.sources.contains(dep.source)) {
           throw new UnknownSourceException(id.name,
-              [new Dependency(id.name, dep)]);
+              [new Dependency(id.name, id.version, dep)]);
         }
       }
 
-      return _traverseDeps(id.name, new DependencyQueue(_solver, deps));
+      return _traverseDeps(id, new DependencyQueue(_solver, deps));
     });
   }
 
@@ -504,7 +497,8 @@ class Traverser {
   /// Desctructively modifies [deps]. Completes to a list of packages if the
   /// traversal is complete. Completes it to an error if a failure occurred.
   /// Otherwise, recurses.
-  Future<List<PackageId>> _traverseDeps(String depender, DependencyQueue deps) {
+  Future<List<PackageId>> _traverseDeps(PackageId depender,
+      DependencyQueue deps) {
     // Move onto the next package if we've traversed all of these references.
     if (deps.isEmpty) return _traversePackage();
 
@@ -514,7 +508,7 @@ class Traverser {
 
         // Add the dependency.
         var dependencies = _getDependencies(dep.name);
-        dependencies.add(new Dependency(depender, dep));
+        dependencies.add(new Dependency(depender.name, depender.version, dep));
 
         // If the package is barback, pub has an implicit version constraint on
         // it since pub itself uses barback too. Note that we don't check for
@@ -534,7 +528,7 @@ class Traverser {
           // find barback.
           var barbackDep = new PackageDep(dep.name, dep.source,
               barback.supportedVersions, dep.description);
-          dependencies.add(new Dependency("pub itself", barbackDep));
+          dependencies.add(new Dependency("pub itself", null, barbackDep));
         }
 
         var constraint = _getConstraint(dep.name);
@@ -578,7 +572,7 @@ class Traverser {
 
       if (allowed.isEmpty) {
         _solver.logSolve('no versions for ${dep.name} match $constraint');
-        throw new NoVersionException(dep.name, constraint,
+        throw new NoVersionException(dep.name, null, constraint,
             _getDependencies(dep.name));
       }
 
@@ -608,7 +602,7 @@ class Traverser {
   /// other dependencies on the same package. Throws a [SolveFailure]
   /// exception if not. Only validates sources and descriptions, not the
   /// version.
-  void _validateDependency(PackageDep dep, String depender) {
+  void _validateDependency(PackageDep dep, PackageId depender) {
     // Make sure the dependencies agree on source and description.
     var required = _getRequired(dep.name);
     if (required == null) return;
@@ -618,7 +612,7 @@ class Traverser {
       _solver.logSolve('source mismatch on ${dep.name}: ${required.dep.source} '
                        '!= ${dep.source}');
       throw new SourceMismatchException(dep.name,
-          [required, new Dependency(depender, dep)]);
+          [required, new Dependency(depender.name, depender.version, dep)]);
     }
 
     // Make sure all of the existing descriptions match the new reference.
@@ -627,7 +621,7 @@ class Traverser {
       _solver.logSolve('description mismatch on ${dep.name}: '
                        '${required.dep.description} != ${dep.description}');
       throw new DescriptionMismatchException(dep.name,
-          [required, new Dependency(depender, dep)]);
+          [required, new Dependency(depender.name, depender.version, dep)]);
     }
   }
 
@@ -643,7 +637,7 @@ class Traverser {
     // Make sure it meets the constraint.
     if (!dep.constraint.allows(selected.version)) {
       _solver.logSolve('selection $selected does not match $constraint');
-      throw new NoVersionException(dep.name, constraint,
+      throw new NoVersionException(dep.name, selected.version, constraint,
                                    _getDependencies(dep.name));
     }
 

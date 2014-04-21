@@ -20,6 +20,6 @@ main() {
 
     pubGet(error: """Could not find package foo at "$badPath".
 Depended on by:
-- myapp""");
+- myapp 0.0.0""");
   });
 }

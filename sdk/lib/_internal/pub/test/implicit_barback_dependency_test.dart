@@ -115,7 +115,7 @@ main() {
 
     pubGet(error: """
 Package barback has no versions that match >=$current <$max derived from:
-- myapp depends on version any
+- myapp 0.0.0 depends on version any
 - pub itself depends on version >=$current <$max""");
   });
 
@@ -129,7 +129,7 @@ Package barback has no versions that match >=$current <$max derived from:
 
     pubGet(error: """
 Incompatible version constraints on barback:
-- myapp depends on version $previous
+- myapp 0.0.0 depends on version $previous
 - pub itself depends on version >=$current <$max""");
   });
 }

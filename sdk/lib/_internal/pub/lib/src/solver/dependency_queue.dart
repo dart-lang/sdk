@@ -130,6 +130,18 @@ class DependencyQueue {
     }
 
     return _solver.cache.getVersions(dep.toRef()).then((versions) {
+      // If the root package depends on this one, ignore versions that don't
+      // match that constraint. Since the root package's dependency constraints
+      // won't change during solving, we can safely filter out packages that
+      // don't meet it.
+      for (var rootDep in _solver.root.immediateDependencies) {
+        if (rootDep.name == dep.name) {
+          versions = versions.where(
+              (id) => rootDep.constraint.allows(id.version));
+          break;
+        }
+      }
+
       return versions.length;
     }).catchError((error, trace) {
       // If it fails for any reason, just treat that as no versions. This
