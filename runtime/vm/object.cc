@@ -156,11 +156,47 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // The following functions are marked as invisible, meaning they will be hidden
 // in the stack trace and will be hidden from reflective access.
 // (Library, class name, method name)
-// Additionally, private functions in dart:* that are native or constructors are
-// marked as invisible by the parser.
 #define INVISIBLE_LIST(V)                                                      \
+  V(CoreLibrary, Object, _noSuchMethod)                                        \
+  V(CoreLibrary, Object, _as)                                                  \
+  V(CoreLibrary, Object, _instanceOf)                                          \
+  V(CoreLibrary, _List, _List.)                                                \
+  V(CoreLibrary, AssertionError, _throwNew)                                    \
+  V(CoreLibrary, TypeError, _throwNew)                                         \
+  V(CoreLibrary, FallThroughError, _throwNew)                                  \
+  V(CoreLibrary, AbstractClassInstantiationError, _throwNew)                   \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
+  V(CoreLibrary, _OneByteString, _setAt)                                       \
+  V(CoreLibrary, _StringBase, _substringUncheckedNative)                       \
+  V(CoreLibrary, _OneByteString, _substringUncheckedNative)                    \
+  V(CoreLibrary, _GrowableList, _setData)                                      \
+  V(CoreLibrary, _GrowableList, _setLength)                                    \
+  V(TypedDataLibrary, _TypedList, _getInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _setInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _getUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _setUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _getInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _getFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat32x4)                               \
+  V(TypedDataLibrary, _TypedList, _setFloat32x4)                               \
+
+
 
 static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* class_name,
@@ -8927,7 +8963,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_symbol_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
   result.set_debuggable(false);
-  result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.raw_ptr()->index_ = -1;
   const intptr_t kInitialNameCacheSize = 64;

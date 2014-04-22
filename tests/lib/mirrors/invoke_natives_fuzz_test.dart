@@ -14,41 +14,23 @@ import 'package:expect/expect.dart';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
-  // Don't recurse on this test.
-  'test.invoke_natives',
-
-  // Don't exit the test pre-maturely.
-  'dart.io.exit',
-
-  // Don't run blocking io calls.
-  new RegExp(r".*Sync$"),
-
-  // These prevent the test from exiting.
+  // These prevent the test from exiting, typically by spawning another isolate.
   'dart.async._scheduleAsyncCallback',
-  'dart.async._setTimerFactoryClosure',
-
-  'dart.isolate._startIsolate',
-  'dart.io.sleep',
-  'dart.io.HttpServer.HttpServer.listenOn',
-
-  // These either cause the VM to segfault or throw uncatchable API errors.
-  // TODO(15274): Fix them and remove from blacklist.
   'dart.io._IOService.dispatch',
-  new RegExp(r'.*_RandomAccessFile.*'),
-  'dart.io._StdIOUtils._socketType',
-  'dart.io._StdIOUtils._getStdioOutputStream',
-  'dart.io._Filter.newZLibInflateFilter',
-  'dart.io._Filter.newZLibDeflateFilter',
-  'dart.io._FileSystemWatcher._listenOnSocket',
-];
+  'dart.isolate.RawReceivePort.RawReceivePort',
+  'dart.isolate.ReceivePort.ReceivePort',
+  'dart.isolate.ReceivePort.ReceivePort.fromRawReceivePort',
+  'dart.isolate.ReceivePort.sendPort',
+  'dart.isolate.ReceivePort.close',
+  'dart.isolate.ReceivePort.listen',
+  'dart.isolate.RawReceivePort.sendPort',
+  'dart.isolate.RawReceivePort.close',
+  'dart.isolate.RawReceivePort.handler=',
 
-bool isBlacklisted(Symbol qualifiedSymbol) {
-  var qualifiedString = MirrorSystem.getName(qualifiedSymbol);
-  for (var pattern in blacklist) {
-    if (qualifiedString.contains(pattern)) return true;
-  }
-  return false;
-}
+  // These "crash" the VM (throw uncatchable API errors).
+  // TODO(15274): Fill in this list to make the test pass and provide coverage
+  // against addition of new natives.
+];
 
 class Task {
   var name;
@@ -57,7 +39,7 @@ class Task {
 var queue = new List();
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
-  if (isBlacklisted(m.qualifiedName)) return;
+  if (blacklist.contains(MirrorSystem.getName(m.qualifiedName))) return;
 
   var task = new Task();
   task.name = '${MirrorSystem.getName(m.qualifiedName)} from $origin';
@@ -81,24 +63,21 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
 }
 
 checkInstance(instanceMirror, origin) {
-  ClassMirror klass = instanceMirror.type;
-  while (klass != null) {
-    instanceMirror.type.declarations.values
-        .where((d) => d is MethodMirror && !d.isStatic)
-        .forEach((m) => checkMethod(m, instanceMirror, origin));
-    klass = klass.superclass;
-  }
+  instanceMirror.type.declarations.values
+      .where((d) => d is MethodMirror)
+      .forEach((m) => checkMethod(m, instanceMirror, origin));
 }
 
 checkClass(classMirror) {
   classMirror.declarations.values
-      .where((d) => d is MethodMirror && d.isStatic)
+      .where((d) => d is MethodMirror)
       .forEach((m) => checkMethod(m, classMirror));
 
   classMirror.declarations.values
-      .where((d) => d is MethodMirror && d.isConstructor)
+      .where((d) => d is MethodMirror)
       .forEach((m) {
-    if (isBlacklisted(m.qualifiedName)) return;
+    if (blacklist.contains(MirrorSystem.getName(m.qualifiedName))) return;
+    if (!m.isConstructor) return;
     var task = new Task();
     task.name = MirrorSystem.getName(m.qualifiedName);
 
@@ -112,8 +91,8 @@ checkClass(classMirror) {
 }
 
 checkLibrary(libraryMirror) {
-  print(libraryMirror.simpleName);
-  if (isBlacklisted(libraryMirror.qualifiedName)) return;
+  // Don't recurse on this test.
+  if (libraryMirror.simpleName == #test.invoke_natives) return;
 
   libraryMirror.declarations.values
       .where((d) => d is ClassMirror)
@@ -125,19 +104,19 @@ checkLibrary(libraryMirror) {
 }
 
 var testZone;
+var debug = true;
 
 doOneTask() {
   if (queue.length == 0) {
-    print('Done');
+    if (debug) print('Done');
     return;
   }
 
   var task = queue.removeLast();
-  print(task.name);
+  if (debug) print(task.name);
   try {
     task.action();
   } catch(e) {}
-
   // Register the next task in a timer callback so as to yield to async code
   // scheduled in the current task. This isn't necessary for the test itself,
   // but is helpful when trying to figure out which function is responsible for
@@ -145,14 +124,8 @@ doOneTask() {
   testZone.createTimer(Duration.ZERO, doOneTask);
 }
 
-main([args]) {
+main() {
   currentMirrorSystem().libraries.values.forEach(checkLibrary);
-
-  var valueObjects =
-    [true, false, null,
-     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
-     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ'];
-  valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
   uncaughtErrorHandler(self, parent, zone, error, stack) {};
   var zoneSpec =

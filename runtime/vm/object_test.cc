@@ -3043,15 +3043,16 @@ TEST_CASE(StackTraceFormat) {
       "Unhandled exception:\n"
       "MyException\n"
       "#0      baz (dart:test-lib:2:3)\n"
-      "#1      globalVar= (dart:test-lib:12:7)\n"
-      "#2      _bar (dart:test-lib:16:3)\n"
-      "#3      MyClass.field (dart:test-lib:25:9)\n"
-      "#4      MyClass.foo.fooHelper (dart:test-lib:30:7)\n"
-      "#5      MyClass.foo (dart:test-lib:32:14)\n"
-      "#6      MyClass.MyClass.<anonymous closure> (dart:test-lib:21:15)\n"
-      "#7      MyClass.MyClass (dart:test-lib:21:18)\n"
-      "#8      main.<anonymous closure> (dart:test-lib:37:14)\n"
-      "#9      main (dart:test-lib:37:24)");
+      "#1      _OtherClass._OtherClass._named (dart:test-lib:7:8)\n"
+      "#2      globalVar= (dart:test-lib:12:7)\n"
+      "#3      _bar (dart:test-lib:16:3)\n"
+      "#4      MyClass.field (dart:test-lib:25:9)\n"
+      "#5      MyClass.foo.fooHelper (dart:test-lib:30:7)\n"
+      "#6      MyClass.foo (dart:test-lib:32:14)\n"
+      "#7      MyClass.MyClass.<anonymous closure> (dart:test-lib:21:15)\n"
+      "#8      MyClass.MyClass (dart:test-lib:21:18)\n"
+      "#9      main.<anonymous closure> (dart:test-lib:37:14)\n"
+      "#10     main (dart:test-lib:37:24)");
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)
