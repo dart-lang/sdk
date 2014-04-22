@@ -35,7 +35,7 @@ class MembersCreator {
   Map<dynamic/* Member | Element */, Set<MessageKind>> reportedMessages =
       new Map<dynamic, Set<MessageKind>>();
 
-  MembersCreator(Compiler this.compiler, ClassElement this.cls) {
+  MembersCreator(this.compiler, this.cls) {
     assert(invariant(cls, cls.isDeclaration,
         message: "Members may only be computed on declarations."));
   }
@@ -171,7 +171,7 @@ class MembersCreator {
           declaredMembers[name] = new DeclaredMember(
               name, element, thisType, type, type);
         }
-      };
+      }
 
       cls.forEachLocalMember(createMember);
       if (cls.isPatched) {

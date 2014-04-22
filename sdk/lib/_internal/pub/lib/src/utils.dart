@@ -117,9 +117,9 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
   } else {
     runZoned(wrappedCallback, onError: (e, stackTrace) {
       if (stackTrace == null) {
-        stackTrace = new Chain([new Trace.from(stackTrace)]);
+        stackTrace = new Chain.current();
       } else {
-        stackTrace = new Chain([]);
+        stackTrace = new Chain([new Trace.from(stackTrace)]);
       }
       completer.completeError(e, stackTrace);
     });

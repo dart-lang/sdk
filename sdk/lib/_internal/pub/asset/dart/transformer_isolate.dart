@@ -29,36 +29,53 @@ void loadTransformers(SendPort replyTo) {
 
 /// Loads all the transformers and groups defined in [uri].
 ///
-/// Loads the library, finds any Transformer or TransformerGroup subclasses in
-/// it, instantiates them with [configuration] and [mode], and returns them.
-Iterable _initialize(Uri uri, Map configuration, BarbackMode mode) {
+/// Loads the library, finds any [Transformer] or [TransformerGroup] subclasses
+/// in it, instantiates them with [configuration] and [mode], and returns them.
+List _initialize(Uri uri, Map configuration, BarbackMode mode) {
   var mirrors = currentMirrorSystem();
   var transformerClass = reflectClass(Transformer);
   var groupClass = reflectClass(TransformerGroup);
 
-  // TODO(nweiz): if no valid transformers are found, throw an error message
-  // describing candidates and why they were rejected.
-  return mirrors.libraries[uri].declarations.values.map((declaration) {
-    if (declaration is! ClassMirror) return null;
-    var classMirror = declaration;
-    if (classMirror.isPrivate) return null;
-    if (classMirror.isAbstract) return null;
-    if (!classMirror.isSubtypeOf(transformerClass) &&
-        !classMirror.isSubtypeOf(groupClass)) {
-      return null;
+  var seen = new Set();
+  var transformers = [];
+
+  loadFromLibrary(library) {
+    if (seen.contains(library)) return;
+    seen.add(library);
+
+    // Load transformers from libraries exported by [library].
+    for (var dependency in library.libraryDependencies) {
+      if (!dependency.isExport) continue;
+      loadFromLibrary(dependency.targetLibrary);
     }
 
-    var constructor = _getConstructor(classMirror, 'asPlugin');
-    if (constructor == null) return null;
-    if (constructor.parameters.isEmpty) {
-      if (configuration.isNotEmpty) return null;
-      return classMirror.newInstance(const Symbol('asPlugin'), []).reflectee;
-    }
-    if (constructor.parameters.length != 1) return null;
+    // TODO(nweiz): if no valid transformers are found, throw an error message
+    // describing candidates and why they were rejected.
+    transformers.addAll(library.declarations.values.map((declaration) {
+      if (declaration is! ClassMirror) return null;
+      var classMirror = declaration;
+      if (classMirror.isPrivate) return null;
+      if (classMirror.isAbstract) return null;
+      if (!classMirror.isSubtypeOf(transformerClass) &&
+          !classMirror.isSubtypeOf(groupClass)) {
+        return null;
+      }
 
-    return classMirror.newInstance(const Symbol('asPlugin'),
-        [new BarbackSettings(configuration, mode)]).reflectee;
-  }).where((classMirror) => classMirror != null);
+      var constructor = _getConstructor(classMirror, 'asPlugin');
+      if (constructor == null) return null;
+      if (constructor.parameters.isEmpty) {
+        if (configuration.isNotEmpty) return null;
+        return classMirror.newInstance(const Symbol('asPlugin'), []).reflectee;
+      }
+      if (constructor.parameters.length != 1) return null;
+
+      return classMirror.newInstance(const Symbol('asPlugin'),
+          [new BarbackSettings(configuration, mode)]).reflectee;
+    }).where((classMirror) => classMirror != null));
+  }
+
+  loadFromLibrary(mirrors.libraries[uri]);
+  return transformers;
 }
 
 // TODO(nweiz): clean this up when issue 13248 is fixed.

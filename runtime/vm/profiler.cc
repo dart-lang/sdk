@@ -35,6 +35,8 @@ DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 DEFINE_FLAG(bool, profile_verify_stack_walk, false,
             "Verify instruction addresses while walking the stack.");
+DEFINE_FLAG(bool, profile_native_stack, true,
+            "Use native stack in profiler.");
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
@@ -564,9 +566,20 @@ class CodeRegion : public ZoneAllocated {
       PrintOverwrittenCode(&obj);
     } else if (kind() == kTagCode) {
       if (name() == NULL) {
-        const char* tag_name = start() == 0 ? "root" : VMTag::TagName(start());
-        ASSERT(tag_name != NULL);
-        SetName(tag_name);
+        if (UserTags::IsUserTag(start())) {
+          const char* tag_name = UserTags::TagName(start());
+          ASSERT(tag_name != NULL);
+          SetName(tag_name);
+        } else if (VMTag::IsVMTag(start()) ||
+                   VMTag::IsRuntimeEntryTag(start()) ||
+                   VMTag::IsNativeEntryTag(start())) {
+          const char* tag_name = VMTag::TagName(start());
+          ASSERT(tag_name != NULL);
+          SetName(tag_name);
+        } else {
+          ASSERT(start() == 0);
+          SetName("root");
+        }
       }
       PrintTagCode(&obj);
     } else {
@@ -926,7 +939,14 @@ class CodeRegionTableBuilder : public SampleVisitor {
       min_time_ = timestamp;
     }
     // Make sure VM tag is created.
+    if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
+      CreateTag(VMTag::kNativeTagId);
+    } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+      CreateTag(VMTag::kRuntimeTagId);
+    }
     CreateTag(sample->vm_tag());
+    // Make sure user tag is created.
+    CreateUserTag(sample->user_tag());
     // Exclusive tick for bottom frame.
     Tick(sample->At(0), true, timestamp);
     // Inclusive tick for all frames.
@@ -948,6 +968,25 @@ class CodeRegionTableBuilder : public SampleVisitor {
 
  private:
   void CreateTag(uword tag) {
+    intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index >= 0) {
+      // Already created.
+      return;
+    }
+    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode,
+                                        tag,
+                                        tag + 1,
+                                        0);
+    index = tag_code_table_->InsertCodeRegion(region);
+    ASSERT(index >= 0);
+    region->set_creation_serial(visited());
+  }
+
+  void CreateUserTag(uword tag) {
+    if (tag == 0) {
+      // None set.
+      return;
+    }
     intptr_t index = tag_code_table_->FindIndex(tag);
     if (index >= 0) {
       // Already created.
@@ -1101,6 +1140,25 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     root_->Tick();
     CodeRegionTrieNode* current = root_;
     if (use_tags()) {
+      intptr_t user_tag_index = FindTagIndex(sample->user_tag());
+      if (user_tag_index >= 0) {
+        current = current->GetChild(user_tag_index);
+        // Give the tag a tick.
+        current->Tick();
+      }
+      if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
+        // Insert a dummy kNativeTagId node.
+        intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
+        current = current->GetChild(tag_index);
+        // Give the tag a tick.
+        current->Tick();
+      } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+        // Insert a dummy kRuntimeTagId node.
+        intptr_t tag_index = FindTagIndex(VMTag::kRuntimeTagId);
+        current = current->GetChild(tag_index);
+        // Give the tag a tick.
+        current->Tick();
+      }
       intptr_t tag_index = FindTagIndex(sample->vm_tag());
       current = current->GetChild(tag_index);
       // Give the tag a tick.
@@ -1131,7 +1189,13 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
 
  private:
   intptr_t FindTagIndex(uword tag) const {
+    if (tag == 0) {
+      return -1;
+    }
     intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index <= 0) {
+      return -1;
+    }
     ASSERT(index >= 0);
     ASSERT((tag_code_table_->At(index))->contains(tag));
     return tag_code_table_offset_ + index;
@@ -1406,6 +1470,45 @@ Sample* SampleBuffer::ReserveSample() {
   return At(cursor);
 }
 
+class ProfilerDartStackWalker : public ValueObject {
+ public:
+  explicit ProfilerDartStackWalker(Sample* sample)
+      : sample_(sample),
+        frame_iterator_() {
+    ASSERT(sample_ != NULL);
+  }
+
+  ProfilerDartStackWalker(Sample* sample, uword pc, uword fp, uword sp)
+      : sample_(sample),
+        frame_iterator_(fp, sp, pc) {
+    ASSERT(sample_ != NULL);
+  }
+
+  ProfilerDartStackWalker(Sample* sample, uword fp)
+      : sample_(sample),
+        frame_iterator_(fp) {
+    ASSERT(sample_ != NULL);
+  }
+
+  int walk() {
+    intptr_t frame_index = 0;
+    StackFrame* frame = frame_iterator_.NextFrame();
+    while (frame != NULL) {
+      sample_->SetAt(frame_index, frame->pc());
+      frame_index++;
+      if (frame_index >= FLAG_profile_depth) {
+        break;
+      }
+      frame = frame_iterator_.NextFrame();
+    }
+    return frame_index;
+  }
+
+ private:
+  Sample* sample_;
+  DartFrameIterator frame_iterator_;
+};
+
 // Notes on stack frame walking:
 //
 // The sampling profiler will collect up to Sample::kNumStackFrames stack frames
@@ -1414,9 +1517,9 @@ Sample* SampleBuffer::ReserveSample() {
 // recent GCC versions with optimizing enabled) the stack walking code may
 // fail (sometimes leading to a crash).
 //
-class ProfilerSampleStackWalker : public ValueObject {
+class ProfilerNativeStackWalker : public ValueObject {
  public:
-  ProfilerSampleStackWalker(Sample* sample,
+  ProfilerNativeStackWalker(Sample* sample,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
@@ -1431,13 +1534,11 @@ class ProfilerSampleStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  int walk(Heap* heap, uword vm_tag) {
+  int walk(Heap* heap) {
     const intptr_t kMaxStep = 0x1000;  // 4K.
     const bool kWalkStack = true;  // Walk the stack.
     // Always store the exclusive PC.
     sample_->SetAt(0, original_pc_);
-    // Always store the vm tag.
-    sample_->set_vm_tag(vm_tag);
     if (!kWalkStack) {
       // Not walking the stack, only took exclusive sample.
       return 1;
@@ -1466,6 +1567,9 @@ class ProfilerSampleStackWalker : public ValueObject {
         VerifyCodeAddress(heap, i, reinterpret_cast<uword>(pc));
       }
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
+      if (fp == NULL) {
+        return i + 1;
+      }
       if (!ValidFramePointer(fp)) {
         return i + 1;
       }
@@ -1473,9 +1577,18 @@ class ProfilerSampleStackWalker : public ValueObject {
       previous_fp = fp;
       fp = CallerFP(fp);
       intptr_t step = fp - previous_fp;
-      if ((step >= kMaxStep) || (fp <= previous_fp) || !ValidFramePointer(fp)) {
+      if (fp == NULL) {
+        return i + 1;
+      }
+      if ((step >= kMaxStep)) {
         // Frame pointer step is too large.
+        return i + 1;
+      }
+      if ((fp <= previous_fp)) {
         // Frame pointer did not move to a higher address.
+        return i + 1;
+      }
+      if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack bounds.
         return i + 1;
       }
@@ -1534,9 +1647,11 @@ void Profiler::RecordSampleInterruptCallback(
     const InterruptedThreadState& state,
     void* data) {
   Isolate* isolate = reinterpret_cast<Isolate*>(data);
-  if (isolate == NULL) {
+  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
     return;
   }
+  ASSERT(isolate != Dart::vm_isolate());
+  ASSERT(isolate->stub_code() != NULL);
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
   counters->Increment(isolate->vm_tag());
@@ -1550,16 +1665,29 @@ void Profiler::RecordSampleInterruptCallback(
   }
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
-  uword stack_lower = 0;
-  uword stack_upper = 0;
-  isolate->GetStackBounds(&stack_lower, &stack_upper);
-  if ((stack_lower == 0) || (stack_upper == 0)) {
-    stack_lower = 0;
-    stack_upper = 0;
+  sample->set_vm_tag(isolate->vm_tag());
+  sample->set_user_tag(isolate->user_tag());
+  if (FLAG_profile_native_stack) {
+    // Collect native and Dart frames.
+    uword stack_lower = 0;
+    uword stack_upper = 0;
+    isolate->GetStackBounds(&stack_lower, &stack_upper);
+    if ((stack_lower == 0) || (stack_upper == 0)) {
+      stack_lower = 0;
+      stack_upper = 0;
+    }
+    ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
+                                          state.pc, state.fp, state.sp);
+    stackWalker.walk(isolate->heap());
+  } else {
+    if (isolate->top_exit_frame_info() != 0) {
+      ProfilerDartStackWalker stackWalker(sample);
+      stackWalker.walk();
+    } else {
+      // TODO(johnmccutchan): Support collecting only Dart frames with
+      // ProfilerNativeStackWalker.
+    }
   }
-  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
-                                        state.pc, state.fp, state.sp);
-  stackWalker.walk(isolate->heap(), isolate->vm_tag());
 }
 
 }  // namespace dart

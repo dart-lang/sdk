@@ -26,6 +26,8 @@ main() {
 }
 
 class ContextDomainHandlerTest {
+  static int contextIdCounter = 0;
+
   static void applyChanges() {
     AnalysisServer server = new AnalysisServer(new MockServerChannel());
     String contextId = _createContext(server);
@@ -34,6 +36,7 @@ class ContextDomainHandlerTest {
 
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
+    request.setParameter(ContextDomainHandler.SOURCES_PARAM, []);
     request.setParameter(ContextDomainHandler.CHANGES_PARAM, {
       ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
       ContextDomainHandler.MODIFIED_PARAM : ['ffile:/two.dart'],
@@ -51,11 +54,13 @@ class ContextDomainHandlerTest {
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     ContextDomainHandler handler = new ContextDomainHandler(server);
     SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
-    ChangeSet changeSet = handler.createChangeSet(request, sourceFactory, {
-      ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
-      ContextDomainHandler.MODIFIED_PARAM : [],
-      ContextDomainHandler.REMOVED_PARAM : ['ffile:/two.dart', 'ffile:/three.dart']
-    });
+    ChangeSet changeSet = handler.createChangeSet(request, sourceFactory,
+        new RequestDatum(request, ContextDomainHandler.CHANGES_PARAM, {
+      ContextDomainHandler.ADDED_PARAM: ['ffile:/one.dart'],
+      ContextDomainHandler.MODIFIED_PARAM: [],
+      ContextDomainHandler.REMOVED_PARAM: ['ffile:/two.dart',
+          'ffile:/three.dart']
+    }));
     expect(changeSet.addedSources, hasLength(equals(1)));
     expect(changeSet.changedSources, hasLength(equals(0)));
     expect(changeSet.removedSources, hasLength(equals(2)));
@@ -111,14 +116,15 @@ class ContextDomainHandlerTest {
   }
 
   static String _createContext(AnalysisServer server) {
+    String contextId = "context${contextIdCounter++}";
     ServerDomainHandler handler = new ServerDomainHandler(server);
     Request request = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
     Response response = handler.handleRequest(request);
     if (response.error != null) {
       fail('Unexpected error: ${response.error.toJson()}');
     }
-    expect(response.error, isNull);
-    return response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
+    return contextId;
   }
 }

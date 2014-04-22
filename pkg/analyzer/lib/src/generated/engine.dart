@@ -87,6 +87,11 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The partition manager being used to manage the shared partitions.
+   */
+  final PartitionManager partitionManager = new PartitionManager();
+
+  /**
    * Create a new context in which analysis can be performed.
    *
    * @return the analysis context that was created
@@ -96,9 +101,9 @@ class AnalysisEngine {
     // If instrumentation is ignoring data, return an uninstrumented analysis context.
     //
     if (Instrumentation.isNullLogger) {
-      return new DelegatingAnalysisContextImpl();
+      return new AnalysisContextImpl();
     }
-    return new InstrumentedAnalysisContextImpl.con1(new DelegatingAnalysisContextImpl());
+    return new InstrumentedAnalysisContextImpl.con1(new AnalysisContextImpl());
   }
 
   /**
@@ -959,24 +964,42 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
 }
 
 /**
- * Instances of the class `ChangeSet` indicate what sources have been added, changed, or
- * removed.
+ * Instances of the class `ChangeSet` indicate which sources have been added, changed,
+ * removed, or deleted. In the case of a changed source, there are multiple ways of indicating the
+ * nature of the change.
+ *
+ * No source should be added to the change set more than once, either with the same or a different
+ * kind of change. It does not make sense, for example, for a source to be both added and removed,
+ * and it is redundant for a source to be marked as changed in its entirety and changed in some
+ * specific range.
  */
 class ChangeSet {
   /**
    * A list containing the sources that have been added.
    */
-  List<Source> _added = new List<Source>();
+  final List<Source> addedSources = new List<Source>();
 
   /**
    * A list containing the sources that have been changed.
    */
-  List<Source> _changed = new List<Source>();
+  final List<Source> changedSources = new List<Source>();
+
+  /**
+   * A table mapping the sources whose content has been changed to the current content of those
+   * sources.
+   */
+  Map<Source, String> _changedContent = new Map<Source, String>();
+
+  /**
+   * A table mapping the sources whose content has been changed within a single range to the current
+   * content of those sources and information about the affected range.
+   */
+  final Map<Source, ChangeSet_ContentChange> changedRanges = new Map<Source, ChangeSet_ContentChange>();
 
   /**
    * A list containing the sources that have been removed.
    */
-  List<Source> _removed = new List<Source>();
+  final List<Source> removedSources = new List<Source>();
 
   /**
    * A list containing the source containers specifying additional sources that have been removed.
@@ -984,52 +1007,78 @@ class ChangeSet {
   final List<SourceContainer> removedContainers = new List<SourceContainer>();
 
   /**
-   * Record that the specified source has been added and that it's content is the default contents
-   * of the source.
+   * A list containing the sources that have been deleted.
+   */
+  final List<Source> deletedSources = new List<Source>();
+
+  /**
+   * Record that the specified source has been added and that its content is the default contents of
+   * the source.
    *
    * @param source the source that was added
    */
   void addedSource(Source source) {
-    _added.add(source);
+    addedSources.add(source);
   }
 
   /**
-   * Record that the specified source has been changed and that it's content is the default contents
-   * of the source.
+   * Record that the specified source has been changed and that its content is the given contents.
+   *
+   * @param source the source that was changed
+   * @param contents the new contents of the source, or `null` if the default contents of the
+   *          source are to be used
+   */
+  void changedContent(Source source, String contents) {
+    _changedContent[source] = contents;
+  }
+
+  /**
+   * Record that the specified source has been changed and that its content is the given contents.
+   *
+   * @param source the source that was changed
+   * @param contents the new contents of the source
+   * @param offset the offset into the current contents
+   * @param oldLength the number of characters in the original contents that were replaced
+   * @param newLength the number of characters in the replacement text
+   */
+  void changedRange(Source source, String contents, int offset, int oldLength, int newLength) {
+    changedRanges[source] = new ChangeSet_ContentChange(contents, offset, oldLength, newLength);
+  }
+
+  /**
+   * Record that the specified source has been changed. If the content of the source was previously
+   * overridden, use [changedContent] instead.
    *
    * @param source the source that was changed
    */
   void changedSource(Source source) {
-    _changed.add(source);
+    changedSources.add(source);
   }
 
   /**
-   * Return a collection of the sources that have been added.
+   * Record that the specified source has been deleted.
    *
-   * @return a collection of the sources that have been added
+   * @param source the source that was deleted
    */
-  List<Source> get addedSources => _added;
+  void deletedSource(Source source) {
+    deletedSources.add(source);
+  }
 
   /**
-   * Return a collection of sources that have been changed.
+   * Return a table mapping the sources whose content has been changed to the current content of
+   * those sources.
    *
-   * @return a collection of sources that have been changed
+   * @return a table mapping the sources whose content has been changed to the current content of
+   *         those sources
    */
-  List<Source> get changedSources => _changed;
-
-  /**
-   * Return a list containing the sources that were removed.
-   *
-   * @return a list containing the sources that were removed
-   */
-  List<Source> get removedSources => _removed;
+  Map<Source, String> get changedContents => _changedContent;
 
   /**
    * Return `true` if this change set does not contain any changes.
    *
    * @return `true` if this change set does not contain any changes
    */
-  bool get isEmpty => _added.isEmpty && _changed.isEmpty && _removed.isEmpty && removedContainers.isEmpty;
+  bool get isEmpty => addedSources.isEmpty && changedSources.isEmpty && _changedContent.isEmpty && changedRanges.isEmpty && removedSources.isEmpty && removedContainers.isEmpty && deletedSources.isEmpty;
 
   /**
    * Record that the specified source container has been removed.
@@ -1049,19 +1098,22 @@ class ChangeSet {
    */
   void removedSource(Source source) {
     if (source != null) {
-      _removed.add(source);
+      removedSources.add(source);
     }
   }
 
   @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSeparator = _appendSources(builder, _added, false, "added");
-    needsSeparator = _appendSources(builder, _changed, needsSeparator, "changed");
-    _appendSources(builder, _removed, needsSeparator, "removed");
+    bool needsSeparator = _appendSources(builder, addedSources, false, "addedSources");
+    needsSeparator = _appendSources(builder, changedSources, needsSeparator, "changedSources");
+    needsSeparator = _appendSources2(builder, _changedContent, needsSeparator, "changedContent");
+    needsSeparator = _appendSources2(builder, changedRanges, needsSeparator, "changedRanges");
+    needsSeparator = _appendSources(builder, deletedSources, needsSeparator, "deletedSources");
+    needsSeparator = _appendSources(builder, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
     if (count > 0) {
-      if (_removed.isEmpty) {
+      if (removedSources.isEmpty) {
         if (needsSeparator) {
           builder.append("; ");
         }
@@ -1103,6 +1155,68 @@ class ChangeSet {
     }
     return true;
   }
+
+  /**
+   * Append the given sources to the given builder, prefixed with the given label and possibly a
+   * separator.
+   *
+   * @param builder the builder to which the sources are to be appended
+   * @param sources the sources to be appended
+   * @param needsSeparator `true` if a separator is needed before the label
+   * @param label the label used to prefix the sources
+   * @return `true` if future lists of sources will need a separator
+   */
+  bool _appendSources2(JavaStringBuilder builder, Map<Source, dynamic> sources, bool needsSeparator, String label) {
+    if (sources.isEmpty) {
+      return needsSeparator;
+    }
+    if (needsSeparator) {
+      builder.append("; ");
+    }
+    builder.append(label);
+    String prefix = " ";
+    for (Source source in sources.keys.toSet()) {
+      builder.append(prefix);
+      builder.append(source.fullName);
+      prefix = ", ";
+    }
+    return true;
+  }
+}
+
+/**
+ * Instances of the class `ContentChange` represent a change to the content of a source.
+ */
+class ChangeSet_ContentChange {
+  /**
+   * The new contents of the source.
+   */
+  final String contents;
+
+  /**
+   * The offset into the current contents.
+   */
+  final int offset;
+
+  /**
+   * The number of characters in the original contents that were replaced
+   */
+  final int oldLength;
+
+  /**
+   * The number of characters in the replacement text.
+   */
+  final int newLength;
+
+  /**
+   * Initialize a newly created change object to represent a change to the content of a source.
+   *
+   * @param contents the new contents of the source
+   * @param offset the offset into the current contents
+   * @param oldLength the number of characters in the original contents that were replaced
+   * @param newLength the number of characters in the replacement text
+   */
+  ChangeSet_ContentChange(this.contents, this.offset, this.oldLength, this.newLength);
 }
 
 /**
@@ -1139,6 +1253,148 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
  */
 class AnalysisCache {
   /**
+   * An array containing the partitions of which this cache is comprised.
+   */
+  final List<CachePartition> _partitions;
+
+  /**
+   * Initialize a newly created cache to have the given partitions. The partitions will be searched
+   * in the order in which they appear in the array, so the most specific partition (usually an
+   * [SdkCachePartition]) should be first and the most general (usually a
+   * [UniversalCachePartition]) last.
+   *
+   * @param partitions the partitions for the newly created cache
+   */
+  AnalysisCache(this._partitions);
+
+  /**
+   * Record that the AST associated with the given source was just read from the cache.
+   *
+   * @param source the source whose AST was accessed
+   */
+  void accessedAst(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        _partitions[i].accessedAst(source);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Return the entry associated with the given source.
+   *
+   * @param source the source whose entry is to be returned
+   * @return the entry associated with the given source
+   */
+  SourceEntry get(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        return _partitions[i].get(source);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return an iterator returning all of the map entries mapping sources to cache entries.
+   *
+   * @return an iterator returning all of the map entries mapping sources to cache entries
+   */
+  MapIterator<Source, SourceEntry> iterator() {
+    int count = _partitions.length;
+    List<Map<Source, SourceEntry>> maps = new List<Map>(count);
+    for (int i = 0; i < count; i++) {
+      maps[i] = _partitions[i].map;
+    }
+    return new MultipleMapIterator<Source, SourceEntry>(maps);
+  }
+
+  /**
+   * Associate the given entry with the given source.
+   *
+   * @param source the source with which the entry is to be associated
+   * @param entry the entry to be associated with the source
+   */
+  void put(Source source, SourceEntry entry) {
+    (entry as SourceEntryImpl).fixExceptionState();
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        _partitions[i].put(source, entry);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Remove all information related to the given source from this cache.
+   *
+   * @param source the source to be removed
+   */
+  void remove(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        _partitions[i].remove(source);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Record that the AST associated with the given source was just removed from the cache.
+   *
+   * @param source the source whose AST was removed
+   */
+  void removedAst(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        _partitions[i].removedAst(source);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Return the number of sources that are mapped to cache entries.
+   *
+   * @return the number of sources that are mapped to cache entries
+   */
+  int size() {
+    int size = 0;
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      size += _partitions[i].size();
+    }
+    return size;
+  }
+
+  /**
+   * Record that the AST associated with the given source was just stored to the cache.
+   *
+   * @param source the source whose AST was stored
+   */
+  void storedAst(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        _partitions[i].storedAst(source);
+        return;
+      }
+    }
+  }
+}
+
+/**
+ * Instances of the class `CachePartition` implement a single partition in an LRU cache of
+ * information related to analysis.
+ */
+abstract class CachePartition {
+  /**
    * A table mapping the sources known to the context to the information known about the source.
    */
   Map<Source, SourceEntry> _sourceMap = new Map<Source, SourceEntry>();
@@ -1169,7 +1425,7 @@ class AnalysisCache {
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  AnalysisCache(int maxCacheSize, this._retentionPolicy) {
+  CachePartition(int maxCacheSize, this._retentionPolicy) {
     this._maxCacheSize = maxCacheSize;
     _recentlyUsed = new List<Source>();
   }
@@ -1193,12 +1449,32 @@ class AnalysisCache {
   }
 
   /**
+   * Return `true` if the given source is contained in this partition.
+   *
+   * @param source the source being tested
+   * @return `true` if the source is contained in this partition
+   */
+  bool contains(Source source);
+
+  /**
    * Return the entry associated with the given source.
    *
    * @param source the source whose entry is to be returned
    * @return the entry associated with the given source
    */
   SourceEntry get(Source source) => _sourceMap[source];
+
+  /**
+   * Return a table mapping the sources known to the context to the information known about the
+   * source.
+   *
+   * <b>Note:</b> This method is only visible for use by [AnalysisCache] and should not be
+   * used for any other purpose.
+   *
+   * @return a table mapping the sources known to the context to the information known about the
+   *         source
+   */
+  Map<Source, SourceEntry> get map => _sourceMap;
 
   /**
    * Return an iterator returning all of the map entries mapping sources to cache entries.
@@ -1303,11 +1579,6 @@ class AnalysisCache {
    * flushed from the cache. The source that will be returned will be the source that has been
    * unreferenced for the longest period of time but that is not a priority for analysis.
    *
-   * It is possible for there to be no AST that can be flushed, in which case `null` will be
-   * returned. This happens, for example, if the context is reserving the AST's needed to resolve a
-   * cycle of libraries and the number of AST's being reserved is larger than the current cache
-   * size.
-   *
    * @return the source that was removed
    */
   Source _removeAstToFlush() {
@@ -1322,6 +1593,7 @@ class AnalysisCache {
       }
     }
     if (sourceToRemove < 0) {
+      AnalysisEngine.instance.logger.logError2("Internal error: Could not flush data from the cache", new JavaException());
       return null;
     }
     return _recentlyUsed.removeAt(sourceToRemove);
@@ -2823,6 +3095,38 @@ class DataDescriptor<E> {
 }
 
 /**
+ * Instances of the class `DefaultRetentionPolicy` implement a retention policy that will keep
+ * AST's in the cache if there is analysis information that needs to be computed for a source, where
+ * the computation is dependent on having the AST.
+ */
+class DefaultRetentionPolicy implements CacheRetentionPolicy {
+  /**
+   * An instance of this class that can be shared.
+   */
+  static DefaultRetentionPolicy POLICY = new DefaultRetentionPolicy();
+
+  @override
+  RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
+    if (sourceEntry is DartEntry) {
+      DartEntry dartEntry = sourceEntry;
+      if (astIsNeeded(dartEntry)) {
+        return RetentionPriority.MEDIUM;
+      }
+    }
+    return RetentionPriority.LOW;
+  }
+
+  /**
+   * Return `true` if there is analysis information in the given entry that needs to be
+   * computed, where the computation is dependent on having the AST.
+   *
+   * @param dartEntry the entry being tested
+   * @return `true` if there is analysis information that needs to be computed from the AST
+   */
+  bool astIsNeeded(DartEntry dartEntry) => dartEntry.hasInvalidData(DartEntry.HINTS) || dartEntry.hasInvalidData(DartEntry.VERIFICATION_ERRORS) || dartEntry.hasInvalidData(DartEntry.RESOLUTION_ERRORS);
+}
+
+/**
  * The interface `HtmlEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual HTML file.
  */
@@ -3426,6 +3730,37 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 }
 
 /**
+ * Instances of the class `PartitionManager` manage the partitions that can be shared between
+ * analysis contexts.
+ */
+class PartitionManager {
+  /**
+   * A table mapping SDK's to the partitions used for those SDK's.
+   */
+  Map<DartSdk, SdkCachePartition> _sdkPartitions = new Map<DartSdk, SdkCachePartition>();
+
+  /**
+   * The default cache size for a Dart SDK partition.
+   */
+  static int _DEFAULT_SDK_CACHE_SIZE = 256;
+
+  /**
+   * Return the partition being used for the given SDK, creating the partition if necessary.
+   *
+   * @param sdk the SDK for which a partition is being requested
+   * @return the partition being used for the given SDK
+   */
+  SdkCachePartition forSdk(DartSdk sdk) {
+    SdkCachePartition partition = _sdkPartitions[sdk];
+    if (partition == null) {
+      partition = new SdkCachePartition(_DEFAULT_SDK_CACHE_SIZE);
+      _sdkPartitions[sdk] = partition;
+    }
+    return partition;
+  }
+}
+
+/**
  * The enumerated type `RetentionPriority` represents the priority of data in the cache in
  * terms of the desirability of retaining some specified data about a specified source.
  */
@@ -3452,6 +3787,23 @@ class RetentionPriority extends Enum<RetentionPriority> {
   static const List<RetentionPriority> values = const [LOW, MEDIUM, HIGH];
 
   const RetentionPriority(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * Instances of the class `SdkCachePartition` implement a cache partition that contains all of
+ * the sources in the SDK.
+ */
+class SdkCachePartition extends CachePartition {
+  /**
+   * Initialize a newly created partition.
+   *
+   * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
+   *          the cache
+   */
+  SdkCachePartition(int maxCacheSize) : super(maxCacheSize, DefaultRetentionPolicy.POLICY);
+
+  @override
+  bool contains(Source source) => source.isInSystemLibrary;
 }
 
 /**
@@ -3633,7 +3985,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   void invalidateAllInformation() {
     _content = null;
-    _contentState = CacheState.INVALID;
+    _contentState = _checkContentState(CacheState.INVALID);
     _lineInfo = null;
     _lineInfoState = CacheState.INVALID;
   }
@@ -3676,7 +4028,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, SourceEntry.CONTENT)) {
       _content = updatedValue(state, _content, null);
-      _contentState = state;
+      _contentState = _checkContentState(state);
     } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
       _lineInfo = updatedValue(state, _lineInfo, null);
       _lineInfoState = state;
@@ -3694,7 +4046,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   void setValue(DataDescriptor descriptor, Object value) {
     if (identical(descriptor, SourceEntry.CONTENT)) {
       _content = value as String;
-      _contentState = CacheState.VALID;
+      _contentState = _checkContentState(CacheState.VALID);
     } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
       _lineInfo = value as LineInfo;
       _lineInfoState = CacheState.VALID;
@@ -3796,6 +4148,43 @@ abstract class SourceEntryImpl implements SourceEntry {
     builder.append("; lineInfo = ");
     builder.append(_lineInfoState);
   }
+
+  /**
+   * If the state is changing from ERROR to anything else, capture the information. This is an
+   * attempt to discover the underlying cause of a long-standing bug.
+   *
+   * @param newState the new state of the content
+   * @return the new state of the content
+   */
+  CacheState _checkContentState(CacheState newState) {
+    if (_contentState == CacheState.ERROR) {
+      InstrumentationBuilder builder = Instrumentation.builder2("SourceEntryImpl-checkContentState");
+      builder.data3("message", "contentState changing from ${_contentState} to ${newState}");
+      //builder.data("source", source.getFullName());
+      builder.record(new AnalysisException());
+      builder.log();
+    }
+    return newState;
+  }
+}
+
+/**
+ * Instances of the class `UniversalCachePartition` implement a cache partition that contains
+ * all sources not contained in other partitions.
+ */
+class UniversalCachePartition extends CachePartition {
+  /**
+   * Initialize a newly created partition.
+   *
+   * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
+   *          the cache
+   * @param retentionPolicy the policy used to determine which pieces of data to remove from the
+   *          cache
+   */
+  UniversalCachePartition(int maxCacheSize, CacheRetentionPolicy retentionPolicy) : super(maxCacheSize, retentionPolicy);
+
+  @override
+  bool contains(Source source) => true;
 }
 
 /**
@@ -3954,6 +4343,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Source _coreLibrarySource;
 
   /**
+   * The partition that contains analysis results that are not shared with other contexts.
+   */
+  CachePartition _privatePartition;
+
+  /**
    * A table mapping the sources known to the context to the information known about the source.
    */
   AnalysisCache _cache;
@@ -3989,7 +4383,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * results are for the same version (modification time) of the source as our current cache
    * content.
    */
-  Object _cacheLock = new Object();
+  static Object _cacheLock = new Object();
 
   /**
    * The object used to record the results of performing an analysis task.
@@ -4017,7 +4411,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisContextImpl() : super() {
     _resultRecorder = new AnalysisContextImpl_AnalysisTaskResultRecorder(this);
-    _cache = new AnalysisCache(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
+    _privatePartition = new UniversalCachePartition(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
+    _cache = _createCacheFromSourceFactory(null);
   }
 
   @override
@@ -4051,6 +4446,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     for (Source source in changeSet.changedSources) {
       _sourceChanged(source);
+    }
+    for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.changedContents)) {
+      setContents(entry.getKey(), entry.getValue());
+    }
+    for (MapEntry<Source, ChangeSet_ContentChange> entry in getMapEntrySet(changeSet.changedRanges)) {
+      ChangeSet_ContentChange change = entry.getValue();
+      setChangedContents(entry.getKey(), change.contents, change.offset, change.oldLength, change.newLength);
+    }
+    for (Source source in changeSet.deletedSources) {
+      _sourceDeleted(source);
     }
     for (Source source in removedSources) {
       _sourceRemoved(source);
@@ -4751,9 +5156,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     Source htmlSource = _sourceFactory.forUri(DartSdk.DART_HTML);
-    for (MapIterator<Source, LibraryElement> iter = SingleMapIterator.forMap(elementMap); iter.moveNext();) {
-      Source librarySource = iter.key;
-      LibraryElement library = iter.value;
+    for (MapEntry<Source, LibraryElement> entry in getMapEntrySet(elementMap)) {
+      Source librarySource = entry.getKey();
+      LibraryElement library = entry.getValue();
       //
       // Cache the element in the library's info.
       //
@@ -4761,6 +5166,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (dartEntry != null) {
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         _recordElementData(dartCopy, library, library.source, htmlSource);
+        dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+        dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
+        dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+        dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, AnalysisError.NO_ERRORS);
+        dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
+        dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.FLUSHED);
+        dartCopy.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
+        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+        dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
         _cache.put(librarySource, dartCopy);
       }
     }
@@ -4789,7 +5203,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
-      _cache.maxCacheSize = cacheSize;
+      //cache.setMaxCacheSize(cacheSize);
+      _privatePartition.maxCacheSize = cacheSize;
       //
       // Cap the size of the priority list to being less than the cache size. Failure to do so can
       // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
@@ -4810,7 +5225,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
-      _invalidateAllResolutionInformation();
+      _invalidateAllLocalResolutionInformation();
     }
   }
 
@@ -4896,7 +5311,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _coreLibrarySource = _sourceFactory.forUri(DartSdk.DART_CORE);
-    _invalidateAllResolutionInformation();
+    _cache = _createCacheFromSourceFactory(factory);
+    _invalidateAllLocalResolutionInformation();
   }
 
   /**
@@ -5419,7 +5835,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       LibraryElement library = computeLibraryElement(librarySource);
-      dartEntry = new GenerateDartErrorsTask(this, unitSource, dartEntry.modificationTime, resolveCompilationUnit(unitSource, library), library).perform(_resultRecorder) as DartEntry;
+      CompilationUnit unit = resolveCompilationUnit(unitSource, library);
+      if (unit == null) {
+        throw new AnalysisException.con1("Could not resolve compilation unit ${unitSource.fullName} in ${librarySource.fullName}");
+      }
+      dartEntry = new GenerateDartErrorsTask(this, unitSource, dartEntry.modificationTime, unit, library).perform(_resultRecorder) as DartEntry;
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
     }
     return dartEntry;
@@ -5544,6 +5964,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create an analysis cache based on the given source factory.
+   *
+   * @param factory the source factory containing the information needed to create the cache
+   * @return the cache that was created
+   */
+  AnalysisCache _createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return new AnalysisCache(<CachePartition> [_privatePartition]);
+    }
+    DartSdk sdk = factory.dartSdk;
+    if (sdk == null) {
+      return new AnalysisCache(<CachePartition> [_privatePartition]);
+    }
+    return new AnalysisCache(<CachePartition> [
+        AnalysisEngine.instance.partitionManager.forSdk(sdk),
+        _privatePartition]);
+  }
+
+  /**
    * Create a [GenerateDartErrorsTask] for the given source, marking the verification errors
    * as being in-process. The compilation unit and the library can be the same if the compilation
    * unit is the defining compilation unit of the library.
@@ -5559,6 +5998,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return _createResolveDartLibraryTask(librarySource, libraryEntry);
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
+    if (unit == null) {
+      AnalysisEngine.instance.logger.logInformation2("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}", new AnalysisException());
+      DartEntryImpl dartCopy = unitEntry.writableCopy;
+      dartCopy.recordResolutionError();
+      _cache.put(unitSource, dartCopy);
+      return new AnalysisContextImpl_TaskData(null, false);
+    }
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
     DartEntryImpl dartCopy = unitEntry.writableCopy;
     dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
@@ -6592,9 +7038,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    *
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    */
-  void _invalidateAllResolutionInformation() {
+  void _invalidateAllLocalResolutionInformation() {
     Map<Source, List<Source>> oldPartMap = new Map<Source, List<Source>>();
-    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    MapIterator<Source, SourceEntry> iterator = _privatePartition.iterator();
     while (iterator.moveNext()) {
       Source source = iterator.key;
       SourceEntry sourceEntry = iterator.value;
@@ -7027,9 +7473,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _cache.put(librarySource, dartCopy);
       throw thrownException;
     }
-    for (MapIterator<Source, TimestampedData<List<AnalysisError>>> iter = SingleMapIterator.forMap(hintMap); iter.moveNext();) {
-      Source unitSource = iter.key;
-      TimestampedData<List<AnalysisError>> results = iter.value;
+    for (MapEntry<Source, TimestampedData<List<AnalysisError>>> entry in getMapEntrySet(hintMap)) {
+      Source unitSource = entry.getKey();
+      TimestampedData<List<AnalysisError>> results = entry.getValue();
       SourceEntry sourceEntry = _cache.get(unitSource);
       if (sourceEntry is! DartEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
@@ -7943,9 +8389,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldPartMap the table containing the parts associated with each library
    */
   void _removeFromPartsUsingMap(Map<Source, List<Source>> oldPartMap) {
-    for (MapIterator<Source, List<Source>> iter = SingleMapIterator.forMap(oldPartMap); iter.moveNext();) {
-      Source librarySource = iter.key;
-      List<Source> oldParts = iter.value;
+    for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
+      Source librarySource = entry.getKey();
+      List<Source> oldParts = entry.getValue();
       for (int i = 0; i < oldParts.length; i++) {
         Source partSource = oldParts[i];
         if (partSource != librarySource) {
@@ -8058,6 +8504,37 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    *
    * @param source the source that has been deleted
+   */
+  void _sourceDeleted(Source source) {
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
+      _invalidateAngularResolution(htmlCopy);
+      htmlCopy.recordContentError();
+      _cache.put(source, htmlCopy);
+    } else if (sourceEntry is DartEntry) {
+      Set<Source> libraries = new Set<Source>();
+      for (Source librarySource in getLibrariesContaining(source)) {
+        libraries.add(librarySource);
+        for (Source dependentLibrary in getLibrariesDependingOn(librarySource)) {
+          libraries.add(dependentLibrary);
+        }
+      }
+      for (Source librarySource in libraries) {
+        _invalidateLibraryResolution(librarySource);
+      }
+      DartEntryImpl dartCopy = sourceEntry.writableCopy;
+      dartCopy.recordContentError();
+      _cache.put(source, dartCopy);
+    }
+    _workManager.remove(source);
+    _removeFromPriorityOrder(source);
+  }
+
+  /**
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
+   *
+   * @param source the source that has been removed
    */
   void _sourceRemoved(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
@@ -8684,7 +9161,8 @@ class AnalysisContextImpl_CycleBuilder {
    * @param dartEntry the entry associated with the source
    */
   void _ensureResolvableCompilationUnit(Source source, DartEntry dartEntry) {
-    if (!dartEntry.hasResolvableCompilationUnit) {
+    // The entry will be null if the source represents a non-Dart file.
+    if (dartEntry != null && !dartEntry.hasResolvableCompilationUnit) {
       if (_taskData == null) {
         _taskData = AnalysisContextImpl_this._createParseDartTask(source, dartEntry);
       }
@@ -8964,319 +9442,6 @@ class ChangeNoticeImpl implements ChangeNotice {
 }
 
 /**
- * Instances of the class `DelegatingAnalysisContextImpl` extend [AnalysisContextImpl
- ] to delegate sources to the appropriate analysis context. For instance, if the
- * source is in a system library then the analysis context from the [DartSdk] is used.
- */
-class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
-  /**
-   * This references the [InternalAnalysisContext] held onto by the [DartSdk] which is
-   * used (instead of this [AnalysisContext]) for SDK sources. This field is set when
-   * #setSourceFactory(SourceFactory) is called, and references the analysis context in the
-   * [DartUriResolver] in the [SourceFactory], this analysis context assumes that there
-   * will be such a resolver.
-   */
-  InternalAnalysisContext _sdkAnalysisContext;
-
-  @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    if (source.isInSystemLibrary) {
-      _sdkAnalysisContext.addSourceInfo(source, info);
-    } else {
-      super.addSourceInfo(source, info);
-    }
-  }
-
-  @override
-  List<AnalysisError> computeErrors(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeErrors(source);
-    } else {
-      return super.computeErrors(source);
-    }
-  }
-
-  @override
-  List<Source> computeExportedLibraries(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeExportedLibraries(source);
-    } else {
-      return super.computeExportedLibraries(source);
-    }
-  }
-
-  @override
-  HtmlElement computeHtmlElement(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeHtmlElement(source);
-    } else {
-      return super.computeHtmlElement(source);
-    }
-  }
-
-  @override
-  List<Source> computeImportedLibraries(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeImportedLibraries(source);
-    } else {
-      return super.computeImportedLibraries(source);
-    }
-  }
-
-  @override
-  SourceKind computeKindOf(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeKindOf(source);
-    } else {
-      return super.computeKindOf(source);
-    }
-  }
-
-  @override
-  LibraryElement computeLibraryElement(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeLibraryElement(source);
-    } else {
-      return super.computeLibraryElement(source);
-    }
-  }
-
-  @override
-  LineInfo computeLineInfo(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeLineInfo(source);
-    } else {
-      return super.computeLineInfo(source);
-    }
-  }
-
-  @override
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.computeResolvableCompilationUnit(source);
-    } else {
-      return super.computeResolvableCompilationUnit(source);
-    }
-  }
-
-  @override
-  AnalysisErrorInfo getErrors(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getErrors(source);
-    } else {
-      return super.getErrors(source);
-    }
-  }
-
-  @override
-  HtmlElement getHtmlElement(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getHtmlElement(source);
-    } else {
-      return super.getHtmlElement(source);
-    }
-  }
-
-  @override
-  List<Source> getHtmlFilesReferencing(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getHtmlFilesReferencing(source);
-    } else {
-      return super.getHtmlFilesReferencing(source);
-    }
-  }
-
-  @override
-  SourceKind getKindOf(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getKindOf(source);
-    } else {
-      return super.getKindOf(source);
-    }
-  }
-
-  @override
-  List<Source> getLibrariesContaining(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getLibrariesContaining(source);
-    } else {
-      return super.getLibrariesContaining(source);
-    }
-  }
-
-  @override
-  List<Source> getLibrariesDependingOn(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
-      return _sdkAnalysisContext.getLibrariesDependingOn(librarySource);
-    } else {
-      return super.getLibrariesDependingOn(librarySource);
-    }
-  }
-
-  @override
-  LibraryElement getLibraryElement(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getLibraryElement(source);
-    } else {
-      return super.getLibraryElement(source);
-    }
-  }
-
-  @override
-  List<Source> get librarySources => ArrayUtils.addAll(super.librarySources, _sdkAnalysisContext.librarySources);
-
-  @override
-  LineInfo getLineInfo(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getLineInfo(source);
-    } else {
-      return super.getLineInfo(source);
-    }
-  }
-
-  @override
-  Namespace getPublicNamespace(LibraryElement library) {
-    Source source = library.source;
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.getPublicNamespace(library);
-    } else {
-      return super.getPublicNamespace(library);
-    }
-  }
-
-  @override
-  CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
-    if (unitSource.isInSystemLibrary) {
-      return _sdkAnalysisContext.getResolvedCompilationUnit(unitSource, library);
-    } else {
-      return super.getResolvedCompilationUnit(unitSource, library);
-    }
-  }
-
-  @override
-  CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource) {
-    if (unitSource.isInSystemLibrary) {
-      return _sdkAnalysisContext.getResolvedCompilationUnit2(unitSource, librarySource);
-    } else {
-      return super.getResolvedCompilationUnit2(unitSource, librarySource);
-    }
-  }
-
-  @override
-  bool isClientLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
-      return _sdkAnalysisContext.isClientLibrary(librarySource);
-    } else {
-      return super.isClientLibrary(librarySource);
-    }
-  }
-
-  @override
-  bool isServerLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
-      return _sdkAnalysisContext.isServerLibrary(librarySource);
-    } else {
-      return super.isServerLibrary(librarySource);
-    }
-  }
-
-  @override
-  CompilationUnit parseCompilationUnit(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.parseCompilationUnit(source);
-    } else {
-      return super.parseCompilationUnit(source);
-    }
-  }
-
-  @override
-  ht.HtmlUnit parseHtmlUnit(Source source) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.parseHtmlUnit(source);
-    } else {
-      return super.parseHtmlUnit(source);
-    }
-  }
-
-  @override
-  void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    if (elementMap.isEmpty) {
-      return;
-    }
-    // TODO(jwren) we are making the assumption here that the elementMap will have sources from only
-    // one library, while this is true with our use of the Analysis Engine, it is not required by
-    // the API, revisit to fix cases where the elementMap can have sources both in the sdk and other
-    // libraries
-    Source source = new JavaIterator(elementMap.keys.toSet()).next();
-    if (source.isInSystemLibrary) {
-      _sdkAnalysisContext.recordLibraryElements(elementMap);
-    } else {
-      super.recordLibraryElements(elementMap);
-    }
-  }
-
-  @override
-  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) {
-    if (source.isInSystemLibrary) {
-      return _sdkAnalysisContext.resolveCompilationUnit(source, library);
-    } else {
-      return super.resolveCompilationUnit(source, library);
-    }
-  }
-
-  @override
-  CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) {
-    if (unitSource.isInSystemLibrary) {
-      return _sdkAnalysisContext.resolveCompilationUnit2(unitSource, librarySource);
-    } else {
-      return super.resolveCompilationUnit2(unitSource, librarySource);
-    }
-  }
-
-  @override
-  ht.HtmlUnit resolveHtmlUnit(Source unitSource) {
-    if (unitSource.isInSystemLibrary) {
-      return _sdkAnalysisContext.resolveHtmlUnit(unitSource);
-    } else {
-      return super.resolveHtmlUnit(unitSource);
-    }
-  }
-
-  @override
-  void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
-    if (source.isInSystemLibrary) {
-      _sdkAnalysisContext.setChangedContents(source, contents, offset, oldLength, newLength);
-    } else {
-      super.setChangedContents(source, contents, offset, oldLength, newLength);
-    }
-  }
-
-  @override
-  void setContents(Source source, String contents) {
-    if (source.isInSystemLibrary) {
-      _sdkAnalysisContext.setContents(source, contents);
-    } else {
-      super.setContents(source, contents);
-    }
-  }
-
-  @override
-  void set sourceFactory(SourceFactory factory) {
-    super.sourceFactory = factory;
-    DartSdk sdk = factory.dartSdk;
-    if (sdk != null) {
-      _sdkAnalysisContext = sdk.context as InternalAnalysisContext;
-      if (_sdkAnalysisContext is DelegatingAnalysisContextImpl) {
-        _sdkAnalysisContext = null;
-        throw new IllegalStateException("The context provided by an SDK cannot itself be a delegating analysis context");
-      }
-    } else {
-      throw new IllegalStateException("SourceFactorys provided to DelegatingAnalysisContextImpls must have a DartSdk associated with the provided SourceFactory.");
-    }
-  }
-}
-
-/**
  * Instances of the class `IncrementalAnalysisCache` hold information used to perform
  * incremental analysis.
  *
@@ -9382,7 +9547,7 @@ class IncrementalAnalysisCache {
    */
   static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache, Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source == source) {
-      if (!AstComparator.equalUnits(cache.resolvedUnit, unit)) {
+      if (!AstComparator.equalNodes(cache.resolvedUnit, unit)) {
         return null;
       }
     }
@@ -9487,7 +9652,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
    * Create a new [InstrumentedAnalysisContextImpl] which wraps a new
    * [AnalysisContextImpl] as the basis context.
    */
-  InstrumentedAnalysisContextImpl() : this.con1(new DelegatingAnalysisContextImpl());
+  InstrumentedAnalysisContextImpl() : this.con1(new AnalysisContextImpl());
 
   /**
    * Create a new [InstrumentedAnalysisContextImpl] with a specified basis context, aka the
@@ -10360,14 +10525,14 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<Set<AnalysisError>> errorsSets = _errors.values;
-    int numEntries = errorsSets.length;
+    Iterable<MapEntry<Source, Set<AnalysisError>>> entrySet = getMapEntrySet(_errors);
+    int numEntries = entrySet.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (Set<AnalysisError> errorsSet in errorsSets) {
-      resultList.addAll(errorsSet);
+    for (MapEntry<Source, Set<AnalysisError>> entry in entrySet) {
+      resultList.addAll(entry.getValue());
     }
     return new List.from(resultList);
   }
@@ -11274,8 +11439,13 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       Token filterToken = tokens[i];
       Token barToken = filterToken;
       filterToken = filterToken.next;
-      // TODO(scheglov) report missing identifier
-      SimpleIdentifier name = _parseDartExpressionInToken(filterToken) as SimpleIdentifier;
+      // parse name
+      Expression nameExpression = _parseDartExpressionInToken(filterToken);
+      if (nameExpression is! SimpleIdentifier) {
+        _reportErrorForNode(AngularCode.INVALID_FILTER_NAME, nameExpression, []);
+        continue;
+      }
+      SimpleIdentifier name = nameExpression as SimpleIdentifier;
       filterToken = name.endToken.next;
       // parse arguments
       List<AngularFilterArgument> arguments = [];
@@ -11569,10 +11739,6 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         imports.add(importElement);
       }
       _libraryElement.imports = new List.from(imports);
-    }
-    // push conditional errors
-    for (ProxyConditionalAnalysisError conditionalCode in _resolver.proxyConditionalAnalysisErrors) {
-      _resolver.reportError(conditionalCode.analysisError);
     }
   }
 
@@ -14279,12 +14445,6 @@ class ResolveDartUnitTask extends AnalysisTask {
     InheritanceManager inheritanceManager = new InheritanceManager(_libraryElement);
     ResolverVisitor resolverVisitor = new ResolverVisitor.con2(_libraryElement, source, typeProvider, inheritanceManager, errorListener);
     unit.accept(resolverVisitor);
-    // TODO (jwren) Move this logic/ loop into the ResolverVisitor and then make the reportError protected again.
-    for (ProxyConditionalAnalysisError conditionalCode in resolverVisitor.proxyConditionalAnalysisErrors) {
-      if (conditionalCode.shouldIncludeErrorCode()) {
-        resolverVisitor.reportError(conditionalCode.analysisError);
-      }
-    }
     //
     // Perform additional error checking.
     //

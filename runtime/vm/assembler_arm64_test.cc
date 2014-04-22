@@ -304,8 +304,8 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ add(R2, SP, Operand(1));
-  __ str(R1, Address(R2, -1, Address::PreIndex));
-  __ ldr(R0, Address(R2, -1, Address::PostIndex));
+  __ str(R1, Address(R2, -1));
+  __ ldr(R0, Address(R2, -1));
   __ ret();
 }
 
@@ -491,8 +491,6 @@ ASSEMBLER_TEST_RUN(EonRegs, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
-// TODO(zra): ands and bics after branches are implemented.
-
 
 // Logical immediate operations.
 ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
@@ -553,7 +551,739 @@ ASSEMBLER_TEST_RUN(EorImm, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
-// TODO(zra): andis after branches are implemented.
+
+// Comparisons, branching.
+ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
+  Label l;
+  __ movz(R0, 42, 0);
+  __ b(&l, AL);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BranchALForward, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
+  Label l, leave;
+  __ movz(R0, 42, 0);
+  __ b(&l, AL);
+
+  __ movz(R0, 0, 0);
+  __ Bind(&leave);
+  __ ret();
+  __ movz(R0, 0, 0);
+
+  __ Bind(&l);
+  __ b(&leave, AL);
+  __ movz(R0, 0, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BranchALBackwards, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 234, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEqBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 233, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEqBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 1, 0);
+
+  __ cmp(R1, Operand(1));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpEq1Branch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movn(R1, 0, 0);  // R1 <- -1
+
+  __ cmn(R1, Operand(1));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmnEq1Branch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 233, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, LT);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpLtBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 235, 0);
+  __ movz(R2, 234, 0);
+
+  __ cmp(R1, Operand(R2));
+  __ b(&l, LT);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 1, 0);
+
+  __ ands(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndsBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 2, 0);
+
+  __ ands(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndsBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 2, 0);
+
+  __ bics(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BicsBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+  __ movz(R2, 1, 0);
+
+  __ bics(R3, R1, Operand(R2));
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BicsBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
+  Label l;
+
+  __ movz(R0, 42, 0);
+  __ movz(R1, 2, 0);
+
+  __ andis(R3, R1, 1);
+  __ b(&l, EQ);
+  __ movz(R0, 0, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndisBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, 0, 0);
+  __ movz(R1, 2, 0);
+
+  __ andis(R3, R1, 2);
+  __ b(&l, EQ);
+  __ movz(R0, 42, 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndisBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Address of PC-rel offset, br, blr.
+ASSEMBLER_TEST_GENERATE(AdrBr, assembler) {
+  __ movz(R0, 123, 0);
+  __ adr(R1, 3 * Instr::kInstrSize);  // R1 <- PC + 3*Instr::kInstrSize
+  __ br(R1);
+  __ ret();
+
+  // br goes here.
+  __ movz(R0, 42, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AdrBr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
+  __ movz(R0, 123, 0);
+  __ add(R3, ZR, Operand(LR));  // Save LR.
+  __ adr(R1, 4 * Instr::kInstrSize);  // R1 <- PC + 4*Instr::kInstrSize
+  __ blr(R1);
+  __ add(LR, ZR, Operand(R3));
+  __ ret();
+
+  // blr goes here.
+  __ movz(R0, 42, 0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AdrBlr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Misc. arithmetic.
+ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 9, 0);
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 9, 0);
+  __ neg(R1, R1);
+  __ sdiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 0, 0);
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
+  __ movz(R0, 27, 0);
+  __ movz(R1, 0, 0);
+  __ sdiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
+  __ movz(R0, 0x8000, 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ udiv(R2, R0, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
+  __ movz(R3, 0x8000, 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ sdiv(R2, R3, R1);
+  __ mov(R0, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(static_cast<int64_t>(0x8000000000000000),
+            EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
+  __ movz(R1, 21, 0);
+  __ movz(R2, 1, 0);
+  __ lslv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Lslv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
+  __ movz(R1, 84, 0);
+  __ movz(R2, 1, 0);
+  __ lsrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Lsrv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
+  __ movz(R1, 1, 0);
+  __ movz(R2, 63, 0);
+  __ lslv(R1, R1, R2);
+  __ lsrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
+  __ movz(R1, 1, 0);
+  __ movz(R2, 63, 0);
+  __ lslv(R1, R1, R2);
+  __ asrv(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(RShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ mul(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_pos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ neg(R2, R2);
+  __ mul(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Loading immediate values without the object pool.
+ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
+  __ LoadImmediate(R0, 42, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateSmall, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMed, assembler) {
+  __ LoadImmediate(R0, 0xf1234123, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMed, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMed2, assembler) {
+  __ LoadImmediate(R0, 0x4321f1234123, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMed2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0x4321f1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateLarge, assembler) {
+  __ LoadImmediate(R0, 0x9287436598237465, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateLarge, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateSmallNeg, assembler) {
+  __ LoadImmediate(R0, -42, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateSmallNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg, assembler) {
+  __ LoadImmediate(R0, -0x1212341234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1212341234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg2, assembler) {
+  __ LoadImmediate(R0, -0x1212340000, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1212340000, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg3, assembler) {
+  __ LoadImmediate(R0, -0x1200001234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg3, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x1200001234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg4, assembler) {
+  __ LoadImmediate(R0, -0x12341234, kNoRegister);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-0x12341234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Loading immediate values with the object pool.
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 42, PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0xf1234123, PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0x4321f1234124, PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0x4321f1234124, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadImmediate(R0, 0x9287436598237465, PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// LoadObject null.
+ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Object::null_object(), PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Object::null()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Bool::True(), PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::True().raw()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
+  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ LoadObject(R0, Bool::False(), PP);
+  __ PopPP();
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::False().raw()),
+            EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
 
 }  // namespace dart
 

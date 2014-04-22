@@ -32,7 +32,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kFloat64x2Cid) ||
+          (class_id >= kInstanceCid && class_id <= kUserTagCid) ||
           class_id == kArrayCid ||
           class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||

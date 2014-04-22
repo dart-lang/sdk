@@ -2693,4 +2693,27 @@ void RawMirrorReference::WriteTo(SnapshotWriter* writer,
   }
 }
 
+
+RawUserTag* UserTag::ReadFrom(SnapshotReader* reader,
+                              intptr_t object_id,
+                              intptr_t tags,
+                              Snapshot::Kind kind) {
+  UNREACHABLE();
+  return UserTag::null();
+}
+
+
+void RawUserTag::WriteTo(SnapshotWriter* writer,
+                         intptr_t object_id,
+                         Snapshot::Kind kind) {
+  if (kind == Snapshot::kMessage) {
+    // We do not allow objects with native fields in an isolate message.
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (object is a UserTag)");
+  } else {
+    UNREACHABLE();
+  }
+}
+
 }  // namespace dart

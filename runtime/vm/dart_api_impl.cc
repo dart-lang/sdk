@@ -93,6 +93,16 @@ Heap::Space SpaceForExternal(Isolate* isolate, intptr_t size) {
 }
 
 
+WeakReferenceSetBuilder* ApiState::NewWeakReferenceSetBuilder() {
+  return new WeakReferenceSetBuilder(this);
+}
+
+
+void ApiState::DelayWeakReferenceSet(WeakReferenceSet* reference_set) {
+  WeakReferenceSet::Push(reference_set, &delayed_weak_reference_sets_);
+}
+
+
 Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   LocalHandles* local_handles = Api::TopScope(isolate)->local_handles();
   ASSERT(local_handles != NULL);
@@ -742,35 +752,62 @@ DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
-    Dart_WeakPersistentHandle* keys,
-    intptr_t num_keys,
-    Dart_WeakPersistentHandle* values,
-    intptr_t num_values) {
+DART_EXPORT Dart_WeakReferenceSetBuilder Dart_NewWeakReferenceSetBuilder() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  if (keys == NULL) {
-    RETURN_NULL_ERROR(keys);
-  }
-  if (num_keys <= 0) {
-    return Api::NewError(
-        "%s expects argument 'num_keys' to be greater than 0.",
-        CURRENT_FUNC);
-  }
-  if (values == NULL) {
-    RETURN_NULL_ERROR(values);
-  }
-  if (num_values <= 0) {
-    return Api::NewError(
-        "%s expects argument 'num_values' to be greater than 0.",
-        CURRENT_FUNC);
-  }
+  return reinterpret_cast<Dart_WeakReferenceSetBuilder>(
+      state->NewWeakReferenceSetBuilder());
+}
 
-  WeakReferenceSet* reference_set = new WeakReferenceSet(keys, num_keys,
-                                                         values, num_values);
+
+DART_EXPORT Dart_WeakReferenceSet Dart_NewWeakReferenceSet(
+    Dart_WeakReferenceSetBuilder set_builder,
+    Dart_WeakPersistentHandle key,
+    Dart_WeakPersistentHandle value) {
+  ASSERT(set_builder != NULL && key != NULL);
+  WeakReferenceSetBuilder* builder =
+      reinterpret_cast<WeakReferenceSetBuilder*>(set_builder);
+  ApiState* state = builder->api_state();
+  ASSERT(state == Isolate::Current()->api_state());
+  WeakReferenceSet* reference_set = builder->NewWeakReferenceSet();
+  reference_set->AppendKey(key);
+  if (value != NULL) {
+    reference_set->AppendValue(value);
+  }
   state->DelayWeakReferenceSet(reference_set);
+  return reinterpret_cast<Dart_WeakReferenceSet>(reference_set);
+}
+
+
+DART_EXPORT Dart_Handle Dart_AppendToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle key,
+    Dart_WeakPersistentHandle value) {
+  ASSERT(reference_set != NULL);
+  WeakReferenceSet* set = reinterpret_cast<WeakReferenceSet*>(reference_set);
+  set->Append(key, value);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_AppendKeyToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle key) {
+  ASSERT(reference_set != NULL);
+  WeakReferenceSet* set = reinterpret_cast<WeakReferenceSet*>(reference_set);
+  set->AppendKey(key);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_AppendValueToWeakReferenceSet(
+    Dart_WeakReferenceSet reference_set,
+    Dart_WeakPersistentHandle value) {
+  ASSERT(reference_set != NULL);
+  WeakReferenceSet* set = reinterpret_cast<WeakReferenceSet*>(reference_set);
+  set->AppendValue(value);
   return Api::Success();
 }
 
@@ -812,6 +849,52 @@ DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
   }
   isolate->set_gc_prologue_callback(prologue_callback);
   isolate->set_gc_epilogue_callback(epilogue_callback);
+  return Api::Success();
+}
+
+
+class PrologueWeakVisitor : public HandleVisitor {
+ public:
+  PrologueWeakVisitor(Isolate* isolate,
+                      Dart_GcPrologueWeakHandleCallback callback)
+      :  HandleVisitor(isolate),
+         callback_(callback) {
+  }
+
+  void VisitHandle(uword addr) {
+    NoGCScope no_gc;
+    FinalizablePersistentHandle* handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    RawObject* raw_obj = handle->raw();
+    if (raw_obj->IsHeapObject()) {
+      ASSERT(handle->IsPrologueWeakPersistent());
+      ReusableInstanceHandleScope reused_instance_handle(isolate());
+      Instance& instance = reused_instance_handle.Handle();
+      instance ^= reinterpret_cast<RawInstance*>(handle->raw());
+      intptr_t num_native_fields = instance.NumNativeFields();
+      intptr_t* native_fields = instance.NativeFieldsDataAddr();
+      if (native_fields != NULL) {
+        callback_(isolate()->init_callback_data(),
+                  reinterpret_cast<Dart_WeakPersistentHandle>(addr),
+                  num_native_fields,
+                  native_fields);
+      }
+    }
+  }
+
+ private:
+  Dart_GcPrologueWeakHandleCallback callback_;
+
+  DISALLOW_COPY_AND_ASSIGN(PrologueWeakVisitor);
+};
+
+
+DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
+    Dart_GcPrologueWeakHandleCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  PrologueWeakVisitor visitor(isolate, callback);
+  isolate->VisitPrologueWeakPersistentHandles(&visitor);
   return Api::Success();
 }
 
@@ -3130,6 +3213,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
+
   if (constructor.IsConstructor()) {
     ASSERT(result.IsNull());
   } else {
@@ -3872,8 +3956,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
@@ -4586,7 +4669,8 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
-    Dart_NativeEntryResolver resolver) {
+    Dart_NativeEntryResolver resolver,
+    Dart_NativeEntrySymbol symbol) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
@@ -4594,6 +4678,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     RETURN_TYPE_ERROR(isolate, library, Library);
   }
   lib.set_native_entry_resolver(resolver);
+  lib.set_native_entry_symbol_resolver(symbol);
   return Api::Success();
 }
 

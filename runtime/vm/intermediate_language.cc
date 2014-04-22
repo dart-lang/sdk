@@ -2160,6 +2160,13 @@ bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
 }
 
 
+bool PolymorphicInstanceCallInstr::HasSingleDispatcherTarget() const {
+  if (!ic_data().HasOneTarget()) return false;
+  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  return target.IsNoSuchMethodDispatcher() || target.IsInvokeFieldDispatcher();
+}
+
+
 LocationSummary* StaticCallInstr::MakeLocationSummary(bool optimizing) const {
   return MakeCallSummary();
 }

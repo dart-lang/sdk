@@ -10170,7 +10170,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
       // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
       var base = _parseDocument.createElement('base');
-      base.href = document._baseUri;
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -14353,32 +14353,6 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * This custom element can also be instantiated via HTML using the syntax
    * `<input is="x-bar"></input>`
    *
-   * The [nativeTagName] parameter is needed by platforms without native support
-   * when subclassing a native type other than:
-   *
-   * * HtmlElement
-   * * SvgElement
-   * * AnchorElement
-   * * AudioElement
-   * * ButtonElement
-   * * CanvasElement
-   * * DivElement
-   * * ImageElement
-   * * InputElement
-   * * LIElement
-   * * LabelElement
-   * * MenuElement
-   * * MeterElement
-   * * OListElement
-   * * OptionElement
-   * * OutputElement
-   * * ParagraphElement
-   * * PreElement
-   * * ProgressElement
-   * * SelectElement
-   * * SpanElement
-   * * UListElement
-   * * VideoElement
    */
   void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
@@ -14420,6 +14394,19 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @Experimental()
   Stream<Event> get onVisibilityChange =>
       visibilityChangeEvent.forTarget(this);
+
+  /// Creates an element upgrader which can be used to change the Dart wrapper
+  /// type for elements.
+  ///
+  /// The type specified must be a subclass of HtmlElement, when an element is
+  /// upgraded then the created constructor will be invoked on that element.
+  ///
+  /// If the type is not a direct subclass of HtmlElement then the extendsTag
+  /// parameter must be provided.
+  @Experimental()
+  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+    return new _JSElementUpgrader(this, type, extendsTag);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15298,7 +15285,7 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
+class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload" {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 }
@@ -19904,7 +19891,7 @@ class Node extends EventTarget native "Node" {
   @JSName('baseURI')
   @DomName('Node.baseURI')
   @DocsEditable()
-  final String _baseUri;
+  final String baseUri;
 
   /**
    * A list of this node's children.
@@ -27469,58 +27456,28 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   }
 
   // API level getter and setter for Location.
-  // TODO: The cross domain safe wrapper can be inserted here or folded into
-  // _LocationWrapper.
+  // TODO: The cross domain safe wrapper can be inserted here.
   /**
    * The current location of this window.
    *
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location {
-    // Firefox work-around for Location.  The Firefox location object cannot be
-    // made to behave like a Dart object so must be wrapped.
-    var result = _location;
-    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
-    if (null == _location_wrapper) {
-      _location_wrapper = new _LocationWrapper(result);
-    }
-    return _location_wrapper;
-  }
+  Location get location => _location;
 
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a string.
+   * location. [value] may be a Location object or a String.
    */
   void set location(value) {
-    if (value is _LocationWrapper) {
-      _location = value._ptr;
-    } else {
-      _location = value;
-    }
+    _location = value;
   }
-
-  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  dynamic get _location => JS('Location|=Object', '#.location', this);
+  dynamic get _location => JS('Location|Null', '#.location', this);
   void set _location(value) {
     JS('void', '#.location = #', this, value);
-  }
-  // Prevent compiled from thinking 'location' property is available for a Dart
-  // member.
-  @JSName('location')
-  _protect_location() native;
-
-  static _isDartLocation(thing) {
-    // On Firefox the code that implements 'is Location' fails to find the patch
-    // stub on Object.prototype and throws an exception.
-    try {
-      return thing is Location;
-    } catch (e) {
-      return false;
-    }
   }
 
   /**
@@ -35328,7 +35285,7 @@ void _registerCustomElement(context, document, String tag, Type type,
   if (extendsTagName == null) {
     if (baseClassName != 'HTMLElement') {
       throw new UnsupportedError('Class must provide extendsTag if base '
-          'native class is not HTMLElement');
+          'native class is not HtmlElement');
     }
   } else {
     if (!JS('bool', '(#.createElement(#) instanceof window[#])',
@@ -35368,6 +35325,63 @@ void _registerCustomElement(context, document, String tag, Type type,
 //// Called by Element.created to do validation & initialization.
 void _initializeCustomElement(Element e) {
   // TODO(blois): Add validation that this is only in response to an upgrade.
+}
+
+/// Dart2JS implementation of ElementUpgrader
+class _JSElementUpgrader implements ElementUpgrader {
+  var _interceptor;
+  var _constructor;
+  var _nativeType;
+
+  _JSElementUpgrader(Document document, Type type, String extendsTag) {
+    var interceptorClass = findInterceptorConstructorForType(type);
+    if (interceptorClass == null) {
+      throw new ArgumentError(type);
+    }
+
+    _constructor = findConstructorForNativeSubclassType(type, 'created');
+    if (_constructor == null) {
+      throw new ArgumentError("$type has no constructor called 'created'");
+    }
+
+    // Workaround for 13190- use an article element to ensure that HTMLElement's
+    // interceptor is resolved correctly.
+    getNativeInterceptor(new Element.tag('article'));
+
+    var baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
+    if (baseClassName == null) {
+      throw new ArgumentError(type);
+    }
+
+    if (extendsTag == null) {
+      if (baseClassName != 'HTMLElement') {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HtmlElement');
+      }
+      _nativeType = HtmlElement;
+    } else {
+      var element = document.createElement(extendsTag);
+      if (!JS('bool', '(# instanceof window[#])',
+          element, baseClassName)) {
+        throw new UnsupportedError(
+            'extendsTag does not match base native class');
+      }
+      _nativeType = element.runtimeType;
+    }
+
+    _interceptor = JS('=Object', '#.prototype', interceptorClass);
+  }
+
+  Element upgrade(Element element) {
+    // Only exact type matches are supported- cannot be a subclass.
+    if (element.runtimeType != _nativeType) {
+      throw new ArgumentError('element is not subclass of $_nativeType');
+    }
+
+    setNativeSubclassDispatchRecord(element, _interceptor);
+    JS('', '#(#)', _constructor, element);
+    return element;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35723,94 +35737,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get repeat => throw new UnimplementedError();
   dynamic get _get_view => throw new UnimplementedError();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// On Firefox 11, the object obtained from 'window.location' is very strange.
-// It can't be monkey-patched and seems immune to putting methods on
-// Object.prototype.  We are forced to wrap the object.
-
-class _LocationWrapper implements Location {
-
-  final _ptr;  // Opaque reference to real location.
-
-  _LocationWrapper(this._ptr);
-
-  // TODO(sra): Replace all the _set and _get calls with 'JS' forms.
-
-  // final List<String> ancestorOrigins;
-  List<String> get ancestorOrigins => _get(_ptr, 'ancestorOrigins');
-
-  // String hash;
-  String get hash => _get(_ptr, 'hash');
-  void set hash(String value) {
-    _set(_ptr, 'hash', value);
-  }
-
-  // String host;
-  String get host => _get(_ptr, 'host');
-  void set host(String value) {
-    _set(_ptr, 'host', value);
-  }
-
-  // String hostname;
-  String get hostname => _get(_ptr, 'hostname');
-  void set hostname(String value) {
-    _set(_ptr, 'hostname', value);
-  }
-
-  // String href;
-  String get href => _get(_ptr, 'href');
-  void set href(String value) {
-    _set(_ptr, 'href', value);
-  }
-
-  // final String origin;
-  String get origin {
-    if (JS('bool', '("origin" in #)', _ptr)) {
-      return JS('String', '#.origin', _ptr);
-    }
-    return '${this.protocol}//${this.host}';
-  }
-
-  // String pathname;
-  String get pathname => _get(_ptr, 'pathname');
-  void set pathname(String value) {
-    _set(_ptr, 'pathname', value);
-  }
-
-  // String port;
-  String get port => _get(_ptr, 'port');
-  void set port(String value) {
-    _set(_ptr, 'port', value);
-  }
-
-  // String protocol;
-  String get protocol => _get(_ptr, 'protocol');
-  void set protocol(String value) {
-    _set(_ptr, 'protocol', value);
-  }
-
-  // String search;
-  String get search => _get(_ptr, 'search');
-  void set search(String value) {
-    _set(_ptr, 'search', value);
-  }
-
-  void assign(String url) => JS('void', '#.assign(#)', _ptr, url);
-
-  void reload() => JS('void', '#.reload()', _ptr);
-
-  void replace(String url) => JS('void', '#.replace(#)', _ptr, url);
-
-  String toString() => JS('String', '#.toString()', _ptr);
-
-
-  static _get(p, m) => JS('var', '#[#]', p, m);
-  static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35900,6 +35826,15 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
 ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
+
+/// A utility for changing the Dart wrapper type for elements.
+abstract class ElementUpgrader {
+  /// Upgrade the specified element to be of the Dart type this was created for.
+  ///
+  /// After upgrading the element passed in is invalid and the returned value
+  /// should be used instead.
+  Element upgrade(Element element);
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

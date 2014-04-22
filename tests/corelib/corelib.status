@@ -42,10 +42,6 @@ string_from_environment3_test/02: Fail
 string_from_environment3_test/03: Fail
 string_from_environment3_test/04: Fail
 
-[ $compiler == dartanalyzer ]
-string_from_environment_test: Crash # http://dartbug.com/17234
-int_from_environment2_test: Crash # http://dartbug.com/17234
-
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
@@ -109,10 +105,10 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt || $runtime == safari) ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == safari) ]
 string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && ( $runtime == drt) ]
 string_case_test/02: Fail, OK  # Bug in our version of V8.
 
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]

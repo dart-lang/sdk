@@ -55,7 +55,7 @@ class CacheAddCommand extends PubCommand {
     }
 
     // TODO(rnystrom): Support installing from git too.
-    var source = this.cache.sources["hosted"];
+    var source = cache.sources["hosted"];
 
     // TODO(rnystrom): Allow specifying the server.
     return source.getVersions(package, package).then((versions) {

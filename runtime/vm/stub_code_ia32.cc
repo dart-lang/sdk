@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
 
 
 // Input parameters:
@@ -52,6 +53,19 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // to transition to Dart VM C++ code.
   __ movl(Address(EAX, Isolate::top_exit_frame_info_offset()), ESP);
 
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EAX, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: call to runtime stub");
+    __ Bind(&ok);
+  }
+#endif
+
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EAX, Isolate::top_context_offset()), CTX);
 
@@ -70,7 +84,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
@@ -160,6 +174,20 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // to transition to dart VM code.
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
 
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: "
+            "call to native c function stub");
+    __ Bind(&ok);
+  }
+#endif
+
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
 
@@ -178,8 +206,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kRuntimeNativeTagId));
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
@@ -260,6 +287,20 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // to transition to dart VM code.
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
 
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    Label ok;
+    // Check that the isolate's saved ctx is null.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Found non-null incoming top context: "
+            "call to bootstrap c function stub");
+    __ Bind(&ok);
+  }
+#endif
+
   // Save current Context pointer into Isolate structure.
   __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
 
@@ -278,8 +319,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kRuntimeNativeTagId));
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
@@ -700,82 +740,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 }
 
 
-// Input parameters:
-//   EDX: Arguments descriptor array.
-// Note: The closure object is the first argument to the function being
-//       called, the stub accesses the closure from this location directly
-//       when trying to resolve the call.
-// Uses EDI.
-void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-
-  // Load num_args.
-  __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  // Load closure object in EDI.
-  __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));  // EAX is a Smi.
-
-  // Verify that EDI is a closure by checking its class.
-  Label not_closure;
-  __ cmpl(EDI, raw_null);
-  // Not a closure, but null object.
-  __ j(EQUAL, &not_closure, Assembler::kNearJump);
-  __ testl(EDI, Immediate(kSmiTagMask));
-  __ j(ZERO, &not_closure, Assembler::kNearJump);  // Not a closure, but a smi.
-  // Verify that the class of the object is a closure class by checking that
-  // class.signature_function() is not null.
-  __ LoadClass(EAX, EDI, ECX);
-  __ movl(EAX, FieldAddress(EAX, Class::signature_function_offset()));
-  __ cmpl(EAX, raw_null);
-  // Actual class is not a closure class.
-  __ j(EQUAL, &not_closure, Assembler::kNearJump);
-
-  // EAX is just the signature function. Load the actual closure function.
-  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
-
-  // EBX: Code (compiled code or lazy compile stub).
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-
-  // EAX: Function.
-  // EDX: Arguments descriptor array.
-  // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ xorl(ECX, ECX);
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(EBX);
-
-  __ Bind(&not_closure);
-  // Call runtime to attempt to resolve and invoke a call method on a
-  // non-closure object, passing the non-closure object and its arguments array,
-  // returning here.
-  // If no call method exists, throw a NoSuchMethodError.
-  // EDI: non-closure object.
-  // EDX: arguments descriptor array.
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  __ pushl(raw_null);  // Setup space on stack for result from error reporting.
-  __ pushl(EDX);  // Arguments descriptor.
-  // Load smi-tagged arguments array length, including the non-closure.
-  __ movl(EDX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  PushArgumentsArray(assembler);
-
-  __ CallRuntime(kInvokeNonClosureRuntimeEntry, 2);
-  // Remove arguments.
-  __ Drop(2);
-  __ popl(EAX);  // Get result into EAX.
-
-  // Remove the stub frame as we are about to return.
-  __ LeaveFrame();
-  __ ret();
-}
-
-
 // Called when invoking dart code from C++ (VM code).
 // Input parameters:
 //   ESP : points to return address.
@@ -839,6 +803,18 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(kSavedContextSlotFromEntryFp == -6);
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
+
+  // TODO(turnidge): This code should probably be emitted all the time
+  // on all architectures but I am leaving it under DEBUG/flag for
+  // now.
+#if defined(DEBUG)
+  if (FLAG_verify_incoming_contexts) {
+    // Clear Context pointer in Isolate structure.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ movl(Address(EDI, Isolate::top_context_offset()), raw_null);
+  }
+#endif
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));

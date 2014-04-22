@@ -472,7 +472,7 @@ class ResolverTask extends CompilerTask {
         }
       }
       element.parseNode(compiler);
-      element.computeSignature(compiler);
+      element.computeType(compiler);
       if (element.isPatched) {
         FunctionElementX patch = element.patch;
         compiler.withCurrentElement(patch, () {

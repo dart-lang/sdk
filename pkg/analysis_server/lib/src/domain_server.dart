@@ -53,11 +53,6 @@ class ServerDomainHandler implements RequestHandler {
   static const String SDK_DIRECTORY_PARAM = 'sdkDirectory';
 
   /**
-   * The name of the contextId result value.
-   */
-  static const String CONTEXT_ID_RESULT = 'contextId';
-
-  /**
    * The name of the version result value.
    */
   static const String VERSION_RESULT = 'version';
@@ -97,14 +92,12 @@ class ServerDomainHandler implements RequestHandler {
    * Clients, therefore, are responsible for managing the lifetime of contexts.
    */
   Response createContext(Request request) {
-    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM);
-    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM);
+    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM).asString();
+    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM, {}).asStringMap();
 
-    String baseContextId = new DateTime.now().millisecondsSinceEpoch.toRadixString(16);
-    String contextId = baseContextId;
-    int index = 1;
-    while (server.contextMap.containsKey(contextId)) {
-      contextId = '$baseContextId-$index';
+    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
+    if (server.contextMap.containsKey(contextId)) {
+      return new Response.contextAlreadyExists(request);
     }
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(brianwilkerson) Use the information from the request to set the
@@ -125,7 +118,6 @@ class ServerDomainHandler implements RequestHandler {
     server.contextMap[contextId] = context;
 
     Response response = new Response(request.id);
-    response.setResult(CONTEXT_ID_RESULT, contextId);
     return response;
   }
 
@@ -134,7 +126,7 @@ class ServerDomainHandler implements RequestHandler {
    * will result in an error being returned.
    */
   Response deleteContext(Request request) {
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM);
+    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
 
     AnalysisContext removedContext = server.contextMap.remove(contextId);
     if (removedContext == null) {

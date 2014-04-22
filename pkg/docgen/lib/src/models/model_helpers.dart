@@ -4,16 +4,76 @@
 
 library docgen.model_helpers;
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
-    as dart2js_mirrors;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../../sdk/lib/_internal/libraries.dart';
+import 'dart:collection';
 
-import 'library_helpers.dart' show includePrivateMembers;
-import 'models.dart';
-import 'package_helpers.dart';
+import '../exports/dart2js_mirrors.dart' as dart2js_mirrors;
+import '../exports/mirrors_util.dart' as dart2js_util;
+import '../exports/source_mirrors.dart';
+import '../exports/libraries.dart';
+
+import '../library_helpers.dart' show includePrivateMembers;
+import '../package_helpers.dart';
+
+import 'annotation.dart';
+import 'generic.dart';
+import 'indexable.dart';
+import 'library.dart';
+import 'method.dart';
+import 'parameter.dart';
+import 'variable.dart';
+
+String getLibraryDocName(LibraryMirror mirror) =>
+    dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
+
+/// Expand the method map [mapToExpand] into a more detailed map that
+/// separates out setters, getters, constructors, operators, and methods.
+Map expandMethodMap(Map<String, Method> mapToExpand) => {
+  'setters': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isSetter)),
+  'getters': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isGetter)),
+  'constructors': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isConstructor)),
+  'operators': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isOperator)),
+  'methods': recurseMap(filterMap(mapToExpand,
+      (key, val) => val.mirror.isRegularMethod && !val.mirror.isOperator))
+};
+
+String getDefaultValue(ParameterMirror mirror) {
+  if (!mirror.hasDefaultValue) return null;
+  return getDefaultValueFromConstMirror(mirror.defaultValue);
+}
+
+String getDefaultValueFromConstMirror(
+    dart2js_mirrors.Dart2JsConstantMirror valueMirror) {
+
+  if (valueMirror is dart2js_mirrors.Dart2JsStringConstantMirror) {
+    return '"${valueMirror.reflectee}"';
+  }
+
+  if (valueMirror is dart2js_mirrors.Dart2JsListConstantMirror) {
+    var buffer = new StringBuffer('[');
+
+    var values = new Iterable.generate(valueMirror.length,
+        (i) => valueMirror.getElement(i))
+        .map((e) => getDefaultValueFromConstMirror(e));
+
+    buffer.writeAll(values, ', ');
+
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  if (valueMirror is dart2js_mirrors.Dart2JsMapConstantMirror) {
+    // TODO(kevmoo) Handle non-empty case
+    if (valueMirror.length == 0) return '{}';
+  }
+
+  // TODO(kevmoo) Handle consts of non-core types
+
+  return '${valueMirror}';
+}
 
 /// Returns a list of meta annotations assocated with a mirror.
 List<Annotation> createAnnotations(DeclarationMirror mirror,
@@ -47,7 +107,7 @@ bool isHidden(DeclarationSourceMirror mirror) {
 
 /// Transforms the map by calling toMap on each value in it.
 Map recurseMap(Map inputMap) {
-  var outputMap = {};
+  var outputMap = new SplayTreeMap();
   inputMap.forEach((key, value) {
     if (value is Map) {
       outputMap[key] = recurseMap(value);

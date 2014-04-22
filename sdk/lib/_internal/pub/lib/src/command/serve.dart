@@ -9,7 +9,7 @@ import 'dart:math' as math;
 
 import 'package:barback/barback.dart';
 
-import '../barback/build_environment.dart';
+import '../barback/asset_environment.dart';
 import '../barback/pub_package_provider.dart';
 import '../log.dart' as log;
 import '../utils.dart';
@@ -86,7 +86,7 @@ class ServeCommand extends BarbackCommand {
     var watcherType = commandOptions['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
-    return BuildEnvironment.create(entrypoint, hostname, port, mode,
+    return AssetEnvironment.create(entrypoint, hostname, port, mode,
         watcherType, useDart2JS: useDart2JS).then((environment) {
 
       var directoryLength = sourceDirectories.map((dir) => dir.length)
@@ -132,7 +132,7 @@ class ServeCommand extends BarbackCommand {
     });
   }
 
-  Future _startServer(BuildEnvironment environment, String rootDirectory,
+  Future _startServer(AssetEnvironment environment, String rootDirectory,
       int directoryLength) {
     return environment.serveDirectory(rootDirectory).then((server) {
       // In release mode, strip out .dart files since all relevant ones have

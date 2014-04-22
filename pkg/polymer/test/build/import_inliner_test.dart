@@ -436,6 +436,8 @@ void importTests() {
           '<link rel="import" href="test_1.html">'
           '</head><body><polymer-element>2</polymer-element>'
           '<script type="application/dart" src="s2.dart"></script></html>',
+      'a|web/s1.dart': '',
+      'a|web/s2.dart': '',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -484,6 +486,8 @@ void importTests() {
           '<script type="application/dart;component=1" src="s2.dart"></script>'
           '</polymer-element>'
           '</html>',
+      'a|web/s1.dart': '',
+      'a|web/s2.dart': '',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -525,6 +529,7 @@ void importTests() {
           '<script type="application/dart;component=1" src="s1.dart"></script>'
           '</polymer-element>'
           'FOO</body></html>',
+      'a|web/s1.dart': '',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -813,6 +818,4 @@ void stylesheetTests() {
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
     });
-
 }
-

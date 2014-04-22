@@ -58,6 +58,11 @@ class AssetNode {
   /// lazy.
   Function _lazyCallback;
 
+  /// Whether this asset's transform is deferred.
+  ///
+  /// See [TransformNode.deferred].
+  bool get deferred => transform != null && transform.deferred;
+
   /// A broadcast stream that emits an event whenever the node changes state.
   ///
   /// This stream is synchronous to ensure that when a source asset is modified
@@ -191,9 +196,14 @@ class AssetNodeController {
   /// Marks the node as [AssetState.DIRTY].
   void setDirty() {
     assert(node._state != AssetState.REMOVED);
-    node._state = AssetState.DIRTY;
     node._asset = null;
     node._lazyCallback = null;
+
+    // Don't re-emit a dirty event to avoid cases where we try to dispatch an
+    // event while handling another event (e.g. an output is marked lazy, which
+    // causes it to be forced, which causes it to be marked dirty).
+    if (node._state.isDirty) return;
+    node._state = AssetState.DIRTY;
     node._stateChangeController.add(AssetState.DIRTY);
   }
 

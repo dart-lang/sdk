@@ -16,7 +16,7 @@ import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'base_server.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 
 /// Callback for determining if an asset with [id] should be served or not.
 typedef bool AllowAsset(AssetId id);
@@ -40,16 +40,11 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// If this is `null`, all assets may be served.
   AllowAsset allowAsset;
 
-  // TODO(rnystrom): Remove this when the Editor is using the admin server.
-  // port. See #17640.
-  /// All currently open [WebSocket] connections.
-  final _webSockets = new Set<WebSocket>();
-
   /// Creates a new server and binds it to [port] of [host].
   ///
   /// This server will serve assets from [barback], and use [rootDirectory] as
   /// the root directory.
-  static Future<BarbackServer> bind(BuildEnvironment environment,
+  static Future<BarbackServer> bind(AssetEnvironment environment,
       String host, int port, String rootDirectory) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
       log.fine('Bound "$rootDirectory" to $host:$port.');
@@ -57,18 +52,9 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
     });
   }
 
-  BarbackServer._(BuildEnvironment environment, HttpServer server,
+  BarbackServer._(AssetEnvironment environment, HttpServer server,
       this.rootDirectory)
       : super(environment, server);
-
-  // TODO(rnystrom): Remove this when the Editor is using the admin server.
-  // port. See #17640.
-  /// Closes the server.
-  Future close() {
-    var futures = [super.close()];
-    futures.addAll(_webSockets.map((socket) => socket.close()));
-    return Future.wait(futures);
-  }
 
   /// Converts a [url] served by this server into an [AssetId] that can be
   /// requested from barback.
@@ -115,6 +101,25 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
           error: "Asset $id is not available in this configuration.",
           asset: id);
       return;
+    }
+
+    // TODO(rnystrom): Remove this when #16647 is fixed.
+    // The "assets" path is deprecated so warn if the user is relying on it.
+    // We do this here in pub serve so we only warn if they in fact actually
+    // use an asset from a package's "asset" directory.
+    if (id.path.startsWith("asset/")) {
+      var message = 'Warning: Support for the "asset" directory is deprecated '
+          'and will be removed soon.\n';
+
+      var fixed = id.path.replaceAll(new RegExp(r"^asset/"), "lib/");
+      if (id.package == environment.rootPackage.name) {
+        message += 'Please move "${id.path}" to "$fixed".';
+      } else {
+        message += 'Please ask the maintainer of "${id.package}" to move '
+            '"${id.path}" to "$fixed".';
+      }
+
+      log.warning(log.yellow(message));
     }
 
     logRequest(request, "Loading $id");

@@ -126,6 +126,7 @@ class _FileStream extends Stream<List<int>> {
     if (_position < 0) {
       _controller.addError(new RangeError("Bad start position: $_position"));
       _controller.close();
+      _closeCompleter.complete();
       return;
     }
 

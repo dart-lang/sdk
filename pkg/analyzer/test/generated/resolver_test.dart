@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:unittest/unittest.dart' as _ut;
@@ -658,7 +657,13 @@ class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
     ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     IndexExpression indexExpression = statement.expression as IndexExpression;
-    JUnitTestCase.assertSame(typeProvider.intType, indexExpression.propagatedType);
+    JUnitTestCase.assertNull(indexExpression.propagatedType);
+    Expression v = indexExpression.target;
+    InterfaceType propagatedType = v.propagatedType as InterfaceType;
+    JUnitTestCase.assertSame(typeProvider.listType.element, propagatedType.element);
+    List<DartType> typeArguments = propagatedType.typeArguments;
+    EngineTestCase.assertLength(1, typeArguments);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[0]);
   }
 
   void test_mapLiteral_different() {
@@ -701,8 +706,8 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeProvider.mapType.element, propagatedType.element);
     List<DartType> typeArguments = propagatedType.typeArguments;
     EngineTestCase.assertLength(2, typeArguments);
-    JUnitTestCase.assertSame(typeProvider.stringType, typeArguments[0]);
-    JUnitTestCase.assertSame(typeProvider.intType, typeArguments[1]);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[0]);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[1]);
   }
 
   void test_propagatedReturnType_function_hasReturnType_returnsNull() {
@@ -1728,7 +1733,8 @@ class NonErrorResolverTest extends ResolverTestCase {
         "class A<E extends num> {",
         "  A(E x, E y);",
         "}",
-        "class B<E extends num> = A<E>;",
+        "class M {}",
+        "class B<E extends num> = A<E> with M;",
         "void main() {",
         "   B<int> x = new B<int>(0,0);",
         "}"]));
@@ -1926,6 +1932,26 @@ class NonErrorResolverTest extends ResolverTestCase {
         "  void call() {}",
         "}",
         "class D extends C {",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_doesNotImplementFunction() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_withNoSuchMethod() {
+    // 16078
+    Source source = addSource(EngineTestCase.createSource([
+        "class A implements Function {",
+        "  noSuchMethod(inv) {",
+        "    return 42;",
+        "  }",
         "}"]));
     resolve(source);
     assertNoErrors(source);
@@ -2808,6 +2834,24 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invocationOfNonFunction_proxyOnFunctionClass() {
+    // 16078
+    Source source = addSource(EngineTestCase.createSource([
+        "@proxy",
+        "class Functor implements Function {",
+        "  noSuchMethod(inv) {",
+        "    return 42;",
+        "  }",
+        "}",
+        "main() {",
+        "  Functor f = new Functor();",
+        "  f();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   void test_listElementTypeNotAssignable() {
     Source source = addSource(EngineTestCase.createSource(["var v1 = <int> [42];", "var v2 = const <int> [42];"]));
     resolve(source);
@@ -3681,6 +3725,19 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_proxy_annotation_proxyHasPrefixedIdentifier() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "import 'dart:core' as core;",
+        "@core.proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo;",
+        "  new PrefixProxy().foo();",
+        "}"]));
     resolve(source);
     assertNoErrors(source);
   }
@@ -5078,6 +5135,14 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_functionWithoutCall);
       });
+      _ut.test('test_functionWithoutCall_doesNotImplementFunction', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall_doesNotImplementFunction);
+      });
+      _ut.test('test_functionWithoutCall_withNoSuchMethod', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall_withNoSuchMethod);
+      });
       _ut.test('test_implicitThisReferenceInInitializer_constructorName', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_constructorName);
@@ -5369,6 +5434,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_invocationOfNonFunction_localVariable_dynamic2', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable_dynamic2);
+      });
+      _ut.test('test_invocationOfNonFunction_proxyOnFunctionClass', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_proxyOnFunctionClass);
       });
       _ut.test('test_listElementTypeNotAssignable', () {
         final __test = new NonErrorResolverTest();
@@ -5677,6 +5746,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_proxy_annotation_prefixed3', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_proxy_annotation_prefixed3);
+      });
+      _ut.test('test_proxy_annotation_proxyHasPrefixedIdentifier', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_proxyHasPrefixedIdentifier);
       });
       _ut.test('test_proxy_annotation_simple', () {
         final __test = new NonErrorResolverTest();
@@ -6326,6 +6399,19 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
     verify([source]);
+  }
+
+  void test_ambiguousImport_function() {
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "g() { return f(); }"]));
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f() {}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "f() {}"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
   void test_expectedOneListTypeArgument() {
@@ -7177,8 +7263,55 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedFunction() {
+    Source source = addSource(EngineTestCase.createSource(["void f() {", "  g();", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+  }
+
+  void test_undefinedFunction_hasImportPrefix() {
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as f;", "main() { return f(); }"]));
+    addNamedSource("/lib.dart", "library lib;");
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+  }
+
+  void test_undefinedFunction_inCatch() {
+    Source source = addSource(EngineTestCase.createSource([
+        "void f() {",
+        "  try {",
+        "  } on Object {",
+        "    g();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+  }
+
+  void test_undefinedFunction_inImportedLib() {
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as f;", "main() { return f.g(); }"]));
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["library lib;", "h() {}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+  }
+
   void test_undefinedGetter() {
     Source source = addSource(EngineTestCase.createSource(["class T {}", "f(T e) { return e.m; }"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
+  void test_undefinedGetter_proxy_annotation_fakeProxy() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class Fake {",
+        "  const Fake();",
+        "}",
+        "const proxy = const Fake();",
+        "@proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo;",
+        "}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
@@ -7281,6 +7414,21 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  test() {",
         "    _foo();",
         "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void test_undefinedMethod_proxy_annotation_fakeProxy() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class Fake {",
+        "  const Fake();",
+        "}",
+        "const proxy = const Fake();",
+        "@proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo();",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
@@ -7400,7 +7548,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   void test_wrongNumberOfTypeArguments_classAlias() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B<F extends num> = A<F>;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class B<F extends num> = A<F> with M;"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
     verify([source]);
@@ -7446,6 +7597,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
 
   static dartSuite() {
     _ut.group('StaticTypeWarningCodeTest', () {
+      _ut.test('test_ambiguousImport_function', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_ambiguousImport_function);
+      });
       _ut.test('test_expectedOneListTypeArgument', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_expectedOneListTypeArgument);
@@ -7766,9 +7921,29 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_typePromotion_if_with_notMoreSpecific_dynamic);
       });
+      _ut.test('test_undefinedFunction', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedFunction);
+      });
+      _ut.test('test_undefinedFunction_hasImportPrefix', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedFunction_hasImportPrefix);
+      });
+      _ut.test('test_undefinedFunction_inCatch', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedFunction_inCatch);
+      });
+      _ut.test('test_undefinedFunction_inImportedLib', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedFunction_inImportedLib);
+      });
       _ut.test('test_undefinedGetter', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedGetter);
+      });
+      _ut.test('test_undefinedGetter_proxy_annotation_fakeProxy', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_proxy_annotation_fakeProxy);
       });
       _ut.test('test_undefinedGetter_static', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -7805,6 +7980,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedMethod_private', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedMethod_private);
+      });
+      _ut.test('test_undefinedMethod_proxy_annotation_fakeProxy', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_proxy_annotation_fakeProxy);
       });
       _ut.test('test_undefinedOperator_indexBoth', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -9804,6 +9983,16 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * In the rare cases we want to group several tests into single "test_" method, so need a way to
+   * reset test instance to reuse it.
+   *
+   * @param options the analysis options for the context
+   */
+  void resetWithOptions(AnalysisOptions options) {
+    _analysisContext = AnalysisContextFactory.contextWithCoreAndOptions(options);
+  }
+
+  /**
    * Given a library and all of its parts, resolve the contents of the library and the contents of
    * the parts. This assumes that the sources for the library and its parts have already been added
    * to the content provider using the method [addNamedSource].
@@ -11204,19 +11393,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_ambiguousImport_function() {
-    Source source = addSource(EngineTestCase.createSource([
-        "import 'lib1.dart';",
-        "import 'lib2.dart';",
-        "g() { return f(); }"]));
-    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f() {}"]));
-    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "f() {}"]));
-    resolve(source);
-    assertErrors(source, [
-        StaticWarningCode.AMBIGUOUS_IMPORT,
-        CompileTimeErrorCode.UNDEFINED_FUNCTION]);
-  }
-
   void test_builtInIdentifierAsMixinName_classTypeAlias() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class as = A with B;"]));
     resolve(source);
@@ -12067,42 +12243,42 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   void test_extendsDisallowedClass_classTypeAlias_bool() {
-    Source source = addSource(EngineTestCase.createSource(["class C = bool;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = bool with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_classTypeAlias_double() {
-    Source source = addSource(EngineTestCase.createSource(["class C = double;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = double with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_classTypeAlias_int() {
-    Source source = addSource(EngineTestCase.createSource(["class C = int;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = int with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_classTypeAlias_Null() {
-    Source source = addSource(EngineTestCase.createSource(["class C = Null;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = Null with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_classTypeAlias_num() {
-    Source source = addSource(EngineTestCase.createSource(["class C = num;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = num with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_classTypeAlias_String() {
-    Source source = addSource(EngineTestCase.createSource(["class C = String;"]));
+    Source source = addSource(EngineTestCase.createSource(["class M {}", "class C = String with M;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
@@ -12369,49 +12545,70 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   void test_implementsDisallowedClass_classTypeAlias_bool() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements bool;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements bool;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_double() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements double;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements double;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_int() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements int;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements int;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_Null() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements Null;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements Null;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_num() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements num;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements num;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_String() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements String;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements String;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   void test_implementsDisallowedClass_classTypeAlias_String_num() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements String, num;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "class C = A with M implements String, num;"]));
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
@@ -12434,7 +12631,11 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   void test_implementsNonClass_typeAlias() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "int B;", "class C = A implements B;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class M {}",
+        "int B;",
+        "class C = A with M implements B;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
     verify([source]);
@@ -14209,31 +14410,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_undefinedFunction() {
-    Source source = addSource(EngineTestCase.createSource(["void f() {", "  g();", "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_FUNCTION]);
-  }
-
-  void test_undefinedFunction_hasImportPrefix() {
-    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as f;", "main() { return f(); }"]));
-    addNamedSource("/lib.dart", "library lib;");
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_FUNCTION]);
-  }
-
-  void test_undefinedFunction_inCatch() {
-    Source source = addSource(EngineTestCase.createSource([
-        "void f() {",
-        "  try {",
-        "  } on Object {",
-        "    g();",
-        "  }",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_FUNCTION]);
-  }
-
   void test_undefinedNamedParameter() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -14435,10 +14611,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_ambiguousExport', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_ambiguousExport);
-      });
-      _ut.test('test_ambiguousImport_function', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_ambiguousImport_function);
       });
       _ut.test('test_builtInIdentifierAsMixinName_classTypeAlias', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -15728,18 +15900,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_undefinedConstructorInInitializer_implicit);
       });
-      _ut.test('test_undefinedFunction', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_undefinedFunction);
-      });
-      _ut.test('test_undefinedFunction_hasImportPrefix', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_undefinedFunction_hasImportPrefix);
-      });
-      _ut.test('test_undefinedFunction_inCatch', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_undefinedFunction_inCatch);
-      });
       _ut.test('test_undefinedNamedParameter', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_undefinedNamedParameter);
@@ -16037,10 +16197,9 @@ class StrictModeTest extends ResolverTestCase {
 
   @override
   void setUp() {
-    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.hint = false;
-    analysisContext.analysisOptions = options;
+    resetWithOptions(options);
   }
 
   void test_assert_is() {
@@ -21278,7 +21437,23 @@ class AnalysisContextFactory {
    *
    * @return the analysis context that was created
    */
-  static AnalysisContextImpl contextWithCore() => initContextWithCore(new DelegatingAnalysisContextImpl());
+  static AnalysisContextImpl contextWithCore() {
+    AnalysisContextImpl context = new AnalysisContextImpl_AnalysisContextFactory_contextWithCore();
+    return initContextWithCore(context);
+  }
+
+  /**
+   * Create an analysis context that uses the given options and has a fake core library already
+   * resolved.
+   *
+   * @param options the options to be applied to the context
+   * @return the analysis context that was created
+   */
+  static AnalysisContextImpl contextWithCoreAndOptions(AnalysisOptions options) {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    context.analysisOptions = options;
+    return initContextWithCore(context);
+  }
 
   /**
    * Initialize the given analysis context with a fake core library already resolved.
@@ -21287,16 +21462,19 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
-    AnalysisContext sdkContext = DirectoryBasedDartSdk.defaultSdk.context;
-    SourceFactory sourceFactory = sdkContext.sourceFactory;
+    SourceFactory sourceFactory = new SourceFactory([
+        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
+        new FileUriResolver()]);
+    context.sourceFactory = sourceFactory;
     //
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    sdkContext.setContents(coreSource, "");
+    context.setContents(coreSource, "");
     coreUnit.source = coreSource;
+    ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy", []);
     coreUnit.types = <ClassElement> [
         provider.boolType.element,
         provider.deprecatedType.element,
@@ -21308,12 +21486,13 @@ class AnalysisContextFactory {
         provider.nullType.element,
         provider.numType.element,
         provider.objectType.element,
+        proxyClassElement,
         provider.stackTraceType.element,
         provider.stringType.element,
         provider.symbolType.element,
         provider.typeType.element];
     coreUnit.functions = <FunctionElement> [ElementFactory.functionElement3("identical", provider.boolType.element, <ClassElement> [provider.objectType.element, provider.objectType.element], null)];
-    TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory.topLevelVariableElement3("proxy", true, false, ElementFactory.classElement2("_Proxy", []).type);
+    TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory.topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
     TopLevelVariableElement deprecatedTopLevelVariableElt = ElementFactory.topLevelVariableElement3("deprecated", true, false, provider.deprecatedType);
     coreUnit.accessors = <PropertyAccessorElement> [
         proxyTopLevelVariableElt.getter,
@@ -21321,14 +21500,14 @@ class AnalysisContextFactory {
         deprecatedTopLevelVariableElt.getter,
         deprecatedTopLevelVariableElt.setter];
     coreUnit.topLevelVariables = <TopLevelVariableElement> [proxyTopLevelVariableElt, deprecatedTopLevelVariableElt];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, AstFactory.libraryIdentifier2(["dart", "core"]));
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    sdkContext.setContents(htmlSource, "");
+    context.setContents(htmlSource, "");
     htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
     InterfaceType elementType = elementElement.type;
@@ -21349,17 +21528,25 @@ class AnalysisContextFactory {
     TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
     htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl(sdkContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
     elementMap[htmlSource] = htmlLibrary;
-    (sdkContext as AnalysisContextImpl).recordLibraryElements(elementMap);
-    sourceFactory = new SourceFactory([
-        new DartUriResolver(sdkContext.sourceFactory.dartSdk),
-        new FileUriResolver()]);
-    context.sourceFactory = sourceFactory;
+    context.recordLibraryElements(elementMap);
     return context;
+  }
+}
+
+class AnalysisContextImpl_AnalysisContextFactory_contextWithCore extends AnalysisContextImpl {
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    AnalysisOptions currentOptions = analysisOptions;
+    bool needsRecompute = currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies || currentOptions.generateSdkErrors != options.generateSdkErrors || currentOptions.dart2jsHint != options.dart2jsHint || (currentOptions.hint && !options.hint) || currentOptions.preserveComments != options.preserveComments;
+    if (needsRecompute) {
+      JUnitTestCase.fail("Cannot set options that cause the sources to be reanalyzed in a test context");
+    }
+    super.analysisOptions = options;
   }
 }
 
@@ -22786,8 +22973,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       EngineTestCase.assertSizeOfMap(0, namedTypes);
     } else {
       EngineTestCase.assertSizeOfMap(expectedNamedTypes.length, namedTypes);
-      for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(expectedNamedTypes); iter.moveNext();) {
-        JUnitTestCase.assertSame(iter.value, namedTypes[iter.key]);
+      for (MapEntry<String, DartType> entry in getMapEntrySet(expectedNamedTypes)) {
+        JUnitTestCase.assertSame(entry.getValue(), namedTypes[entry.getKey()]);
       }
     }
     JUnitTestCase.assertSame(expectedReturnType, functionType.returnType);
@@ -25591,6 +25778,79 @@ class SubtypeManagerTest extends EngineTestCase {
   }
 }
 
+class ChangeSetTest extends EngineTestCase {
+  void test_changedContent() {
+    TestSource source = new TestSource();
+    String content = "";
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedContent(source, content);
+    EngineTestCase.assertSizeOfList(0, changeSet.addedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.changedSources);
+    Map<Source, String> map = changeSet.changedContents;
+    EngineTestCase.assertSizeOfMap(1, map);
+    JUnitTestCase.assertSame(content, map[source]);
+    EngineTestCase.assertSizeOfMap(0, changeSet.changedRanges);
+    EngineTestCase.assertSizeOfList(0, changeSet.deletedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.removedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.removedContainers);
+  }
+
+  void test_changedRange() {
+    TestSource source = new TestSource();
+    String content = "";
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedRange(source, content, 1, 2, 3);
+    EngineTestCase.assertSizeOfList(0, changeSet.addedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.changedSources);
+    EngineTestCase.assertSizeOfMap(0, changeSet.changedContents);
+    Map<Source, ChangeSet_ContentChange> map = changeSet.changedRanges;
+    EngineTestCase.assertSizeOfMap(1, map);
+    ChangeSet_ContentChange change = map[source];
+    JUnitTestCase.assertNotNull(change);
+    JUnitTestCase.assertEquals(content, change.contents);
+    JUnitTestCase.assertEquals(1, change.offset);
+    JUnitTestCase.assertEquals(2, change.oldLength);
+    JUnitTestCase.assertEquals(3, change.newLength);
+    EngineTestCase.assertSizeOfList(0, changeSet.deletedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.removedSources);
+    EngineTestCase.assertSizeOfList(0, changeSet.removedContainers);
+  }
+
+  void test_toString() {
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(new TestSource());
+    changeSet.changedSource(new TestSource());
+    changeSet.changedContent(new TestSource(), "");
+    changeSet.changedRange(new TestSource(), "", 0, 0, 0);
+    changeSet.deletedSource(new TestSource());
+    changeSet.removedSource(new TestSource());
+    changeSet.removedContainer(new SourceContainer_ChangeSetTest_test_toString());
+    JUnitTestCase.assertNotNull(changeSet.toString());
+  }
+
+  static dartSuite() {
+    _ut.group('ChangeSetTest', () {
+      _ut.test('test_changedContent', () {
+        final __test = new ChangeSetTest();
+        runJUnitTest(__test, __test.test_changedContent);
+      });
+      _ut.test('test_changedRange', () {
+        final __test = new ChangeSetTest();
+        runJUnitTest(__test, __test.test_changedRange);
+      });
+      _ut.test('test_toString', () {
+        final __test = new ChangeSetTest();
+        runJUnitTest(__test, __test.test_toString);
+      });
+    });
+  }
+}
+
+class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
+  @override
+  bool contains(Source source) => false;
+}
+
 class ScopeBuilderTest extends EngineTestCase {
   void test_scopeFor_ClassDeclaration() {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -25848,4 +26108,5 @@ main() {
 //  StaticWarningCodeTest.dartSuite();
 //  StrictModeTest.dartSuite();
 //  TypePropagationTest.dartSuite();
+//  ChangeSetTest.dartSuite();
 }

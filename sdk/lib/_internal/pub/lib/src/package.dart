@@ -15,6 +15,18 @@ final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
 
 /// A named, versioned, unit of code and resource reuse.
 class Package {
+  /// Compares [a] and [b] orders them by name then version number.
+  ///
+  /// This is normally used as a [Comparator] to pass to sort. This does not
+  /// take a package's description or root directory into account, so multiple
+  /// distinct packages may order the same.
+  static int orderByNameAndVersion(Package a, Package b) {
+    var name = a.name.compareTo(b.name);
+    if (name != 0) return name;
+
+    return a.version.compareTo(b.version);
+  }
+
   /// The path to the directory containing the package.
   final String dir;
 

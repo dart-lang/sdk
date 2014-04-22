@@ -183,6 +183,8 @@ class CustomElement implements Element {
     host.children = value;
   }
 
+  String get baseUri => host.baseUri;
+
   List<Element> get children => host.children;
 
   set children(List<Element> value) {

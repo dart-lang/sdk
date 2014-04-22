@@ -4,6 +4,9 @@
 
 library barback.test.barback_test;
 
+import 'dart:async';
+
+import 'package:barback/barback.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -73,5 +76,25 @@ main() {
       isTransformerException(equals(BadTransformer.ERROR)),
       isTransformerException(equals(BadTransformer.ERROR))
     ]));
+  });
+
+  // Regression test.
+  test("getAllAssets() is called synchronously after after initializing "
+      "barback", () {
+    var provider = new MockProvider({
+      "app|a.txt": "a",
+      "app|b.txt": "b",
+      "app|c.txt": "c"
+    });
+    var barback = new Barback(provider);
+    barback.updateSources([
+      new AssetId.parse("app|a.txt"),
+      new AssetId.parse("app|b.txt"),
+      new AssetId.parse("app|c.txt")
+    ]);
+
+    expect(barback.getAllAssets().then((assets) {
+      return Future.wait(assets.map((asset) => asset.readAsString()));
+    }), completion(unorderedEquals(["a", "b", "c"])));
   });
 }

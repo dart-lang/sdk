@@ -348,6 +348,11 @@ namespace dart {
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(LibraryPrefix_load, 1)                                                     \
+  V(UserTag_new, 2)                                                            \
+  V(UserTag_label, 1)                                                          \
+  V(UserTag_makeCurrent, 1)                                                    \
+  V(Profiler_getCurrentTag, 0)                                                 \
+  V(Profiler_clearCurrentTag, 0)                                               \
 
 
 class BootstrapNatives : public AllStatic {
@@ -355,6 +360,8 @@ class BootstrapNatives : public AllStatic {
   static Dart_NativeFunction Lookup(Dart_Handle name,
                                     int argument_count,
                                     bool* auto_setup_scope);
+
+  static const uint8_t* Symbol(Dart_NativeFunction* nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static void DN_##name(Dart_NativeArguments args);

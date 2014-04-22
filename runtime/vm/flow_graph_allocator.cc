@@ -105,6 +105,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   if (TMP != kNoRegister) {
     blocked_cpu_registers_[TMP] = true;
   }
+  if (TMP2 != kNoRegister) {
+    blocked_cpu_registers_[TMP2] = true;
+  }
   if (PP != kNoRegister) {
     blocked_cpu_registers_[PP] = true;
   }

@@ -248,57 +248,21 @@ class Entrypoint {
     });
   }
 
-  /// Warns users if they have directory or file named `assets` directly
-  /// inside a top-level directory.
-  void _warnOnAssetsPaths() {
-    var buffer = new StringBuffer();
-
-    warn(message) {
-      if (buffer.isEmpty) {
-        buffer.writeln(
-            'Warning: Pub reserves paths containing "assets" for using assets '
-            'from packages.');
-      }
-
-      buffer.writeln(message);
-    }
-
-    // Look inside all of the top-level directories.
-    for (var dir in ordered(listDir(root.dir))) {
-      var assetsPath = path.join(dir, "assets");
-      var relative = path.relative(assetsPath, from: root.dir);
-      if (dirExists(assetsPath)) {
-        warn('Please rename the directory "$relative".');
-      } else if (entryExists(assetsPath)) {
-        warn('Please rename the file "$relative".');
-      }
-    }
-
-    if (buffer.isNotEmpty) log.warning(buffer);
-  }
-
   /// Loads the package graph for the application and all of its transitive
   /// dependencies. Before loading makes sure the lockfile and dependencies are
   /// installed and up to date.
-  Future<PackageGraph> loadPackageGraph() =>
-    _ensureLockFileIsUpToDate()
-      .then((_) {
-        _warnOnAssetsPaths();
-        return _loadPackageGraph();
+  Future<PackageGraph> loadPackageGraph() {
+    return _ensureLockFileIsUpToDate().then((_) {
+      var lockFile = loadLockFile();
+      return Future.wait(lockFile.packages.values.map((id) {
+        var source = cache.sources[id.source];
+        return source.getDirectory(id)
+            .then((dir) => new Package.load(id.name, dir, cache.sources));
+      })).then((packages) {
+        var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
+        packageMap[root.name] = root;
+        return new PackageGraph(this, lockFile, packageMap);
       });
-
-  /// Loads the package graph for the application and all of its transitive
-  /// dependencies.
-  Future<PackageGraph> _loadPackageGraph() {
-    var lockFile = loadLockFile();
-    return Future.wait(lockFile.packages.values.map((id) {
-      var source = cache.sources[id.source];
-      return source.getDirectory(id)
-          .then((dir) => new Package.load(id.name, dir, cache.sources));
-    })).then((packages) {
-      var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
-      packageMap[root.name] = root;
-      return new PackageGraph(this, lockFile, packageMap);
     });
   }
 

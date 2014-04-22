@@ -149,7 +149,7 @@ class Pubspec {
         } else {
           if (transformer.length != 1) {
             _error('"$field" must have a single key: the transformer '
-                'identifier.');
+                'identifier. Was "$transformer".');
           } else if (transformer.keys.single is! String) {
             _error('"$field" transformer identifier must be a string, but was '
                 '"$library".');

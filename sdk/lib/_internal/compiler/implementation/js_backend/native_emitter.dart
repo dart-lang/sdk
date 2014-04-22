@@ -74,25 +74,6 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  // The tags string contains comma-separated 'words' which are either dispatch
-  // tags (having JavaScript identifier syntax) and directives that begin with
-  // `!`.
-  List<String> nativeTagsOfClassRaw(ClassElement cls) {
-    String quotedName = cls.nativeTagInfo;
-    return quotedName.substring(1, quotedName.length - 1).split(',');
-  }
-
-  List<String> nativeTagsOfClass(ClassElement cls) {
-    return nativeTagsOfClassRaw(cls).where((s) => !s.startsWith('!')).toList();
-  }
-
-  bool nativeHasTagsMarker(ClassElement cls, String marker) {
-    return nativeTagsOfClassRaw(cls).contains(marker);
-  }
-
-  bool nativeForcedNonLeaf(ClassElement cls) =>
-      nativeHasTagsMarker(cls, '!nonleaf');
-
   /**
    * Writes the class definitions for the interceptors to [mainBuffer].
    * Writes code to associate dispatch tags with interceptors to [nativeBuffer].
@@ -185,7 +166,8 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(classElement)) {
         needed = true;
       }
-      if (classElement.isNative() && nativeForcedNonLeaf(classElement)) {
+      if (classElement.isNative() &&
+          native.nativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonleafClasses.add(classElement);
       }
@@ -206,7 +188,7 @@ class NativeEmitter {
 
     for (ClassElement classElement in classes) {
       if (!classElement.isNative()) continue;
-      List<String> nativeTags = nativeTagsOfClass(classElement);
+      List<String> nativeTags = native.nativeTagsOfClass(classElement);
 
       if (nonleafClasses.contains(classElement) ||
           extensionPoints.containsKey(classElement)) {

@@ -839,6 +839,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (input.isConstant()) {
       HConstant constant = input;
       if (!constant.constant.isPrimitive) return node;
+      if (constant.constant.isInt) {
+        // Only constant-fold int.toString() when Dart and JS results the same.
+        // TODO(18103): We should be able to remove this work-around when issue
+        // 18103 is resolved by providing the correct string.
+        IntConstant intConstant = constant.constant;
+        // Very conservative range.
+        if (!intConstant.isUInt32()) return node;
+      }
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
           primitive.toDartString()), compiler);

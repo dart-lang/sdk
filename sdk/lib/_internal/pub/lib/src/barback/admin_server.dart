@@ -10,8 +10,8 @@ import 'dart:io';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
+import 'asset_environment.dart';
 import 'base_server.dart';
-import 'build_environment.dart';
 import 'web_socket_api.dart';
 
 /// The web admin interface to pub serve.
@@ -22,7 +22,7 @@ class AdminServer extends BaseServer {
   final _webSockets = new Set<WebSocket>();
 
   /// Creates a new server and binds it to [port] of [host].
-  static Future<AdminServer> bind(BuildEnvironment environment,
+  static Future<AdminServer> bind(AssetEnvironment environment,
       String host, int port) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
       log.fine('Bound admin server to $host:$port.');
@@ -30,7 +30,7 @@ class AdminServer extends BaseServer {
     });
   }
 
-  AdminServer._(BuildEnvironment environment, HttpServer server)
+  AdminServer._(AssetEnvironment environment, HttpServer server)
       : super(environment, server);
 
   /// Closes the server and all Web Socket connections.

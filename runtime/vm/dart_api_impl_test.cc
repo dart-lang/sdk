@@ -1389,7 +1389,8 @@ TEST_CASE(ByteDataAccess) {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  Dart_Handle result = Dart_SetNativeResolver(lib, &ByteDataNativeResolver);
+  Dart_Handle result =
+      Dart_SetNativeResolver(lib, &ByteDataNativeResolver, NULL);
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
@@ -1457,7 +1458,8 @@ TEST_CASE(ExternalByteDataAccess) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle result = Dart_SetNativeResolver(lib,
-                                              &ExternalByteDataNativeResolver);
+                                              &ExternalByteDataNativeResolver,
+                                              NULL);
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
@@ -2309,7 +2311,7 @@ TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
 }
 
 
-TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
+TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
@@ -2350,6 +2352,43 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
 }
 
 
+TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
+  // Check that external allocation in old space can trigger GC.
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  Dart_Handle live = Api::NewHandle(isolate, String::New("live", Heap::kOld));
+  EXPECT_VALID(live);
+  Dart_WeakPersistentHandle weak = NULL;
+  EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+  const intptr_t kSmallExternalSize = 1 * KB;
+  {
+    Dart_EnterScope();
+    Dart_Handle dead = Api::NewHandle(isolate, String::New("dead", Heap::kOld));
+    EXPECT_VALID(dead);
+    weak = Dart_NewWeakPersistentHandle(dead,
+                                        NULL,
+                                        kSmallExternalSize,
+                                        NopCallback);
+    EXPECT_VALID(AsHandle(weak));
+    Dart_ExitScope();
+  }
+  EXPECT_EQ(kSmallExternalSize,
+            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  // Large enough to trigger GC in old space. Not actually allocated.
+  const intptr_t kHugeExternalSize = Heap::kHeapSizeInMB * MB;
+  Dart_NewWeakPersistentHandle(live,
+                               NULL,
+                               kHugeExternalSize,
+                               NopCallback);
+  // Expect small garbage to be collected.
+  EXPECT_EQ(kHugeExternalSize,
+            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  Dart_DeleteWeakPersistentHandle(reinterpret_cast<Dart_Isolate>(isolate),
+                                  weak);
+  Dart_ExitScope();
+}
+
+
 TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
@@ -2358,13 +2397,13 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   static const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
-    Dart_Handle dart_null = Dart_Null();  // VM heap object.
-    EXPECT_VALID(dart_null);
+    Dart_Handle dart_true = Dart_True();  // VM heap object.
+    EXPECT_VALID(dart_true);
     weak1 = Dart_NewWeakPersistentHandle(
-        dart_null, NULL, kWeak1ExternalSize, NopCallback);
+        dart_true, NULL, kWeak1ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak1));
     Dart_Handle zero = Dart_NewInteger(0);  // Smi.
-    EXPECT_VALID(dart_null);
+    EXPECT_VALID(zero);
     weak2 = Dart_NewWeakPersistentHandle(
         zero, NULL, kWeak2ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak2));
@@ -2377,7 +2416,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
 }
 
 
@@ -2467,21 +2506,24 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak3, weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak3, weak3);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak2, weak2));
+
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2499,26 +2541,28 @@ TEST_CASE(ObjectGroups) {
 
   {
     Dart_EnterScope();
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
+
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
 
     // Strong reference to weak3 to retain weak3 and weak4.
     Dart_PersistentHandle weak3_strong_ref =
         Dart_NewPersistentHandle(AsHandle(weak3));
     EXPECT_VALID(AsHandle(weak3_strong_ref));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 
@@ -2539,21 +2583,23 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
 
-    Dart_WeakPersistentHandle array2[] = { weak2, weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
-    Dart_WeakPersistentHandle array3[] = { weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
-                                          array3, ARRAY_SIZE(array3)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
 
-    Dart_WeakPersistentHandle array4[] = { weak4, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
-                                          array4, ARRAY_SIZE(array4)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+
+    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2570,16 +2616,20 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
     Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
-    Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
 
     // lweak3 is unreferenced so weak2 is unreferenced and should be cleared
-    Dart_WeakPersistentHandle array2[] = { weak2, lweak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2596,6 +2646,9 @@ TEST_CASE(ObjectGroups) {
   }
 
   {
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
     Dart_WeakPersistentHandle lweak2 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
     Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
@@ -2603,17 +2656,16 @@ TEST_CASE(ObjectGroups) {
     Dart_WeakPersistentHandle lweak4 = Dart_NewWeakPersistentHandle(
         Dart_Null(), NULL, 0, NopCallback);
     // lweak{2,3,4} are cleared and should have no effect on weak1
-    Dart_WeakPersistentHandle array1[] = { strong_weak,
-                                           lweak2,
-                                           lweak3,
-                                           lweak4 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
-                                          array1, ARRAY_SIZE(array1)));
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, strong_weak);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak2, lweak2));
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak4, lweak4));
 
     // weak1 is weakly reachable and should be cleared
-    Dart_WeakPersistentHandle array2[] = { weak1 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
-                                          array2, ARRAY_SIZE(array2)));
+    set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
+    EXPECT_NOTNULL(set);
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2690,7 +2742,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
 
   // Garbage collect old space without invoking API callbacks.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
 
   {
     Dart_EnterScope();
@@ -2713,7 +2766,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   }
 
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kInvokeApiCallbacks);
+                                             Heap::kInvokeApiCallbacks,
+                                             Heap::kGCTestCase);
 
   {
     Dart_EnterScope();
@@ -2802,10 +2856,15 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   // A strongly referenced key should preserve all the values.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2822,10 +2881,13 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   // Key membership does not imply a strong reference.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak, weak3 };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, weak1);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak2));
 
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
@@ -2904,10 +2966,15 @@ TEST_CASE(ImplicitReferencesNewSpace) {
 
   // A strongly referenced key should preserve all the values.
   {
-    Dart_WeakPersistentHandle keys[] = { strong_weak };
-    Dart_WeakPersistentHandle values[] = { weak1, weak2, weak3 };
-    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
-                                          values, ARRAY_SIZE(values)));
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+
+    Dart_WeakReferenceSet set =
+        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
+    EXPECT_NOTNULL(set);
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
+    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
 
     GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
   }
@@ -3020,7 +3087,8 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
@@ -3070,7 +3138,8 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // Garbage collect old space again without invoking callbacks.
   // Nothing should change.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks);
+                                             Heap::kIgnoreApiCallbacks,
+                                             Heap::kGCTestCase);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(28, global_epilogue_callback_status);
 
@@ -6117,7 +6186,7 @@ TEST_CASE(ParsePatchLibrary) {
       EXPECT(false);
     }
   }
-  result = Dart_SetNativeResolver(result, &PatchNativeResolver);
+  result = Dart_SetNativeResolver(result, &PatchNativeResolver, NULL);
   EXPECT_VALID(result);
 
   Dart_Handle script_url = NewString("theScript");
@@ -6230,23 +6299,23 @@ TEST_CASE(SetNativeResolver) {
   Dart_Handle type = Dart_GetType(lib, NewString("Test"), 0, NULL);
   EXPECT_VALID(type);
 
-  result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1);
+  result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_SetNativeResolver expects argument 'library' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1);
+  result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_SetNativeResolver expects argument 'library' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(error, &MyNativeResolver1);
+  result = Dart_SetNativeResolver(error, &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_SetNativeResolver(lib, &MyNativeResolver1);
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver1, NULL);
   EXPECT_VALID(result);
 
   // Call a function and make sure native resolution works.
@@ -6258,7 +6327,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_EQ(654321, value);
 
   // A second call succeeds.
-  result = Dart_SetNativeResolver(lib, &MyNativeResolver2);
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver2, NULL);
   EXPECT_VALID(result);
 
   // 'foo' has already been resolved so gets the old value.
@@ -6278,7 +6347,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_EQ(123456, value);
 
   // A NULL resolver is okay, but resolution will fail.
-  result = Dart_SetNativeResolver(lib, NULL);
+  result = Dart_SetNativeResolver(lib, NULL, NULL);
   EXPECT_VALID(result);
 
   EXPECT_ERROR(Dart_Invoke(type, NewString("baz"), 0, NULL),
@@ -6701,7 +6770,8 @@ void BusyLoop_start(uword unused) {
     EXPECT_VALID(result);
     lib = Dart_LoadScript(url, source, 0, 0);
     EXPECT_VALID(lib);
-    result = Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup);
+    result =
+        Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup, NULL);
     DART_CHECK_VALID(result);
 
     sync->Notify();
@@ -7063,7 +7133,7 @@ TEST_CASE(NativeFunctionClosure) {
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
-  result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver);
+  result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver, NULL);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -7210,7 +7280,7 @@ TEST_CASE(NativeStaticFunctionClosure) {
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
-  result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver);
+  result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver, NULL);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);

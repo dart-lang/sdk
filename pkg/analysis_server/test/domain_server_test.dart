@@ -13,10 +13,10 @@ import 'mocks.dart';
 
 main() {
   group('ServerDomainHandler', () {
-//    test('createContext', ServerDomainHandlerTest.createContext);
-//    test('deleteContext_alreadyDeleted', ServerDomainHandlerTest.deleteContext_alreadyDeleted);
+    test('createContext', ServerDomainHandlerTest.createContext);
+    test('deleteContext_alreadyDeleted', ServerDomainHandlerTest.deleteContext_alreadyDeleted);
     test('deleteContext_doesNotExist', ServerDomainHandlerTest.deleteContext_doesNotExist);
-//    test('deleteContext_existing', ServerDomainHandlerTest.deleteContext_existing);
+    test('deleteContext_existing', ServerDomainHandlerTest.deleteContext_existing);
     test('shutdown', ServerDomainHandlerTest.shutdown);
     test('version', ServerDomainHandlerTest.version);
   });
@@ -29,28 +29,42 @@ class ServerDomainHandlerTest {
 
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
     Response response = handler.handleRequest(createRequest);
-    String contextId = response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
-    expect(contextId, isNotNull);
+    expect(response.id, equals('0'));
+    expect(response.error, isNull);
+    expect(response.result, isEmpty);
+  }
+  
+  static void createContext_alreadyExists() {
+    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+    ServerDomainHandler handler = new ServerDomainHandler(server);
+
+    Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
+    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
+    Response response = handler.handleRequest(createRequest);
+    expect(response.error, isNull);
+    response = handler.handleRequest(createRequest);
+    expect(response.error, isNotNull);
   }
 
   static void deleteContext_alreadyDeleted() {
     AnalysisServer server = new AnalysisServer(new MockServerChannel());
     ServerDomainHandler handler = new ServerDomainHandler(server);
 
+    String contextId = 'ctx';
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
-    Response response = handler.handleRequest(createRequest);
-    String contextId = response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
+    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    handler.handleRequest(createRequest);
 
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
     deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
-    response = handler.handleRequest(deleteRequest);
-    response = handler.handleRequest(deleteRequest);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: 'Context does not exist'
-    }));
+    handler.handleRequest(deleteRequest);
+    Response response = handler.handleRequest(deleteRequest);
+    expect(response.id, equals('0'));
+    expect(response.error, isNotNull);
   }
 
   static void deleteContext_doesNotExist() {
@@ -68,14 +82,15 @@ class ServerDomainHandlerTest {
     AnalysisServer server = new AnalysisServer(new MockServerChannel());
     ServerDomainHandler handler = new ServerDomainHandler(server);
 
+    String contextId = 'ctx';
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
-    Response response = handler.createContext(createRequest);
-    String contextId = response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
+    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    handler.createContext(createRequest);
 
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
     deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
-    response = handler.handleRequest(deleteRequest);
+    Response response = handler.handleRequest(deleteRequest);
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: null

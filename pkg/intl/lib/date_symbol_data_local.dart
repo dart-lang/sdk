@@ -14,13 +14,13 @@
  * removed after those changes land to CLDR.
  */
 
-library date_symbol_data;
+library date_symbol_data_local;
 
 import 'dart:async';
 
 import "date_symbols.dart";
-import "src/date_format_internal.dart";
 import "date_time_patterns.dart";
+import "src/date_format_internal.dart";
 
 /**
  * This should be called for at least one [locale] before any date

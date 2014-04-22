@@ -5,6 +5,7 @@
 library test_lib.bar;
 
 import 'test_lib.dart';
+import 'test_lib_foo.dart';
 
 /*
  * Normal comment for class C.
@@ -12,12 +13,18 @@ import 'test_lib.dart';
 class C {
 }
 
-/// [input] is of type [C] returns an [A].
-A generateFoo(C input) {
+/// Processes an [input] of type [C] instance for testing.
+///
+/// To eliminate import warnings for [A] and to test typedefs.
+///
+/// It's important that the [List<A>] for param [listOfA] is not empty.
+A testMethod(C input, List<A> listOfA, B aBee) {
   throw 'noop';
 }
 
-/// Processes a [C] instance for testing.
+/// Processes an [input] of type [C] instance for testing.
 ///
 /// To eliminate import warnings for [A] and to test typedefs.
-typedef A AnATransformer(C other);
+///
+/// It's important that the [List<A>] for param [listOfA] is not empty.
+typedef A testTypedef(C other, List<A> listOfA, B aBee);

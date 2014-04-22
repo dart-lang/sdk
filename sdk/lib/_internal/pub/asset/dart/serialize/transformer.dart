@@ -7,19 +7,21 @@ library pub.asset.serialize.transformer;
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
-// TODO(nweiz): don't import from "src" once issue 14966 is fixed.
-import 'package:barback/src/internal_asset.dart';
 
 import '../serialize.dart';
 import 'transform.dart';
 
 /// Converts [transformer] into a serializable map.
-Map serializeTransformer(Transformer transformer) {
+Map _serializeTransformer(Transformer transformer) {
   var port = new ReceivePort();
   port.listen((wrappedMessage) {
     respond(wrappedMessage, (message) {
       if (message['type'] == 'isPrimary') {
         return transformer.isPrimary(deserializeId(message['id']));
+      } else if (message['type'] == 'declareOutputs') {
+        return (transformer as DeclaringTransformer).declareOutputs(
+            new ForeignDeclaringTransform(message['transform']))
+            .then((_) => null);
       } else {
         assert(message['type'] == 'apply');
 
@@ -31,15 +33,24 @@ Map serializeTransformer(Transformer transformer) {
     });
   });
 
+  var type;
+  if (transformer is LazyTransformer) {
+    type = 'LazyTransformer';
+  } else if (transformer is DeclaringTransformer) {
+    type = 'DeclaringTransformer';
+  } else {
+    type = 'Transformer';
+  }
+
   return {
-    'type': 'Transformer',
+    'type': type,
     'toString': transformer.toString(),
     'port': port.sendPort
   };
 }
 
 // Converts [group] into a serializable map.
-Map serializeTransformerGroup(TransformerGroup group) {
+Map _serializeTransformerGroup(TransformerGroup group) {
   return {
     'type': 'TransformerGroup',
     'toString': group.toString(),
@@ -52,9 +63,9 @@ Map serializeTransformerGroup(TransformerGroup group) {
 /// Converts [transformerOrGroup] into a serializable map.
 Map serializeTransformerOrGroup(transformerOrGroup) {
   if (transformerOrGroup is Transformer) {
-    return serializeTransformer(transformerOrGroup);
+    return _serializeTransformer(transformerOrGroup);
   } else {
     assert(transformerOrGroup is TransformerGroup);
-    return serializeTransformerGroup(transformerOrGroup);
+    return _serializeTransformerGroup(transformerOrGroup);
   }
 }

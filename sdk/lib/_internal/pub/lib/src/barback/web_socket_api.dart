@@ -11,7 +11,7 @@ import 'package:path/path.dart' as path;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../utils.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
@@ -20,7 +20,7 @@ import 'build_environment.dart';
 /// methods are described in the method-level documentation below.
 class WebSocketApi {
   final WebSocket _socket;
-  final BuildEnvironment _environment;
+  final AssetEnvironment _environment;
   final _server = new json_rpc.Server();
 
   WebSocketApi(this._socket, this._environment) {

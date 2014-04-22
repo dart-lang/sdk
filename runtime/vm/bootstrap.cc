@@ -67,6 +67,11 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                Bootstrap::typed_data_source_paths_,
                Bootstrap::typed_data_patch_paths_),
 
+  INIT_LIBRARY(ObjectStore::kProfiler,
+               profiler,
+               Bootstrap::profiler_source_paths_,
+               Bootstrap::profiler_patch_paths_),
+
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };
 

@@ -1778,6 +1778,50 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
 }
 
+// On stack: user tag (+0).
+void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
+  // T1: Isolate.
+  Isolate* isolate = Isolate::Current();
+  __ LoadImmediate(T1, reinterpret_cast<uword>(isolate));
+  // V0: UserTag.
+  __ lw(V0, Address(SP, + 0 * kWordSize));
+  // Set Isolate::current_tag_.
+  __ sw(V0, Address(T1, Isolate::current_tag_offset()));
+  // V0: UserTag's tag.
+  __ lw(V0, FieldAddress(V0, UserTag::tag_offset()));
+  // Set Isolate::user_tag_.
+  __ sw(V0, Address(T1, Isolate::user_tag_offset()));
+  // Set return value.
+  __ Ret();
+  __ delay_slot()->LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
+}
+
+
+void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
+  // V0: Isolate.
+  Isolate* isolate = Isolate::Current();
+  __ LoadImmediate(V0, reinterpret_cast<uword>(isolate));
+  // Set return value.
+  __ Ret();
+  __ delay_slot()->lw(V0, Address(V0, Isolate::current_tag_offset()));
+}
+
+
+void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
+  // T1: Isolate.
+  Isolate* isolate = Isolate::Current();
+  __ LoadImmediate(T1, reinterpret_cast<uword>(isolate));
+  // Set return value to Isolate::current_tag_.
+  __ lw(V0, Address(T1, Isolate::current_tag_offset()));
+  // Clear Isolate::current_tag_.
+  const int32_t raw_null = reinterpret_cast<int32_t>(UserTag::null());
+  __ LoadImmediate(T0, raw_null);
+  __ sw(T0, Address(T1, Isolate::current_tag_offset()));
+  // Clear Isolate::user_tag_.
+  __ Ret();
+  __ delay_slot()->sw(ZR, Address(T1, Isolate::user_tag_offset()));
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

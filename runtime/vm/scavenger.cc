@@ -79,7 +79,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visited_count_(0),
         handled_count_(0),
         delayed_weak_stack_(),
-        growth_policy_(PageSpace::kControlGrowth),
         bytes_promoted_(0),
         visiting_old_object_(NULL),
         in_scavenge_pointer_(false) { }
@@ -200,32 +199,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
+        new_addr =
+            heap_->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
           class_table->UpdateAllocatedOld(cid, size);
-        } else if (!scavenger_->had_promotion_failure_) {
-          // Signal a promotion failure and set the growth policy for
-          // this, and all subsequent promotion allocations, to force
-          // growth.
-          scavenger_->had_promotion_failure_ = true;
-          growth_policy_ = PageSpace::kForceGrowth;
-          new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
-          if (new_addr != 0) {
-            scavenger_->PushToPromotedStack(new_addr);
-            bytes_promoted_ += size;
-            class_table->UpdateAllocatedOld(cid, size);
-          } else {
-            // Promotion did not succeed. Copy into the to space
-            // instead.
-            new_addr = scavenger_->TryAllocate(size);
-            class_table->UpdateLiveNew(cid, size);
-          }
         } else {
-          ASSERT(growth_policy_ == PageSpace::kForceGrowth);
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
           class_table->UpdateLiveNew(cid, size);
@@ -258,7 +240,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
-  PageSpace::GrowthPolicy growth_policy_;
   // TODO(cshapiro): use this value to compute survival statistics for
   // new space growth policy.
   intptr_t bytes_promoted_;
@@ -518,16 +499,26 @@ void Scavenger::IterateWeakReferences(Isolate* isolate,
     while (queue != NULL) {
       WeakReferenceSet* reference_set = WeakReferenceSet::Pop(&queue);
       ASSERT(reference_set != NULL);
+      intptr_t num_keys = reference_set->num_keys();
+      intptr_t num_values = reference_set->num_values();
+      if ((num_keys == 1) && (num_values == 1) &&
+          reference_set->SingletonKeyEqualsValue()) {
+        // We do not have to process sets that have just one key/value pair
+        // and the key and value are identical.
+        continue;
+      }
       bool is_unreachable = true;
       // Test each key object for reachability.  If a key object is
       // reachable, all value objects should be scavenged.
-      for (intptr_t k = 0; k < reference_set->num_keys(); ++k) {
+      for (intptr_t k = 0; k < num_keys; ++k) {
         if (!IsUnreachable(reference_set->get_key(k))) {
-          for (intptr_t v = 0; v < reference_set->num_values(); ++v) {
+          for (intptr_t v = 0; v < num_values; ++v) {
             visitor->VisitPointer(reference_set->get_value(v));
           }
           is_unreachable = false;
-          delete reference_set;
+          // Since we have found a key object that is reachable and all
+          // value objects have been marked we can break out of iterating
+          // this set and move on to the next set.
           break;
         }
       }
@@ -542,17 +533,16 @@ void Scavenger::IterateWeakReferences(Isolate* isolate,
       ProcessToSpace(visitor);
     } else {
       // Break out of the loop if there has been no forward process.
+      // All key objects in the weak reference sets are unreachable
+      // so we reset the weak reference sets queue.
+      state->set_delayed_weak_reference_sets(NULL);
       break;
     }
   }
-  // Deallocate any unreachable references on the delay queue.
-  if (state->delayed_weak_reference_sets() != NULL) {
-    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
-    state->set_delayed_weak_reference_sets(NULL);
-    while (queue != NULL) {
-      delete WeakReferenceSet::Pop(&queue);
-    }
-  }
+  ASSERT(state->delayed_weak_reference_sets() == NULL);
+  // All weak reference sets are zone allocated and unmarked references which
+  // were on the delay queue will be freed when the zone is released in the
+  // epilog callback.
 }
 
 
@@ -701,7 +691,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  had_promotion_failure_ = false;
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 

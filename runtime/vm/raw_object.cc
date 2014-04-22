@@ -372,6 +372,7 @@ bool RawFunction::SkipCode(RawFunction* raw_fun) {
   code = fn.CurrentCode();
 
   if (fn.HasCode() &&  // The function may not have code.
+      !fn.is_intrinsic() &&  // These may not increment the usage counter.
       !code.is_optimized() &&
       (fn.CurrentCode() == fn.unoptimized_code()) &&
       !code.HasBreakpoint() &&
@@ -834,5 +835,15 @@ intptr_t RawMirrorReference::VisitMirrorReferencePointers(
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return MirrorReference::InstanceSize();
 }
+
+
+intptr_t RawUserTag::VisitUserTagPointers(
+    RawUserTag* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UserTag::InstanceSize();
+}
+
 
 }  // namespace dart

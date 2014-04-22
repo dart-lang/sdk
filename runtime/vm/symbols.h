@@ -290,6 +290,7 @@ class ObjectPointerVisitor;
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMService, "dart:vmservice")                                           \
+  V(DartProfiler, "dart:profiler")                                             \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
@@ -315,6 +316,8 @@ class ObjectPointerVisitor;
   V(ClassId, "get:_classId")                                                   \
   V(AllocationStubFor, "Allocation stub for ")                                 \
   V(TempParam, ":temp_param")                                                  \
+  V(UserTag, "UserTag")                                                        \
+  V(_UserTag, "_UserTag")                                                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

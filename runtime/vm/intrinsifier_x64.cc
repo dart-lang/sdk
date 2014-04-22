@@ -1647,6 +1647,56 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
 }
 
+
+// On stack: user tag (+1), return-address (+0).
+void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
+  // RBX: Isolate.
+  Isolate* isolate = Isolate::Current();
+  const Immediate& isolate_address =
+      Immediate(reinterpret_cast<int64_t>(isolate));
+  __ movq(RBX, isolate_address);
+  // RAX: UserTag.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  // Set Isolate::current_tag_.
+  __ movq(Address(RBX, Isolate::current_tag_offset()), RAX);
+  // RAX: UserTag's tag.
+  __ movq(RAX, FieldAddress(RAX, UserTag::tag_offset()));
+  // Set Isolate::user_tag_.
+  __ movq(Address(RBX, Isolate::user_tag_offset()), RAX);
+  // Set return value.
+  __ LoadObject(RAX, Object::null_object(), PP);
+  __ ret();
+}
+
+
+void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
+  // RBX: Isolate.
+  Isolate* isolate = Isolate::Current();
+  const Immediate& isolate_address =
+      Immediate(reinterpret_cast<int64_t>(isolate));
+  __ movq(RBX, isolate_address);
+  // Set return value to Isolate::current_tag_.
+  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
+  // RBX: Isolate.
+  Isolate* isolate = Isolate::Current();
+  const Immediate& isolate_address =
+      Immediate(reinterpret_cast<int64_t>(isolate));
+  __ movq(RBX, isolate_address);
+  // Set return value to Isolate::current_tag_.
+  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
+  // Clear Isolate::current_tag_.
+  __ LoadObject(RCX, Object::null_object(), PP);
+  __ movq(Address(RBX, Isolate::current_tag_offset()), RCX);
+  // Clear Isolate::user_tag_.
+  __ movq(Address(RBX, Isolate::user_tag_offset()), Immediate(0));
+  __ ret();
+}
+
 #undef __
 
 }  // namespace dart

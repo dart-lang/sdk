@@ -272,7 +272,6 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
              isNegativeIfChecked: isNegativeIfChecked,
              hasCompileErrorIfChecked: hasCompileErrorIfChecked,
              hasStaticWarning: hasStaticWarning,
-             multitestOutcome: outcome,
              multitestKey: key,
              originTestPath: filePath);
     }

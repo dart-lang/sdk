@@ -125,6 +125,7 @@ void Intrinsifier::InitializeState() {
 
   // Set up all core lib functions that can be intrisified.
   lib = Library::CoreLibrary();
+  ASSERT(!lib.IsNull());
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
   // Integer intrinsics are in the core library, but we don't want to intrinsify
@@ -135,11 +136,18 @@ void Intrinsifier::InitializeState() {
 
   // Set up all math lib functions that can be intrisified.
   lib = Library::MathLibrary();
+  ASSERT(!lib.IsNull());
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
   // Set up all dart:typed_data lib functions that can be intrisified.
   lib = Library::TypedDataLibrary();
+  ASSERT(!lib.IsNull());
   TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+
+  // Setup all dart:profiler lib functions that can be intrinsified.
+  lib = Library::ProfilerLibrary();
+  ASSERT(!lib.IsNull());
+  PROFILER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
 #undef SETUP_FUNCTION
 }
@@ -172,6 +180,8 @@ void Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
     TYPED_DATA_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   } else if (lib.raw() == Library::MathLibrary()) {
     MATH_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+  } else if (lib.raw() == Library::ProfilerLibrary()) {
+    PROFILER_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   }
 #undef FIND_INTRINSICS
 }

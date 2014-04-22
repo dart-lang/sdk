@@ -69,6 +69,7 @@ namespace dart {
     V(Float32x4)                                                               \
     V(Int32x4)                                                                 \
     V(Float64x2)                                                               \
+    V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -774,6 +775,7 @@ class RawLibrary : public RawObject {
   intptr_t num_imports_;         // Number of entries in imports_.
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
+  Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   bool corelib_imported_;
   bool debuggable_;              // True if debugger can stop in library.
   int8_t load_state_;            // Of type LibraryState.
@@ -1579,6 +1581,29 @@ class RawMirrorReference : public RawInstance {
   }
 };
 
+
+// UserTag are used by the profiler to track Dart script state.
+class RawUserTag : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->label_);
+  }
+
+  RawString* label_;
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->label_);
+  }
+
+  // Isolate unique tag.
+  uword tag_;
+
+  friend class SnapshotReader;
+
+ public:
+  uword tag() const { return tag_; }
+};
 
 // Class Id predicates.
 

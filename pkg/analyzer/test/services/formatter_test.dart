@@ -29,11 +29,12 @@ main() {
   });
 
   /// Data-driven compilation unit tests
-  group('cu_tests.data', () {
-    runTests('cu_tests.data', (input, expectedOutput) {
-      expectCUFormatsTo(input, expectedOutput);
-    });
-  });
+  /// TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=18315
+//  group('cu_tests.data', () {
+//    runTests('cu_tests.data', (input, expectedOutput) {
+//      expectCUFormatsTo(input, expectedOutput);
+//    });
+//  });
 
   /// Data-driven Style Guide acceptance tests
   group('style_guide_tests.data', () {

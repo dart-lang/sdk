@@ -17,39 +17,32 @@ polymer/example/scoped_style/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-[ $compiler == dart2js && $mode == debug ]
-docgen/test/generate_json_test: Skip # Way too slow
-docgen/test/multi_library_test: Skip # Way too slow
-docgen/test/single_library_test: Skip # Way too slow
-docgen/test/typedef_test: Skip # Way too slow
-
 [ $runtime == vm && $mode == debug]
-docgen/test/only_lib_content_in_pkg_test: Skip # Slow
-polymer/test/build/all_phases_test: Skip # Slow
 analysis_server/test/analysis_server_test: Pass, Timeout
 analysis_server/test/domain_context_test: Pass, Timeout
 analysis_server/test/domain_server_test: Pass, Timeout
 analyzer/test/generated/element_test: Pass, Timeout
 analyzer/test/generated/parser_test: Pass, Timeout
 code_transformers/test/resolver_test: Pass, Timeout
-docgen/test/only_lib_content_in_pkg_test: Pass, Timeout
-polymer_expressions/test/globals_test: Pass, Timeout
-polymer/test/build/all_phases_test: Pass, Timeout
+docgen/test/*: Skip # Slow
+polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Pass, Timeout
+polymer_expressions/test/globals_test: Pass, Timeout
 smoke/test/codegen/end_to_end_test: Pass, Timeout
 smoke/test/codegen/recorder_test: Pass, Timeout
 template_binding/test/template_binding_test: Pass, Timeout
 third_party/html5lib/test/tokenizer_test: Pass, Timeout
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
-docgen/test/only_lib_content_in_pkg_test: Skip # slow
-docgen/test/typedef_test: Skip # slow
 barback/test/too_many_open_files_test: Skip # 14220
-third_party/html5lib/test/tokenizer_test: Pass, Slow
-docgen/test/generate_json_test: Skip # Issue 17003
-polymer/test/build/script_compactor_test: Skip # Slow
-polymer/test/build/all_phases_test: Skip # Slow
 code_transformers/test/resolver_test: Skip # Issue 17908
+docgen/test/*: Skip # Issue 17003
+polymer/test/build/all_phases_test: Skip # Slow
+polymer/test/build/script_compactor_test: Skip # Slow
+third_party/html5lib/test/tokenizer_test: Pass, Slow
+
+[ $runtime == vm ]
+docgen/test/typedef_test: RuntimeError # Issue 18352
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -58,7 +51,7 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
-docgen/test/multi_library_test: Slow, Pass # issue 17060
+docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
@@ -72,14 +65,15 @@ serialization/test/serialization_test: Skip
 
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
-docgen/test/typedef_test: Slow, Pass # issue 17060
 
 [ $runtime == d8 || $runtime == jsshell ]
-async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+
+[ $runtime == jsshell ]
+async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
@@ -167,7 +161,6 @@ polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
-docgen/test/*: StaticWarning # Issue 17896
 
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
@@ -191,14 +184,13 @@ matcher/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
-stack_trace/test/chain_test: Fail, Timeout # Issues 15171, 15105, and 18142
+stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
 polymer/test/mirror_loader_test: Skip # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]

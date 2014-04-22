@@ -163,8 +163,6 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
 
-    'XMLHttpRequestUpload': 'XMLHttpRequestUpload,XMLHttpRequestEventTarget',
-
 }, dart2jsOnly=True)
 
 def IsRegisteredType(type_name):

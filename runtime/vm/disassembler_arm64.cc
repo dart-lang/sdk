@@ -34,6 +34,7 @@ class ARM64Decoder : public ValueObject {
   void PrintShiftExtendRm(Instr* instr);
   void PrintMemOperand(Instr* instr);
   void PrintS(Instr* instr);
+  void PrintCondition(Instr* instr);
 
   // Handle formatting of instructions and their options.
   int FormatRegister(Instr* instr, const char* option);
@@ -84,8 +85,8 @@ void ARM64Decoder::Print(const char* str) {
 static const char* reg_names[kNumberOfCpuRegisters] = {
   "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",
   "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-  "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-  "r24", "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "r31",
+  "ip0", "ip1", "r18", "r19", "r20", "r21", "r22", "r23",
+  "r24", "r25", "r26", "pp",  "ctx", "fp",  "lr",  "r31",
 };
 
 
@@ -113,6 +114,20 @@ static const char* extend_names[kMaxExtend] = {
   "uxtb", "uxth", "uxtw", "uxtx",
   "sxtb", "sxth", "sxtw", "sxtx",
 };
+
+
+// These condition names are defined in a way to match the native disassembler
+// formatting. See for example the command "objdump -d <binary file>".
+static const char* cond_names[kMaxCondition] = {
+  "eq", "ne", "cs" , "cc" , "mi" , "pl" , "vs" , "vc" ,
+  "hi", "ls", "ge", "lt", "gt", "le", "", "invalid",
+};
+
+
+// Print the condition guarding the instruction.
+void ARM64Decoder::PrintCondition(Instr* instr) {
+  Print(cond_names[instr->ConditionField()]);
+}
 
 
 // Print the register shift operands for the instruction. Generally used for
@@ -180,6 +195,18 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
     Print("]");
   } else {
     switch (instr->Bits(10, 2)) {
+      case 0: {
+        // rn + signed 9-bit immediate, pre-index, no writeback.
+        const int32_t imm9 = instr->SImm9Field();
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                           remaining_size_in_buffer(),
+                           ", #%d",
+                           imm9);
+        Print("]");
+        break;
+      }
       case 1: {
         const int32_t imm9 = instr->SImm9Field();
         // rn + signed 9-bit immediate, post-index, writeback.
@@ -190,18 +217,6 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
                                    remaining_size_in_buffer(),
                                    ", #%d !",
                                    imm9);
-        break;
-      }
-      case 3: {
-        const int32_t imm9 = instr->SImm9Field();
-        // rn + signed 9-bit immediate, pre-index, writeback.
-        Print("[");
-        PrintRegister(rn, R31IsSP);
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   ", #%d",
-                                   imm9);
-        Print("] !");
         break;
       }
       case 2: {
@@ -220,6 +235,18 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
           Print(" scaled");
         }
         Print("]");
+        break;
+      }
+      case 3: {
+        const int32_t imm9 = instr->SImm9Field();
+        // rn + signed 9-bit immediate, pre-index, writeback.
+        Print("[");
+        PrintRegister(rn, R31IsSP);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   ", #%d",
+                                   imm9);
+        Print("] !");
         break;
       }
       default: {
@@ -250,6 +277,10 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
     int reg = instr->RtField();
     PrintRegister(reg, R31IsZR);
     return 2;
+  } else if (format[1] == 'a') {  // 'ra: Ra register
+    int reg = instr->RaField();
+    PrintRegister(reg, R31IsZR);
+    return 2;
   }
   UNREACHABLE();
   return -1;
@@ -263,6 +294,71 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
 // characters that were consumed from the formatting string.
 int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
   switch (format[0]) {
+    case 'b': {
+      if (format[3] == 'i') {
+        ASSERT(STRING_STARTS_WITH(format, "bitimm"));
+        const uint64_t imm = instr->ImmLogical();
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   imm);
+        return 6;
+      } else {
+        ASSERT(STRING_STARTS_WITH(format, "bitpos"));
+        int bitpos = instr->Bits(19, 4) | (instr->Bit(31) << 5);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "#%d",
+                                   bitpos);
+        return 6;
+      }
+    }
+    case 'c': {
+      ASSERT(STRING_STARTS_WITH(format, "cond"));
+      PrintCondition(instr);
+      return 4;
+    }
+    case 'd': {
+      if (format[4] == '2') {
+        ASSERT(STRING_STARTS_WITH(format, "dest26"));
+        int64_t off = instr->SImm26Field() << 2;
+        uword destination = reinterpret_cast<uword>(instr) + off;
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "%#" Px "",
+                                   destination);
+      } else {
+        if (format[5] == '4') {
+          ASSERT(STRING_STARTS_WITH(format, "dest14"));
+          int64_t off = instr->SImm14Field() << 2;
+          uword destination = reinterpret_cast<uword>(instr) + off;
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(),
+                                     "%#" Px "",
+                                     destination);
+        } else {
+          ASSERT(STRING_STARTS_WITH(format, "dest19"));
+          int64_t off = instr->SImm19Field() << 2;
+          uword destination = reinterpret_cast<uword>(instr) + off;
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(),
+                                     "%#" Px "",
+                                     destination);
+        }
+      }
+      return 6;
+    }
+    case 'h': {
+      ASSERT(STRING_STARTS_WITH(format, "hw"));
+      const int shift = instr->HWField() << 4;
+      if (shift != 0) {
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "lsl %d",
+                                   shift);
+      }
+      return 2;
+    }
     case 'i': {  // 'imm12, imm16
       uint64_t imm;
       int ret = 5;
@@ -287,6 +383,38 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
                                  "0x%"Px64,
                                  imm);
       return ret;
+    }
+    case 'm': {
+      ASSERT(STRING_STARTS_WITH(format, "memop"));
+      PrintMemOperand(instr);
+      return 5;
+    }
+    case 'p': {
+      if (format[2] == 'a') {
+        ASSERT(STRING_STARTS_WITH(format, "pcadr"));
+        const int64_t immhi = instr->SImm19Field();
+        const int64_t immlo = instr->Bits(29, 2);
+        const int64_t off = (immhi << 2) | immlo;
+        const int64_t pc = reinterpret_cast<int64_t>(instr);
+        const int64_t dest = pc + off;
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   dest);
+      } else {
+        ASSERT(STRING_STARTS_WITH(format, "pcldr"));
+        const int64_t off = instr->SImm19Field() << 2;
+        const int64_t pc = reinterpret_cast<int64_t>(instr);
+        const int64_t dest = pc + off;
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   dest);
+      }
+      return 5;
+    }
+    case 'r': {
+      return FormatRegister(instr, format);
     }
     case 's': {  // 's: S flag.
       if (format[1] == 'h') {
@@ -327,34 +455,6 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       } else {
         UNREACHABLE();
       }
-    }
-    case 'r': {
-      return FormatRegister(instr, format);
-    }
-    case 'h': {
-      ASSERT(STRING_STARTS_WITH(format, "hw"));
-      const int shift = instr->HWField() << 4;
-      if (shift != 0) {
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "lsl %d",
-                                   shift);
-      }
-      return 2;
-    }
-    case 'm': {
-      ASSERT(STRING_STARTS_WITH(format, "memop"));
-      PrintMemOperand(instr);
-      return 5;
-    }
-    case 'b': {
-      ASSERT(STRING_STARTS_WITH(format, "bitimm"));
-      const uint64_t imm = instr->ImmLogical();
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "0x%"Px64,
-                                 imm);
-      return 6;
     }
     default: {
       UNREACHABLE();
@@ -421,13 +521,31 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
+  if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) ||
+      (instr->Bits(24, 3) != 0)) {
+    Unknown(instr);
+  }
+  if (instr->Bit(30)) {
+    Format(instr, "ldrx 'rt, 'pcldr");
+  } else {
+    Format(instr, "ldrw 'rt, 'pcldr");
+  }
+}
+
+
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
-      if ((instr->RdField() == R31) && (instr->SFField())) {
+      if ((instr->RdField() == R31) && (instr->SField() == 1)) {
         Format(instr, "cmni'sf 'rn, 'imm12s");
       } else {
-        Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+        if (((instr->RdField() == R31) || (instr->RnField() == R31)) &&
+            (instr->Imm12Field() == 0) && (instr->Bit(29) == 0)) {
+          Format(instr, "mov'sf 'rd, 'rn");
+        } else {
+          Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+        }
       }
       break;
     }
@@ -452,9 +570,14 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
     case 0:
       Format(instr, "andi'sf 'rd, 'rn, 'bitimm");
       break;
-    case 1:
-      Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
+    case 1: {
+      if (instr->RnField() == R31) {
+        Format(instr, "mov'sf 'rd, 'bitimm");
+      } else {
+        Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
+      }
       break;
+    }
     case 2:
       Format(instr, "eori'sf 'rd, 'rn, 'bitimm");
       break;
@@ -468,6 +591,16 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodePCRel(Instr* instr) {
+  const int op = instr->Bit(31);
+  if (op == 0) {
+    Format(instr, "adr 'rd, 'pcadr");
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
   if (instr->IsMoveWideOp()) {
     DecodeMoveWide(instr);
@@ -475,6 +608,8 @@ void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
     DecodeAddSubImm(instr);
   } else if (instr->IsLogicalImmOp()) {
     DecodeLogicalImm(instr);
+  } else if (instr->IsPCRelOp()) {
+    DecodePCRel(instr);
   } else {
     Unknown(instr);
   }
@@ -531,6 +666,44 @@ void ARM64Decoder::DecodeUnconditionalBranchReg(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeCompareAndBranch(Instr* instr) {
+  const int op = instr->Bit(24);
+  if (op == 0) {
+    Format(instr, "cbz'sf 'rt, 'dest19");
+  } else {
+    Format(instr, "cbnz'sf 'rt, 'dest19");
+  }
+}
+
+
+void ARM64Decoder::DecodeConditionalBranch(Instr* instr) {
+  if ((instr->Bit(24) != 0) || (instr->Bit(4) != 0)) {
+    Unknown(instr);
+    return;
+  }
+  Format(instr, "b'cond 'dest19");
+}
+
+
+void ARM64Decoder::DecodeTestAndBranch(Instr* instr) {
+  const int op = instr->Bit(24);
+  if (op == 0) {
+    Format(instr, "tbz'sf 'rt, 'bitpos, 'dest14");
+  } else {
+    Format(instr, "tbnz'sf 'rt, 'bitpos, 'dest14");
+  }
+}
+
+
+void ARM64Decoder::DecodeUnconditionalBranch(Instr* instr) {
+  const int op = instr->Bit(31);
+  if (op == 0) {
+    Format(instr, "b 'dest26");
+  } else {
+    Format(instr, "bl 'dest26");
+  }
+}
+
 void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
   if (instr->IsExceptionGenOp()) {
     DecodeExceptionGen(instr);
@@ -538,6 +711,14 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
     DecodeSystem(instr);
   } else if (instr->IsUnconditionalBranchRegOp()) {
     DecodeUnconditionalBranchReg(instr);
+  } else if (instr->IsCompareAndBranchOp()) {
+    DecodeCompareAndBranch(instr);
+  } else if (instr->IsConditionalBranchOp()) {
+    DecodeConditionalBranch(instr);
+  } else if (instr->IsTestAndBranchOp()) {
+    DecodeTestAndBranch(instr);
+  } else if (instr->IsUnconditionalBranchOp()) {
+    DecodeUnconditionalBranch(instr);
   } else {
     Unknown(instr);
   }
@@ -547,6 +728,8 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
+  } else if (instr->IsLoadRegLiteralOp()) {
+    DecodeLoadRegLiteral(instr);
   } else {
     Unknown(instr);
   }
@@ -587,9 +770,15 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
     case 1:
       Format(instr, "bic'sf 'rd, 'rn, 'shift_op");
       break;
-    case 2:
-      Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+    case 2: {
+      if ((instr->RnField() == R31) && (instr->IsShift()) &&
+          (instr->Imm16Field() == 0) && (instr->ShiftTypeField() == LSL)) {
+        Format(instr, "mov'sf 'rd, 'rm");
+      } else {
+        Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
+      }
       break;
+    }
     case 3:
       Format(instr, "orn'sf 'rd, 'rn, 'shift_op");
       break;
@@ -612,11 +801,58 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
+  if (instr->Bit(29) != 0) {
+    Unknown(instr);
+  }
+
+  const int op = instr->Bits(10, 5);
+  switch (op) {
+    case 2:
+      Format(instr, "udiv'sf 'rd, 'rn, 'rm");
+      break;
+    case 3:
+      Format(instr, "sdiv'sf 'rd, 'rn, 'rm");
+      break;
+    case 8:
+      Format(instr, "lsl'sf 'rd, 'rn, 'rm");
+      break;
+    case 9:
+      Format(instr, "lsr'sf 'rd, 'rn, 'rm");
+      break;
+    case 10:
+      Format(instr, "asr'sf 'rd, 'rn, 'rm");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
+void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+      (instr->Bit(15) == 0)) {
+    if (instr->RaField() == R31) {
+      Format(instr, "mul'sf, 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
+    }
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
+  } else if (instr->IsMiscDP2SourceOp()) {
+    DecodeMiscDP2Source(instr);
+  } else if (instr->IsMiscDP3SourceOp()) {
+    DecodeMiscDP3Source(instr);
   } else {
     Unknown(instr);
   }
@@ -646,9 +882,10 @@ void ARM64Decoder::InstructionDecode(uword pc) {
     DecodeDPRegister(instr);
   } else if (instr->IsDPSimd1Op()) {
     DecodeDPSimd1(instr);
-  } else {
-    ASSERT(instr->IsDPSimd2Op());
+  } else if (instr->IsDPSimd2Op()) {
     DecodeDPSimd2(instr);
+  } else {
+    Unknown(instr);
   }
 }
 

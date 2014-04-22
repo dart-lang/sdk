@@ -413,6 +413,32 @@ unsolvable() {
     'a 1.0.0': {},
     'b 1.0.0': {}
   }, error: noVersion(['myapp', 'b']), maxTries: 1);
+
+
+  // This is a regression test for #18300.
+  testResolve('...', {
+    "myapp 0.0.0": {
+      "angular": "any",
+      "collection": "any"
+    },
+    "analyzer 0.12.2": {},
+    "angular 0.10.0": {
+      "di": ">=0.0.32 <0.1.0",
+      "collection": ">=0.9.1 <1.0.0"
+    },
+    "angular 0.9.11": {
+      "di": ">=0.0.32 <0.1.0",
+      "collection": ">=0.9.1 <1.0.0"
+    },
+    "angular 0.9.10": {
+      "di": ">=0.0.32 <0.1.0",
+      "collection": ">=0.9.1 <1.0.0"
+    },
+    "collection 0.9.0": {},
+    "collection 0.9.1": {},
+    "di 0.0.37": {"analyzer": ">=0.13.0 <0.14.0"},
+    "di 0.0.36": {"analyzer": ">=0.13.0 <0.14.0"}
+  }, error: noVersion(['myapp', 'angular', 'collection']), maxTries: 9);
 }
 
 badSource() {
@@ -680,6 +706,27 @@ backtracking() {
     'b': '4.0.0',
     'c': '2.0.0'
   }, maxTries: 2);
+
+  // This is similar to the above test. When getting the number of versions of
+  // a package to determine which to traverse first, versions that are
+  // disallowed by the root package's constraints should not be considered.
+  // Here, foo has more versions of bar in total (4), but fewer that meet
+  // myapp's constraints (only 2). There is no solution, but we will do less
+  // backtracking if foo is tested first.
+  testResolve('take root package constraints into counting versions', {
+    "myapp 0.0.0": {
+      "foo": ">2.0.0",
+      "bar": "any"
+    },
+    "foo 1.0.0": {"none": "2.0.0"},
+    "foo 2.0.0": {"none": "2.0.0"},
+    "foo 3.0.0": {"none": "2.0.0"},
+    "foo 4.0.0": {"none": "2.0.0"},
+    "bar 1.0.0": {},
+    "bar 2.0.0": {},
+    "bar 3.0.0": {},
+    "none 1.0.0": {}
+  }, error: noVersion(["foo", "none"]), maxTries: 2);
 
   // This sets up a hundred versions of foo and bar, 0.0.0 through 9.9.0. Each
   // version of foo depends on a baz with the same major version. Each version
@@ -1372,7 +1419,7 @@ Package mockPackage(PackageId id, Map dependencyStrings, Map overrides) {
 /// The "from mock" optional suffix is the name of a source for the package.
 /// If omitted, it defaults to "mock1".
 PackageId parseSpec(String text, [String version]) {
-  var pattern = new RegExp(r"(([a-z]*)(-[a-z]+)?)( ([^ ]+))?( from (.*))?$");
+  var pattern = new RegExp(r"(([a-z_]*)(-[a-z_]+)?)( ([^ ]+))?( from (.*))?$");
   var match = pattern.firstMatch(text);
   if (match == null) {
     throw new FormatException("Could not parse spec '$text'.");

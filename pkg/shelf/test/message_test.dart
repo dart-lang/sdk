@@ -11,13 +11,15 @@ import 'package:shelf/src/message.dart';
 import 'package:unittest/unittest.dart';
 
 class _TestMessage extends Message {
-  _TestMessage(Map<String, String> headers, Stream<List<int>> body)
-      : super(body, headers: headers);
+  _TestMessage(Map<String, String> headers, Map<String, Object> context,
+        Stream<List<int>> body)
+      : super(body, headers: headers, context: context);
 }
 
-Message _createMessage({Map<String, String> headers, Stream<List<int>> body}) {
+Message _createMessage({Map<String, String> headers,
+    Map<String, Object> context, Stream<List<int>> body}) {
   if (body == null) body = new Stream.fromIterable([]);
-  return new _TestMessage(headers, body);
+  return new _TestMessage(headers, context, body);
 }
 
 void main() {
@@ -43,6 +45,26 @@ void main() {
       expect(() => message.headers['h2'] = 'value2', throwsUnsupportedError);
     });
   });
+
+  group('context', () {
+    test('is accessible', () {
+      var message = _createMessage(context: {'foo': 'bar'});
+      expect(message.context, containsPair('foo', 'bar'));
+    });
+
+    test('null context value becomes empty and immutable', () {
+      var message = _createMessage();
+      expect(message.context, isEmpty);
+      expect(() => message.context['key'] = 'value', throwsUnsupportedError);
+    });
+
+    test('is immutable', () {
+      var message = _createMessage(context: {'key': 'value'});
+      expect(() => message.context['key'] = 'value', throwsUnsupportedError);
+      expect(() => message.context['key2'] = 'value', throwsUnsupportedError);
+    });
+  });
+
   group("readAsString", () {
     test("supports a null body", () {
       var request = _createMessage();

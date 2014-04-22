@@ -8,8 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
-    as dart2js_util;
+import '../lib/src/exports/mirrors_util.dart' as dart2js_util;
 
 import 'util.dart';
 

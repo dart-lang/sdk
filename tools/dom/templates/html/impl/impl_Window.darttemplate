@@ -70,58 +70,28 @@ $if DART2JS
   }
 
   // API level getter and setter for Location.
-  // TODO: The cross domain safe wrapper can be inserted here or folded into
-  // _LocationWrapper.
+  // TODO: The cross domain safe wrapper can be inserted here.
   /**
    * The current location of this window.
    *
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location {
-    // Firefox work-around for Location.  The Firefox location object cannot be
-    // made to behave like a Dart object so must be wrapped.
-    var result = _location;
-    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
-    if (null == _location_wrapper) {
-      _location_wrapper = new _LocationWrapper(result);
-    }
-    return _location_wrapper;
-  }
+  Location get location => _location;
 
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a string.
+   * location. [value] may be a Location object or a String.
    */
   void set location(value) {
-    if (value is _LocationWrapper) {
-      _location = value._ptr;
-    } else {
-      _location = value;
-    }
+    _location = value;
   }
-
-  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  dynamic get _location => JS('Location|=Object', '#.location', this);
+  dynamic get _location => JS('Location|Null', '#.location', this);
   void set _location(value) {
     JS('void', '#.location = #', this, value);
-  }
-  // Prevent compiled from thinking 'location' property is available for a Dart
-  // member.
-  @JSName('location')
-  _protect_location() native;
-
-  static _isDartLocation(thing) {
-    // On Firefox the code that implements 'is Location' fails to find the patch
-    // stub on Object.prototype and throws an exception.
-    try {
-      return thing is Location;
-    } catch (e) {
-      return false;
-    }
   }
 
   /**

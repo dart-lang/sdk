@@ -170,8 +170,6 @@ class Phase {
   void addInput(AssetNode node) {
     if (_inputs.containsKey(node.id)) _inputs[node.id].remove();
 
-    node.force();
-
     // Each group is one channel along which an asset may be forwarded, as is
     // each transformer.
     var forwarder = new PhaseForwarder(

@@ -112,6 +112,7 @@ class Sample {
     tid_ = tid;
     isolate_ = isolate;
     vm_tag_ = VMTag::kInvalidTagId;
+    user_tag_ = UserTags::kNoUserTag;
     for (intptr_t i = 0; i < kSampleFramesSize; i++) {
       pcs_[i] = 0;
     }
@@ -149,11 +150,19 @@ class Sample {
     vm_tag_ = tag;
   }
 
+  uword user_tag() const {
+    return user_tag_;
+  }
+  void set_user_tag(uword tag) {
+    user_tag_ = tag;
+  }
+
  private:
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;
   uword vm_tag_;
+  uword user_tag_;
   uword pcs_[kSampleFramesSize];
 };
 

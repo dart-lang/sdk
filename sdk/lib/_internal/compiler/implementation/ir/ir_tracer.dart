@@ -2,8 +2,7 @@ library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
 
-import 'ir_nodes.dart' as ir;
-import 'ir_nodes.dart' hide Function;
+import 'ir_nodes.dart' as ir hide Function;
 import '../tracer.dart';
 
 /**
@@ -11,23 +10,25 @@ import '../tracer.dart';
  */
 const bool IR_TRACE_LET_CONT = false;
 
-class IRTracer extends TracerUtil implements Visitor {
+class IRTracer extends TracerUtil implements ir.Visitor {
   int indent = 0;
   EventSink<String> output;
 
   IRTracer(this.output);
 
-  void traceGraph(String name, ir.Function graph) {
+  visit(ir.Node node) => node.accept(this);
+
+  void traceGraph(String name, ir.FunctionDefinition graph) {
     tag("cfg", () {
       printProperty("name", name);
-      visitFunction(graph);
+      visitFunctionDefinition(graph);
     });
   }
 
   // Temporary field used during tree walk
   Names names;
 
-  visitFunction(ir.Function f) {
+  visitFunctionDefinition(ir.FunctionDefinition f) {
     names = new Names();
     BlockCollector builder = new BlockCollector(names);
     f.accept(builder);
@@ -69,13 +70,13 @@ class IRTracer extends TracerUtil implements Visitor {
     add("$bci $uses $resultVar $contents <|@\n");
   }
 
-  visitLetPrim(LetPrim node) {
+  visitLetPrim(ir.LetPrim node) {
     String id = names.name(node.primitive);
     printStmt(id, "LetPrim $id = ${formatPrimitive(node.primitive)}");
     node.body.accept(this);
   }
 
-  visitLetCont(LetCont node) {
+  visitLetCont(ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
       String id = names.name(node.continuation);
@@ -84,7 +85,7 @@ class IRTracer extends TracerUtil implements Visitor {
     node.body.accept(this);
   }
 
-  visitInvokeStatic(InvokeStatic node) {
+  visitInvokeStatic(ir.InvokeStatic node) {
     String dummy = names.name(node);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
@@ -92,23 +93,23 @@ class IRTracer extends TracerUtil implements Visitor {
     printStmt(dummy, "InvokeStatic $callName ($args) $kont");
   }
 
-  visitInvokeContinuation(InvokeContinuation node) {
+  visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
     String arg = formatReference(node.argument);
     printStmt(dummy, "InvokeContinuation $kont ($arg)");
   }
 
-  String formatReference(Reference ref) {
-    Definition target = ref.definition;
-    if (target is Continuation && target.body == null) {
+  String formatReference(ir.Reference ref) {
+    ir.Definition target = ref.definition;
+    if (target is ir.Continuation && target.body == null) {
       return "return"; // Do not generate a name for the return continuation
     } else {
       return names.name(ref.definition);
     }
   }
 
-  String formatPrimitive(Primitive p) {
+  String formatPrimitive(ir.Primitive p) {
     return p.accept(this);
   }
 
@@ -116,23 +117,23 @@ class IRTracer extends TracerUtil implements Visitor {
     return "Constant ${node.value}";
   }
 
-  visitParameter(Parameter node) {
+  visitParameter(ir.Parameter node) {
     return "Parameter ${names.name(node)}";
   }
 
-  visitContinuation(Continuation node) {
+  visitContinuation(ir.Continuation node) {
     return "Continuation ${names.name(node)}";
   }
 
-  visitExpression(Expression e) {}
-  visitPrimitive(Primitive p) {}
-  visitDefinition(Definition d) {}
-  visitNode(Node n) {}
+  visitExpression(ir.Expression e) {}
+  visitPrimitive(ir.Primitive p) {}
+  visitDefinition(ir.Definition d) {}
+  visitNode(ir.Node n) {}
 }
 
-/** 
+/**
  * Invents (and remembers) names for Continuations, Parameters, etc.
- * The names must match the conventions used by IR Hydra, e.g. 
+ * The names must match the conventions used by IR Hydra, e.g.
  * Continuations and Functions must have names of form B### since they
  * are visualized as basic blocks.
  */
@@ -146,9 +147,9 @@ class Names {
   };
 
   String prefix(x) {
-    if (x is Parameter) return 'r';
-    if (x is Continuation || x is ir.Function) return 'B';
-    if (x is Primitive) return 'v';
+    if (x is ir.Parameter) return 'r';
+    if (x is ir.Continuation || x is ir.FunctionDefinition) return 'B';
+    if (x is ir.Primitive) return 'v';
     return 'x';
   }
 
@@ -164,12 +165,12 @@ class Names {
 }
 
 /**
- * A vertex in the graph visualization, used in place of basic blocks.  
+ * A vertex in the graph visualization, used in place of basic blocks.
  */
 class Block {
   String name;
-  final List<Parameter> parameters;
-  final Expression body;
+  final List<ir.Parameter> parameters;
+  final ir.Expression body;
   final List<Block> succ = <Block>[];
   final List<Block> pred = <Block>[];
 
@@ -181,15 +182,15 @@ class Block {
   }
 }
 
-class BlockCollector implements Visitor {
+class BlockCollector extends ir.Visitor {
   Block entry;
-  final Map<Continuation, Block> cont2block = <Continuation, Block> {};
+  final Map<ir.Continuation, Block> cont2block = <ir.Continuation, Block> {};
   Block current_block;
 
   Names names;
   BlockCollector(this.names);
 
-  Block getBlock(Continuation c) {
+  Block getBlock(ir.Continuation c) {
     Block block = cont2block[c];
     if (block == null) {
       block = new Block(names.name(c), [c.parameter], c.body);
@@ -198,41 +199,42 @@ class BlockCollector implements Visitor {
     return block;
   }
 
-  visitFunction(ir.Function f) {
+  visitFunctionDefinition(ir.FunctionDefinition f) {
     entry = current_block = new Block(names.name(f), [], f.body);
     f.body.accept(this);
   }
-  visitLetPrim(LetPrim exp) {
+
+  visitLetPrim(ir.LetPrim exp) {
     exp.body.accept(this);
   }
-  visitLetCont(LetCont exp) {
+
+  visitLetCont(ir.LetCont exp) {
     exp.continuation.accept(this);
     exp.body.accept(this);
   }
-  visitInvokeStatic(InvokeStatic exp) {
-    Definition target = exp.continuation.definition;
-    if (target is Continuation && target.body != null) {
+
+  visitInvokeStatic(ir.InvokeStatic exp) {
+    ir.Definition target = exp.continuation.definition;
+    if (target is ir.Continuation && target.body != null) {
       current_block.addEdgeTo(getBlock(target));
     }
   }
 
-  visitInvokeContinuation(InvokeContinuation exp) {
-    Definition target = exp.continuation.definition;
-    if (target is Continuation && target.body != null) {
+  visitInvokeContinuation(ir.InvokeContinuation exp) {
+    ir.Definition target = exp.continuation.definition;
+    if (target is ir.Continuation && target.body != null) {
       current_block.addEdgeTo(getBlock(target));
     }
   }
+
   visitConstant(ir.Constant constant) {}
-  visitParameter(Parameter p) {}
-  visitContinuation(Continuation c) {
+
+  visitParameter(ir.Parameter p) {}
+
+  visitContinuation(ir.Continuation c) {
     var old_node = current_block;
     current_block = getBlock(c);
     c.body.accept(this);
     current_block = old_node;
   }
-
-  visitPrimitive(Primitive p) {}
-  visitDefinition(Definition d) {}
-  visitExpression(Expression e) {}
-  visitNode(Node n) {}
 }

@@ -183,8 +183,10 @@ testExtendsImplements() {
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){var x,y;final String s=null;}');
-  testDart2Dart('main(){final int x=0,y=0;final String s=null;}');
+  testDart2Dart('main(){var x,y;final String s=null;}',
+      continuation: (String s) { Expect.equals('main(){}', s); });
+  testDart2Dart('main(){final int x=0,y=0;final String s=null;}',
+      continuation: (String s) { Expect.equals('main(){}', s); });
   testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
@@ -388,7 +390,7 @@ main() {
   var expectedResult =
     'topfoo(){}'
     'class A{foo(){}}'
-    'A_topfoo(){var x=5;}'
+    'A_topfoo(){}'
     'class A_A{num foo(){}A_A.fromFoo(){}A myliba;List<A_A> mylist;}'
     'A getA(){}'
     'main(){var a=new A();a.foo();var b=new A_A.fromFoo();b.foo();'

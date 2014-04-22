@@ -18,7 +18,7 @@
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
-                '"../pkg/polymer/example/"])',
+                '"polymer/example/"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
@@ -31,6 +31,6 @@
           ],
         },
       ],
-    }
+    },
   ],
 }

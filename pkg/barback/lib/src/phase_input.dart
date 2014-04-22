@@ -38,6 +38,9 @@ class PhaseInput {
   /// The asset node for this input.
   AssetNode get input => _inputForwarder.node;
 
+  /// The subscription to [input]'s [AssetNode.onStateChange] stream.
+  StreamSubscription _inputSubscription;
+
   /// A stream that emits an event whenever [this] is no longer dirty.
   ///
   /// This is synchronous in order to guarantee that it will emit an event as
@@ -53,7 +56,8 @@ class PhaseInput {
   final _onAssetPool = new StreamPool<AssetNode>.broadcast();
 
   /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => _transforms.any((transform) => transform.isDirty);
+  bool get isDirty => (input.state.isDirty && !input.deferred) ||
+      _transforms.any((transform) => transform.isDirty);
 
   /// A stream that emits an event whenever any transforms that use [input] as
   /// their primary input log an entry.
@@ -62,13 +66,20 @@ class PhaseInput {
 
   PhaseInput(this._phase, AssetNode input, this._location)
       : _inputForwarder = new AssetForwarder(input) {
-    input.whenRemoved(remove);
+    _inputSubscription = input.onStateChange.listen((state) {
+      if (state.isRemoved) {
+        remove();
+      } else if (state.isAvailable) {
+        if (!isDirty) _onDoneController.add(null);
+      }
+    });
   }
 
   /// Removes this input.
   ///
   /// This marks all outputs of the input as removed.
   void remove() {
+    _inputSubscription.cancel();
     _onDoneController.close();
     _onAssetPool.close();
     _onLogPool.close();

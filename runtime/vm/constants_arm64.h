@@ -27,8 +27,8 @@ enum Register {
   R13 = 13,
   R14 = 14,
   R15 = 15,
-  R16 = 16,
-  R17 = 17,
+  R16 = 16,  // IP0 aka TMP
+  R17 = 17,  // IP1 aka TMP2
   R18 = 18,
   R19 = 19,
   R20 = 20,
@@ -36,9 +36,9 @@ enum Register {
   R22 = 22,
   R23 = 23,
   R24 = 24,
-  kLastFreeCpuRegister = 24,
-  R25 = 25,  // IP0
-  R26 = 26,  // IP1
+  R25 = 25,
+  R26 = 26,
+  kLastFreeCpuRegister = 26,
   R27 = 27,  // PP
   R28 = 28,  // CTX
   R29 = 29,  // FP
@@ -53,8 +53,8 @@ enum Register {
   ZR = 33,
 
   // Aliases.
-  IP0 = R25,
-  IP1 = R26,
+  IP0 = R16,
+  IP1 = R17,
   FP = R29,
   LR = R30,
 };
@@ -107,13 +107,12 @@ const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
 // Register aliases.
-const Register TMP = R25;  // Used as scratch register by assembler.
-const Register TMP0 = R25;
-const Register TMP1 = R26;
-const Register CTX = R27;  // Caches current context in generated code.
-const Register PP = R26;  // Caches object pool pointer in generated code.
-const Register SPREG = R31;  // Stack pointer register.
+const Register TMP = R16;  // Used as scratch register by assembler.
+const Register TMP2 = R17;
+const Register CTX = R28;  // Caches current context in generated code.
+const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register FPREG = FP;  // Frame pointer register.
+const Register SPREG = R31;  // Stack pointer register.
 const Register ICREG = R5;  // IC data register.
 
 // Exception object is passed in this register to the catch handlers when an
@@ -142,8 +141,8 @@ const RegList kAbiArgumentCpuRegs =
 const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
     (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
-    (1 << R27) | (1 << R28) | (1 << R29);
-const int kAbiPreservedCpuRegCount = 11;
+    (1 << R27) | (1 << R28);
+const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -154,14 +153,14 @@ const RegList kDartAvailableCpuRegs =
     (1 << R4)  | (1 << R5)  | (1 << R6)  | (1 << R7)  |
     (1 << R8)  | (1 << R9)  | (1 << R10) | (1 << R11) |
     (1 << R12) | (1 << R13) | (1 << R14) | (1 << R15) |
-    (1 << R16) | (1 << R17) | (1 << R18) | (1 << R19) |
-    (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
-    (1 << R24);
+    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) |
+    (1 << R22) | (1 << R23) | (1 << R24) | (1 << R25) |
+    (1 << R26);
 
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-const int kDartVolatileCpuRegCount = 19;
+const int kDartVolatileCpuRegCount = 17;
 const VRegister kDartFirstVolatileFpuReg = V0;
 const VRegister kDartLastVolatileFpuReg = V7;
 const int kDartVolatileFpuRegCount = 8;
@@ -259,6 +258,21 @@ enum MainOp {
   DPSimd2Fixed = B28 | DPSimd1Fixed,
 };
 
+// C3.2.1
+enum CompareAndBranchOp {
+  CompareAndBranchMask = 0x7e000000,
+  CompareAndBranchFixed = CompareBranchFixed | B29,
+  CBZ = CompareBranchFixed,
+  CBNZ = CompareBranchFixed | B24,
+};
+
+// C.3.2.2
+enum ConditionalBranchOp {
+  ConditionalBranchMask = 0xfe000000,
+  ConditionalBranchFixed = CompareBranchFixed | B30,
+  BCOND = ConditionalBranchFixed,
+};
+
 // C3.2.3
 enum ExceptionGenOp {
   ExceptionGenMask = 0xff000000,
@@ -275,6 +289,22 @@ enum SystemOp {
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
 };
 
+// C3.2.5
+enum TestAndBranchOp {
+  TestAndBranchMask = 0x7e000000,
+  TestAndBranchFixed = CompareBranchFixed | B29 | B25,
+  TBZ = TestAndBranchFixed,
+  TBNZ = TestAndBranchFixed | B24,
+};
+
+// C3.2.6
+enum UnconditionalBranchOp {
+  UnconditionalBranchMask = 0x7c000000,
+  UnconditionalBranchFixed = CompareBranchFixed,
+  B = UnconditionalBranchFixed,
+  BL = UnconditionalBranchFixed | B31,
+};
+
 // C3.2.7
 enum UnconditionalBranchRegOp {
   UnconditionalBranchRegMask = 0xfe000000,
@@ -289,6 +319,13 @@ enum LoadStoreRegOp {
   LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
   STR = LoadStoreRegFixed,
   LDR = LoadStoreRegFixed | B22,
+};
+
+// C3.3.5
+enum LoadRegLiteralOp {
+  LoadRegLiteralMask = 0x3b000000,
+  LoadRegLiteralFixed = LoadStoreFixed | B28,
+  LDRpc = LoadRegLiteralFixed,
 };
 
 // C3.4.1
@@ -318,6 +355,14 @@ enum MoveWideOp {
   MOVK = MoveWideFixed | B30 | B29,
 };
 
+// C3.4.6
+enum PCRelOp {
+  PCRelMask = 0x1f000000,
+  PCRelFixed = DPImmediateFixed,
+  ADR = PCRelFixed,
+  ADRP = PCRelFixed | B31,
+};
+
 // C3.5.1
 enum AddSubShiftExtOp {
   AddSubShiftExtMask = 0x1f000000,
@@ -326,6 +371,25 @@ enum AddSubShiftExtOp {
   SUB = AddSubShiftExtFixed | B30,
 };
 
+// C3.5.8
+enum MiscDP2SourceOp {
+  MiscDP2SourceMask = 0x5fe00000,
+  MiscDP2SourceFixed = DPRegisterFixed | B28 | B23 | B22,
+  UDIV = MiscDP2SourceFixed | B11,
+  SDIV = MiscDP2SourceFixed | B11 | B10,
+  LSLV = MiscDP2SourceFixed | B13,
+  LSRV = MiscDP2SourceFixed | B13 | B10,
+  ASRV = MiscDP2SourceFixed | B13 | B11,
+};
+
+// C3.5.9
+enum MiscDP3SourceOp {
+  MiscDP3SourceMask = 0x1f000000,
+  MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
+  MADD = MiscDP3SourceFixed,
+};
+
+// C3.5.10
 enum LogicalShiftOp {
   LogicalShiftMask = 0x1f000000,
   LogicalShiftFixed = DPRegisterFixed,
@@ -346,14 +410,22 @@ _V(LoadStore)                                                                  \
 _V(DPRegister)                                                                 \
 _V(DPSimd1)                                                                    \
 _V(DPSimd2)                                                                    \
+_V(CompareAndBranch)                                                           \
+_V(ConditionalBranch)                                                          \
 _V(ExceptionGen)                                                               \
 _V(System)                                                                     \
-_V(LoadStoreReg)                                                               \
+_V(TestAndBranch)                                                              \
+_V(UnconditionalBranch)                                                        \
 _V(UnconditionalBranchReg)                                                     \
+_V(LoadStoreReg)                                                               \
+_V(LoadRegLiteral)                                                             \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
+_V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
+_V(MiscDP2Source)                                                              \
+_V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
 
 
@@ -382,7 +454,6 @@ enum Extend {
 enum R31Type {
   R31IsSP,
   R31IsZR,
-  R31IsUndef,
 };
 
 // Constants used for the decoding or encoding of the individual fields of
@@ -423,8 +494,19 @@ enum InstructionFields {
   kImm12Bits = 12,
   kImm12ShiftShift = 22,
   kImm12ShiftBits = 2,
+  kImm14Shift = 5,
+  kImm14Bits = 14,
   kImm16Shift = 5,
   kImm16Bits = 16,
+  kImm16Mask = 0xffff << kImm16Shift,
+  kImm19Shift = 5,
+  kImm19Bits = 19,
+  kImm19Mask = 0x7ffff << kImm19Shift,
+  kImm26Shift = 0,
+  kImm26Bits = 26,
+
+  kCondShift = 0,
+  kCondBits = 4,
 
   // Bitfield immediates.
   kNShift = 22,
@@ -455,8 +537,8 @@ enum InstructionFields {
 
 const uint32_t kImmExceptionIsRedirectedCall = 0xca11;
 const uint32_t kImmExceptionIsUnreachable = 0xdebf;
-const uint32_t kImmExceptionIsPrintf = 0xdeb1;
 const uint32_t kImmExceptionIsDebug = 0xdeb0;
+const uint32_t kImmExceptionIsPrintf = 0xdeb1;
 
 // Helper functions for decoding logical immediates.
 static inline uint64_t RotateRight(
@@ -502,6 +584,18 @@ class Instr {
   static const int32_t kBreakPointInstruction =  // hlt #kImmExceptionIsDebug.
       HLT | (kImmExceptionIsDebug << kImm16Shift);
   static const int kBreakPointInstructionSize = kInstrSize;
+  static const int32_t kRedirectInstruction =
+      HLT | (kImmExceptionIsRedirectedCall << kImm16Shift);
+
+  // Read one particular bit out of the instruction bits.
+  inline int Bit(int nr) const {
+    return (InstructionBits() >> nr) & 1;
+  }
+
+  // Read a bit field out of the instruction bits.
+  inline int Bits(int shift, int count) const {
+    return (InstructionBits() >> shift) & ((1 << count) - 1);
+  }
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
@@ -513,14 +607,23 @@ class Instr {
     *reinterpret_cast<int32_t*>(this) = value;
   }
 
-  // Read one particular bit out of the instruction bits.
-  inline int Bit(int nr) const {
-    return (InstructionBits() >> nr) & 1;
+  inline void SetMoveWideBits(
+      MoveWideOp op, Register rd, uint16_t imm, int hw, OperandSize sz) {
+    ASSERT((hw >= 0) && (hw <= 3));
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    SetInstructionBits(
+        op | size |
+        (static_cast<int32_t>(rd) << kRdShift) |
+        (static_cast<int32_t>(hw) << kHWShift) |
+        (static_cast<int32_t>(imm) << kImm16Shift));
   }
 
-  // Read a bit field out of the instruction bits.
-  inline int Bits(int shift, int count) const {
-    return (InstructionBits() >> shift) & ((1 << count) - 1);
+  inline void SetUnconditionalBranchRegBits(
+      UnconditionalBranchRegOp op, Register rn) {
+    SetInstructionBits(
+        op |
+        (static_cast<int32_t>(rn) << kRnShift));
   }
 
   inline int NField() const { return Bit(22); }
@@ -556,6 +659,20 @@ class Instr {
 
   inline int ImmRField() const { return Bits(kImmRShift, kImmRBits); }
   inline int ImmSField() const { return Bits(kImmSShift, kImmSBits); }
+
+  inline int Imm14Field() const { return Bits(kImm14Shift, kImm14Bits); }
+  inline int64_t SImm14Field() const {
+      return (static_cast<int32_t>(Imm14Field()) << 18) >> 18; }
+  inline int Imm19Field() const { return Bits(kImm19Shift, kImm19Bits); }
+  inline int64_t SImm19Field() const {
+      return (static_cast<int32_t>(Imm19Field()) << 13) >> 13; }
+  inline int Imm26Field() const { return Bits(kImm26Shift, kImm26Bits); }
+  inline int64_t SImm26Field() const {
+      return (static_cast<int32_t>(Imm26Field()) << 6) >> 6; }
+
+  inline Condition ConditionField() const {
+    return static_cast<Condition>(Bits(kCondShift, kCondBits));
+  }
 
   // Shift and Extend.
   inline bool IsShift() const {

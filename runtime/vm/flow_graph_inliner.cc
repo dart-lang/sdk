@@ -301,7 +301,8 @@ class CallSites : public ValueObject {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
-              instance_call->HasSingleRecognizedTarget()) {
+              instance_call->HasSingleRecognizedTarget() ||
+              instance_call->HasSingleDispatcherTarget()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
@@ -473,9 +474,9 @@ class CallSiteInliner : public ValueObject {
       inlining_call_sites_ = call_sites_temp;
       collected_call_sites_->Clear();
       // Inline call sites at the current depth.
+      InlineInstanceCalls();
       InlineStaticCalls();
       InlineClosureCalls();
-      InlineInstanceCalls();
       // Increment the inlining depth. Checked before recursive inlining.
       ++inlining_depth_;
     }
@@ -712,9 +713,18 @@ class CallSiteInliner : public ValueObject {
         return false;
       }
 
-      collected_call_sites_->FindCallSites(callee_graph,
-                                           inlining_depth_,
-                                           &inlined_info_);
+      if (function.IsInvokeFieldDispatcher() ||
+          function.IsNoSuchMethodDispatcher()) {
+        // Append call sites to the currently processed list so that dispatcher
+        // methods get inlined regardless of the current depth.
+        inlining_call_sites_->FindCallSites(callee_graph,
+                                            0,
+                                            &inlined_info_);
+      } else {
+        collected_call_sites_->FindCallSites(callee_graph,
+                                             inlining_depth_,
+                                             &inlined_info_);
+      }
 
       // Add the function to the cache.
       if (!in_cache) {

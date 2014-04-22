@@ -12,7 +12,7 @@ import 'rewrite.dart';
 
 /// Like [RewriteTransformer], but declares its assets ahead of time.
 class DeclaringRewriteTransformer extends RewriteTransformer
-    implements LazyTransformer {
+    implements DeclaringTransformer {
   DeclaringRewriteTransformer(String from, String to)
       : super(from, to);
 

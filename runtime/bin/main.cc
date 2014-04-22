@@ -941,6 +941,7 @@ void main(int argc, char** argv) {
   // Start event handler.
   EventHandler::Start();
 
+  ASSERT(Dart_CurrentIsolate() == NULL);
   // Start the VM service isolate, if necessary.
   if (start_vm_service) {
     ASSERT(vm_service_server_port >= 0);
@@ -952,6 +953,7 @@ void main(int argc, char** argv) {
     Dart_RegisterIsolateServiceRequestCallback(
         "io", &ServiceRequestHandler, NULL);
   }
+  ASSERT(Dart_CurrentIsolate() == NULL);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.

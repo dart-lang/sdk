@@ -288,7 +288,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MutationEvent.initMutationEvent',
   'MutationObserver.observe',
   'Node.attributes',
-  'Node.baseURI',
   'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',

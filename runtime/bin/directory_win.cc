@@ -310,12 +310,15 @@ static bool DeleteRecursively(PathBuffer* path) {
     return false;
   }
 
-  bool success = DeleteEntry(&find_file_data, path);
-
-  while ((FindNextFileW(find_handle, &find_file_data) != 0) && success) {
+  do {
+    if (!DeleteEntry(&find_file_data, path)) {
+      DWORD last_error = GetLastError();
+      FindClose(find_handle);
+      SetLastError(last_error);
+      return false;
+    }
     path->Reset(path_length);  // DeleteEntry adds to the path.
-    success = success && DeleteEntry(&find_file_data, path);
-  }
+  } while (FindNextFileW(find_handle, &find_file_data) != 0);
 
   path->Reset(path_length - 1);  // Drop the "\" from the end of the path.
   if ((GetLastError() != ERROR_NO_MORE_FILES) ||
@@ -324,7 +327,7 @@ static bool DeleteRecursively(PathBuffer* path) {
     return false;
   }
 
-  return success;
+  return true;
 }
 
 

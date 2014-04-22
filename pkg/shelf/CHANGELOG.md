@@ -1,3 +1,16 @@
+## 0.5.1
+
+* Add a `context` map to `Request` and `Response` for passing data among
+  handlers and middleware.
+
+## 0.5.0+1
+
+* Allow `scheduled_test` development dependency up to v0.12.0
+
+## 0.5.0
+
+* Renamed `Stack` to `Pipeline`.
+
 ## 0.4.0
 
 * Access to headers for `Request` and `Response` is now case-insensitive.

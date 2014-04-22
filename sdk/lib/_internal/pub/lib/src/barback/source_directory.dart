@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.barback.build_environment;
+library pub.barback.source_directory;
 
 import 'dart:async';
 
 import 'package:watcher/watcher.dart';
 
-import 'build_environment.dart';
+import 'asset_environment.dart';
 import 'barback_server.dart';
 
-// TODO(rnystrom): Rename to "SourceDirectory" and clean up various doc
-// comments that refer to "build directories" to use "source directory".
 /// A directory in the entrypoint package whose contents have been made
 /// available to barback and that are bound to a server.
-class BuildDirectory {
-  final BuildEnvironment _environment;
+class SourceDirectory {
+  final AssetEnvironment _environment;
 
   /// The relative directory path within the package.
   final String directory;
@@ -40,7 +38,7 @@ class BuildDirectory {
   /// If the directory is not being watched, this will be `null`.
   StreamSubscription<WatchEvent> watchSubscription;
 
-  BuildDirectory(this._environment, this.directory, this.hostname, this.port);
+  SourceDirectory(this._environment, this.directory, this.hostname, this.port);
 
   /// Binds a server running on [hostname]:[port] to this directory.
   Future<BarbackServer> serve() {
@@ -51,7 +49,7 @@ class BuildDirectory {
     });
   }
 
-  /// Removes the build directory from the build environment.
+  /// Removes the source directory from the build environment.
   ///
   /// Closes the server, removes the assets from barback, and stops watching it.
   Future close() {

@@ -18,6 +18,7 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/scanner.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -690,8 +691,12 @@ class Class : public Object {
     raw_ptr()->handle_vtable_ = value;
   }
 
+  static bool is_valid_id(intptr_t value) {
+    return RawObject::ClassIdTag::is_valid(value);
+  }
   intptr_t id() const { return raw_ptr()->id_; }
   void set_id(intptr_t value) const {
+    ASSERT(is_valid_id(value));
     raw_ptr()->id_ = value;
   }
 
@@ -2608,6 +2613,13 @@ class Library : public Object {
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     raw_ptr()->native_entry_resolver_ = value;
   }
+  Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
+    return raw_ptr()->native_entry_symbol_resolver_;
+  }
+  void set_native_entry_symbol_resolver(
+      Dart_NativeEntrySymbol native_symbol_resolver) const {
+    raw_ptr()->native_entry_symbol_resolver_ = native_symbol_resolver;
+  }
 
   RawError* Patch(const Script& script) const;
 
@@ -2646,6 +2658,7 @@ class Library : public Object {
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* TypedDataLibrary();
+  static RawLibrary* ProfilerLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
@@ -3286,6 +3299,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
+  // TODO(turnidge): Consider dropping this function and making
+  // everybody use owner().  Currently this function is misused - even
+  // while generating the snapshot.
   RawFunction* function() const {
     return reinterpret_cast<RawFunction*>(raw_ptr()->owner_);
   }
@@ -3456,6 +3472,8 @@ class Context : public Object {
     return *InstanceAddr(context_index);
   }
   inline void SetAt(intptr_t context_index, const Instance& value) const;
+
+  void Dump(int indent = 0) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -4015,6 +4033,7 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
+  intptr_t* NativeFieldsDataAddr() const;
   inline intptr_t GetNativeField(int index) const;
   inline void GetNativeFields(uint16_t num_fields,
                               intptr_t* field_values) const;
@@ -4059,6 +4078,7 @@ class Instance : public Object {
   RawObject** NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(RawObject));
   }
+
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
@@ -6638,6 +6658,46 @@ class MirrorReference : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MirrorReference, Instance);
+  friend class Class;
+};
+
+
+class UserTag : public Instance {
+ public:
+  uword tag() const { return raw_ptr()->tag(); }
+  void set_tag(uword t) const {
+    ASSERT(t >= UserTags::kUserTagIdOffset);
+    ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
+    raw_ptr()->tag_ = t;
+  };
+  static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
+
+  RawString* label() const {
+    return raw_ptr()->label_;
+  }
+
+  void MakeActive() const;
+  static void ClearActive();
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUserTag));
+  }
+
+  static RawUserTag* New(const String& label,
+                         Heap::Space space = Heap::kOld);
+
+  static bool TagTableIsFull(Isolate* isolate);
+  static RawUserTag* FindTagById(uword tag_id);
+
+ private:
+  static RawUserTag* FindTagInIsolate(Isolate* isolate, const String& label);
+  static void AddTagToIsolate(Isolate* isolate, const UserTag& tag);
+
+  void set_label(const String& tag_label) const {
+    StorePointer(&raw_ptr()->label_, tag_label.raw());
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
   friend class Class;
 };
 

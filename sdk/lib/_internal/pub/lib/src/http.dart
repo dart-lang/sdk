@@ -34,6 +34,10 @@ final PUB_API_HEADERS = const {'Accept': 'application/vnd.pub.v2+json'};
 
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
+///
+/// This also adds a 30-second timeout to every request. This can be configured
+/// on a per-request basis by setting the 'Pub-Request-Timeout' header to the
+/// desired number of milliseconds, or to "None" to disable the timeout.
 class PubHttpClient extends http.BaseClient {
   final _requestStopwatches = new Map<http.BaseRequest, Stopwatch>();
 
@@ -55,7 +59,15 @@ class PubHttpClient extends http.BaseClient {
       stackTrace = localStackTrace;
     }
 
-    return timeout(inner.send(request).then((streamedResponse) {
+    var timeoutLength = HTTP_TIMEOUT;
+    var timeoutString = request.headers.remove('Pub-Request-Timeout');
+    if (timeoutString == 'None') {
+      timeoutLength = null;
+    } else if (timeoutString != null) {
+      timeoutLength = int.parse(timeoutString);
+    }
+
+    var future = inner.send(request).then((streamedResponse) {
       _logResponse(streamedResponse);
 
       var status = streamedResponse.statusCode;
@@ -95,7 +107,10 @@ class PubHttpClient extends http.BaseClient {
         }
       }
       throw error;
-    }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
+    });
+
+    if (timeoutLength == null) return future;
+    return timeout(future, timeoutLength, 'fetching URL "${request.url}"');
   }
 
   /// Logs the fact that [request] was sent, and information about it.

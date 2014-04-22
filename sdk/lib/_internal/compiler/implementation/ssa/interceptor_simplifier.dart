@@ -64,29 +64,24 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return false;
   }
 
-  bool canUseSelfForInterceptor(HInstruction instruction,
+  bool canUseSelfForInterceptor(HInstruction receiver,
                                 Set<ClassElement> interceptedClasses) {
     JavaScriptBackend backend = compiler.backend;
-    if (instruction.canBePrimitive(compiler)) {
+    if (receiver.canBePrimitive(compiler)) {
       // Primitives always need interceptors.
       return false;
     }
-    if (instruction.canBeNull()
-        && interceptedClasses.contains(backend.jsNullClass)) {
+    if (receiver.canBeNull() &&
+        interceptedClasses.contains(backend.jsNullClass)) {
       // Need the JSNull interceptor.
       return false;
     }
 
-    // [interceptedClasses] is sparse - it is just the classes that define some
-    // intercepted method.  Their subclasses (that inherit the method) are
-    // implicit, so we have to extend them.
-    TypeMask receiverType = instruction.instructionType;
-    return interceptedClasses
-        .where((cls) => cls != compiler.objectClass)
-        .map((cls) => backend.classesMixedIntoInterceptedClasses.contains(cls)
-            ? new TypeMask.subtype(cls)
-            : new TypeMask.subclass(cls))
-        .every((mask) => receiverType.intersection(mask, compiler).isEmpty);
+    // All intercepted classes extend `Interceptor`, so if the receiver can't be
+    // a class extending `Interceptor` then it can be called directly.
+    return new TypeMask.nonNullSubclass(backend.jsInterceptorClass)
+        .intersection(receiver.instructionType, compiler)
+        .isEmpty;
   }
 
   HInstruction tryComputeConstantInterceptor(
@@ -115,9 +110,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       constantInterceptor = backend.jsStringClass;
     } else if (input.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
-    } else if (input.isNumber(compiler)
-        && !interceptedClasses.contains(backend.jsIntClass)
-        && !interceptedClasses.contains(backend.jsDoubleClass)) {
+    } else if (input.isNumber(compiler) &&
+        !interceptedClasses.contains(backend.jsIntClass) &&
+        !interceptedClasses.contains(backend.jsDoubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
       // can safely use the number interceptor.  This is because none of the
       // [int] or [double] methods are called from a method defined on [num].
@@ -144,8 +139,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // If we just happen to be in an instance method of the constant
     // interceptor, `this` is a shorter alias.
-    if (constantInterceptor == work.element.getEnclosingClass()
-        && graph.thisInstruction != null) {
+    if (constantInterceptor == work.element.getEnclosingClass() &&
+        graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
 
@@ -183,9 +178,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
-      if (interceptedClasses.contains(backend.jsNumberClass)
-          && !(interceptedClasses.contains(backend.jsDoubleClass)
-               || interceptedClasses.contains(backend.jsIntClass))) {
+      if (interceptedClasses.contains(backend.jsNumberClass) &&
+          !(interceptedClasses.contains(backend.jsDoubleClass) ||
+            interceptedClasses.contains(backend.jsIntClass))) {
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassElement> intercepted =

@@ -120,7 +120,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   EXPECT_VALID(result);
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   DART_CHECK_VALID(lib);
-  result = Dart_SetNativeResolver(lib, resolver);
+  result = Dart_SetNativeResolver(lib, resolver, NULL);
   DART_CHECK_VALID(result);
   return lib;
 }

@@ -10,7 +10,6 @@ library engine.test_support;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -143,9 +142,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    for (MapIterator<ErrorCode, int> iter = SingleMapIterator.forMap(expectedCounts); iter.moveNext();) {
-      ErrorCode code = iter.key;
-      int expectedCount = iter.value;
+    for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
+      ErrorCode code = entry.getKey();
+      int expectedCount = entry.getValue();
       int actualCount;
       List<AnalysisError> list = errorsByCode.remove(code);
       if (list == null) {
@@ -169,9 +168,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Check that there are no more errors in the actual-errors map, otherwise, record message.
     //
-    for (MapIterator<ErrorCode, List<AnalysisError>> iter = SingleMapIterator.forMap(errorsByCode); iter.moveNext();) {
-      ErrorCode code = iter.key;
-      List<AnalysisError> actualErrors = iter.value;
+    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
+      ErrorCode code = entry.getKey();
+      List<AnalysisError> actualErrors = entry.getValue();
       int actualCount = actualErrors.length;
       if (builder.length == 0) {
         builder.append("Expected ");
@@ -821,6 +820,8 @@ main() {
 }
 
 class TestSource implements Source {
+  String _name;
+  TestSource([this._name = '/test.dart']);
   int get hashCode => 0;
   bool operator ==(Object object) {
     return object is TestSource;
@@ -832,10 +833,10 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   String get fullName {
-    throw new UnsupportedOperationException();
+    return _name;
   }
   String get shortName {
-    throw new UnsupportedOperationException();
+    return _name;
   }
   String get encoding {
     throw new UnsupportedOperationException();

@@ -73,8 +73,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ LoadImmediate(T0, VMTag::kVMTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(S5, Address(A0, Isolate::vm_tag_offset()));
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -200,8 +199,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(T5, Address(A0, Isolate::vm_tag_offset()));
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
@@ -334,8 +332,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
-  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+  __ sw(T5, Address(A0, Isolate::vm_tag_offset()));
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
@@ -822,100 +819,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ lw(A0, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));
 
-  __ LeaveStubFrameAndReturn();
-}
-
-
-// Input parameters:
-//   RA: return address.
-//   SP: address of last argument.
-//   S4: Arguments descriptor array.
-// Return: V0.
-// Note: The closure object is the first argument to the function being
-//       called, the stub accesses the closure from this location directly
-//       when trying to resolve the call.
-void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  // Load num_args.
-  __ TraceSimMsg("GenerateCallClosureFunctionStub");
-  __ lw(T0, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ LoadImmediate(TMP, Smi::RawValue(1));
-  __ subu(T0, T0, TMP);
-
-  // Load closure object in T1.
-  __ sll(T1, T0, 1);  // T0 (num_args - 1) is a Smi.
-  __ addu(T1, SP, T1);
-  __ lw(T1, Address(T1));
-
-  // Verify that T1 is a closure by checking its class.
-  Label not_closure;
-
-  __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
-
-  // See if it is not a closure, but null object.
-  __ beq(T1, T7, &not_closure);
-
-  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ beq(CMPRES1, ZR, &not_closure);  // Not a closure, but a smi.
-
-  // Verify that the class of the object is a closure class by checking that
-  // class.signature_function() is not null.
-  __ LoadClass(T0, T1);
-  __ lw(T0, FieldAddress(T0, Class::signature_function_offset()));
-
-  // See if actual class is not a closure class.
-  __ beq(T0, T7, &not_closure);
-
-  // T0 is just the signature function. Load the actual closure function.
-  __ lw(T0, FieldAddress(T1, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ lw(CTX, FieldAddress(T1, Closure::context_offset()));
-
-  // Load closure function code in T2.
-  // S4: arguments descriptor array.
-  // S5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ LoadImmediate(S5, 0);
-  __ lw(T2, FieldAddress(T0, Function::code_offset()));
-  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
-  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T2);
-
-  __ Bind(&not_closure);
-  // Call runtime to attempt to resolve and invoke a call method on a
-  // non-closure object, passing the non-closure object and its arguments array,
-  // returning here.
-  // If no call method exists, throw a NoSuchMethodError.
-  // T1: non-closure object.
-  // S4: arguments descriptor array.
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  // Setup space on stack for result from error reporting.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  // Arguments descriptor and raw null.
-  __ sw(T7, Address(SP, 1 * kWordSize));
-  __ sw(S4, Address(SP, 0 * kWordSize));
-
-  // Load smi-tagged arguments array length, including the non-closure.
-  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  PushArgumentsArray(assembler);
-
-  // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Place for result from the call.
-  // TOS + 3: Saved FP of previous frame.
-  // TOS + 4: Dart code return address.
-  // TOS + 5: PC marker (0 for stub).
-  // TOS + 6: Last argument of caller.
-  // ....
-  __ CallRuntime(kInvokeNonClosureRuntimeEntry, 2);
-  __ lw(V0, Address(SP, 2 * kWordSize));  // Get result into V0.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));  // Remove arguments.
-
-  // Remove the stub frame as we are about to return.
   __ LeaveStubFrameAndReturn();
 }
 

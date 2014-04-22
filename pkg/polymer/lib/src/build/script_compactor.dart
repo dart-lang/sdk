@@ -139,26 +139,32 @@ class _ScriptCompactor extends PolymerTransformer {
   /// Emits the main HTML and Dart bootstrap code for the application. If there
   /// were not Dart entry point files, then this simply emits the original HTML.
   Future _emitNewEntrypoint(_) {
-    if (entryLibraries.isEmpty) {
-      // We didn't find code, nothing to do.
-      transform.addOutput(transform.primaryInput);
-      return null;
-    }
-
+    // If we don't find code, there is nothing to do.
+    if (entryLibraries.isEmpty) return null;
     return _initResolver()
         .then(_extractUsesOfMirrors)
         .then(_emitFiles)
-        .whenComplete(() => resolver.release());
+        .whenComplete(() {
+          if (resolver != null) resolver.release();
+        });
   }
 
   /// Load a resolver that computes information for every library in
   /// [entryLibraries], then use it to initialize the [recorder] (for import
   /// resolution) and to resolve specific elements (for analyzing the user's
   /// code).
-  Future _initResolver() => resolvers.get(transform, entryLibraries).then((r) {
-    resolver = r;
-    types = new _ResolvedTypes(resolver);
-  });
+  Future _initResolver() {
+    // We include 'polymer.dart' to simplify how we do resolution below. This
+    // way we can assume polymer is there, even if the user didn't include an
+    // import to it. If not, the polymer build will fail with an error when
+    // trying to create _ResolvedTypes below.
+    var libsToLoad = [new AssetId('polymer', 'lib/polymer.dart')]
+        ..addAll(entryLibraries);
+    return resolvers.get(transform, libsToLoad).then((r) {
+      resolver = r;
+      types = new _ResolvedTypes(resolver);
+    });
+  }
 
   /// Inspects the entire program to find out anything that polymer accesses
   /// using mirrors and produces static information that can be used to replace
@@ -343,15 +349,21 @@ class _ScriptCompactor extends PolymerTransformer {
     generator.writeTopLevelDeclarations(code);
     code.writeln('\nvoid main() {');
     generator.writeInitCall(code);
-    code.writeln('  startPolymer([');
+    code.write('  startPolymer([');
 
     // Include initializers to switch from mirrors_loader to static_loader.
-    for (var init in initializers) {
-      var initCode = init.asCode(prefixes[init.assetId]);
-      code.write("      $initCode,\n");
+    if (!initializers.isEmpty) {
+      code.writeln();
+      for (var init in initializers) {
+        var initCode = init.asCode(prefixes[init.assetId]);
+        code.write("      $initCode,\n");
+      }
+      code.writeln('    ]);');
+    } else {
+      logger.warning(NO_INITIALIZERS_ERROR);
+      code.writeln(']);');
     }
-    code..writeln('    ]);')
-        ..writeln('}');
+    code.writeln('}');
     transform.addOutput(new Asset.fromString(bootstrapId, code.toString()));
 
 
@@ -401,6 +413,13 @@ library app_bootstrap;
 
 import 'package:polymer/polymer.dart';
 """;
+
+const NO_INITIALIZERS_ERROR =
+    'No polymer initializers were found. Make sure to either '
+    'annotate your polymer elements with @CustomTag or include a '
+    'top level method annotated with @initMethod that registers your '
+    'elements. Both annotations are defined in the polymer library ('
+    'package:polymer/polymer.dart).';
 
 /// An html visitor that:
 ///   * finds all polymer expressions and records the getters and setters that
@@ -538,7 +557,7 @@ class _SubExpressionVisitor extends pe.RecursiveVisitor {
 
   visitInvoke(pe.Invoke e) {
     _includeSetter = false; // Invoke is only valid as an r-value.
-    _add(e.method);
+    if (e.method != null) _add(e.method);
     super.visitInvoke(e);
   }
 }

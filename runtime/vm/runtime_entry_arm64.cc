@@ -15,8 +15,39 @@ namespace dart {
 
 #define __ assembler->
 
+// Generate code to call into the stub which will call the runtime
+// function. Input for the stub is as follows:
+//   SP : points to the arguments and return value array.
+//   R5 : address of the runtime function to call.
+//   R4 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  UNIMPLEMENTED();
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = GetEntryPoint();
+#if defined(USING_SIMULATOR)
+  // Redirection to leaf runtime calls supports a maximum of 8 arguments passed
+  // in registers.
+  ASSERT(argument_count >= 0);
+  ASSERT(!is_leaf() || (argument_count <= 8));
+  Simulator::CallKind call_kind =
+      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                              : Simulator::kLeafRuntimeCall)
+                : Simulator::kRuntimeCall;
+  entry =
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count);
+#endif
+  if (is_leaf()) {
+    ASSERT(argument_count == this->argument_count());
+    ExternalLabel label(name(), entry);
+    __ BranchLink(&label, PP);
+  } else {
+    // Argument count is not checked here, but in the runtime entry for a more
+    // informative error message.
+    __ LoadImmediate(R5, entry, PP);
+    __ LoadImmediate(R4, argument_count, PP);
+    __ BranchLink(&StubCode::CallToRuntimeLabel(), PP);
+  }
 }
 
 }  // namespace dart

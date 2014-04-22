@@ -3867,7 +3867,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The name of the top-level variable used to mark a class as implementing a proxy object.
    */
-  static String _PROXY_VARIABLE_NAME = "proxy";
+  static String PROXY_VARIABLE_NAME = "proxy";
 
   /**
    * Initialize a newly created annotation.
@@ -3913,7 +3913,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     if (element != null) {
       LibraryElement library = element.library;
       if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement && element.name == _PROXY_VARIABLE_NAME) {
+        if (element is PropertyAccessorElement && element.name == PROXY_VARIABLE_NAME) {
           return true;
         }
       }
@@ -5899,6 +5899,15 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+
+  @override
+  String get displayName {
+    String displayName = super.displayName;
+    if ("unary-" == displayName) {
+      return "-";
+    }
+    return displayName;
+  }
 
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
@@ -8495,10 +8504,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
-    MapIterator<String, DartType> firstIterator = SingleMapIterator.forMap(firstTypes);
-    MapIterator<String, DartType> secondIterator = SingleMapIterator.forMap(secondTypes);
-    while (firstIterator.moveNext() && secondIterator.moveNext()) {
-      if (firstIterator.key != secondIterator.key || !(firstIterator.value as TypeImpl).internalEquals(secondIterator.value, visitedElementPairs)) {
+    JavaIterator<MapEntry<String, DartType>> firstIterator = new JavaIterator(getMapEntrySet(firstTypes));
+    JavaIterator<MapEntry<String, DartType>> secondIterator = new JavaIterator(getMapEntrySet(secondTypes));
+    while (firstIterator.hasNext) {
+      MapEntry<String, DartType> firstEntry = firstIterator.next();
+      MapEntry<String, DartType> secondEntry = secondIterator.next();
+      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
         return false;
       }
     }
@@ -8574,15 +8585,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           needsComma = false;
         }
         builder.append("{");
-        for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
+        for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
           if (needsComma) {
             builder.append(", ");
           } else {
             needsComma = true;
           }
-          builder.append(iter.key);
+          builder.append(entry.getKey());
           builder.append(": ");
-          builder.append(iter.value.displayName);
+          builder.append(entry.getValue().displayName);
         }
         builder.append("}");
         needsComma = true;
@@ -8753,13 +8764,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is more specific then the type in S.
-      MapIterator<String, DartType> iteratorS = SingleMapIterator.forMap(namedTypesS);
-      while (iteratorS.moveNext()) {
-        DartType typeT = namedTypesT[iteratorS.key];
+      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
+      while (iteratorS.hasNext) {
+        MapEntry<String, DartType> entryS = iteratorS.next();
+        DartType typeT = namedTypesT[entryS.getKey()];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan2(iteratorS.value, withDynamic, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan2(entryS.getValue(), withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -8872,15 +8884,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = false;
       }
       builder.append("{");
-      for (MapIterator<String, DartType> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
+      for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
         if (needsComma) {
           builder.append(", ");
         } else {
           needsComma = true;
         }
-        builder.append(iter.key);
+        builder.append(entry.getKey());
         builder.append(": ");
-        (iter.value as TypeImpl).appendTo(builder);
+        (entry.getValue() as TypeImpl).appendTo(builder);
       }
       builder.append("}");
       needsComma = true;
@@ -8968,13 +8980,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is assignable to the type in S.
-      MapIterator<String, DartType> iteratorS = SingleMapIterator.forMap(namedTypesS);
-      while (iteratorS.moveNext()) {
-        DartType typeT = namedTypesT[iteratorS.key];
+      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
+      while (iteratorS.hasNext) {
+        MapEntry<String, DartType> entryS = iteratorS.next();
+        DartType typeT = namedTypesT[entryS.getKey()];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isAssignableTo2(iteratorS.value, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isAssignableTo2(entryS.getValue(), visitedTypePairs)) {
           return false;
         }
       }
@@ -9130,15 +9143,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, Set<InterfaceType> set) {
     Element element = type.element;
-    if (element != null && element is ClassElement) {
-      ClassElement classElement = element;
-      List<InterfaceType> superinterfaces = classElement.interfaces;
+    if (element != null) {
+      List<InterfaceType> superinterfaces = type.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
         if (set.add(superinterface)) {
           _computeSuperinterfaceSet(superinterface, set);
         }
       }
-      InterfaceType supertype = classElement.supertype;
+      InterfaceType supertype = type.superclass;
       if (supertype != null) {
         if (set.add(supertype)) {
           _computeSuperinterfaceSet(supertype, set);
@@ -9150,27 +9162,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /**
    * Return the intersection of the given sets of types, where intersection is based on the equality
-   * of the elements of the types rather than on the equality of the types themselves. In cases
-   * where two non-equal types have equal elements, which only happens when the class is
-   * parameterized, the type that is added to the intersection is the base type with type arguments
-   * that are the least upper bound of the type arguments of the two types.
+   * of the types themselves.
    *
    * @param first the first set of types to be intersected
    * @param second the second set of types to be intersected
    * @return the intersection of the given sets of types
    */
   static List<InterfaceType> _intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
-    Map<ClassElement, InterfaceType> firstMap = new Map<ClassElement, InterfaceType>();
-    for (InterfaceType firstType in first) {
-      firstMap[firstType.element] = firstType;
-    }
-    Set<InterfaceType> result = new Set<InterfaceType>();
-    for (InterfaceType secondType in second) {
-      InterfaceType firstType = firstMap[secondType.element];
-      if (firstType != null) {
-        result.add(_leastUpperBound(firstType, secondType));
-      }
-    }
+    Set<InterfaceType> result = new Set<InterfaceType>.from(first);
+    result.retainAll(second);
     return new List.from(result);
   }
 

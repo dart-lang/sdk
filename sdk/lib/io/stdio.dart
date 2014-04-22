@@ -40,84 +40,73 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 
   /**
    * Synchronously read a line from stdin. This call will block until a full
-   * line is available. The line will contain the newline character(s).
+   * line is available.
    *
-   * If end-of-file is reached, `null` is returned.
+   * The argument [encoding] can be used to changed how the input should be
+   * decoded. Default is [SYSTEM_ENCODING].
    *
-   * If end-of-file is reached after some data has already been read, that data
-   * is returned.
+   * If [retainNewlines] is `false`, the returned String will not contain the
+   * final newline. If `true`, the returned String will contain the line
+   * terminator. Default is `false`.
+   *
+   * If end-of-file is reached after any bytes have been read from stdin,
+   * that data is returned.
+   * Returns `null` if no bytes preceeded the end of input.
    */
   String readLineSync({Encoding encoding: SYSTEM_ENCODING,
                        bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
-    var line = new StringBuffer();
-    bool end = false;
-    bool lastCharWasCR = false;
-    var error;
-
-    StreamController<List<int>> controller =
-        new StreamController<List<int>>(sync: true);
-    Stream stream = controller.stream.transform(encoding.decoder);
-    stream.listen((String str) {
-      line.write(str);
-    }, onError: (e) {
-      error = e;
-    }, onDone: () {
-      end = true;
-    });
-
-    bool empty = true;
-    while (!end) {
-      int b = readByteSync();
-
-      if (b < 0) {
-        // We didn't write the carriage return in case a line feed would be
-        // the next character. Add it now.
-        if (lastCharWasCR && !retainNewlines) controller.add([CR]);
-        controller.close();
-      } else {
-        empty = false;
-        // We consider \r\n and \n as new lines.
-        // A \r on its own is treated like a normal character.
-
-        if (b == CR) {
-          if (lastCharWasCR && !retainNewlines) {
-            // We didn't write the carriage return in case a line feed would be
-            // the next character.
-            // Add it now (since we treat it like a normal character now).
-            controller.add([CR]);
-          }
-          // We add the carriage return only if we keep new lines.
-          // Otherwise we need to wait for the next character (in case it is
-          // a line feed).
-          if (retainNewlines) controller.add([b]);
-          lastCharWasCR = true;
-        } else if (b == LF) {
-          end = true;
-          // We don't care if there was a carriage return before. If we keep
-          // the line separators it has already been added to the controller.
-          // Otherwise we don't want it anyway.
-          if (retainNewlines) controller.add([b]);
-          controller.close();
-        } else {
-          // Since the current character is not a line feed we flush the
-          // carriage return we didn't write last iteration.
-          if (lastCharWasCR) {
-            controller.add([CR]);
-            lastCharWasCR = false;
-          }
-          controller.add([b]);
+    final List line = [];
+    // On Windows, if lineMode is disabled, only CR is received.
+    bool crIsNewline = Platform.isWindows &&
+        (stdioType(stdin) == StdioType.TERMINAL) &&
+        !lineMode;
+    if (retainNewlines) {
+      int byte;
+      do {
+        byte = readByteSync();
+        if (byte < 0) {
+          break;
         }
+        line.add(byte);
+      } while (byte != LF && !(byte == CR && crIsNewline));
+      if (line.isEmpty) {
+        return null;
       }
-      if (error != null) {
-        // Error during decoding.
-        throw error;
+    } else if (crIsNewline) {
+      // CR and LF are both line terminators, neither is retained.
+      while (true) {
+        int byte = readByteSync();
+        if (byte < 0) {
+          if (line.isEmpty) return null;
+          break;
+        }
+        if (byte == LF || byte == CR) break;
+        line.add(byte);
+      }
+    } else {
+      // Case having to hande CR LF as a single unretained line terminator.
+      outer: while (true) {
+        int byte = readByteSync();
+        if (byte == LF) break;
+        if (byte == CR) {
+          do {
+            byte = readByteSync();
+            if (byte == LF) break outer;
+
+            line.add(CR);
+          } while (byte == CR);
+          // Fall through and handle non-CR character.
+        }
+        if (byte < 0) {
+          if (line.isEmpty) return null;
+          break;
+        }
+        line.add(byte);
       }
     }
-
-    if (empty) return null;
-    return line.toString();
+    return encoding.decode(line);
   }
 
   /**

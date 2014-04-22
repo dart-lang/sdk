@@ -30,6 +30,8 @@ void main() {
         d.matcherFile('index.json', isJsonMap),
         d.matcherFile('index.txt', hasSortedLines),
         d.matcherFile('library_list.json', isJsonMap),
+        d.matcherFile('library_list.json',
+            startsWith(_LIBRARY_LIST_UNINDENT_START)),
         d.matcherFile('test_lib-bar.C.json', isJsonMap),
         d.matcherFile('test_lib-bar.json', isJsonMap),
         d.matcherFile('test_lib-foo.B.json', isJsonMap),
@@ -39,6 +41,7 @@ void main() {
         d.matcherFile('test_lib.C.json', isJsonMap),
         d.matcherFile('test_lib.json', isJsonMap),
     ]).validate();
-
   });
 }
+
+const _LIBRARY_LIST_UNINDENT_START = '{"libraries":[{"packageName":""';

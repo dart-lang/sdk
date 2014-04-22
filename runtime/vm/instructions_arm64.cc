@@ -21,13 +21,16 @@ CallPattern::CallPattern(uword pc, const Code& code)
       target_address_pool_index_(-1),
       args_desc_(Array::Handle()),
       ic_data_(ICData::Handle()) {
-  UNIMPLEMENTED();
-}
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blr ip0.
+  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
 
-
-int CallPattern::LengthInBytes() {
-  UNIMPLEMENTED();
-  return 0;
+  Register reg;
+  ic_data_load_end_ =
+      InstructionPattern::DecodeLoadWordFromPool(end_ - Instr::kInstrSize,
+                                                 &reg,
+                                                 &target_address_pool_index_);
+  ASSERT(reg == IP0);
 }
 
 
@@ -40,8 +43,23 @@ uword InstructionPattern::DecodeLoadObject(uword end,
                                            const Array& object_pool,
                                            Register* reg,
                                            Object* obj) {
-  UNIMPLEMENTED();
-  return 0;
+  // 1. LoadWordFromPool
+  // or
+  // 2. LoadDecodableImmediate
+  uword start = 0;
+  Instr* instr = Instr::At(end - Instr::kInstrSize);
+  if (instr->IsLoadStoreRegOp()) {
+    // Case 1.
+    intptr_t index = 0;
+    start = DecodeLoadWordFromPool(end, reg, &index);
+    *obj = object_pool.At(index);
+  } else {
+    // Case 2.
+    intptr_t value = 0;
+    start = DecodeLoadWordImmediate(end, reg, &value);
+    *obj = reinterpret_cast<RawObject*>(value);
+  }
+  return start;
 }
 
 
@@ -53,8 +71,69 @@ uword InstructionPattern::DecodeLoadObject(uword end,
 uword InstructionPattern::DecodeLoadWordImmediate(uword end,
                                                   Register* reg,
                                                   intptr_t* value) {
-  UNIMPLEMENTED();
-  return 0;
+  // 1. LoadWordFromPool
+  // or
+  // 2. LoadWordFromPool
+  //    orri
+  // or
+  // 3. LoadPatchableImmediate
+  uword start = end - Instr::kInstrSize;
+  Instr* instr = Instr::At(start);
+  bool odd = false;
+
+  // Case 2.
+  if (instr->IsLogicalImmOp()) {
+    ASSERT(instr->Bit(29) == 1);
+    odd = true;
+    // end points at orri so that we can pass it to DecodeLoadWordFromPool.
+    end = start;
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start);
+    // Case 2 falls through to case 1.
+  }
+
+  // Case 1.
+  if (instr->IsLoadStoreRegOp()) {
+    start = DecodeLoadWordFromPool(end, reg, value);
+    if (odd) {
+      *value |= 1;
+    }
+    return start;
+  }
+
+  // Case 3.
+  // movk dst, imm3, 3; movk dst, imm2, 2; movk dst, imm1, 1; movz dst, imm0, 0
+  ASSERT(instr->IsMoveWideOp());
+  ASSERT(instr->Bits(29, 2) == 3);
+  ASSERT(instr->HWField() == 3);  // movk dst, imm3, 3
+  *reg = instr->RdField();
+  *value = static_cast<int64_t>(instr->Imm16Field()) << 48;
+
+  start -= Instr::kInstrSize;
+  instr = Instr::At(start);
+  ASSERT(instr->IsMoveWideOp());
+  ASSERT(instr->Bits(29, 2) == 3);
+  ASSERT(instr->HWField() == 2);  // movk dst, imm2, 2
+  ASSERT(instr->RdField() == *reg);
+  *value |= static_cast<int64_t>(instr->Imm16Field()) << 32;
+
+  start -= Instr::kInstrSize;
+  instr = Instr::At(start);
+  ASSERT(instr->IsMoveWideOp());
+  ASSERT(instr->Bits(29, 2) == 3);
+  ASSERT(instr->HWField() == 1);  // movk dst, imm1, 1
+  ASSERT(instr->RdField() == *reg);
+  *value |= static_cast<int64_t>(instr->Imm16Field()) << 16;
+
+  start -= Instr::kInstrSize;
+  instr = Instr::At(start);
+  ASSERT(instr->IsMoveWideOp());
+  ASSERT(instr->Bits(29, 2) == 2);
+  ASSERT(instr->HWField() == 0);  // movz dst, imm0, 0
+  ASSERT(instr->RdField() == *reg);
+  *value |= static_cast<int64_t>(instr->Imm16Field());
+
+  return start;
 }
 
 
@@ -66,62 +145,187 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
 uword InstructionPattern::DecodeLoadWordFromPool(uword end,
                                                  Register* reg,
                                                  intptr_t* index) {
-  UNIMPLEMENTED();
-  return 0;
+  // 1. ldr dst, [pp, offset]
+  // or
+  // 2. movz dst, low_offset, 0
+  //    movk dst, hi_offset, 1 (optional)
+  //    ldr dst, [pp, dst]
+  uword start = end - Instr::kInstrSize;
+  Instr* instr = Instr::At(start);
+  intptr_t offset = 0;
+
+  // Last instruction is always an ldr into a 64-bit X register.
+  ASSERT(instr->IsLoadStoreRegOp() && (instr->Bit(22) == 1) &&
+        (instr->Bits(30, 2) == 3));
+
+  // Grab the destination register from the ldr instruction.
+  *reg = instr->RtField();
+
+  if (instr->Bit(24) == 1) {
+    // pp + scaled unsigned 12-bit immediate offset.
+    // Case 1.
+    offset = instr->Imm12Field() << 3;
+  } else {
+    ASSERT(instr->Bits(10, 2) == 2);
+    // We have to look at the preceding one or two instructions to find the
+    // offset.
+
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start);
+    ASSERT(instr->IsMoveWideOp());
+    ASSERT(instr->RdField() == *reg);
+    if (instr->Bits(29, 2) == 2) {  // movz dst, low_offset, 0
+      ASSERT(instr->HWField() == 0);
+      offset = instr->Imm16Field();
+      // no high offset.
+    } else {
+      ASSERT(instr->Bits(29, 2) == 3);  // movk dst, high_offset, 1
+      ASSERT(instr->HWField() == 1);
+      offset = instr->Imm16Field() << 16;
+
+      start -= Instr::kInstrSize;
+      instr = Instr::At(start);
+      ASSERT(instr->IsMoveWideOp());
+      ASSERT(instr->RdField() == *reg);
+      ASSERT(instr->Bits(29, 2) == 2);  // movz dst, low_offset, 0
+      ASSERT(instr->HWField() == 0);
+      offset |= instr->Imm16Field();
+    }
+  }
+  ASSERT(Utils::IsAligned(offset, 8));
+  *index = (offset - Array::data_offset()) / 8;
+  return start;
 }
 
 
 RawICData* CallPattern::IcData() {
-  UNIMPLEMENTED();
-  return NULL;
+  if (ic_data_.IsNull()) {
+    Register reg;
+    args_desc_load_end_ =
+        InstructionPattern::DecodeLoadObject(ic_data_load_end_,
+                                             object_pool_,
+                                             &reg,
+                                             &ic_data_);
+    ASSERT(reg == R5);
+  }
+  return ic_data_.raw();
 }
 
 
 RawArray* CallPattern::ClosureArgumentsDescriptor() {
-  UNIMPLEMENTED();
-  return NULL;
+  if (args_desc_.IsNull()) {
+    IcData();  // Loading of the ic_data must be decoded first, if not already.
+    Register reg;
+    InstructionPattern::DecodeLoadObject(args_desc_load_end_,
+                                         object_pool_,
+                                         &reg,
+                                         &args_desc_);
+    ASSERT(reg == R4);
+  }
+  return args_desc_.raw();
 }
 
 
 uword CallPattern::TargetAddress() const {
-  UNIMPLEMENTED();
-  return 0;
+  ASSERT(target_address_pool_index_ >= 0);
+  const Object& target_address =
+      Object::Handle(object_pool_.At(target_address_pool_index_));
+  ASSERT(target_address.IsSmi());
+  // The address is stored in the object array as a RawSmi.
+  return reinterpret_cast<uword>(target_address.raw());
 }
 
 
 void CallPattern::SetTargetAddress(uword target_address) const {
-  UNIMPLEMENTED();
+  ASSERT(Utils::IsAligned(target_address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target_address));
+  object_pool_.SetAt(target_address_pool_index_, smi);
+  // No need to flush the instruction cache, since the code is not modified.
 }
 
 
 void CallPattern::InsertAt(uword pc, uword target_address) {
-  UNIMPLEMENTED();
+  Instr* movz0 = Instr::At(pc + (0 * Instr::kInstrSize));
+  Instr* movk1 = Instr::At(pc + (1 * Instr::kInstrSize));
+  Instr* movk2 = Instr::At(pc + (2 * Instr::kInstrSize));
+  Instr* movk3 = Instr::At(pc + (3 * Instr::kInstrSize));
+  Instr* blr = Instr::At(pc + (4 * Instr::kInstrSize));
+  const uint32_t w0 = Utils::Low32Bits(target_address);
+  const uint32_t w1 = Utils::High32Bits(target_address);
+  const uint16_t h0 = Utils::Low16Bits(w0);
+  const uint16_t h1 = Utils::High16Bits(w0);
+  const uint16_t h2 = Utils::Low16Bits(w1);
+  const uint16_t h3 = Utils::High16Bits(w1);
+
+  movz0->SetMoveWideBits(MOVZ, IP0, h0, 0, kDoubleWord);
+  movk1->SetMoveWideBits(MOVK, IP0, h1, 1, kDoubleWord);
+  movk2->SetMoveWideBits(MOVK, IP0, h2, 2, kDoubleWord);
+  movk3->SetMoveWideBits(MOVK, IP0, h3, 3, kDoubleWord);
+  blr->SetUnconditionalBranchRegBits(BLR, IP0);
+
+  ASSERT(kLengthInBytes == 5 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kLengthInBytes);
 }
 
 
 JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
 
 
-int JumpPattern::pattern_length_in_bytes() {
-  UNIMPLEMENTED();
-  return 0;
-}
-
-
 bool JumpPattern::IsValid() const {
-  UNIMPLEMENTED();
-  return false;
+  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
+  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
+  Instr* br = Instr::At(pc_ + (4 * Instr::kInstrSize));
+  return (movz0->IsMoveWideOp()) && (movz0->Bits(29, 2) == 2) &&
+         (movk1->IsMoveWideOp()) && (movk1->Bits(29, 2) == 3) &&
+         (movk2->IsMoveWideOp()) && (movk2->Bits(29, 2) == 3) &&
+         (movk3->IsMoveWideOp()) && (movk3->Bits(29, 2) == 3) &&
+         (br->IsUnconditionalBranchRegOp()) && (br->Bits(16, 5) == 31);
 }
 
 
 uword JumpPattern::TargetAddress() const {
-  UNIMPLEMENTED();
-  return 0;
+  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
+  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
+  const uint16_t imm0 = movz0->Imm16Field();
+  const uint16_t imm1 = movk1->Imm16Field();
+  const uint16_t imm2 = movk2->Imm16Field();
+  const uint16_t imm3 = movk3->Imm16Field();
+  const int64_t target =
+      (static_cast<int64_t>(imm0)) |
+      (static_cast<int64_t>(imm1) << 16) |
+      (static_cast<int64_t>(imm2) << 32) |
+      (static_cast<int64_t>(imm3) << 48);
+  return target;
 }
 
 
 void JumpPattern::SetTargetAddress(uword target_address) const {
-  UNIMPLEMENTED();
+  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
+  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
+  const int32_t movz0_bits = movz0->InstructionBits();
+  const int32_t movk1_bits = movk1->InstructionBits();
+  const int32_t movk2_bits = movk2->InstructionBits();
+  const int32_t movk3_bits = movk3->InstructionBits();
+
+  const uint32_t w0 = Utils::Low32Bits(target_address);
+  const uint32_t w1 = Utils::High32Bits(target_address);
+  const uint16_t h0 = Utils::Low16Bits(w0);
+  const uint16_t h1 = Utils::High16Bits(w0);
+  const uint16_t h2 = Utils::Low16Bits(w1);
+  const uint16_t h3 = Utils::High16Bits(w1);
+
+  movz0->SetInstructionBits((movz0_bits & ~kImm16Mask) | (h0 << kImm16Shift));
+  movk1->SetInstructionBits((movk1_bits & ~kImm16Mask) | (h1 << kImm16Shift));
+  movk2->SetInstructionBits((movk2_bits & ~kImm16Mask) | (h2 << kImm16Shift));
+  movk3->SetInstructionBits((movk3_bits & ~kImm16Mask) | (h3 << kImm16Shift));
+  CPU::FlushICache(pc_, 4 * Instr::kInstrSize);
 }
 
 }  // namespace dart

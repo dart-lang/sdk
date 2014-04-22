@@ -1530,7 +1530,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, ShifterOperand(27));
     __ mov(R1, ShifterOperand(0));
-    __ udiv(R2, R0, R1);
+    __ sdiv(R2, R0, R1);
     __ mov(R0, ShifterOperand(R2));
   } else {
     __ LoadImmediate(R0, 0);

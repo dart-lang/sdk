@@ -27,5 +27,6 @@ void main() {
       }
       Expect.equals(0, a[0]);
       Expect.equals(0, b[0]);
+      input.closeSync();
     });
 }

@@ -1223,7 +1223,7 @@ $endif
 
       // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
       var base = _parseDocument.createElement('base');
-      base.href = document._baseUri;
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;

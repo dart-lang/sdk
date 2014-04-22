@@ -1549,25 +1549,35 @@ class _HttpClient implements HttpClient {
     return _openUrl(method, url);
   }
 
-  Future<HttpClientRequest> get(String host,
-                                int port,
-                                String path) {
-    return open("get", host, port, path);
-  }
+  Future<HttpClientRequest> get(String host, int port, String path)
+      => open("get", host, port, path);
 
-  Future<HttpClientRequest> getUrl(Uri url) {
-    return _openUrl("get", url);
-  }
+  Future<HttpClientRequest> getUrl(Uri url) => _openUrl("get", url);
 
-  Future<HttpClientRequest> post(String host,
-                                 int port,
-                                 String path) {
-    return open("post", host, port, path);
-  }
+  Future<HttpClientRequest> post(String host, int port, String path)
+      => open("post", host, port, path);
 
-  Future<HttpClientRequest> postUrl(Uri url) {
-    return _openUrl("post", url);
-  }
+  Future<HttpClientRequest> postUrl(Uri url) => _openUrl("post", url);
+
+  Future<HttpClientRequest> put(String host, int port, String path)
+      => open("put", host, port, path);
+
+  Future<HttpClientRequest> putUrl(Uri url) => _openUrl("put", url);
+
+  Future<HttpClientRequest> delete(String host, int port, String path)
+      => open("delete", host, port, path);
+
+  Future<HttpClientRequest> deleteUrl(Uri url) => _openUrl("delete", url);
+
+  Future<HttpClientRequest> head(String host, int port, String path)
+      => open("head", host, port, path);
+
+  Future<HttpClientRequest> headUrl(Uri url) => _openUrl("head", url);
+
+  Future<HttpClientRequest> patch(String host, int port, String path)
+      => open("patch", host, port, path);
+
+  Future<HttpClientRequest> patchUrl(Uri url) => _openUrl("patch", url);
 
   void close({bool force: false}) {
     _closing = true;

@@ -32,8 +32,6 @@ String getHtmlContents(String title,
   </script>
   <script type="text/javascript"
           src="/root_dart/pkg/browser/lib/dart.js"></script>
-  <script type="text/javascript"
-          src="/root_dart/pkg/browser/lib/interop.js"></script>
 </body>
 </html>""";
 }

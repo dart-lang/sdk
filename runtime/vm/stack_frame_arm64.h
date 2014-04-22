@@ -7,27 +7,44 @@
 
 namespace dart {
 
-// TODO(zra):
-// These are the values for ARM. Fill in the values for ARM64 as they are
-// needed.
+/* ARM64 Dart Frame Layout
+               |                    | <- TOS
+Callee frame   | ...                |
+               | saved PP           |
+               | callee's PC marker |
+               | saved FP           |    (FP of current frame)
+               | saved PC           |    (PC of current frame)
+               +--------------------+
+Current frame  | ...               T| <- SP of current frame
+               | first local       T|
+               | caller's PP       T|
+               | PC marker          |    (current frame's code entry + offset)
+               | caller's FP        | <- FP of current frame
+               | caller's LR        |    (PC of caller frame)
+               +--------------------+
+Caller frame   | last parameter     | <- SP of caller frame
+               |  ...               |
+
+               T against a slot indicates it needs to be traversed during GC.
+*/
 
 static const int kDartFrameFixedSize = 4;  // PP, FP, LR, PC marker.
-static const int kSavedPcSlotFromSp = -2;
+static const int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
+static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
 
-static const int kFirstLocalSlotFromFp = -2;
-static const int kSavedCallerPpSlotFromFp = -1;
+static const int kFirstLocalSlotFromFp = -3;
+static const int kSavedCallerPpSlotFromFp = -2;
 static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
-static const int kPcMarkerSlotFromFp = 2;
-static const int kParamEndSlotFromFp = 2;  // One slot past last parameter.
-static const int kCallerSpSlotFromFp = 3;
+static const int kPcMarkerSlotFromFp = -1;
+static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
+static const int kCallerSpSlotFromFp = 2;
 
 // Entry and exit frame layout.
-static const int kSavedContextSlotFromEntryFp = -27;
-static const int kExitLinkSlotFromEntryFp = -26;
-static const int kSavedVMTagSlotFromEntryFp = -25;
+static const int kSavedContextSlotFromEntryFp = -14;
+static const int kExitLinkSlotFromEntryFp = -13;
+static const int kSavedVMTagSlotFromEntryFp = -12;
 
 }  // namespace dart
 

@@ -100,22 +100,22 @@ class Platform {
   /**
    * Returns true if the operating system is Linux.
    */
-  static bool get isLinux => _operatingSystem == "linux";
+  static final bool isLinux = (_operatingSystem == "linux");
 
   /**
    * Returns true if the operating system is Mac OS.
    */
-  static bool get isMacOS => _operatingSystem == "macos";
+  static final bool isMacOS = (_operatingSystem == "macos");
 
   /**
    * Returns true if the operating system is Windows.
    */
-  static bool get isWindows => _operatingSystem == "windows";
+  static final bool isWindows = (_operatingSystem == "windows");
 
   /**
    * Returns true if the operating system is Android.
    */
-  static bool get isAndroid => _operatingSystem == "android";
+  static final bool isAndroid = (_operatingSystem == "android");
 
   /**
    * Get the environment for this process.

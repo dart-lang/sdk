@@ -20,8 +20,36 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
+
+
+Assembler::Assembler(bool use_far_branches)
+    : buffer_(),
+      object_pool_(GrowableObjectArray::Handle()),
+      patchable_pool_entries_(),
+      prologue_offset_(-1),
+      use_far_branches_(use_far_branches),
+      comments_() {
+  if (Isolate::Current() != Dart::vm_isolate()) {
+    object_pool_ = GrowableObjectArray::New(Heap::kOld);
+
+    // These objects and labels need to be accessible through every pool-pointer
+    // at the same index.
+    object_pool_.Add(Object::null_object(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+    // Not adding Object::null() to the index table. It is at index 0 in the
+    // object pool, but the HashMap uses 0 to indicate not found.
+
+    object_pool_.Add(Bool::True(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+    object_pool_index_table_.Insert(ObjIndexPair(Bool::True().raw(), 1));
+
+    object_pool_.Add(Bool::False(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+    object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
+  }
+}
 
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -32,11 +60,6 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
     *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
     data += 4;
   }
-}
-
-
-void Assembler::Stop(const char* message) {
-  UNIMPLEMENTED();
 }
 
 
@@ -71,6 +94,36 @@ static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
 const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
   return fpu_reg_names[reg];
+}
+
+
+// TODO(zra): Support for far branches. Requires loading large immediates.
+void Assembler::Bind(Label* label) {
+  ASSERT(!label->IsBound());
+  intptr_t bound_pc = buffer_.Size();
+
+  while (label->IsLinked()) {
+    const int64_t position = label->Position();
+    const int64_t dest = bound_pc - position;
+    const int32_t next = buffer_.Load<int32_t>(position);
+    const int32_t encoded = EncodeImm19BranchOffset(dest, next);
+    buffer_.Store<int32_t>(position, encoded);
+    label->position_ = DecodeImm19BranchOffset(next);
+  }
+  label->BindTo(bound_pc);
+}
+
+
+void Assembler::Stop(const char* message) {
+  if (FLAG_print_stop_message) {
+    UNIMPLEMENTED();
+  }
+  Label stop;
+  b(&stop);
+  Emit(Utils::Low32Bits(reinterpret_cast<int64_t>(message)));
+  Emit(Utils::High32Bits(reinterpret_cast<int64_t>(message)));
+  Bind(&stop);
+  hlt(kImmExceptionIsDebug);
 }
 
 
@@ -109,7 +162,7 @@ static int CountOneBits(uint64_t value, int width) {
 // by the corresponding fields in the logical instruction.
 // If it can't be encoded, the function returns false, and the operand is
 // undefined.
-bool Assembler::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
+bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
   ASSERT(imm_op != NULL);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
   ASSERT((width == kXRegSizeInBits) || (value <= 0xffffffffUL));
@@ -201,6 +254,393 @@ bool Assembler::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
     // 6. Otherwise, the value can't be encoded.
     return false;
   }
+}
+
+
+void Assembler::LoadPoolPointer(Register pp) {
+  const intptr_t object_pool_pc_dist =
+    Instructions::HeaderSize() - Instructions::object_pool_offset() +
+    CodeSize();
+  // PP <- Read(PC - object_pool_pc_dist).
+  ldr(pp, Address::PC(-object_pool_pc_dist));
+
+  // When in the PP register, the pool pointer is untagged. When we
+  // push it on the stack with PushPP it is tagged again. PopPP then untags
+  // when restoring from the stack. This will make loading from the object
+  // pool only one instruction for the first 4096 entries. Otherwise, because
+  // the offset wouldn't be aligned, it would be only one instruction for the
+  // first 64 entries.
+  sub(pp, pp, Operand(kHeapObjectTag));
+}
+
+void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
+                                       uint32_t offset) {
+  ASSERT(dst != pp);
+  if (Address::CanHoldOffset(offset)) {
+    ldr(dst, Address(pp, offset));
+  } else {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(dst, offset_low, 0);
+    if (offset_high != 0) {
+      movk(dst, offset_high, 1);
+    }
+    ldr(dst, Address(pp, dst));
+  }
+}
+
+
+intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
+                                      Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
+  if (patchable == kNotPatchable) {
+    // If the call site is not patchable, we can try to re-use an existing
+    // entry.
+    return FindObject(smi, kNotPatchable);
+  }
+  // If the call is patchable, do not reuse an existing entry since each
+  // reference may be patched independently.
+  object_pool_.Add(smi, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  return object_pool_.Length() - 1;
+}
+
+
+intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+
+  // If the object is not patchable, check if we've already got it in the
+  // object pool.
+  if (patchable == kNotPatchable) {
+    // Special case for Object::null(), which is always at object_pool_ index 0
+    // because Lookup() below returns 0 when the object is not mapped in the
+    // table.
+    if (obj.raw() == Object::null()) {
+      return 0;
+    }
+
+    intptr_t idx = object_pool_index_table_.Lookup(obj.raw());
+    if (idx != 0) {
+      ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
+      return idx;
+    }
+  }
+
+  object_pool_.Add(obj, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  if (patchable == kNotPatchable) {
+    // The object isn't patchable. Record the index for fast lookup.
+    object_pool_index_table_.Insert(
+        ObjIndexPair(obj.raw(), object_pool_.Length() - 1));
+  }
+  return object_pool_.Length() - 1;
+}
+
+
+intptr_t Assembler::FindImmediate(int64_t imm) {
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(imm));
+  return FindObject(smi, kNotPatchable);
+}
+
+
+bool Assembler::CanLoadObjectFromPool(const Object& object) {
+  // TODO(zra, kmillikin): Also load other large immediates from the object
+  // pool
+  if (object.IsSmi()) {
+    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
+    // the raw value in the object pool.
+    return !Utils::IsInt(32, reinterpret_cast<int64_t>(object.raw()));
+  }
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return (Isolate::Current() != Dart::vm_isolate()) &&
+         // Not in the VMHeap, OR is one of the VMHeap objects we put in every
+         // object pool.
+         // TODO(zra): Evaluate putting all VM heap objects into the pool.
+         (!object.InVMHeap() || (object.raw() == Object::null()) ||
+                                (object.raw() == Bool::True().raw()) ||
+                                (object.raw() == Bool::False().raw()));
+}
+
+
+bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
+  return !Utils::IsInt(32, imm) &&
+         (pp != kNoRegister) &&
+         (Isolate::Current() != Dart::vm_isolate());
+}
+
+
+void Assembler::LoadExternalLabel(Register dst,
+                                  const ExternalLabel* label,
+                                  Patchability patchable,
+                                  Register pp) {
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(dst, pp, offset);
+}
+
+
+void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+  if (CanLoadObjectFromPool(object)) {
+    const int32_t offset =
+        Array::element_offset(FindObject(object, kNotPatchable));
+    LoadWordFromPoolOffset(dst, pp, offset);
+  } else {
+    ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
+           object.IsSmi() ||
+           object.InVMHeap());
+    LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
+  }
+}
+
+
+void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
+  if ((pp != kNoRegister) && (Isolate::Current() != Dart::vm_isolate())) {
+    int64_t val_smi_tag = imm & kSmiTagMask;
+    imm &= ~kSmiTagMask;  // Mask off the tag bits.
+    const int32_t offset = Array::element_offset(FindImmediate(imm));
+    LoadWordFromPoolOffset(reg, pp, offset);
+    if (val_smi_tag != 0) {
+      // Add back the tag bits.
+      orri(reg, reg, val_smi_tag);
+    }
+  } else {
+    // TODO(zra): Since this sequence only needs to be decodable, it can be
+    // of variable length.
+    LoadPatchableImmediate(reg, imm);
+  }
+}
+
+
+void Assembler::LoadPatchableImmediate(Register reg, int64_t imm) {
+  const uint32_t w0 = Utils::Low32Bits(imm);
+  const uint32_t w1 = Utils::High32Bits(imm);
+  const uint16_t h0 = Utils::Low16Bits(w0);
+  const uint16_t h1 = Utils::High16Bits(w0);
+  const uint16_t h2 = Utils::Low16Bits(w1);
+  const uint16_t h3 = Utils::High16Bits(w1);
+  movz(reg, h0, 0);
+  movk(reg, h1, 1);
+  movk(reg, h2, 2);
+  movk(reg, h3, 3);
+}
+
+
+void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
+  Comment("LoadImmediate");
+  if (CanLoadImmediateFromPool(imm, pp)) {
+    // It's a 64-bit constant and we're not in the VM isolate, so load from
+    // object pool.
+    // Save the bits that must be masked-off for the SmiTag
+    int64_t val_smi_tag = imm & kSmiTagMask;
+    imm &= ~kSmiTagMask;  // Mask off the tag bits.
+    const int32_t offset = Array::element_offset(FindImmediate(imm));
+    LoadWordFromPoolOffset(reg, pp, offset);
+    if (val_smi_tag != 0) {
+      // Add back the tag bits.
+      orri(reg, reg, val_smi_tag);
+    }
+  } else {
+    // 1. Can we use one orri operation?
+    Operand op;
+    Operand::OperandType ot;
+    ot = Operand::CanHold(imm, kXRegSizeInBits, &op);
+    if (ot == Operand::BitfieldImm) {
+      orri(reg, ZR, imm);
+      return;
+    }
+
+    // 2. Fall back on movz, movk, movn.
+    const uint32_t w0 = Utils::Low32Bits(imm);
+    const uint32_t w1 = Utils::High32Bits(imm);
+    const uint16_t h0 = Utils::Low16Bits(w0);
+    const uint16_t h1 = Utils::High16Bits(w0);
+    const uint16_t h2 = Utils::Low16Bits(w1);
+    const uint16_t h3 = Utils::High16Bits(w1);
+
+    // Special case for w1 == 0xffffffff
+    if (w1 == 0xffffffff) {
+      if (h1 == 0xffff) {
+        movn(reg, ~h0, 0);
+      } else {
+        movn(reg, ~h1, 1);
+        movk(reg, h0, 0);
+      }
+      return;
+    }
+
+    // Special case for h3 == 0xffff
+    if (h3 == 0xffff) {
+      // We know h2 != 0xffff.
+      movn(reg, ~h2, 2);
+      if (h1 != 0xffff) {
+        movk(reg, h1, 1);
+      }
+      if (h0 != 0xffff) {
+        movk(reg, h0, 0);
+      }
+      return;
+    }
+
+    bool initialized = false;
+    if (h0 != 0) {
+      movz(reg, h0, 0);
+      initialized = true;
+    }
+    if (h1 != 0) {
+      if (initialized) {
+        movk(reg, h1, 1);
+      } else {
+        movz(reg, h1, 1);
+        initialized = true;
+      }
+    }
+    if (h2 != 0) {
+      if (initialized) {
+        movk(reg, h2, 2);
+      } else {
+        movz(reg, h2, 2);
+        initialized = true;
+      }
+    }
+    if (h3 != 0) {
+      if (initialized) {
+        movk(reg, h3, 3);
+      } else {
+        movz(reg, h3, 3);
+      }
+    }
+  }
+}
+
+
+void Assembler::AddImmediate(
+    Register dest, Register rn, int64_t imm, Register pp) {
+  ASSERT(rn != TMP2);
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    add(dest, rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    sub(dest, rn, op);
+  } else {
+    LoadImmediate(TMP2, imm, pp);
+    add(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
+  ASSERT(rn != TMP2);
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    cmp(rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    cmn(rn, op);
+  } else {
+    LoadImmediate(TMP2, imm, pp);
+    cmp(rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::LoadFromOffset(Register dest, Register base, int32_t offset) {
+  ASSERT(base != TMP2);
+  if (Address::CanHoldOffset(offset)) {
+    ldr(dest, Address(base, offset));
+  } else {
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoRegister);
+    ldr(dest, Address(TMP2));
+  }
+}
+
+
+void Assembler::StoreToOffset(Register src, Register base, int32_t offset) {
+  ASSERT(src != TMP2);
+  ASSERT(base != TMP2);
+  if (Address::CanHoldOffset(offset)) {
+    str(src, Address(base, offset));
+  } else if (Address::CanHoldOffset(offset, Address::PreIndex)) {
+    mov(TMP2, base);
+    str(src, Address(TMP2, offset, Address::PreIndex));
+  } else {
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoRegister);
+    str(src, Address(TMP2));
+  }
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(SP, SP, -frame_space, kNoRegister);
+  if (OS::ActivationFrameAlignment() > 1) {
+    mov(TMP, SP);  // SP can't be register operand of andi.
+    andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));
+    mov(SP, TMP);
+  }
+}
+
+
+void Assembler::EnterFrame(intptr_t frame_size) {
+  Push(LR);
+  Push(FP);
+  mov(FP, SP);
+
+  if (frame_size > 0) {
+    sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+void Assembler::LeaveFrame() {
+  mov(SP, FP);
+  Pop(FP);
+  Pop(LR);
+}
+
+
+void Assembler::EnterDartFrame(intptr_t frame_size) {
+  // Setup the frame.
+  adr(TMP, 0);  // TMP gets PC of this instruction.
+  EnterFrame(0);
+  Push(TMP);  // Save PC Marker.
+  PushPP();  // Save PP.
+
+  // Load the pool pointer.
+  LoadPoolPointer(PP);
+
+  // Reserve space.
+  if (frame_size > 0) {
+    sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+void Assembler::LeaveDartFrame() {
+  // Restore and untag PP.
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  sub(PP, PP, Operand(kHeapObjectTag));
+  LeaveFrame();
+}
+
+
+void Assembler::CallRuntime(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  entry.Call(this, argument_count);
 }
 
 }  // namespace dart

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "dart:typed_data";
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";
@@ -110,8 +111,34 @@ void testHttpServerZoneError() {
 }
 
 
+void testHttpServerClientClose() {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    runZoned(() {
+      server.listen((request) {
+        request.response.bufferOutput = false;
+        request.response.add(new Uint8List(64 * 1024));
+        new Timer(const Duration(milliseconds: 100), () {
+          request.response.close().then((_) {
+            server.close();
+          });
+        });
+      });
+    }, onError: (e, s) {
+      Expect.fail("Unexpected error: $e(${e.hashCode})\n$s");
+    });
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+          response.listen((_) {}).cancel();
+        });
+  });
+}
+
+
 void main() {
   testListenOn();
   testHttpServerZone();
   testHttpServerZoneError();
+  testHttpServerClientClose();
 }

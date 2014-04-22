@@ -88,11 +88,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   static String _BIN_DIRECTORY_NAME = "bin";
 
   /**
-   * The name of the directory on Mac that contains dartium.
-   */
-  static String _DARTIUM_DIRECTORY_NAME_MAC = "Chromium.app";
-
-  /**
    * The name of the directory on non-Mac that contains dartium.
    */
   static String _DARTIUM_DIRECTORY_NAME = "chromium";
@@ -232,21 +227,25 @@ class DirectoryBasedDartSdk implements DartSdk {
   DirectoryBasedDartSdk(JavaFile sdkDirectory, [bool useDart2jsPaths = false]) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     _libraryMap = initialLibraryMap(useDart2jsPaths);
-    _analysisContext = new AnalysisContextImpl();
-    _analysisContext.sourceFactory = new SourceFactory([new DartUriResolver(this)]);
-    List<String> uris = this.uris;
-    ChangeSet changeSet = new ChangeSet();
-    for (String uri in uris) {
-      changeSet.addedSource(_analysisContext.sourceFactory.forUri(uri));
-    }
-    _analysisContext.applyChanges(changeSet);
   }
 
   @override
   Source fromEncoding(UriKind kind, Uri uri) => new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
 
   @override
-  AnalysisContext get context => _analysisContext;
+  AnalysisContext get context {
+    if (_analysisContext == null) {
+      _analysisContext = new AnalysisContextImpl();
+      _analysisContext.sourceFactory = new SourceFactory([new DartUriResolver(this)]);
+      List<String> uris = this.uris;
+      ChangeSet changeSet = new ChangeSet();
+      for (String uri in uris) {
+        changeSet.addedSource(_analysisContext.sourceFactory.forUri(uri));
+      }
+      _analysisContext.applyChanges(changeSet);
+    }
+    return _analysisContext;
+  }
 
   /**
    * Return the file containing the dart2js executable, or `null` if it does not exist.

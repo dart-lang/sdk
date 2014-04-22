@@ -168,6 +168,105 @@ class FileBasedSource implements Source {
 }
 
 /**
+ * An implementation of an non-existing [Source].
+ */
+class NonExistingSource implements Source {
+  final String _name;
+
+  final UriKind uriKind;
+
+  NonExistingSource(this._name, this.uriKind);
+
+  @override
+  bool exists() => false;
+
+  @override
+  TimestampedData<String> get contents {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+
+  @override
+  String get encoding {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+
+  @override
+  String get fullName => _name;
+
+  @override
+  int get modificationStamp => 0;
+
+  @override
+  String get shortName => _name;
+
+  @override
+  bool get isInSystemLibrary => false;
+
+  @override
+  Source resolveRelative(Uri relativeUri) {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+}
+
+/**
+ * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
+ */
+class RelativeFileUriResolver extends UriResolver {
+  /**
+   * The name of the `file` scheme.
+   */
+  static String FILE_SCHEME = "file";
+
+  /**
+   * Return `true` if the given URI is a `file` URI.
+   *
+   * @param uri the URI being tested
+   * @return `true` if the given URI is a `file` URI
+   */
+  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
+
+  /**
+   * The directories for the relatvie URI's
+   */
+  final List<JavaFile> _relativeDirectories;
+
+  /**
+   * The root directory for all the source trees
+   */
+  final JavaFile _rootDirectory;
+
+  /**
+   * Initialize a newly created resolver to resolve `file` URI's relative to the given root
+   * directory.
+   */
+  RelativeFileUriResolver(this._rootDirectory, this._relativeDirectories) : super();
+
+  @override
+  Source fromEncoding(UriKind kind, Uri uri) {
+    if (kind == UriKind.FILE_URI) {
+      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
+    }
+    return null;
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    String rootPath = _rootDirectory.toURI().path;
+    String uriPath = uri.path;
+    if (uriPath != null && uriPath.startsWith(rootPath)) {
+      String filePath = uri.path.substring(rootPath.length);
+      for (JavaFile dir in _relativeDirectories) {
+        JavaFile file = new JavaFile.relative(dir, filePath);
+        if (file.exists()) {
+          return new FileBasedSource.con2(file, UriKind.FILE_URI);
+        }
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * Instances of the class `PackageUriResolver` resolve `package` URI's in the context of
  * an application.
  *

@@ -12,7 +12,7 @@ import '../barback.dart';
 import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
-import 'build_environment.dart';
+import 'asset_environment.dart';
 import 'dart2js_transformer.dart';
 import 'excluding_transformer.dart';
 import 'load_transformers.dart';
@@ -27,7 +27,7 @@ import 'barback_server.dart';
 ///
 /// Any built-in transformers that are provided by the environment will
 /// automatically be added to the end of the root package's cascade.
-Future loadAllTransformers(BuildEnvironment environment,
+Future loadAllTransformers(AssetEnvironment environment,
     BarbackServer transformerServer) {
   // In order to determine in what order we should load transformers, we need to
   // know which transformers depend on which others. This is different than
@@ -230,7 +230,7 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
 
 /// A class that loads transformers defined in specific files.
 class _TransformerLoader {
-  final BuildEnvironment _environment;
+  final AssetEnvironment _environment;
 
   final BarbackServer _transformerServer;
 

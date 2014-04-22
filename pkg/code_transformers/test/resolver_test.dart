@@ -27,10 +27,10 @@ main() {
 
   group('Resolver', () {
 
-    test('should handle empty files', () {
+    test('should handle initial files', () {
       return validateResolver(
           inputs: {
-            'a|web/main.dart': '',
+            'a|web/main.dart': ' main() {}',
           },
           validator: (resolver) {
             var source = resolver.sources[entryPoint];
@@ -38,14 +38,14 @@ main() {
 
             var lib = resolver.getLibrary(entryPoint);
             expect(lib, isNotNull);
-            expect(lib.entryPoint, isNull);
           });
     });
 
     test('should update when sources change', () {
       return validateResolver(
           inputs: {
-            'a|web/main.dart': ''' main() {} ''',
+            'a|web/main.dart': ''' main() {
+                } ''',
           },
           validator: (resolver) {
             var source = resolver.sources[entryPoint];

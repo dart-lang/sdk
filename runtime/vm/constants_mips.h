@@ -176,6 +176,7 @@ const FpuRegister kNoFpuRegister = kNoDRegister;
 
 // Register aliases.
 const Register TMP = AT;  // Used as scratch register by assembler.
+const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = S6;  // Caches current context in generated code.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.

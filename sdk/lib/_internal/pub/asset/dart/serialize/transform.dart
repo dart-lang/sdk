@@ -15,20 +15,19 @@ import 'package:barback/src/internal_asset.dart';
 import '../serialize.dart';
 import '../utils.dart';
 
-/// Converts [transform] into a serializable map.
-Map serializeTransform(Transform transform) {
+/// Serialize the methods shared between [Transform] and [DeclaringTransform].
+///
+/// [additionalFields] contains additional serialized fields to add to the
+/// serialized transform. [methodHandlers] is a set of additional methods. Each
+/// value should take a JSON message and return the response (which may be a
+/// Future).
+Map _serializeBaseTransform(transform, Map additionalFields,
+    Map<String, Function> methodHandlers) {
   var receivePort = new ReceivePort();
   receivePort.listen((wrappedMessage) {
     respond(wrappedMessage, (message) {
-      if (message['type'] == 'getInput') {
-        return transform.getInput(deserializeId(message['id']))
-            .then((asset) => serializeAsset(asset));
-      }
-
-      if (message['type'] == 'addOutput') {
-        transform.addOutput(deserializeAsset(message['output']));
-        return null;
-      }
+      var handler = methodHandlers[message['type']];
+      if (handler != null) return handler(message);
 
       if (message['type'] == 'consumePrimary') {
         transform.consumePrimary();
@@ -36,17 +35,13 @@ Map serializeTransform(Transform transform) {
       }
 
       assert(message['type'] == 'log');
-      var method;
-      if (message['level'] == 'Info') {
-        method = transform.logger.info;
-      } else if (message['level'] == 'Fine') {
-        method = transform.logger.fine;
-      } else if (message['level'] == 'Warning') {
-        method = transform.logger.warning;
-      } else {
-        assert(message['level'] == 'Error');
-        method = transform.logger.error;
-      }
+      var method = {
+        'Info': transform.logger.info,
+        'Fine': transform.logger.fine,
+        'Warning': transform.logger.warning,
+        'Error': transform.logger.error
+      }[message['level']];
+      assert(method != null);
 
       var assetId = message['assetId'] == null ? null :
         deserializeId(message['assetId']);
@@ -56,30 +51,43 @@ Map serializeTransform(Transform transform) {
     });
   });
 
-  return {
-    'port': receivePort.sendPort,
-    'primaryInput': serializeAsset(transform.primaryInput)
-  };
+  return {'port': receivePort.sendPort}..addAll(additionalFields);
 }
 
-/// A wrapper for a [Transform] that's in the host isolate.
-///
-/// This retrieves inputs from and sends outputs and logs to the host isolate.
-class ForeignTransform implements Transform {
+/// Converts [transform] into a serializable map.
+Map serializeTransform(Transform transform) {
+  return _serializeBaseTransform(transform, {
+    'primaryInput': serializeAsset(transform.primaryInput)
+  }, {
+    'getInput': (message) => transform.getInput(deserializeId(message['id']))
+        .then((asset) => serializeAsset(asset)),
+    'addOutput': (message) =>
+        transform.addOutput(deserializeAsset(message['output']))
+  });
+}
+
+/// Converts [transform] into a serializable map.
+Map serializeDeclaringTransform(DeclaringTransform transform) {
+  return _serializeBaseTransform(transform, {
+    'primaryId': serializeId(transform.primaryId)
+  }, {
+    'declareOutput': (message) =>
+        transform.declareOutput(deserializeId(message['output']))
+  });
+}
+
+/// The base class for wrappers for [Transform]s that are in the host isolate.
+class _ForeignBaseTransform {
   /// The port with which we communicate with the host isolate.
   ///
   /// This port and all messages sent across it are specific to this transform.
   final SendPort _port;
 
-  final Asset primaryInput;
-
   TransformLogger get logger => _logger;
   TransformLogger _logger;
 
-  /// Creates a transform from a serializable map sent from the host isolate.
-  ForeignTransform(Map transform)
-      : _port = transform['port'],
-        primaryInput = deserializeAsset(transform['primaryInput']) {
+  _ForeignBaseTransform(Map transform)
+      : _port = transform['port'] {
     _logger = new TransformLogger((assetId, level, message, span) {
       call(_port, {
         'type': 'log',
@@ -90,6 +98,22 @@ class ForeignTransform implements Transform {
       });
     });
   }
+
+  void consumePrimary() {
+    call(_port, {'type': 'consumePrimary'});
+  }
+}
+
+/// A wrapper for a [Transform] that's in the host isolate.
+///
+/// This retrieves inputs from and sends outputs and logs to the host isolate.
+class ForeignTransform extends _ForeignBaseTransform implements Transform {
+  final Asset primaryInput;
+
+  /// Creates a transform from a serialized map sent from the host isolate.
+  ForeignTransform(Map transform)
+      : primaryInput = deserializeAsset(transform['primaryInput']),
+        super(transform);
 
   Future<Asset> getInput(AssetId id) {
     return call(_port, {
@@ -119,8 +143,22 @@ class ForeignTransform implements Transform {
       'output': serializeAsset(output)
     });
   }
+}
 
-  void consumePrimary() {
-    call(_port, {'type': 'consumePrimary'});
+/// A wrapper for a [DeclaringTransform] that's in the host isolate.
+class ForeignDeclaringTransform extends _ForeignBaseTransform
+    implements DeclaringTransform {
+  final AssetId primaryId;
+
+  /// Creates a transform from a serializable map sent from the host isolate.
+  ForeignDeclaringTransform(Map transform)
+      : primaryId = deserializeId(transform['primaryId']),
+        super(transform);
+
+  void declareOutput(AssetId id) {
+    call(_port, {
+      'type': 'declareOutput',
+      'output': serializeId(id)
+    });
   }
 }

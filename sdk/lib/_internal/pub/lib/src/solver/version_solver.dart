@@ -116,19 +116,19 @@ class PubspecCache {
 
   /// The number of times a version list was requested and it wasn't cached and
   /// had to be requested from the source.
-  int versionCacheMisses = 0;
+  int _versionCacheMisses = 0;
 
   /// The number of times a version list was requested and the cached version
   /// was returned.
-  int versionCacheHits = 0;
+  int _versionCacheHits = 0;
 
   /// The number of times a pubspec was requested and it wasn't cached and had
   /// to be requested from the source.
-  int pubspecCacheMisses = 0;
+  int _pubspecCacheMisses = 0;
 
   /// The number of times a pubspec was requested and the cached version was
   /// returned.
-  int pubspecCacheHits = 0;
+  int _pubspecCacheHits = 0;
 
   PubspecCache(this._sources);
 
@@ -141,11 +141,11 @@ class PubspecCache {
   Future<Pubspec> getPubspec(PackageId id) {
     // Complete immediately if it's already cached.
     if (_pubspecs.containsKey(id)) {
-      pubspecCacheHits++;
+      _pubspecCacheHits++;
       return new Future<Pubspec>.value(_pubspecs[id]);
     }
 
-    pubspecCacheMisses++;
+    _pubspecCacheMisses++;
 
     var source = _sources[id.source];
     return source.describe(id).then((pubspec) {
@@ -172,11 +172,10 @@ class PubspecCache {
     // See if we have it cached.
     var versions = _versions[package];
     if (versions != null) {
-      versionCacheHits++;
+      _versionCacheHits++;
       return new Future.value(versions);
     }
-
-    versionCacheMisses++;
+    _versionCacheMisses++;
 
     var source = _sources[package.source];
     return source.getVersions(package.name, package.description)
@@ -194,6 +193,49 @@ class PubspecCache {
   /// Returns the previously cached list of versions for the package identified
   /// by [package] or returns `null` if not in the cache.
   List<PackageId> getCachedVersions(PackageRef package) => _versions[package];
+
+  /// Returns a user-friendly output string describing metrics of the solve.
+  String describeResults() {
+    var results = '''- Requested $_versionCacheMisses version lists
+- Looked up $_versionCacheHits cached version lists
+- Requested $_pubspecCacheMisses pubspecs
+- Looked up $_pubspecCacheHits cached pubspecs
+''';
+
+    // Uncomment this to dump the visited package graph to JSON.
+    //results += _debugWritePackageGraph();
+
+    return results;
+  }
+
+  /// This dumps the set of packages that were looked at by the solver to a
+  /// JSON map whose format matches the map passed to [testResolve] in the
+  /// version solver unit tests.
+  ///
+  /// If a real-world version solve is failing, this can be used to mirror that
+  /// data to build a regression test using mock packages.
+  String _debugDescribePackageGraph() {
+    var packages = {};
+    _pubspecs.forEach((id, pubspec) {
+      var deps = {};
+      packages["${id.name} ${id.version}"] = deps;
+
+      for (var dep in pubspec.dependencies) {
+        deps[dep.name] = dep.constraint.toString();
+      }
+    });
+
+    // Add in the packages that we know of but didn't need their pubspecs.
+    _versions.forEach((ref, versions) {
+      for (var id in versions) {
+        packages.putIfAbsent("${id.name} ${id.version}", () => {});
+      }
+    });
+
+    // TODO(rnystrom): Include dev dependencies and dependency overrides.
+
+    return JSON.encode(packages);
+  }
 }
 
 /// A reference from a depending package to a package that it depends on.
@@ -201,12 +243,17 @@ class Dependency {
   /// The name of the package that has this dependency.
   final String depender;
 
+  /// The version of the depender that has this dependency.
+  ///
+  /// This will be `null` when [depender] is the magic "pub itself" dependency.
+  final Version dependerVersion;
+
   /// The package being depended on.
   final PackageDep dep;
 
-  Dependency(this.depender, this.dep);
+  Dependency(this.depender, this.dependerVersion, this.dep);
 
-  String toString() => '$depender -> $dep';
+  String toString() => '$depender $dependerVersion -> $dep';
 }
 
 /// Base class for all failures that can occur while trying to resolve versions.
@@ -238,16 +285,16 @@ abstract class SolveFailure implements ApplicationException {
     var buffer = new StringBuffer();
     buffer.write("$_message:");
 
-    var map = {};
-    for (var dep in dependencies) {
-      map[dep.depender] = dep.dep;
-    }
+    var sorted = dependencies.toList();
+    sorted.sort((a, b) => a.depender.compareTo(b.depender));
 
-    var names = ordered(map.keys);
-
-    for (var name in names) {
+    for (var dep in sorted) {
       buffer.writeln();
-      buffer.write("- $name ${_describeDependency(map[name])}");
+      buffer.write("- ${log.bold(dep.depender)}");
+      if (dep.dependerVersion != null) {
+        buffer.write(" ${dep.dependerVersion}");
+      }
+      buffer.write(" ${_describeDependency(dep.dep)}");
     }
 
     return buffer.toString();
@@ -275,12 +322,27 @@ class BadSdkVersionException extends SolveFailure {
 class NoVersionException extends SolveFailure {
   final VersionConstraint constraint;
 
-  NoVersionException(String package, this.constraint,
+  /// The last selected version of the package that failed to meet the new
+  /// constraint.
+  ///
+  /// This will be `null` when the failure occurred because there are no
+  /// versions of the package *at all* that match the constraint. It will be
+  /// non-`null` when a version was selected, but then the solver tightened a
+  /// constraint such that that version was no longer allowed.
+  final Version version;
+
+  NoVersionException(String package, this.version, this.constraint,
       Iterable<Dependency> dependencies)
       : super(package, dependencies);
 
-  String get _message => "Package $package has no versions that match "
-      "$constraint derived from";
+  String get _message {
+    if (version == null) {
+      return "Package $package has no versions that match $constraint derived "
+          "from";
+    }
+
+    return "Package $package $version does not match $constraint derived from";
+  }
 }
 
 // TODO(rnystrom): Report the list of depending packages and their constraints.

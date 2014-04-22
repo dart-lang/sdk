@@ -47,7 +47,7 @@ code_motion_exception_test: Skip  # Required V8 specific format of JavaScript er
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate2_test/01: Fail # Issue 14458.
 
-[ $jscl ]
+[ $runtime == jsshell ]
 timer_test: Fail # Issue 7728.
 
 [ $runtime == none ]

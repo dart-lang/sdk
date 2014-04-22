@@ -2,6 +2,13 @@
 
 * Only run `Transformer.isPrimary` once for each asset.
 
+* Don't warn if a lazy or declaring transformer doesn't emit outputs that it has
+  declared. This is valid for transformers like dart2js that need to read their
+  primary input in order to determine whether they should run.
+
+* Fix a deadlock bug when a lazy primary input to a lazy transformer became
+  dirty while the transformer's `apply` method was running.
+
 ## 0.13.0
 
 * `Transformer.isPrimary` now takes an `AssetId` rather than an `Asset`.

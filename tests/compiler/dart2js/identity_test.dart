@@ -20,7 +20,7 @@ main() {
   // Check that no boolify code is generated.
   RegExp regexp = new RegExp("=== true");
   Iterator matches = regexp.allMatches(generated).iterator;
-  Expect.isFalse(matches.hasNext);
+  Expect.isFalse(matches.moveNext());
 
   regexp = new RegExp("===");
   matches = regexp.allMatches(generated).iterator;

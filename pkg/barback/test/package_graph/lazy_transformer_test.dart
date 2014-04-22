@@ -82,29 +82,139 @@ main() {
     expect(transformer.numRuns, completion(equals(1)));
   });
 
-  // test("a lazy asset piped into a declaring transformer isn't eagerly "
-  //     "compiled", () {
-  //   var transformer1 = new LazyRewriteTransformer("blub", "blab");
-  //   var transformer2 = new DeclaringRewriteTransformer("blab", "blib");
-  //   initGraph(["app|foo.blub"], {"app": [
-  //     [transformer1], [transformer2]
-  //   ]});
-  //   updateSources(["app|foo.blub"]);
-  //   buildShouldSucceed();
-  //   expect(transformer1.numRuns, completion(equals(0)));
-  //   expect(transformer2.numRuns, completion(equals(0)));
-  // });
-  //
-  // test("a lazy asset piped into a declaring transformer is compiled "
-  //     "on-demand", () {
-  //   initGraph(["app|foo.blub"], {"app": [
-  //     [new LazyRewriteTransformer("blub", "blab")],
-  //     [new DeclaringRewriteTransformer("blab", "blib")]
-  //   ]});
-  //   updateSources(["app|foo.blub"]);
-  //   expectAsset("app|foo.blib", "foo.blab.blib");
-  //   buildShouldSucceed();
-  // });
+  test("a lazy asset piped into a declaring transformer isn't eagerly "
+      "compiled", () {
+    var transformer1 = new LazyRewriteTransformer("blub", "blab");
+    var transformer2 = new DeclaringRewriteTransformer("blab", "blib");
+    initGraph(["app|foo.blub"], {"app": [
+      [transformer1], [transformer2]
+    ]});
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+    expect(transformer1.numRuns, completion(equals(0)));
+    expect(transformer2.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped into a declaring transformer is compiled "
+      "on-demand", () {
+    initGraph(["app|foo.blub"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")],
+      [new DeclaringRewriteTransformer("blab", "blib")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blib", "foo.blab.blib");
+    buildShouldSucceed();
+  });
+
+  test("a lazy asset piped through many declaring transformers isn't eagerly "
+      "compiled", () {
+    var transformer1 = new LazyRewriteTransformer("one", "two");
+    var transformer2 = new DeclaringRewriteTransformer("two", "three");
+    var transformer3 = new DeclaringRewriteTransformer("three", "four");
+    var transformer4 = new DeclaringRewriteTransformer("four", "five");
+    initGraph(["app|foo.one"], {"app": [
+      [transformer1], [transformer2], [transformer3], [transformer4]
+    ]});
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+    expect(transformer1.numRuns, completion(equals(0)));
+    expect(transformer2.numRuns, completion(equals(0)));
+    expect(transformer3.numRuns, completion(equals(0)));
+    expect(transformer4.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped through many declaring transformers is compiled "
+      "on-demand", () {
+    initGraph(["app|foo.one"], {"app": [
+      [new LazyRewriteTransformer("one", "two")],
+      [new DeclaringRewriteTransformer("two", "three")],
+      [new DeclaringRewriteTransformer("three", "four")],
+      [new DeclaringRewriteTransformer("four", "five")]
+    ]});
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.five", "foo.two.three.four.five");
+    buildShouldSucceed();
+  });
+
+  test("a lazy asset piped into a non-lazy transformer that doesn't use its "
+      "outputs isn't eagerly compiled", () {
+    var transformer = new LazyRewriteTransformer("blub", "blab");
+    initGraph(["app|foo.blub"], {"app": [
+      [transformer],
+      [new RewriteTransformer("txt", "out")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+    expect(transformer.numRuns, completion(equals(0)));
+  });
+
+  test("a lazy asset piped into a non-lazy transformer that doesn't use its "
+      "outputs is compiled on-demand", () {
+    initGraph(["app|foo.blub"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")],
+      [new RewriteTransformer("txt", "out")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
+  });
+
+  test("a lazy transformer followed by a non-lazy transformer is re-run "
+      "eagerly", () {
+    var rewrite = new LazyRewriteTransformer("one", "two");
+    initGraph(["app|foo.one"], {"app": [
+      [rewrite],
+      [new RewriteTransformer("two", "three")]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(rewrite.numRuns, completion(equals(2)));
+  });
+
+  test("a lazy transformer followed by a declaring transformer isn't re-run "
+      "eagerly", () {
+    var rewrite = new LazyRewriteTransformer("one", "two");
+    initGraph(["app|foo.one"], {"app": [
+      [rewrite],
+      [new DeclaringRewriteTransformer("two", "three")]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(rewrite.numRuns, completion(equals(1)));
+  });
+
+  test("a declaring transformer added after a materialized lazy transformer "
+      "is still deferred", () {
+    var lazy = new LazyRewriteTransformer("one", "two");
+    var declaring = new DeclaringRewriteTransformer("two", "three");
+    initGraph(["app|foo.one"], {"app": [[lazy]]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.two", "foo.two");
+    buildShouldSucceed();
+
+    updateTransformers("app", [[lazy], [declaring]]);
+    expectAsset("app|foo.three", "foo.two.three");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.one"]);
+    buildShouldSucceed();
+
+    expect(lazy.numRuns, completion(equals(1)));
+    expect(declaring.numRuns, completion(equals(1)));
+  });
 
   test("a lazy asset works as a cross-package input", () {
     initGraph({
@@ -134,8 +244,7 @@ main() {
     buildShouldSucceed();
   });
 
-  test("once a lazy transformer is materialized, it runs eagerly afterwards",
-      () {
+  test("after being materialized a lazy transformer is still lazy", () {
     var transformer = new LazyRewriteTransformer("blub", "blab");
     initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
@@ -149,7 +258,25 @@ main() {
     updateSources(["app|foo.blub"]);
     buildShouldSucceed();
 
-    expect(transformer.numRuns, completion(equals(2)));
+    expect(transformer.numRuns, completion(equals(1)));
+  });
+
+  test("after being materialized a lazy transformer can be materialized again",
+      () {
+    var transformer = new LazyRewriteTransformer("blub", "blab");
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
+
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+
+    // Request the asset once to force it to be materialized.
+    expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.blub", "bar");
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blab", "bar.blab");
+    buildShouldSucceed();
   });
 
   test("an error emitted in a lazy transformer's declareOutputs method is "
@@ -227,7 +354,8 @@ main() {
     buildShouldSucceed();
   });
 
-  // Regression test.
+  // Regression tests.
+
   test("a lazy transformer that doesn't apply updates its passed-through asset",
       () {
     initGraph(["app|foo.txt"], {"app": [
@@ -248,5 +376,37 @@ main() {
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt", "bar");
     buildShouldSucceed();
+  });
+
+  test("a lazy transformer is forced while the previous lazy transformer is "
+      "available, then the previous transformer becomes unavailable", () {
+    var assets = new LazyAssetsTransformer(["app|out.one", "app|out.two"]);
+    var rewrite = new LazyRewriteTransformer("two", "three");
+    initGraph(["app|foo.in"], {"app": [[assets], [rewrite]]});
+
+    updateSources(["app|foo.in"]);
+    // Request out.one so that [assets] runs but the second does not.
+    expectAsset("app|out.one", "app|out.one");
+    buildShouldSucceed();
+
+    // Start the [rewrite] running. The output from [assets] should still be
+    // available.
+    rewrite.pauseApply();
+    expectAssetDoesNotComplete("app|out.three");
+
+    // Mark [assets] as dirty. It should re-run, since [rewrite] still needs its
+    // input.
+    updateSources(["app|foo.in"]);
+    rewrite.resumeApply();
+
+    expectAsset("app|out.three", "app|out.two.three");
+    buildShouldSucceed();
+
+    // [assets] should run once for each time foo.in was updated.
+    expect(assets.numRuns, completion(equals(2)));
+
+    // [rewrite] should run once against [assets]'s original output and once
+    // against its new output.
+    expect(rewrite.numRuns, completion(equals(2)));
   });
 }

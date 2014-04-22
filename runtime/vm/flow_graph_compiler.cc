@@ -953,6 +953,9 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   if (TMP != kNoRegister) {
     blocked_registers[TMP] = true;
   }
+  if (TMP2 != kNoRegister) {
+    blocked_registers[TMP2] = true;
+  }
   if (PP != kNoRegister) {
     blocked_registers[PP] = true;
   }

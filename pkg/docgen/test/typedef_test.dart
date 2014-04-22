@@ -28,21 +28,20 @@ void main() {
     });
 
     schedule(() {
-      var path = p.join(d.defaultRoot, 'docs', 'test_lib-bar.json');
-      var dartCoreJson = new File(path).readAsStringSync();
+      var path = p.join(d.defaultRoot, 'docs', 'root_lib.json');
+      var rootLibJson = new File(path).readAsStringSync();
 
-      var testLibBar = JSON.decode(dartCoreJson) as Map<String, dynamic>;
+      var rootLib = JSON.decode(rootLibJson) as Map<String, dynamic>;
 
       //
       // Validate function doc references
       //
-      var generateFoo = testLibBar['functions']['methods']['generateFoo']
+      var testMethod = rootLib['functions']['methods']['testMethod']
           as Map<String, dynamic>;
 
-      expect(generateFoo['comment'], '<p><a>test_lib-bar.generateFoo.input</a> '
-          'is of type <a>test_lib-bar.C</a> returns an <a>test_lib.A</a>.</p>');
+      expect(testMethod['comment'], _TEST_METHOD_COMMENT);
 
-      var classes = testLibBar['classes'] as Map<String, dynamic>;
+      var classes = rootLib['classes'] as Map<String, dynamic>;
 
       expect(classes, hasLength(3));
 
@@ -50,16 +49,42 @@ void main() {
       expect(classes['error'], isList);
 
       var typeDefs = classes['typedef'] as Map<String, dynamic>;
-      var comparator = typeDefs['AnATransformer'] as Map<String, dynamic>;
+      var comparator = typeDefs['testTypedef'] as Map<String, dynamic>;
 
-      var expectedPreview = '<p>Processes a [C] instance for testing.</p>';
+      expect(comparator['preview'], _TEST_TYPEDEF_PREVIEW);
 
-      expect(comparator['preview'], expectedPreview);
+      expect(comparator['comment'], _TEST_TYPEDEF_COMMENT);
+    });
 
-      var expectedComment = expectedPreview + '\n'
-          '<p>To eliminate import warnings for [A] and to test typedefs.</p>';
+    schedule(() {
+      var path = p.join(d.defaultRoot, 'docs', 'root_lib.RootClass.json');
+      var rootClassJson = new File(path).readAsStringSync();
 
-      expect(comparator['comment'], expectedComment);
+      var rootClass = JSON.decode(rootClassJson) as Map<String, dynamic>;
+
+      var defaultCtor = rootClass['methods']['constructors'][''] as Map;
+
+      expect(defaultCtor['qualifiedName'], 'root_lib.RootClass.RootClass-');
     });
   });
 }
+
+// TOOD: [List<A>] is not formatted correctly - issue 16771
+const _TEST_METHOD_COMMENT = '<p>Processes an '
+    '<a>root_lib.testMethod.input</a> of type <a>root_lib.C</a> '
+    'instance for testing.</p>\n<p>To eliminate import warnings for '
+    '<a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s important that the'
+    ' <a>dart-core</a>&lt;A> for param <a>root_lib.testMethod.listOfA</a> '
+    'is not empty.</p>';
+
+// TODO: [input] is not turned into a param refenece
+const _TEST_TYPEDEF_PREVIEW = '<p>Processes an input of type '
+    '<a>root_lib.C</a> instance for testing.</p>';
+
+// TOOD: [List<A>] is not formatted correctly - issue 16771
+// TODO: [listOfA] is not turned into a param reference
+final _TEST_TYPEDEF_COMMENT = _TEST_TYPEDEF_PREVIEW + '\n<p>To eliminate import'
+    ' warnings for <a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s '
+    'important that the <a>dart-core</a>&lt;A> for param listOfA is not '
+    'empty.</p>';
+

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "include/dart_debugger_api.h"
 #include "platform/assert.h"
@@ -835,6 +833,9 @@ class TestSnapshotWriter : public SnapshotWriter {
   DISALLOW_COPY_AND_ASSIGN(TestSnapshotWriter);
 };
 
+
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 static void GenerateSourceAndCheck(const Script& script) {
   // Check if we are able to generate the source from the token stream.
@@ -2718,6 +2719,6 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_ExitScope();
 }
 
-}  // namespace dart
-
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+}  // namespace dart

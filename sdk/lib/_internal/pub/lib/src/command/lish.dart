@@ -56,6 +56,7 @@ class LishCommand extends PubCommand {
           if (url is! String) invalidServerResponse(response);
           cloudStorageUrl = Uri.parse(url);
           var request = new http.MultipartRequest('POST', cloudStorageUrl);
+          request.headers['Pub-Http-Timeout'] = 'None';
 
           var fields = _expectField(parameters, 'fields', response);
           if (fields is! Map) invalidServerResponse(response);

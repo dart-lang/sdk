@@ -49,6 +49,18 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
 }
 
 
+const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
+  int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(BuiltinEntries[i]);
+    if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
+      return reinterpret_cast<const uint8_t*>(entry->name_);
+    }
+  }
+  return NULL;
+}
+
+
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {

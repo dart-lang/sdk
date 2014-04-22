@@ -659,7 +659,7 @@ abstract class FileSystemEntity {
   static String _trimTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
     if (path is! String) return path;
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       while (path.length > 1 &&
              (path.endsWith(Platform.pathSeparator) ||
               path.endsWith('/'))) {
@@ -677,7 +677,7 @@ abstract class FileSystemEntity {
     // Don't handle argument errors here.
     if (path is! String) return path;
     if (path.isEmpty) path = '.';
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {
         path = "$path${Platform.pathSeparator}";
       }

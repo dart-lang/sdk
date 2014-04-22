@@ -209,15 +209,18 @@ void testInputStreamBadOffset() {
     var file = new File('${temp.path}/input_stream_bad_offset.txt');
     var originalLength = writeLongFileSync(file);
     var streamedBytes = 0;
+    bool error = false;
     file.openRead(start, end).listen(
         (d) {
           streamedBytes += d.length;
         },
         onDone: () {
-          temp.delete(recursive: true);
+          Expect.isTrue(error);
+          temp.deleteSync(recursive: true);
+          asyncEnd();
         },
         onError: (e) {
-          asyncEnd();
+          error = true;
         });
   }
   test(-1, null);
@@ -230,7 +233,7 @@ void testStringLineSplitterEnding(String name, int length) {
   String fileName = getFilename("tests/standalone/io/$name");
   // File contains 10 lines.
   File file = new File(fileName);
-  Expect.equals(length, file.openSync().lengthSync());
+  Expect.equals(length, file.lengthSync());
   var lineStream = file.openRead()
     .transform(UTF8.decoder)
     .transform(new LineSplitter());

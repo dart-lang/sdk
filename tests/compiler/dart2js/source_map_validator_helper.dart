@@ -14,7 +14,45 @@ validateSourceMap(Uri targetUri) {
   Uri mapUri = getMapUri(targetUri);
   SingleMapping sourceMap = getSourceMap(mapUri);
   checkFileReferences(targetUri, mapUri, sourceMap);
+  checkIndexReferences(targetUri, mapUri, sourceMap);
   checkRedundancy(sourceMap);
+}
+
+checkIndexReferences(Uri targetUri, Uri mapUri, SingleMapping sourceMap) {
+  List<String> target =
+      new File.fromUri(targetUri).readAsStringSync().split('\n');
+  int urlsLength = sourceMap.urls.length;
+  List<List<String>> sources = new List(urlsLength);
+  print('Reading sources');
+  for (int i = 0; i < urlsLength; i++) {
+    sources[i] = new File.fromUri(mapUri.resolve(sourceMap.urls[i])).
+        readAsStringSync().split('\n');
+  }
+
+  sourceMap.lines.forEach((TargetLineEntry line) {
+    Expect.isTrue(line.line >= 0);
+    Expect.isTrue(line.line < target.length);
+    for (TargetEntry entry in line.entries) {
+      int urlIndex = entry.sourceUrlId;
+
+      // TODO(zarah): Entry columns sometimes point one or more characters too
+      // far. Incomment this check when this is fixed.
+      //
+      // Expect.isTrue(entry.column < target[line.line].length);
+      Expect.isTrue(entry.column >= 0);
+      Expect.isTrue(urlIndex == null ||
+          (urlIndex >= 0 && urlIndex < urlsLength));
+      Expect.isTrue(entry.sourceLine == null ||
+          (entry.sourceLine >= 0 &&
+           entry.sourceLine < sources[urlIndex].length));
+      Expect.isTrue(entry.sourceColumn == null ||
+          (entry.sourceColumn >= 0 &&
+           entry.sourceColumn < sources[urlIndex][entry.sourceLine].length));
+      Expect.isTrue(entry.sourceNameId == null ||
+          (entry.sourceNameId >= 0 &&
+           entry.sourceNameId < sourceMap.names.length));
+    }
+  });
 }
 
 checkFileReferences(Uri targetUri, Uri mapUri, SingleMapping sourceMap) {

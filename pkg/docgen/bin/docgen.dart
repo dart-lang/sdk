@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+// Must use relative paths because library imports mirrors via relative paths
 import '../lib/docgen.dart';
 
 /**
@@ -35,15 +36,15 @@ void main(List<String> arguments) {
       path.join(options['sdk'], 'bin', 'dart') : 'dart';
 
   var excludedLibraries = options['exclude-lib'];
-  if(excludedLibraries == null) excludedLibraries = [];
+  if (excludedLibraries == null) excludedLibraries = [];
+
+  var indentJSON = options['indent-json'] as bool;
 
   docgen(files,
       packageRoot: options['package-root'],
-      outputToYaml: !options['json'],
       includePrivate: options['include-private'],
       includeSdk: includeSdk,
       parseSdk: options['parse-sdk'],
-      append: options['append'] && new Directory(options['out']).existsSync(),
       introFileName: introduction,
       out: options['out'],
       excludeLibraries: excludedLibraries,
@@ -53,7 +54,8 @@ void main(List<String> arguments) {
       dartBinary: dartBinary,
       pubScript: pubScript,
       noDocs: options['no-docs'],
-      startPage: startPage);
+      startPage: startPage,
+      indentJSON: indentJSON);
 }
 
 /**
@@ -102,11 +104,6 @@ ArgParser _initArgParser() {
       callback: (verbose) {
         if (verbose) Logger.root.level = Level.FINEST;
       });
-  parser.addFlag('json', abbr: 'j',
-      help: 'Outputs to JSON. If negated, outputs to YAML. '
-        'If --append is used, it takes the file-format of the previous '
-        'run stated in library_list.json, ignoring the flag.',
-      negatable: true, defaultsTo: true);
   parser.addFlag('include-private',
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk',
@@ -118,9 +115,6 @@ ArgParser _initArgParser() {
       defaultsTo: false, negatable: false);
   parser.addOption('package-root',
       help: 'Sets the package root of the library being analyzed.');
-  parser.addFlag('append',
-      help: 'Append to the docs folder, library_list.json and index.txt',
-      defaultsTo: false, negatable: false);
   parser.addFlag('compile', help: 'Clone the documentation viewer repo locally '
       '(if not already present) and compile with dart2js', defaultsTo: false,
       negatable: false);
@@ -153,6 +147,9 @@ ArgParser _initArgParser() {
         'of the package in this argument, e.g. --start-page=intl will make '
         'the start page of the viewer be the intl package.',
         defaultsTo: null);
+  parser.addFlag('indent-json',
+      help: 'Indents each level of JSON output by two spaces',
+      defaultsTo: false, negatable: true);
 
   return parser;
 }

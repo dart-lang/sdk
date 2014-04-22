@@ -38,23 +38,23 @@ export 'src/package_helpers.dart' show packageNameFor;
 ///
 /// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
-    bool outputToYaml: false, bool includePrivate: false,
-    bool includeSdk: false, bool parseSdk: false, bool append: false,
+    bool includePrivate: false, bool includeSdk: false, bool parseSdk: false,
     String introFileName: '', String out: gen.DEFAULT_OUTPUT_DIRECTORY,
     List<String> excludeLibraries: const [],
     bool includeDependentPackages: false, bool compile: false,
     bool serve: false, bool noDocs: false, String startPage, String pubScript,
-    String dartBinary}) {
+    String dartBinary, bool indentJSON: false}) {
   var result;
   if (!noDocs) {
     viewer.ensureMovedViewerCode();
     result = gen.generateDocumentation(files, packageRoot: packageRoot,
-        outputToYaml: outputToYaml, includePrivate: includePrivate,
-        includeSdk: includeSdk, parseSdk: parseSdk, append: append,
+        includePrivate: includePrivate,
+        includeSdk: includeSdk, parseSdk: parseSdk,
         introFileName: introFileName, out: out,
         excludeLibraries: excludeLibraries,
         includeDependentPackages: includeDependentPackages,
-        startPage: startPage, pubScript: pubScript, dartBinary: dartBinary);
+        startPage: startPage, pubScript: pubScript, dartBinary: dartBinary,
+        indentJSON: indentJSON);
     viewer.addBackViewerCode();
     if (compile || serve) {
       result.then((success) {

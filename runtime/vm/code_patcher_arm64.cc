@@ -14,58 +14,72 @@ namespace dart {
 
 RawArray* CodePatcher::GetClosureArgDescAt(uword return_address,
                                            const Code& code) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  return call.ClosureArgumentsDescriptor();
 }
 
 
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
-  UNIMPLEMENTED();
-  return 0;
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  return call.TargetAddress();
 }
 
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     uword new_target) {
-  UNIMPLEMENTED();
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  call.SetTargetAddress(new_target);
 }
 
 
 void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& code,
                                       uword new_target) {
-  UNIMPLEMENTED();
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  call.SetTargetAddress(new_target);
 }
 
 
 int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
+  // TODO(zra): Needed for debugger.
   UNIMPLEMENTED();
   return 0;
 }
 
 
 void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
+  // TODO(zra): Needed for debugger.
   UNIMPLEMENTED();
 }
 
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
-  UNIMPLEMENTED();
+  // The inserted call should not overlap the lazy deopt jump code.
+  ASSERT(start + CallPattern::kLengthInBytes <= target);
+  CallPattern::InsertAt(start, target);
 }
 
 
 uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      const Code& code,
                                      ICData* ic_data) {
-  UNIMPLEMENTED();
-  return 0;
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  if (ic_data != NULL) {
+    *ic_data = call.IcData();
+  }
+  return call.TargetAddress();
 }
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  // The instance call instruction sequence has a variable size on ARM.
+  // The instance call instruction sequence has a variable size on ARM64.
   UNREACHABLE();
   return 0;
 }
@@ -73,8 +87,14 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     uword return_address, const Code& code, ICData* ic_data_result) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern static_call(return_address, code);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.IcData();
+  if (ic_data_result != NULL) {
+    *ic_data_result = ic_data.raw();
+  }
+  return ic_data.GetTargetAt(0);
 }
 
 

@@ -25,7 +25,7 @@ void main() {
   };
 
   test('logs a request with a synchronous response', () {
-    var handler = const Stack()
+    var handler = const Pipeline()
         .addMiddleware(logRequests(logger: logger))
         .addHandler(syncHandler);
 
@@ -35,7 +35,7 @@ void main() {
   });
 
   test('logs a request with an asynchronous response', () {
-    var handler = const Stack()
+    var handler = const Pipeline()
         .addMiddleware(logRequests(logger: logger))
         .addHandler(asyncHandler);
 
@@ -45,7 +45,7 @@ void main() {
   });
 
   test('logs a request with an asynchronous response', () {
-    var handler = const Stack()
+    var handler = const Pipeline()
         .addMiddleware(logRequests(logger: (msg, isError) {
       expect(gotLog, isFalse);
       gotLog = true;

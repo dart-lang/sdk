@@ -11,6 +11,7 @@ custom/template_wrappers_test: Pass # Issue 16656 Override others
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
+custom/element_upgrade_test: Fail # Issue 17298
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
@@ -35,6 +36,7 @@ xhr_test/json: Fail # Issue 13069
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
+custom/element_upgrade_test: Skip # Issue 17298
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -194,6 +196,7 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 || $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
+custom/element_upgrade_test: Fail # Issue 18247
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $runtime == ie9 ]
@@ -440,6 +443,7 @@ element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning
 custom/document_register_basic_test: StaticWarning
+custom/element_upgrade_test: StaticWarning
 datalistelement_test: StaticWarning
 documentfragment_test: StaticWarning
 element_add_test: StaticWarning

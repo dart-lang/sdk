@@ -5825,31 +5825,53 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* result =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_out(0, Location::RegisterLocation(EAX));
-  result->set_temp(0, Location::RegisterLocation(EDX));  // Arg. descriptor.
-  return result;
+  return MakeCallSummary();
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The arguments to the stub include the closure, as does the arguments
-  // descriptor.
-  Register temp_reg = locs()->temp(0).reg();
-  int argument_count = ArgumentCount();
+  // Load closure object (first argument) in EDI.
+  intptr_t argument_count = ArgumentCount();
+  __ movl(EDI, Address(ESP, (argument_count - 1) * kWordSize));
+
+  // Load arguments descriptors.
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
-  __ LoadObject(temp_reg, arguments_descriptor);
-  ASSERT(temp_reg == EDX);
-  compiler->GenerateDartCall(deopt_id(),
-                             token_pos(),
-                             &StubCode::CallClosureFunctionLabel(),
-                             PcDescriptors::kClosureCall,
-                             locs());
+  __ LoadObject(EDX, arguments_descriptor);
+
+  // Load the closure function into EAX.
+  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
+
+  // Load closure context in CTX; note that CTX has already been preserved.
+  __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
+
+  // EBX: Code (compiled code or lazy compile stub).
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+
+  // EAX: Function.
+  // EDX: Arguments descriptor array.
+  // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ xorl(ECX, ECX);
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ call(EBX);
+  compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
+                                 deopt_id(),
+                                 token_pos());
+  compiler->RecordSafepoint(locs());
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_after,
+                                   token_pos());
+  }
   __ Drop(argument_count);
 }
 

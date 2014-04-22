@@ -16,7 +16,6 @@ import 'error.dart';
 import 'scanner.dart' as sc;
 import 'utilities_dart.dart';
 import 'utilities_general.dart';
-import 'utilities_collection.dart';
 import 'ast.dart';
 import 'parser.dart' show Parser, ParserErrorCode;
 import 'sdk.dart' show DartSdk, SdkLibrary;
@@ -5671,9 +5670,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftHandSide, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
+          if (_doesClassElementHaveProxy(staticType.element)) {
+            _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
+          }
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
+          if (_doesClassElementHaveProxy(propagatedType.element)) {
+            _resolver.reportErrorForToken(HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
+          }
         }
       }
     }
@@ -5694,9 +5697,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftOperand, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+          if (_doesClassElementHaveProxy(staticType.element)) {
+            _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+          }
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+          if (_doesClassElementHaveProxy(propagatedType.element)) {
+            _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+          }
         }
       }
     }
@@ -6126,15 +6133,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     if (identical(errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION)) {
       _resolver.reportErrorForNode(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName, [methodName.name]);
-    } else if (identical(errorCode, CompileTimeErrorCode.UNDEFINED_FUNCTION)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.UNDEFINED_FUNCTION, methodName, [methodName.name]);
+    } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
+      _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_FUNCTION, methodName, [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
       String targetTypeName;
       if (target == null) {
         ClassElement enclosingClass = _resolver.enclosingClass;
         targetTypeName = enclosingClass.displayName;
-        ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD) as ErrorCode;
-        _resolver.reportProxyConditionalErrorForNode(_resolver.enclosingClass, proxyErrorCode, methodName, [methodName.name, targetTypeName]);
+        ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD);
+        if (_doesClassElementHaveProxy(_resolver.enclosingClass)) {
+          _resolver.reportErrorForNode(proxyErrorCode, methodName, [methodName.name, targetTypeName]);
+        }
       } else {
         // ignore Function "call"
         // (if we are about to create a hint using type propagation, then we can use type
@@ -6155,8 +6164,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           return null;
         }
         targetTypeName = targetType == null ? null : targetType.displayName;
-        ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD) as ErrorCode;
-        _resolver.reportProxyConditionalErrorForNode(targetType.element, proxyErrorCode, methodName, [methodName.name, targetTypeName]);
+        ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD);
+        if (_doesClassElementHaveProxy(targetType.element)) {
+          _resolver.reportErrorForNode(proxyErrorCode, methodName, [methodName.name, targetTypeName]);
+        }
       }
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
       // Generate the type name.
@@ -6191,9 +6202,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
     node.propagatedElement = propagatedMethod;
     if (_shouldReportMissingMember(staticType, staticMethod)) {
-      _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
+      if (_doesClassElementHaveProxy(staticType.element)) {
+        _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
+      }
     } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-      _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
+      if (_doesClassElementHaveProxy(propagatedType.element)) {
+        _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
+      }
     }
     return null;
   }
@@ -6270,9 +6285,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
       node.propagatedElement = propagatedMethod;
       if (_shouldReportMissingMember(staticType, staticMethod)) {
-        _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+        if (_doesClassElementHaveProxy(staticType.element)) {
+          _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+        }
       } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-        _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+        if (_doesClassElementHaveProxy(propagatedType.element)) {
+          _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+        }
       }
     }
     return null;
@@ -6366,7 +6385,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         Annotation annotation = node.parent as Annotation;
         _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
       } else {
-        _resolver.reportProxyConditionalErrorForNode(_resolver.enclosingClass, StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+        if (_doesClassElementHaveProxy(_resolver.enclosingClass)) {
+          _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+        }
       }
     }
     node.staticElement = element;
@@ -6520,7 +6541,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (target == null) {
           ClassElement enclosingClass = _resolver.enclosingClass;
           if (enclosingClass == null) {
-            return CompileTimeErrorCode.UNDEFINED_FUNCTION;
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (element == null) {
             // Proxy-conditional warning, based on state of resolver.getEnclosingClass()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
@@ -6537,7 +6558,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = target.bestType;
           }
           if (targetType == null) {
-            return CompileTimeErrorCode.UNDEFINED_FUNCTION;
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (!targetType.isDynamic && !targetType.isBottom) {
             // Proxy-conditional warning, based on state of targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
@@ -6564,17 +6585,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       sc.Token leftBracket = node.leftBracket;
       sc.Token rightBracket = node.rightBracket;
-      ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR) as ErrorCode;
+      ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR);
       if (leftBracket == null || rightBracket == null) {
-        _resolver.reportProxyConditionalErrorForNode(shouldReportMissingMember_static ? staticType.element : propagatedType.element, errorCode, node, [
-            methodName,
-            shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
+        if (_doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.element : propagatedType.element)) {
+          _resolver.reportErrorForNode(errorCode, node, [
+              methodName,
+              shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
+        }
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        _resolver.reportProxyConditionalErrorForOffset(shouldReportMissingMember_static ? staticType.element : propagatedType.element, errorCode, offset, length, [
-            methodName,
-            shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
+        if (_doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.element : propagatedType.element)) {
+          _resolver.reportErrorForOffset(errorCode, offset, length, [
+              methodName,
+              shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
+        }
       }
       return true;
     }
@@ -6644,6 +6669,22 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return element.variable.getter;
     }
     return element;
+  }
+
+  /**
+   * Return `true` iff the passed [Element] is a [ClassElement] and either has, or
+   * in that is or inherits proxy.
+   *
+   * @param element the enclosing element
+   * @return `true` iff the passed [Element] is a [ClassElement] and either has,
+   *         or in that is or inherits proxy
+   * @see ClassElement#isOrInheritsProxy()
+   */
+  bool _doesClassElementHaveProxy(Element element) {
+    if (element is ClassElement) {
+      return !element.isOrInheritsProxy;
+    }
+    return true;
   }
 
   /**
@@ -6750,6 +6791,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
+      // 16078 from Gilad: If the type is a Functor with the @proxy annotation, treat it as an
+      // executable type.
+      // example code: NonErrorResolverTest.test_invocationOfNonFunction_proxyOnFunctionClass()
+      if (classElement.isProxy && type.isSubtypeOf(_resolver.typeProvider.functionType)) {
+        return true;
+      }
       MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, _definingLibrary);
       return methodElement != null;
     }
@@ -7400,7 +7447,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         String name = nameNode.name;
         ParameterElement element = namedParameters[name];
         if (element == null) {
-          ErrorCode errorCode = (reportError ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER : StaticWarningCode.UNDEFINED_NAMED_PARAMETER) as ErrorCode;
+          ErrorCode errorCode = (reportError ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
           _resolver.reportErrorForNode(errorCode, nameNode, [name]);
         } else {
           resolvedParameters[i] = element;
@@ -7417,10 +7464,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (positionalArgumentCount < requiredParameters.length) {
-      ErrorCode errorCode = (reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS) as ErrorCode;
+      ErrorCode errorCode = (reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
       _resolver.reportErrorForNode(errorCode, argumentList, [requiredParameters.length, positionalArgumentCount]);
     } else if (positionalArgumentCount > unnamedParameterCount) {
-      ErrorCode errorCode = (reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) as ErrorCode;
+      ErrorCode errorCode = (reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
       _resolver.reportErrorForNode(errorCode, argumentList, [unnamedParameterCount, positionalArgumentCount]);
     }
     return resolvedParameters;
@@ -7620,10 +7667,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       if (staticType.isVoid) {
         if (propertyName.inSetterContext()) {
-          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER) as ErrorCode;
+          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
           _resolver.reportErrorForNode(errorCode, propertyName, [propertyName.name, staticType.displayName]);
         } else if (propertyName.inGetterContext()) {
-          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER) as ErrorCode;
+          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
           _resolver.reportErrorForNode(errorCode, propertyName, [propertyName.name, staticType.displayName]);
         } else {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
@@ -7634,30 +7681,40 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
         if (propertyName.inSetterContext()) {
           if (isStaticProperty) {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER) as ErrorCode;
-            _resolver.reportProxyConditionalErrorForNode(staticOrPropagatedEnclosingElt, errorCode, propertyName, [
-                propertyName.name,
-                staticOrPropagatedEnclosingElt.displayName]);
+            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
+            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              _resolver.reportErrorForNode(errorCode, propertyName, [
+                  propertyName.name,
+                  staticOrPropagatedEnclosingElt.displayName]);
+            }
           } else {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER) as ErrorCode;
-            _resolver.reportProxyConditionalErrorForNode(staticOrPropagatedEnclosingElt, errorCode, propertyName, [
-                propertyName.name,
-                staticOrPropagatedEnclosingElt.displayName]);
+            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
+            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              _resolver.reportErrorForNode(errorCode, propertyName, [
+                  propertyName.name,
+                  staticOrPropagatedEnclosingElt.displayName]);
+            }
           }
         } else if (propertyName.inGetterContext()) {
           if (isStaticProperty) {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER) as ErrorCode;
-            _resolver.reportProxyConditionalErrorForNode(staticOrPropagatedEnclosingElt, errorCode, propertyName, [
-                propertyName.name,
-                staticOrPropagatedEnclosingElt.displayName]);
+            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
+            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              _resolver.reportErrorForNode(errorCode, propertyName, [
+                  propertyName.name,
+                  staticOrPropagatedEnclosingElt.displayName]);
+            }
           } else {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER) as ErrorCode;
-            _resolver.reportProxyConditionalErrorForNode(staticOrPropagatedEnclosingElt, errorCode, propertyName, [
-                propertyName.name,
-                staticOrPropagatedEnclosingElt.displayName]);
+            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
+            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              _resolver.reportErrorForNode(errorCode, propertyName, [
+                  propertyName.name,
+                  staticOrPropagatedEnclosingElt.displayName]);
+            }
           }
         } else {
-          _resolver.reportProxyConditionalErrorForNode(staticOrPropagatedEnclosingElt, StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
+          if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+            _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
+          }
         }
       }
     }
@@ -7959,11 +8016,6 @@ class IncrementalResolver {
   void _resolveReferences(AstNode node, Scope scope) {
     ResolverVisitor visitor = new ResolverVisitor.con3(_definingLibrary, _source, _typeProvider, scope, _errorListener);
     node.accept(visitor);
-    for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
-      if (conditionalCode.shouldIncludeErrorCode()) {
-        visitor.reportError(conditionalCode.analysisError);
-      }
-    }
   }
 
   void _resolveTypes(AstNode node, Scope scope) {
@@ -7984,12 +8036,20 @@ class IncrementalResolver {
 class InheritanceManager {
   /**
    * Given some array of [ExecutableElement]s, this method creates a synthetic element as
-   * described in the Superinterfaces section of Inheritance and Overriding.
+   * described in 8.1.1:
    *
-   * TODO (jwren) Copy contents from the Spec into this javadoc.
+   * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
+   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
+   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
+   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
+   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
+   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i>
+   * If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters
+   * of type <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    *
    * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
-   * bound calls
+   * bounds instead of dynamic
    */
   static ExecutableElement _computeMergedExecutableElement(List<ExecutableElement> elementArrayToMerge) {
     int h = _getNumOfPositionalParameters(elementArrayToMerge[0]);
@@ -8633,9 +8693,9 @@ class InheritanceManager {
     //
     // Loop through the entries in the unionMap, adding them to the resultMap appropriately.
     //
-    for (MapIterator<String, List<ExecutableElement>> iter = SingleMapIterator.forMap(unionMap); iter.moveNext();) {
-      String key = iter.key;
-      List<ExecutableElement> list = iter.value;
+    for (MapEntry<String, List<ExecutableElement>> entry in getMapEntrySet(unionMap)) {
+      String key = entry.getKey();
+      List<ExecutableElement> list = entry.getValue();
       int numOfEltsWithMatchingNames = list.length;
       if (numOfEltsWithMatchingNames == 1) {
         //
@@ -10126,11 +10186,6 @@ class LibraryResolver {
         ast.accept(new VariableResolverVisitor.con1(library, source, _typeProvider));
         ResolverVisitor visitor = new ResolverVisitor.con1(library, source, _typeProvider);
         ast.accept(visitor);
-        for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
-          if (conditionalCode.shouldIncludeErrorCode()) {
-            visitor.reportError(conditionalCode.analysisError);
-          }
-        }
       }
     } finally {
       timeCounter.stop();
@@ -10567,11 +10622,6 @@ class LibraryResolver2 {
         ast.accept(new VariableResolverVisitor.con3(library, source, _typeProvider));
         ResolverVisitor visitor = new ResolverVisitor.con4(library, source, _typeProvider);
         ast.accept(visitor);
-        for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
-          if (conditionalCode.shouldIncludeErrorCode()) {
-            visitor.reportError(conditionalCode.analysisError);
-          }
-        }
       }
     } finally {
       timeCounter.stop();
@@ -10760,49 +10810,6 @@ class MemberMap {
   void _initArrays(int initialCapacity) {
     _keys = new List<String>(initialCapacity);
     _values = new List<ExecutableElement>(initialCapacity);
-  }
-}
-
-/**
- * This class is a wrapper for an [AnalysisError] which can also be queried after resolution
- * to find out if the error should actually be reported. In this case, these errors are conditional
- * on the non-existence of an `@proxy` annotation.
- *
- * If we have other conditional error codes in the future, we should have this class implement some
- * ConditionalErrorCode so that after resolution, a list of ConditionalErrorCode can be visited
- * instead of multiple lists of *ConditionalErrorCodes.
- */
-class ProxyConditionalAnalysisError {
-  /**
-   * The enclosing [ClassElement], this is what will determine if the error code should, or
-   * should not, be generated on the source.
-   */
-  final Element _enclosingElement;
-
-  /**
-   * The conditional analysis error.
-   */
-  final AnalysisError analysisError;
-
-  /**
-   * Instantiate a new [ProxyConditionalAnalysisError] with some enclosing element and the
-   * conditional analysis error.
-   *
-   * @param enclosingElement the enclosing element
-   * @param analysisError the conditional analysis error
-   */
-  ProxyConditionalAnalysisError(this._enclosingElement, this.analysisError);
-
-  /**
-   * Return `true` iff the enclosing class has the proxy annotation.
-   *
-   * @return `true` iff the enclosing class has the proxy annotation
-   */
-  bool shouldIncludeErrorCode() {
-    if (_enclosingElement is ClassElement) {
-      return !(_enclosingElement as ClassElement).isOrInheritsProxy;
-    }
-    return true;
   }
 }
 
@@ -11119,11 +11126,6 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager _promoteManager = new TypePromotionManager();
 
   /**
-   * Proxy conditional error codes.
-   */
-  List<ProxyConditionalAnalysisError> _proxyConditionalAnalysisErrors = new List<ProxyConditionalAnalysisError>();
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param library the library containing the compilation unit being resolved
@@ -11194,8 +11196,6 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the object keeping track of which elements have had their types promoted
    */
   TypePromotionManager get promoteManager => _promoteManager;
-
-  List<ProxyConditionalAnalysisError> get proxyConditionalAnalysisErrors => _proxyConditionalAnalysisErrors;
 
   @override
   Object visitAsExpression(AsExpression node) {
@@ -11885,43 +11885,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  /**
-   * Report a conditional analysis error with the given error code and arguments.
-   *
-   * @param enclosingElement the enclosing element
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportProxyConditionalErrorForNode(Element enclosingElement, ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
-  }
-
-  /**
-   * Report a conditional analysis error with the given error code and arguments.
-   *
-   * @param enclosingElement the enclosing element
-   * @param errorCode the error code of the error to be reported
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportProxyConditionalErrorForOffset(Element enclosingElement, ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, offset, length, errorCode, arguments)));
-  }
-
-  /**
-   * Report a conditional analysis error with the given error code and arguments.
-   *
-   * @param enclosingElement the enclosing element
-   * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportProxyConditionalErrorForToken(Element enclosingElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
-  }
-
   @override
   void visitForEachStatementInScope(ForEachStatement node) {
     //
@@ -12517,15 +12480,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope newScope = new EnclosedScope(_nameScope);
     _nameScope = newScope;
     return _nameScope;
-  }
-
-  /**
-   * Report an error with the given analysis error.
-   *
-   * @param errorCode analysis error
-   */
-  void reportError(AnalysisError analysisError) {
-    _errorListener.onError(analysisError);
   }
 
   @override
@@ -13592,36 +13546,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     _recordStaticType(node, _typeProvider.listType.substitute4(<DartType> [staticType]));
-    NodeList<Expression> elements = node.elements;
-    int count = elements.length;
-    if (count > 0) {
-      DartType propagatedType = elements[0].bestType;
-      for (int i = 1; i < count; i++) {
-        DartType elementType = elements[i].bestType;
-        if (propagatedType != elementType) {
-          propagatedType = _dynamicType;
-        } else {
-          propagatedType = propagatedType.getLeastUpperBound(elementType);
-          if (propagatedType == null) {
-            propagatedType = _dynamicType;
-          }
-        }
-      }
-      if (propagatedType.isMoreSpecificThan(staticType)) {
-        _recordPropagatedType(node, _typeProvider.listType.substitute4(<DartType> [propagatedType]));
-      }
-    }
     return null;
   }
 
   /**
    * The Dart Language Specification, 12.7: <blockquote>The static type of a map literal of the form
-   * <i><b>const</b> &lt;String, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>&lt;String, V&gt; {k<sub>1</sub>:e<sub>1</sub>,
-   * &hellip;, k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;String, V&gt;`. The static type a
-   * map literal of the form <i><b>const</b> {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
+   * <i><b>const</b> &lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
+   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>&lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>,
+   * &hellip;, k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;K, V&gt;`. The static type a map
+   * literal of the form <i><b>const</b> {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
    * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>{k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;String, dynamic&gt;`.
+   * k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;dynamic, dynamic&gt;`.
    *
    * It is a compile-time error if the first type argument to a map literal is not
    * <i>String</i>.</blockquote>
@@ -13647,45 +13582,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     _recordStaticType(node, _typeProvider.mapType.substitute4(<DartType> [staticKeyType, staticValueType]));
-    NodeList<MapLiteralEntry> entries = node.entries;
-    int count = entries.length;
-    if (count > 0) {
-      MapLiteralEntry entry = entries[0];
-      DartType propagatedKeyType = entry.key.bestType;
-      DartType propagatedValueType = entry.value.bestType;
-      for (int i = 1; i < count; i++) {
-        entry = entries[i];
-        DartType elementKeyType = entry.key.bestType;
-        if (propagatedKeyType != elementKeyType) {
-          propagatedKeyType = _dynamicType;
-        } else {
-          propagatedKeyType = propagatedKeyType.getLeastUpperBound(elementKeyType);
-          if (propagatedKeyType == null) {
-            propagatedKeyType = _dynamicType;
-          }
-        }
-        DartType elementValueType = entry.value.bestType;
-        if (propagatedValueType != elementValueType) {
-          propagatedValueType = _dynamicType;
-        } else {
-          propagatedValueType = propagatedValueType.getLeastUpperBound(elementValueType);
-          if (propagatedValueType == null) {
-            propagatedValueType = _dynamicType;
-          }
-        }
-      }
-      bool betterKey = propagatedKeyType != null && propagatedKeyType.isMoreSpecificThan(staticKeyType);
-      bool betterValue = propagatedValueType != null && propagatedValueType.isMoreSpecificThan(staticValueType);
-      if (betterKey || betterValue) {
-        if (!betterKey) {
-          propagatedKeyType = staticKeyType;
-        }
-        if (!betterValue) {
-          propagatedValueType = staticValueType;
-        }
-        _recordPropagatedType(node, _typeProvider.mapType.substitute4(<DartType> [propagatedKeyType, propagatedValueType]));
-      }
-    }
     return null;
   }
 
@@ -14994,8 +14890,8 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<Element, DartType> overrides) {
-    for (MapIterator<Element, DartType> iter = SingleMapIterator.forMap(overrides); iter.moveNext();) {
-      _overridenTypes[iter.key] = iter.value;
+    for (MapEntry<Element, DartType> entry in getMapEntrySet(overrides)) {
+      _overridenTypes[entry.getKey()] = entry.getValue();
     }
   }
 
@@ -15588,6 +15484,33 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    //
+    // Visit annotations, if the annotation is @proxy, on a class, and "proxy" resolves to the proxy
+    // annotation in dart.core, then create create the ElementAnnotationImpl and set it as the
+    // metadata on the enclosing class.
+    //
+    // Element resolution is done in the ElementResolver, and this work will be done in the general
+    // case for all annotations in the ElementResolver. The reason we resolve this particular
+    // element early is so that ClassElement.isProxy() returns the correct information during all
+    // phases of the ElementResolver.
+    //
+    super.visitAnnotation(node);
+    Identifier identifier = node.name;
+    if (identifier.name.endsWith(ElementAnnotationImpl.PROXY_VARIABLE_NAME) && node.parent is ClassDeclaration) {
+      Element element = nameScope.lookup(identifier, definingLibrary);
+      if (element != null && element.library.isDartCore && element is PropertyAccessorElement) {
+        // This is the @proxy from dart.core
+        ClassDeclaration classDeclaration = node.parent as ClassDeclaration;
+        ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(element);
+        node.elementAnnotation = elementAnnotation;
+        (classDeclaration.element as ClassElementImpl).metadata = <ElementAnnotationImpl> [elementAnnotation];
+      }
+    }
+    return null;
+  }
+
+  @override
   Object visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);
     SimpleIdentifier exception = node.exceptionParameter;
@@ -15922,7 +15845,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       } else if ((redirectingConstructorKind = _getRedirectingConstructorKind(node)) != null) {
-        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
+        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS);
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, [typeName.name]);
@@ -15969,7 +15892,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       } else if ((redirectingConstructorKind = _getRedirectingConstructorKind(node)) != null) {
-        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS) as ErrorCode;
+        ErrorCode errorCode = (redirectingConstructorKind == RedirectingConstructorKind.CONST ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS);
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, [typeName.name]);
@@ -17345,8 +17268,8 @@ class NamespaceBuilder {
    * @param namespace the namespace containing the names to be added to this namespace
    */
   void _addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
-    for (MapIterator<String, Element> iter = SingleMapIterator.forMap(newNames); iter.moveNext();) {
-      definedNames[iter.key] = iter.value;
+    for (MapEntry<String, Element> entry in getMapEntrySet(newNames)) {
+      definedNames[entry.getKey()] = entry.getValue();
     }
   }
 
@@ -17428,8 +17351,8 @@ class NamespaceBuilder {
     if (prefixElement != null) {
       String prefix = prefixElement.name;
       Map<String, Element> newNames = new Map<String, Element>();
-      for (MapIterator<String, Element> iter = SingleMapIterator.forMap(definedNames); iter.moveNext();) {
-        newNames["${prefix}.${iter.key}"] = iter.value;
+      for (MapEntry<String, Element> entry in getMapEntrySet(definedNames)) {
+        newNames["${prefix}.${entry.getKey()}"] = entry.getValue();
       }
       return newNames;
     } else {
@@ -19219,9 +19142,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     // Visit all of the states in the map to ensure that none were never initialized.
-    for (MapIterator<FieldElement, INIT_STATE> iter = SingleMapIterator.forMap(fieldElementsMap); iter.moveNext();) {
-      if (iter.value == INIT_STATE.NOT_INIT) {
-        FieldElement fieldElement = iter.key;
+    for (MapEntry<FieldElement, INIT_STATE> entry in getMapEntrySet(fieldElementsMap)) {
+      if (entry.getValue() == INIT_STATE.NOT_INIT) {
+        FieldElement fieldElement = entry.getKey();
         if (fieldElement.isConst) {
           _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
           foundError = true;
@@ -19395,21 +19318,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       parameterIndex++;
     }
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE & SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
-    MapIterator<String, DartType> overriddenNamedPTIterator = SingleMapIterator.forMap(overriddenNamedPT);
-    while (overriddenNamedPTIterator.moveNext()) {
-      DartType overridingType = overridingNamedPT[overriddenNamedPTIterator.key];
+    JavaIterator<MapEntry<String, DartType>> overriddenNamedPTIterator = new JavaIterator(getMapEntrySet(overriddenNamedPT));
+    while (overriddenNamedPTIterator.hasNext) {
+      MapEntry<String, DartType> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
+      DartType overridingType = overridingNamedPT[overriddenNamedPTEntry.getKey()];
       if (overridingType == null) {
         // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been created above if
         // this could be reached.
         continue;
       }
-      if (!overriddenNamedPTIterator.value.isAssignableTo(overridingType)) {
+      if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
-          if (parameter.parameterKind == ParameterKind.NAMED && overriddenNamedPTIterator.key == parameter.name) {
+          if (parameter.parameterKind == ParameterKind.NAMED && overriddenNamedPTEntry.getKey() == parameter.name) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
@@ -19418,7 +19342,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (parameterToSelect != null) {
           _errorReporter.reportErrorForNode(StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, parameterLocationToSelect, [
               overridingType.displayName,
-              overriddenNamedPTIterator.value.displayName,
+              overriddenNamedPTEntry.getValue().displayName,
               overriddenExecutable.enclosingElement.displayName]);
           return true;
         }
@@ -19667,7 +19591,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (redirectedConstructor.name != null) {
           constructorStrName += ".${redirectedConstructor.name.name}";
         }
-        ErrorCode errorCode = (node.constKeyword != null ? CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR : StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR) as ErrorCode;
+        ErrorCode errorCode = (node.constKeyword != null ? CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR : StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
         _errorReporter.reportErrorForNode(errorCode, redirectedConstructor, [constructorStrName, redirectedType.displayName]);
         return true;
       }
@@ -19756,9 +19680,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // check exported names
     Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.definedNames;
-    for (MapIterator<String, Element> iter = SingleMapIterator.forMap(definedNames); iter.moveNext();) {
-      String name = iter.key;
-      Element element = iter.value;
+    for (MapEntry<String, Element> definedEntry in getMapEntrySet(definedNames)) {
+      String name = definedEntry.getKey();
+      Element element = definedEntry.getValue();
       Element prevElement = _exportedElements[name];
       if (element != null && prevElement != null && prevElement != element) {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_EXPORT, node, [
@@ -22814,6 +22738,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     if (!classElement.type.isSubtypeOf(_typeProvider.functionType)) {
+      return false;
+    }
+    // If there is a noSuchMethod method, then don't report the warning, see dartbug.com/16078
+    if (classElement.getMethod(ElementResolver.NO_SUCH_METHOD_METHOD_NAME) != null) {
       return false;
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(classElement, "call");

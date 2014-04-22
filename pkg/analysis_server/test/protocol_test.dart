@@ -9,52 +9,18 @@ import 'dart:convert';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import 'declarative_tests.dart';
+
 main() {
-  group('Notification', () {
-    test('getParameter_defined', NotificationTest.getParameter_defined);
-    test('getParameter_undefined', NotificationTest.getParameter_undefined);
-    test('fromJson', NotificationTest.fromJson);
-    test('fromJson_withParams', NotificationTest.fromJson_withParams);
-  });
-  group('Request', () {
-    test('getParameter_defined', RequestTest.getParameter_defined);
-    test('getParameter_undefined', RequestTest.getParameter_undefined);
-    test('getRequiredParameter_defined', RequestTest.getRequiredParameter_defined);
-    test('getRequiredParameter_undefined', RequestTest.getRequiredParameter_undefined);
-    test('fromJson', RequestTest.fromJson);
-    test('fromJson_invalidId', RequestTest.fromJson_invalidId);
-    test('fromJson_invalidMethod', RequestTest.fromJson_invalidMethod);
-    test('fromJson_invalidParams', RequestTest.fromJson_invalidParams);
-    test('fromJson_withParams', RequestTest.fromJson_withParams);
-    test('toBool', RequestTest.toBool);
-    test('toInt', RequestTest.toInt);
-    test('toJson', RequestTest.toJson);
-    test('toJson_withParams', RequestTest.toJson_withParams);
-  });
-  group('RequestError', () {
-    test('create', RequestErrorTest.create);
-    test('create_methodNotFound', RequestErrorTest.create_methodNotFound);
-    test('create_invalidParameters', RequestErrorTest.create_invalidParameters);
-    test('create_invalidRequest', RequestErrorTest.create_invalidRequest);
-    test('create_internalError', RequestErrorTest.create_internalError);
-    test('create_parseError', RequestErrorTest.create_parseError);
-    test('fromJson', RequestErrorTest.fromJson);
-    test('toJson', RequestErrorTest.toJson);
-  });
-  group('Response', () {
-    test('create_contextDoesNotExist', ResponseTest.create_contextDoesNotExist);
-    test('create_invalidRequestFormat', ResponseTest.create_invalidRequestFormat);
-    test('create_missingRequiredParameter', ResponseTest.create_missingRequiredParameter);
-    test('create_unknownAnalysisOption', ResponseTest.create_unknownAnalysisOption);
-    test('create_unknownRequest', ResponseTest.create_unknownRequest);
-    test('setResult', ResponseTest.setResult);
-    test('fromJson', ResponseTest.fromJson);
-    test('fromJson_withError', ResponseTest.fromJson_withError);
-    test('fromJson_withResult', ResponseTest.fromJson_withResult);
-  });
+  addTestSuite(NotificationTest);
+  addTestSuite(RequestTest);
+  addTestSuite(RequestErrorTest);
+  addTestSuite(RequestDatumTest);
+  addTestSuite(ResponseTest);
 }
 
 class NotificationTest {
+  @runTest
   static void getParameter_defined() {
     Notification notification = new Notification('foo');
     notification.setParameter('x', 'y');
@@ -67,6 +33,7 @@ class NotificationTest {
     }));
   }
 
+  @runTest
   static void getParameter_undefined() {
     Notification notification = new Notification('foo');
     expect(notification.event, equals('foo'));
@@ -77,6 +44,7 @@ class NotificationTest {
     }));
   }
 
+  @runTest
   static void fromJson() {
     Notification original = new Notification('foo');
     Notification notification = new Notification.fromJson(original.toJson());
@@ -85,6 +53,7 @@ class NotificationTest {
     expect(notification.getParameter('x'), isNull);
   }
 
+  @runTest
   static void fromJson_withParams() {
     Notification original = new Notification('foo');
     original.setParameter('x', 'y');
@@ -96,34 +65,40 @@ class NotificationTest {
 }
 
 class RequestTest {
+  @runTest
   static void getParameter_defined() {
     String name = 'name';
     String value = 'value';
     Request request = new Request('0', '');
     request.setParameter(name, value);
-    expect(request.getParameter(name), equals(value));
+    expect(request.getParameter(name, null).datum, equals(value));
   }
 
+  @runTest
   static void getParameter_undefined() {
     String name = 'name';
+    String defaultValue = 'default value';
     Request request = new Request('0', '');
-    expect(request.getParameter(name), isNull);
+    expect(request.getParameter(name, defaultValue).datum, equals(defaultValue));
   }
 
+  @runTest
   static void getRequiredParameter_defined() {
     String name = 'name';
     String value = 'value';
     Request request = new Request('0', '');
     request.setParameter(name, value);
-    expect(request.getRequiredParameter(name), equals(value));
+    expect(request.getRequiredParameter(name).datum, equals(value));
   }
 
+  @runTest
   static void getRequiredParameter_undefined() {
     String name = 'name';
     Request request = new Request('0', '');
     expect(() => request.getRequiredParameter(name), _throwsRequestFailure);
   }
 
+  @runTest
   static void fromJson() {
     Request original = new Request('one', 'aMethod');
     String json = JSON.encode(original.toJson());
@@ -132,24 +107,28 @@ class RequestTest {
     expect(request.method, equals('aMethod'));
   }
 
+  @runTest
   static void fromJson_invalidId() {
     String json = '{"id":{"one":"two"},"method":"aMethod","params":{"foo":"bar"}}';
     Request request = new Request.fromString(json);
     expect(request, isNull);
   }
 
+  @runTest
   static void fromJson_invalidMethod() {
     String json = '{"id":"one","method":{"boo":"aMethod"},"params":{"foo":"bar"}}';
     Request request = new Request.fromString(json);
     expect(request, isNull);
   }
 
+  @runTest
   static void fromJson_invalidParams() {
     String json = '{"id":"one","method":"aMethod","params":"foobar"}';
     Request request = new Request.fromString(json);
     expect(request, isNull);
   }
 
+  @runTest
   static void fromJson_withParams() {
     Request original = new Request('one', 'aMethod');
     original.setParameter('foo', 'bar');
@@ -157,27 +136,10 @@ class RequestTest {
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
-    expect(request.getParameter('foo'), equals('bar'));
+    expect(request.getParameter('foo', null).asString(), equals('bar'));
   }
 
-  static void toBool() {
-    Request request = new Request('0', '');
-    expect(request.toBool(true), isTrue);
-    expect(request.toBool(false), isFalse);
-    expect(request.toBool('true'), isTrue);
-    expect(request.toBool('false'), isFalse);
-    expect(request.toBool('abc'), isFalse);
-    expect(() => request.toBool(42), _throwsRequestFailure);
-  }
-
-  static void toInt() {
-    Request request = new Request('0', '');
-    expect(request.toInt(1), equals(1));
-    expect(request.toInt('2'), equals(2));
-    expect(() => request.toInt('xxx'), _throwsRequestFailure);
-    expect(() => request.toInt(request), _throwsRequestFailure);
-  }
-
+  @runTest
   static void toJson() {
     Request request = new Request('one', 'aMethod');
     expect(request.toJson(), equals({
@@ -186,6 +148,7 @@ class RequestTest {
     }));
   }
 
+  @runTest
   static void toJson_withParams() {
     Request request = new Request('one', 'aMethod');
     request.setParameter('foo', 'bar');
@@ -198,6 +161,7 @@ class RequestTest {
 }
 
 class RequestErrorTest {
+  @runTest
   static void create() {
     RequestError error = new RequestError(42, 'msg');
     expect(error.code, 42);
@@ -208,36 +172,49 @@ class RequestErrorTest {
     }));
   }
 
+  @runTest
   static void create_parseError() {
     RequestError error = new RequestError.parseError();
     expect(error.code, RequestError.CODE_PARSE_ERROR);
     expect(error.message, "Parse error");
   }
 
+  @runTest
   static void create_methodNotFound() {
     RequestError error = new RequestError.methodNotFound();
     expect(error.code, RequestError.CODE_METHOD_NOT_FOUND);
     expect(error.message, "Method not found");
   }
 
+  @runTest
   static void create_invalidParameters() {
     RequestError error = new RequestError.invalidParameters();
     expect(error.code, RequestError.CODE_INVALID_PARAMS);
     expect(error.message, "Invalid parameters");
   }
 
+  @runTest
   static void create_invalidRequest() {
     RequestError error = new RequestError.invalidRequest();
     expect(error.code, RequestError.CODE_INVALID_REQUEST);
     expect(error.message, "Invalid request");
   }
 
+  @runTest
   static void create_internalError() {
     RequestError error = new RequestError.internalError();
     expect(error.code, RequestError.CODE_INTERNAL_ERROR);
     expect(error.message, "Internal error");
   }
 
+  @runTest
+  static void create_serverAlreadyStarted() {
+    RequestError error = new RequestError.serverAlreadyStarted();
+    expect(error.code, RequestError.CODE_SERVER_ALREADY_STARTED);
+    expect(error.message, "Server already started");
+  }
+
+  @runTest
   static void fromJson() {
     var json = {
         RequestError.CODE: RequestError.CODE_PARSE_ERROR,
@@ -251,6 +228,7 @@ class RequestErrorTest {
     expect(error.getData('ints'), [1, 2, 3]);
   }
 
+  @runTest
   static void toJson() {
     RequestError error = new RequestError(0, 'msg');
     error.setData('answer', 42);
@@ -263,7 +241,159 @@ class RequestErrorTest {
   }
 }
 
+class InvalidParameterResponseMatcher extends Matcher {
+  static const int ERROR_CODE = -2;
+
+  @override
+  Description describe(Description description) =>
+      description.add("an 'invalid parameter' response (code $ERROR_CODE)");
+
+  @override
+  bool matches(item, Map matchState) {
+    if (item is! Response) {
+      return false;
+    }
+    Response response = item;
+    if (response.error is! RequestError) {
+      return false;
+    }
+    RequestError requestError = response.error;
+    if (requestError.code != ERROR_CODE) {
+      return false;
+    }
+    return true;
+  }
+}
+
+class RequestDatumTest {
+  static Request request;
+
+  static Matcher _throwsInvalidParameter = throwsA(
+      new InvalidParameterResponseMatcher());
+  static Matcher isRequestDatum = new isInstanceOf<RequestDatum>("RequestDatum"
+      );
+
+  static void setUp() {
+    request = new Request('myId', 'myMethod');
+  }
+
+  static RequestDatum makeDatum(dynamic datum) {
+    return new RequestDatum(request, 'myPath', datum);
+  }
+
+  static void indexOperator_nonMap() {
+    expect(() => makeDatum(1)['foo'], _throwsInvalidParameter);
+  }
+
+  static void indexOperator_missingKey() {
+    expect(() => makeDatum({
+      'foo': 'bar'
+    })['baz'], _throwsInvalidParameter);
+  }
+
+  static void indexOperator_hasKey() {
+    var indexResult = makeDatum({
+      'foo': 'bar'
+    })['foo'];
+    expect(indexResult, isRequestDatum);
+    expect(indexResult.datum, equals('bar'));
+    expect(indexResult.path, equals('myPath.bar'));
+  }
+
+  static void forEachMap_nonMap() {
+    expect(() => makeDatum(1).forEachMap((key, value) {
+      fail('Non-map should not be iterated');
+    }), _throwsInvalidParameter);
+  }
+
+  static void forEachMap_emptyMap() {
+    makeDatum({}).forEachMap((key, value) {
+      fail('Empty map should not be iterated');
+    });
+  }
+
+  static void forEachMap_oneElementMap() {
+    int callCount = 0;
+    makeDatum({
+      'key': 'value'
+    }).forEachMap((key, value) {
+      callCount++;
+      expect(key, equals('key'));
+      expect(value, isRequestDatum);
+      expect(value.datum, equals('value'));
+    });
+    expect(callCount, equals(1));
+  }
+
+  static void forEachMap_twoElementMap() {
+    int callCount = 0;
+    Map<String, String> map = {
+      'key1': 'value1',
+      'key2': 'value2'
+    };
+    Map iterationResult = {};
+    makeDatum(map).forEachMap((key, value) {
+      callCount++;
+      iterationResult[key] = value;
+    });
+    expect(callCount, equals(2));
+    expect(iterationResult, equals(map));
+  }
+
+  static void asBool() {
+    expect(makeDatum(true).asBool(), isTrue);
+    expect(makeDatum(false).asBool(), isFalse);
+    expect(makeDatum('true').asBool(), isTrue);
+    expect(makeDatum('false').asBool(), isFalse);
+    expect(() => makeDatum('abc').asBool(), _throwsInvalidParameter);
+  }
+
+  static void asInt() {
+    expect(makeDatum(1).asInt(), equals(1));
+    expect(makeDatum('2').asInt(), equals(2));
+    expect(() => makeDatum('xxx').asInt(), _throwsInvalidParameter);
+    expect(() => makeDatum(true).asInt(), _throwsInvalidParameter);
+  }
+
+  static void asString() {
+    expect(makeDatum('foo').asString(), equals('foo'));
+    expect(() => makeDatum(3).asString(), _throwsInvalidParameter);
+  }
+
+  static void asStringList() {
+    expect(makeDatum(['foo', 'bar']).asStringList(), equals(['foo', 'bar']));
+    expect(makeDatum([]).asStringList(), equals([]));
+    expect(() => makeDatum(['foo', 1]).asStringList(), _throwsInvalidParameter);
+    expect(() => makeDatum({}).asStringList(), _throwsInvalidParameter);
+  }
+
+  static void asStringMap() {
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 'value2'
+    }).asStringMap(), equals({
+      'key1': 'value1',
+      'key2': 'value2'
+    }));
+    expect(makeDatum({}).asStringMap(), equals({}));
+    expect(() => makeDatum({
+      'key1': 'value1',
+      'key2': 2
+    }).asStringMap(), _throwsInvalidParameter);
+    expect(() => makeDatum({
+      'key1': 1,
+      'key2': 2
+    }).asStringMap(), _throwsInvalidParameter);
+    expect(() => makeDatum({
+      1: 'value1',
+      2: 'value2'
+    }).asStringMap(), _throwsInvalidParameter);
+    expect(() => makeDatum([]).asStringMap(), _throwsInvalidParameter);
+  }
+}
+
 class ResponseTest {
+  @runTest
   static void create_contextDoesNotExist() {
     Response response = new Response.contextDoesNotExist(new Request('0', ''));
     expect(response.id, equals('0'));
@@ -274,6 +404,7 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void create_invalidRequestFormat() {
     Response response = new Response.invalidRequestFormat();
     expect(response.id, equals(''));
@@ -284,6 +415,7 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void create_missingRequiredParameter() {
     Response response = new Response.missingRequiredParameter(new Request('0', ''), 'x');
     expect(response.id, equals('0'));
@@ -294,6 +426,7 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void create_unknownAnalysisOption() {
     Response response = new Response.unknownAnalysisOption(new Request('0', ''), 'x');
     expect(response.id, equals('0'));
@@ -304,6 +437,7 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void create_unknownRequest() {
     Response response = new Response.unknownRequest(new Request('0', ''));
     expect(response.id, equals('0'));
@@ -314,6 +448,7 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void setResult() {
     String resultName = 'name';
     String resultValue = 'value';
@@ -329,12 +464,14 @@ class ResponseTest {
     }));
   }
 
+  @runTest
   static void fromJson() {
     Response original = new Response('myId');
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
   }
 
+  @runTest
   static void fromJson_withError() {
     Response original = new Response.invalidRequestFormat();
     Response response = new Response.fromJson(original.toJson());
@@ -345,6 +482,7 @@ class ResponseTest {
     expect(error.message, equals('Invalid request'));
   }
 
+  @runTest
   static void fromJson_withResult() {
     Response original = new Response('myId');
     original.setResult('foo', 'bar');

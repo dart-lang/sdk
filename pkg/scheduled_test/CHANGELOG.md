@@ -1,3 +1,7 @@
+## 0.11.0+1
+
+* Support `v0.5.0` of `shelf`
+
 ## 0.11.0
 
 * `ScheduledServer.handle` now takes a `shelf.Handler` rather than a custom

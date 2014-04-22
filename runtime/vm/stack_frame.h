@@ -56,8 +56,7 @@ class StackFrame : public ValueObject {
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Print a frame.
-  virtual void Print() const;
+  const char* ToCString() const;
 
   // Check validity of a frame, used for assertion purposes.
   virtual bool IsValid() const;
@@ -241,7 +240,9 @@ class DartFrameIterator : public ValueObject {
  public:
   DartFrameIterator() : frames_(StackFrameIterator::kDontValidateFrames) { }
   explicit DartFrameIterator(uword last_fp)
-      : frames_(last_fp, StackFrameIterator::kDontValidateFrames) {}
+      : frames_(last_fp, StackFrameIterator::kDontValidateFrames) { }
+  DartFrameIterator(uword fp, uword sp, uword pc)
+      : frames_(fp, sp, pc, StackFrameIterator::kDontValidateFrames) { }
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();

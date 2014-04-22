@@ -703,6 +703,89 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(3, InterfaceTypeImpl.computeLongestInheritancePathToObject(classC.type));
   }
 
+  void test_computeSuperinterfaceSet_genericInterfacePath() {
+    //
+    //  A
+    //  | implements
+    //  B<T>
+    //  | implements
+    //  C<T>
+    //
+    //  D
+    //
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B", ["T"]);
+    ClassElementImpl classC = ElementFactory.classElement2("C", ["T"]);
+    ClassElement classD = ElementFactory.classElement2("D", []);
+    InterfaceType typeA = classA.type;
+    classB.interfaces = <InterfaceType> [typeA];
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl.con1(classB);
+    DartType typeT = classC.type.typeArguments[0];
+    typeBT.typeArguments = <DartType> [typeT];
+    classC.interfaces = <InterfaceType> [typeBT];
+    // A
+    Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
+    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    InterfaceType typeObject = ElementFactory.object.type;
+    JUnitTestCase.assertTrue(superinterfacesOfA.contains(typeObject));
+    // B<D>
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
+    typeBD.typeArguments = <DartType> [classD.type];
+    Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
+    EngineTestCase.assertSizeOfSet(2, superinterfacesOfBD);
+    JUnitTestCase.assertTrue(superinterfacesOfBD.contains(typeObject));
+    JUnitTestCase.assertTrue(superinterfacesOfBD.contains(typeA));
+    // C<D>
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
+    typeCD.typeArguments = <DartType> [classD.type];
+    Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfCD);
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeObject));
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeA));
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeBD));
+  }
+
+  void test_computeSuperinterfaceSet_genericSuperclassPath() {
+    //
+    //  A
+    //  |
+    //  B<T>
+    //  |
+    //  C<T>
+    //
+    //  D
+    //
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    InterfaceType typeA = classA.type;
+    ClassElement classB = ElementFactory.classElement("B", typeA, ["T"]);
+    ClassElementImpl classC = ElementFactory.classElement2("C", ["T"]);
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl.con1(classB);
+    DartType typeT = classC.type.typeArguments[0];
+    typeBT.typeArguments = <DartType> [typeT];
+    classC.supertype = typeBT;
+    ClassElement classD = ElementFactory.classElement2("D", []);
+    // A
+    Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
+    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    InterfaceType typeObject = ElementFactory.object.type;
+    JUnitTestCase.assertTrue(superinterfacesOfA.contains(typeObject));
+    // B<D>
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
+    typeBD.typeArguments = <DartType> [classD.type];
+    Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
+    EngineTestCase.assertSizeOfSet(2, superinterfacesOfBD);
+    JUnitTestCase.assertTrue(superinterfacesOfBD.contains(typeObject));
+    JUnitTestCase.assertTrue(superinterfacesOfBD.contains(typeA));
+    // C<D>
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
+    typeCD.typeArguments = <DartType> [classD.type];
+    Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfCD);
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeObject));
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeA));
+    JUnitTestCase.assertTrue(superinterfacesOfCD.contains(typeBD));
+  }
+
   void test_computeSuperinterfaceSet_multipleInterfacePaths() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
@@ -1140,7 +1223,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType doubleType = _typeProvider.doubleType;
     InterfaceType listOfIntType = listType.substitute4(<DartType> [intType]);
     InterfaceType listOfDoubleType = listType.substitute4(<DartType> [doubleType]);
-    JUnitTestCase.assertEquals(listType.substitute4(<DartType> [_typeProvider.dynamicType]), listOfIntType.getLeastUpperBound(listOfDoubleType));
+    JUnitTestCase.assertEquals(_typeProvider.objectType, listOfIntType.getLeastUpperBound(listOfDoubleType));
   }
 
   void test_getLeastUpperBound_typeParameters_same() {
@@ -1998,6 +2081,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_computeLongestInheritancePathToObject_singleSuperclassPath', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_computeLongestInheritancePathToObject_singleSuperclassPath);
+      });
+      _ut.test('test_computeSuperinterfaceSet_genericInterfacePath', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_computeSuperinterfaceSet_genericInterfacePath);
+      });
+      _ut.test('test_computeSuperinterfaceSet_genericSuperclassPath', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_computeSuperinterfaceSet_genericSuperclassPath);
       });
       _ut.test('test_computeSuperinterfaceSet_multipleInterfacePaths', () {
         final __test = new InterfaceTypeImplTest();

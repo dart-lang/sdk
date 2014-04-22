@@ -20,6 +20,19 @@ abstract class Message {
   /// The value is immutable.
   final Map<String, String> headers;
 
+  /// Extra context that can be used by for middleware and handlers.
+  ///
+  /// For requests, this is used to pass data to inner middleware and handlers;
+  /// for responses, it's used to pass data to outer middleware and handlers.
+  ///
+  /// Context properties that are used by a particular package should begin with
+  /// that package's name followed by a period. For example, if [logRequests]
+  /// wanted to take a prefix, its property name would be `"shelf.prefix"`,
+  /// since it's in the `shelf` package.
+  ///
+  /// The value is immutable.
+  final Map<String, Object> context;
+
   /// The streaming body of the message.
   ///
   /// This can be read via [read] or [readAsString].
@@ -28,8 +41,11 @@ abstract class Message {
   /// Creates a new [Message].
   ///
   /// If [headers] is `null`, it is treated as empty.
-  Message(this._body, {Map<String, String> headers})
-      : this.headers = _getIgnoreCaseMapView(headers);
+  Message(this._body, {Map<String, String> headers,
+        Map<String, Object> context})
+      : this.headers = _getIgnoreCaseMapView(headers),
+        this.context = new pc.UnmodifiableMapView(
+            context == null ? const {} : new Map.from(context));
 
   /// The contents of the content-length field in [headers].
   ///

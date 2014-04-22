@@ -17,7 +17,6 @@ import 'element.dart';
 import 'resolver.dart' show Namespace, NamespaceBuilder;
 import 'engine.dart';
 import 'html.dart' as ht;
-import 'utilities_collection.dart';
 
 /**
  * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
@@ -1505,9 +1504,9 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
       importElementsMap[importElement] = elements;
     }
     // use import namespace to choose correct one
-    for (MapIterator<ImportElement, Set<Element>> iter = SingleMapIterator.forMap(importElementsMap); iter.moveNext();) {
-      if (iter.value.contains(usedElement)) {
-        return iter.key;
+    for (MapEntry<ImportElement, Set<Element>> entry in getMapEntrySet(importElementsMap)) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
       }
     }
     // not found

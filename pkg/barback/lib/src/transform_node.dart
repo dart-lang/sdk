@@ -45,10 +45,25 @@ class TransformNode {
   StreamSubscription<AssetNode> _phaseSubscription;
 
   /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => _state != _State.NOT_PRIMARY && _state != _State.APPLIED;
+  bool get isDirty => _state != _State.NOT_PRIMARY &&
+      _state != _State.APPLIED && _state != _State.DECLARED;
 
-  /// Whether [transformer] is lazy and this transform has yet to be forced.
-  bool _isLazy;
+  /// Whether this transform is deferred.
+  ///
+  /// A transform is deferred if either its transformer is lazy or if its
+  /// transformer is declaring and its primary input comes from a deferred
+  /// transformer.
+  final bool deferred;
+
+  /// Whether this is a deferred transform waiting for [force] to be called to
+  /// generate inputs.
+  ///
+  /// This defaults to `true` for deferred transforms and `false` otherwise.
+  /// During or after running `isPrimary` or `declareOutputs`, this may become
+  /// `false`, indicating that the transform has been forced and should generate
+  /// outputs as soon as possible. It will only be set back to `true` if an
+  /// input changes *after* `apply` has completed.
+  bool _awaitingForce;
 
   /// The subscriptions to each input's [AssetNode.onStateChange] stream.
   final _inputSubscriptions = new Map<AssetId, StreamSubscription>();
@@ -96,7 +111,7 @@ class TransformNode {
   final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
   /// The current state of [this].
-  var _state = _State.COMPUTING_IS_PRIMARY;
+  var _state = _State.DECLARING;
 
   /// Whether [this] has been marked as removed.
   bool get _isRemoved => _onAssetController.isClosed;
@@ -105,7 +120,7 @@ class TransformNode {
   /// consumes the primary input.
   ///
   /// Defaults to `false`. This is not meaningful unless [_state] is
-  /// [_State.APPLIED].
+  /// [_State.APPLIED] or [_State.DECLARED].
   bool _consumePrimary = false;
 
   /// The set of output ids that [transformer] declared it would emit.
@@ -114,22 +129,32 @@ class TransformNode {
   /// [declareOutputs] has been run successfully.
   Set<AssetId> _declaredOutputs;
 
-  TransformNode(this.phase, Transformer transformer, this.primary,
+  TransformNode(this.phase, Transformer transformer, AssetNode primary,
       this._location)
       : transformer = transformer,
-        _isLazy = transformer is LazyTransformer {
+        primary = primary,
+        deferred = transformer is LazyTransformer ||
+            (transformer is DeclaringTransformer && primary.deferred) {
+    _awaitingForce = deferred;
+
     _onLogPool.add(_onLogController.stream);
 
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
       } else {
+        if (state.isDirty && !deferred) primary.force();
+        // If this is deferred but applying, that means it must have been
+        // forced, so we should ensure its input remains forced as well.
+        if (deferred && _state == _State.APPLYING) primary.force();
         _dirty();
       }
     });
 
     _phaseSubscription = phase.previous.onAsset.listen((node) {
-      if (_missingInputs.contains(node.id)) _dirty();
+      if (!_missingInputs.contains(node.id)) return;
+      if (!deferred) node.force();
+      _dirty();
     });
 
     _isPrimary();
@@ -161,13 +186,12 @@ class TransformNode {
     }
   }
 
-  /// If [transformer] is lazy, ensures that its concrete outputs will be
+  /// If [this] is deferred, ensures that its concrete outputs will be
   /// generated.
   void force() {
-    // TODO(nweiz): we might want to have a timeout after which, if the
-    // transform's outputs have gone unused, we switch it back to lazy mode.
-    if (!_isLazy) return;
-    _isLazy = false;
+    if (!_awaitingForce) return;
+    primary.force();
+    _awaitingForce = false;
     _dirty();
   }
 
@@ -179,14 +203,34 @@ class TransformNode {
       _emitPassThrough();
       return;
     }
-    if (_state == _State.COMPUTING_IS_PRIMARY || _isLazy) return;
+
+    // If we're in the process of running [isPrimary] or [declareOutputs], we
+    // already know that [apply] needs to be run so there's nothing we need to
+    // mark as dirty.
+    if (_state == _State.DECLARING) return;
+
+    // If we're waiting until [force] is called to run [apply], we don't want to
+    // run [apply] too early.
+    if (_awaitingForce) return;
+
+    if (_state == _State.APPLIED && deferred) {
+      // Transition to DECLARED, indicating that we know what outputs [apply]
+      // will emit but we're waiting to emit them concretely until [force] is
+      // called.
+      _state = _State.DECLARED;
+      _awaitingForce = true;
+      for (var controller in _outputControllers.values) {
+        controller.setLazy(force);
+      }
+      return;
+    }
 
     if (_passThroughController != null) _passThroughController.setDirty();
     for (var controller in _outputControllers.values) {
       controller.setDirty();
     }
 
-    if (_state == _State.APPLIED) {
+    if (_state == _State.APPLIED || _state == _State.DECLARED) {
       _apply();
     } else {
       _state = _State.NEEDS_APPLY;
@@ -210,10 +254,11 @@ class TransformNode {
     }).then((isPrimary) {
       if (_isRemoved) return null;
       if (isPrimary) {
+        if (!deferred) primary.force();
         return _declareOutputs().then((_) {
           if (_isRemoved) return;
-          if (_isLazy) {
-            _state = _State.APPLIED;
+          if (_awaitingForce) {
+            _state = _State.DECLARED;
             _onDoneController.add(null);
           } else {
             _apply();
@@ -253,7 +298,7 @@ class TransformNode {
       if (!_declaredOutputs.contains(primary.id)) _emitPassThrough();
 
       for (var id in _declaredOutputs) {
-        var controller = transformer is LazyTransformer
+        var controller = _awaitingForce
             ? new AssetNodeController.lazy(id, force, this)
             : new AssetNodeController(id, this);
         _outputControllers[id] = controller;
@@ -267,7 +312,7 @@ class TransformNode {
 
   /// Applies this transform.
   void _apply() {
-    assert(!_isRemoved && !_isLazy);
+    assert(!_isRemoved && !_awaitingForce);
 
     // Clear input subscriptions here as well as in [_process] because [_apply]
     // may be restarted independently if only a secondary input changes.
@@ -315,7 +360,7 @@ class TransformNode {
       }
 
       _inputSubscriptions.putIfAbsent(node.id, () {
-        return node.onStateChange.listen((_) => _dirty());
+        return node.onStateChange.listen((state) => _dirty());
       });
 
       return node.asset;
@@ -367,16 +412,6 @@ class TransformNode {
       newOutputs.removeId(id);
       // TODO(nweiz): report this as a warning rather than a failing error.
       phase.cascade.reportError(new InvalidOutputException(info, id));
-    }
-
-    if (_declaredOutputs != null) {
-      var missingOutputs = _declaredOutputs.difference(
-          newOutputs.map((asset) => asset.id).toSet());
-      if (missingOutputs.isNotEmpty) {
-        _warn("This transformer didn't emit declared "
-            "${pluralize('output asset', missingOutputs.length)} "
-            "${toSentence(missingOutputs)}.");
-      }
     }
 
     // Remove outputs that used to exist but don't anymore.
@@ -466,12 +501,23 @@ class TransformNode {
 
 /// The enum of states that [TransformNode] can be in.
 class _State {
-  /// The transform is running [Transformer.isPrimary].
+  /// The transform is running [Transformer.isPrimary] followed by
+  /// [DeclaringTransformer.declareOutputs] (for a [DeclaringTransformer]).
   ///
-  /// This is the initial state of the transformer. Once [Transformer.isPrimary]
-  /// finishes running, this will transition to [APPLYING] if the input is
-  /// primary, or [NOT_PRIMARY] if it's not.
-  static final COMPUTING_IS_PRIMARY = const _State._("computing isPrimary");
+  /// This is the initial state of the transformer, and it will only occur once
+  /// since [Transformer.isPrimary] and [DeclaringTransformer.declareOutputs]
+  /// are independent of the contents of the primary input. Once the two methods
+  /// finish running, this will transition to [NOT_PRIMARY] if the input isn't
+  /// primary, [DECLARED] if the transform is deferred, and [APPLYING]
+  /// otherwise.
+  static final DECLARING = const _State._("computing isPrimary");
+
+  /// The transform is deferred and has run
+  /// [DeclaringTransformer.declareOutputs] but hasn't yet been forced.
+  ///
+  /// This will transition to [APPLYING] when one of the outputs has been
+  /// forced.
+  static final DECLARED = const _State._("declared");
 
   /// The transform is running [Transformer.apply].
   ///
@@ -490,11 +536,12 @@ class _State {
   /// The transform has finished running [Transformer.apply], whether or not it
   /// emitted an error.
   ///
-  /// If the transformer is lazy, the [TransformNode] can also be in this state
-  /// when [Transformer.declareOutputs] has been run but [Transformer.apply] has
-  /// not.
+  /// If the transformer is deferred, the [TransformNode] can also be in this
+  /// state when [Transformer.declareOutputs] has been run but
+  /// [Transformer.apply] has not.
   ///
-  /// If an input changes, this will transition to [APPLYING].
+  /// If an input changes, this will transition to [DECLARED] if the transform
+  /// is deferred and [APPLYING] otherwise.
   static final APPLIED = const _State._("applied");
 
   /// The transform has finished running [Transformer.isPrimary], which returned

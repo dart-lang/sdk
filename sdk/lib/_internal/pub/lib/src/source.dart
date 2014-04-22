@@ -160,16 +160,25 @@ abstract class Source {
   ///
   /// This is only called for sources with [shouldCache] set to true. By
   /// default, this uses [systemCacheDirectory] and [get].
-  Future<Package> downloadToSystemCache(PackageId id) {
+  ///
+  /// If [force] is `true`, then the package is downloaded even if it already
+  /// exists in the cache. The previous one will be deleted.
+  Future<Package> downloadToSystemCache(PackageId id, {bool force}) {
+    if (force == null) force = false;
+
     var packageDir;
     return systemCacheDirectory(id).then((p) {
       packageDir = p;
 
       // See if it's already cached.
       if (dirExists(packageDir)) {
-        if (!_isCachedPackageCorrupted(packageDir)) return true;
-        // Busted, so wipe out the package and re-download.
-        deleteEntry(packageDir);
+        if (force || _isCachedPackageCorrupted(packageDir)) {
+          // Wipe it out and re-install it.
+          deleteEntry(packageDir);
+        } else {
+          // Already downloaded.
+          return true;
+        }
       }
 
       ensureDir(path.dirname(packageDir));
@@ -218,6 +227,19 @@ abstract class Source {
     return new Future.error(
         "systemCacheDirectory() must be implemented if shouldCache is true.",
         new Chain.current());
+  }
+
+  /// Reinstalls all packages that have been previously installed into the
+  /// system cache by this source.
+  ///
+  /// Returns a [Pair] whose first element is the number of packages
+  /// successfully repaired and the second is the number of failures.
+  Future<Pair<int, int>> repairCachedPackages() {
+    if (shouldCache) {
+      throw new UnimplementedError("Source $name must implement this.");
+    }
+    throw new UnsupportedError("Cannot call repairCachedPackages() on an "
+        "uncached source.");
   }
 
   /// When a [Pubspec] or [LockFile] is parsed, it reads in the description for

@@ -336,11 +336,14 @@ Isolate::Isolate()
       object_id_ring_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
+      tag_table_(GrowableObjectArray::null()),
+      current_tag_(UserTag::null()),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   set_vm_tag(VMTag::kIdleTagId);
+  set_user_tag(UserTags::kNoUserTag);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
@@ -408,9 +411,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
-  // Setup for profiling.
-  Profiler::InitProfilingForIsolate(result);
-
   // Add to isolate list.
   AddIsolateTolist(result);
 
@@ -452,7 +452,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
                 "\tisolate:    %s\n", result->name());
     }
   }
-
 
   return result;
 }
@@ -852,6 +851,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
 
+  // Visit the current tag which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
+
+  // Visit the tag table which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
+
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
 
@@ -866,6 +871,13 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
                                          bool visit_prologue_weak_handles) {
   if (api_state() != NULL) {
     api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
+  }
+}
+
+
+void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
+  if (api_state() != NULL) {
+    api_state()->VisitPrologueWeakHandles(visitor);
   }
 }
 
@@ -902,10 +914,14 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   }
   {
     JSONObject jsheap(&jsobj, "heap");
-    jsheap.AddProperty("usedNew", heap()->UsedInWords(Heap::kNew));
-    jsheap.AddProperty("capacityNew", heap()->CapacityInWords(Heap::kNew));
-    jsheap.AddProperty("usedOld", heap()->UsedInWords(Heap::kOld));
-    jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
+    jsheap.AddProperty("usedNew",
+                       heap()->UsedInWords(Heap::kNew) * kWordSize);
+    jsheap.AddProperty("capacityNew",
+                       heap()->CapacityInWords(Heap::kNew) * kWordSize);
+    jsheap.AddProperty("usedOld",
+                       heap()->UsedInWords(Heap::kOld) * kWordSize);
+    jsheap.AddProperty("capacityOld",
+                       heap()->CapacityInWords(Heap::kOld) * kWordSize);
   }
 
   // TODO(turnidge): Don't compute a full stack trace every time we
@@ -968,6 +984,24 @@ void Isolate::ProfileInterrupt() {
 
 void Isolate::ProfileIdle() {
   vm_tag_counters_.Increment(vm_tag());
+}
+
+
+void Isolate::set_tag_table(const GrowableObjectArray& value) {
+  tag_table_ = value.raw();
+}
+
+
+void Isolate::set_current_tag(const UserTag& tag) {
+  intptr_t user_tag = tag.tag();
+  set_user_tag(static_cast<uword>(user_tag));
+  current_tag_ = tag.raw();
+}
+
+
+void Isolate::clear_current_tag() {
+  set_user_tag(UserTags::kNoUserTag);
+  current_tag_ = UserTag::null();
 }
 
 

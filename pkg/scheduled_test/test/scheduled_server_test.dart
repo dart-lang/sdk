@@ -191,7 +191,7 @@ void main(_, message) {
 
 /// Creates a metatest that runs [testBody], captures its schedule errors, and
 /// asserts that it throws an error with the given [errorMessage].
-void expectServerError(String description, void testBody(),
+void expectServerError(String description, testBody(),
     String errorMessage) {
   expectTestFails(description, testBody, (errors) {
     // There can be between one and three errors here. The first is the

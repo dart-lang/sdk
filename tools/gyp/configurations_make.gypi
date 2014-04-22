@@ -30,7 +30,7 @@
 
       'Dart_Linux_ia32_Base': {
         'abstract': 1,
-        'cflags': [ '-m32', '-msse2' ],
+        'cflags': [ '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 

@@ -71,14 +71,14 @@ class Request extends Message {
   // TODO(kevmoo) finish documenting the rest of the arguments.
   Request(this.method, Uri requestedUri, {String protocolVersion,
     Map<String, String> headers, Uri url, String scriptName,
-    Stream<List<int>> body})
+    Stream<List<int>> body, Map<String, Object> context})
       : this.requestedUri = requestedUri,
         this.protocolVersion = protocolVersion == null ?
             '1.1' : protocolVersion,
         this.url = _computeUrl(requestedUri, url, scriptName),
         this.scriptName = _computeScriptName(requestedUri, url, scriptName),
         super(body == null ? new Stream.fromIterable([]) : body,
-            headers: headers) {
+            headers: headers, context: context) {
     if (method.isEmpty) throw new ArgumentError('method cannot be empty.');
 
     // TODO(kevmoo) use isAbsolute property on Uri once Issue 18053 is fixed

@@ -1186,20 +1186,23 @@ class Types {
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawTypeCache = dynamicElement.thisTypeCache = dynamicType;
-    MoreSpecificVisitor moreSpecificVisitor =
-        new MoreSpecificVisitor(compiler, dynamicType, voidType);
-    SubtypeVisitor subtypeVisitor =
-        new SubtypeVisitor(compiler, dynamicType, voidType);
-    PotentialSubtypeVisitor potentialSubtypeVisitor =
-        new PotentialSubtypeVisitor(compiler, dynamicType, voidType);
-
-    return new Types.internal(compiler, voidType, dynamicType,
-        moreSpecificVisitor, subtypeVisitor, potentialSubtypeVisitor);
+    return new Types.internal(compiler, voidType, dynamicType);
   }
 
-  Types.internal(this.compiler, this.voidType, this.dynamicType,
-                 this.moreSpecificVisitor, this.subtypeVisitor,
-                 this.potentialSubtypeVisitor);
+  Types.internal(Compiler compiler, VoidType voidType, DynamicType dynamicType)
+      : this.compiler = compiler,
+        this.voidType = voidType,
+        this.dynamicType = dynamicType,
+        this.moreSpecificVisitor =
+          new MoreSpecificVisitor(compiler, dynamicType, voidType),
+        this.subtypeVisitor =
+          new SubtypeVisitor(compiler, dynamicType, voidType),
+        this.potentialSubtypeVisitor =
+          new PotentialSubtypeVisitor(compiler, dynamicType, voidType);
+
+  Types copy(Compiler compiler) {
+    return new Types.internal(compiler, voidType, dynamicType);
+  }
 
   /** Returns true if [t] is more specific than [s]. */
   bool isMoreSpecific(DartType t, DartType s) {

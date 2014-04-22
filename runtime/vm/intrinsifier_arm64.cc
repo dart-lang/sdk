@@ -403,6 +403,20 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
+void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
+  UNIMPLEMENTED();
+}
+
+
+void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
+  UNIMPLEMENTED();
+}
+
+
+void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
+  UNIMPLEMENTED();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64

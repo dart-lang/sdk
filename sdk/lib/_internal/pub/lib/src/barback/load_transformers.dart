@@ -8,22 +8,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
-import 'package:barback/barback.dart';
-// TODO(nweiz): don't import from "src" once issue 14966 is fixed.
-import 'package:barback/src/internal_asset.dart';
-
 import '../../../asset/dart/serialize.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
-import 'build_environment.dart';
-import 'excluding_transformer.dart';
+import 'asset_environment.dart';
+import 'foreign_transformer.dart';
 import 'barback_server.dart';
 
 /// Load and return all transformers and groups from the library identified by
 /// [id].
-Future<Set> loadTransformers(BuildEnvironment environment,
+Future<Set> loadTransformers(AssetEnvironment environment,
     BarbackServer transformerServer, TransformerId id) {
   return id.getAssetId(environment.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
@@ -53,7 +49,7 @@ Future<Set> loadTransformers(BuildEnvironment environment,
         'configuration': JSON.encode(id.configuration)
       }).then((transformers) {
         transformers = transformers.map(
-            (transformer) => _deserializeTransformerOrGroup(transformer, id))
+            (transformer) => deserializeTransformerOrGroup(transformer, id))
             .toSet();
         log.fine("Transformers from $assetId: $transformers");
         return transformers;
@@ -74,64 +70,4 @@ Future<Set> loadTransformers(BuildEnvironment environment,
           error, stackTrace);
     });
   });
-}
-
-/// A wrapper for a transformer that's in a different isolate.
-class _ForeignTransformer extends Transformer {
-  /// The port with which we communicate with the child isolate.
-  ///
-  /// This port and all messages sent across it are specific to this
-  /// transformer.
-  final SendPort _port;
-
-  /// The result of calling [toString] on the transformer in the isolate.
-  final String _toString;
-
-  _ForeignTransformer(Map map)
-      : _port = map['port'],
-        _toString = map['toString'];
-
-  Future<bool> isPrimary(AssetId id) {
-    return call(_port, {
-      'type': 'isPrimary',
-      'id': serializeId(id)
-    });
-  }
-
-  Future apply(Transform transform) {
-    return call(_port, {
-      'type': 'apply',
-      'transform': serializeTransform(transform)
-    });
-  }
-
-  String toString() => _toString;
-}
-
-/// A wrapper for a transformer group that's in a different isolate.
-class _ForeignGroup implements TransformerGroup {
-  final Iterable<Iterable> phases;
-
-  /// The result of calling [toString] on the transformer group in the isolate.
-  final String _toString;
-
-  _ForeignGroup(TransformerId id, Map map)
-      : phases = map['phases'].map((phase) {
-          return phase.map((transformer) => _deserializeTransformerOrGroup(
-              transformer, id)).toList();
-        }).toList(),
-        _toString = map['toString'];
-
-  String toString() => _toString;
-}
-
-/// Converts a serializable map into a [Transformer] or a [TransformerGroup].
-_deserializeTransformerOrGroup(Map map, TransformerId id) {
-  if (map['type'] == 'Transformer') {
-    var transformer = new _ForeignTransformer(map);
-    return ExcludingTransformer.wrap(transformer, id.includes, id.excludes);
-  }
-
-  assert(map['type'] == 'TransformerGroup');
-  return new _ForeignGroup(id, map);
 }
