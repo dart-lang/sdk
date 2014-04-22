@@ -97,6 +97,9 @@ main() {
     ]});
 
     updateSources(["app|foo.in"]);
+    // Give the transformers time to declare their assets.
+    schedule(pumpEventQueue);
+
     expectAsset("app|out.one", "app|out.one");
     buildShouldSucceed();
 
@@ -114,6 +117,9 @@ main() {
     // Start [declaring] running, because its input became available.
     declaring.pauseApply();
     updateSources(["app|foo.in"]);
+    // Give the transformers time to declare their assets.
+    schedule(pumpEventQueue);
+
     expectAsset("app|out.one", "app|out.one");
     expectAssetDoesNotComplete("app|out.three");
 
