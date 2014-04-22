@@ -29,13 +29,13 @@ import 'constant.dart';
  * model for a single compilation unit.
  */
 class AngularCompilationUnitBuilder {
-  static String _NG_COMPONENT = "NgComponent";
+  static String _NG_COMPONENT = "Component";
 
-  static String _NG_CONTROLLER = "NgController";
+  static String _NG_CONTROLLER = "Controller";
 
-  static String _NG_DIRECTIVE = "NgDirective";
+  static String _NG_DECORATOR = "Decorator";
 
-  static String _NG_FILTER = "NgFilter";
+  static String _NG_FORMATTER = "Formatter";
 
   static String _NAME = "name";
 
@@ -103,8 +103,8 @@ class AngularCompilationUnitBuilder {
         properties = component.properties;
       }
       // try properties of AngularDirectiveElement
-      if (toolkitObject is AngularDirectiveElement) {
-        AngularDirectiveElement directive = toolkitObject;
+      if (toolkitObject is AngularDecoratorElement) {
+        AngularDecoratorElement directive = toolkitObject;
         properties = directive.properties;
       }
       // check properties
@@ -273,24 +273,24 @@ class AngularCompilationUnitBuilder {
             continue;
           }
           this._annotation = annotation;
-          // @NgFilter
-          if (_isAngularAnnotation(annotation, _NG_FILTER)) {
-            _parseNgFilter();
+          // @Formatter
+          if (_isAngularAnnotation(annotation, _NG_FORMATTER)) {
+            _parseFormatter();
             continue;
           }
-          // @NgComponent
+          // @Component
           if (_isAngularAnnotation(annotation, _NG_COMPONENT)) {
-            _parseNgComponent();
+            _parseComponent();
             continue;
           }
-          // @NgController
+          // @Controller
           if (_isAngularAnnotation(annotation, _NG_CONTROLLER)) {
-            _parseNgController();
+            _parseController();
             continue;
           }
-          // @NgDirective
-          if (_isAngularAnnotation(annotation, _NG_DIRECTIVE)) {
-            _parseNgDirective();
+          // @Decorator
+          if (_isAngularAnnotation(annotation, _NG_DECORATOR)) {
+            _parseDecorator();
             continue;
           }
         }
@@ -357,7 +357,7 @@ class AngularCompilationUnitBuilder {
     return false;
   }
 
-  void _parseNgComponent() {
+  void _parseComponent() {
     bool isValid = true;
     // publishAs
     String name = null;
@@ -401,7 +401,7 @@ class AngularCompilationUnitBuilder {
       element.templateUriOffset = templateUriOffset;
       element.styleUri = styleUri;
       element.styleUriOffset = styleUriOffset;
-      element.properties = _parseNgComponentProperties();
+      element.properties = _parseComponentProperties();
       element.scopeProperties = _parseScopeProperties();
       _classElement.addToolkitObjects(element);
     }
@@ -410,17 +410,17 @@ class AngularCompilationUnitBuilder {
   /**
    * Parses [AngularPropertyElement]s from [annotation] and [classDeclaration].
    */
-  List<AngularPropertyElement> _parseNgComponentProperties() {
+  List<AngularPropertyElement> _parseComponentProperties() {
     List<AngularPropertyElement> properties = [];
-    _parseNgComponentProperties_fromMap(properties);
-    _parseNgComponentProperties_fromFields(properties);
+    _parseComponentProperties_fromMap(properties);
+    _parseComponentProperties_fromFields(properties);
     return new List.from(properties);
   }
 
   /**
    * Parses [AngularPropertyElement]s from [annotation].
    */
-  void _parseNgComponentProperties_fromFields(List<AngularPropertyElement> properties) {
+  void _parseComponentProperties_fromFields(List<AngularPropertyElement> properties) {
     NodeList<ClassMember> members = _classDeclaration.members;
     for (ClassMember member in members) {
       if (member is FieldDeclaration) {
@@ -458,7 +458,7 @@ class AngularCompilationUnitBuilder {
   /**
    * Parses [AngularPropertyElement]s from [annotation].
    */
-  void _parseNgComponentProperties_fromMap(List<AngularPropertyElement> properties) {
+  void _parseComponentProperties_fromMap(List<AngularPropertyElement> properties) {
     Expression mapExpression = _getArgument("map");
     // may be not properties
     if (mapExpression == null) {
@@ -529,7 +529,7 @@ class AngularCompilationUnitBuilder {
     }
   }
 
-  void _parseNgController() {
+  void _parseController() {
     bool isValid = true;
     // publishAs
     if (!_hasStringArgument(_PUBLISH_AS)) {
@@ -559,7 +559,7 @@ class AngularCompilationUnitBuilder {
     }
   }
 
-  void _parseNgDirective() {
+  void _parseDecorator() {
     bool isValid = true;
     // selector
     AngularSelectorElement selector = null;
@@ -577,14 +577,14 @@ class AngularCompilationUnitBuilder {
     // create
     if (isValid) {
       int offset = _annotation.offset;
-      AngularDirectiveElementImpl element = new AngularDirectiveElementImpl(offset);
+      AngularDecoratorElementImpl element = new AngularDecoratorElementImpl(offset);
       element.selector = selector;
-      element.properties = _parseNgComponentProperties();
+      element.properties = _parseComponentProperties();
       _classElement.addToolkitObjects(element);
     }
   }
 
-  void _parseNgFilter() {
+  void _parseFormatter() {
     bool isValid = true;
     // name
     if (!_hasStringArgument(_NAME)) {
@@ -595,7 +595,7 @@ class AngularCompilationUnitBuilder {
     if (isValid) {
       String name = _getStringArgument(_NAME);
       int nameOffset = _getStringArgumentOffset(_NAME);
-      _classElement.addToolkitObjects(new AngularFilterElementImpl(name, nameOffset));
+      _classElement.addToolkitObjects(new AngularFormatterElementImpl(name, nameOffset));
     }
   }
 
@@ -913,7 +913,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       //
       constructors = _createDefaultConstructors(interfaceType);
     }
-    element.abstract = node.abstractKeyword != null;
+    element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     element.constructors = constructors;
     element.fields = holder.fields;
@@ -971,7 +971,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _inFunction = wasInFunction;
     }
     SimpleIdentifier constructorName = node.name;
-    ConstructorElementImpl element = new ConstructorElementImpl.con1(constructorName);
+    ConstructorElementImpl element = new ConstructorElementImpl.forNode(constructorName);
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
@@ -1032,7 +1032,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
       _visit(holder, defaultValue);
-      FunctionElementImpl initializer = new FunctionElementImpl.con2(defaultValue.beginToken.offset);
+      FunctionElementImpl initializer = new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
@@ -1102,7 +1102,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       sc.Token property = node.propertyKeyword;
       if (property == null) {
         SimpleIdentifier functionName = node.name;
-        FunctionElementImpl element = new FunctionElementImpl.con1(functionName);
+        FunctionElementImpl element = new FunctionElementImpl.forNode(functionName);
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -1133,7 +1133,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           _currentHolder.addTopLevelVariable(variable);
         }
         if (_matches(property, sc.Keyword.GET)) {
-          PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con1(propertyNameNode);
+          PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -1145,7 +1145,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           expression.element = getter;
           propertyNameNode.staticElement = getter;
         } else {
-          PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con1(propertyNameNode);
+          PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.forNode(propertyNameNode);
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
@@ -1175,7 +1175,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } finally {
       _inFunction = wasInFunction;
     }
-    FunctionElementImpl element = new FunctionElementImpl.con2(node.beginToken.offset);
+    FunctionElementImpl element = new FunctionElementImpl.forOffset(node.beginToken.offset);
     element.functions = holder.functions;
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
@@ -1268,7 +1268,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (nameOfMethod == sc.TokenType.MINUS.lexeme && node.parameters.parameters.length == 0) {
         nameOfMethod = "unary-";
       }
-      MethodElementImpl element = new MethodElementImpl.con2(nameOfMethod, methodName.offset);
+      MethodElementImpl element = new MethodElementImpl(nameOfMethod, methodName.offset);
       element.abstract = node.isAbstract;
       element.functions = holder.functions;
       element.labels = holder.labels;
@@ -1289,7 +1289,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         _currentHolder.addField(field);
       }
       if (_matches(property, sc.Keyword.GET)) {
-        PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con1(propertyNameNode);
+        PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.forNode(propertyNameNode);
         getter.functions = holder.functions;
         getter.labels = holder.labels;
         getter.localVariables = holder.localVariables;
@@ -1301,7 +1301,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         _currentHolder.addAccessor(getter);
         propertyNameNode.staticElement = getter;
       } else {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con1(propertyNameNode);
+        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.forNode(propertyNameNode);
         setter.functions = holder.functions;
         setter.labels = holder.labels;
         setter.localVariables = holder.localVariables;
@@ -1431,7 +1431,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       } finally {
         _inFieldContext = wasInFieldContext;
       }
-      FunctionElementImpl initializer = new FunctionElementImpl.con2(node.initializer.beginToken.offset);
+      FunctionElementImpl initializer = new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
@@ -1444,13 +1444,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (_inFieldContext) {
         (variable as FieldElementImpl).static = _matches((node.parent.parent as FieldDeclaration).staticKeyword, sc.Keyword.STATIC);
       }
-      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(variable);
+      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
       getter.getter = true;
       getter.static = variable.isStatic;
       _currentHolder.addAccessor(getter);
       variable.getter = getter;
       if (!isFinal) {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(variable);
+        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
         setter.setter = true;
         setter.static = variable.isStatic;
         ParameterElementImpl parameter = new ParameterElementImpl.con2("_${variable.name}", variable.nameOffset);
@@ -1486,7 +1486,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * @return the [ConstructorElement]s array with the single default constructor element
    */
   List<ConstructorElement> _createDefaultConstructors(InterfaceTypeImpl interfaceType) {
-    ConstructorElementImpl constructor = new ConstructorElementImpl.con1(null);
+    ConstructorElementImpl constructor = new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
     constructor.returnType = interfaceType;
     FunctionTypeImpl type = new FunctionTypeImpl.con1(constructor);
@@ -6062,6 +6062,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
+    } else if (_isDeferredPrefix(target) && methodName.name == FunctionElement.LOAD_LIBRARY_NAME) {
+      LibraryElement importedLibrary = _getImportedLibrary(target);
+      methodName.staticElement = importedLibrary.loadLibraryFunction;
+      return null;
     } else {
       DartType staticType = _getStaticType(target);
       //
@@ -6715,6 +6719,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Assuming that the given expression is a prefix for a deferred import, return the library that
+   * is being imported.
+   *
+   * @param expression the expression representing the deferred import's prefix
+   * @return the library that is being imported by the import associated with the prefix
+   */
+  LibraryElement _getImportedLibrary(Expression expression) {
+    PrefixElement prefixElement = (expression as SimpleIdentifier).staticElement as PrefixElement;
+    List<ImportElement> imports = prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
+    return imports[0].importedLibrary;
+  }
+
+  /**
    * Return the name of the method invoked by the given postfix expression.
    *
    * @param node the postfix expression being invoked
@@ -6777,6 +6794,28 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
+  }
+
+  /**
+   * Return `true` if the given expression is a prefix for a deferred import.
+   *
+   * @param expression the expression being tested
+   * @return `true` if the given expression is a prefix for a deferred import
+   */
+  bool _isDeferredPrefix(Expression expression) {
+    if (expression is! SimpleIdentifier) {
+      return false;
+    }
+    Element element = (expression as SimpleIdentifier).staticElement;
+    if (element is! PrefixElement) {
+      return false;
+    }
+    PrefixElement prefixElement = element as PrefixElement;
+    List<ImportElement> imports = prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
+    if (imports.length != 1) {
+      return false;
+    }
+    return imports[0].isDeferred;
   }
 
   /**
@@ -9364,25 +9403,27 @@ class LibraryElementBuilder {
         if (_analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);
-          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
-          part.uriOffset = partUri.offset;
-          part.uriEnd = partUri.end;
-          part.uri = partDirective.uriContent;
-          //
-          // Validate that the part contains a part-of directive with the same name as the library.
-          //
-          String partLibraryName = _getPartLibraryName(partSource, partUnit, directivesToResolve);
-          if (partLibraryName == null) {
-            _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
-          } else if (libraryNameNode == null) {
-          } else if (libraryNameNode.name != partLibraryName) {
-            _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [libraryNameNode.name, partLibraryName]));
+          if (partUnit != null) {
+            CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
+            part.uriOffset = partUri.offset;
+            part.uriEnd = partUri.end;
+            part.uri = partDirective.uriContent;
+            //
+            // Validate that the part contains a part-of directive with the same name as the library.
+            //
+            String partLibraryName = _getPartLibraryName(partSource, partUnit, directivesToResolve);
+            if (partLibraryName == null) {
+              _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
+            } else if (libraryNameNode == null) {
+            } else if (libraryNameNode.name != partLibraryName) {
+              _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [libraryNameNode.name, partLibraryName]));
+            }
+            if (entryPoint == null) {
+              entryPoint = _findEntryPoint(part);
+            }
+            directive.element = part;
+            sourcedCompilationUnits.add(part);
           }
-          if (entryPoint == null) {
-            entryPoint = _findEntryPoint(part);
-          }
-          directive.element = part;
-          sourcedCompilationUnits.add(part);
         }
       }
     }
@@ -9587,6 +9628,9 @@ class LibraryResolver {
       if (_coreLibrary == null) {
         // This will be true unless the library being analyzed is the core library.
         _coreLibrary = createLibrary(_coreLibrarySource);
+        if (_coreLibrary == null) {
+          throw new AnalysisException.con1("Core library does not exist");
+        }
       }
       instrumentation.metric3("createLibrary", "complete");
       //
@@ -16055,7 +16099,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return the implicit constructor that was created
    */
   ConstructorElement _createImplicitContructor(InterfaceType classType, ConstructorElement explicitConstructor, List<DartType> parameterTypes, List<DartType> argumentTypes) {
-    ConstructorElementImpl implicitConstructor = new ConstructorElementImpl.con2(explicitConstructor.name, -1);
+    ConstructorElementImpl implicitConstructor = new ConstructorElementImpl(explicitConstructor.name, -1);
     implicitConstructor.synthetic = true;
     implicitConstructor.redirectedConstructor = explicitConstructor;
     implicitConstructor.const2 = explicitConstructor.isConst;
@@ -22730,7 +22774,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see StaticWarningCode#FUNCTION_WITHOUT_CALL
    */
   bool _checkImplementsFunctionWithoutCall(ClassDeclaration node) {
-    if (node.abstractKeyword != null) {
+    if (node.isAbstract) {
       return false;
     }
     ClassElement classElement = node.element;

@@ -1685,6 +1685,11 @@ abstract class DartEntry implements SourceEntry {
   static final DataDescriptor<List<AnalysisError>> BUILD_ELEMENT_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILD_ELEMENT_ERRORS");
 
   /**
+   * The data descriptor representing the AST structure resulting from building the element model.
+   */
+  static final DataDescriptor<CompilationUnit> BUILT_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.BUILT_UNIT");
+
+  /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
    */
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES = new DataDescriptor<List<Source>>("DartEntry.CONTAINING_LIBRARIES");
@@ -2059,6 +2064,14 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _parsedUnitAccessed = true;
       return _parsedUnit;
     }
+    DartEntryImpl_ResolutionState state = _resolutionState;
+    while (state != null) {
+      if (state._builtUnitState == CacheState.VALID) {
+        return state._builtUnit;
+      }
+      state = state._nextState;
+    }
+    ;
     return anyResolvedCompilationUnit;
   }
 
@@ -2119,6 +2132,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
+      if (state._builtUnitState == CacheState.VALID) {
+        // TODO(brianwilkerson) We're cloning the structure to remove any previous resolution data,
+        // but I'm not sure that's necessary.
+        return state._builtUnit.accept(new AstCloner()) as CompilationUnit;
+      }
       if (state._resolvedUnitState == CacheState.VALID) {
         return state._resolvedUnit.accept(new AstCloner()) as CompilationUnit;
       }
@@ -2166,6 +2184,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       if (librarySource == state._librarySource) {
         if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
           return state._buildElementErrorsState;
+        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
+          return state._builtUnitState;
         } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -2230,6 +2250,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       if (librarySource == state._librarySource) {
         if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
           return state._buildElementErrors;
+        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
+          return state._builtUnit;
         } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrors;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -2287,11 +2309,13 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return _sourceKindState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
       return _tokenStreamState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    } else if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.BUILT_UNIT) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
         if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
           return state._buildElementErrorsState == CacheState.INVALID;
+        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
+          return state._builtUnitState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -2315,7 +2339,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (state._resolvedUnitState == CacheState.VALID) {
+      if (state._builtUnitState == CacheState.VALID || state._resolvedUnitState == CacheState.VALID) {
         return true;
       }
       state = state._nextState;
@@ -2354,7 +2378,12 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (_parsedUnitState == CacheState.FLUSHED) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
-        if (state._resolvedUnitState == CacheState.VALID) {
+        if (state._builtUnitState == CacheState.VALID) {
+          _parsedUnit = state._builtUnit;
+          _parsedUnitAccessed = true;
+          _parsedUnitState = CacheState.VALID;
+          break;
+        } else if (state._resolvedUnitState == CacheState.VALID) {
           _parsedUnit = state._resolvedUnit;
           _parsedUnitAccessed = true;
           _parsedUnitState = CacheState.VALID;
@@ -2377,6 +2406,36 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     return true;
+  }
+
+  /**
+   * Record that an error occurred while attempting to build the element model for the source
+   * represented by this entry. This will set the state of all resolution-based information as being
+   * in error, but will not change the state of any parse results.
+   */
+  void recordBuildElementError() {
+    _element = null;
+    _elementState = CacheState.ERROR;
+    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
+    _clientServerState = CacheState.ERROR;
+    _launchableState = CacheState.ERROR;
+    recordResolutionError();
+  }
+
+  /**
+   * Record that an in-process model build has stopped without recording results because the results
+   * were invalidated before they could be recorded.
+   */
+  void recordBuildElementNotInProcess() {
+    if (_elementState == CacheState.IN_PROCESS) {
+      _elementState = CacheState.INVALID;
+    }
+    if (_clientServerState == CacheState.IN_PROCESS) {
+      _clientServerState = CacheState.INVALID;
+    }
+    if (_launchableState == CacheState.IN_PROCESS) {
+      _launchableState = CacheState.INVALID;
+    }
   }
 
   @override
@@ -2461,9 +2520,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Record that an error occurred while attempting to scan or parse the entry represented by this
-   * entry. This will set the state of all resolution-based information as being in error, but will
-   * not change the state of any parse results.
+   * Record that an error occurred while attempting to resolve the source represented by this entry.
+   * This will set the state of all resolution-based information as being in error, but will not
+   * change the state of any parse results.
    */
   void recordResolutionError() {
     _element = null;
@@ -2477,8 +2536,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Record that an in-process parse has stopped without recording results because the results were
-   * invalidated before they could be recorded.
+   * Record that an in-process resolution has stopped without recording results because the results
+   * were invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
     if (_elementState == CacheState.IN_PROCESS) {
@@ -2490,6 +2549,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (_launchableState == CacheState.IN_PROCESS) {
       _launchableState = CacheState.INVALID;
     }
+    // TODO(brianwilkerson) Remove the code above this line after resolution and element building
+    // are separated.
     if (_publicNamespaceState == CacheState.IN_PROCESS) {
       _publicNamespaceState = CacheState.INVALID;
     }
@@ -2654,6 +2715,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
       state._buildElementErrors = updatedValue(cacheState, state._buildElementErrors, AnalysisError.NO_ERRORS);
       state._buildElementErrorsState = cacheState;
+    } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
+      state._builtUnit = updatedValue(cacheState, state._builtUnit, null);
+      state._builtUnitState = cacheState;
     } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
       state._resolutionErrorsState = cacheState;
@@ -2731,6 +2795,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
       state._buildElementErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
       state._buildElementErrorsState = CacheState.VALID;
+    } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
+      state._builtUnit = value as CompilationUnit;
+      state._builtUnitState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
       state._resolutionErrorsState = CacheState.VALID;
@@ -2891,6 +2958,17 @@ class DartEntryImpl_ResolutionState {
   Source _librarySource;
 
   /**
+   * The state of the cached compilation unit that contains references to the built element model.
+   */
+  CacheState _builtUnitState = CacheState.INVALID;
+
+  /**
+   * The compilation unit that contains references to the built element model, or `null` if
+   * that compilation unit is not currently cached.
+   */
+  CompilationUnit _builtUnit;
+
+  /**
    * The state of the cached errors reported while building an element model.
    */
   CacheState _buildElementErrorsState = CacheState.INVALID;
@@ -2953,6 +3031,8 @@ class DartEntryImpl_ResolutionState {
    */
   void copyFrom(DartEntryImpl_ResolutionState other) {
     _librarySource = other._librarySource;
+    _builtUnitState = other._builtUnitState;
+    _builtUnit = other._builtUnit;
     _buildElementErrorsState = other._buildElementErrorsState;
     _buildElementErrors = other._buildElementErrors;
     _resolvedUnitState = other._resolvedUnitState;
@@ -2973,6 +3053,10 @@ class DartEntryImpl_ResolutionState {
    * Flush any AST structures being maintained by this state.
    */
   void flushAstStructures() {
+    if (_builtUnitState == CacheState.VALID) {
+      _builtUnitState = CacheState.FLUSHED;
+      _builtUnit = null;
+    }
     if (_resolvedUnitState == CacheState.VALID) {
       _resolvedUnitState = CacheState.FLUSHED;
       _resolvedUnit = null;
@@ -2982,7 +3066,7 @@ class DartEntryImpl_ResolutionState {
     }
   }
 
-  bool get hasErrorState => _buildElementErrorsState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
+  bool get hasErrorState => _builtUnitState == CacheState.ERROR || _buildElementErrorsState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
@@ -2990,6 +3074,8 @@ class DartEntryImpl_ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
+    _builtUnitState = CacheState.INVALID;
+    _builtUnit = null;
     _buildElementErrorsState = CacheState.INVALID;
     _buildElementErrors = AnalysisError.NO_ERRORS;
     _resolvedUnitState = CacheState.INVALID;
@@ -3008,6 +3094,8 @@ class DartEntryImpl_ResolutionState {
    * will not change the state of any parse results.
    */
   void recordResolutionError() {
+    _builtUnitState = CacheState.ERROR;
+    _builtUnit = null;
     _buildElementErrorsState = CacheState.ERROR;
     _buildElementErrors = AnalysisError.NO_ERRORS;
     _resolvedUnitState = CacheState.ERROR;
@@ -3028,9 +3116,6 @@ class DartEntryImpl_ResolutionState {
    * were invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
-    if (_buildElementErrorsState == CacheState.IN_PROCESS) {
-      _buildElementErrorsState = CacheState.INVALID;
-    }
     if (_resolvedUnitState == CacheState.IN_PROCESS) {
       _resolvedUnitState = CacheState.INVALID;
     }
@@ -3056,6 +3141,8 @@ class DartEntryImpl_ResolutionState {
    */
   void writeOn(JavaStringBuilder builder) {
     if (_librarySource != null) {
+      builder.append("; builtUnit = ");
+      builder.append(_builtUnitState);
       builder.append("; buildElementErrors = ");
       builder.append(_buildElementErrorsState);
       builder.append("; resolvedUnit = ");
@@ -5060,7 +5147,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   TypeProvider get typeProvider {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    return new TypeProviderImpl(computeLibraryElement(coreSource));
+    if (coreSource == null) {
+      throw new AnalysisException.con1("Could not create a source for dart:core");
+    }
+    LibraryElement coreElement = computeLibraryElement(coreSource);
+    if (coreElement == null) {
+      throw new AnalysisException.con1("Could not create an element for dart:core");
+    }
+    return new TypeProviderImpl(coreElement);
   }
 
   @override
@@ -5363,7 +5457,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             LineInfo lineInfo = getLineInfo(source);
             DartEntryImpl dartCopy = _cache.get(source).writableCopy as DartEntryImpl;
             if (thrownException == null) {
-              dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
               dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
               dartCopy.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
               dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
@@ -5924,6 +6017,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Compute the transitive closure of all libraries that depend on the given library by adding such
+   * libraries to the given collection.
+   *
+   * @param library the library on which the other libraries depend
+   * @param librariesToInvalidate the libraries that depend on the given library
+   */
+  void _computeAllLibrariesDependingOn(Source library, Set<Source> librariesToInvalidate) {
+    if (librariesToInvalidate.add(library)) {
+      for (Source dependentLibrary in getLibrariesDependingOn(library)) {
+        _computeAllLibrariesDependingOn(dependentLibrary, librariesToInvalidate);
+      }
+    }
+  }
+
+  /**
    * Given the encoded form of a source, use the source factory to reconstitute the original source.
    *
    * @param encoding the encoded form of a source
@@ -5961,6 +6069,36 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Create a [BuildDartElementModelTask] for the given source, marking the built unit as
+   * being in-process.
+   *
+   * @param source the source for the library whose element model is to be built
+   * @param dartEntry the entry for the source
+   * @return task data representing the created task
+   */
+  AnalysisContextImpl_TaskData _createBuildDartElementModelTask(Source source, DartEntry dartEntry) {
+    try {
+      AnalysisContextImpl_CycleBuilder builder = new AnalysisContextImpl_CycleBuilder(this);
+      builder.computeCycleContaining(source);
+      AnalysisContextImpl_TaskData taskData = builder.taskData;
+      if (taskData != null) {
+        return taskData;
+      }
+      DartEntryImpl dartCopy = dartEntry.writableCopy;
+      dartCopy.setStateInLibrary(DartEntry.BUILT_UNIT, source, CacheState.IN_PROCESS);
+      _cache.put(source, dartCopy);
+      return new AnalysisContextImpl_TaskData(new BuildDartElementModelTask(this, source, builder.librariesInCycle), false);
+    } on AnalysisException catch (exception) {
+      DartEntryImpl dartCopy = dartEntry.writableCopy;
+      dartCopy.recordBuildElementError();
+      dartCopy.exception = exception;
+      _cache.put(source, dartCopy);
+      AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", exception);
+    }
+    return new AnalysisContextImpl_TaskData(null, false);
   }
 
   /**
@@ -6179,8 +6317,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a [ResolveDartLibraryTask] for the given source, marking the element model as
-   * being in-process.
+   * Create a [ResolveDartLibraryTask] for the given source, marking ? as being in-process.
    *
    * @param source the source whose content is to be resolved
    * @param dartEntry the entry for the source
@@ -6196,6 +6333,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       return new AnalysisContextImpl_TaskData(new ResolveDartLibraryCycleTask(this, source, source, builder.librariesInCycle), false);
     } on AnalysisException catch (exception) {
+      DartEntryImpl dartCopy = dartEntry.writableCopy;
+      dartCopy.recordResolutionError();
+      dartCopy.exception = exception;
+      _cache.put(source, dartCopy);
       AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", exception);
     }
     return new AnalysisContextImpl_TaskData(null, false);
@@ -7277,6 +7418,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           DartEntryImpl dartCopy = _cache.get(source).writableCopy as DartEntryImpl;
           if (thrownException == null) {
             dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, errors);
+            dartCopy.setValueInLibrary(DartEntry.BUILT_UNIT, librarySource, unit);
             if (source == librarySource) {
               LibraryElementImpl libraryElement = library.libraryElement;
               dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
@@ -7284,7 +7426,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new Set<LibraryElement>()));
             }
           } else {
-            dartCopy.recordResolutionError();
+            dartCopy.recordBuildElementError();
             _cache.remove(source);
           }
           dartCopy.exception = thrownException;
@@ -7315,14 +7457,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               // The analysis was performed on out-of-date sources. Mark the cache so that the
               // sources will be re-analyzed using the up-to-date sources.
               //
-              dartCopy.recordResolutionNotInProcess();
+              dartCopy.recordBuildElementNotInProcess();
             } else {
               //
               // We could not determine whether the sources were up-to-date or out-of-date. Mark
               // the cache so that we won't attempt to re-analyze the sources until there's a
               // good chance that we'll be able to do so without error.
               //
-              dartCopy.recordResolutionError();
+              dartCopy.recordBuildElementError();
               _cache.remove(source);
             }
             dartCopy.exception = thrownException;
@@ -8481,10 +8623,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       List<Source> containingLibraries = getLibrariesContaining(source);
       Set<Source> librariesToInvalidate = new Set<Source>();
       for (Source containingLibrary in containingLibraries) {
-        librariesToInvalidate.add(containingLibrary);
-        for (Source dependentLibrary in getLibrariesDependingOn(containingLibrary)) {
-          librariesToInvalidate.add(dependentLibrary);
-        }
+        _computeAllLibrariesDependingOn(containingLibrary, librariesToInvalidate);
       }
       for (Source library in librariesToInvalidate) {
         //    for (Source library : containingLibraries) {
@@ -10978,20 +11117,20 @@ class WorkManager_WorkIterator {
 }
 
 /**
- * An [Expression] with optional [AngularFilterNode]s.
+ * An [Expression] with optional [AngularFormatterNode]s.
  */
 class AngularExpression {
   /**
-   * The [Expression] to apply filters to.
+   * The [Expression] to apply formatters to.
    */
   final Expression expression;
 
   /**
-   * The filters to apply.
+   * The formatters to apply.
    */
-  final List<AngularFilterNode> filters;
+  final List<AngularFormatterNode> formatters;
 
-  AngularExpression(this.expression, this.filters);
+  AngularExpression(this.expression, this.formatters);
 
   /**
    * Return the offset of the character immediately following the last character of this node's
@@ -11000,15 +11139,15 @@ class AngularExpression {
    * @return the offset of the character just past the node's source range
    */
   int get end {
-    if (filters.isEmpty) {
+    if (formatters.isEmpty) {
       return expression.end;
     }
-    AngularFilterNode lastFilter = filters[filters.length - 1];
-    List<AngularFilterArgument> filterArguments = lastFilter.arguments;
-    if (filterArguments.isEmpty) {
-      return lastFilter.name.end;
+    AngularFormatterNode lastFormatter = formatters[formatters.length - 1];
+    List<AngularFormatterArgument> formatterArguments = lastFormatter.arguments;
+    if (formatterArguments.isEmpty) {
+      return lastFormatter.name.end;
     }
-    return filterArguments[filterArguments.length - 1].expression.end;
+    return formatterArguments[formatterArguments.length - 1].expression.end;
   }
 
   /**
@@ -11017,11 +11156,11 @@ class AngularExpression {
   List<Expression> get expressions {
     List<Expression> expressions = [];
     expressions.add(expression);
-    for (AngularFilterNode filter in filters) {
-      expressions.add(filter.name);
-      for (AngularFilterArgument filterArgument in filter.arguments) {
-        expressions.addAll(filterArgument.subExpressions);
-        expressions.add(filterArgument.expression);
+    for (AngularFormatterNode formatter in formatters) {
+      expressions.add(formatter.name);
+      for (AngularFormatterArgument formatterArgument in formatter.arguments) {
+        expressions.addAll(formatterArgument.subExpressions);
+        expressions.add(formatterArgument.expression);
       }
     }
     return expressions;
@@ -11039,9 +11178,9 @@ class AngularExpression {
 }
 
 /**
- * Angular filter argument.
+ * Angular formatter argument.
  */
-class AngularFilterArgument {
+class AngularFormatterArgument {
   /**
    * The [TokenType#COLON] token.
    */
@@ -11057,29 +11196,29 @@ class AngularFilterArgument {
    */
   List<Expression> subExpressions = Expression.EMPTY_ARRAY;
 
-  AngularFilterArgument(this.token, this.expression);
+  AngularFormatterArgument(this.token, this.expression);
 }
 
 /**
- * Angular filter node.
+ * Angular formatter node.
  */
-class AngularFilterNode {
+class AngularFormatterNode {
   /**
    * The [TokenType#BAR] token.
    */
   final Token token;
 
   /**
-   * The name of the filter.
+   * The name of the formatter.
    */
   final SimpleIdentifier name;
 
   /**
-   * The arguments for this filter.
+   * The arguments for this formatter.
    */
-  final List<AngularFilterArgument> arguments;
+  final List<AngularFormatterArgument> arguments;
 
-  AngularFilterNode(this.token, this.name, this.arguments);
+  AngularFormatterNode(this.token, this.name, this.arguments);
 }
 
 /**
@@ -11433,40 +11572,40 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   AngularExpression _parseAngularExpressionInToken(Token token) {
     List<Token> tokens = _splitAtBar(token);
     Expression mainExpression = _parseDartExpressionInToken(tokens[0]);
-    // parse filters
-    List<AngularFilterNode> filters = [];
+    // parse formatters
+    List<AngularFormatterNode> formatters = [];
     for (int i = 1; i < tokens.length; i++) {
-      Token filterToken = tokens[i];
-      Token barToken = filterToken;
-      filterToken = filterToken.next;
+      Token formatterToken = tokens[i];
+      Token barToken = formatterToken;
+      formatterToken = formatterToken.next;
       // parse name
-      Expression nameExpression = _parseDartExpressionInToken(filterToken);
+      Expression nameExpression = _parseDartExpressionInToken(formatterToken);
       if (nameExpression is! SimpleIdentifier) {
-        _reportErrorForNode(AngularCode.INVALID_FILTER_NAME, nameExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression, []);
         continue;
       }
       SimpleIdentifier name = nameExpression as SimpleIdentifier;
-      filterToken = name.endToken.next;
+      formatterToken = name.endToken.next;
       // parse arguments
-      List<AngularFilterArgument> arguments = [];
-      while (filterToken.type != TokenType.EOF) {
+      List<AngularFormatterArgument> arguments = [];
+      while (formatterToken.type != TokenType.EOF) {
         // skip ":"
-        Token colonToken = filterToken;
+        Token colonToken = formatterToken;
         if (colonToken.type == TokenType.COLON) {
-          filterToken = filterToken.next;
+          formatterToken = formatterToken.next;
         } else {
-          _reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken, []);
+          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken, []);
         }
         // parse argument
-        Expression argument = _parseDartExpressionInToken(filterToken);
-        arguments.add(new AngularFilterArgument(colonToken, argument));
+        Expression argument = _parseDartExpressionInToken(formatterToken);
+        arguments.add(new AngularFormatterArgument(colonToken, argument));
         // next token
-        filterToken = argument.endToken.next;
+        formatterToken = argument.endToken.next;
       }
-      filters.add(new AngularFilterNode(barToken, name, arguments));
+      formatters.add(new AngularFormatterNode(barToken, name, arguments));
     }
     // done
-    return new AngularExpression(mainExpression, filters);
+    return new AngularExpression(mainExpression, formatters);
   }
 
   /**
@@ -11542,7 +11681,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _libraryElement.angularHtml = true;
     _injectedLibraries.add(_libraryElement);
     // create FunctionElementImpl
-    _functionElement = new FunctionElementImpl.con2(0);
+    _functionElement = new FunctionElementImpl.forOffset(0);
     _unitElement.functions = <FunctionElement> [_functionElement];
   }
 
@@ -11559,9 +11698,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       AngularControllerElement controller = element;
       return new NgControllerElementProcessor(controller);
     }
-    if (element is AngularDirectiveElement) {
-      AngularDirectiveElement directive = element;
-      return new NgDirectiveElementProcessor(directive);
+    if (element is AngularDecoratorElement) {
+      AngularDecoratorElement directive = element;
+      return new NgDecoratorElementProcessor(directive);
     }
     return null;
   }
@@ -11722,9 +11861,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         _processors.add(processor);
       }
     }
-    // define filters
+    // define formatters
     for (AngularElement angularElement in angularElements) {
-      if (angularElement is AngularFilterElement) {
+      if (angularElement is AngularFormatterElement) {
         _defineTopVariable_forClassElement(angularElement);
       }
     }
@@ -11888,16 +12027,16 @@ abstract class AngularXmlExpression extends ht.XmlExpression {
     if (reference != null) {
       return reference;
     }
-    // filters
-    for (AngularFilterNode filter in expression.filters) {
-      // filter name
-      reference = _getReferenceAtNode(filter.name, offset);
+    // formatters
+    for (AngularFormatterNode formatter in expression.formatters) {
+      // formatter name
+      reference = _getReferenceAtNode(formatter.name, offset);
       if (reference != null) {
         return reference;
       }
-      // filter arguments
-      for (AngularFilterArgument filterArgument in filter.arguments) {
-        reference = _getReferenceAtNode(filterArgument.expression, offset);
+      // formatter arguments
+      for (AngularFormatterArgument formatterArgument in formatter.arguments) {
+        reference = _getReferenceAtNode(formatterArgument.expression, offset);
         if (reference != null) {
           return reference;
         }
@@ -12016,13 +12155,13 @@ class NgControllerElementProcessor extends NgProcessor {
 }
 
 /**
- * [NgDirectiveElementProcessor] applies [AngularDirectiveElement] by parsing mapped
+ * [NgDecoratorElementProcessor] applies [AngularDecoratorElement] by parsing mapped
  * attributes as expressions.
  */
-class NgDirectiveElementProcessor extends NgDirectiveProcessor {
-  final AngularDirectiveElement _element;
+class NgDecoratorElementProcessor extends NgDirectiveProcessor {
+  final AngularDecoratorElement _element;
 
-  NgDirectiveElementProcessor(this._element);
+  NgDecoratorElementProcessor(this._element);
 
   @override
   void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
@@ -12088,7 +12227,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
 }
 
 /**
- * [NgDirectiveProcessor] describes any <code>NgDirective</code> annotation instance.
+ * [NgDirectiveProcessor] describes any <code>Directive</code> annotation instance.
  */
 abstract class NgDirectiveProcessor extends NgProcessor {
   static bool hasValue(ht.XmlAttributeNode attribute) {
@@ -12848,7 +12987,7 @@ class BuildDartElementModelTask extends AnalysisTask {
   /**
    * The library for which an element model was originally requested.
    */
-  Source _targetLibrary;
+  final Source targetLibrary;
 
   /**
    * The libraries that are part of the cycle to be resolved.
@@ -12882,7 +13021,7 @@ class BuildDartElementModelTask extends AnalysisTask {
    * @param targetLibrary the library for which an element model was originally requested
    * @param librariesInCycle the libraries that are part of the cycle to be resolved
    */
-  BuildDartElementModelTask(InternalAnalysisContext context, Source targetLibrary, this.librariesInCycle) : super(context) {
+  BuildDartElementModelTask(InternalAnalysisContext context, this.targetLibrary, this.librariesInCycle) : super(context) {
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
   }
@@ -12897,13 +13036,6 @@ class BuildDartElementModelTask extends AnalysisTask {
    */
   RecordingErrorListener get errorListener => _errorListener;
 
-  /**
-   * Return the library for which an element model was originally requested.
-   *
-   * @return the library for which an element model was originally requested
-   */
-  Source get targetLibrary => _targetLibrary;
-
   @override
   String get taskDescription {
     Source librarySource = librariesInCycle[0].librarySource;
@@ -12915,7 +13047,7 @@ class BuildDartElementModelTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.LibraryResolver.resolveLibrary");
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.BuildDartElementModel.internalPerform");
     try {
       //
       // Build the map of libraries that are known.
@@ -12951,6 +13083,10 @@ class BuildDartElementModelTask extends AnalysisTask {
       //
       _buildTypeHierarchies(new TypeProviderImpl(coreElement));
       instrumentation.metric3("buildTypeHierarchies", "complete");
+      instrumentation.metric2("librariesInCycles", librariesInCycle.length);
+      for (ResolvableLibrary lib in librariesInCycle) {
+        instrumentation.metric2("librariesInCycles-CompilationUnitSources-Size", lib.compilationUnitSources.length);
+      }
     } finally {
       instrumentation.log();
     }

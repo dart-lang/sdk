@@ -1041,7 +1041,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getLeastUpperBound_functionType() {
     DartType interfaceType = ElementFactory.classElement2("A", []).type;
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     JUnitTestCase.assertNull(interfaceType.getLeastUpperBound(functionType));
   }
 
@@ -2587,7 +2587,7 @@ class ElementFactory {
 
   static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, List<DartType> argumentTypes) {
     DartType type = definingClass.type;
-    ConstructorElementImpl constructor = new ConstructorElementImpl.con1(name == null ? null : AstFactory.identifier3(name));
+    ConstructorElementImpl constructor = new ConstructorElementImpl.forNode(name == null ? null : AstFactory.identifier3(name));
     constructor.const2 = isConst;
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -2619,7 +2619,7 @@ class ElementFactory {
     field.final2 = isFinal;
     field.static = isStatic;
     field.type = type;
-    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.synthetic = true;
@@ -2629,7 +2629,7 @@ class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
+      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
       setter.setter = true;
       setter.static = isStatic;
       setter.synthetic = true;
@@ -2650,7 +2650,7 @@ class ElementFactory {
 
   static FunctionElementImpl functionElement3(String functionName, ClassElement returnElement, List<ClassElement> normalParameters, List<ClassElement> optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
     // return type
@@ -2681,7 +2681,7 @@ class ElementFactory {
   }
 
   static FunctionElementImpl functionElement4(String functionName, ClassElement returnElement, List<ClassElement> normalParameters, List<String> names, List<ClassElement> namedParameters) {
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
     // parameters
@@ -2722,6 +2722,15 @@ class ElementFactory {
 
   static FunctionElementImpl functionElement7(String functionName, List<ClassElement> normalParameters, List<String> names, List<ClassElement> namedParameters) => functionElement4(functionName, null, normalParameters, names, namedParameters);
 
+  static FunctionElementImpl functionElementWithParameters(String functionName, DartType returnType, List<ParameterElement> parameters) {
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3(functionName));
+    functionElement.returnType = returnType == null ? VoidTypeImpl.instance : returnType;
+    functionElement.parameters = parameters;
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
+    functionElement.type = functionType;
+    return functionElement;
+  }
+
   static ClassElementImpl get object {
     if (_objectElement == null) {
       _objectElement = classElement("Object", null, []);
@@ -2734,7 +2743,7 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
-    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
@@ -2773,7 +2782,7 @@ class ElementFactory {
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(AstFactory.identifier3(name));
 
   static MethodElementImpl methodElement(String methodName, DartType returnType, List<DartType> argumentTypes) {
-    MethodElementImpl method = new MethodElementImpl.con1(AstFactory.identifier3(methodName));
+    MethodElementImpl method = new MethodElementImpl.forNode(AstFactory.identifier3(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
@@ -2785,6 +2794,16 @@ class ElementFactory {
     method.parameters = parameters;
     method.returnType = returnType;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
+    method.type = methodType;
+    return method;
+  }
+
+  static MethodElementImpl methodElementWithParameters(String methodName, List<DartType> typeArguments, DartType returnType, List<ParameterElement> parameters) {
+    MethodElementImpl method = new MethodElementImpl.forNode(AstFactory.identifier3(methodName));
+    method.parameters = parameters;
+    method.returnType = returnType;
+    FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
+    methodType.typeArguments = typeArguments;
     method.type = methodType;
     return method;
   }
@@ -2835,7 +2854,7 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
-    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
@@ -2844,7 +2863,7 @@ class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
     ParameterElementImpl parameter = requiredParameter2("a", type);
-    PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
+    PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
     setter.setter = true;
     setter.static = isStatic;
     setter.synthetic = true;
@@ -2864,7 +2883,7 @@ class ElementFactory {
     TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl.con2(name);
     variable.const3 = isConst;
     variable.final2 = isFinal;
-    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(variable);
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
     getter.getter = true;
     getter.static = true;
     getter.synthetic = true;
@@ -2874,7 +2893,7 @@ class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
     if (!isFinal) {
-      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(variable);
+      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
       setter.setter = true;
       setter.static = true;
       setter.synthetic = true;
@@ -3521,30 +3540,30 @@ class ElementImplTest extends EngineTestCase {
 
 class FunctionTypeImplTest extends EngineTestCase {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f"))));
+    JUnitTestCase.assertNotNull(new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f"))));
   }
 
   void test_getElement() {
-    FunctionElementImpl typeElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
+    FunctionElementImpl typeElement = new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     FunctionTypeImpl type = new FunctionTypeImpl.con1(typeElement);
     JUnitTestCase.assertEquals(typeElement, type.element);
   }
 
   void test_getNamedParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     Map<String, DartType> types = type.namedParameterTypes;
     EngineTestCase.assertSizeOfMap(0, types);
   }
 
   void test_getNormalParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.normalParameterTypes;
     EngineTestCase.assertLength(0, types);
   }
 
   void test_getReturnType() {
     DartType expectedReturnType = VoidTypeImpl.instance;
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     functionElement.returnType = expectedReturnType;
     FunctionTypeImpl type = new FunctionTypeImpl.con1(functionElement);
     DartType returnType = type.returnType;
@@ -3552,13 +3571,13 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_getTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.typeArguments;
     EngineTestCase.assertLength(0, types);
   }
 
   void test_hashCode_element() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     type.hashCode;
   }
 
@@ -3855,14 +3874,14 @@ class FunctionTypeImplTest extends EngineTestCase {
     TypeParameterElementImpl parameterS = new TypeParameterElementImpl(AstFactory.identifier3("S"));
     parameterS.bound = stringType;
     TypeParameterTypeImpl typeS = new TypeParameterTypeImpl(parameterS);
-    FunctionElementImpl functionAliasElement = new FunctionElementImpl.con1(AstFactory.identifier3("func"));
+    FunctionElementImpl functionAliasElement = new FunctionElementImpl.forNode(AstFactory.identifier3("func"));
     functionAliasElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", typeB),
         ElementFactory.positionalParameter2("b", typeS)];
     functionAliasElement.returnType = stringType;
     FunctionTypeImpl functionAliasType = new FunctionTypeImpl.con1(functionAliasElement);
     functionAliasElement.type = functionAliasType;
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("c", boolType),
         ElementFactory.positionalParameter2("d", stringType)];
@@ -3894,7 +3913,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_setTypeArguments() {
     ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
-    MethodElementImpl methodElement = new MethodElementImpl.con1(AstFactory.identifier3("m"));
+    MethodElementImpl methodElement = new MethodElementImpl.forNode(AstFactory.identifier3("m"));
     enclosingClass.methods = <MethodElement> [methodElement];
     FunctionTypeImpl type = new FunctionTypeImpl.con1(methodElement);
     DartType expectedType = enclosingClass.typeParameters[0].type;
@@ -3907,7 +3926,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType = definingClass.typeParameters[0].type;
-    MethodElementImpl functionElement = new MethodElementImpl.con1(AstFactory.identifier3("m"));
+    MethodElementImpl functionElement = new MethodElementImpl.forNode(AstFactory.identifier3("m"));
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", parameterType),
@@ -3936,7 +3955,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     DartType normalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
     DartType optionalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("B")));
     DartType namedParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("C")));
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", normalParameterType),

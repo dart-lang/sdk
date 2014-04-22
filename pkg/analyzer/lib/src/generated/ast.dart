@@ -2352,6 +2352,13 @@ class ClassDeclaration extends CompilationUnitMember {
   WithClause get withClause => _withClause;
 
   /**
+   * Return `true` if this class is declared to be an abstract class.
+   *
+   * @return `true` if this class is declared to be an abstract class
+   */
+  bool get isAbstract => abstractKeyword != null;
+
+  /**
    * Set the extends clause for this class to the given clause.
    *
    * @param extendsClause the extends clause for this class
@@ -2535,6 +2542,13 @@ class ClassTypeAlias extends TypeAlias {
    * @return the with clause for this class
    */
   WithClause get withClause => _withClause;
+
+  /**
+   * Return `true` if this class is declared to be an abstract class.
+   *
+   * @return `true` if this class is declared to be an abstract class
+   */
+  bool get isAbstract => abstractKeyword != null;
 
   /**
    * Set the implements clause for this class to the given implements clause.
