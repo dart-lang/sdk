@@ -13,6 +13,7 @@
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
         '../../pkg/pkg.gyp:pkg_packages',
+        'dart2js_files_stamp',
       ],
       'actions': [
         {
@@ -20,8 +21,9 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
             'create_snapshot.dart',
+            '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '../../tools/VERSION',
           ],
@@ -40,5 +42,30 @@
         },
       ],
     },
+    # Other targets depend on dart2js files, but have to many inputs,
+    # which causes issues on some platforms.
+    # This target lists all the files in sdk/lib/_internal/compiler,
+    # and creates a single dart2js_files.stamp
+    {
+      'target_name': 'dart2js_files_stamp',
+      'type': 'none',
+      'actions': [
+        {
+          'action_name': 'make_dart2js_files_stamp',
+          'inputs': [
+            '../../tools/create_timestamp_file.py',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
+                ' "../../sdk/lib/_internal/compiler"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
+          ],
+          'action': [
+            'python', '../../tools/create_timestamp_file.py',
+            '<@(_outputs)',
+          ],
+        },
+      ],
+    }
   ],
 }
