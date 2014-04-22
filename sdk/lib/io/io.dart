@@ -201,8 +201,7 @@ import 'dart:_internal';
 import 'dart:collection' show HashMap,
                               HashSet,
                               LinkedList,
-                              LinkedListEntry,
-                              UnmodifiableMapView;
+                              LinkedListEntry;
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';

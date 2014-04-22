@@ -523,12 +523,12 @@ class _HttpHeaders implements HttpHeaders {
 
 class _HeaderValue implements HeaderValue {
   String _value;
-  Map<String, String> _parameters;
-  Map<String, String> _unmodifiableParameters;
+  _UnmodifiableMap<String, String> _parameters;
 
   _HeaderValue([String this._value = "", Map<String, String> parameters]) {
     if (parameters != null) {
-      _parameters = new HashMap<String, String>.from(parameters);
+      _parameters =
+          new _UnmodifiableMap(new HashMap<String, String>.from(parameters));
     }
   }
 
@@ -545,16 +545,13 @@ class _HeaderValue implements HeaderValue {
 
   void _ensureParameters() {
     if (_parameters == null) {
-      _parameters = new HashMap<String, String>();
+      _parameters = new _UnmodifiableMap(new HashMap<String, String>());
     }
   }
 
   Map<String, String> get parameters {
     _ensureParameters();
-    if (_unmodifiableParameters == null) {
-      _unmodifiableParameters = new UnmodifiableMapView(_parameters);
-    }
-    return _unmodifiableParameters;
+    return _parameters;
   }
 
   String toString() {
@@ -604,7 +601,7 @@ class _HeaderValue implements HeaderValue {
 
     void parseParameters() {
       var parameters = new HashMap<String, String>();
-      _parameters = new UnmodifiableMapView(parameters);
+      _parameters = new _UnmodifiableMap(parameters);
 
       String parseParameterName() {
         int start = index;
@@ -683,12 +680,12 @@ class _ContentType extends _HeaderValue implements ContentType {
     if (parameters != null) {
       _ensureParameters();
       parameters.forEach((String key, String value) {
-        this._parameters[key.toLowerCase()] = value.toLowerCase();
+        this._parameters._map[key.toLowerCase()] = value.toLowerCase();
       });
     }
     if (charset != null) {
       _ensureParameters();
-      this._parameters["charset"] = charset.toLowerCase();
+      this._parameters._map["charset"] = charset.toLowerCase();
     }
   }
 
@@ -870,4 +867,35 @@ class _Cookie implements Cookie {
       }
     }
   }
+}
+
+
+class _UnmodifiableMap<K, V> implements Map<K, V> {
+  final Map _map;
+  const _UnmodifiableMap(this._map);
+
+  bool containsValue(Object value) => _map.containsValue(value);
+  bool containsKey(Object key) => _map.containsKey(key);
+  V operator [](Object key) => _map[key];
+  void operator []=(K key, V value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V putIfAbsent(K key, V ifAbsent()) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  addAll(Map other) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V remove(Object key) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void clear() {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void forEach(void f(K key, V value)) => _map.forEach(f);
+  Iterable<K> get keys => _map.keys;
+  Iterable<V> get values => _map.values;
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
 }
