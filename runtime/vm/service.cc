@@ -1505,15 +1505,24 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): Add sub command to trigger full code dump.
   bool full_profile = false;
   const char* tags_option = js->LookupOption("tags");
-  bool use_tags = true;
-  if (tags_option != NULL) {
-    if (strcmp("hide", tags_option) != 0) {
+  Profiler::TagOrder tag_order = Profiler::kUserVM;
+  if (js->HasOption("tags")) {
+    if (js->OptionIs("tags", "hide")) {
+      tag_order = Profiler::kNoTags;
+    } else if (js->OptionIs("tags", "uv")) {
+      tag_order = Profiler::kUserVM;
+    } else if (js->OptionIs("tags", "u")) {
+      tag_order = Profiler::kUser;
+    } else if (js->OptionIs("tags", "vu")) {
+      tag_order = Profiler::kVMUser;
+    } else if (js->OptionIs("tags", "v")) {
+      tag_order = Profiler::kVM;
+    } else {
       PrintError(js, "Invalid tags option value: %s\n", tags_option);
       return true;
     }
-    use_tags = false;
   }
-  Profiler::PrintToJSONStream(isolate, js, full_profile, use_tags);
+  Profiler::PrintToJSONStream(isolate, js, full_profile, tag_order);
   return true;
 }
 

@@ -5,20 +5,7 @@
 </head>
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
-    <style>
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
+    <link rel="stylesheet" href="css/shared.css" />
     <span>
       <template if="{{ isUnexpected(ref.serviceType) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;

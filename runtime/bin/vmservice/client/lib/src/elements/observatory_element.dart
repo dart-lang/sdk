@@ -4,7 +4,7 @@
 
 library observatory_element;
 
-import 'dart:math';
+import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
 /// Base class for all Observatory custom elements.
@@ -24,97 +24,14 @@ class ObservatoryElement extends PolymerElement {
     super.attributeChanged(name, oldValue, newValue);
   }
 
-  bool get applyAuthorStyles => true;
+  String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
 
-  static String _zeroPad(int value, int pad) {
-    String prefix = "";
-    while (pad > 1) {
-      int pow10 = pow(10, pad - 1);
-      if (value < pow10) {
-        prefix = prefix + "0";
-      }
-      pad--;
-    }
-    return "${prefix}${value}";
-  }
+  String formatTime(double time) => Utils.formatTime(time);
 
-  String formatTimePrecise(double time) {
-    if (time == null) {
-      return "-";
-    }
-    const millisPerHour = 60 * 60 * 1000;
-    const millisPerMinute = 60 * 1000;
-    const millisPerSecond = 1000;
-
-    var millis = (time * millisPerSecond).round();
-
-    var hours = millis ~/ millisPerHour;
-    millis = millis % millisPerHour;
-
-    var minutes = millis ~/ millisPerMinute;
-    millis = millis % millisPerMinute;
-
-    var seconds = millis ~/ millisPerSecond;
-    millis = millis % millisPerSecond;
-
-    return ("${_zeroPad(hours,2)}"
-            ":${_zeroPad(minutes,2)}"
-            ":${_zeroPad(seconds,2)}"
-            ".${_zeroPad(millis,3)}");
-
-  }
-
-  String formatTime(double time) {
-    if (time == null) {
-      return "-";
-    }
-    const millisPerHour = 60 * 60 * 1000;
-    const millisPerMinute = 60 * 1000;
-    const millisPerSecond = 1000;
-
-    var millis = (time * millisPerSecond).round();
-
-    var hours = millis ~/ millisPerHour;
-    millis = millis % millisPerHour;
-
-    var minutes = millis ~/ millisPerMinute;
-    millis = millis % millisPerMinute;
-
-    var seconds = millis ~/ millisPerSecond;
-
-    StringBuffer out = new StringBuffer();
-    if (hours != 0) {
-      return '${hours}h ${minutes}m ${seconds}s';
-    }
-    if (minutes != 0) {
-      return '${minutes}m ${seconds}s';
-    }
-    return '${seconds}s';
-  }
-
-  String formatSeconds(double x) {
-    return x.toStringAsFixed(2);
-  }
+  String formatSeconds(double x) => Utils.formatSeconds(x);
 
 
-  String formatSize(int bytes) {
-    const int bytesPerKB = 1024;
-    const int bytesPerMB = 1024 * bytesPerKB;
-    const int bytesPerGB = 1024 * bytesPerMB;
-    const int bytesPerTB = 1024 * bytesPerGB;
-
-    if (bytes < bytesPerKB) {
-      return "${bytes}B";
-    } else if (bytes < bytesPerMB) {
-      return "${(bytes / bytesPerKB).round()}KB";
-    } else if (bytes < bytesPerGB) {
-      return "${(bytes / bytesPerMB).round()}MB";
-    } else if (bytes < bytesPerTB) {
-      return "${(bytes / bytesPerGB).round()}GB";
-    } else {
-      return "${(bytes / bytesPerTB).round()}TB";
-    }
-  }
+  String formatSize(int bytes) => Utils.formatSize(bytes);
 
   String fileAndLine(Map frame) {
     var file = frame['script']['user_name'];
@@ -125,7 +42,7 @@ class ObservatoryElement extends PolymerElement {
   bool isNull(String type) {
     return type == 'Null';
   }
-  
+
   bool isError(String type) {
     return type == 'Error';
   }

@@ -4,39 +4,13 @@
 <link rel="import" href="nav_bar.html">
 <polymer-element name="code-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      .monospace {
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: nowrap;
-      }
-    </style>
     <div class="content">
       <h1>Code for {{ code.name }}</h1>
       <div class="memberList">
@@ -70,19 +44,19 @@
     <hr>
     <div class="content">
       <template if="{{ code.hasDisassembly }}">
-        <div class="row">
-            <div class="col-md-2 memberHeader">Inclusive</div>
-            <div class="col-md-2 memberHeader">Exclusive</div>
-            <div class="col-md-2 memberHeader">Address</div>
-            <div class="col-md-6 memberHeader">Disassembly</div>
+        <div class="flex-row">
+            <div class="flex-item-fixed-2-12 memberHeader">Inclusive</div>
+            <div class="flex-item-fixed-2-12 memberHeader">Exclusive</div>
+            <div class="flex-item-fixed-2-12 memberHeader">Address</div>
+            <div class="flex-item-fixed-6-12 memberHeader">Disassembly</div>
         </div>
       </template>
       <template repeat="{{ instruction in code.instructions }}">
-        <div class="row">
-          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
-          <div class="col-md-6 monospace">{{ instruction.human }}</div>
+        <div class="flex-row">
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedAddress() }}</div>
+          <div class="flex-item-fixed-6-12 monospace">{{ instruction.human }}</div>
         </div>
       </template>
     </div>

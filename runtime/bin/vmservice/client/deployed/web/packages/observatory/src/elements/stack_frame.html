@@ -7,49 +7,35 @@
 </head>
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
-    <style>
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
-    <div class="row">
-      <div class="col-md-1"></div>
-      <div class="col-md-1">
+    <link rel="stylesheet" href="css/shared.css" />
+    <div class="flex-row">
+      <div class="flex-item-fixed-1-12">
+      </div>
+      <div class="flex-item-fixed-1-12">
         #{{ frame['depth'] }}
       </div>
-      <div class="col-md-9">
+      <div class="flex-item-fixed-9-12">
         <function-ref ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref ref="{{ frame['script'] }}"
-                      pos="{{ frame['tokenPos'] }}">
-        </script-ref> )
+          ( <script-ref ref="{{ frame['script'] }}"
+                        pos="{{ frame['tokenPos'] }}">
+          </script-ref> )
 
-        <curly-block>
-          <div class="memberList">
-            <template repeat="{{ v in frame['vars'] }}">
-              <div class="memberItem">
-                <div class="memberName">{{ v['name']}}</div>
-                <div class="memberValue">
-                  <instance-ref ref="{{ v['value'] }}"></instance-ref>
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ v in frame['vars'] }}">
+                <div class="memberItem">
+                  <div class="memberName">{{ v['name']}}</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                  </div>
                 </div>
-              </div>
-            </template>
-          </div>
-        </curly-block>
-
+              </template>
+            </div>
+          </curly-block>
       </div>
-      <div class="col-md-1"></div>
+      <div class="flex-item-fixed-1-12">
+      </div>
     </div>
-
-
   </template>
   <script type="application/dart" src="stack_frame.dart"></script>
 </polymer-element>

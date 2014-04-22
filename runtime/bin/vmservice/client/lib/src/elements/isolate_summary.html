@@ -7,19 +7,25 @@
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <div class="row">
-      <div class="col-md-1">
-        <img src="img/isolate_icon.png" class="img-polaroid">
-      </div>
-
-      <div class="col-md-1">{{ isolate.mainPort }}</div>
-
-      <div class="col-md-4">
-        <div class="row">
+    <link rel="stylesheet" href="css/shared.css" />
+    <style>
+      .counters {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+      .counter {
+        margin: 10px;
+      }
+    </style>
+    <div class="flex-row">
+      <div class="flex-item-fixed-1-12"><img src="img/isolate_icon.png"></div>
+      <div class="flex-item-fixed-1-12">{{ isolate.mainPort }}</div>
+      <div class="flex-item-fixed-4-12">
+        <div class="flex-row">
           <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
-
-        <div class="row">
+        <div class="flex-row">
           <small>
             (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
             (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
@@ -28,13 +34,13 @@
         </div>
       </div>
 
-      <div class="col-md-2">
+      <div class="flex-item-fixed-2-12">
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
         ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
       </div>
-      <div class="col-md-2">
+      <div class="flex-item-fixed-2-12">
         <template if="{{ isolate.topFrame == null }}">
           idle
         </template>
@@ -45,9 +51,9 @@
       </div>
     </div>
 
-    <div class="content">
+    <div class="counters">
       <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+        <div class="counter">{{ key }} ({{ isolate.counters[key] }})</div>
       </template>
     </div>
 

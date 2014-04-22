@@ -11001,7 +11001,8 @@ RawString* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    return String::New(name);
+    const String& stub_name = String::Handle(String::New(name));
+    return String::Concat(Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
@@ -11022,7 +11023,8 @@ RawString* Code::UserName() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    return String::New(name);
+    const String& stub_name = String::Handle(String::New(name));
+    return String::Concat(Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);

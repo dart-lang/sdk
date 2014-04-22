@@ -1131,39 +1131,14 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     ASSERT(root_index >= 0);
     region->set_creation_serial(0);
     root_ = new CodeRegionTrieNode(tag_code_table_offset_ + root_index);
-    // Use tags by default.
-    set_use_tags(true);
+    set_tag_order(Profiler::kUserVM);
   }
 
   void VisitSample(Sample* sample) {
     // Give the root a tick.
     root_->Tick();
     CodeRegionTrieNode* current = root_;
-    if (use_tags()) {
-      intptr_t user_tag_index = FindTagIndex(sample->user_tag());
-      if (user_tag_index >= 0) {
-        current = current->GetChild(user_tag_index);
-        // Give the tag a tick.
-        current->Tick();
-      }
-      if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
-        // Insert a dummy kNativeTagId node.
-        intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
-        current = current->GetChild(tag_index);
-        // Give the tag a tick.
-        current->Tick();
-      } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
-        // Insert a dummy kRuntimeTagId node.
-        intptr_t tag_index = FindTagIndex(VMTag::kRuntimeTagId);
-        current = current->GetChild(tag_index);
-        // Give the tag a tick.
-        current->Tick();
-      }
-      intptr_t tag_index = FindTagIndex(sample->vm_tag());
-      current = current->GetChild(tag_index);
-      // Give the tag a tick.
-      current->Tick();
-    }
+    current = ProcessTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
@@ -1179,15 +1154,74 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     return root_;
   }
 
-  bool use_tags() const {
-    return use_tags_;
+  Profiler::TagOrder tag_order() const {
+    return tag_order_;
   }
 
-  void set_use_tags(bool use_tags) {
-    use_tags_ = use_tags;
+  void set_tag_order(Profiler::TagOrder tag_order) {
+    tag_order_ = tag_order;
   }
 
  private:
+  CodeRegionTrieNode* ProcessUserTags(Sample* sample,
+                                      CodeRegionTrieNode* current) {
+    intptr_t user_tag_index = FindTagIndex(sample->user_tag());
+    if (user_tag_index >= 0) {
+      current = current->GetChild(user_tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    return current;
+  }
+
+  CodeRegionTrieNode* ProcessVMTags(Sample* sample,
+                                    CodeRegionTrieNode* current) {
+    if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
+      // Insert a dummy kNativeTagId node.
+      intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+      // Insert a dummy kRuntimeTagId node.
+      intptr_t tag_index = FindTagIndex(VMTag::kRuntimeTagId);
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    intptr_t tag_index = FindTagIndex(sample->vm_tag());
+    current = current->GetChild(tag_index);
+    // Give the tag a tick.
+    current->Tick();
+    return current;
+  }
+
+  CodeRegionTrieNode* ProcessTags(Sample* sample, CodeRegionTrieNode* current) {
+    // None.
+    if (tag_order() == Profiler::kNoTags) {
+      return current;
+    }
+    // User first.
+    if ((tag_order() == Profiler::kUserVM) ||
+        (tag_order() == Profiler::kUser)) {
+      current = ProcessUserTags(sample, current);
+      // Only user.
+      if (tag_order() == Profiler::kUser) {
+        return current;
+      }
+      return ProcessVMTags(sample, current);
+    }
+    // VM first.
+    ASSERT((tag_order() == Profiler::kVMUser) ||
+           (tag_order() == Profiler::kVM));
+    current = ProcessVMTags(sample, current);
+    // Only VM.
+    if (tag_order() == Profiler::kVM) {
+      return current;
+    }
+    return ProcessUserTags(sample, current);
+  }
+
   intptr_t FindTagIndex(uword tag) const {
     if (tag == 0) {
       return -1;
@@ -1219,7 +1253,7 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     return index;
   }
 
-  bool use_tags_;
+  Profiler::TagOrder tag_order_;
   CodeRegionTrieNode* root_;
   CodeRegionTable* live_code_table_;
   CodeRegionTable* dead_code_table_;
@@ -1292,7 +1326,7 @@ class CodeRegionTableCallersBuilder {
 
 
 void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                 bool full, bool use_tags) {
+                                 bool full, TagOrder tag_order) {
   ASSERT(isolate == Isolate::Current());
   // Disable profile interrupts while processing the buffer.
   EndExecution(isolate);
@@ -1348,7 +1382,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
                                                 &live_code_table,
                                                 &dead_code_table,
                                                 &tag_code_table);
-      build_trie.set_use_tags(use_tags);
+      build_trie.set_tag_order(tag_order);
       {
         // Build CodeRegion trie.
         ScopeStopwatch sw("CodeRegionExclusiveTrieBuilder");
@@ -1373,7 +1407,8 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         obj.AddProperty("samples", samples);
         obj.AddProperty("depth", static_cast<intptr_t>(FLAG_profile_depth));
         obj.AddProperty("period", static_cast<intptr_t>(FLAG_profile_period));
-        obj.AddProperty("time_delta_micros", builder.TimeDeltaMicros());
+        obj.AddProperty("timeSpan",
+                        MicrosecondsToSeconds(builder.TimeDeltaMicros()));
         {
           JSONArray exclusive_trie(&obj, "exclusive_trie");
           CodeRegionTrieNode* root = build_trie.root();
@@ -1426,7 +1461,7 @@ void Profiler::WriteProfile(Isolate* isolate) {
   ASSERT(Isolate::Current() == isolate);
   JSONStream stream(10 * MB);
   intptr_t pid = OS::ProcessId();
-  PrintToJSONStream(isolate, &stream, true, false);
+  PrintToJSONStream(isolate, &stream, true, Profiler::kNoTags);
   const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_profile_dir, pid, isolate->main_port());

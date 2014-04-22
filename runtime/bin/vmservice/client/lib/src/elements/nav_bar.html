@@ -4,6 +4,7 @@
 
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css" />
     <style>
       nav ul {
         display: inline-table;
@@ -47,10 +48,10 @@
       .menu ul {
         display: none;
         position: absolute;
-        top: 100%;
+        top: 98%;
         list-style: none;
+        margin: 0;
         padding: 0;
-        margin-left: 0;
         width: auto;
         z-index: 10;
         font: 400 16px 'Montserrat', sans-serif;
@@ -167,7 +168,7 @@
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}"
                      anchor="heap profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}"
-                     anchor="heap map"></nav-menu-item>                     
+                     anchor="heap map"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}"
                      anchor="breakpoints"></nav-menu-item>
       <content></content>

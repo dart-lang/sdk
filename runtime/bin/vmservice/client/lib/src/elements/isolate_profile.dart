@@ -17,24 +17,46 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
   @reflectable final CodeTrieNode node;
   @reflectable Code get code => node.code;
 
-  static String formatPercent(num a, num total) {
-    var percent = 100.0 * (a / total);
-    return '${percent.toStringAsFixed(2)}%';
-  }
+  @reflectable String tipKind = '';
+  @reflectable String tipParent = '';
+  @reflectable String tipExclusive = '';
+  @reflectable String tipTicks = '';
+  @reflectable String tipTime = '';
 
   ProfileCodeTrieNodeTreeRow(this.profile, this.root, this.node,
                              ProfileCodeTrieNodeTreeRow parent)
       : super(parent) {
     assert(root != null);
     assert(node != null);
-    var totalSamples = root.count;
-    // When the row is created, fill out the columns.
-    if (parent == null) {
-      columns.add(formatPercent(node.count, root.count));
+    tipTicks = '${node.count}';
+    var period = profile['period'];
+    var MICROSECONDS_PER_SECOND = 1000000.0;
+    var seconds = (period * node.count) / MICROSECONDS_PER_SECOND; // seconds
+    tipTime = Utils.formatTimePrecise(seconds);
+    if (code.kind == CodeKind.Tag) {
+      tipKind = 'Tag (category)';
+      if (parent == null) {
+        tipParent = Utils.formatPercent(node.count, root.count);
+      } else {
+        tipParent = Utils.formatPercent(node.count, parent.node.count);
+      }
+      tipExclusive = Utils.formatPercent(node.count, root.count);
     } else {
-      columns.add(formatPercent(node.count, parent.node.count));
+      if ((code.kind == CodeKind.Collected) ||
+          (code.kind == CodeKind.Reused)) {
+        tipKind = 'Garbage Collected Code';
+      } else {
+        tipKind = '${code.kind} (Function)';
+      }
+      if (parent == null) {
+        tipParent = Utils.formatPercent(node.count, root.count);
+      } else {
+        tipParent = Utils.formatPercent(node.count, parent.node.count);
+      }
+      tipExclusive = Utils.formatPercent(node.code.exclusiveTicks, root.count);
     }
-    columns.add(formatPercent(node.code.exclusiveTicks, totalSamples));
+    columns.add(tipParent);
+    columns.add(tipExclusive);
   }
 
   bool shouldDisplayChild(CodeTrieNode childNode, double threshold) {
@@ -61,75 +83,21 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
   }
 }
 
-class ProfileCallerTreeRow extends TableTreeRow {
-  final ServiceMap profile;
-  @reflectable final Code code;
-
-  static String formatPercent(num a, num total) {
-    var percent = 100.0 * (a / total);
-    return '${percent.toStringAsFixed(2)}%';
-  }
-
-  ProfileCallerTreeRow(this.profile, this.code, ProfileCallerTreeRow parent) :
-      super(parent) {
-    assert(profile != null);
-    assert(code != null);
-    var totalSamples = profile['samples'];
-    // When the row is created, fill out the columns.
-    if (parent == null) {
-      var root = profile.isolate.tagRoot();
-      var totalAttributedCalls = root.callersCount(code);
-      var totalParentCalls = root.sumCallersCount();
-      columns.add(formatPercent(totalAttributedCalls, totalParentCalls));
-    } else {
-      var totalAttributedCalls = parent.code.callersCount(code);
-      var totalParentCalls = parent.code.sumCallersCount();
-      columns.add(formatPercent(totalAttributedCalls, totalParentCalls));
-    }
-    columns.add(formatPercent(code.exclusiveTicks, totalSamples));
-  }
-
-  bool shouldDisplayChild(CodeCallCount childNode, totalSamples,
-                          double threshold) {
-    var callerPercent = code.callersCount(childNode.code) /
-                        code.sumCallersCount();
-    return (callerPercent > threshold) ||
-            ((childNode.code.exclusiveTicks / totalSamples) > threshold);
-  }
-
-  void onShow() {
-    var threshold = profile['threshold'];
-    var totalSamples = profile['samples'];
-    if (children.length > 0) {
-      // Child rows already created.
-      return;
-    }
-    for (var codeCaller in code.callers) {
-      if (!shouldDisplayChild(codeCaller, totalSamples, threshold)) {
-        continue;
-      }
-      var row = new ProfileCallerTreeRow(profile, codeCaller.code, this);
-      children.add(row);
-    }
-  }
-
-  void onHide() {
-  }
-}
-
 /// Displays an IsolateProfile
 @CustomTag('isolate-profile')
 class IsolateProfileElement extends ObservatoryElement {
   IsolateProfileElement.created() : super.created();
   @published ServiceMap profile;
-  @observable bool callGraphChecked;
   @observable bool hideTagsChecked;
   @observable String sampleCount = '';
   @observable String refreshTime = '';
   @observable String sampleRate = '';
   @observable String sampleDepth = '';
   @observable String displayCutoff = '';
-  @reflectable double displayThreshold = 0.0001; // 0.5%.
+  @observable String timeSpan = '';
+  @reflectable double displayThreshold = 0.0002; // 0.02%.
+
+  @observable String tagSelector = 'uv';
 
   final _id = '#tableTree';
   TableTree tree;
@@ -147,13 +115,10 @@ class IsolateProfileElement extends ObservatoryElement {
     sampleDepth = profile['depth'].toString();
     var period = profile['period'];
     sampleRate = (MICROSECONDS_PER_SECOND / period).toStringAsFixed(0);
+    timeSpan = formatTime(profile['timeSpan']);
     displayCutoff = '${(displayThreshold * 100.0).toString()}%';
     profile.isolate.processProfile(profile);
     profile['threshold'] = displayThreshold;
-    _update();
-  }
-
-  void callGraphCheckedChanged(oldValue) {
     _update();
   }
 
@@ -163,15 +128,12 @@ class IsolateProfileElement extends ObservatoryElement {
     _update();
   }
 
-  void hideTagsCheckedChanged(oldValue) {
+  void tagSelectorChanged(oldValue) {
     refresh(null);
   }
 
   void refresh(var done) {
-    var request = 'profile';
-    if ((hideTagsChecked != null) && hideTagsChecked) {
-      request += '?tags=hide';
-    }
+    var request = 'profile?tags=$tagSelector';
     profile.isolate.get(request).then((ServiceMap m) {
       // Assert we got back the a profile.
       assert(m.serviceType == 'Profile');
@@ -186,25 +148,10 @@ class IsolateProfileElement extends ObservatoryElement {
     _buildTree();
   }
 
-  void _buildCallersTree() {
-    assert(profile != null);
-    var root = profile.isolate.tagRoot();
-    if (root == null) {
-      Logger.root.warning('No profile root tag.');
-    }
-    try {
-      tree.initialize(new ProfileCallerTreeRow(profile, root, null));
-    } catch (e, stackTrace) {
-      Logger.root.warning('_buildCallersTree', e, stackTrace);
-    }
-
-    notifyPropertyChange(#tree, null, tree);
-  }
-
   void _buildStackTree() {
     var root = profile.isolate.profileTrieRoot;
     if (root == null) {
-      Logger.root.warning('No profile trie root.');
+      return;
     }
     try {
       tree.initialize(
@@ -216,11 +163,7 @@ class IsolateProfileElement extends ObservatoryElement {
   }
 
   void _buildTree() {
-    if ((callGraphChecked) != null && callGraphChecked) {
-      _buildCallersTree();
-    } else {
-      _buildStackTree();
-    }
+    _buildStackTree();
   }
 
   @observable String padding(TableTreeRow row) {
@@ -228,8 +171,10 @@ class IsolateProfileElement extends ObservatoryElement {
   }
 
   @observable String coloring(TableTreeRow row) {
-    const colors = const ['active', 'success', 'warning', 'danger', 'info'];
-    var index = row.depth % colors.length;
+    const colors = const ['rowColor0', 'rowColor1', 'rowColor2', 'rowColor3',
+                          'rowColor4', 'rowColor5', 'rowColor6', 'rowColor7',
+                          'rowColor8'];
+    var index = (row.depth - 1) % colors.length;
     return colors[index];
   }
 
@@ -244,7 +189,11 @@ class IsolateProfileElement extends ObservatoryElement {
     var row = target.parent;
     if (row is TableRowElement) {
       // Subtract 1 to get 0 based indexing.
-      tree.toggle(row.rowIndex - 1);
+      try {
+        tree.toggle(row.rowIndex - 1);
+      }  catch (e, stackTrace) {
+        Logger.root.warning('toggleExpanded', e, stackTrace);
+      }
     }
   }
 }

@@ -78,7 +78,7 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   void _addClass(int classId, String name, Iterable<int> color) {
-    _classIdToName[classId] = name;
+    _classIdToName[classId] = name.split('@')[0];
     _classIdToColor[classId] = color;
     _colorToClassId[_packColor(color)] = classId;
   }
@@ -91,7 +91,7 @@ class HeapMapElement extends ObservatoryElement {
       }
       var classId = int.parse(member['id'].split('/').last);
       var color = _classIdToRGBA(classId);
-      _addClass(classId, member['user_name'], color);
+      _addClass(classId, member['name'], color);
     }
     _addClass(freeClassId, 'Free', _freeColor);
     _addClass(0, '', _pageSeparationColor);

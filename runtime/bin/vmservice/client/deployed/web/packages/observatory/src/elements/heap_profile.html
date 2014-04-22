@@ -5,67 +5,111 @@
 </head>
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .table {
+      border-collapse: collapse!important;
+      width: 100%;
+      margin-bottom: 20px
+      table-layout: fixed;
+    }
+    .table td:nth-of-type(1) {
+      width: 30%;
+    }
+    .th, .td {
+      padding: 8px;
+      vertical-align: top;
+    }
+    .table thead > tr > th {
+      vertical-align: bottom;
+      text-align: left;
+      border-bottom:2px solid #ddd;
+    }
+    .clickable {
+      color: #0489c3;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .clickable:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    #classtable tr:hover > td {
+      background-color: #F4C7C3;
+    }
+  </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
+    <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
 
-  <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
-  <div class="row">
-    <div id="newPieChart" class="col-md-4" style="height: 400px">
+  <div class="flex-row">
+    <div id="newPieChart" class="flex-item-fixed-4-12" style="height: 400px">
     </div>
-    <div id="newStatus" class="col-md-2">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>Collections</td>
-            <td>{{ formattedCollections(true) }}</td>
-          </tr>
-          <tr>
-            <td>Average Collection Time</td>
-            <td>{{ formattedAverage(true) }}</td>
-          </tr>
-          <tr>
-            <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(true) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="newStatus" class="flex-item-fixed-2-12">
+      <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Collections</div>
+            <div class="memberValue">{{ formattedCollections(true) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Average Collection Time</div>
+            <div class="memberValue">{{ formattedAverage(true) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberValue">{{ formattedTotalCollectionTime(true) }}</div>
+          </div>
+      </div>
     </div>
-    <div id="oldPieChart" class="col-md-4" style="height: 400px">
+    <div id="oldPieChart" class="flex-item-fixed-4-12" style="height: 400px">
     </div>
-    <div id="oldStatus" class="col-md-2">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>Collections</td>
-            <td>{{ formattedCollections(false) }}</td>
-          </tr>
-          <tr>
-            <td>Average Collection Time</td>
-            <td>{{ formattedAverage(false) }}</td>
-          </tr>
-          <tr>
-            <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(false) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="oldStatus" class="flex-item-fixed-2-12">
+      <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Collections</div>
+            <div class="memberValue">{{ formattedCollections(false) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Average Collection Time</div>
+            <div class="memberValue">{{ formattedAverage(false) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberValue">{{ formattedTotalCollectionTime(false) }}</div>
+          </div>
+      </div>
     </div>
   </div>
-  <div class="row">
-  <p class="col-md-2">Aggregate heap table</p>
-  </div>
-  <div class="row">
-    <div id="simpleTable" class="col-md-12" style="height: 800px"></div>
-  </div>
-  <div class="row">
-  <p class="col-md-2">Individual heap table</p>
-  </div>
-  <div class="row">
-    <div id="table" class="col-md-12" style="height: 800px"></div>
+  <div class="flex-row">
+    <table id="classtable" class="flex-item-fixed-12-12 table">
+      <thead>
+        <tr>
+          <th on-click="{{changeSort}}" class="clickable" title="Class">{{ classTable.getColumnLabel(0) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Size">{{ classTable.getColumnLabel(3) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Instances">{{ classTable.getColumnLabel(4) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Current Size">{{ classTable.getColumnLabel(5) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Current Instances">{{ classTable.getColumnLabel(6) }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template repeat="{{row in classTable.sortedRows }}">
+          <td><class-ref ref="{{ classTable.getValue(row, 0) }}"></class-ref></td>
+          <td title="{{ classTable.getValue(row, 1) }}">{{ classTable.getFormattedValue(row, 1) }}</td>
+          <td title="{{ classTable.getValue(row, 2) }}">{{ classTable.getFormattedValue(row, 2) }}</td>
+          <td title="{{ classTable.getValue(row, 3) }}">{{ classTable.getFormattedValue(row, 3) }}</td>
+          <td title="{{ classTable.getValue(row, 4) }}">{{ classTable.getFormattedValue(row, 4) }}</td>
+          <td title="{{ classTable.getValue(row, 5) }}">{{ classTable.getFormattedValue(row, 5) }}</td>
+          <td title="{{ classTable.getValue(row, 6) }}">{{ classTable.getFormattedValue(row, 6) }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 <script type="application/dart" src="heap_profile.dart"></script>
