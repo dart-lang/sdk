@@ -88,6 +88,55 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a declaring transformer following a lazy transformer runs eagerly once "
+      "its input is available", () {
+    var declaring = new DeclaringRewriteTransformer("two", "three");
+    initGraph(["app|foo.in"], {"app": [
+      [new LazyAssetsTransformer(["app|out.one", "app|out.two"])],
+      [declaring]
+    ]});
+
+    updateSources(["app|foo.in"]);
+    expectAsset("app|out.one", "app|out.one");
+    buildShouldSucceed();
+
+    expect(declaring.numRuns, completion(equals(1)));
+  });
+
+  test("a declaring transformer following a lazy transformer doesn't re-run if "
+      "its input becomes available and then unavailable", () {
+    var declaring = new DeclaringRewriteTransformer("two", "three");
+    initGraph(["app|foo.in"], {"app": [
+      [new LazyAssetsTransformer(["app|out.one", "app|out.two"])],
+      [declaring]
+    ]});
+
+    // Start [declaring] running, because its input became available.
+    declaring.pauseApply();
+    updateSources(["app|foo.in"]);
+    expectAsset("app|out.one", "app|out.one");
+    expectAssetDoesNotComplete("app|out.three");
+
+    // Now [declaring]'s input is dirty, so it shouldn't re-run without an
+    // explicit request.
+    updateSources(["app|foo.in"]);
+    declaring.resumeApply();
+    buildShouldSucceed();
+
+    // [declaring] should only have run once, despite its input changing. After
+    // the first run, it should be awaiting a force() call.
+    expect(declaring.numRuns, completion(equals(1)));
+
+    // Once we make a request, [declaring] should force the lazy transformer and
+    // then run itself.
+    expectAsset("app|out.three", "app|out.two.three");
+    buildShouldSucceed();
+
+    // Now [declaring] should have run twice. This ensures that it didn't use
+    // its original output for some reason.
+    expect(declaring.numRuns, completion(equals(2)));
+  });
+
   group("with an error in declareOutputs", () {
     test("still runs apply", () {
       initGraph(["app|foo.txt"], {"app": [[

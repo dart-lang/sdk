@@ -9,6 +9,9 @@
 * Fix a deadlock bug when a lazy primary input to a lazy transformer became
   dirty while the transformer's `apply` method was running.
 
+* Run declaring transformers with lazy inputs eagerly if the inputs become
+  available.
+
 ## 0.13.0
 
 * `Transformer.isPrimary` now takes an `AssetId` rather than an `Asset`.
