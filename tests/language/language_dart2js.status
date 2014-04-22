@@ -53,8 +53,10 @@ malbounded_redirecting_factory2_test/02: Fail # Issue 12825
 malbounded_redirecting_factory2_test/03: Fail # Issue 12825
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast_test: Fail # Issue 14121
+malbounded_type_cast2_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
+malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 typevariable_substitution2_test/01: Crash # Issue 15875
 typevariable_substitution2_test/02: Crash # Issue 15875
@@ -231,12 +233,6 @@ closure_in_initializer_test: Fail
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-
-[ $compiler == dart2dart && $checked ]
-# Dart VM problems
-malbounded_type_cast_test: Fail # Issue 14123
-malbounded_type_test_test/01: Fail # Issue 14131
-malbounded_instantiation_test/01: Fail # Issue 14132
 
 [ $compiler == dart2dart && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605.

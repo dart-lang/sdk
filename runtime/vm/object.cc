@@ -14201,7 +14201,8 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
   if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
     return true;
   }
-  if (bound_error->IsNull()) {
+  // Set bound_error if the caller is interested and if this is the first error.
+  if ((bound_error != NULL) && bound_error->IsNull()) {
     // Report the bound error only if both the bounded type and the upper bound
     // are instantiated. Otherwise, we cannot tell yet it is a bound error.
     if (bounded_type.IsInstantiated() && upper_bound.IsInstantiated()) {
@@ -14430,7 +14431,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error,
                                                 trail);
   }
-  if (FLAG_enable_type_checks && bound_error->IsNull()) {
+  if (FLAG_enable_type_checks &&
+      (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());

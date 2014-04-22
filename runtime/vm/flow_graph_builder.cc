@@ -1381,14 +1381,6 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
-  EffectGraphVisitor for_left_value(owner());
-  node->left()->Visit(&for_left_value);
-  Append(for_left_value);
-}
-
-
-void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
-  ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   const bool negate_result = (node->kind() == Token::kISNOT);
@@ -1464,27 +1456,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 
 
 void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
-  ASSERT(Token::IsTypeCastOperator(node->kind()));
-  const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-  ValueGraphVisitor for_value(owner());
-  node->left()->Visit(&for_value);
-  Append(for_value);
-  const String& dst_name = String::ZoneHandle(
-      Symbols::New(Exceptions::kCastErrorDstName));
-  if (CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
-    // Drop the value and 0 additional temporaries.
-    Do(new DropTempsInstr(0, for_value.value()));
-  } else {
-    Do(BuildAssertAssignable(node->token_pos(),
-                             for_value.value(),
-                             type,
-                             dst_name));
-  }
-}
-
-
-void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();

@@ -434,6 +434,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
  private:
   friend class TempLocalScope;  // For ReturnDefinition.
 
+  // Helper to drop the result value.
+  virtual void ReturnValue(Value* value) {
+    Do(new DropTempsInstr(0, value));
+  }
+
   // Specify a definition of the final result.  Adds the definition to
   // the graph, but normally overridden in subclasses.
   virtual void ReturnDefinition(Definition* definition) {
@@ -491,9 +496,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void ReturnDefinition(Definition* definition) {
     ReturnValue(Bind(definition));
   }
-
-  virtual void BuildTypeTest(ComparisonNode* node);
-  virtual void BuildTypeCast(ComparisonNode* node);
 };
 
 
