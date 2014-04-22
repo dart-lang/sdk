@@ -12,6 +12,8 @@ import 'dart:collection' show Maps;
  * [:operator []:], [:forEach:] and [:length:] methods to provide a fully
  * implemented immutable map.
  */
+// TODO(lrn): Consider using UnmodifiableBaseMap/UnmodifiableMapWrapper
+// for these classes, or just rewrite for a bit more efficiency.
 abstract class AbstractMap<K, V> implements Map<K, V> {
   AbstractMap();
 

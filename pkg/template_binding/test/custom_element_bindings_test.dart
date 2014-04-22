@@ -215,34 +215,18 @@ class WithAttrsCustomElement extends HtmlElement {
 }
 
 // TODO(jmesserly): would be nice to use mocks when mirrors work on dart2js.
-class AttributeMapWrapper<K, V> implements Map<K, V> {
+class AttributeMapWrapper<K, V> extends MapView<K, V> {
   final List log = [];
-  Map<K, V> _map;
 
-  AttributeMapWrapper(this._map);
-
-  bool containsValue(Object value) => _map.containsValue(value);
-  bool containsKey(Object key) => _map.containsKey(key);
-  V operator [](Object key) => _map[key];
+  AttributeMapWrapper(Map map) : super(map);
 
   void operator []=(K key, V value) {
     log.add(['[]=', key, value]);
-    _map[key] = value;
+    super[key] = value;
   }
-
-  V putIfAbsent(K key, V ifAbsent()) => _map.putIfAbsent(key, ifAbsent);
 
   V remove(Object key) {
     log.add(['remove', key]);
-    _map.remove(key);
+    super.remove(key);
   }
-
-  void addAll(Map<K, V> other) => _map.addAll(other);
-  void clear() => _map.clear();
-  void forEach(void f(K key, V value)) => _map.forEach(f);
-  Iterable<K> get keys => _map.keys;
-  Iterable<V> get values => _map.values;
-  int get length => _map.length;
-  bool get isEmpty => _map.isEmpty;
-  bool get isNotEmpty => _map.isNotEmpty;
 }

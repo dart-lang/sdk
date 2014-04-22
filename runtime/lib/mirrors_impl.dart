@@ -7,33 +7,7 @@
 import "dart:collection";
 
 final emptyList = new UnmodifiableListView([]);
-final emptyMap = new _UnmodifiableMapView({});
-
-// TODO(14314): Move to dart:collection.
-class _UnmodifiableMapView<K, V> implements Map<K, V> {
-  final Map<K, V> _source;
-
-  _UnmodifiableMapView(Map<K, V> source) : _source = source;
-
- static void _throw() {
-    throw new UnsupportedError("Cannot modify an unmodifiable Map");
-  }
-
-  int get length => _source.length;
-  bool get isEmpty => _source.isEmpty;
-  bool get isNotEmpty => _source.isNotEmpty;
-  V operator [](K key) => _source[key];
-  bool containsKey(K key) => _source.containsKey(key);
-  bool containsValue(V value) => _source.containsValue(value);
-  void forEach(void f(K key, V value)) => _source.forEach(f);
-  Iterable<K> get keys => _source.keys;
-  Iterable<V> get values => _source.values;
-  void operator []=(K key, V value) => _throw();
-  V putIfAbsent(K key, V ifAbsent()) { _throw(); }
-  void addAll(Map<K, V> other) => _throw();
-  V remove(K key) { _throw(); }
-  void clear() => _throw();
-}
+final emptyMap = new UnmodifiableMapView({});
 
 class _InternalMirrorError {
   final String _msg;
@@ -48,11 +22,11 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
       new_map[key] = value;
     }
   });
-  return new _UnmodifiableMapView(new_map);
+  return new UnmodifiableMapView(new_map);
 }
 
 Map _makeMemberMap(List mirrors) {
-  return new _UnmodifiableMapView<Symbol, DeclarationMirror>(
+  return new UnmodifiableMapView<Symbol, DeclarationMirror>(
       new Map<Symbol, DeclarationMirror>.fromIterable(
           mirrors, key: (e) => e.simpleName));
 }
@@ -640,7 +614,7 @@ class _LocalClassMirror extends _LocalObjectMirror
         }
       });
       _cachedStaticMembers =
-          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
+          new UnmodifiableMapView<Symbol, MethodMirror>(result);
     }
     return _cachedStaticMembers;
   }
@@ -669,7 +643,7 @@ class _LocalClassMirror extends _LocalObjectMirror
         }
       });
       _cachedInstanceMembers =
-          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
+          new UnmodifiableMapView<Symbol, MethodMirror>(result);
     }
     return _cachedInstanceMembers;
   }
@@ -682,7 +656,7 @@ class _LocalClassMirror extends _LocalObjectMirror
     decls.addAll(_constructors);
     typeVariables.forEach((tv) => decls[tv.simpleName] = tv);
     return _declarations =
-        new _UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
   Map<Symbol, Mirror> _cachedMembers;
@@ -1019,7 +993,7 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
   operator ==(other) {
-    return other is TypeVariableMirror 
+    return other is TypeVariableMirror
         && simpleName == other.simpleName
         && owner == other.owner;
   }
@@ -1188,7 +1162,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
     return _declarations =
-        new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
   }
 
   Map<Symbol, Mirror> _cachedMembers;
