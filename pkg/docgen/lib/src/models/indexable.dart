@@ -4,6 +4,8 @@
 
 library docgen.models.indexable;
 
+import 'dart:collection';
+
 import 'package:markdown/markdown.dart' as markdown;
 
 import '../exports/mirrors_util.dart' as dart2js_util;
@@ -50,7 +52,7 @@ abstract class Indexable<TMirror extends DeclarationMirror>
     var mirrorQualifiedName = dart2js_util.qualifiedNameOf(this.mirror);
 
     var map = _mirrorToDocgen.putIfAbsent(mirrorQualifiedName,
-        () => new Map<String, Indexable>());
+        () => new HashMap<String, Indexable>());
 
     var added = false;
     map.putIfAbsent(owner.docName, () {
@@ -204,7 +206,7 @@ abstract class Indexable<TMirror extends DeclarationMirror>
 /// issue. The second level map is indexed by owner docName for faster lookup.
 /// Why two levels of lookup? Speed, man. Speed.
 final Map<String, Map<String, Indexable>> _mirrorToDocgen =
-    new Map<String, Map<String, Indexable>>();
+    new HashMap<String, Map<String, Indexable>>();
 
 Iterable<Indexable> get allIndexables =>
     _mirrorToDocgen.values.expand((map) => map.values);
