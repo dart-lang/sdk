@@ -618,8 +618,18 @@ class Assembler : public ValueObject {
     andis(ZR, rn, imm);
   }
 
+  void Lsl(Register rd, Register rn, int shift) {
+    add(rd, ZR, Operand(rn, LSL, shift));
+  }
+  void Lsr(Register rd, Register rn, int shift) {
+    add(rd, ZR, Operand(rn, LSR, shift));
+  }
+  void Asr(Register rd, Register rn, int shift) {
+    add(rd, ZR, Operand(rn, ASR, shift));
+  }
+
   void SmiUntag(Register reg) {
-    add(reg, ZR, Operand(reg, ASR, kSmiTagSize));
+    Asr(reg, reg, kSmiTagSize);
   }
 
   // Branching to ExternalLabels.
@@ -663,6 +673,18 @@ class Assembler : public ValueObject {
     StoreToOffset(dest, base, offset - kHeapObjectTag);
   }
 
+  // Storing into an object.
+  void StoreIntoObject(Register object,
+                       const Address& dest,
+                       Register value,
+                       bool can_value_be_smi = true);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value);
+
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
 
@@ -695,6 +717,9 @@ class Assembler : public ValueObject {
 
   void EnterDartFrame(intptr_t frame_size);
   void LeaveDartFrame();
+
+  void EnterCallRuntimeFrame(intptr_t frame_size);
+  void LeaveCallRuntimeFrame();
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
@@ -1001,6 +1026,13 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(cra) << kRaShift);
     Emit(encoding);
   }
+
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+
+  // Shorter filtering sequence that assumes that value is not a smi.
+  void StoreIntoObjectFilterNoSmi(Register object,
+                                  Register value,
+                                  Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

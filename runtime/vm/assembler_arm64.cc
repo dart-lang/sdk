@@ -583,6 +583,95 @@ void Assembler::StoreToOffset(Register src, Register base, int32_t offset) {
 }
 
 
+// Store into object.
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilterNoSmi(Register object,
+                                           Register value,
+                                           Label* no_update) {
+  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                 (kOldObjectAlignmentOffset == 0), young_alignment);
+
+  // Write-barrier triggers if the value is in the new space (has bit set) and
+  // the object is in the old space (has bit cleared).
+  // To check that, we compute value & ~object and skip the write barrier
+  // if the bit is not set. We can't destroy the object.
+  bic(TMP, value, Operand(object));
+  tsti(TMP, kNewObjectAlignmentOffset);
+  b(no_update, EQ);
+}
+
+
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // For the value we are only interested in the new/old bit and the tag bit.
+  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
+  and_(TMP, value, Operand(value, LSL, kObjectAlignmentLog2 - 1));
+  // And the result with the negated space bit of the object.
+  bic(TMP, TMP, Operand(object));
+  tsti(TMP, kNewObjectAlignmentOffset);
+  b(no_update, EQ);
+}
+
+
+void Assembler::StoreIntoObject(Register object,
+                                const Address& dest,
+                                Register value,
+                                bool can_value_be_smi) {
+  ASSERT(object != value);
+  str(value, dest);
+  Label done;
+  if (can_value_be_smi) {
+    StoreIntoObjectFilter(object, value, &done);
+  } else {
+    StoreIntoObjectFilterNoSmi(object, value, &done);
+  }
+  // A store buffer update is required.
+  if (value != R0) {
+    // Preserve R0.
+    Push(R0);
+  }
+  Push(LR);
+  if (object != R0) {
+    mov(R0, object);
+  }
+  BranchLink(&StubCode::UpdateStoreBufferLabel(), PP);
+  Pop(LR);
+  if (value != R0) {
+    // Restore R0.
+    Pop(R0);
+  }
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         Register value) {
+  str(value, dest);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         const Object& value) {
+  ASSERT(value.IsSmi() || value.InVMHeap() ||
+         (value.IsOld() && value.IsNotTemporaryScopedHandle()));
+  // No store buffer update.
+  LoadObject(TMP, value, PP);
+  str(TMP, dest);
+}
+
+
+// Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
@@ -635,6 +724,38 @@ void Assembler::LeaveDartFrame() {
   LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
+}
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+  EnterFrame(0);
+
+  // TODO(zra): also save volatile FPU registers.
+
+  for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
+    const Register reg = static_cast<Register>(i);
+    Push(reg);
+  }
+
+  ReserveAlignedFrameSpace(frame_size);
+}
+
+
+void Assembler::LeaveCallRuntimeFrame() {
+  // SP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  // TODO(zra): Also include FPU regs in this count once they are added.
+  const intptr_t kPushedRegistersSize =
+      kDartVolatileCpuRegCount * kWordSize;
+  AddImmediate(SP, FP, -kPushedRegistersSize, PP);
+  for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
+    const Register reg = static_cast<Register>(i);
+    Pop(reg);
+  }
+
+  Pop(FP);
+  Pop(LR);
 }
 
 
