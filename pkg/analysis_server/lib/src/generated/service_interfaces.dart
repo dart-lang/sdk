@@ -180,15 +180,43 @@ abstract class SourceRegion {
 class NotificationKind extends Enum<NotificationKind> {
   static const NotificationKind ERRORS = const NotificationKind('ERRORS', 0);
 
-  static const NotificationKind HIGHLIGHT = const NotificationKind('HIGHLIGHT', 1);
+  static const NotificationKind HIGHLIGHTS = const NotificationKind('HIGHLIGHTS', 1);
 
   static const NotificationKind NAVIGATION = const NotificationKind('NAVIGATION', 2);
 
   static const NotificationKind OUTLINE = const NotificationKind('OUTLINE', 3);
 
-  static const List<NotificationKind> values = const [ERRORS, HIGHLIGHT, NAVIGATION, OUTLINE];
+  static const List<NotificationKind> values = const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
 
   const NotificationKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * A [SourceSetKind#LIST] implementation of [SourceSet].
+ */
+class ListSourceSet implements SourceSet {
+  /**
+   * Creates a new list-based [SourceSet] instance.
+   */
+  static SourceSet create(Iterable<Source> sourceCollection) {
+    List<Source> sources = new List.from(sourceCollection);
+    return new ListSourceSet(sources);
+  }
+
+  /**
+   * Creates a new list-based [SourceSet] instance.
+   */
+  static SourceSet create2(List<Source> sources) => new ListSourceSet(sources);
+
+  final List<Source> sources;
+
+  ListSourceSet(this.sources);
+
+  @override
+  SourceSetKind get kind => SourceSetKind.LIST;
+
+  @override
+  String toString() => "[${StringUtils.join(sources, ", ")}]";
 }
 
 /**
@@ -229,37 +257,112 @@ class _ImplicitSourceSet implements SourceSet {
  * with a region of text.
  */
 class HighlightType extends Enum<HighlightType> {
-  static const HighlightType COMMENT_BLOCK = const HighlightType('COMMENT_BLOCK', 0);
+  static const HighlightType ANNOTATION = const HighlightType('ANNOTATION', 0);
 
-  static const HighlightType COMMENT_DOCUMENTATION = const HighlightType('COMMENT_DOCUMENTATION', 1);
+  static const HighlightType BUILT_IN = const HighlightType('BUILT_IN', 1);
 
-  static const HighlightType COMMENT_END_OF_LINE = const HighlightType('COMMENT_END_OF_LINE', 2);
+  static const HighlightType CLASS = const HighlightType('CLASS', 2);
 
-  static const HighlightType KEYWORD = const HighlightType('KEYWORD', 3);
+  static const HighlightType COMMENT_BLOCK = const HighlightType('COMMENT_BLOCK', 3);
 
-  static const HighlightType LITERAL_BOOLEAN = const HighlightType('LITERAL_BOOLEAN', 4);
+  static const HighlightType COMMENT_DOCUMENTATION = const HighlightType('COMMENT_DOCUMENTATION', 4);
 
-  static const HighlightType LITERAL_DOUBLE = const HighlightType('LITERAL_DOUBLE', 5);
+  static const HighlightType COMMENT_END_OF_LINE = const HighlightType('COMMENT_END_OF_LINE', 5);
 
-  static const HighlightType LITERAL_INTEGER = const HighlightType('LITERAL_INTEGER', 6);
+  static const HighlightType CONSTRUCTOR = const HighlightType('CONSTRUCTOR', 6);
 
-  static const HighlightType LITERAL_LIST = const HighlightType('LITERAL_LIST', 7);
+  static const HighlightType DIRECTIVE = const HighlightType('DIRECTIVE', 7);
 
-  static const HighlightType LITERAL_MAP = const HighlightType('LITERAL_MAP', 8);
+  static const HighlightType DYNAMIC_TYPE = const HighlightType('DYNAMIC_TYPE', 8);
 
-  static const HighlightType LITERAL_STRING = const HighlightType('LITERAL_STRING', 9);
+  static const HighlightType FIELD = const HighlightType('FIELD', 9);
+
+  static const HighlightType FIELD_STATIC = const HighlightType('FIELD_STATIC', 10);
+
+  static const HighlightType FUNCTION_DECLARATION = const HighlightType('FUNCTION_DECLARATION', 11);
+
+  static const HighlightType FUNCTION = const HighlightType('FUNCTION', 12);
+
+  static const HighlightType FUNCTION_TYPE_ALIAS = const HighlightType('FUNCTION_TYPE_ALIAS', 13);
+
+  static const HighlightType GETTER_DECLARATION = const HighlightType('GETTER_DECLARATION', 14);
+
+  static const HighlightType KEYWORD = const HighlightType('KEYWORD', 15);
+
+  static const HighlightType IDENTIFIER_DEFAULT = const HighlightType('IDENTIFIER_DEFAULT', 16);
+
+  static const HighlightType IMPORT_PREFIX = const HighlightType('IMPORT_PREFIX', 17);
+
+  static const HighlightType LITERAL_BOOLEAN = const HighlightType('LITERAL_BOOLEAN', 18);
+
+  static const HighlightType LITERAL_DOUBLE = const HighlightType('LITERAL_DOUBLE', 19);
+
+  static const HighlightType LITERAL_INTEGER = const HighlightType('LITERAL_INTEGER', 20);
+
+  static const HighlightType LITERAL_LIST = const HighlightType('LITERAL_LIST', 21);
+
+  static const HighlightType LITERAL_MAP = const HighlightType('LITERAL_MAP', 22);
+
+  static const HighlightType LITERAL_STRING = const HighlightType('LITERAL_STRING', 23);
+
+  static const HighlightType LOCAL_VARIABLE_DECLARATION = const HighlightType('LOCAL_VARIABLE_DECLARATION', 24);
+
+  static const HighlightType LOCAL_VARIABLE = const HighlightType('LOCAL_VARIABLE', 25);
+
+  static const HighlightType METHOD_DECLARATION = const HighlightType('METHOD_DECLARATION', 26);
+
+  static const HighlightType METHOD_DECLARATION_STATIC = const HighlightType('METHOD_DECLARATION_STATIC', 27);
+
+  static const HighlightType METHOD = const HighlightType('METHOD', 28);
+
+  static const HighlightType METHOD_STATIC = const HighlightType('METHOD_STATIC', 29);
+
+  static const HighlightType PARAMETER = const HighlightType('PARAMETER', 30);
+
+  static const HighlightType SETTER_DECLARATION = const HighlightType('SETTER_DECLARATION', 31);
+
+  static const HighlightType TOP_LEVEL_VARIABLE = const HighlightType('TOP_LEVEL_VARIABLE', 32);
+
+  static const HighlightType TYPE_NAME_DYNAMIC = const HighlightType('TYPE_NAME_DYNAMIC', 33);
+
+  static const HighlightType TYPE_PARAMETER = const HighlightType('TYPE_PARAMETER', 34);
 
   static const List<HighlightType> values = const [
+      ANNOTATION,
+      BUILT_IN,
+      CLASS,
       COMMENT_BLOCK,
       COMMENT_DOCUMENTATION,
       COMMENT_END_OF_LINE,
+      CONSTRUCTOR,
+      DIRECTIVE,
+      DYNAMIC_TYPE,
+      FIELD,
+      FIELD_STATIC,
+      FUNCTION_DECLARATION,
+      FUNCTION,
+      FUNCTION_TYPE_ALIAS,
+      GETTER_DECLARATION,
       KEYWORD,
+      IDENTIFIER_DEFAULT,
+      IMPORT_PREFIX,
       LITERAL_BOOLEAN,
       LITERAL_DOUBLE,
       LITERAL_INTEGER,
       LITERAL_LIST,
       LITERAL_MAP,
-      LITERAL_STRING];
+      LITERAL_STRING,
+      LOCAL_VARIABLE_DECLARATION,
+      LOCAL_VARIABLE,
+      METHOD_DECLARATION,
+      METHOD_DECLARATION_STATIC,
+      METHOD,
+      METHOD_STATIC,
+      PARAMETER,
+      SETTER_DECLARATION,
+      TOP_LEVEL_VARIABLE,
+      TYPE_NAME_DYNAMIC,
+      TYPE_PARAMETER];
 
   const HighlightType(String name, int ordinal) : super(name, ordinal);
 }
@@ -273,14 +376,6 @@ abstract class Outline {
    * An empty array of outlines.
    */
   static final List<Outline> EMPTY_ARRAY = new List<Outline>(0);
-
-  /**
-   * Return the argument list for the element, or `null` if the element is not a method or
-   * function. If the element has zero arguments, the string `"()"` will be returned.
-   *
-   * @return the argument list for the element
-   */
-  String get arguments;
 
   /**
    * Return an array containing the children of the element. The array will be empty if the element
@@ -319,6 +414,15 @@ abstract class Outline {
   int get offset;
 
   /**
+   * Return the parameter list for the element, or `null` if the element is not a constructor,
+   * method or function. If the element has zero arguments, the string `"()"` will be
+   * returned.
+   *
+   * @return the parameter list for the element
+   */
+  String get parameters;
+
+  /**
    * Return the outline that either physically or logically encloses this outline. This will be
    * `null` if this outline is a unit outline.
    *
@@ -334,4 +438,32 @@ abstract class Outline {
    * @return the return type of the element
    */
   String get returnType;
+
+  /**
+   * Return the element's source range.
+   *
+   * @return the element's source range
+   */
+  SourceRegion get sourceRegion;
+
+  /**
+   * Return `true` if the element is abstract.
+   *
+   * @return `true` if the element is abstract
+   */
+  bool get isAbstract;
+
+  /**
+   * Return `true` if the element is private.
+   *
+   * @return `true` if the element is private
+   */
+  bool get isPrivate;
+
+  /**
+   * Return `true` if the element is a class member and is a static element.
+   *
+   * @return `true` if the element is a static element
+   */
+  bool get isStatic;
 }
