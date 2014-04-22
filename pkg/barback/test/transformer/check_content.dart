@@ -17,7 +17,7 @@ class CheckContentTransformer extends MockTransformer {
 
   CheckContentTransformer(this.content, this.addition);
 
-  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((primary) {

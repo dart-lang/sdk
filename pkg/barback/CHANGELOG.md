@@ -6,6 +6,10 @@
   declared. This is valid for transformers like dart2js that need to read their
   primary input in order to determine whether they should run.
 
+* Allow `Transformer.isPrimary`, `Transformer.apply`, and
+  `DeclaringTransformer.declareOutputs` to return non-`Future` values if they
+  run synchronously.
+
 * Fix a deadlock bug when a lazy primary input to a lazy transformer became
   dirty while the transformer's `apply` method was running.
 

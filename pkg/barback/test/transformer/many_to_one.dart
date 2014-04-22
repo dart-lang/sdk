@@ -23,8 +23,7 @@ class ManyToOneTransformer extends MockTransformer {
   /// files at each of those paths.
   ManyToOneTransformer(this.extension);
 
-  Future<bool> doIsPrimary(AssetId id) =>
-    new Future.value(id.extension == ".$extension");
+  bool doIsPrimary(AssetId id) => id.extension == ".$extension";
 
   Future doApply(Transform transform) {
     return getPrimary(transform)

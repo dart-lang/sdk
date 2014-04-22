@@ -4,8 +4,6 @@
 
 library barback.test.transformer.lazy_rewrite;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 
 import 'declaring_rewrite.dart';

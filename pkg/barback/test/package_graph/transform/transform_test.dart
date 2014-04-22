@@ -342,6 +342,15 @@ main() {
     buildShouldSucceed();
   });
 
+  test("gets an asset transformed by a sync transformer", () {
+    initGraph(["app|foo.blub"], {"app": [
+      [new SyncRewriteTransformer("blub", "blab")]
+    ]});
+    updateSources(["app|foo.blub"]);
+    expectAsset("app|foo.blab", "new.blab");
+    buildShouldSucceed();
+  });
+
   group("Transform.hasInput", () {
     test("returns whether an input exists", () {
       initGraph(["app|foo.txt", "app|bar.txt"], {'app': [

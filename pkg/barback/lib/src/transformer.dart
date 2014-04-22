@@ -59,15 +59,18 @@ abstract class Transformer {
   /// If this is not overridden, defaults to allow any asset whose extension
   /// matches one of the ones returned by [allowedExtensions]. If *that* is
   /// not overridden, allows all assets.
-  Future<bool> isPrimary(AssetId id) {
+  ///
+  /// This may return a `Future<bool>` or, if it's entirely synchronous, a
+  /// `bool`.
+  isPrimary(AssetId id) {
     // Allow all files if [primaryExtensions] is not overridden.
-    if (allowedExtensions == null) return new Future.value(true);
+    if (allowedExtensions == null) return true;
 
     for (var extension in allowedExtensions.split(" ")) {
-      if (id.path.endsWith(extension)) return new Future.value(true);
+      if (id.path.endsWith(extension)) return true;
     }
 
-    return new Future.value(false);
+    return false;
   }
 
   /// Run this transformer on on the primary input specified by [transform].
@@ -81,7 +84,10 @@ abstract class Transformer {
   /// In other words, a Transformer's job is to find all inputs for a
   /// transform, starting at the primary input, then generate all output assets
   /// and yield them back to the transform.
-  Future apply(Transform transform);
+  ///
+  /// If this does asynchronous work, it should return a [Future] that completes
+  /// once it's finished.
+  apply(Transform transform);
 
   String toString() => runtimeType.toString().replaceAll("Transformer", "");
 }

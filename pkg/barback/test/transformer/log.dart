@@ -22,22 +22,20 @@ class LogTransformer extends MockTransformer {
 
   LogTransformer(this._entries);
 
-  Future<bool> doIsPrimary(_) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      for (var entry in _entries) {
-        var parts = entry.split(":");
-        var logFn;
-        switch (parts[0]) {
-          case "error":   logFn = transform.logger.error; break;
-          case "warning": logFn = transform.logger.warning; break;
-          case "info":    logFn = transform.logger.info; break;
-          case "fine":    logFn = transform.logger.fine; break;
-        }
-
-        logFn(parts[1].trim());
+  void doApply(Transform transform) {
+    for (var entry in _entries) {
+      var parts = entry.split(":");
+      var logFn;
+      switch (parts[0]) {
+        case "error":   logFn = transform.logger.error; break;
+        case "warning": logFn = transform.logger.warning; break;
+        case "info":    logFn = transform.logger.info; break;
+        case "fine":    logFn = transform.logger.fine; break;
       }
-    });
+
+      logFn(parts[1].trim());
+    }
   }
 }

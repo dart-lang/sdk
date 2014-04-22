@@ -4,10 +4,7 @@
 
 library barback.test.transformer.create_asset;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 
@@ -17,12 +14,10 @@ class CreateAssetTransformer extends MockTransformer {
 
   CreateAssetTransformer(this.output);
 
-  Future<bool> doIsPrimary(_) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      transform.addOutput(
-          new Asset.fromString(new AssetId.parse(output), output));
-    });
+  void doApply(Transform transform) {
+    transform.addOutput(
+        new Asset.fromString(new AssetId.parse(output), output));
   }
 }

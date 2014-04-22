@@ -4,10 +4,7 @@
 
 library barback.test.transformer.bad;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 
@@ -22,18 +19,16 @@ class BadTransformer extends MockTransformer {
 
   BadTransformer(this.outputs);
 
-  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      // Create the outputs first.
-      for (var output in outputs) {
-        var id = new AssetId.parse(output);
-        transform.addOutput(new Asset.fromString(id, output));
-      }
+  void doApply(Transform transform) {
+    // Create the outputs first.
+    for (var output in outputs) {
+      var id = new AssetId.parse(output);
+      transform.addOutput(new Asset.fromString(id, output));
+    }
 
-      // Then fail.
-      throw ERROR;
-    });
+    // Then fail.
+    throw ERROR;
   }
 }

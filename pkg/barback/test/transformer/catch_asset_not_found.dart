@@ -7,7 +7,6 @@ library barback.test.transformer.catch_asset_not_found;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 
@@ -23,8 +22,7 @@ class CatchAssetNotFoundTransformer extends MockTransformer {
   CatchAssetNotFoundTransformer(this.extension, String input)
       : input = new AssetId.parse(input);
 
-  Future<bool> doIsPrimary(AssetId id) =>
-      new Future.value(id.extension == extension);
+  bool doIsPrimary(AssetId id) => id.extension == extension;
 
   Future doApply(Transform transform) {
     return transform.getInput(input).then((_) {

@@ -4,8 +4,6 @@
 
 library barback.test.transformer.emit_nothing;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 
 import 'mock.dart';
@@ -16,10 +14,11 @@ class EmitNothingTransformer extends MockTransformer {
 
   EmitNothingTransformer(this.extension);
 
-  Future<bool> doIsPrimary(AssetId id) =>
-    new Future.value(id.extension == ".$extension");
+  bool doIsPrimary(AssetId id) => id.extension == ".$extension";
 
-  Future doApply(Transform transform) => new Future.value();
+  void doApply(Transform transform) {
+    // Emit nothing.
+  }
 
   String toString() => "$extension->nothing";
 }

@@ -59,12 +59,12 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
       : this.withSettings(environment, new BarbackSettings({}, mode));
 
   /// Only ".dart" entrypoint files within a buildable directory are processed.
-  Future<bool> isPrimary(AssetId id) {
-    if (id.extension != ".dart") return new Future.value(false);
+  bool isPrimary(AssetId id) {
+    if (id.extension != ".dart") return false;
 
     // These should only contain libraries. For efficiency's sake, we don't
     // look for entrypoints in there.
-    return new Future.value(!["asset/", "lib/"].any(id.path.startsWith));
+    return !["asset/", "lib/"].any(id.path.startsWith);
   }
 
   Future apply(Transform transform) {
@@ -87,14 +87,13 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     });
   }
 
-  Future declareOutputs(DeclaringTransform transform) {
+  void declareOutputs(DeclaringTransform transform) {
     var primaryId = transform.primaryId;
     transform.declareOutput(primaryId.addExtension(".js"));
     transform.declareOutput(primaryId.addExtension(".precompiled.js"));
     if (_generateSourceMaps) {
       transform.declareOutput(primaryId.addExtension(".js.map"));
     }
-    return new Future.value();
   }
 
   /// Returns whether or not [asset] might be an entrypoint.

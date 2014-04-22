@@ -4,8 +4,6 @@
 
 library barback.test.transformer.lazy_many_to_one;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 
 import 'many_to_one.dart';
@@ -17,7 +15,7 @@ class LazyManyToOneTransformer extends ManyToOneTransformer
   LazyManyToOneTransformer(String extension)
       : super(extension);
 
-  Future declareOutputs(DeclaringTransform transform) {
+  void declareOutputs(DeclaringTransform transform) {
     transform.declareOutput(transform.primaryId.changeExtension(".out"));
   }
 }

@@ -190,8 +190,14 @@ abstract class MockTransformer extends Transformer {
   }
 
   /// The wrapped version of [isPrimary] for subclasses to override.
-  Future<bool> doIsPrimary(AssetId id);
+  ///
+  /// This may return a `Future<bool>` or, if it's entirely synchronous, a
+  /// `bool`.
+  doIsPrimary(AssetId id);
 
   /// The wrapped version of [doApply] for subclasses to override.
-  Future doApply(Transform transform);
+  ///
+  /// If this does asynchronous work, it should return a [Future] that completes
+  /// once it's finished.
+  doApply(Transform transform);
 }

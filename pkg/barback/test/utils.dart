@@ -5,7 +5,6 @@
 library barback.test.utils;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert' show Encoding;
 
 import 'package:barback/barback.dart';
@@ -36,6 +35,7 @@ export 'transformer/many_to_one.dart';
 export 'transformer/mock.dart';
 export 'transformer/one_to_many.dart';
 export 'transformer/rewrite.dart';
+export 'transformer/sync_rewrite.dart';
 
 var _configured = false;
 
