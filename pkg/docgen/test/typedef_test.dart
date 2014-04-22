@@ -78,13 +78,15 @@ const _TEST_METHOD_COMMENT = '<p>Processes an '
     'is not empty.</p>';
 
 // TODO: [input] is not turned into a param refenece
+// TODO(kevmoo): <a>test_lib.C</a> should be <a>root_lib.C</a> - Issues 18352
 const _TEST_TYPEDEF_PREVIEW = '<p>Processes an input of type '
-    '<a>root_lib.C</a> instance for testing.</p>';
+    '<a>test_lib.C</a> instance for testing.</p>';
 
 // TOOD: [List<A>] is not formatted correctly - issue 16771
 // TODO: [listOfA] is not turned into a param reference
+// TODO(kevmoo): <a>test_lib.C</a> should be <a>root_lib.C</a> - Issues 18352
 final _TEST_TYPEDEF_COMMENT = _TEST_TYPEDEF_PREVIEW + '\n<p>To eliminate import'
-    ' warnings for <a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s '
+    ' warnings for <a>test_lib.A</a> and to test typedefs.</p>\n<p>It\'s '
     'important that the <a>dart-core</a>&lt;A> for param listOfA is not '
     'empty.</p>';
 
