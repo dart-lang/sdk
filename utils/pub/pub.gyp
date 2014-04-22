@@ -10,7 +10,7 @@
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
         '../../pkg/pkg.gyp:pkg_packages',
-        '../../pkg/pkg.gyp:pkg_files_stamp',
+        '../../pkg/pkg_files.gyp:pkg_files_stamp',
         '../../utils/compiler/compiler.gyp:dart2js_files_stamp',
         'pub_files_stamp'
       ],

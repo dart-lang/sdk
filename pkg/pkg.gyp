@@ -32,31 +32,5 @@
         },
       ],
     },
-    # Other targets depend on pkg files, but have to many inputs, which causes
-    # issues on some platforms.
-    # This target lists all the files in pkg and third_party/pkg,
-    # and creates a single pkg_files.stamp
-    {
-      'target_name': 'pkg_files_stamp',
-      'type': 'none',
-      'actions': [
-        {
-          'action_name': 'make_pkg_files_stamp',
-          'inputs': [
-            '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_files.py", "", "."])',
-            '<!@(["python", "../tools/list_files.py", "",'
-                '"../third_party/pkg"])',
-          ],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
-          ],
-          'action': [
-            'python', '../tools/create_timestamp_file.py',
-            '<@(_outputs)',
-          ],
-        },
-      ],
-    }
   ],
 }
