@@ -41,6 +41,9 @@ polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 
+[ $runtime == vm ]
+docgen/test/typedef_test: RuntimeError # Issue 18352
+
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
