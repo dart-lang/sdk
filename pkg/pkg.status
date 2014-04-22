@@ -162,6 +162,15 @@ polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
+docgen/test/multi_library_test: StaticWarning # Issue 18232
+docgen/test/generate_json_test: StaticWarning # Issue 18232
+docgen/test/single_library_test: StaticWarning # Issue 18232
+docgen/test/only_lib_content_in_pkg: StaticWarning # Issue 18232
+docgen/test/only_lib_content_in_pkg_test: StaticWarning # Issue 18232
+docgen/test/typedef_test: StaticWarning # Issue 18232
+docgen/test/inherited_comments_test: StaticWarning # Issue 18232
+docgen/test/constant_argument_test: StaticWarning # Issue 18232
+
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
 polymer/example/canonicalization2: Skip

@@ -40,7 +40,7 @@ final_syntax_test/03: Fail # Issue 11124
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
-# test issue 11575, classes with abstrac members are not marked as abstract
+# test issue 11575, classes with abstract members are not marked as abstract
 get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
@@ -157,6 +157,17 @@ proxy_test/06: StaticWarning # Issue 15467
 proxy3_test/03: StaticWarning # Issue 15467
 proxy3_test/04: StaticWarning # Issue 15467
 
+# test issue 18230
+factory_redirection_test/02: StaticWarning # Issue 18230
+factory_redirection_test/08: StaticWarning # Issue 18230
+factory_redirection_test/09: StaticWarning # Issue 18230
+factory_redirection_test/10: StaticWarning # Issue 18230
+factory_redirection_test/11: StaticWarning # Issue 18230
+factory_redirection_test/12: StaticWarning # Issue 18230
+factory_redirection_test/13: StaticWarning # Issue 18230
+factory_redirection_test/14: StaticWarning # Issue 18230
+factory_redirection_test/none: StaticWarning # Issue 18230
+
 # analyzer does not handle @proxy and noSuchMethod correctly
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
@@ -169,8 +180,6 @@ override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
 override_inheritance_abstract_test/27: StaticWarning # Issue 17983
 
 # missing warning for override
-override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
-override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
 
@@ -181,10 +190,6 @@ override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
 # missing warning for assignment to method
 assign_top_method_test/01: MissingStaticWarning # Issue 16672
-
-# missing warning for assignment to type variable
-checked_setter3_test/01: MissingStaticWarning # Issue 16673
-checked_setter3_test/02: MissingStaticWarning # Issue 16673
 
 abstract_object_method_test: StaticWarning
 application_negative_test: CompileTimeError
@@ -453,3 +458,34 @@ deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
 deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
+
+# Issues to be fixed now that type parameters have been fixed
+# (issues 14221, 15553)
+const_constructor2_test/01: StaticWarning
+const_constructor2_test/02: StaticWarning
+const_constructor2_test/03: StaticWarning
+const_constructor2_test/04: StaticWarning
+const_constructor2_test/05: StaticWarning
+const_constructor2_test/06: StaticWarning
+const_constructor2_test/07: StaticWarning
+const_constructor2_test/08: StaticWarning
+const_constructor2_test/09: StaticWarning
+const_constructor2_test/10: StaticWarning
+const_constructor2_test/11: StaticWarning
+const_constructor2_test/12: StaticWarning
+const_constructor2_test/19: StaticWarning
+const_constructor2_test/20: StaticWarning
+const_constructor2_test/21: StaticWarning
+const_constructor2_test/22: StaticWarning
+const_constructor2_test/23: StaticWarning
+const_constructor2_test/24: StaticWarning
+const_constructor2_test/none: StaticWarning
+factory1_test/00: StaticWarning
+factory1_test/01: StaticWarning
+factory1_test/none: StaticWarning
+generic_closure_test: StaticWarning
+local_function2_test: StaticWarning
+null_test/none: StaticWarning
+redirecting_factory_long_test: StaticWarning
+type_parameter_literal_test: StaticWarning
+mirrors/new_instance_with_type_arguments_test: StaticWarning
