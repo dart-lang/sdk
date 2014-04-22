@@ -92,7 +92,6 @@ List<Annotation> createAnnotations(DeclarationMirror mirror,
 }
 
 /// A declaration is private if itself is private, or the owner is private.
-// Issue(12202) - A declaration is public even if it's owner is private.
 bool isHidden(DeclarationSourceMirror mirror) {
   if (mirror is LibraryMirror) {
     return _isLibraryPrivate(mirror);
