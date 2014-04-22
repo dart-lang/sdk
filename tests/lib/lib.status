@@ -135,6 +135,9 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
+[ $compiler == dart2js && $jscl ]
+mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15566
+
 [ $compiler == dart2js && $runtime == jsshell ]
 async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
