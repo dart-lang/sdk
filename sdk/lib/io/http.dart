@@ -1317,6 +1317,86 @@ abstract class HttpClient {
   Future<HttpClientRequest> postUrl(Uri url);
 
   /**
+   * Opens a HTTP connection using the PUT method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
+   */
+  Future<HttpClientRequest> put(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the PUT method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
+   */
+  Future<HttpClientRequest> putUrl(Uri url);
+
+  /**
+   * Opens a HTTP connection using the DELETE method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
+   */
+  Future<HttpClientRequest> delete(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the DELETE method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
+   */
+  Future<HttpClientRequest> deleteUrl(Uri url);
+
+  /**
+   * Opens a HTTP connection using the PATCH method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
+   */
+  Future<HttpClientRequest> patch(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the PATCH method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
+   */
+  Future<HttpClientRequest> patchUrl(Uri url);
+
+  /**
+   * Opens a HTTP connection using the HEAD method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
+   */
+  Future<HttpClientRequest> head(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the HEAD method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
+   */
+  Future<HttpClientRequest> headUrl(Uri url);
+
+  /**
    * Sets the function to be called when a site is requesting
    * authentication. The URL requested and the security realm from the
    * server are passed in the arguments [url] and [realm].

@@ -148,19 +148,58 @@ void testGetDataServerForceClose() {
   });
 }
 
-void testPostEmptyRequest() {
-  HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((request) {
-      request.pipe(request.response);
-    });
 
-    var client = new HttpClient();
-    client.post("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) {
-        response.listen((data) {}, onDone: server.close);
+void testOpenEmptyRequest() {
+  var client = new HttpClient();
+  var methods = [
+    [client.get, 'GET'],
+    [client.post, 'POST'],
+    [client.put, 'PUT'],
+    [client.delete, 'DELETE'],
+    [client.patch, 'PATCH'],
+    [client.head, 'HEAD']];
+
+  for (var method in methods) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      server.listen((request) {
+        Expect.equals(method[1], request.method);
+        request.pipe(request.response);
       });
-  });
+
+      method[0]("127.0.0.1", server.port, "/")
+          .then((request) => request.close())
+          .then((response) {
+            response.listen((data) {}, onDone: server.close);
+          });
+    });
+  }
+}
+
+
+void testOpenUrlEmptyRequest() {
+  var client = new HttpClient();
+  var methods = [
+    [client.getUrl, 'GET'],
+    [client.postUrl, 'POST'],
+    [client.putUrl, 'PUT'],
+    [client.deleteUrl, 'DELETE'],
+    [client.patchUrl, 'PATCH'],
+    [client.headUrl, 'HEAD']];
+
+  for (var method in methods) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      server.listen((request) {
+        Expect.equals(method[1], request.method);
+        request.pipe(request.response);
+      });
+
+      method[0](Uri.parse("http://127.0.0.1:${server.port}/"))
+          .then((request) => request.close())
+          .then((response) {
+            response.listen((data) {}, onDone: server.close);
+          });
+    });
+  }
 }
 
 
@@ -218,6 +257,7 @@ void main() {
   testGetServerCloseNoKeepAlive();
   testGetServerForceClose();
   testGetDataServerForceClose();
-  testPostEmptyRequest();
+  testOpenEmptyRequest();
+  testOpenUrlEmptyRequest();
   testNoBuffer();
 }
