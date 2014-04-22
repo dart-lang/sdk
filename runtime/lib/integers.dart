@@ -294,13 +294,13 @@ class _Smi extends _IntegerImplementation implements int {
     0x39, 0x36, 0x39, 0x37, 0x39, 0x38, 0x39, 0x39
   ];
 
-  // Powers of 10 above 1000000 are indistinguishable.
+  // Powers of 10 above 1000000 are indistinguishable by eye.
   static const int _POW_10_7  = 10000000;
   static const int _POW_10_8  = 100000000;
   static const int _POW_10_9  = 1000000000;
-  static const int _POW_10_10 = 10000000000;
 
   // Find the number of decimal digits in a positive smi.
+  // Never called with numbers < 100. These are handled before calling.
   static int _positiveBase10Length(var smi) {
     // A positive smi has length <= 19 if 63-bit,  <=10 if 31-bit.
     // Avoid comparing a 31-bit smi to a non-smi.
@@ -311,15 +311,13 @@ class _Smi extends _IntegerImplementation implements int {
       if (smi < 1000000) return 6;
       return 7;
     }
-    if (smi < _POW_10_10) {
-      if (smi < _POW_10_8) return 8;
-      if (smi < _POW_10_9) return 9;
-      return 10;
-    }
-    smi = smi ~/ _POW_10_10;
-    if (smi < 10) return 11;
-    if (smi < 100) return 12;
-    return 10 + _positiveBase10Length(smi);
+    if (smi < _POW_10_8) return 8;
+    if (smi < _POW_10_9) return 9;
+    smi = smi ~/ _POW_10_9;
+    // Handle numbers < 100 before calling recursively.
+    if (smi < 10) return 10;
+    if (smi < 100) return 11;
+    return 9 + _positiveBase10Length(smi);
   }
 
   String toString() {
@@ -363,6 +361,7 @@ class _Smi extends _IntegerImplementation implements int {
   }
 
   // Find the number of decimal digits in a negative smi.
+  // Never called with numbers > -100. These are handled before calling.
   static int _negativeBase10Length(var negSmi) {
     // A negative smi has length <= 19 if 63-bit, <=10 if 31-bit.
     // Avoid comparing a 31-bit smi to a non-smi.
@@ -373,15 +372,13 @@ class _Smi extends _IntegerImplementation implements int {
       if (negSmi > -1000000) return 6;
       return 7;
     }
-    if (negSmi > -_POW_10_10) {
-      if (negSmi > -_POW_10_8) return 8;
-      if (negSmi > -_POW_10_9) return 9;
-      return 10;
-    }
-    negSmi = negSmi ~/ _POW_10_10;
-    if (negSmi > -10) return 11;
-    if (negSmi > -100) return 12;
-    return 10 + _negativeBase10Length(negSmi);
+    if (negSmi > -_POW_10_8) return 8;
+    if (negSmi > -_POW_10_9) return 9;
+    negSmi = negSmi ~/ _POW_10_9;
+    // Handle numbers > -100 before calling recursively.
+    if (negSmi > -10) return 10;
+    if (negSmi > -100) return 11;
+    return 9 + _negativeBase10Length(negSmi);
   }
 
   // Convert a negative smi to a string.
