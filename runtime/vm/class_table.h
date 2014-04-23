@@ -52,6 +52,14 @@ class AllocStats {
     old_count = 0;
     old_size = 0;
   }
+
+  // For classes with fixed instance size we do not emit code to update
+  // the size statistics. Update them by calling this method.
+  void UpdateSize(intptr_t instance_size) {
+    ASSERT(instance_size > 0);
+    old_size = old_count * instance_size;
+    new_size = new_count * instance_size;
+  }
 };
 
 class ClassHeapStats {
