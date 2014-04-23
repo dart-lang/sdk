@@ -1268,27 +1268,23 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  return Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  return Api::NewHandle(isolate, SendPort::New(port_id));
 }
 
 
-DART_EXPORT Dart_Handle Dart_PortGetId(Dart_Handle port, Dart_Port* port_id) {
+DART_EXPORT Dart_Handle Dart_ReceivePortGetId(Dart_Handle port,
+                                              Dart_Port* port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  const Instance& port_instance = Api::UnwrapInstanceHandle(isolate, port);
-  if (port_instance.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, port, Instance);
+  const ReceivePort& receive_port = Api::UnwrapReceivePortHandle(isolate, port);
+  if (receive_port.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, port, ReceivePort);
   }
-  if (!DartLibraryCalls::IsSendPort(port_instance) &&
-      !DartLibraryCalls::IsReceivePort(port_instance)) {
-    return Api::NewError("expected an instance of RawReceivePort or SendPort.");
+  if (port_id == NULL) {
+    RETURN_NULL_ERROR(port_id);
   }
-  const Object& idObj = Object::Handle(
-      DartLibraryCalls::PortGetId(port_instance));
-  ASSERT(idObj.IsInteger());
-  const Integer& id = Integer::Cast(idObj);
-  *port_id = static_cast<Dart_Port>(id.AsInt64Value());
+  *port_id = receive_port.Id();
   return Api::Success();
 }
 
@@ -1327,28 +1323,22 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 }
 
 
-DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle send_port,
+DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle port,
                                          Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Instance& port_instance = Instance::Handle();
-  port_instance ^= Api::UnwrapHandle(send_port);
-  if (!DartLibraryCalls::IsSendPort(port_instance)) {
-    return Api::NewError("send_port is not a SendPort.");
+  const SendPort& send_port = Api::UnwrapSendPortHandle(isolate, port);
+  if (send_port.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, port, SendPort);
   }
-  const Object& idObj = Object::Handle(
-      DartLibraryCalls::PortGetId(port_instance));
-  ASSERT(!idObj.IsError());
-  Integer& id = Integer::Handle();
-  id ^= idObj.raw();
-  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
+  Dart_Port port_id = send_port.Id();
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   Object& msg_object = Object::Handle(Api::UnwrapHandle(object));
   writer.WriteMessage(msg_object);
   intptr_t len = writer.BytesWritten();
   bool r = PortMap::PostMessage(
-      new Message(port, data, len, Message::kNormalPriority));
+      new Message(port_id, data, len, Message::kNormalPriority));
   if (r) {
     return Api::Success();
   }

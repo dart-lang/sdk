@@ -6476,6 +6476,55 @@ class Closure : public AllStatic {
 };
 
 
+class Capability : public Instance {
+ public:
+  uint64_t Id() const { return raw_ptr()->id_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawCapability));
+  }
+  static RawCapability* New(uint64_t id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Capability, Instance);
+  friend class Class;
+};
+
+
+class ReceivePort : public Instance {
+ public:
+  RawSendPort* send_port() const { return raw_ptr()->send_port_; }
+  Dart_Port Id() const { return send_port()->ptr()->id_; }
+
+  RawInstance* handler() const { return raw_ptr()->handler_; }
+  void set_handler(const Instance& value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawReceivePort));
+  }
+  static RawReceivePort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
+  friend class Class;
+};
+
+
+class SendPort : public Instance {
+ public:
+  Dart_Port Id() const { return raw_ptr()->id_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSendPort));
+  }
+  static RawSendPort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);
+  friend class Class;
+};
+
+
 // Internal stacktrace object used in exceptions for printing stack traces.
 class Stacktrace : public Instance {
  public:

@@ -134,12 +134,17 @@ TEST_CASE(PortMap_PostMessage) {
 }
 
 
-TEST_CASE(PortMap_PostMessageInvalidPort) {
+TEST_CASE(PortMap_PostMessageClosedPort) {
+  // Create a port id and make it invalid.
+  PortTestMessageHandler handler;
+  Dart_Port port = PortMap::CreatePort(&handler);
+  PortMap::ClosePort(port);
+
   const char* message = "msg";
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(!PortMap::PostMessage(new Message(
-      0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
+      port, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
       Message::kNormalPriority)));
 }
 

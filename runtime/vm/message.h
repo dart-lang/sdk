@@ -34,7 +34,9 @@ class Message {
         dest_port_(dest_port),
         data_(data),
         len_(len),
-        priority_(priority) {}
+        priority_(priority) {
+    ASSERT(dest_port != kIllegalPort);
+  }
   ~Message() {
     free(data_);
   }

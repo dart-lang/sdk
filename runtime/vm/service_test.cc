@@ -167,8 +167,7 @@ TEST_CASE(Service_Isolate) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -223,8 +222,7 @@ TEST_CASE(Service_StackTrace) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -264,8 +262,7 @@ TEST_CASE(Service_DebugBreakpoints) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -360,8 +357,7 @@ TEST_CASE(Service_Objects) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -580,8 +576,7 @@ TEST_CASE(Service_Libraries) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -645,8 +640,7 @@ TEST_CASE(Service_Classes) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -786,8 +780,7 @@ TEST_CASE(Service_Types) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -892,8 +885,7 @@ TEST_CASE(Service_Code) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -995,8 +987,7 @@ TEST_CASE(Service_VM) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -1027,8 +1018,7 @@ TEST_CASE(Service_Scripts) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -1068,8 +1058,7 @@ TEST_CASE(Service_Coverage) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -1108,8 +1097,7 @@ TEST_CASE(Service_AllocationProfile) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
@@ -1174,8 +1162,7 @@ TEST_CASE(Service_HeapMap) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -1202,8 +1189,7 @@ TEST_CASE(Service_Address) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -1277,8 +1263,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -1316,8 +1301,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -1354,8 +1338,7 @@ TEST_CASE(Service_Profile) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port =
-      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 

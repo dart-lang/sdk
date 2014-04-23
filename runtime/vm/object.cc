@@ -855,10 +855,10 @@ RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
-  Class& cls = Class::Handle();
-  Type& type = Type::Handle();
-  Array& array = Array::Handle();
-  Library& lib = Library::Handle();
+  Class& cls = Class::Handle(isolate);
+  Type& type = Type::Handle(isolate);
+  Array& array = Array::Handle(isolate);
+  Library& lib = Library::Handle(isolate);
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -886,7 +886,8 @@ RawError* Object::Init(Isolate* isolate) {
   // Last element contains the count of used slots.
   const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
   array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
-  array.SetAt(kInitialCanonicalTypeArgumentsSize, Smi::Handle(Smi::New(0)));
+  array.SetAt(kInitialCanonicalTypeArgumentsSize,
+              Smi::Handle(isolate, Smi::New(0)));
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
@@ -920,34 +921,34 @@ RawError* Object::Init(Isolate* isolate) {
   Symbols::SetupSymbolTable(isolate);
 
   // Set up the libraries array before initializing the core library.
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      isolate, GrowableObjectArray::New(Heap::kOld));
   object_store->set_libraries(libraries);
 
   // Pre-register the core library.
   Library::InitCoreLibrary(isolate);
 
   // Basic infrastructure has been setup, initialize the class dictionary.
-  Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
   object_store->set_pending_classes(pending_classes);
 
-  Context& context = Context::Handle(Context::New(0, Heap::kOld));
+  Context& context = Context::Handle(isolate, Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  String& name = String::Handle();
+  String& name = String::Handle(isolate);
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
-  type ^= Type::New(Object::Handle(cls.raw()),
-                    TypeArguments::Handle(),
+  type ^= Type::New(Object::Handle(isolate, cls.raw()),
+                    TypeArguments::Handle(isolate),
                     Scanner::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
@@ -983,6 +984,31 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
   RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
+  pending_classes.Add(cls);
+
+  // Pre-register the isolate library so the native class implementations
+  // can be hooked up before compiling it.
+  Library& isolate_lib =
+      Library::Handle(isolate, Library::LookupLibrary(Symbols::DartIsolate()));
+  if (isolate_lib.IsNull()) {
+    isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
+    isolate_lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kIsolate,
+                                                   isolate_lib);
+  }
+  ASSERT(!isolate_lib.IsNull());
+  ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
+
+  cls = Class::New<Capability>();
+  RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
+  pending_classes.Add(cls);
+
+  cls = Class::New<ReceivePort>();
+  RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
+  pending_classes.Add(cls);
+
+  cls = Class::New<SendPort>();
+  RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
   pending_classes.Add(cls);
 
   cls = Class::New<Stacktrace>();
@@ -1406,6 +1432,10 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Instance>(kNullCid);
   object_store->set_null_class(cls);
+
+  cls = Class::New<Capability>();
+  cls = Class::New<ReceivePort>();
+  cls = Class::New<SendPort>();
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
@@ -14661,7 +14691,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
       !IsJavascriptInt(value)) {
-    const Integer &i = Integer::Handle(Mint::New(value));
+    const Integer& i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
   return Mint::New(value, space);
@@ -17823,6 +17853,81 @@ void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
   Instance::PrintToJSONStream(stream, ref);
 }
 
+
+RawCapability* Capability::New(uint64_t id, Heap::Space space) {
+  Capability& result = Capability::Handle();
+  {
+    RawObject* raw = Object::Allocate(Capability::kClassId,
+                                      Capability::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->id_ = id;
+  }
+  return result.raw();
+}
+
+
+const char* Capability::ToCString() const {
+  return "Capability";
+}
+
+
+void Capability::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
+RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  const SendPort& send_port = SendPort::Handle(isolate, SendPort::New(id));
+
+  ReceivePort& result = ReceivePort::Handle(isolate);
+  {
+    RawObject* raw = Object::Allocate(ReceivePort::kClassId,
+                                      ReceivePort::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->send_port_ = send_port.raw();
+  }
+  PortMap::SetLive(id);
+  return result.raw();
+}
+
+
+const char* ReceivePort::ToCString() const {
+  return "ReceivePort";
+}
+
+
+void ReceivePort::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
+RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
+  SendPort& result = SendPort::Handle();
+  {
+    RawObject* raw = Object::Allocate(SendPort::kClassId,
+                                      SendPort::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->id_ = id;
+  }
+  return result.raw();
+}
+
+
+const char* SendPort::ToCString() const {
+  return "SendPort";
+}
+
+
+void SendPort::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
 
 
 const char* Closure::ToCString(const Instance& closure) {

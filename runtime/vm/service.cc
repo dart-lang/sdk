@@ -158,18 +158,8 @@ static void SendIsolateServiceMessage(Dart_NativeArguments args) {
   Isolate* isolate = arguments->isolate();
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, sp, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(1));
-
-  // Extract SendPort port id.
-  const Object& sp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(sp));
-  if (sp_id_obj.IsError()) {
-    Exceptions::PropagateError(Error::Cast(sp_id_obj));
-  }
-  Integer& id = Integer::Handle(isolate);
-  id ^= sp_id_obj.raw();
-  Dart_Port sp_id = static_cast<Dart_Port>(id.AsInt64Value());
-  ASSERT(sp_id != ILLEGAL_PORT);
 
   // Serialize message.
   uint8_t* data = NULL;
@@ -177,7 +167,7 @@ static void SendIsolateServiceMessage(Dart_NativeArguments args) {
   writer.WriteMessage(message);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(sp_id, data, writer.BytesWritten(),
+  PortMap::PostMessage(new Message(sp.Id(), data, writer.BytesWritten(),
                                    Message::kOOBPriority));
 }
 
@@ -241,13 +231,10 @@ static Dart_Port ExtractPort(Dart_Handle receivePort) {
   const Object& unwrapped_rp = Object::Handle(Api::UnwrapHandle(receivePort));
   const Instance& rp = Instance::Cast(unwrapped_rp);
   // Extract RawReceivePort port id.
-  const Object& rp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(rp));
-  if (rp_id_obj.IsError()) {
+  if (!rp.IsReceivePort()) {
     return ILLEGAL_PORT;
   }
-  ASSERT(rp_id_obj.IsSmi() || rp_id_obj.IsMint());
-  const Integer& id = Integer::Cast(rp_id_obj);
-  return static_cast<Dart_Port>(id.AsInt64Value());
+  return ReceivePort::Cast(rp).Id();
 }
 
 
@@ -262,9 +249,7 @@ static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
   ASSERT(!list.IsNull());
   const Integer& code_int = Integer::Handle(Integer::New(code));
   const Integer& port_int = Integer::Handle(Integer::New(port_id));
-  const Object& send_port = Object::Handle(
-      DartLibraryCalls::NewSendPort(port_id));
-  ASSERT(!send_port.IsNull());
+  const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
   list.SetAt(0, code_int);
   list.SetAt(1, port_int);
   list.SetAt(2, send_port);
@@ -305,9 +290,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     intptr_t port_id = isolate->main_port();
     const Integer& port_int = Integer::Handle(Integer::New(port_id));
     ASSERT(!port_int.IsNull());
-    const Object& send_port = Object::Handle(
-        DartLibraryCalls::NewSendPort(port_id));
-    ASSERT(!send_port.IsNull());
+    const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
     const String& name = String::Handle(String::New(isolate->name()));
     ASSERT(!name.IsNull());
     const Array& args = Array::Handle(Array::New(3));
@@ -661,6 +644,10 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
     // Same number of option keys as values.
     ASSERT(option_keys.Length() == option_values.Length());
 
+    if (!reply_port.IsSendPort()) {
+      FATAL("SendPort expected.");
+    }
+
     String& path_segment = String::Handle();
     if (path.Length() > 0) {
       path_segment ^= path.At(0);
@@ -674,7 +661,8 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
         FindIsolateMessageHandler(path_segment_c);
     {
       JSONStream js;
-      js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
+      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+               path, option_keys, option_values);
       if (handler == NULL) {
         // Check for an embedder handler.
         EmbedderServiceHandler* e_handler =
@@ -1762,6 +1750,7 @@ void Service::HandleRootMessage(const Instance& msg) {
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
     GrowableObjectArray& option_keys = GrowableObjectArray::Handle(isolate);
     GrowableObjectArray& option_values = GrowableObjectArray::Handle(isolate);
+
     reply_port ^= message.At(0);
     path ^= message.At(1);
     option_keys ^= message.At(2);
@@ -1774,6 +1763,10 @@ void Service::HandleRootMessage(const Instance& msg) {
     ASSERT(path.Length() > 0);
     // Same number of option keys as values.
     ASSERT(option_keys.Length() == option_values.Length());
+
+    if (!reply_port.IsSendPort()) {
+      FATAL("SendPort expected.");
+    }
 
     String& path_segment = String::Handle();
     if (path.Length() > 0) {
@@ -1788,7 +1781,8 @@ void Service::HandleRootMessage(const Instance& msg) {
         FindRootMessageHandler(path_segment_c);
     {
       JSONStream js;
-      js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
+      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+               path, option_keys, option_values);
       if (handler == NULL) {
         // Check for an embedder handler.
         EmbedderServiceHandler* e_handler =

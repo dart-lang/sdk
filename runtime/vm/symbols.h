@@ -131,6 +131,9 @@ class ObjectPointerVisitor;
   V(TwoByteString, "_TwoByteString")                                           \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
+  V(_CapabilityImpl, "_CapabilityImpl")                                        \
+  V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
+  V(_SendPortImpl, "_SendPortImpl")                                            \
   V(StackTrace, "StackTrace")                                                  \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(Object, "Object")                                                          \
@@ -235,14 +238,10 @@ class ObjectPointerVisitor;
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(toString, "toString")                                                      \
-  V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
-  V(_lookupReceivePort, "_lookupReceivePort")                                  \
+  V(_lookupHandler, "_lookupHandler")                                          \
   V(_handleMessage, "_handleMessage")                                          \
-  V(_SendPortImpl, "_SendPortImpl")                                            \
-  V(_create, "_create")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotWithType, "._withType")                                                 \
-  V(_id, "_id")                                                                \
   V(_get, "_get")                                                              \
   V(RangeError, "RangeError")                                                  \
   V(ArgumentError, "ArgumentError")                                            \

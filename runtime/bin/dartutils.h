@@ -220,8 +220,6 @@ class DartUtils {
   static const char* kHttpScheme;
   static const char* kVMServiceLibURL;
 
-  static const char* kIdFieldName;
-
   static uint8_t magic_number[];
 
  private:

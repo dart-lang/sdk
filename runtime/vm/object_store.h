@@ -407,18 +407,11 @@ class ObjectStore {
     preallocated_stack_trace_ = value.raw();
   }
 
-  RawFunction* receive_port_create_function() const {
-    return receive_port_create_function_;
+  RawFunction* lookup_port_handler() const {
+    return lookup_port_handler_;
   }
-  void set_receive_port_create_function(const Function& function) {
-    receive_port_create_function_ = function.raw();
-  }
-
-  RawFunction* lookup_receive_port_function() const {
-    return lookup_receive_port_function_;
-  }
-  void set_lookup_receive_port_function(const Function& function) {
-    lookup_receive_port_function_ = function.raw();
+  void set_lookup_port_handler(const Function& function) {
+    lookup_port_handler_ = function.raw();
   }
 
   RawFunction* handle_message_function() const {
@@ -512,8 +505,7 @@ class ObjectStore {
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
   RawStacktrace* preallocated_stack_trace_;
-  RawFunction* receive_port_create_function_;
-  RawFunction* lookup_receive_port_function_;
+  RawFunction* lookup_port_handler_;
   RawFunction* handle_message_function_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&handle_message_function_);

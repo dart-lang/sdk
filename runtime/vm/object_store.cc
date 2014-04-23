@@ -74,8 +74,7 @@ ObjectStore::ObjectStore()
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
     preallocated_stack_trace_(Stacktrace::null()),
-    receive_port_create_function_(Function::null()),
-    lookup_receive_port_function_(Function::null()),
+    lookup_port_handler_(Function::null()),
     handle_message_function_(Function::null()) {
 }
 

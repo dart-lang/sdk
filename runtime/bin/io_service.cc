@@ -53,6 +53,7 @@ void IOServiceCallback(Dart_Port dest_port_id,
   CObjectArray result(CObject::NewArray(2));
   result.SetAt(0, request[0]);
   result.SetAt(1, response);
+  ASSERT(reply_port_id != ILLEGAL_PORT);
   Dart_PostCObject(reply_port_id, result.AsApiCObject());
 }
 

@@ -293,7 +293,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   Dart_Handle main_port = Dart_GetField(lib, NewString("mainPort"));
   EXPECT_VALID(main_port);
   Dart_Port main_port_id;
-  Dart_Handle err = Dart_PortGetId(main_port, &main_port_id);
+  Dart_Handle err = Dart_ReceivePortGetId(main_port, &main_port_id);
   EXPECT_VALID(err);
 
   OS::Print("-- Adding StartEvent to queue --\n");

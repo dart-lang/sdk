@@ -27,36 +27,10 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-// TODO(turnidge): Move to DartLibraryCalls.
-static RawObject* ReceivePortCreate(Dart_Port port_id) {
-  Isolate* isolate = Isolate::Current();
-  Function& func =
-      Function::Handle(isolate,
-                       isolate->object_store()->receive_port_create_function());
-  const int kNumArguments = 1;
-  if (func.IsNull()) {
-    Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-    ASSERT(!isolate_lib.IsNull());
-    const String& class_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_create()));
-    func = Resolver::ResolveStatic(isolate_lib,
-                                   class_name,
-                                   function_name,
-                                   kNumArguments,
-                                   Object::empty_array());
-    ASSERT(!func.IsNull());
-    isolate->object_store()->set_receive_port_create_function(func);
-  }
-  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
-  const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(func, args));
-  if (!result.IsError()) {
-    PortMap::SetLive(port_id);
-  }
-  return result.raw();
+DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  uint64_t id = isolate->random()->NextUInt64();
+  return Capability::New(id);
 }
 
 
@@ -64,23 +38,48 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id =
       PortMap::CreatePort(arguments->isolate()->message_handler());
-  const Object& port = Object::Handle(ReceivePortCreate(port_id));
-  if (port.IsError()) {
-    Exceptions::PropagateError(Error::Cast(port));
-  }
-  return port.raw();
+  return ReceivePort::New(port_id);
+}
+
+
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  return Integer::NewFromUint64(port.Id());
+}
+
+
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  return port.send_port();
 }
 
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, id, arguments->NativeArgAt(0));
-  PortMap::ClosePort(id.Value());
-  return Object::null();
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  Dart_Port id = port.Id();
+  PortMap::ClosePort(id);
+  return Integer::NewFromUint64(id);
+}
+
+
+DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  return Integer::NewFromUint64(port.Id());
+}
+
+
+DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  int64_t id = port.Id();
+  int32_t hi = static_cast<int32_t>(id >> 32);
+  int32_t lo = static_cast<int32_t>(id);
+  int32_t hash = (hi ^ lo) & kSmiMax;
+  return Smi::New(hash);
 }
 
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, send_id, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
@@ -89,7 +88,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(send_id.Value(),
+  PortMap::PostMessage(new Message(port.Id(),
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
   return Object::null();
@@ -178,13 +177,8 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
   }
 
   // Try to create a SendPort for the new isolate.
-  const Object& port = Object::Handle(
-      DartLibraryCalls::NewSendPort(state->isolate()->main_port()));
-  if (port.IsError()) {
-    state->Cleanup();
-    delete state;
-    Exceptions::PropagateError(Error::Cast(port));
-  }
+  const SendPort& port = SendPort::Handle(
+      SendPort::New(state->isolate()->main_port()));
 
   // Start the new isolate if it is already marked as runnable.
   MutexLocker ml(state->isolate()->mutex());
@@ -237,17 +231,12 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Isolate_mainPort, 0) {
-  const Object& port = Object::Handle(ReceivePortCreate(isolate->main_port()));
-  if (port.IsError()) {
-    Exceptions::PropagateError(Error::Cast(port));
-  }
-
   // The control port is being accessed as a regular port from Dart code. This
   // is most likely due to the _startIsolate code in dart:isolate. Account for
   // this by increasing the number of open control ports.
   isolate->message_handler()->increment_control_ports();
 
-  return port.raw();
+  return ReceivePort::New(isolate->main_port());
 }
 
 }  // namespace dart

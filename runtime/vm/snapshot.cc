@@ -33,8 +33,7 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kUserTagCid) ||
-          class_id == kArrayCid ||
-          class_id == kImmutableArrayCid ||
+          class_id == kArrayCid || class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id) ||

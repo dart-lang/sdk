@@ -41,8 +41,13 @@ namespace dart {
   V(Integer_parse, 1)                                                          \
   V(Integer_leftShiftWithMask32, 3)                                            \
   V(Bool_fromEnvironment, 3)                                                   \
+  V(CapabilityImpl_factory, 1)                                                 \
   V(RawReceivePortImpl_factory, 1)                                             \
+  V(RawReceivePortImpl_get_id, 1)                                              \
+  V(RawReceivePortImpl_get_sendport, 1)                                        \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
+  V(SendPortImpl_get_id, 1)                                                    \
+  V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \

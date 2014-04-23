@@ -11,6 +11,16 @@ patch class ReceivePort {
       _ReceivePortImpl.fromRawReceivePort;
 }
 
+patch class Capability {
+  /* patch */ factory Capability() {
+    throw new UnimplementedError();
+  }
+}
+
+class _CapabilityImpl {
+  factory _CapabilityImpl() native "CapabilityImpl_factory";
+}
+
 patch class RawReceivePort {
   /**
    * Opens a long-lived port for receiving messages.
@@ -79,41 +89,39 @@ class _RawReceivePortImpl implements RawReceivePort {
   factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
 
   close() {
-    _portMap.remove(_id);
-    _closeInternal(_id);
+    // Close the port and remove it from the handler map.
+    _handlerMap.remove(this._closeInternal());
   }
 
   SendPort get sendPort {
-    return new _SendPortImpl._from(this);
+    return _get_sendport();
+  }
+
+  bool operator==(var other) {
+    return (other is _RawReceivePortImpl) &&
+        (this._get_id() == other._get_id());
+  }
+
+  int get hashCode {
+    return sendPort.hashCode();
   }
 
   /**** Internal implementation details ****/
-  // Called from the VM to create a new RawReceivePort instance.
-  static _RawReceivePortImpl _get(int id) {
-    return _portMap[id];
-  }
+  _get_id() native "RawReceivePortImpl_get_id";
+  _get_sendport() native "RawReceivePortImpl_get_sendport";
 
-  static _RawReceivePortImpl _create(int id) {
-    assert(_portMap[id]== null);
-    return new _RawReceivePortImpl._internal(id);
-  }
-
-  _RawReceivePortImpl._internal(int id) : _id = id {
-    _portMap[id] = this;
-  }
-
-  // Called from the VM to retrieve the RawReceivePort for a message.
-  static _RawReceivePortImpl _lookupReceivePort(int id) {
-    return _portMap[id];
+  // Called from the VM to retrieve the handler for a message.
+  static _lookupHandler(int id) {
+    var result = _handlerMap[id];
+    return result;
   }
 
   // Called from the VM to dispatch to the handler.
-  static void _handleMessage(_RawReceivePortImpl port, var message) {
-    assert(port != null);
+  static void _handleMessage(Function handler, var message) {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
-    port._handler(message);
+    handler(message);
     if (_pendingImmediateCallback != null) {
       var callback = _pendingImmediateCallback;
       _pendingImmediateCallback = null;
@@ -122,57 +130,38 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   // Call into the VM to close the VM maintained mappings.
-  static _closeInternal(int id) native "RawReceivePortImpl_closeInternal";
+  _closeInternal() native "RawReceivePortImpl_closeInternal";
 
-  void set handler(Function newHandler) {
-    this._handler = newHandler;
+  void set handler(Function value) {
+    _handlerMap[this._get_id()] = value;
   }
 
-  final int _id;
-  Function _handler;
-
-  // id to RawReceivePort mapping.
-  static final Map _portMap = new HashMap();
+  // TODO(iposva): Ideally keep this map in the VM.
+  // id to handler mapping.
+  static final Map _handlerMap = new HashMap();
 }
 
 
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message) {
-    _sendInternal(_id, message);
+    _sendInternal(message);
   }
 
   bool operator==(var other) {
-    return (other is _SendPortImpl) && _id == other._id;
+    return (other is _SendPortImpl) && (this._get_id() == other._get_id());
   }
 
   int get hashCode {
-    const int MASK = 0x3FFFFFFF;
-    int hash = _id;
-    hash = (hash + ((hash & (MASK >> 10)) << 10)) & MASK;
-    hash ^= (hash >> 6);
-    hash = (hash + ((hash & (MASK >> 3)) << 3)) & MASK;
-    hash ^= (hash >> 11);
-    hash = (hash + ((hash & (MASK >> 15)) << 15)) & MASK;
-    return hash;
+    return _get_hashcode();
   }
 
   /*--- private implementation ---*/
-  _SendPortImpl._from(_RawReceivePortImpl from) : _id = from._id;
-  _SendPortImpl._with(int id) : _id = id;
+  _get_id() native "SendPortImpl_get_id";
+  _get_hashcode() native "SendPortImpl_get_hashcode";
 
-  // _SendPortImpl._create is called from the VM when a new SendPort instance is
-  // needed by the VM code.
-  static SendPort _create(int id) {
-    return new _SendPortImpl._with(id);
-  }
-
-  // Forward the implementation of sending messages to the VM. Only port ids
-  // are being handed to the VM.
-  static _sendInternal(int sendId, var message)
-      native "SendPortImpl_sendInternal_";
-
-  final int _id;
+  // Forward the implementation of sending messages to the VM.
+  void _sendInternal(var message) native "SendPortImpl_sendInternal_";
 }
 
 typedef _MainFunction();
@@ -276,10 +265,4 @@ patch class Isolate {
       native "Isolate_spawnFunction";
 
   static SendPort _spawnUri(String uri) native "Isolate_spawnUri";
-}
-
-patch class Capability {
-  /* patch */ factory Capability() {
-    throw new UnimplementedError();
-  }
 }

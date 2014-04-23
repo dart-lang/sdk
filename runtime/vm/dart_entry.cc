@@ -381,11 +381,11 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 }
 
 
-RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
+RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   Function& function =
       Function::Handle(isolate,
-                       isolate->object_store()->lookup_receive_port_function());
+                       isolate->object_store()->lookup_port_handler());
   const int kNumArguments = 1;
   if (function.IsNull()) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -393,14 +393,14 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
     const String& function_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_lookupReceivePort()));
+        String::Handle(isolate_lib.PrivateName(Symbols::_lookupHandler()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
                                        function_name,
                                        kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    isolate->object_store()->set_lookup_receive_port_function(function);
+    isolate->object_store()->set_lookup_port_handler(function);
   }
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
@@ -410,7 +410,7 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
 }
 
 
-RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
+RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
                                            const Instance& message) {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle(isolate,
@@ -432,7 +432,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
     isolate->object_store()->set_handle_message_function(function);
   }
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
-  args.SetAt(0, receive_port);
+  args.SetAt(0, handler);
   args.SetAt(1, message);
   if (isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
@@ -444,27 +444,6 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
       DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
-}
-
-
-RawObject* DartLibraryCalls::NewSendPort(Dart_Port port_id) {
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName(Symbols::_SendPortImpl()));
-  const int kNumArguments = 1;
-  const String& function_name =
-      String::Handle(isolate_lib.PrivateName(Symbols::_create()));
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              Object::empty_array()));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(Integer::New(port_id)));
-  return DartEntry::InvokeFunction(function, args);
 }
 
 
@@ -486,46 +465,6 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
   const Object& result = Object::Handle(DartEntry::InvokeFunction(function,
                                                                   args));
   return result.raw();
-}
-
-
-RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
-  const Class& cls = Class::Handle(port.clazz());
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  const String& func_name =
-      String::Handle(isolate_lib.PrivateName(
-          String::Handle(Field::GetterName(Symbols::_id()))));
-  const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));
-  ASSERT(!func.IsNull());
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, port);
-  return DartEntry::InvokeFunction(func, args);
-}
-
-
-bool DartLibraryCalls::IsSendPort(const Instance& obj) {
-  // Get instance class.
-  const Class& cls = Class::Handle(obj.clazz());
-  // Get send port class from isolate library.
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  const Class& send_port_cls = Class::Handle(
-      isolate_lib.LookupClassAllowPrivate(Symbols::_SendPortImpl()));
-  // Check for the same class id.
-  ASSERT(!send_port_cls.IsNull());
-  return cls.id() == send_port_cls.id();
-}
-
-
-bool DartLibraryCalls::IsReceivePort(const Instance& obj) {
-  // Get instance class.
-  const Class& cls = Class::Handle(obj.clazz());
-  // Get send port class from isolate library.
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  const Class& recv_port_cls = Class::Handle(
-      isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl()));
-  // Check for the same class id.
-  ASSERT(!recv_port_cls.IsNull());
-  return cls.id() == recv_port_cls.id();
 }
 
 }  // namespace dart

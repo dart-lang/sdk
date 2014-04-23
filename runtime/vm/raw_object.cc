@@ -799,6 +799,30 @@ intptr_t RawExternalTypedData::VisitExternalTypedDataPointers(
   return ExternalTypedData::InstanceSize();
 }
 
+intptr_t RawCapability::VisitCapabilityPointers(RawCapability* raw_obj,
+                                                ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  return Capability::InstanceSize();
+}
+
+
+intptr_t RawReceivePort::VisitReceivePortPointers(
+    RawReceivePort* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ReceivePort::InstanceSize();
+}
+
+
+intptr_t RawSendPort::VisitSendPortPointers(RawSendPort* raw_obj,
+                                            ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  return SendPort::InstanceSize();
+}
+
 
 intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
                                                 ObjectPointerVisitor* visitor) {

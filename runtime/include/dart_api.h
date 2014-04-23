@@ -1157,7 +1157,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 
 
-DART_EXPORT Dart_Handle Dart_PortGetId(Dart_Handle port, Dart_Port* port_id);
+DART_EXPORT Dart_Handle Dart_ReceivePortGetId(Dart_Handle port,
+                                              Dart_Port* port_id);
 
 /**
  * Gets the ReceivePort for the provided port id.

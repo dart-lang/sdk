@@ -34,20 +34,11 @@ JSONStream::~JSONStream() {
 
 
 void JSONStream::Setup(Zone* zone,
-                       const Instance& reply_port,
+                       Dart_Port reply_port,
                        const GrowableObjectArray& path,
                        const GrowableObjectArray& option_keys,
                        const GrowableObjectArray& option_values) {
-  // Setup the reply port.
-  const Object& id_obj = Object::Handle(
-      DartLibraryCalls::PortGetId(reply_port));
-  if (id_obj.IsError()) {
-    Exceptions::PropagateError(Error::Cast(id_obj));
-  }
-  const Integer& id = Integer::Cast(id_obj);
-  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
-  ASSERT(port != ILLEGAL_PORT);
-  set_reply_port(port);
+  set_reply_port(reply_port);
 
   // Setup JSONStream arguments and options. The arguments and options
   // are zone allocated and will be freed immediately after handling the

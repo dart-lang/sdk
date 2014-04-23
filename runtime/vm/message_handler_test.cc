@@ -123,7 +123,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   EXPECT_EQ(0, handler.notify_count());
 
   // Post a message.
-  Message* message = new Message(0, NULL, 0, Message::kNormalPriority);
+  Message* message = new Message(1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.
@@ -135,7 +135,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   delete message;
 
   // Post an oob message.
-  message = new Message(0, NULL, 0, Message::kOOBPriority);
+  message = new Message(1, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.

@@ -57,6 +57,9 @@ class RawOneByteString;
 class RawPatchClass;
 class RawScript;
 class RawSmi;
+class RawCapability;
+class RawReceivePort;
+class RawSendPort;
 class RawStacktrace;
 class RawTokenStream;
 class RawType;
@@ -548,6 +551,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawJSRegExp;
   friend class RawLibrary;
   friend class RawLiteralToken;
+  friend class RawReceivePort;
   friend class RawScript;
   friend class RawStacktrace;
   friend class RawTokenStream;
