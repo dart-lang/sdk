@@ -43,7 +43,7 @@ void main() {
             webSocket.close();
             server.close();
           } else {
-            expect(false, reason: "Only expected two messages.");
+            fail("Only expected two messages.");
           }
           n++;
         }).asFuture();
@@ -85,7 +85,7 @@ void main() {
             webSocket.close();
             server.close();
           } else {
-            expect(false, reason: "Only expected two messages.");
+            fail("Only expected two messages.");
           }
           n++;
         }).asFuture();
