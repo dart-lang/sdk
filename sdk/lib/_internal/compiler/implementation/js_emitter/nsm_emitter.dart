@@ -63,10 +63,8 @@ class NsmEmitter extends CodeEmitterHelper {
     jsAst.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       int type = selector.invocationMirrorKind;
-      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      for (int i = 0; i < selector.argumentCount; i++) {
-        parameters.add(new jsAst.Parameter('\$$i'));
-      }
+      List<String> parameterNames =
+          new List.generate(selector.argumentCount, (i) => '\$$i');
 
       List<jsAst.Expression> argNames =
           selector.getOrderedNamedArguments().map((String name) =>
@@ -83,20 +81,22 @@ class NsmEmitter extends CodeEmitterHelper {
       }
 
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression = js('this.$noSuchMethodName')(
-          [js('this'),
-           namer.elementAccess(backend.getCreateInvocationMirror())([
-               js.string(compiler.enableMinification ?
-                         internalName : methodName),
-               js.string(internalName),
-               type,
-               new jsAst.ArrayInitializer.from(
-                   parameters.map((param) => js(param.name)).toList()),
-               new jsAst.ArrayInitializer.from(argNames)])]);
-      parameters = backend.isInterceptedName(selector.name)
-          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
-          : parameters;
-      return js.fun(parameters, js.return_(expression));
+      jsAst.Expression expression = js('this.#(this, #(#, #, #, #, #))', [
+          noSuchMethodName,
+          namer.elementAccess(backend.getCreateInvocationMirror()),
+          js.string(compiler.enableMinification ?
+              internalName : methodName),
+          js.string(internalName),
+          js.number(type),
+          new jsAst.ArrayInitializer.from(parameterNames.map(js)),
+          new jsAst.ArrayInitializer.from(argNames)]);
+
+      if (backend.isInterceptedName(selector.name)) {
+        return js(r'function($receiver, #) { return # }',
+                  [parameterNames, expression]);
+      } else {
+        return js(r'function(#) { return # }', [parameterNames, expression]);
+      }
     }
 
     for (String jsName in addedJsNames.keys.toList()..sort()) {
@@ -176,8 +176,9 @@ class NsmEmitter extends CodeEmitterHelper {
    * they are called with the receiver as the first argument).  They need a
    * slightly different noSuchMethod handler, so we handle these first.
    */
-  void addTrivialNsmHandlers(List<jsAst.Node> statements) {
-    if (trivialNsmHandlers.length == 0) return;
+  List<jsAst.Statement> buildTrivialNsmHandlers() {
+    List<jsAst.Statement> statements = <jsAst.Statement>[];
+    if (trivialNsmHandlers.length == 0) return statements;
     // Sort by calling convention, JS name length and by JS name.
     trivialNsmHandlers.sort((a, b) {
       bool aIsIntercepted = backend.isInterceptedName(a.name);
@@ -268,106 +269,120 @@ class NsmEmitter extends CodeEmitterHelper {
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
-    String createInvocationMirror = namer.isolateAccess(
+    jsAst.Expression createInvocationMirror = namer.elementAccess(
         backend.getCreateInvocationMirror());
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
     var type = 0;
     if (useDiffEncoding) {
-      statements.addAll([
-        js('var objectClassObject = '
-           '        collectedClasses["${namer.getNameOfClass(objectClass)}"],'
-           '    shortNames = "$diffEncoding".split(","),'
-           '    nameNumber = 0,'
-           '    diffEncodedString = shortNames[0],'
-           '    calculatedShortNames = [0, 1]'),  // 0, 1 are args for splice.
-        // If we are loading a deferred library the object class will not be in
-        // the collectedClasses so objectClassObject is undefined, and we skip
-        // setting up the names.
-        js.if_('objectClassObject', [
-          js.if_('objectClassObject instanceof Array',
-                 js('objectClassObject = objectClassObject[1]')),
-          js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
-            js('var codes = [],'
-               '    diff = 0,'
-               '    digit = diffEncodedString.charCodeAt(i)'),
-            js.if_('digit == ${$PERIOD}', [
-              js('nameNumber = 0'),
-              js('digit = diffEncodedString.charCodeAt(++i)')
-            ]),
-            js.while_('digit <= ${$Z}', [
-              js('diff *= 26'),
-              js('diff += (digit - ${$A})'),
-              js('digit = diffEncodedString.charCodeAt(++i)')
-            ]),
-            js('diff *= 26'),
-            js('diff += (digit - ${$a})'),
-            js('nameNumber += diff'),
-            js.for_('var remaining = nameNumber',
-                    'remaining > 0',
-                    'remaining = (remaining / 88) | 0', [
-              js('codes.unshift(${$HASH} + remaining % 88)')
-            ]),
-            js('calculatedShortNames.push('
-               '    String.fromCharCode.apply(String, codes))')
-          ]),
-          js('shortNames.splice.apply(shortNames, calculatedShortNames)')])
-      ]);
+      statements.add(js.statement('''{
+          var objectClassObject =
+                  collectedClasses[#],    // # is name of class Object.
+              shortNames = #.split(","),  // # is diffEncoding.
+              nameNumber = 0,
+              diffEncodedString = shortNames[0],
+              calculatedShortNames = [0, 1];    // 0, 1 are args for splice.
+          // If we are loading a deferred library the object class will not be in
+          // the collectedClasses so objectClassObject is undefined, and we skip
+          // setting up the names.
+
+          if (objectClassObject) {
+            if (objectClassObject instanceof Array)
+              objectClassObject = objectClassObject[1];
+            for (var i = 0; i < diffEncodedString.length; i++) {
+              var codes = [],
+                  diff = 0,
+                  digit = diffEncodedString.charCodeAt(i);
+              if (digit == ${$PERIOD}) {
+                nameNumber = 0;
+                digit = diffEncodedString.charCodeAt(++i);
+              }
+              for (; digit <= ${$Z};) {
+                diff *= 26;
+                diff += (digit - ${$A});
+                digit = diffEncodedString.charCodeAt(++i);
+              }
+              diff *= 26;
+              diff += (digit - ${$a});
+              nameNumber += diff;
+              for (var remaining = nameNumber;
+                   remaining > 0;
+                   remaining = (remaining / 88) | 0) {
+                codes.unshift(${$HASH} + remaining % 88);
+              }
+              calculatedShortNames.push(
+                String.fromCharCode.apply(String, codes));
+            }
+            shortNames.splice.apply(shortNames, calculatedShortNames);
+          }
+        }''', [
+            js.string(namer.getNameOfClass(objectClass)),
+            js.string('$diffEncoding')]));
     } else {
       // No useDiffEncoding version.
       Iterable<String> longs = trivialNsmHandlers.map((selector) =>
              selector.invocationMirrorMemberName);
-      String longNamesConstant = minify ? "" :
-          ',longNames = "${longs.join(",")}".split(",")';
-      statements.add(
-        js('var objectClassObject = '
-           '        collectedClasses["${namer.getNameOfClass(objectClass)}"],'
-           '    shortNames = "$diffEncoding".split(",")'
-           '    $longNamesConstant'));
-      statements.add(
-          js.if_('objectClassObject instanceof Array',
-                 js('objectClassObject = objectClassObject[1]')));
+      statements.add(js.statement(
+          'var objectClassObject = collectedClasses[#],'
+          '    shortNames = #.split(",")', [
+              js.string(namer.getNameOfClass(objectClass)),
+              js.string('$diffEncoding')]));
+      if (!minify) {
+        statements.add(js.statement('var longNames = #.split(",")',
+                js.string(longs.join(','))));
+      }
+      statements.add(js.statement(
+          'if (objectClassObject instanceof Array)'
+          '  objectClassObject = objectClassObject[1];'));
     }
 
-    String sliceOffset = ', (j < $firstNormalSelector) ? 1 : 0';
-    if (firstNormalSelector == 0) sliceOffset = '';
-    if (firstNormalSelector == shorts.length) sliceOffset = ', 1';
-
+    // TODO(9631): This is no longer valid for native methods.
     String whatToPatch = task.nativeEmitter.handleNoSuchMethod ?
                          "Object.prototype" :
                          "objectClassObject";
 
-    var params = ['name', 'short', 'type'];
-    var sliceOffsetParam = '';
-    var slice = 'Array.prototype.slice.call';
-    if (!sliceOffset.isEmpty) {
-      sliceOffsetParam = ', sliceOffset';
-      params.add('sliceOffset');
-    }
-    statements.addAll([
+    List<jsAst.Expression> sliceOffsetArguments =
+        firstNormalSelector == 0
+        ? []
+        : (firstNormalSelector == shorts.length
+            ? [js.number(1)]
+            : [js('(j < #) ? 1 : 0', js.number(firstNormalSelector))]);
+
+    var sliceOffsetParams = sliceOffsetArguments.isEmpty ? [] : ['sliceOffset'];
+
+    statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
       // the collectedClasses so objectClassObject is undefined, and we skip
       // setting up the names.
-      js.if_('objectClassObject', [
-        js.for_('var j = 0', 'j < shortNames.length', 'j++', [
-          js('var type = 0'),
-          js('var short = shortNames[j]'),
-          js.if_('short[0] == "${namer.getterPrefix[0]}"', js('type = 1')),
-          js.if_('short[0] == "${namer.setterPrefix[0]}"', js('type = 2')),
+      if (objectClassObject) {
+        for (var j = 0; j < shortNames.length; j++) {
+          var type = 0;
+          var short = shortNames[j];
+          if (short[0] == "${namer.getterPrefix[0]}") type = 1;
+          if (short[0] == "${namer.setterPrefix[0]}") type = 2;
           // Generate call to:
-          // createInvocationMirror(String name, internalName, type, arguments,
-          //                        argumentNames)
-          js('$whatToPatch[short] = #(${minify ? "shortNames" : "longNames"}[j], '
-                                      'short, type$sliceOffset)',
-             js.fun(params, [js.return_(js.fun([],
-                 [js.return_(js(
-                     'this.$noSuchMethodName('
-                         'this, '
-                         '$createInvocationMirror('
-                             'name, short, type, '
-                             '$slice(arguments$sliceOffsetParam), []))'))]))]))
-        ])
-      ])
-    ]);
+          //
+          //     createInvocationMirror(String name, internalName, type,
+          //         arguments, argumentNames)
+          //
+          $whatToPatch[short] = (function(name, short, type, #) {
+              return function() {
+                return this.#(this,
+                    #(name, short, type,
+                      Array.prototype.slice.call(arguments, #),
+                      []));
+              }
+          })(#[j], short, type, #);
+        }
+      }''', [
+          sliceOffsetParams,  // parameter
+          noSuchMethodName,
+          createInvocationMirror,
+          sliceOffsetParams,  // argument to slice
+          minify ? 'shortNames' : 'longNames',
+          sliceOffsetArguments
+      ]));
+
+    return statements;
   }
 }

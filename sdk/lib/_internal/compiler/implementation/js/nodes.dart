@@ -64,8 +64,10 @@ abstract class NodeVisitor<T> {
   T visitComment(Comment node);
 
   T visitInterpolatedExpression(InterpolatedExpression node);
+  T visitInterpolatedLiteral(InterpolatedLiteral node);
+  T visitInterpolatedParameter(InterpolatedParameter node);
+  T visitInterpolatedSelector(InterpolatedSelector node);
   T visitInterpolatedStatement(InterpolatedStatement node);
-  T visitJSExpression(JSExpression node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -150,11 +152,18 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitProperty(Property node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
 
+  T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
+
   T visitInterpolatedExpression(InterpolatedExpression node)
-      => visitExpression(node);
+      => visitInterpolatedNode(node);
+  T visitInterpolatedLiteral(InterpolatedLiteral node)
+      => visitInterpolatedNode(node);
+  T visitInterpolatedParameter(InterpolatedParameter node)
+      => visitInterpolatedNode(node);
+  T visitInterpolatedSelector(InterpolatedSelector node)
+      => visitInterpolatedNode(node);
   T visitInterpolatedStatement(InterpolatedStatement node)
-      => visitStatement(node);
-  T visitJSExpression(JSExpression node) => visitExpression(node);
+      => visitInterpolatedNode(node);
 
   // Ignore comments by default.
   T visitComment(Comment node) => null;
@@ -454,59 +463,7 @@ class LiteralStatement extends Statement {
 abstract class Expression extends Node {
   int get precedenceLevel;
 
-  Call callWith(List<Expression> arguments) => new Call(this, arguments);
-
-  PropertyAccess operator [](expression) {
-    if (expression is Expression) {
-      return new PropertyAccess(this, expression);
-    } else if (expression is int) {
-      return new PropertyAccess.indexed(this, expression);
-    } else if (expression is String) {
-      return new PropertyAccess.field(this, expression);
-    } else {
-      throw new ArgumentError('Expected an int, String, or Expression');
-    }
-  }
-
   Statement toStatement() => new ExpressionStatement(this);
-
-  Call call([expression]) {
-    List<Expression> arguments;
-    if (expression == null) {
-      arguments = <Expression>[];
-    } else if (expression is List) {
-      arguments = expression.map(js.toExpression).toList();
-    } else {
-      arguments = <Expression>[js.toExpression(expression)];
-    }
-    return callWith(arguments);
-  }
-
-  Expression operator +(expression) => binary('+', expression);
-
-  Expression operator -(expression) => binary('-', expression);
-
-  Expression operator &(expression) => binary('&', expression);
-
-  Expression operator <(expression) => binary('<', expression);
-
-  Expression operator >(expression) => binary('>', expression);
-
-  Expression operator >=(expression) => binary('>=', expression);
-
-  Expression binary(String operator, expression) {
-    return new Binary(operator, this, js.toExpression(expression));
-  }
-
-  Expression update(String operator, expression) {
-    return new Assignment.compound(this, operator, js.toExpression(expression));
-  }
-
-  Expression get plusPlus => new Postfix('++', this);
-
-  Prefix get typeof => new Prefix('typeof', this);
-
-  Prefix get not => new Prefix('!', this);
 }
 
 /// Wrap a CodeBuffer as an expression.
@@ -953,64 +910,61 @@ class Property extends Node {
 }
 
 /// Tag class for all interpolated positions.
-abstract class InterpolatedNode implements Node {}
+abstract class InterpolatedNode implements Node {
+  get name; // 'int' for positional interpolated nodes, 'String' for named.
+}
 
 class InterpolatedExpression extends Expression implements InterpolatedNode {
-  Expression value;
+  final name;
 
-  InterpolatedExpression(this.value);
-
-  void assign(Expression newValue) {
-    value = newValue;
-  }
+  InterpolatedExpression(this.name);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
+  void visitChildren(NodeVisitor visitor) {}
 
-  void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
-  }
+  int get precedenceLevel => PRIMARY;
+}
 
-  int get precedenceLevel => value.precedenceLevel;
+class InterpolatedLiteral extends Literal implements InterpolatedNode {
+  final name;
+
+  InterpolatedLiteral(this.name);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedLiteral(this);
+  void visitChildren(NodeVisitor visitor) {}
+}
+
+class InterpolatedParameter extends Expression
+    implements Parameter, InterpolatedNode {
+  final name;
+
+  InterpolatedParameter(this.name);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedParameter(this);
+  void visitChildren(NodeVisitor visitor) {}
+
+  int get precedenceLevel => PRIMARY;
+}
+
+class InterpolatedSelector extends Expression implements InterpolatedNode {
+  final name;
+
+  InterpolatedSelector(this.name);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedSelector(this);
+  void visitChildren(NodeVisitor visitor) {}
+
+  int get precedenceLevel => PRIMARY;
 }
 
 class InterpolatedStatement extends Statement implements InterpolatedNode {
-  Statement value;
+  final name;
 
-  InterpolatedStatement(this.value);
-
-  void assign(Node newValue) {
-    if (newValue is Expression)
-      value = new ExpressionStatement(newValue);
-    else
-      value = newValue;
-  }
+  InterpolatedStatement(this.name);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedStatement(this);
-
-  void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
-  }
+  void visitChildren(NodeVisitor visitor) {}
 }
-
-class JSExpression extends Expression {
-  Expression value;
-  List<InterpolatedNode> interpolatedNodes;
-
-  JSExpression(this.value, this.interpolatedNodes);
-
-  accept(NodeVisitor visitor) => visitor.visitJSExpression(this);
-
-  void visitChildren(NodeVisitor visitor) {
-    value.accept(visitor);
-    for (InterpolatedNode node in interpolatedNodes) {
-      node.accept(visitor);
-    }
-  }
-
-  int get precedenceLevel => value.precedenceLevel;
-}
-
-// TODO(sra): JSStatement like JSExpression.
 
 /**
  * [RegExpLiteral]s, despite being called "Literal", do not inherit from

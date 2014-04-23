@@ -29,13 +29,13 @@ class InterceptorEmitter extends CodeEmitterHelper {
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String key,
                                 Set<ClassElement> classes) {
-    jsAst.Statement buildReturnInterceptor(ClassElement cls) {
-      return js.return_(js(namer.isolateAccess(cls))['prototype']);
+    jsAst.Expression interceptorFor(ClassElement cls) {
+      return js('#.prototype', namer.elementAccess(cls));
     }
 
     /**
      * Build a JavaScrit AST node for doing a type check on
-     * [cls]. [cls] must be an interceptor class.
+     * [cls]. [cls] must be a non-native interceptor class.
      */
     jsAst.Statement buildInterceptorCheck(ClassElement cls) {
       jsAst.Expression condition;
@@ -58,7 +58,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       } else {
         throw 'internal error';
       }
-      return js.if_(condition, buildReturnInterceptor(cls));
+      return js.statement('if (#) return #', [condition, interceptorFor(cls)]);
     }
 
     bool hasArray = false;
@@ -108,7 +108,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       hasNative = anyNativeClasses;
     }
 
-    jsAst.Block block = new jsAst.Block.empty();
+    List<Statement> statements = <Statement>[];
 
     if (hasNumber) {
       jsAst.Statement whenNumber;
@@ -117,75 +117,67 @@ class InterceptorEmitter extends CodeEmitterHelper {
       /// and JavaScript's Number (typeof receiver == 'number').  This
       /// is the fallback used when we have determined that receiver
       /// is a JavaScript Number.
-      jsAst.Return returnNumberClass = buildReturnInterceptor(
+      jsAst.Expression interceptorForNumber = interceptorFor(
           hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
 
       if (hasInt) {
-        jsAst.Expression isInt = js('Math.floor(receiver) == receiver');
-        whenNumber = js.block([
-            js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)),
-            returnNumberClass]);
+        whenNumber = js.statement('''{
+            if (Math.floor(receiver) == receiver) return #;
+            return #;
+        }''', [interceptorFor(backend.jsIntClass), interceptorForNumber]);
       } else {
-        whenNumber = returnNumberClass;
+        whenNumber = js.statement('return #', interceptorForNumber);
       }
-      block.statements.add(
-          js.if_('(typeof receiver) == "number"',
-                 whenNumber));
+      statements.add(
+          js.statement('if (typeof receiver == "number") #;', whenNumber));
     }
 
     if (hasString) {
-      block.statements.add(buildInterceptorCheck(backend.jsStringClass));
+      statements.add(buildInterceptorCheck(backend.jsStringClass));
     }
     if (hasNull) {
-      block.statements.add(buildInterceptorCheck(backend.jsNullClass));
+      statements.add(buildInterceptorCheck(backend.jsNullClass));
     } else {
       // Returning "undefined" or "null" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
-      block.statements.add(js.if_('receiver == null',
-                                  js.return_(js('receiver'))));
+      statements.add(
+          js.statement('if (receiver == null) return receiver'));
     }
     if (hasBool) {
-      block.statements.add(buildInterceptorCheck(backend.jsBoolClass));
+      statements.add(buildInterceptorCheck(backend.jsBoolClass));
     }
     // TODO(ahe): It might be faster to check for Array before
     // function and bool.
     if (hasArray) {
-      block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
+      statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
 
     if (hasNative) {
-      block.statements.add(
-          js.if_(
-              js('(typeof receiver) != "object"'),
-              js.return_(js('receiver'))));
-
-      // if (receiver instanceof $.Object) return receiver;
-      // return $.getNativeInterceptor(receiver);
-      block.statements.add(
-          js.if_(js('receiver instanceof #',
-                    js(namer.isolateAccess(compiler.objectClass))),
-                 js.return_(js('receiver'))));
-      block.statements.add(
-          js.return_(
-              js(namer.isolateAccess(backend.getNativeInterceptorMethod))(
-                  ['receiver'])));
+      statements.add(js.statement(r'''{
+          if (typeof receiver != "object") return receiver;
+          if (receiver instanceof #) return receiver;
+          return #(receiver);
+      }''', [
+          namer.elementAccess(compiler.objectClass),
+          namer.elementAccess(backend.getNativeInterceptorMethod)]));
 
     } else {
       ClassElement jsUnknown = backend.jsUnknownJavaScriptObjectClass;
       if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
-        block.statements.add(
-            js.if_(js('!(receiver instanceof #)',
-                      js(namer.isolateAccess(compiler.objectClass))),
-                   buildReturnInterceptor(jsUnknown)));
+        statements.add(
+            js.statement('if (!(receiver instanceof #)) return #;',
+                [namer.elementAccess(compiler.objectClass),
+                 interceptorFor(jsUnknown)]));
       }
 
-      block.statements.add(js.return_(js('receiver')));
+      statements.add(js.statement('return receiver'));
     }
 
     buffer.write(jsAst.prettyPrint(
-        js('${namer.globalObjectFor(compiler.interceptorsLibrary)}.$key = #',
-           js.fun(['receiver'], block)),
+        js('''${namer.globalObjectFor(compiler.interceptorsLibrary)}.# =
+              function(receiver) { #; }''',
+            [key, statements]),
         compiler));
     buffer.write(N);
   }
@@ -208,37 +200,15 @@ class InterceptorEmitter extends CodeEmitterHelper {
   // fast path.
   jsAst.Statement fastPathForOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {
-    jsAst.Expression isNumber(String variable) {
-      return js('typeof $variable == "number"');
-    }
-
-    jsAst.Expression isNotObject(String variable) {
-      return js('typeof $variable != "object"');
-    }
-
-    jsAst.Expression isInt(String variable) {
-      return isNumber(variable).binary('&&',
-          js('Math.floor($variable) == $variable'));
-    }
-
-    jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
-      return receiver.binary('>>>', js('0'));
-    }
 
     if (selector.isOperator()) {
       String name = selector.name;
       if (name == '==') {
-        // Unfolds to:
-        //    if (receiver == null) return a0 == null;
-        //    if (typeof receiver != 'object') {
-        //      return a0 != null && receiver === a0;
-        //    }
-        List<jsAst.Statement> body = <jsAst.Statement>[];
-        body.add(js.if_('receiver == null', js.return_(js('a0 == null'))));
-        body.add(js.if_(
-            isNotObject('receiver'),
-            js.return_(js('a0 != null && receiver === a0'))));
-        return new jsAst.Block(body);
+        return js.statement('''{
+          if (receiver == null) return a0 == null;
+          if (typeof receiver != "object")
+            return a0 != null && receiver === a0;
+        }''');
       }
       if (!classes.contains(backend.jsIntClass)
           && !classes.contains(backend.jsNumberClass)
@@ -246,29 +216,27 @@ class InterceptorEmitter extends CodeEmitterHelper {
         return null;
       }
       if (selector.argumentCount == 1) {
-        // The following operators do not map to a JavaScript
-        // operator.
+        // The following operators do not map to a JavaScript operator.
         if (name == '~/' || name == '<<' || name == '%' || name == '>>') {
           return null;
         }
-        jsAst.Expression result = js('receiver').binary(name, js('a0'));
+        jsAst.Expression result = js('receiver $name a0');
         if (name == '&' || name == '|' || name == '^') {
-          result = tripleShiftZero(result);
+          result = js('# >>> 0', result);
         }
-        // Unfolds to:
-        //    if (typeof receiver == "number" && typeof a0 == "number")
-        //      return receiver op a0;
-        return js.if_(
-            isNumber('receiver').binary('&&', isNumber('a0')),
-            js.return_(result));
+        return js.statement(
+            'if (typeof receiver == "number" && typeof a0 == "number")'
+            '  return #;',
+            result);
       } else if (name == 'unary-') {
-        // [: if (typeof receiver == "number") return -receiver :].
-        return js.if_(isNumber('receiver'),
-                      js.return_(js('-receiver')));
+        return js.statement(
+            'if (typeof receiver == "number") return -receiver');
       } else {
         assert(name == '~');
-        return js.if_(isInt('receiver'),
-                      js.return_(js('~receiver >>> 0')));
+        return js.statement('''
+          if (typeof receiver == "number" && Math.floor(receiver) == receiver)
+            return (~receiver) >>> 0;
+          ''');
       }
     } else if (selector.isIndex() || selector.isIndexSet()) {
       // For an index operation, this code generates:
@@ -302,34 +270,33 @@ class InterceptorEmitter extends CodeEmitterHelper {
       if (!containsArray && !containsString) {
         return null;
       }
-      jsAst.Expression isIntAndAboveZero = js('a0 >>> 0 === a0');
-      jsAst.Expression belowLength = js('a0 < receiver.length');
       jsAst.Expression arrayCheck = js('receiver.constructor == Array');
       jsAst.Expression indexableCheck =
           backend.generateIsJsIndexableCall(js('receiver'), js('receiver'));
 
       jsAst.Expression orExp(left, right) {
-        return left == null ? right : left.binary('||', right);
+        return left == null ? right : js('# || #', [left, right]);
       }
 
       if (selector.isIndex()) {
-        jsAst.Expression stringCheck = js('typeof receiver == "string"');
         jsAst.Expression typeCheck;
         if (containsArray) {
           typeCheck = arrayCheck;
         }
 
         if (containsString) {
-          typeCheck = orExp(typeCheck, stringCheck);
+          typeCheck = orExp(typeCheck, js('typeof receiver == "string"'));
         }
 
         if (containsJsIndexable) {
           typeCheck = orExp(typeCheck, indexableCheck);
         }
 
-        return js.if_(typeCheck,
-                      js.if_(isIntAndAboveZero.binary('&&', belowLength),
-                             js.return_(js('receiver[a0]'))));
+        return js.statement('''
+          if (#)
+            if ((a0 >>> 0) === a0 && a0 < receiver.length)
+              return receiver[a0];
+          ''', typeCheck);
       } else {
         jsAst.Expression typeCheck;
         if (containsArray) {
@@ -340,11 +307,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
           typeCheck = orExp(typeCheck, indexableCheck);
         }
 
-        jsAst.Expression isImmutableArray = typeCheck.binary(
-            '&&', js(r'!receiver.immutable$list'));
-        return js.if_(isImmutableArray.binary(
-                      '&&', isIntAndAboveZero.binary('&&', belowLength)),
-                      js.return_(js('receiver[a0] = a1')));
+        return js.statement(r'''
+          if (# && !receiver.immutable$list &&
+              (a0 >>> 0) === a0 && a0 < receiver.length)
+            return receiver[a0] = a1;
+          ''', typeCheck);
       }
     }
     return null;
@@ -360,37 +327,30 @@ class InterceptorEmitter extends CodeEmitterHelper {
       String getInterceptorName =
           namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
-      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      List<jsAst.Expression> arguments = <jsAst.Expression>[];
-      parameters.add(new jsAst.Parameter('receiver'));
-      arguments.add(js('receiver'));
+      List<String> parameterNames = <String>[];
+      parameterNames.add('receiver');
 
       if (selector.isSetter()) {
-        parameters.add(new jsAst.Parameter('value'));
-        arguments.add(js('value'));
+        parameterNames.add('value');
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {
-          String argName = 'a$i';
-          parameters.add(new jsAst.Parameter(argName));
-          arguments.add(js(argName));
+          parameterNames.add('a$i');
         }
-      }
-
-      List<jsAst.Statement> body = <jsAst.Statement>[];
-      jsAst.Statement optimizedPath =
-          fastPathForOneShotInterceptor(selector, classes);
-      if (optimizedPath != null) {
-        body.add(optimizedPath);
       }
 
       String invocationName = backend.namer.invocationName(selector);
       String globalObject = namer.globalObjectFor(compiler.interceptorsLibrary);
-      body.add(js.return_(
-          js(globalObject)[getInterceptorName]('receiver')[invocationName](
-              arguments)));
 
-      jsAst.Expression assignment =
-          js('${globalObject}.$name = #', js.fun(parameters, body));
+      jsAst.Statement optimizedPath =
+          fastPathForOneShotInterceptor(selector, classes);
+      if (optimizedPath == null) optimizedPath = js.statement(';');
+
+      jsAst.Expression assignment = js('${globalObject}.# = function(#) {'
+          '  #;'
+          '  return #.#(receiver).#(#) }',
+          [name, parameterNames,
+           optimizedPath,
+           globalObject, getInterceptorName, invocationName, parameterNames]);
 
       buffer.write(jsAst.prettyPrint(assignment, compiler));
       buffer.write(N);
@@ -425,7 +385,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
         new jsAst.ArrayInitializer(invocationNames.length, elements);
 
     jsAst.Expression assignment =
-        js('${task.isolateProperties}.$name = #', array);
+        js('${task.isolateProperties}.# = #', [name, array]);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
     buffer.write(N);
@@ -490,7 +450,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     String name =
         backend.namer.getNameOfGlobalField(backend.mapTypeToInterceptor);
     jsAst.Expression assignment =
-        js('${task.isolateProperties}.$name = #', array);
+        js('${task.isolateProperties}.# = #', [name, array]);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
     buffer.write(N);

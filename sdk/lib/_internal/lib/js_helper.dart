@@ -1511,7 +1511,7 @@ class TypeErrorDecoder {
     // "(.*)\\.(.*) is not a function"
 
     var function = JS('', r"""function($expr$) {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     $expr$.$method$($argumentsExpr$);
   } catch (e) {
@@ -1526,7 +1526,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     null.$method$($argumentsExpr$);
   } catch (e) {
@@ -1541,7 +1541,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     (void 0).$method$($argumentsExpr$);
   } catch (e) {

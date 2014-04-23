@@ -537,7 +537,7 @@ class RuntimeTypes {
             return type.toString();
         }).toList();
       }
-      return js.fun(parameters, js.return_(encoding));
+      return js('function(#) { return # }', [parameters, encoding]);
     }
   }
 
@@ -548,12 +548,9 @@ class RuntimeTypes {
     if (contextClass != null) {
       JavaScriptBackend backend = compiler.backend;
       String contextName = backend.namer.getNameOfClass(contextClass);
-      List<jsAst.Expression> arguments =
-          <jsAst.Expression>[encoding, this_, js.string(contextName)];
-      return js.fun([], js.return_(
-          new jsAst.Call(
-              backend.namer.elementAccess(backend.getComputeSignature()),
-              arguments)));
+      return js('function () { return #(#, #, #); }',
+          [ backend.namer.elementAccess(backend.getComputeSignature()),
+              encoding, this_, js.string(contextName) ]);
     } else {
       return encoding;
     }
@@ -638,7 +635,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    return js(namer.isolateAccess(backend.getImplementationClass(element)));
+    return namer.elementAccess(backend.getImplementationClass(element));
   }
 
   visit(DartType type) {
@@ -873,10 +870,10 @@ class Substitution {
     jsAst.Expression value =
         rti.getSubstitutionRepresentation(arguments, use);
     if (isFunction) {
-      List<String> formals = parameters.toList().map(declaration).toList();
-      return js.fun(formals, js.return_(value));
+      Iterable<jsAst.Expression> formals = parameters.toList().map(declaration);
+      return js('function(#) { return # }', [formals, value]);
     } else if (ensureIsFunction) {
-      return js.fun([], js.return_(value));
+      return js('function() { return # }', value);
     } else {
       return value;
     }
