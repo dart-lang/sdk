@@ -86,7 +86,7 @@ abstract class CompatibleWebSocket implements Stream, StreamSink {
         throw new ArgumentError("If stream isn't also a StreamSink, sink must "
             "be passed explicitly.");
       }
-      sink = stream;
+      sink = stream as StreamSink;
     }
 
     return new _WebSocketImpl._fromSocket(stream, sink, serverSide);
