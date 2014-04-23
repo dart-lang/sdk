@@ -2639,6 +2639,13 @@ class Library : public Object {
     raw_ptr()->debuggable_ = value;
   }
 
+  bool is_dart_scheme() const {
+    return raw_ptr()->is_dart_scheme_;
+  }
+  void set_is_dart_scheme(bool value) const {
+    raw_ptr()->is_dart_scheme_ = value;
+  }
+
   bool IsCoreLibrary() const {
     return raw() == CoreLibrary();
   }

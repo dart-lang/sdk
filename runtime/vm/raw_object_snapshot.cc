@@ -1023,6 +1023,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
+    library.raw_ptr()->is_dart_scheme_ = reader->Read<bool>();
     library.raw_ptr()->debuggable_ = reader->Read<bool>();
     library.raw_ptr()->load_state_ = reader->Read<int8_t>();
     // The native resolver is not serialized.
@@ -1072,6 +1073,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->num_imports_);
     writer->WriteIntptrValue(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
+    writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
     writer->Write<int8_t>(ptr()->load_state_);
     // We do not serialize the native resolver over, this needs to be explicitly

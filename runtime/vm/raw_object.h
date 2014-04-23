@@ -777,6 +777,7 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   bool corelib_imported_;
+  bool is_dart_scheme_;
   bool debuggable_;              // True if debugger can stop in library.
   int8_t load_state_;            // Of type LibraryState.
 

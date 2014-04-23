@@ -135,8 +135,8 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
-[ $compiler == dart2js && $jscl ]
-mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15566
+[ $compiler == dart2js && ($jscl || $runtime == d8) ]
+mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -247,7 +247,6 @@ async/timer_test: Fail, Pass
 
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
-mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15274
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $compiler == none  ]
