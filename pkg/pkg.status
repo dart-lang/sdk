@@ -36,7 +36,7 @@ third_party/html5lib/test/tokenizer_test: Pass, Timeout
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
-docgen/test/*: Skip # Issue 17003
+docgen/test/*: Skip # Too slow
 polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
