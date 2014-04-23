@@ -831,10 +831,6 @@ abstract class FunctionElement extends Element
 
   bool get isRedirectingFactory;
 
-  /// Used to retrieve a link to the abstract field element representing this
-  /// element.
-  AbstractFieldElement get abstractField;
-
   /**
    * Compute the type of the target of a constructor for an instantiation site
    * with type [:newType:].
@@ -1057,7 +1053,6 @@ abstract class MetadataAnnotation implements Spannable {
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
-// TODO(johnniwinther): Remove this element.
 abstract class VoidElement extends Element {}
 
 /// An [Element] that has a type.

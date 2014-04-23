@@ -32,14 +32,13 @@ deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
 [ $compiler == dart2dart]
-deferred_load_library_wrong_args_test/none: Fail # Issue 17523
-deferred_load_inval_code_test: Fail # Issue 17523
-deferred_not_loaded_check_test: Fail # Issue 17523
-deferred_constraints_type_annotation_test/*: Fail, Pass # Issue 17523
-deferred_constraints_constants_test/*: Fail, Pass # Issue 17523
-deferred_shadow_load_library_test: Fail # Issue 17523
-deferred_closurize_load_library_test: Fail  # Issue 17523
-
+# Issue 17523
+deferred_load_library_wrong_args_test/none: Fail
+deferred_load_inval_code_test: Fail # dartbug.com/17933
+deferred_constraints_type_annotation_test/*: Fail, Pass
+deferred_constraints_constants_test/*: Fail, Pass
+deferred_shadow_load_library_test: Fail
+deferred_closurize_load_library_test: Fail
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 

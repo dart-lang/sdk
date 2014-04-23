@@ -331,8 +331,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   isErroneous() => true;
 
-  AbstractFieldElement abstractField;
-
   unsupported() {
     throw 'unsupported operation on erroneous element';
   }
@@ -542,7 +540,7 @@ class ScopeX {
    * element, they are enclosed by the class or compilation unit, as is the
    * abstract field.
    */
-  void addAccessor(FunctionElementX accessor,
+  void addAccessor(Element accessor,
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
@@ -560,7 +558,6 @@ class ScopeX {
         reportError(existing);
       } else {
         AbstractFieldElementX field = existing;
-        accessor.abstractField = field;
         if (accessor.isGetter()) {
           if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
@@ -578,7 +575,6 @@ class ScopeX {
       Element container = accessor.getEnclosingClassOrCompilationUnit();
       AbstractFieldElementX field =
           new AbstractFieldElementX(accessor.name, container);
-      accessor.abstractField = field;
       if (accessor.isGetter()) {
         field.getter = accessor;
       } else {
@@ -1502,8 +1498,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
   FunctionElement origin = null;
 
   final bool _hasNoBody;
-
-  AbstractFieldElement abstractField;
 
   /**
    * If this is a redirecting factory, [defaultImplementation] will be

@@ -14,15 +14,18 @@ import 'dart:async';
 
 const lazy = const DeferredLibrary('deferred_function_library');
 
-isError(e) => e is Error;
+isNoSuchMethodError(e) => e is NoSuchMethodError;
 
 readFoo() {
+  // TODO(ahe): There is a problem with type inference of deferred
+  // function closures.  We think they are never null.
+  if (new DateTime.now().millisecondsSinceEpoch == 87) return null;
   return lib.foo;
 }
 
 main() {
-  Expect.throws(() { lib.foo('a'); }, isError);
-  Expect.throws(readFoo, isError);
+  Expect.throws(() { lib.foo('a'); }, isNoSuchMethodError);
+  Expect.throws(readFoo, isNoSuchMethodError);
   int counter = 0;
   asyncStart();
   lazy.load().then((_) {
@@ -42,6 +45,6 @@ main() {
     asyncEnd();
   });
   Expect.equals(0, counter);
-  Expect.throws(() { lib.foo('a'); }, isError);
-  Expect.throws(readFoo, isError);
+  Expect.throws(() { lib.foo('a'); }, isNoSuchMethodError);
+  Expect.throws(readFoo, isNoSuchMethodError);
 }

@@ -12,14 +12,10 @@ import 'dart2jslib.dart' show
     ConstructedConstant,
     MessageKind,
     StringConstant,
-    invariant,
-    Backend;
+    invariant;
 
 import 'dart_backend/dart_backend.dart' show
     DartBackend;
-
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
 
 import 'elements/elements.dart' show
     Element,
@@ -46,8 +42,6 @@ import 'tree/tree.dart' show
     Import,
     LiteralString,
     LiteralDartString;
-
-import 'tree/tree.dart' as ast;
 
 import 'resolution/resolution.dart' show
     TreeElements;
@@ -186,11 +180,6 @@ class DeferredLoadTask extends CompilerTask {
     return outputUnitForElement(element) != mainOutputUnit;
   }
 
-  /// Returns true if e1 and e2 are in the same output unit.
-  bool inSameOutputUnit(Element e1, Element e2) {
-    return outputUnitForElement(e1) == outputUnitForElement(e2);
-  }
-
   /// Mark that [import] is part of the [OutputputUnit] for [element].
   ///
   /// [element] can be either a [Constant] or an [Element].
@@ -268,12 +257,10 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Returns a [Link] of every [Import] that imports [element] into [library].
   Link<Import> _getImports(Element element, LibraryElement library) {
-    if (element.isMember()) {
+    if (!element.isTopLevel()) {
       element = element.getEnclosingClass();
     }
-    if (element.isAccessor()) {
-      element = (element as FunctionElement).abstractField;
-    }
+
     return library.getImportsFor(element);
   }
 
@@ -815,10 +802,6 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    Backend backend = compiler.backend;
-    if (splitProgram && backend is JavaScriptBackend) {
-      backend.registerCheckDeferredIsLoaded(compiler.globalDependencies);
-    }
     if (splitProgram && backend is DartBackend) {
       // TODO(sigurdm): Implement deferred loading for dart2dart.
       splitProgram = false;
@@ -826,61 +809,5 @@ class DeferredLoadTask extends CompilerTask {
           lastDeferred,
           MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     }
-  }
-
-  /// If [send] is a static send with a deferred element, returns the
-  /// [PrefixElement] that the first prefix of the send resolves to.
-  /// Otherwise returns null.
-  ///
-  /// Precondition: send must be static.
-  ///
-  /// Example:
-  ///
-  /// import "a.dart" deferred as a;
-  ///
-  /// main() {
-  ///   print(a.loadLibrary.toString());
-  ///   a.loadLibrary().then((_) {
-  ///     a.run();
-  ///     a.foo.method();
-  ///   });
-  /// }
-  ///
-  /// Returns null for a.loadLibrary() (the special
-  /// function loadLibrary is not deferred). And returns the PrefixElement for
-  /// a.run() and a.foo.
-  /// a.loadLibrary.toString() and a.foo.method() are dynamic sends - and
-  /// this functions should not be called on them.
-  PrefixElement deferredPrefixElement(ast.Send send, TreeElements elements) {
-    Element element = elements[send];
-    // The DeferredLoaderGetter is not deferred, therefore we do not return the
-    // prefix.
-    if (element != null && element.isDeferredLoaderGetter()) return null;
-
-    ast.Node firstNode(ast.Node node) {
-      if (node is! ast.Send) {
-        return node;
-      } else {
-        ast.Send send = node;
-        ast.Node receiver = send.receiver;
-        ast.Node receiverFirst = firstNode(receiver);
-        if (receiverFirst != null) {
-          return receiverFirst;
-        } else {
-          return firstNode(send.selector);
-        }
-      }
-    }
-    ast.Node first = firstNode(send);
-    ast.Node identifier = first.asIdentifier();
-    if (identifier == null) return null;
-    Element maybePrefix = elements[identifier];
-    if (maybePrefix != null && maybePrefix.isPrefix()) {
-      PrefixElement prefixElement = maybePrefix;
-      if (prefixElement.isDeferred) {
-        return prefixElement;
-      }
-    }
-    return null;
   }
 }

@@ -417,9 +417,31 @@ class CompileTimeConstantEvaluator extends Visitor {
   /// Returns true if the prefix of the send resolves to a deferred import
   /// prefix.
   bool isDeferredUse(Send send) {
+    // We handle:
+    // 1. Send(Send(Send(null, Prefix), className), staticName)
+    // 2. Send(Send(Prefix, Classname), staticName)
+    // 3. Send(Send(null, Prefix), staticName | className)
+    // 4. Send(Send(Prefix), staticName | className)
+    // Nodes of the forms 2,4 occur in metadata.
     if (send == null) return false;
-    return compiler.deferredLoadTask
-        .deferredPrefixElement(send, elements) != null;
+    while (send.receiver is Send) {
+      send = send.receiver;
+    }
+    Identifier prefixNode;
+    if (send.receiver is Identifier) {
+      prefixNode = send.receiver;
+    } else if (send.receiver == null &&
+        send.selector is Identifier) {
+      prefixNode = send.selector;
+    }
+    if (prefixNode != null) {
+      Element maybePrefix = elements[prefixNode.asIdentifier()];
+      if (maybePrefix != null && maybePrefix.isPrefix() &&
+          (maybePrefix as PrefixElement).isDeferred) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Constant visitIdentifier(Identifier node) {

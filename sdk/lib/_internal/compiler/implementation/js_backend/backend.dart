@@ -1065,12 +1065,6 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getFallThroughError(), elements);
   }
 
-  void registerCheckDeferredIsLoaded(TreeElements elements) {
-    enqueueInResolution(getCheckDeferredIsLoaded(), elements);
-    // Also register the types of the arguments passed to this method.
-    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
-  }
-
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(compiler.noSuchMethodSelector);
@@ -1530,10 +1524,6 @@ class JavaScriptBackend extends Backend {
 
   Element getCheckSubtypeOfRuntimeType() {
     return compiler.findHelper('checkSubtypeOfRuntimeType');
-  }
-
-  Element getCheckDeferredIsLoaded() {
-    return compiler.findHelper('checkDeferredIsLoaded');
   }
 
   Element getAssertSubtypeOfRuntimeType() {
