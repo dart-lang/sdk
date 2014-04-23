@@ -245,74 +245,69 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.
-  DIR* dir_pointer;
-  do {
-    dir_pointer = opendir(path->AsString());
-  } while (dir_pointer == NULL && errno == EINTR);
-
+  DIR* dir_pointer = opendir(path->AsString());
   if (dir_pointer == NULL) {
     return false;
   }
 
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
-  int read = 0;
-  bool success = true;
   dirent entry;
   dirent* result;
-  while ((read = NO_RETRY_EXPECTED(
-      readdir_r(dir_pointer, &entry, &result))) == 0 &&
-                result != NULL &&
-                success) {
+  while (NO_RETRY_EXPECTED(readdir_r(dir_pointer, &entry, &result)) == 0) {
+    if (result == NULL) {
+      // End of directory.
+      return NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0 &&
+          NO_RETRY_EXPECTED(remove(path->AsString())) == 0;
+    }
+    bool ok = false;
     switch (entry.d_type) {
       case DT_DIR:
-        success = success && DeleteDir(entry.d_name, path);
+        ok = DeleteDir(entry.d_name, path);
         break;
       case DT_REG:
       case DT_LNK:
         // Treat all links as files. This will delete the link which
         // is what we want no matter if the link target is a file or a
         // directory.
-        success = success && DeleteFile(entry.d_name, path);
+        ok = DeleteFile(entry.d_name, path);
         break;
       case DT_UNKNOWN: {
         if (!path->Add(entry.d_name)) {
-          success = false;
           break;
         }
         // On some file systems the entry type is not determined by
         // readdir_r. For those we use lstat to determine the entry
         // type.
         struct stat64 entry_info;
-        int lstat_success = NO_RETRY_EXPECTED(
-            lstat64(path->AsString(), &entry_info));
-        if (lstat_success == -1) {
-          success = false;
+        if (NO_RETRY_EXPECTED(lstat64(path->AsString(), &entry_info)) == -1) {
           break;
         }
         path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
-          success = success && DeleteDir(entry.d_name, path);
+          ok = DeleteDir(entry.d_name, path);
         } else if (S_ISREG(entry_info.st_mode) || S_ISLNK(entry_info.st_mode)) {
           // Treat links as files. This will delete the link which is
           // what we want no matter if the link target is a file or a
           // directory.
-          success = success && DeleteFile(entry.d_name, path);
+          ok = DeleteFile(entry.d_name, path);
         }
         break;
       }
       default:
         break;
     }
+    if (!ok) {
+      break;
+    }
     path->Reset(path_length);
   }
-
-  if ((read != 0) ||
-      (NO_RETRY_EXPECTED(closedir(dir_pointer)) == -1) ||
-      (NO_RETRY_EXPECTED(remove(path->AsString())) == -1)) {
-    return false;
-  }
-  return success;
+  // Only happens if an error.
+  ASSERT(errno != 0);
+  int err = errno;
+  VOID_NO_RETRY_EXPECTED(closedir(dir_pointer));
+  errno = err;
+  return false;
 }
 
 
