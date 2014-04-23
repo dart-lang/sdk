@@ -13,7 +13,16 @@
 #include <ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_ANDROID)
 #include <signal.h>  // NOLINT
-struct mcontext_t;
+#include <asm/sigcontext.h>  // NOLINT
+// These are not defined on Android, so we have to define them here.
+typedef struct sigcontext mcontext_t;
+typedef struct ucontext {
+  uint32_t uc_flags;
+  struct ucontext *uc_link;
+  stack_t uc_stack;
+  struct sigcontext uc_mcontext;
+  uint32_t uc_sigmask;
+} ucontext_t;
 #elif defined(TARGET_OS_MACOS)
 #include <signal.h>  // NOLINT
 #include <sys/ucontext.h>  // NOLINT

@@ -1505,6 +1505,7 @@ Sample* SampleBuffer::ReserveSample() {
   return At(cursor);
 }
 
+
 class ProfilerDartStackWalker : public ValueObject {
  public:
   explicit ProfilerDartStackWalker(Sample* sample)
@@ -1543,6 +1544,7 @@ class ProfilerDartStackWalker : public ValueObject {
   Sample* sample_;
   DartFrameIterator frame_iterator_;
 };
+
 
 // Notes on stack frame walking:
 //
