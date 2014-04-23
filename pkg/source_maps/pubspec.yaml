@@ -1,9 +1,9 @@
 name: source_maps
-version: 0.9.0
-author: "Dart Team <misc@dartlang.org>"
-homepage: http://www.dartlang.org
+version: 0.9.1-dev
+author: Dart Team <misc@dartlang.org>
 description: Library to programmatically manipulate source map files.
-dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
+homepage: http://www.dartlang.org
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: '>=0.8.10+6 <2.0.0'
+dev_dependencies:
+  unittest: '>=0.9.0 <0.10.0'
