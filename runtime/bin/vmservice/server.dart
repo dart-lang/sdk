@@ -81,12 +81,13 @@ class HttpRequestClient extends Client {
 class Server {
   static const WEBSOCKET_PATH = '/ws';
   String defaultPath = '/index.html';
+  final String ip;
   int port;
 
   final VMService service;
   HttpServer _server;
 
-  Server(this.service, this.port);
+  Server(this.service, this.ip, this.port);
 
   void _requestHandler(HttpRequest request) {
     // Allow cross origin requests.
@@ -118,15 +119,15 @@ class Server {
   }
 
   Future startServer() {
-    return HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((s) {
+    return HttpServer.bind(ip, port).then((s) {
       // Only display message when port is automatically selected.
-      var display_message = (port == 0);
+      var display_message = (ip != '127.0.0.1' || port != 8181);
       // Retrieve port.
       port = s.port;
       _server = s;
       _server.listen(_requestHandler);
       if (display_message) {
-        print('VMService listening on port $port');
+        print('VMService listening on $ip:$port');
       }
       return s;
     });

@@ -13,8 +13,9 @@ import 'dart:vmservice';
 part 'resources.dart';
 part 'server.dart';
 
-// The TCP port that the HTTP server listens on.
+// The TCP ip/port that the HTTP server listens on.
 int _port;
+String _ip;
 
 // The VM service instance.
 VMService service;
@@ -23,6 +24,6 @@ main() {
   // Get VMService.
   service = new VMService();
   // Start HTTP server.
-  var server = new Server(service, _port);
+  var server = new Server(service, _ip, _port);
   server.startServer();
 }
