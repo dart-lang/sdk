@@ -116,7 +116,7 @@ class TestingServers {
                  this.useContentSecurityPolicy,
                  [String this.runtime = 'none', String dartDirectory]) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
-    _dartDirectory = dartDirectory == null ? TestUtils.dartDir()
+    _dartDirectory = dartDirectory == null ? TestUtils.dartDir
         : new Path(dartDirectory);
   }
 
@@ -141,7 +141,7 @@ class TestingServers {
 
   String httpServerCommandline() {
     var dart = TestUtils.dartTestExecutable.toNativePath();
-    var dartDir = TestUtils.dartDir();
+    var dartDir = TestUtils.dartDir;
     var script = dartDir.join(new Path("tools/testing/dart/http_server.dart"));
     var buildDirectory = _buildDirectory.toNativePath();
     var csp = useContentSecurityPolicy ? '--csp ' : '';
