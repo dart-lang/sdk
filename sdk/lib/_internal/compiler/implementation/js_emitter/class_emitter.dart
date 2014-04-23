@@ -70,23 +70,39 @@ class ClassEmitter extends CodeEmitterHelper {
       });
     }
     String constructorName = namer.getNameOfClass(classElement);
-    task.precompiledFunction.add(new jsAst.FunctionDeclaration(
-        new jsAst.VariableDeclaration(constructorName),
-        js.fun(fields, fields.map(
-            (name) => js('this.$name = $name')).toList())));
+
+    // TODO(sra): Implement placeholders in VariableDeclaration position:
+    //     task.precompiledFunction.add(js.statement('function #(#) { #; }',
+    //        [ constructorName, fields,
+    //            fields.map(
+    //                (name) => js('this.# = #', [name, name]))]));
+    task.precompiledFunction.add(
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration(constructorName),
+            js('function(#) { #; }',
+                [fields,
+                 fields.map((name) => js('this.# = #', [name, name]))])));
     if (runtimeName == null) {
       runtimeName = constructorName;
     }
-    task.precompiledFunction.addAll([
-        js('$constructorName.builtin\$cls = "$runtimeName"'),
-        js.if_('!"name" in $constructorName',
-              js('$constructorName.name = "$constructorName"')),
-        js('\$desc=\$collectedClasses.$constructorName'),
-        js.if_('\$desc instanceof Array', js('\$desc = \$desc[1]')),
-        js('$constructorName.prototype = \$desc'),
-    ]);
 
-    task.precompiledConstructorNames.add(js(constructorName));
+    task.precompiledFunction.add(
+        js.statement(r'''{
+          #.builtin$cls = #;
+          if (!"name" in #)
+              #.name = #;
+          $desc=$collectedClasses.#;
+          if ($desc instanceof Array) $desc = $desc[1];
+          #.prototype = $desc;
+        }''',
+            [   constructorName, js.string(runtimeName),
+                constructorName,
+                constructorName, js.string(constructorName),
+                constructorName,
+                constructorName
+             ]));
+
+    task.precompiledConstructorNames.add(js('#', constructorName));
   }
 
   /// Returns `true` if fields added.
@@ -302,7 +318,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (backend.isNeededForReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
       Iterable typeVariableProperties = task.typeVariableHandler
-          .typeVariablesOf(classElement).map(js.toExpression);
+          .typeVariablesOf(classElement).map(js.number);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;
@@ -520,11 +536,12 @@ class ClassEmitter extends CodeEmitterHelper {
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     task.precompiledFunction.add(
-        js('$className.prototype.$getterName = #',
-           js.fun(args, js.return_(js('$receiver.$fieldName')))));
+        js('#.prototype.# = function(#) { return #.# }',
+           [className, getterName, args, receiver, fieldName]));
     if (backend.isNeededForReflection(member)) {
       task.precompiledFunction.add(
-          js('$className.prototype.$getterName.${namer.reflectableField} = 1'));
+          js('#.prototype.#.${namer.reflectableField} = 1',
+              [className, getterName]));
     }
   }
 
@@ -534,14 +551,15 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement cls = member.getEnclosingClass();
     String className = namer.getNameOfClass(cls);
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
-    List<String> args =
-        backend.isInterceptedMethod(member) ? ['receiver', 'v'] : ['v'];
+    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     task.precompiledFunction.add(
-        js('$className.prototype.$setterName = #',
-           js.fun(args, js.return_(js('$receiver.$fieldName = v')))));
+        // TODO: remove 'return'?
+        js('#.prototype.# = function(#, v) { return #.# = v; }',
+            [className, setterName, args, receiver, fieldName]));
     if (backend.isNeededForReflection(member)) {
       task.precompiledFunction.add(
-          js('$className.prototype.$setterName.${namer.reflectableField} = 1'));
+          js('#.prototype.#.${namer.reflectableField} = 1',
+              [className, setterName]));
     }
   }
 
@@ -578,7 +596,7 @@ class ClassEmitter extends CodeEmitterHelper {
                               TypeVariableElement element) {
     String name = namer.readTypeVariableName(element);
     jsAst.Expression index =
-        js.toExpression(RuntimeTypes.getTypeVariableIndex(element));
+        js.number(RuntimeTypes.getTypeVariableIndex(element));
     jsAst.Expression computeTypeVariable;
 
     Substitution substitution =
@@ -586,9 +604,9 @@ class ClassEmitter extends CodeEmitterHelper {
             cls, element.enclosingElement, alwaysGenerateFunction: true);
     if (substitution != null) {
       jsAst.Expression typeArguments =
-          substitution.getCode(backend.rti, true)['apply'](
-              ['null', r'this.$builtinTypeInfo']);
-      computeTypeVariable = typeArguments[index];
+          js(r'#.apply(null, this.$builtinTypeInfo)',
+              substitution.getCode(backend.rti, true));
+      computeTypeVariable = js('#[#]', [typeArguments, index]);
     } else {
       // TODO(ahe): These can be generated dynamically.
       computeTypeVariable =
@@ -596,8 +614,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
     jsAst.Expression convertRtiToRuntimeType =
         namer.elementAccess(compiler.findHelper('convertRtiToRuntimeType'));
-    builder.addProperty(
-        name, js.fun(
-            [], [js.return_(convertRtiToRuntimeType(computeTypeVariable))]));
+    builder.addProperty(name,
+        js('function () { return #(#) }',
+            [convertRtiToRuntimeType, computeTypeVariable]));
   }
 }

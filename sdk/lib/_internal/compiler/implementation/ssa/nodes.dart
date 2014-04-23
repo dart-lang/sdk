@@ -1640,12 +1640,12 @@ class HLocalSet extends HFieldAccess {
 }
 
 class HForeign extends HInstruction {
-  final js.Node codeAst;
+  final js.Template codeTemplate;
   final bool isStatement;
   final bool _canThrow;
   final native.NativeBehavior nativeBehavior;
 
-  HForeign(this.codeAst,
+  HForeign(this.codeTemplate,
            TypeMask type,
            List<HInstruction> inputs,
            {this.isStatement: false,
@@ -1661,11 +1661,11 @@ class HForeign extends HInstruction {
     if (effects != null) sideEffects.add(effects);
   }
 
-  HForeign.statement(codeAst, List<HInstruction> inputs,
+  HForeign.statement(codeTemplate, List<HInstruction> inputs,
                      SideEffects effects,
                      native.NativeBehavior nativeBehavior,
                      TypeMask type)
-      : this(codeAst, type, inputs, isStatement: true,
+      : this(codeTemplate, type, inputs, isStatement: true,
              effects: effects, nativeBehavior: nativeBehavior);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);

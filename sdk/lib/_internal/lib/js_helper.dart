@@ -658,16 +658,19 @@ class Primitives {
   static String objectTypeName(Object object) {
     String name = constructorNameFallback(getInterceptor(object));
     if (name == 'Object') {
-      // Try to decompile the constructor by turning it into a string
-      // and get the name out of that. If the decompiled name is a
-      // string, we use that instead of the very generic 'Object'.
-      var decompiled = JS('var', r'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
-                          JS('var', r'String(#.constructor)', object));
-      if (decompiled is String) name = decompiled;
+      // Try to decompile the constructor by turning it into a string and get
+      // the name out of that. If the decompiled name is a string containing an
+      // identifier, we use that instead of the very generic 'Object'.
+      var decompiled =
+          JS('var', r'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+              JS('var', r'String(#.constructor)', object));
+      if (decompiled is String)
+        if (JS('bool', r'/^\w+$/.test(#)', decompiled))
+          name = decompiled;
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
-    if (identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
+    if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
       name = name.substring(1);
     }
     return formatType(name, getRuntimeTypeInfo(object));
@@ -1511,7 +1514,7 @@ class TypeErrorDecoder {
     // "(.*)\\.(.*) is not a function"
 
     var function = JS('', r"""function($expr$) {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     $expr$.$method$($argumentsExpr$);
   } catch (e) {
@@ -1526,7 +1529,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     null.$method$($argumentsExpr$);
   } catch (e) {
@@ -1541,7 +1544,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$'
+  var $argumentsExpr$ = '$arguments$';
   try {
     (void 0).$method$($argumentsExpr$);
   } catch (e) {

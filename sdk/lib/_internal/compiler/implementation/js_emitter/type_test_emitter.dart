@@ -64,7 +64,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
             closureData.freeVariableMapping[closureData.thisElement];
         if (thisElement != null) {
           String thisName = namer.instanceFieldPropertyName(thisElement);
-          thisAccess = js('this')[js.string(thisName)];
+          thisAccess = js('this.#', thisName);
         }
       }
       RuntimeTypes rti = backend.rti;
