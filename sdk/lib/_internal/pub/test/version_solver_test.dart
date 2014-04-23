@@ -13,7 +13,7 @@ import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/sdk.dart' as sdk;
-import '../lib/src/source.dart';
+import '../lib/src/source/cached.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
@@ -1295,7 +1295,7 @@ class SolveFailMatcher implements Matcher {
 /// descriptions, a package's name is calculated by taking the description
 /// string and stripping off any trailing hyphen followed by non-hyphen
 /// characters.
-class MockSource extends Source {
+class MockSource extends CachedSource {
   final _packages = <String, Map<Version, Package>>{};
 
   /// Keeps track of which package version lists have been requested. Ensures
@@ -1309,11 +1309,16 @@ class MockSource extends Source {
   final _requestedPubspecs = new Map<String, Set<Version>>();
 
   final String name;
-  bool get shouldCache => true;
 
   MockSource(this.name);
 
-  Future<String> systemCacheDirectory(PackageId id) {
+  dynamic parseDescription(String containingPath, description,
+                             {bool fromLockFile: false}) => description;
+
+  bool descriptionsEqual(description1, description2) =>
+      description1 == description2;
+
+  Future<String> getDirectory(PackageId id) {
     return new Future.value('${id.name}-${id.version}');
   }
 
@@ -1336,7 +1341,7 @@ class MockSource extends Source {
     });
   }
 
-  Future<Pubspec> describe(PackageId id) {
+  Future<Pubspec> describeUncached(PackageId id) {
     return syncFuture(() {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedPubspecs.containsKey(id.description) &&
@@ -1351,9 +1356,14 @@ class MockSource extends Source {
     });
   }
 
-  Future<bool> get(PackageId id, String path) {
-    throw new Exception('no');
-  }
+  Future<Package> downloadToSystemCache(PackageId id) =>
+      throw new UnsupportedError('Cannot download mock packages');
+
+  List<Package> getCachedPackages() =>
+      throw new UnsupportedError('Cannot get mock packages');
+
+  Future<Pair<int, int>> repairCachedPackages() =>
+      throw new UnsupportedError('Cannot repair mock packages');
 
   void addPackage(String description, Package package) {
     _packages.putIfAbsent(description, () => new Map<Version, Package>());

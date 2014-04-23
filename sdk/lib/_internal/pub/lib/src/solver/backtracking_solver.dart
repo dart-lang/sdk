@@ -43,6 +43,7 @@ import '../package.dart';
 import '../pubspec.dart';
 import '../sdk.dart' as sdk;
 import '../source_registry.dart';
+import '../source/unknown.dart';
 import '../utils.dart';
 import '../version.dart';
 import 'dependency_queue.dart';
@@ -482,7 +483,7 @@ class Traverser {
 
       // Make sure the package doesn't have any bad dependencies.
       for (var dep in deps) {
-        if (!dep.isRoot && !_solver.sources.contains(dep.source)) {
+        if (!dep.isRoot && _solver.sources[dep.source] is UnknownSource) {
           throw new UnknownSourceException(id.name,
               [new Dependency(id.name, id.version, dep)]);
         }

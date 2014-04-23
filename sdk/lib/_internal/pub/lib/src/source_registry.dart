@@ -7,21 +7,19 @@ library pub.source_registry;
 import 'dart:collection';
 
 import 'source.dart';
+import 'source/unknown.dart';
 
 /// A class that keeps track of [Source]s used for getting packages.
 class SourceRegistry extends IterableBase<Source> {
-  final Map<String, Source> _map;
+  final _sources = new Map<String, Source>();
   Source _default;
-
-  /// Creates a new registry with no packages registered.
-  SourceRegistry() : _map = <String, Source>{};
 
   /// Returns the default source, which is used when no source is specified.
   Source get defaultSource => _default;
 
   /// Iterates over the registered sources in name order.
   Iterator<Source> get iterator {
-    var sources = _map.values.toList();
+    var sources = _sources.values.toList();
     sources.sort((a, b) => a.name.compareTo(b.name));
     return sources.iterator;
   }
@@ -29,37 +27,35 @@ class SourceRegistry extends IterableBase<Source> {
   /// Sets the default source. This takes a string, which must be the name of a
   /// registered source.
   void setDefault(String name) {
-    if (!_map.containsKey(name)) {
+    if (!_sources.containsKey(name)) {
       throw new StateError('Default source $name is not in the registry');
     }
 
-    _default = _map[name];
+    _default = _sources[name];
   }
 
   /// Registers a new source. This source may not have the same name as a source
   /// that's already been registered.
   void register(Source source) {
-    if (_map.containsKey(source.name)) {
+    if (_sources.containsKey(source.name)) {
       throw new StateError('Source registry already has a source named '
           '${source.name}');
     }
 
-    _map[source.name] = source;
+    _sources[source.name] = source;
   }
 
-  /// Returns `true` if there is a source named [name].
-  bool contains(String name) => _map.containsKey(name);
-
-  /// Returns the source named [name]. Throws an error if no such source has
-  /// been registered. If [name] is null, returns the default source.
-  // TODO(rnystrom): Return a NullSource that does nothing safely so that
-  // calling code doesn't have to worry about it.
+  /// Returns the source named [name].
+  ///
+  /// Returns an [UnknownSource] if no source with that name has been
+  /// registered. If [name] is null, returns the default source.
   Source operator[](String name) {
     if (name == null) {
       if (defaultSource != null) return defaultSource;
       throw new StateError('No default source has been registered');
     }
-    if (_map.containsKey(name)) return _map[name];
-    throw new ArgumentError('No source named $name is registered');
+
+    if (_sources.containsKey(name)) return _sources[name];
+    return new UnknownSource(name);
   }
 }

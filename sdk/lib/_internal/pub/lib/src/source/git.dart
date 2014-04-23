@@ -12,20 +12,25 @@ import '../git.dart' as git;
 import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
-import '../source.dart';
+import '../pubspec.dart';
 import '../utils.dart';
+import 'cached.dart';
 
 /// A package source that gets packages from Git repos.
-class GitSource extends Source {
-  final String name = "git";
-
-  final bool shouldCache = true;
+class GitSource extends CachedSource {
+  final name = "git";
 
   /// The paths to the canonical clones of repositories for which "git fetch"
   /// has already been run during this run of pub.
   final _updatedRepos = new Set<String>();
 
   GitSource();
+
+  /// Since we don't have an easy way to read from a remote Git repo, this
+  /// just installs [id] into the system cache, then describes it from there.
+  Future<Pubspec> describeUncached(PackageId id) {
+    return downloadToSystemCache(id).then((package) => package.pubspec);
+  }
 
   /// Clones a Git repo to the local filesystem.
   ///
@@ -55,7 +60,7 @@ class GitSource extends Source {
 
       ensureDir(path.join(systemCacheRoot, 'cache'));
       return _ensureRevision(id);
-    }).then((_) => systemCacheDirectory(id)).then((path) {
+    }).then((_) => getDirectory(id)).then((path) {
       revisionCachePath = path;
       if (entryExists(revisionCachePath)) return null;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
@@ -69,7 +74,7 @@ class GitSource extends Source {
   }
 
   /// Returns the path to the revision-specific cache of [id].
-  Future<String> systemCacheDirectory(PackageId id) {
+  Future<String> getDirectory(PackageId id) {
     return _ensureRevision(id).then((rev) {
       var revisionCacheName = '${id.name}-$rev';
       return path.join(systemCacheRoot, revisionCacheName);
@@ -123,6 +128,12 @@ class GitSource extends Source {
     });
   }
 
+  List<Package> getCachedPackages() {
+    // TODO(keertip): Implement getCachedPackages().
+    throw new UnimplementedError(
+        "The git source doesn't support listing its cached packages yet.");
+  }
+
   /// Resets all cached packages back to the pristine state of the Git
   /// repository at the revision they are pinned to.
   Future<Pair<int, int>> repairCachedPackages() {
@@ -161,8 +172,6 @@ class GitSource extends Source {
       }, test: (error) => error is git.GitException);
     })).then((_) => new Pair(successes, failures));
   }
-
-  // TODO(keertip): Implement getCachedPackages().
 
   /// Ensure that the canonical clone of the repository referred to by [id] (the
   /// one in `<system cache>/git/cache`) exists and contains the revision

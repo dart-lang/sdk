@@ -215,26 +215,15 @@ class _SolveReport {
   /// description.
   bool _descriptionsEqual(PackageId a, PackageId b) {
     if (a.source != b.source) return false;
-
-    if (_sources.contains(a.source)) {
-      var source = _sources[a.source];
-      return source.descriptionsEqual(a.description, b.description);
-    } else {
-      // Unknown source, so just do a literal comparison.
-      return a.description == b.description;
-    }
+    return _sources[a.source].descriptionsEqual(a.description, b.description);
   }
 
   /// Writes a terse description of [id] (not including its name) to the output.
   void _writeId(PackageId id) {
     _output.write(id.version);
 
-    var source = null;
-    if (_sources.contains(id.source)) {
-      source = _sources[id.source];
-    }
-
-    if (source != null && source != _sources.defaultSource) {
+    var source = _sources[id.source];
+    if (source != _sources.defaultSource) {
       var description = source.formatDescription(_root.dir, id.description);
       _output.write(" from ${id.source} $description");
     }

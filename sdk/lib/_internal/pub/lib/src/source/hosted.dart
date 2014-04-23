@@ -16,16 +16,14 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../pubspec.dart';
-import '../source.dart';
 import '../utils.dart';
 import '../version.dart';
+import 'cached.dart';
 
 /// A package source that gets packages from a package hosting site that uses
 /// the same API as pub.dartlang.org.
-class HostedSource extends Source {
-
+class HostedSource extends CachedSource {
   final name = "hosted";
-  final shouldCache = true;
 
   /// Gets the default URL for the package server for hosted dependencies.
   static String get defaultUrl {
@@ -76,22 +74,34 @@ class HostedSource extends Source {
     });
   }
 
-  /// Downloads a package from the site and unpacks it.
-  Future<bool> get(PackageId id, String destPath) {
-    var parsed = _parseDescription(id.description);
-    return _download(parsed.last, parsed.first, id.version, destPath);
+  /// Downloads the package identified by [id] to the system cache.
+  Future<Package> downloadToSystemCache(PackageId id) {
+    return isInSystemCache(id).then((inCache) {
+      // Already cached so don't download it.
+      if (inCache) return true;
+
+      var packageDir = _getDirectory(id);
+      ensureDir(path.dirname(packageDir));
+      var parsed = _parseDescription(id.description);
+      return _download(parsed.last, parsed.first, id.version, packageDir);
+    }).then((found) {
+      if (!found) fail('Package $id not found.');
+      return new Package.load(id.name, _getDirectory(id), systemCache.sources);
+    });
   }
 
   /// The system cache directory for the hosted source contains subdirectories
-  /// for each separate repository URL that's used on the system. Each of these
-  /// subdirectories then contains a subdirectory for each package downloaded
-  /// from that site.
-  Future<String> systemCacheDirectory(PackageId id) {
+  /// for each separate repository URL that's used on the system.
+  ///
+  /// Each of these subdirectories then contains a subdirectory for each
+  /// package downloaded from that site.
+  Future<String> getDirectory(PackageId id) =>
+      new Future.value(_getDirectory(id));
+
+  String _getDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
     var dir = _urlToDirectory(parsed.last);
-
-    return new Future.value(
-        path.join(systemCacheRoot, dir, "${parsed.first}-${id.version}"));
+    return path.join(systemCacheRoot, dir, "${parsed.first}-${id.version}");
   }
 
   String packageName(description) => _parseDescription(description).first;
@@ -184,6 +194,7 @@ class HostedSource extends Source {
       });
     });
   }
+
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
@@ -233,16 +244,18 @@ class OfflineHostedSource extends HostedSource {
     });
   }
 
-  Future<bool> get(PackageId id, String destPath) {
-    // Since HostedSource returns `true` for [shouldCache], install will only
-    // be called for uncached packages.
-    throw new UnsupportedError("Cannot get packages when offline.");
+  Future<bool> _download(String server, String package, Version version,
+      String destPath) {
+    // Since HostedSource is cached, this will only be called for uncached
+    // packages.
+    throw new UnsupportedError("Cannot download packages when offline.");
   }
 
-  Future<Pubspec> describeUncached(PackageId id) {
+  Future<Pubspec> doDescribeUncached(PackageId id) {
     // [getVersions()] will only return packages that are already cached.
-    // Source should only call [describeUncached()] on a package after it has
-    // failed to find it in the cache, so this code should not be reached.
+    // [CachedSource] will only call [doDescribeUncached()] on a package after
+    // it has failed to find it in the cache, so this code should not be
+    // reached.
     throw new UnsupportedError("Cannot describe packages when offline.");
   }
 }

@@ -4,8 +4,11 @@
 
 library pubspec_test;
 
+import 'dart:async';
+
 import 'package:unittest/unittest.dart';
 
+import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
@@ -14,12 +17,25 @@ import 'test_pub.dart';
 
 class MockSource extends Source {
   final String name = "mock";
-  final bool shouldCache = false;
+
+  Future<Pubspec> doDescribe(PackageId id) => throw new UnsupportedError(
+      "Cannot describe mock packages.");
+
+  Future<bool> get(PackageId id, String path) => throw new UnsupportedError(
+      "Cannot get a mock package.");
+
+  Future<String> getDirectory(PackageId id) => throw new UnsupportedError(
+      "Cannot get the directory for mock packages.");
+
   dynamic parseDescription(String filePath, description,
                            {bool fromLockFile: false}) {
     if (description != 'ok') throw new FormatException('Bad');
     return description;
   }
+
+  bool descriptionsEqual(description1, description2) =>
+      description1 == description2;
+
   String packageName(description) => 'foo';
 }
 
