@@ -11,11 +11,11 @@ import 'dart:async';
 
 const lazy = const DeferredLibrary('deferred_class_library');
 
-isNoSuchMethodError(e) => e is NoSuchMethodError;
+isError(e) => e is Error;
 
 main() {
   var x;
-  Expect.throws(() { x = new lib.MyClass(); }, isNoSuchMethodError);
+  Expect.throws(() { x = new lib.MyClass(); }, isError);
   Expect.isNull(x);
   int counter = 0;
   asyncStart();
@@ -38,6 +38,6 @@ main() {
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
-  Expect.throws(() { x = new lib.MyClass(); }, isNoSuchMethodError);
+  Expect.throws(() { x = new lib.MyClass(); }, isError);
   Expect.isNull(x);
 }
