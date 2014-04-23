@@ -17,6 +17,13 @@ const bool VALIDATE_DATA = false;
 // TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
 jsAst.Expression getReflectionDataParser(String classesCollector,
                                         JavaScriptBackend backend) {
+  var text = getReflectionDataParserAsString(classesCollector, backend);
+  return js(text);
+}
+
+
+String getReflectionDataParserAsString(String classesCollector,
+                                       JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   Element closureFromTearOff = compiler.findHelper('closureFromTearOff');
@@ -56,7 +63,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
 (function (reflectionData) {
   "use strict";
 
-// [map] returns an object literal that V8 shouldn not try to optimize with a
+// [map] returns an object literal that V8 shouldn't try to optimize with a
 // hidden class. This prevents a potential performance problem where V8 tries
 // to build a hidden class for an object used as a hashMap.
 
@@ -314,7 +321,7 @@ String footer = '''
 })
 ''';
 
-  return js('$header$processStatics$addStubs$tearOff$init$footer');
+ return '$header$processStatics$addStubs$tearOff$init$footer';
 }
 
 String readString(String array, String index) {

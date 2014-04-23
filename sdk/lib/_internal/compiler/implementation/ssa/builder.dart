@@ -146,7 +146,7 @@ class LocalsHandler {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
     JavaScriptBackend backend = builder.backend;
-    HInstruction box = new HForeign(js.js.parseForeignJS('{}'),
+    HInstruction box = new HForeign(new js.ObjectInitializer([]),
                                     backend.nonNullType,
                                     <HInstruction>[]);
     builder.add(box);
@@ -3058,7 +3058,7 @@ class SsaBuilder extends ResolvedVisitor {
     return interceptor;
   }
 
-  HForeign createForeign(js.Template code,
+  HForeign createForeign(js.Expression code,
                          TypeMask type,
                          List<HInstruction> inputs) {
     return new HForeign(code, type, inputs);
@@ -3088,9 +3088,7 @@ class SsaBuilder extends ResolvedVisitor {
         }));
       }
       String template = '[${templates.join(', ')}]';
-      // TODO(sra): This is a fresh template each time.  We can't let the
-      // template manager build them.
-      js.Template code = js.js.uncachedExpressionTemplate(template);
+      js.Expression code = js.js.parseForeignJS(template);
       HInstruction representation =
         createForeign(code, backend.readableArrayType, inputs);
       return representation;
@@ -3319,18 +3317,9 @@ class SsaBuilder extends ResolvedVisitor {
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
-
-    if (nativeBehavior.codeTemplate.isExpression) {
-      push(new HForeign(nativeBehavior.codeTemplate, ssaType, inputs,
-                        effects: nativeBehavior.sideEffects,
-                        nativeBehavior: nativeBehavior));
-    } else {
-      push(new HForeign(nativeBehavior.codeTemplate, ssaType, inputs,
-                        isStatement: true,
-                        effects: nativeBehavior.sideEffects,
-                        nativeBehavior: nativeBehavior,
-                        canThrow: true));
-    }
+    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
+                      effects: nativeBehavior.sideEffects,
+                      nativeBehavior: nativeBehavior));
   }
 
   void handleJsStringConcat(ast.Send node) {
@@ -3352,7 +3341,7 @@ class SsaBuilder extends ResolvedVisitor {
       // If the isolate library is not used, we just generate code
       // to fetch the current isolate.
       String name = backend.namer.currentIsolate;
-      push(new HForeign(js.js.parseForeignJS(name),
+      push(new HForeign(new js.LiteralString(name),
                         backend.dynamicType,
                         <HInstruction>[]));
     } else {
@@ -3507,8 +3496,7 @@ class SsaBuilder extends ResolvedVisitor {
     }
 
     compiler.enqueuer.codegen.registerStaticUse(element);
-    push(new HForeign(js.js.expressionTemplateYielding(
-                          backend.namer.elementAccess(element)),
+    push(new HForeign(backend.namer.elementAccess(element),
                       backend.dynamicType,
                       <HInstruction>[]));
     return params;
@@ -3530,7 +3518,7 @@ class SsaBuilder extends ResolvedVisitor {
     String isolateName = backend.namer.currentIsolate;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
-    push(new HForeign(js.js.parseForeignJS("$isolateName = #"),
+    push(new HForeign(js.js("$isolateName = #"),
                       backend.dynamicType,
                       <HInstruction>[pop()],
                       effects: sideEffects));
@@ -3541,7 +3529,7 @@ class SsaBuilder extends ResolvedVisitor {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     String constructorName = backend.namer.isolateName;
-    push(new HForeign(js.js.parseForeignJS("new $constructorName()"),
+    push(new HForeign(js.js("new $constructorName()"),
                       backend.dynamicType,
                       <HInstruction>[]));
   }
@@ -3550,8 +3538,8 @@ class SsaBuilder extends ResolvedVisitor {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
-    push(new HForeign(js.js.expressionTemplateYielding(
-                          backend.namer.elementAccess(compiler.objectClass)),
+    String jsClassReference = backend.namer.isolateAccess(compiler.objectClass);
+    push(new HForeign(new js.LiteralString(jsClassReference),
                       backend.dynamicType,
                       <HInstruction>[]));
   }
@@ -3560,7 +3548,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
-    push(new HForeign(js.js.parseForeignJS(backend.namer.currentIsolate),
+    push(new HForeign(new js.LiteralString(backend.namer.currentIsolate),
                       backend.dynamicType,
                       <HInstruction>[]));
   }
@@ -3866,7 +3854,7 @@ class SsaBuilder extends ResolvedVisitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    js.Template code = js.js.uncachedExpressionTemplate(template);
+    js.Expression code = js.js.parseForeignJS(template);
     HInstruction result = createForeign(code, backend.stringType, inputs);
     add(result);
     return result;
@@ -4018,7 +4006,7 @@ class SsaBuilder extends ResolvedVisitor {
         add(conversion);
         inputs[0] = conversion;
       }
-      js.Template code = js.js.parseForeignJS('Array(#)');
+      js.Expression code = js.js.parseForeignJS('Array(#)');
       var behavior = new native.NativeBehavior();
       behavior.typesReturned.add(expectedType);
       // The allocation can throw only if the given length is a double
@@ -4034,7 +4022,7 @@ class SsaBuilder extends ResolvedVisitor {
       push(foreign);
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
       if (inferrer.isFixedArrayCheckedForGrowable(send)) {
-        js.Template code = js.js.parseForeignJS(r'#.fixed$length = init');
+        js.Expression code = js.js.parseForeignJS(r'#.fixed$length = init');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
         add(new HForeign(
@@ -5331,7 +5319,7 @@ class SsaBuilder extends ResolvedVisitor {
       // If the switch statement has no default case, surround the loop with
       // a test of the target.
       void buildCondition() {
-        js.Template code = js.js.parseForeignJS('#');
+        js.Expression code = js.js.parseForeignJS('#');
         push(createForeign(code,
                            backend.boolType,
                            [localsHandler.readLocal(switchTarget)]));

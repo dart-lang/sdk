@@ -71,7 +71,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (isInterceptedMethod) {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
-      argumentsBuffer[0] = js('#', receiverArgumentName);
+      argumentsBuffer[0] = js(receiverArgumentName);
       task.interceptorEmitter.interceptorInvocationNames.add(invocationName);
     }
 
@@ -88,14 +88,14 @@ class ContainerBuilder extends CodeEmitterHelper {
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
-        argumentsBuffer[count] = js('#', jsName);
+        argumentsBuffer[count] = js(jsName);
       } else {
         int index = names.indexOf(element.name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = js('#', jsName);
+          argumentsBuffer[count] = js(jsName);
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
@@ -115,7 +115,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       count++;
     });
 
-    var body;  // List or jsAst.Statement.
+    List body;
     if (member.hasFixedBackendName()) {
       body = task.nativeEmitter.generateParameterStubStatements(
           member, isInterceptedMethod, invocationName,
@@ -129,21 +129,19 @@ class ContainerBuilder extends CodeEmitterHelper {
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
-        body = js.statement(
-            'return #.prototype.#.call(this, #);',
-            [backend.namer.elementAccess(superClass), methodName,
-             argumentsBuffer]);
+        body = [js.return_(
+            backend.namer.elementAccess(superClass)['prototype'][methodName]
+            ["call"](["this"]..addAll(argumentsBuffer)))];
       } else {
-        body = js.statement(
-            'return this.#(#);',
-            [namer.getNameOfInstanceMember(member), argumentsBuffer]);
+        body = [js.return_(
+            js('this')
+            [namer.getNameOfInstanceMember(member)](argumentsBuffer))];
       }
     } else {
-      body = js.statement('return #(#)',
-          [namer.elementAccess(member), argumentsBuffer]);
+      body = [js.return_(namer.elementAccess(member)(argumentsBuffer))];
     }
 
-    jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
+    jsAst.Fun function = js.fun(parametersBuffer, body);
 
     addStub(selector, function);
   }
@@ -269,12 +267,12 @@ class ContainerBuilder extends CodeEmitterHelper {
       if (member.isGetter()) {
         String getterName = namer.getterName(member);
         if (isInterceptedMethod) {
-          return js('this.#(#)', [getterName, receiver]);
+          return js('this')[getterName](<jsAst.Expression>[receiver]);
         }
-        return js('#.#()', [receiver, getterName]);
+        return receiver[getterName](<jsAst.Expression>[]);
       } else {
         String fieldName = namer.instanceFieldPropertyName(member);
-        return js('#.#', [receiver, fieldName]);
+        return receiver[fieldName];
       }
     }
 
@@ -301,12 +299,12 @@ class ContainerBuilder extends CodeEmitterHelper {
         for (int i = 0; i < selector.argumentCount; i++) {
           String name = 'arg$i';
           parameters.add(new jsAst.Parameter(name));
-          arguments.add(js('#', name));
+          arguments.add(js(name));
         }
 
-        jsAst.Fun function = js(
-            'function(#) { return #.#(#); }',
-            [ parameters, buildGetter(), closureCallName, arguments]);
+        jsAst.Fun function = js.fun(
+            parameters,
+            js.return_(buildGetter()[closureCallName](arguments)));
 
         addProperty(invocationName, function);
       }
@@ -426,7 +424,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // TODO(ahe): Consider one of the parameter counts can be replaced by the
     // length property of the JavaScript function object.
 
-    List<jsAst.Expression> expressions = <jsAst.Expression>[];
+    List expressions = [];
 
     String callSelectorString = 'null';
     if (member.isFunction()) {
@@ -445,7 +443,6 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     expressions.add(code);
 
-    // TODO(sra): Don't use LiteralString for non-strings.
     List tearOffInfo = [new jsAst.LiteralString(callSelectorString)];
 
     if (needsStubs || canTearOff) {
@@ -456,7 +453,7 @@ class ContainerBuilder extends CodeEmitterHelper {
               compiler.codegenWorld.invokedNames[member.name];
             expressions.add(js.string(namer.invocationName(selector)));
         } else {
-          expressions.add(js('null'));
+          expressions.add("null");
           // TOOD(ahe): Since we know when reading static data versus instance
           // data, we can eliminate this element.
         }
@@ -487,7 +484,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.rti.getSignatureEncoding(memberType, thisAccess);
       } else {
         memberTypeExpression =
-            js.number(task.metadataEmitter.reifyType(memberType));
+            js.toExpression(task.metadataEmitter.reifyType(memberType));
       }
     } else {
       memberTypeExpression = js('null');
@@ -497,16 +494,14 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..addAll(tearOffInfo)
         ..add((tearOffName == null || member.isAccessor())
               ? js("null") : js.string(tearOffName))
-        ..add(js.number(requiredParameterCount))
-        ..add(js.number(optionalParameterCount))
+        ..add(requiredParameterCount)
+        ..add(optionalParameterCount)
         ..add(memberTypeExpression)
-        ..addAll(
-            task.metadataEmitter.reifyDefaultArguments(member).map(js.number));
+        ..addAll(task.metadataEmitter.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
-        expressions.add(
-            js.number(task.metadataEmitter.reifyName(parameter.name)));
+        expressions.add(task.metadataEmitter.reifyName(parameter.name));
         if (backend.mustRetainMetadata) {
           List<MetadataAnnotation> annotations = parameter.metadata.toList();
           Iterable<int> metadataIndices =
@@ -516,8 +511,8 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.constants.addCompileTimeConstantForEmission(constant);
             return task.metadataEmitter.reifyMetadata(annotation);
           });
-          expressions.add(
-              new jsAst.ArrayInitializer.from(metadataIndices.map(js.number)));
+          expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
+                                                     : js('[]'));
         }
       });
     }
@@ -533,11 +528,12 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
+          ..addAll(task.metadataEmitter.computeMetadata(member));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(member.name));
     }
-    builder.addProperty(name, new jsAst.ArrayInitializer.from(expressions));
+
+    builder.addProperty(name, js.toExpression(expressions));
   }
 
   void addMemberField(VariableElement member, ClassBuilder builder) {

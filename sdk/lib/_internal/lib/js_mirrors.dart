@@ -1133,13 +1133,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     var interceptor = getInterceptor(object);
     if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
     String className = JS('String', '#.constructor.name', interceptor);
-    String functionName = '$className\$$name';
-    var body =
-        '(function(i) {'
-        '  function $functionName(o){return i.$name(o)}'
-        '  return $functionName;'
-        '})';
-    return JS('', '(function(b){return eval(b)})(#)(#)', body, interceptor);
+    var body = "(function $className\$$name(o){return i.$name(o)})";
+    return JS('', '(function(b,i){return eval(b)})(#,#)', body, interceptor);
   }
 
   _newInterceptGetterNoEvalFn(n, i) => JS('',

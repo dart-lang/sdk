@@ -767,9 +767,9 @@ class NativeBehavior {
   /// [DartType]s or [SpecialType]s instantiated by the native element.
   final List typesInstantiated = [];
 
-  // If this behavior is for a JS expression, [codeTemplate] contains the
+  // If this behavior is for a JS expression, [codeAst] contains the
   // parsed tree.
-  js.Template codeTemplate;
+  js.Expression codeAst;
 
   final SideEffects sideEffects = new SideEffects.empty();
 
@@ -800,8 +800,8 @@ class NativeBehavior {
     }
 
     var behavior = new NativeBehavior();
-    behavior.codeTemplate = js.js.parseForeignJS(code.dartString.slowToString());
-    new SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
+    behavior.codeAst = js.js.parseForeignJS(code.dartString.slowToString());
+    new SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeAst);
 
     String specString = specLiteral.dartString.slowToString();
     // Various things that are not in fact types.
@@ -1162,14 +1162,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
                                      'Unexpected kind: "${element.kind}".');
     }
 
-    builder.push(
-        new HForeign(
-            // TODO(sra): This could be cached.  The number of templates should
-            // be proportional to the number of native methods, which is bounded
-            // by the dart: libraries.
-            js.js.uncachedExpressionTemplate(nativeMethodCall),
-            backend.dynamicType,
-            inputs, effects: new SideEffects()));
+    builder.push(new HForeign(js.js(nativeMethodCall), backend.dynamicType,
+                              inputs, effects: new SideEffects()));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
@@ -1179,8 +1173,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     }
     LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign.statement(
-        js.js.statementTemplateYielding(
-            new js.LiteralStatement(jsCode.dartString.slowToString())),
+        new js.LiteralStatement(jsCode.dartString.slowToString()),
         <HInstruction>[],
         new SideEffects(),
         null,

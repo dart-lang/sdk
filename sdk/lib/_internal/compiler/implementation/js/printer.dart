@@ -878,24 +878,17 @@ class Printer implements NodeVisitor {
     outLn(node.code);
   }
 
-  visitInterpolatedNode(InterpolatedNode node) {
-    out('#${node.name}');
+  visitJSExpression(JSExpression node) {
+    compiler.internalError(NO_LOCATION_SPANNABLE,
+        'JSPrinter should never see a JSExpression.');
   }
 
-  visitInterpolatedExpression(InterpolatedExpression node) =>
-      visitInterpolatedNode(node);
-
-  visitInterpolatedLiteral(InterpolatedLiteral node) =>
-      visitInterpolatedNode(node);
-
-  visitInterpolatedParameter(InterpolatedParameter node) =>
-      visitInterpolatedNode(node);
-
-  visitInterpolatedSelector(InterpolatedSelector node) =>
-      visitInterpolatedNode(node);
+  visitInterpolatedExpression(InterpolatedExpression node) {
+    visit(node.value);
+  }
 
   visitInterpolatedStatement(InterpolatedStatement node) {
-    outLn('#${node.name}');
+    visit(node.value);
   }
 
   void visitComment(Comment node) {
@@ -1110,12 +1103,6 @@ class MinifyRenamer implements LocalNamer {
   // use the same namespace for arguments and variables, starting with A, and
   // moving on to a0, a1, etc.
   String declareVariable(String oldName) {
-    // Variables of this $form$ are used in pattern matching the message of JS
-    // exceptions, so should not be renamed.
-    // TODO(sra): Introduce a way for indicating in the JS text which variables
-    // should not be renamed.
-    if (oldName.startsWith(r'$') && oldName.endsWith(r'$')) return oldName;
-
     var newName;
     if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
       // Variables start from z and go backwards, for better gzipability.

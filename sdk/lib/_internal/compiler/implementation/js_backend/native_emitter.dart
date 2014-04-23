@@ -54,9 +54,9 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  jsAst.Expression get defPropFunction {
+  String get defPropName {
     Element element = compiler.findHelper('defineProperty');
-    return backend.namer.elementAccess(element);
+    return backend.namer.isolateAccess(element);
   }
 
   String get toStringHelperName {
@@ -355,7 +355,9 @@ class NativeEmitter {
     FunctionSignature parameters = member.functionSignature;
     Element converter =
         compiler.findHelper('convertDartClosureToJS');
-    jsAst.Expression closureConverter = backend.namer.elementAccess(converter);
+    String closureConverter = backend.namer.isolateAccess(converter);
+    Set<String> stubParameterNames = new Set<String>.from(
+        stubParameters.map((param) => param.name));
     parameters.forEachParameter((ParameterElement parameter) {
       String name = parameter.name;
       // If [name] is not in [stubParameters], then the parameter is an optional
@@ -369,8 +371,7 @@ class NativeEmitter {
             FunctionType functionType = type;
             int arity = functionType.computeArity();
             statements.add(
-                js.statement('# = #(#, $arity)',
-                    [name, closureConverter, name]));
+                js('$name = $closureConverter($name, $arity)').toStatement());
             break;
           }
         }
@@ -417,8 +418,7 @@ class NativeEmitter {
       arguments = argumentsBuffer.sublist(0,
           indexOfLastOptionalArgumentInParameters + 1);
     }
-    statements.add(
-        js.statement('return #.#(#)', [receiver, target, arguments]));
+    statements.add(new jsAst.Return(receiver[target](arguments)));
 
     return statements;
   }
@@ -477,13 +477,17 @@ class NativeEmitter {
     // If we have any properties to add to Object.prototype, we run
     // through them and add them using defineProperty.
     if (!objectProperties.isEmpty) {
-      jsAst.Expression init = js(r'''
-          (function(table) {
-            for(var key in table)
-              #(Object.prototype, key, table[key]);
-           })(#)''',
-          [ defPropFunction,
-            new jsAst.ObjectInitializer(objectProperties)]);
+      jsAst.Expression init =
+          js.fun(['table'],
+              new jsAst.ForIn(
+                  new jsAst.VariableDeclarationList(
+                      [new jsAst.VariableInitialization(
+                          new jsAst.VariableDeclaration('key'),
+                          null)]),
+                  js('table'),
+                  new jsAst.ExpressionStatement(
+                      js('$defPropName(Object.prototype, key, table[key])'))))(
+              new jsAst.ObjectInitializer(objectProperties));
 
       if (emitter.compiler.enableMinification) targetBuffer.add(';');
       targetBuffer.add(jsAst.prettyPrint(
