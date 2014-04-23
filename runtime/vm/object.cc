@@ -1018,7 +1018,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
-  object_store->set_jsregexp_class(cls);
   RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
   pending_classes.Add(cls);
 
@@ -1129,7 +1128,6 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  object_store->set_mirror_reference_class(cls);
   RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
   // Pre-register the profiler library so we can place the vm class
@@ -1147,7 +1145,6 @@ RawError* Object::Init(Isolate* isolate) {
   lib = Library::LookupLibrary(Symbols::DartProfiler());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
-  object_store->set_user_tag_class(cls);
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
   pending_classes.Add(cls);
 
@@ -1441,7 +1438,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   object_store->set_stacktrace_class(cls);
 
   cls = Class::New<JSRegExp>();
-  object_store->set_jsregexp_class(cls);
 
   // Some classes are not stored in the object store. Yet we still need to
   // create their Class object so that they get put into the class_table
@@ -1452,10 +1448,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
 
   cls = Class::New<MirrorReference>();
-  object_store->set_mirror_reference_class(cls);
 
   cls = Class::New<UserTag>();
-  object_store->set_user_tag_class(cls);
 }
 
 
@@ -18270,8 +18264,6 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 
 
 RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->jsregexp_class() !=
-         Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in JSRegexp::New: invalid len %" Pd "\n", len);
@@ -18419,8 +18411,6 @@ RawTypeParameter* MirrorReference::GetTypeParameterReferent() const {
 
 RawMirrorReference* MirrorReference::New(const Object& referent,
                                          Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
-         != Class::null());
   MirrorReference& result = MirrorReference::Handle();
   {
     RawObject* raw = Object::Allocate(MirrorReference::kClassId,
@@ -18460,7 +18450,6 @@ void UserTag::ClearActive() {
 
 RawUserTag* UserTag::New(const String& label, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->object_store()->user_tag_class() != Class::null());
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
   UserTag& result = UserTag::Handle(FindTagInIsolate(isolate, label));

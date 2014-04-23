@@ -251,35 +251,11 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, stacktrace_class_);
   }
 
-  RawClass* jsregexp_class() const {
-    return jsregexp_class_;
-  }
-  void set_jsregexp_class(const Class& value) {
-    jsregexp_class_ = value.raw();
-  }
-  static intptr_t jsregexp_class_offset() {
-    return OFFSET_OF(ObjectStore, jsregexp_class_);
-  }
-
   RawClass* weak_property_class() const {
     return weak_property_class_;
   }
   void set_weak_property_class(const Class& value) {
     weak_property_class_ = value.raw();
-  }
-
-  RawClass* mirror_reference_class() const {
-    return mirror_reference_class_;
-  }
-  void set_mirror_reference_class(const Class& value) {
-    mirror_reference_class_ = value.raw();
-  }
-
-  RawClass* user_tag_class() const {
-    return user_tag_class_;
-  }
-  void set_user_tag_class(const Class& value) {
-    user_tag_class_ = value.raw();
   }
 
   RawArray* symbol_table() const { return symbol_table_; }
@@ -477,10 +453,7 @@ class ObjectStore {
   RawArray* typed_data_classes_;
   RawClass* error_class_;
   RawClass* stacktrace_class_;
-  RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
-  RawClass* mirror_reference_class_;
-  RawClass* user_tag_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
