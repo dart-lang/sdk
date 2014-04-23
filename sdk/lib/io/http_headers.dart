@@ -248,117 +248,147 @@ class _HttpHeaders implements HttpHeaders {
     _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
   }
 
-  static void _addContentLength(_HttpHeaders headers, String name, value) {
-    if (value is int) {
-      headers.contentLength = value;
-    } else if (value is String) {
-      headers.contentLength = int.parse(value);
-    } else {
-      throw new HttpException("Unexpected type for header named $name");
-    }
-  }
-
-  static void _addTransferEncoding(_HttpHeaders headers, String name, value) {
-    if (value == "chunked") {
-      headers.chunkedTransferEncoding = true;
-    } else {
-      headers._addValue(HttpHeaders.TRANSFER_ENCODING, value);
-    }
-  }
-
-  static void _addDate(_HttpHeaders headers, String name, value) {
-    if (value is DateTime) {
-      headers.date = value;
-    } else if (value is String) {
-      headers._set(HttpHeaders.DATE, value);
-    } else {
-      throw new HttpException("Unexpected type for header named $name");
-    }
-  }
-
-  static void _addExpires(_HttpHeaders headers, String name, value) {
-    if (value is DateTime) {
-      headers.expires = value;
-    } else if (value is String) {
-      headers._set(HttpHeaders.EXPIRES, value);
-    } else {
-      throw new HttpException("Unexpected type for header named $name");
-    }
-  }
-
-  static void _addIfModifiedSince(_HttpHeaders headers, String name, value) {
-    if (value is DateTime) {
-      headers.ifModifiedSince = value;
-    } else if (value is String) {
-      headers._set(HttpHeaders.IF_MODIFIED_SINCE, value);
-    } else {
-      throw new HttpException("Unexpected type for header named $name");
-    }
-  }
-
-  static void _addHost(_HttpHeaders headers, String name, value) {
-    if (value is String) {
-      int pos = value.indexOf(":");
-      if (pos == -1) {
-        headers._host = value;
-        headers._port = HttpClient.DEFAULT_HTTP_PORT;
-      } else {
-        if (pos > 0) {
-          headers._host = value.substring(0, pos);
-        } else {
-          headers._host = null;
-        }
-        if (pos + 1 == value.length) {
-          headers._port = HttpClient.DEFAULT_HTTP_PORT;
-        } else {
-          try {
-            headers._port = int.parse(value.substring(pos + 1));
-          } on FormatException catch (e) {
-            headers._port = null;
-          }
-        }
-      }
-      headers._set(HttpHeaders.HOST, value);
-    } else {
-      throw new HttpException("Unexpected type for header named $name");
-    }
-  }
-
-  static void _addConnection(_HttpHeaders headers, String name, value) {
-    var lowerCaseValue = value.toLowerCase();
-    if (lowerCaseValue == 'close') {
-      headers._persistentConnection = false;
-    } else if (lowerCaseValue == 'keep-alive') {
-      headers._persistentConnection = true;
-    }
-    headers._addValue(name, value);
-  }
-
-  static void _addContentType(_HttpHeaders headers, String name, value) {
-    headers._set(HttpHeaders.CONTENT_TYPE, value);
-  }
-
-  // TODO(ajohnsen): Change to const map, once const maps are faster.
-  static final _addMap = {
-    HttpHeaders.CONTENT_LENGTH: _addContentLength,
-    HttpHeaders.TRANSFER_ENCODING: _addTransferEncoding,
-    HttpHeaders.DATE: _addDate,
-    HttpHeaders.EXPIRES: _addExpires,
-    HttpHeaders.IF_MODIFIED_SINCE: _addIfModifiedSince,
-    HttpHeaders.HOST: _addHost,
-    HttpHeaders.CONNECTION: _addConnection,
-    HttpHeaders.CONTENT_TYPE: _addContentType
-  };
-
   // [name] must be a lower-case version of the name.
   void _add(String name, value) {
     assert(name == name.toLowerCase());
-    var method = _addMap[name];
-    if (method != null) {
-      method(this, name, value);
-      return;
+    // Use the length as index on what method to call. This is notable
+    // faster than computing hash and looking up in a hash-map.
+    switch (name.length) {
+      case 4:
+        if (HttpHeaders.DATE == name) {
+          _addDate(name, value);
+          return;
+        }
+        if (HttpHeaders.HOST == name) {
+          _addHost(name, value);
+          return;
+        }
+        break;
+      case 7:
+        if (HttpHeaders.EXPIRES == name) {
+          _addExpires(name, value);
+          return;
+        }
+        break;
+      case 10:
+        if (HttpHeaders.CONNECTION == name) {
+          _addConnection(name, value);
+          return;
+        }
+        break;
+      case 12:
+        if (HttpHeaders.CONTENT_TYPE == name) {
+          _addContentType(name, value);
+          return;
+        }
+        break;
+      case 14:
+        if (HttpHeaders.CONTENT_LENGTH == name) {
+          _addContentLength(name, value);
+          return;
+        }
+        break;
+      case 17:
+        if (HttpHeaders.TRANSFER_ENCODING == name) {
+          _addTransferEncoding(name, value);
+          return;
+        }
+        if (HttpHeaders.IF_MODIFIED_SINCE == name) {
+          _addIfModifiedSince(name, value);
+          return;
+        }
     }
     _addValue(name, value);
+  }
+
+  void _addContentLength(String name, value) {
+    if (value is int) {
+      contentLength = value;
+    } else if (value is String) {
+      contentLength = int.parse(value);
+    } else {
+      throw new HttpException("Unexpected type for header named $name");
+    }
+  }
+
+  void _addTransferEncoding(String name, value) {
+    if (value == "chunked") {
+      chunkedTransferEncoding = true;
+    } else {
+      _addValue(HttpHeaders.TRANSFER_ENCODING, value);
+    }
+  }
+
+  void _addDate(String name, value) {
+    if (value is DateTime) {
+      date = value;
+    } else if (value is String) {
+      _set(HttpHeaders.DATE, value);
+    } else {
+      throw new HttpException("Unexpected type for header named $name");
+    }
+  }
+
+  void _addExpires(String name, value) {
+    if (value is DateTime) {
+      expires = value;
+    } else if (value is String) {
+      _set(HttpHeaders.EXPIRES, value);
+    } else {
+      throw new HttpException("Unexpected type for header named $name");
+    }
+  }
+
+  void _addIfModifiedSince(String name, value) {
+    if (value is DateTime) {
+      ifModifiedSince = value;
+    } else if (value is String) {
+      _set(HttpHeaders.IF_MODIFIED_SINCE, value);
+    } else {
+      throw new HttpException("Unexpected type for header named $name");
+    }
+  }
+
+  void _addHost(String name, value) {
+    if (value is String) {
+      int pos = value.indexOf(":");
+      if (pos == -1) {
+        _host = value;
+        _port = HttpClient.DEFAULT_HTTP_PORT;
+      } else {
+        if (pos > 0) {
+          _host = value.substring(0, pos);
+        } else {
+          _host = null;
+        }
+        if (pos + 1 == value.length) {
+          _port = HttpClient.DEFAULT_HTTP_PORT;
+        } else {
+          try {
+            _port = int.parse(value.substring(pos + 1));
+          } on FormatException catch (e) {
+            _port = null;
+          }
+        }
+      }
+      _set(HttpHeaders.HOST, value);
+    } else {
+      throw new HttpException("Unexpected type for header named $name");
+    }
+  }
+
+  void _addConnection(String name, value) {
+    var lowerCaseValue = value.toLowerCase();
+    if (lowerCaseValue == 'close') {
+      _persistentConnection = false;
+    } else if (lowerCaseValue == 'keep-alive') {
+      _persistentConnection = true;
+    }
+    _addValue(name, value);
+  }
+
+  void _addContentType(String name, value) {
+    _set(HttpHeaders.CONTENT_TYPE, value);
   }
 
   void _addValue(String name, Object value) {
