@@ -124,7 +124,6 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-mirrors/to_string_test: Fail # Safari bug TODO(ahe): Add bug number if able to submit bug.
 mirrors/null_test: Fail # http://dartbug.com/16831
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
