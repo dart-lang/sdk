@@ -671,10 +671,10 @@ void Object::InitOnce() {
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
 
   String& error_str = String::Handle();
-  error_str = String::New("SnapshotWriter Error");
-  *snapshot_writer_error_ = LanguageError::New(error_str);
-  error_str = String::New("Branch offset overflow");
-  *branch_offset_error_ = LanguageError::New(error_str);
+  error_str = String::New("SnapshotWriter Error", Heap::kOld);
+  *snapshot_writer_error_ = LanguageError::New(error_str, Heap::kOld);
+  error_str = String::New("Branch offset overflow", Heap::kOld);
+  *branch_offset_error_ = LanguageError::New(error_str, Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -767,7 +767,7 @@ void Object::CreateInternalMetaData() {
 
   // TODO(iposva): Add more of the VM classes here.
   cls = context_class_;
-  fields = Array::New(1);
+  fields = Array::New(1, Heap::kOld);
   name = Symbols::New("@parent_");
   fld = Field::New(name, false, false, false, cls, 0);
   fields.SetAt(0, fld);

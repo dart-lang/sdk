@@ -122,7 +122,7 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   // Setup the symbol table used within the String class.
   const intptr_t initial_size = (isolate == Dart::vm_isolate()) ?
       kInitialVMIsolateSymtabSize : kInitialSymtabSize;
-  const Array& array = Array::Handle(Array::New(initial_size + 1));
+  const Array& array = Array::Handle(Array::New(initial_size + 1, Heap::kOld));
 
   // Last element contains the count of used slots.
   array.SetAt(initial_size, Smi::Handle(Smi::New(0)));
@@ -339,7 +339,8 @@ void Symbols::GrowSymbolTable(const Array& symbol_table) {
   num_of_grows_ += 1;
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t new_table_size = table_size * 2;
-  Array& new_symbol_table = Array::Handle(Array::New(new_table_size + 1));
+  Array& new_symbol_table =
+      Array::Handle(Array::New(new_table_size + 1, Heap::kOld));
   // Copy all elements from the original symbol table to the newly allocated
   // array.
   String& element = String::Handle();

@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
@@ -45,6 +46,7 @@ class Scavenger {
 
   uword TryAllocate(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
 #if defined(DEBUG)
     if (FLAG_gc_at_alloc && !scavenging_) {
       Scavenge();
