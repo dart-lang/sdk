@@ -85,7 +85,7 @@ class AnalysisServerTest {
           );
       expect(channel.notificationsReceived[1].event, equals('context.errors'));
       expect(channel.notificationsReceived[1].params['source'], equals(
-          '102file:///foo.dart')); // Issue 18739
+          source.encoding));
       List<AnalysisError> errors =
           channel.notificationsReceived[1].params['errors'];
       expect(errors, hasLength(1));
