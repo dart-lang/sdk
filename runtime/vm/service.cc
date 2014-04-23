@@ -1655,6 +1655,10 @@ class ContainsAddressVisitor : public FindObjectVisitor {
   virtual uword filter_addr() const { return addr_; }
 
   virtual bool FindObject(RawObject* obj) const {
+    // Free list elements are not real objects, so skip them.
+    if (obj->IsFreeListElement()) {
+      return false;
+    }
     uword obj_begin = RawObject::ToAddr(obj);
     uword obj_end = obj_begin + obj->Size();
     return obj_begin <= addr_ && addr_ < obj_end;

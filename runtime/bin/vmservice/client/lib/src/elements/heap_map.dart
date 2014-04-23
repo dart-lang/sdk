@@ -66,6 +66,7 @@ class HeapMapElement extends ObservatoryElement {
     super.enteredView();
     _fragmentationCanvas = shadowRoot.querySelector("#fragmentation");
     _fragmentationCanvas.onMouseMove.listen(_handleMouseMove);
+    _fragmentationCanvas.onMouseDown.listen(_handleClick);
   }
 
   // Encode color as single integer, to enable using it as a map key.
@@ -127,6 +128,11 @@ class HeapMapElement extends ObservatoryElement {
     var addressString = '@ 0x${_addressAt(event.offset).toRadixString(16)}';
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';
+  }
+  
+  void _handleClick(MouseEvent event) {
+    var address = _addressAt(event.offset).toRadixString(16);
+    window.location.hash = "/${fragmentation.isolate.link}/address/$address";
   }
 
   void _updateFragmentationData() {
