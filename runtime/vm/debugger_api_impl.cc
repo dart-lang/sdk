@@ -542,6 +542,17 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
+                            Dart_ActivationFrame activation_frame,
+                            Dart_Handle expr_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
+  UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
+  return Api::NewHandle(isolate, frame->Evaluate(expr));
+}
+
+
 DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                                           Dart_Handle expr_in) {
   Isolate* isolate = Isolate::Current();
@@ -557,13 +568,24 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
   // Type extends Instance, must check first.
   if (target.IsType()) {
     const Class& cls = Class::Handle(isolate, Type::Cast(target).type_class());
-    return Api::NewHandle(isolate, cls.Evaluate(expr));
+    return Api::NewHandle(isolate, cls.Evaluate(expr,
+                                                Array::empty_array(),
+                                                Array::empty_array()));
   } else if (target.IsInstance()) {
-    return Api::NewHandle(isolate, Instance::Cast(target).Evaluate(expr));
+    const Instance& inst = Instance::Cast(target);
+    return Api::NewHandle(isolate, inst.Evaluate(expr,
+                                                 Array::empty_array(),
+                                                 Array::empty_array()));
   } else if (target.IsLibrary()) {
-    return Api::NewHandle(isolate, Library::Cast(target).Evaluate(expr));
+    const Library& lib = Library::Cast(target);
+    return Api::NewHandle(isolate, lib.Evaluate(expr,
+                                                Array::empty_array(),
+                                                Array::empty_array()));
   } else if (target.IsClass()) {
-    return Api::NewHandle(isolate, Class::Cast(target).Evaluate(expr));
+    const Class& cls = Class::Cast(target);
+    return Api::NewHandle(isolate, cls.Evaluate(expr,
+                                                Array::empty_array(),
+                                                Array::empty_array()));
   }
   return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }

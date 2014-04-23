@@ -1445,7 +1445,9 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
     }
   }
   ASSERT(!ctxt_library.IsNull());
-  return ctxt_library.Evaluate(expression);
+  return ctxt_library.Evaluate(expression,
+                               Array::empty_array(),
+                               Array::empty_array());
 }
 
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {

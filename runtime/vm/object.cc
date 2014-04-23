@@ -2649,13 +2649,35 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
 }
 
 
+static RawString* BuildClosureSource(const Array& formal_params,
+                                     const String& expr) {
+  const GrowableObjectArray& src_pieces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  String& piece = String::Handle();
+  src_pieces.Add(Symbols::LParen());
+  // Add formal parameters.
+  intptr_t num_formals = formal_params.Length();
+  for (intptr_t i = 0; i < num_formals; i++) {
+    if (i > 0) {
+      src_pieces.Add(Symbols::CommaSpace());
+    }
+    piece ^= formal_params.At(i);
+    src_pieces.Add(piece);
+  }
+  src_pieces.Add(Symbols::RParenArrow());
+  src_pieces.Add(expr);
+  src_pieces.Add(Symbols::Semicolon());
+  return String::ConcatAll(Array::Handle(Array::MakeArray(src_pieces)));
+}
+
+
 static RawPatchClass* MakeTempPatchClass(const Class& cls,
-                                         const String& expr) {
-  String& src = String::Handle(String::New("() => "));
-  src = String::Concat(src, expr);
-  src = String::Concat(src, Symbols::Semicolon());
+                                         const String& expr,
+                                         const Array& formal_params) {
+  const String& func_src =
+      String::Handle(BuildClosureSource(formal_params, expr));
   Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(), src, RawScript::kSourceTag);
+  script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the object's class
   // originates.
@@ -2673,9 +2695,11 @@ static RawPatchClass* MakeTempPatchClass(const Class& cls,
 }
 
 
-RawObject* Class::Evaluate(const String& expr) const {
+RawObject* Class::Evaluate(const String& expr,
+                           const Array& param_names,
+                           const Array& param_values) const {
   const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(*this, expr));
+      PatchClass::Handle(MakeTempPatchClass(*this, expr, param_names));
   const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
       Function::Handle(Function::New(eval_func_name,
@@ -2688,13 +2712,12 @@ RawObject* Class::Evaluate(const String& expr) const {
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(0);
+  eval_func.set_num_fixed_parameters(param_names.Length());
   eval_func.SetNumOptionalParameters(0, true);
   eval_func.SetIsOptimizable(false);
 
-  const Array& args = Array::Handle(Array::New(0));
   const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
+      Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
   return result.raw();
 }
 
@@ -8992,7 +9015,9 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
-RawObject* Library::Evaluate(const String& expr) const {
+RawObject* Library::Evaluate(const String& expr,
+                             const Array& param_names,
+                             const Array& param_values) const {
   // Make a fake top-level class and evaluate the expression
   // as a static function of the class.
   Script& script = Script::Handle();
@@ -9003,7 +9028,7 @@ RawObject* Library::Evaluate(const String& expr) const {
       Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
   temp_class.set_library(*this);
   temp_class.set_is_finalized();
-  return temp_class.Evaluate(expr);
+  return temp_class.Evaluate(expr, param_names, param_values);
 }
 
 
@@ -12411,10 +12436,12 @@ void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawObject* Instance::Evaluate(const String& expr) const {
+RawObject* Instance::Evaluate(const String& expr,
+                              const Array& param_names,
+                              const Array& param_values) const {
   const Class& cls = Class::Handle(clazz());
-  const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(cls, expr));
+  const PatchClass& temp_class = PatchClass::Handle(
+      MakeTempPatchClass(cls, expr, param_names));
   const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
       Function::Handle(Function::New(eval_func_name,
@@ -12427,12 +12454,17 @@ RawObject* Instance::Evaluate(const String& expr) const {
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(1);
+  eval_func.set_num_fixed_parameters(1 + param_values.Length());
   eval_func.SetNumOptionalParameters(0, true);
   eval_func.SetIsOptimizable(false);
 
-  const Array& args = Array::Handle(Array::New(1));
+  const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
+  Object& param = Object::Handle();
   args.SetAt(0, *this);
+  for (intptr_t i = 0; i < param_values.Length(); i++) {
+    param = param_values.At(i);
+    args.SetAt(i + 1, param);
+  }
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(eval_func, args));
   return result.raw();

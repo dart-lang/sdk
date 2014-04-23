@@ -882,7 +882,10 @@ static bool HandleInstanceCommands(Isolate* isolate,
     const String& expr_str = String::Handle(isolate, String::New(expr));
     ASSERT(obj.IsInstance());
     const Instance& instance = Instance::Cast(obj);
-    const Object& result = Object::Handle(instance.Evaluate(expr_str));
+    const Object& result =
+        Object::Handle(instance.Evaluate(expr_str,
+                                         Array::empty_array(),
+                                         Array::empty_array()));
     if (result.IsNull()) {
       Object::null_instance().PrintToJSONStream(js, true);
     } else {
@@ -931,7 +934,9 @@ static bool HandleClassesEval(Isolate* isolate, const Class& cls,
     return true;
   }
   const String& expr_str = String::Handle(isolate, String::New(expr));
-  const Object& result = Object::Handle(cls.Evaluate(expr_str));
+  const Object& result = Object::Handle(cls.Evaluate(expr_str,
+                                                     Array::empty_array(),
+                                                     Array::empty_array()));
   if (result.IsNull()) {
     Object::null_instance().PrintToJSONStream(js, true);
   } else {
@@ -1123,7 +1128,9 @@ static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
     return true;
   }
   const String& expr_str = String::Handle(isolate, String::New(expr));
-  const Object& result = Object::Handle(lib.Evaluate(expr_str));
+  const Object& result = Object::Handle(lib.Evaluate(expr_str,
+                                                     Array::empty_array(),
+                                                     Array::empty_array()));
   if (result.IsNull()) {
     Object::null_instance().PrintToJSONStream(js, true);
   } else {
