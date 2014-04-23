@@ -28,6 +28,12 @@ main() {
         AnalysisServerTest.addContextToWorkQueue_whenRunning);
     test('createContext', AnalysisServerTest.createContext);
     test('echo', AnalysisServerTest.echo);
+    test('errorToJson_formattingApplied',
+        AnalysisServerTest.errorToJson_formattingApplied);
+    test('errorToJson_noCorrection',
+        AnalysisServerTest.errorToJson_noCorrection);
+    test('errorToJson_withCorrection',
+        AnalysisServerTest.errorToJson_withCorrection);
     test('performTask_whenNotRunning',
         AnalysisServerTest.performTask_whenNotRunning);
     test('shutdown', AnalysisServerTest.shutdown);
@@ -89,7 +95,7 @@ class AnalysisServerTest {
       List<AnalysisError> errors =
           channel.notificationsReceived[1].params['errors'];
       expect(errors, hasLength(1));
-      expect(errors[0], equals(analysisError));
+      expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
     });
   }
 
@@ -123,6 +129,46 @@ class AnalysisServerTest {
           expect(response.id, equals('my22'));
           expect(response.error, isNull);
         });
+  }
+
+  static void errorToJson_formattingApplied() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
+    AnalysisError analysisError =
+        new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+
+    expect(json['message'],
+        equals("The element 'foo' is defined in the libraries 'bar' and 'baz'"));
+  }
+
+  static void errorToJson_noCorrection() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    CompileTimeErrorCode errorCode =
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
+    AnalysisError analysisError =
+        new AnalysisError.con2(source, 10, 5, errorCode, []);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+    expect(json, hasLength(5));
+    expect(json['source'], equals(source.encoding));
+    expect(json['errorCode'], equals(errorCode.ordinal));
+    expect(json['offset'], equals(analysisError.offset));
+    expect(json['length'], equals(analysisError.length));
+    expect(json['message'], equals(errorCode.message));
+  }
+
+  static void errorToJson_withCorrection() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+
+    // TODO(paulberry): in principle we should test an error or hint that uses
+    // %s formatting in its correction string.  But no such errors or hints
+    // currently exist!
+    HintCode errorCode = HintCode.MISSING_RETURN;
+
+    AnalysisError analysisError =
+        new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+    expect(json['correction'], equals(errorCode.correction));
   }
 
   static Future performTask_whenNotRunning() {

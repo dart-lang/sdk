@@ -10,6 +10,8 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -188,9 +190,29 @@ class AnalysisServer {
       ChangeNotice notice = notices[i];
       Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
       notification.setParameter(SOURCE_PARAM, notice.source.encoding);
-      notification.setParameter(ERRORS_PARAM, notice.errors);
+      notification.setParameter(ERRORS_PARAM, notice.errors.map(
+          errorToJson).toList());
       sendNotification(notification);
     }
+  }
+
+  static Map<String, Object> errorToJson(AnalysisError analysisError) {
+    // TODO(paulberry): move this function into the AnalysisError class.
+
+    // TODO(paulberry): we really shouldn't be exposing errorCode.ordinal
+    // outside the analyzer, since the ordinal numbers change whenever we
+    // regenerate the analysis engine.
+    Map<String, Object> result = {
+      'source': analysisError.source.encoding,
+      'errorCode': (analysisError.errorCode as Enum).ordinal,
+      'offset': analysisError.offset,
+      'length': analysisError.length,
+      'message': analysisError.message
+    };
+    if (analysisError.correction != null) {
+      result['correction'] = analysisError.correction;
+    }
+    return result;
   }
 
   /**
