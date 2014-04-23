@@ -39,7 +39,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef");
+DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 

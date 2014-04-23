@@ -204,7 +204,8 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
-                                   intptr_t osr_id)
+                                   intptr_t osr_id,
+                                   bool is_optimizing)
   : parsed_function_(parsed_function),
     ic_data_array_(ic_data_array),
     num_copied_params_(parsed_function->num_copied_params()),
@@ -223,7 +224,8 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     temp_count_(0),
     args_pushed_(0),
     nesting_stack_(NULL),
-    osr_id_(osr_id) { }
+    osr_id_(osr_id),
+    is_optimizing_(is_optimizing) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -3846,7 +3848,7 @@ void FlowGraphBuilder::PruneUnreachable() {
 }
 
 
-void FlowGraphBuilder::Bailout(const char* reason) {
+void FlowGraphBuilder::Bailout(const char* reason) const {
   const Function& function = parsed_function_->function();
   const Error& error = Error::Handle(
       LanguageError::NewFormatted(Error::Handle(),  // No previous error.
@@ -3859,6 +3861,5 @@ void FlowGraphBuilder::Bailout(const char* reason) {
                                   reason));
   Isolate::Current()->long_jump_base()->Jump(1, error);
 }
-
 
 }  // namespace dart

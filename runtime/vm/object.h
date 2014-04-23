@@ -6504,7 +6504,10 @@ class Stacktrace : public Instance {
                             Heap::Space space = Heap::kNew);
 
   RawString* FullStacktrace() const;
-  const char* ToCStringInternal(intptr_t* frame_index) const;
+
+  // The argument 'max_frames' limits the number of printed frames.
+  const char* ToCStringInternal(intptr_t* frame_index,
+                                intptr_t max_frames = kMaxInt32) const;
 
  private:
   void set_code_array(const Array& code_array) const;

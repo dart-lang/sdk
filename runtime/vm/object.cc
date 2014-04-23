@@ -11768,12 +11768,12 @@ bool ICData::HasOneTarget() const {
 }
 
 
-RawICData* ICData::New(const Function& function,
+RawICData* ICData::New(const Function& caller_function,
                        const String& target_name,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
-  ASSERT(!function.IsNull());
+  ASSERT(!caller_function.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
   ASSERT(Object::icdata_class() != Class::null());
@@ -11787,7 +11787,7 @@ RawICData* ICData::New(const Function& function,
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_function(function);
+  result.set_function(caller_function);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
@@ -18058,7 +18058,8 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
 }
 
 
-const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
+const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
+                                          intptr_t max_frames) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -18066,7 +18067,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
   // for each frame.
   intptr_t total_len = 0;
   GrowableArray<char*> frame_strings;
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
       // Check if null function object indicates a stack trace overflow.
@@ -18084,7 +18085,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+        for (InlinedFunctionsIterator it(code, pc);
+             !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
           if (function.is_visible() || FLAG_verbose_stacktrace) {
             code = it.code();
@@ -18095,8 +18097,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
             ASSERT(pc < (code.EntryPoint() + code.Size()));
             total_len += PrintOneStacktrace(
                 isolate, &frame_strings, pc, function, code, *frame_index);
+            (*frame_index)++;  // To account for inlined frames.
           }
-          (*frame_index)++;  // To account for inlined frames.
         }
       } else {
         total_len += PrintOneStacktrace(
