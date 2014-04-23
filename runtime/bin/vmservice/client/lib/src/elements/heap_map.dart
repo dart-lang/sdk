@@ -43,6 +43,12 @@ class PixelReference {
   int get index => _dataIndex ~/ NUM_COLOR_COMPONENTS;
 }
 
+class ObjectInfo {
+  final address;
+  final size;
+  ObjectInfo(this.address, this.size);
+}
+
 @CustomTag('heap-map')
 class HeapMapElement extends ObservatoryElement {
   var _fragmentationCanvas;
@@ -109,29 +115,42 @@ class HeapMapElement extends ObservatoryElement {
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
-  // TODO(koda): Find start of object.
-  int _addressAt(Point<int> point) {
+  ObjectInfo _objectAt(Point<int> point) {
     var pagePixels = _pageHeight * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
     var pageOffset = index % pagePixels;
     var pages = fragmentation['pages'];
-    if (0 <= pageIndex && pageIndex < pages.length) {
-      return int.parse(pages[pageIndex]['object_start']) +
-           pageOffset * fragmentation['unit_size_bytes'];
-    } else {
-      return 0;
+    if (pageIndex < 0 || pageIndex >= pages.length) {
+      return null;
     }
+    // Scan the page to find start and size.
+    var page = pages[pageIndex];
+    var objects = page['objects'];
+    var offset = 0;
+    var size = 0;
+    for (var i = 0; i < objects.length; i += 2) {
+      size = objects[i];
+      offset += size;
+      if (offset > pageOffset) {
+        pageOffset = offset - size;
+        break;
+      }
+    }
+    return new ObjectInfo(int.parse(page['object_start']) +
+                          pageOffset * fragmentation['unit_size_bytes'],
+        size * fragmentation['unit_size_bytes']);
   }
 
   void _handleMouseMove(MouseEvent event) {
-    var addressString = '@ 0x${_addressAt(event.offset).toRadixString(16)}';
+    var info = _objectAt(event.offset);
+    var addressString = '${info.size}B @ 0x${info.address.toRadixString(16)}';
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';
   }
   
   void _handleClick(MouseEvent event) {
-    var address = _addressAt(event.offset).toRadixString(16);
+    var address = _objectAt(event.offset).address.toRadixString(16);
     window.location.hash = "/${fragmentation.isolate.link}/address/$address";
   }
 
