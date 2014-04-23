@@ -9,8 +9,8 @@ import 'dart:async';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
 import 'log.dart';
+import 'node_streams.dart';
 import 'phase.dart';
-import 'stream_pool.dart';
 import 'transform_node.dart';
 import 'transformer.dart';
 
@@ -41,28 +41,15 @@ class PhaseInput {
   /// The subscription to [input]'s [AssetNode.onStateChange] stream.
   StreamSubscription _inputSubscription;
 
-  /// A stream that emits an event whenever [this] is no longer dirty.
-  ///
-  /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDoneController.stream;
-  final _onDoneController = new StreamController.broadcast(sync: true);
-
-  /// A stream that emits any new assets emitted by [this].
-  ///
-  /// Assets are emitted synchronously to ensure that any changes are thoroughly
-  /// propagated as soon as they occur.
-  Stream<AssetNode> get onAsset => _onAssetPool.stream;
-  final _onAssetPool = new StreamPool<AssetNode>.broadcast();
+  /// The streams exposed by this input.
+  final _streams = new NodeStreams();
+  Stream get onDone => _streams.onDone;
+  Stream<AssetNode> get onAsset => _streams.onAsset;
+  Stream<LogEntry> get onLog => _streams.onLog;
 
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => (input.state.isDirty && !input.deferred) ||
       _transforms.any((transform) => transform.isDirty);
-
-  /// A stream that emits an event whenever any transforms that use [input] as
-  /// their primary input log an entry.
-  Stream<LogEntry> get onLog => _onLogPool.stream;
-  final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   PhaseInput(this._phase, AssetNode input, this._location)
       : _inputForwarder = new AssetForwarder(input) {
@@ -70,7 +57,7 @@ class PhaseInput {
       if (state.isRemoved) {
         remove();
       } else if (state.isAvailable) {
-        if (!isDirty) _onDoneController.add(null);
+        if (!isDirty) _streams.onDoneController.add(null);
       }
     });
   }
@@ -79,10 +66,8 @@ class PhaseInput {
   ///
   /// This marks all outputs of the input as removed.
   void remove() {
+    _streams.close();
     _inputSubscription.cancel();
-    _onDoneController.close();
-    _onAssetPool.close();
-    _onLogPool.close();
     _inputForwarder.close();
   }
 
@@ -102,11 +87,11 @@ class PhaseInput {
       _transforms.add(transform);
 
       transform.onDone.listen((_) {
-        if (!isDirty) _onDoneController.add(null);
+        if (!isDirty) _streams.onDoneController.add(null);
       }, onDone: () => _transforms.remove(transform));
 
-      _onAssetPool.add(transform.onAsset);
-      _onLogPool.add(transform.onLog);
+      _streams.onAssetPool.add(transform.onAsset);
+      _streams.onLogPool.add(transform.onLog);
     }
   }
 
