@@ -63,12 +63,16 @@ static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   static const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
+  int flags = EV_ADD;
+  if (!sd->IsListeningSocket()) {
+    flags |= EV_CLEAR;
+  }
   // Register or unregister READ filter if needed.
   if (sd->HasReadEvent()) {
     EV_SET(events + changes,
            sd->fd(),
            EVFILT_READ,
-           EV_ADD | EV_CLEAR,
+           flags,
            0,
            0,
            sd);
@@ -79,7 +83,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     EV_SET(events + changes,
            sd->fd(),
            EVFILT_WRITE,
-           EV_ADD | EV_CLEAR,
+           flags,
            0,
            0,
            sd);
@@ -310,7 +314,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
-        if (!sd->IsListeningSocket() && sd->TakeToken()) {
+        if (sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromKqueue(kqueue_fd_, sd);
         }

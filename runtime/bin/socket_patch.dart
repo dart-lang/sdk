@@ -412,7 +412,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   int available = 0;
 
-  int returnTokens = 0;
+  int tokens = 0;
 
   bool sendReadEvents = false;
   bool readEventIssued = false;
@@ -696,6 +696,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   _NativeSocket accept() {
     // Don't issue accept if we're closing.
     if (isClosing || isClosed) return null;
+    assert(available > 0);
+    available--;
+    tokens++;
+    returnTokens();
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
@@ -788,17 +792,21 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           continue;
         }
 
-        if (i == READ_EVENT && !isListening) {
-          var avail = nativeAvailable();
-          if (avail is int) {
-            available = avail;
+        if (i == READ_EVENT) {
+          if (isListening) {
+            available++;
           } else {
-            // Available failed. Mark socket as having data, to ensure read
-            // events, and thus reporting of this error.
-            available = 1;
+            var avail = nativeAvailable();
+            if (avail is int) {
+              available = avail;
+            } else {
+              // Available failed. Mark socket as having data, to ensure read
+              // events, and thus reporting of this error.
+              available = 1;
+            }
+            issueReadEvent();
+            continue;
           }
-          issueReadEvent();
-          continue;
         }
 
         var handler = eventHandlers[i];
@@ -822,13 +830,19 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         }
       }
     }
-    if (eventPort != null && !isClosing && !isClosed && !isListening) {
-      returnTokens++;
-      if (returnTokens == 8) {
+    if (!isListening) {
+      tokens++;
+      returnTokens();
+    }
+  }
+
+  void returnTokens() {
+    if (eventPort != null && !isClosing && !isClosed) {
+      if (tokens == 8) {
         // Return in batches of 8.
-        assert(returnTokens < (1 << FIRST_COMMAND));
-        sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | returnTokens);
-        returnTokens = 0;
+        assert(tokens < (1 << FIRST_COMMAND));
+        sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | tokens);
+        tokens = 0;
       }
     }
   }
@@ -1085,11 +1099,12 @@ class _RawServerSocket extends Stream<RawSocket>
         onResume: _onPauseStateChange);
     _socket.setHandlers(
       read: zone.bindCallback(() {
-        do {
+        while (_socket.available > 0) {
           var socket = _socket.accept();
           if (socket == null) return;
           _controller.add(new _RawSocket(socket));
-        } while (!_controller.isPaused);
+          if (_controller.isPaused) return;
+        }
       }),
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
