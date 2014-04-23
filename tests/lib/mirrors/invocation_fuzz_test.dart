@@ -40,6 +40,8 @@ var blacklist = [
   'dart.io._Filter.newZLibInflateFilter',
   'dart.io._Filter.newZLibDeflateFilter',
   'dart.io._FileSystemWatcher._listenOnSocket',
+  'dart.io.SystemEncoding.decode',
+  'dart.io.SystemEncoding.encode',
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {
