@@ -410,6 +410,8 @@ class Assembler : public ValueObject {
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
   // Addition and subtraction.
+  // For add and sub, to use SP for rn, o must be of type Operand::Extend.
+  // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void add(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, false, rd, rn, o);
   }
@@ -542,12 +544,24 @@ class Assembler : public ValueObject {
 
   // Comparison.
   // rn cmp o.
+  // For add and sub, to use SP for rn, o must be of type Operand::Extend.
+  // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void cmp(Register rn, Operand o) {
     subs(ZR, rn, o);
   }
   // rn cmp -o.
   void cmn(Register rn, Operand o) {
     adds(ZR, rn, o);
+  }
+
+  void CompareRegisters(Register rn, Register rm) {
+    if (rn == SP) {
+      // UXTX 0 on a 64-bit register (rm) is a nop, but forces R31 to be
+      // interpreted as SP.
+      cmp(SP, Operand(rm, UXTX, 0));
+    } else {
+      cmp(rn, Operand(rm));
+    }
   }
 
   // Conditional branch.
@@ -633,13 +647,19 @@ class Assembler : public ValueObject {
   }
 
   // Branching to ExternalLabels.
-  void Branch(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label, kPatchable, PP);
+  void BranchPatchable(const ExternalLabel* label, Register pp) {
+    LoadExternalLabel(TMP, label, kPatchable, pp);
     br(TMP);
   }
 
-  void BranchPatchable(const ExternalLabel* label) {
-    LoadPatchableImmediate(TMP, label->address());
+  void Branch(const ExternalLabel* label, Register pp) {
+    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+    br(TMP);
+  }
+
+  // Fixed length branch to label.
+  void BranchFixed(const ExternalLabel* label) {
+    LoadImmediateFixed(TMP, label->address());
     br(TMP);
   }
 
@@ -704,7 +724,7 @@ class Assembler : public ValueObject {
                          Patchability patchable, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
-  void LoadPatchableImmediate(Register reg, int64_t imm);
+  void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
 
   void PushObject(const Object& object, Register pp) {
@@ -716,6 +736,8 @@ class Assembler : public ValueObject {
   void LeaveFrame();
 
   void EnterDartFrame(intptr_t frame_size);
+  void EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp);
+  void EnterOsrFrame(intptr_t extra_size, Register new_pp);
   void LeaveDartFrame();
 
   void EnterCallRuntimeFrame(intptr_t frame_size);

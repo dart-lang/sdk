@@ -21,6 +21,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_osr);
+
 LocationSummary* Instruction::MakeCallSummary() {
   UNIMPLEMENTED();
   return NULL;
@@ -39,13 +42,37 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ReturnInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  return locs;
 }
 
 
+// Attempt optimized compilation at return instruction instead of at the entry.
+// The entry needs to be patchable, no inlined objects are allowed in the area
+// that will be overwritten by the patch instructions: a branch macro sequence.
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->in(0).reg();
+  ASSERT(result == R0);
+#if defined(DEBUG)
+  Label stack_ok;
+  __ Comment("Stack Check");
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  // UXTX 0 on a 64-bit register (FP) is a nop, but forces R31 to be
+  // interpreted as SP.
+  __ sub(R2, SP, Operand(FP, UXTX, 0));
+  __ CompareImmediate(R2, fp_sp_dist, PP);
+  __ b(&stack_ok, EQ);
+  __ hlt(0);
+  __ Bind(&stack_ok);
+#endif
+  __ LeaveDartFrame();
+  __ ret();
 }
 
 
@@ -94,13 +121,18 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ConstantInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // The register allocator drops constant definitions that have no uses.
+  if (!locs()->out(0).IsInvalid()) {
+    Register result = locs()->out(0).reg();
+    __ LoadObject(result, value(), PP);
+  }
 }
 
 
@@ -434,13 +466,92 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
 }
 
 
+class CheckStackOverflowSlowPath : public SlowPathCode {
+ public:
+  explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (FLAG_use_osr) {
+      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
+      Register value = instruction_->locs()->temp(0).reg();
+      __ Comment("CheckStackOverflowSlowPathOsr");
+      __ Bind(osr_entry_label());
+      __ LoadImmediate(TMP, flags_address, PP);
+      __ LoadImmediate(value, Isolate::kOsrRequest, PP);
+      __ str(value, Address(TMP));
+    }
+    __ Comment("CheckStackOverflowSlowPath");
+    __ Bind(entry_label());
+    compiler->SaveLiveRegisters(instruction_->locs());
+    // pending_deoptimization_env_ is needed to generate a runtime call that
+    // may throw an exception.
+    ASSERT(compiler->pending_deoptimization_env_ == NULL);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->pending_deoptimization_env_ = env;
+    compiler->GenerateRuntimeCall(instruction_->token_pos(),
+                                  instruction_->deopt_id(),
+                                  kStackOverflowRuntimeEntry,
+                                  0,
+                                  instruction_->locs());
+
+    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+      // In unoptimized code, record loop stack checks as possible OSR entries.
+      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+                                     instruction_->deopt_id(),
+                                     0);  // No token position.
+    }
+    compiler->pending_deoptimization_env_ = NULL;
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ b(exit_label());
+  }
+
+  Label* osr_entry_label() {
+    ASSERT(FLAG_use_osr);
+    return &osr_entry_label_;
+  }
+
+ private:
+  CheckStackOverflowInstr* instruction_;
+  Label osr_entry_label_;
+};
+
+
 void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address(), PP);
+  __ ldr(TMP, Address(TMP));
+  __ CompareRegisters(SP, TMP);
+  __ b(slow_path->entry_label(), LS);
+  if (compiler->CanOSRFunction() && in_loop()) {
+    Register temp = locs()->temp(0).reg();
+    // In unoptimized code check the usage counter to trigger OSR at loop
+    // stack checks.  Use progressively higher thresholds for more deeply
+    // nested loops to attempt to hit outer loops with OSR when possible.
+    __ LoadObject(temp, compiler->parsed_function().function(), PP);
+    intptr_t threshold =
+        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    __ LoadFieldFromOffset(temp, temp, Function::usage_counter_offset());
+    __ CompareImmediate(temp, threshold, PP);
+    __ b(slow_path->osr_entry_label(), GE);
+  }
+  if (compiler->ForceSlowPathForStackOverflow()) {
+    __ b(slow_path->entry_label());
+  }
+  __ Bind(slow_path->exit_label());
 }
 
 
@@ -1177,12 +1288,27 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (!compiler->CanFallThroughTo(normal_entry())) {
+    __ b(compiler->GetJumpLabel(normal_entry()));
+  }
 }
 
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add an edge counter.
+    // On ARM64 the deoptimization descriptor points after the edge counter
+    // code so that we can reuse the same pattern matching code as at call
+    // sites, which matches backwards from the end of the pattern.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kNoSourcePos);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 

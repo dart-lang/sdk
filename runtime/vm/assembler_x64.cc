@@ -2899,12 +2899,13 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
-                                       Register new_pp, Register new_pc) {
-  if (new_pc == kNoRegister) {
-    EnterDartFrame(0);
+                                       Register new_pp,
+                                       Register pc_marker_override) {
+  if (pc_marker_override == kNoRegister) {
+    EnterDartFrame(frame_size);
   } else {
     EnterFrame(0);
-    pushq(new_pc);
+    pushq(pc_marker_override);
     pushq(PP);
     movq(PP, new_pp);
     if (frame_size != 0) {
@@ -2927,8 +2928,9 @@ void Assembler::LeaveDartFrame() {
 // optimized function and there may be extra space for spill slots to
 // allocate.
 void Assembler::EnterOsrFrame(intptr_t extra_size,
-                              Register new_pp, Register new_pc) {
-  if (new_pc == kNoRegister) {
+                              Register new_pp,
+                              Register pc_marker_override) {
+  if (pc_marker_override == kNoRegister) {
     Label dart_entry;
     call(&dart_entry);
     Bind(&dart_entry);
@@ -2949,7 +2951,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 
     popq(Address(RBP, kPcMarkerSlotFromFp * kWordSize));
   } else {
-    movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), new_pc);
+    movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
     movq(PP, new_pp);
   }
   if (extra_size != 0) {

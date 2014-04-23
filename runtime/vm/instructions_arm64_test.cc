@@ -33,8 +33,10 @@ ASSEMBLER_TEST_RUN(Call, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ BranchPatchable(&StubCode::InvokeDartCodeLabel());
-  __ BranchPatchable(&StubCode::AllocateArrayLabel());
+  // TODO(zra): Use BranchPatchable after fixing JumpPattern to match a load
+  // from the object pool.n
+  __ BranchFixed(&StubCode::InvokeDartCodeLabel());
+  __ BranchFixed(&StubCode::AllocateArrayLabel());
 }
 
 

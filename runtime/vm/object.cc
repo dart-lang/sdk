@@ -5858,12 +5858,7 @@ RawFunction* Function::New(const String& name,
     result.set_data(data);
   }
 
-// TODO(zra): Remove when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
   result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
-#else
-  result.set_code(Code::Handle());
-#endif
   return result.raw();
 }
 

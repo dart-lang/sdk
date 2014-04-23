@@ -1150,7 +1150,6 @@ void FlowGraphCompiler::CompileGraph() {
   // current function is in R13 instead of PP.
   __ JmpPatchable(&StubCode::FixCallersTargetLabel(), R13);
 
-  // TOOD(zra): Is this descriptor used?
   AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
                        Isolate::kNoDeoptId,
                        0);  // No token position.

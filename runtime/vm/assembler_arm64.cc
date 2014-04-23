@@ -417,12 +417,12 @@ void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
   } else {
     // TODO(zra): Since this sequence only needs to be decodable, it can be
     // of variable length.
-    LoadPatchableImmediate(reg, imm);
+    LoadImmediateFixed(reg, imm);
   }
 }
 
 
-void Assembler::LoadPatchableImmediate(Register reg, int64_t imm) {
+void Assembler::LoadImmediateFixed(Register reg, int64_t imm) {
   const uint32_t w0 = Utils::Low32Bits(imm);
   const uint32_t w1 = Utils::High32Bits(imm);
   const uint16_t h0 = Utils::Low16Bits(w0);
@@ -451,6 +451,12 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
       orri(reg, reg, val_smi_tag);
     }
   } else {
+    // 0. Is it 0?
+    if (imm == 0) {
+      movz(reg, 0, 0);
+      return;
+    }
+
     // 1. Can we use one orri operation?
     Operand op;
     Operand::OperandType ot;
@@ -715,6 +721,54 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Reserve space.
   if (frame_size > 0) {
     sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
+  // Setup the frame.
+  adr(TMP, 0);  // TMP gets PC of this instruction.
+  EnterFrame(0);
+  Push(TMP);  // Save PC Marker.
+  PushPP();  // Save PP.
+
+  // Load the pool pointer.
+  if (new_pp == kNoRegister) {
+    LoadPoolPointer(PP);
+  } else {
+    mov(PP, new_pp);
+  }
+
+  // Reserve space.
+  if (frame_size > 0) {
+    sub(SP, SP, Operand(frame_size));
+  }
+}
+
+
+// On entry to a function compiled for OSR, the caller's frame pointer, the
+// stack locals, and any copied parameters are already in place.  The frame
+// pointer is already set up.  The PC marker is not correct for the
+// optimized function and there may be extra space for spill slots to
+// allocate. We must also set up the pool pointer for the function.
+void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
+  const intptr_t offset = CodeSize();
+
+  Comment("EnterOsrFrame");
+  adr(TMP, 0);
+
+  AddImmediate(TMP, TMP, -offset, kNoRegister);
+  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
+
+  // Setup pool pointer for this dart function.
+  if (new_pp == kNoRegister) {
+    LoadPoolPointer(PP);
+  } else {
+    mov(PP, new_pp);
+  }
+
+  if (extra_size > 0) {
+    sub(SP, SP, Operand(extra_size));
   }
 }
 

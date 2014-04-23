@@ -799,13 +799,14 @@ class Assembler : public ValueObject {
   //   .....
   void EnterDartFrame(intptr_t frame_size);
   void EnterDartFrameWithInfo(intptr_t frame_size,
-                              Register new_pp, Register new_pc);
+                              Register new_pp, Register pc_marker_override);
   void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
   // up on entry (it is the frame of the unoptimized code).
-  void EnterOsrFrame(intptr_t extra_size, Register new_pp, Register new_pc);
+  void EnterOsrFrame(intptr_t extra_size,
+                     Register new_pp, Register pc_marker_override);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.

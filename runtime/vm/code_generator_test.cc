@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "platform/assert.h"
 #include "vm/globals.h"
@@ -30,6 +28,8 @@ CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {
 }
 CODEGEN_TEST_RUN(SimpleReturnCodegen, Instance::null())
 
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
@@ -569,6 +569,6 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 
-}  // namespace dart
-
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+}  // namespace dart
