@@ -127,11 +127,13 @@ class Unpickler {
         addExpression(new ir.LetPrim(constant));
         break;
       case Pickles.NODE_LET_CONT:
-        ir.Parameter parameter = new ir.Parameter(null);
-        ir.Continuation continuation = new ir.Continuation(parameter);
+        int parameterCount = readInt();
+        List<ir.Parameter> parameters = new List<ir.Parameter>.generate(
+            parameterCount, (i) => new ir.Parameter(null));
+        ir.Continuation continuation = new ir.Continuation(parameters);
         unpickled[index++] = continuation;
         ir.Expression body = readDelimitedExpressionNode();
-        unpickled[index++] = parameter;
+        parameters.forEach((p) => unpickled[index++] = p);
         addExpression(new ir.LetCont(continuation, body));
         break;
       case Pickles.NODE_INVOKE_STATIC:
@@ -187,11 +189,13 @@ class Unpickler {
     unpickled[index++] = continuation;
 
     int parameterCount = readInt();
-    List<ir.Parameter> parameters = new List<ir.Parameter>(parameterCount);
-    for (int i = 0; i < parameterCount; ++i) {
-      unpickled[index++] = parameters[i] = new ir.Parameter(readElement());
-    }
-
+    List<ir.Parameter> parameters = new List<ir.Parameter>.generate(
+        parameterCount,
+        (i) {
+          ir.Parameter parameter = new ir.Parameter(readElement());
+          unpickled[index++] = parameter;
+          return parameter;
+        });
     ir.Expression body = readDelimitedExpressionNode();
     return new ir.FunctionDefinition(continuation, parameters, body);
   }

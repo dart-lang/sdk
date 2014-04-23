@@ -272,11 +272,13 @@ class Builder extends ir.Visitor<Expression> {
       return new Return(invoke);
     } else {
       assert(cont.hasExactlyOneUse);
-      if (cont.parameter.hasAtLeastOneUse) {
+      assert(cont.parameters.length == 1);
+      ir.Parameter parameter = cont.parameters[0];
+      if (parameter.hasAtLeastOneUse) {
         Variable variable = new Variable(null);
-        variables[cont.parameter] = variable;
+        variables[parameter] = variable;
         return new LetVal(variable, invoke, cont.body.accept(this),
-            cont.parameter.hasExactlyOneUse);
+            parameter.hasExactlyOneUse);
       } else {
         return new Sequence([invoke, visit(cont.body)]);
       }
@@ -493,8 +495,7 @@ class Emitter extends Visitor<ast.Node> {
     FunctionSignature signature = element.functionSignature;
     ast.TypeAnnotation returnType;
     if (!signature.type.returnType.isDynamic) {
-      returnType =
-          typeEmitter.visitType(signature.type.returnType, treeElements);
+      returnType = typeEmitter.visit(signature.type.returnType, treeElements);
     }
 
     List<ast.VariableDefinitions> parameterList = <ast.VariableDefinitions>[];
@@ -503,7 +504,7 @@ class Emitter extends Visitor<ast.Node> {
       parameter.assignIdentifier();
       ast.TypeAnnotation type;
       if (!element.type.isDynamic) {
-        type = typeEmitter.visitType(element.type, treeElements);
+        type = typeEmitter.visit(element.type, treeElements);
       }
       parameterList.add(new ast.VariableDefinitions(
           type,
@@ -670,9 +671,14 @@ class TypeEmitter extends
     return annotation;
   }
 
+  ast.TypeAnnotation visit(DartType type,
+                           dart2js.TreeElementMapping treeElements) {
+    return type.accept(this, treeElements);
+  }
+
   ast.TypeAnnotation visitType(DartType type,
                                dart2js.TreeElementMapping treeElements) {
-    return type.accept(this, treeElements);
+    return unimplemented();
   }
 
   ast.TypeAnnotation visitVoidType(VoidType type,
