@@ -55,7 +55,7 @@ class YamlMap implements Map {
   /// Wraps an object for use as a key in the map.
   _wrapKey(obj) {
     if (obj != null && obj is! bool && obj is! List &&
-        (obj is! double || !obj.isNan()) &&
+        (obj is! double || !obj.isNan) &&
         (obj is! Map || obj is YamlMap)) {
       return obj;
     } else if (obj is Map) {

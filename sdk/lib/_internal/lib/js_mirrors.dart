@@ -7,7 +7,8 @@ library dart._js_mirrors;
 import 'dart:async';
 
 import 'dart:collection' show
-    UnmodifiableListView;
+    UnmodifiableListView,
+    UnmodifiableMapView;
 
 import 'dart:mirrors';
 
@@ -2838,45 +2839,6 @@ class NoSuchStaticMethodError extends Error implements NoSuchMethodError {
       return 'NoSuchMethodError';
     }
   }
-}
-
-// Copied from package "unmodifiable_collection".
-// TODO(14314): Move to dart:collection.
-class UnmodifiableMapView<K, V> implements Map<K, V> {
-  Map<K, V> _source;
-  UnmodifiableMapView(Map<K, V> source) : _source = source;
-
-  static void _throw() {
-    throw new UnsupportedError("Cannot modify an unmodifiable Map");
-  }
-
-  int get length => _source.length;
-
-  bool get isEmpty => _source.isEmpty;
-
-  bool get isNotEmpty => _source.isNotEmpty;
-
-  V operator [](K key) => _source[key];
-
-  bool containsKey(K key) => _source.containsKey(key);
-
-  bool containsValue(V value) => _source.containsValue(value);
-
-  void forEach(void f(K key, V value)) => _source.forEach(f);
-
-  Iterable<K> get keys => _source.keys;
-
-  Iterable<V> get values => _source.values;
-
-  void operator []=(K key, V value) => _throw();
-
-  V putIfAbsent(K key, V ifAbsent()) { _throw(); }
-
-  void addAll(Map<K, V> other) => _throw();
-
-  V remove(K key) { _throw(); }
-
-  void clear() => _throw();
 }
 
 Symbol getSymbol(String name, LibraryMirror library) {

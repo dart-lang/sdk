@@ -993,7 +993,7 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
   operator ==(other) {
-    return other is TypeVariableMirror 
+    return other is TypeVariableMirror
         && simpleName == other.simpleName
         && owner == other.owner;
   }
