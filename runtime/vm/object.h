@@ -5455,6 +5455,10 @@ class TwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
+  static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {
+    *CharAddr(str, index) = ch;
+  }
+
   static RawTwoByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.

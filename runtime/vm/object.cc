@@ -358,6 +358,34 @@ static bool IsSpecialCharacter(type value) {
 }
 
 
+static bool IsAsciiPrintChar(int32_t code_point) {
+  return (code_point >= ' ') && (code_point <= '~');
+}
+
+
+static inline bool IsAsciiNonprintable(int32_t c) {
+  return ((0 <= c) && (c < 32)) || (c == 127);
+}
+
+
+static inline bool NeedsEscapeSequence(int32_t c) {
+  return (c == '"')  ||
+         (c == '\\') ||
+         (c == '$')  ||
+         IsAsciiNonprintable(c);
+}
+
+
+static int32_t EscapeOverhead(int32_t c) {
+  if (IsSpecialCharacter(c)) {
+    return 1;  // 1 additional byte for the backslash.
+  } else if (IsAsciiNonprintable(c)) {
+    return 3;  // 3 additional bytes to encode c as \x00.
+  }
+  return 0;
+}
+
+
 template<typename type>
 static type SpecialCharacter(type value) {
   if (value == '"') {
@@ -7095,7 +7123,7 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     if (curr == Token::kSTRING) {
       bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
-        if (IsSpecialCharacter(literal.CharAt(i))) {
+        if (NeedsEscapeSequence(literal.CharAt(i))) {
           escape_characters = true;
         }
       }
@@ -16256,11 +16284,6 @@ const char* String::ToCString() const {
 }
 
 
-static bool IsAsciiPrintChar(intptr_t code_point) {
-  return code_point >= ' ' && code_point <= '~';
-}
-
-
 // Does not null-terminate.
 intptr_t String::EscapedString(char* buffer, int max_len) const {
   int pos = 0;
@@ -16623,20 +16646,25 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+      uint8_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, 'x');
+        SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(CharAddr(dststr, index)) = *CharAddr(str, i);
+        SetCharAt(dststr, index, ch);
         index += 1;
       }
     }
@@ -16645,27 +16673,32 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   return OneByteString::raw(Symbols::Empty());
 }
 
+
 RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
     const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(OneByteString::CharAddr(dststr, index)) = '\\';
-        *(OneByteString::CharAddr(dststr, index + 1)) =
-        SpecialCharacter(*CharAddr(str, i));
+      uint8_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        OneByteString::SetCharAt(dststr, index, '\\');
+        OneByteString::SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        OneByteString::SetCharAt(dststr, index, '\\');
+        OneByteString::SetCharAt(dststr, index + 1, 'x');
+        OneByteString::SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        OneByteString::SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(OneByteString::CharAddr(dststr, index)) = *CharAddr(str, i);
+        *(OneByteString::CharAddr(dststr, index)) = ch;
         index += 1;
       }
     }
@@ -16886,20 +16919,25 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+      uint16_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, 'x');
+        SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(CharAddr(dststr, index)) = *CharAddr(str, i);
+        SetCharAt(dststr, index, ch);
         index += 1;
       }
     }

@@ -227,6 +227,10 @@ bool CompilerTest::TestCompileScript(const Library& library,
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(Compiler::Compile(library, script));
+  if (!error.IsNull()) {
+    OS::Print("Error compiling test script:\n%s\n",
+    error.ToErrorCString());
+  }
   return error.IsNull();
 }
 
