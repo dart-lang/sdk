@@ -245,7 +245,10 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.
-  DIR* dir_pointer = opendir(path->AsString());
+  DIR* dir_pointer;
+  do {
+    dir_pointer = opendir(path->AsString());
+  } while (dir_pointer == NULL && errno == EINTR);
   if (dir_pointer == NULL) {
     return false;
   }
