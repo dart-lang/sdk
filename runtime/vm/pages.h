@@ -7,6 +7,7 @@
 
 #include "vm/freelist.h"
 #include "vm/globals.h"
+#include "vm/ring_buffer.h"
 #include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 
@@ -88,7 +89,7 @@ class HeapPage {
 // runs.
 class PageSpaceGarbageCollectionHistory {
  public:
-  PageSpaceGarbageCollectionHistory();
+  PageSpaceGarbageCollectionHistory() {}
   ~PageSpaceGarbageCollectionHistory() {}
 
   void AddGarbageCollectionTime(int64_t start, int64_t end);
@@ -96,10 +97,12 @@ class PageSpaceGarbageCollectionHistory {
   int GarbageCollectionTimeFraction();
 
  private:
+  struct Entry {
+    int64_t start;
+    int64_t end;
+  };
   static const intptr_t kHistoryLength = 4;
-  int64_t start_[kHistoryLength];
-  int64_t end_[kHistoryLength];
-  intptr_t index_;
+  RingBuffer<Entry, kHistoryLength> history_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PageSpaceGarbageCollectionHistory);

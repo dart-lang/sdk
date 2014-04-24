@@ -716,38 +716,23 @@ void PageSpaceController::EvaluateGarbageCollection(
 }
 
 
-PageSpaceGarbageCollectionHistory::PageSpaceGarbageCollectionHistory()
-    : index_(0) {
-  for (intptr_t i = 0; i < kHistoryLength; i++) {
-    start_[i] = 0;
-    end_[i] = 0;
-  }
-}
-
-
 void PageSpaceGarbageCollectionHistory::
     AddGarbageCollectionTime(int64_t start, int64_t end) {
-  int index = index_ % kHistoryLength;
-  start_[index] = start;
-  end_[index] = end;
-  index_++;
+  Entry entry;
+  entry.start = start;
+  entry.end = end;
+  history_.Add(entry);
 }
 
 
 int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
-  int current;
-  int previous;
   int64_t gc_time = 0;
   int64_t total_time = 0;
-  for (intptr_t i = 1; i < kHistoryLength; i++) {
-    current = (index_ - i) % kHistoryLength;
-    previous = (index_ - 1 - i) % kHistoryLength;
-    if (end_[previous] == 0) {
-       break;
-    }
-    // iterate over the circular buffer in reverse order
-    gc_time += end_[current] - start_[current];
-    total_time += end_[current] - end_[previous];
+  for (int i = 0; i < history_.Size() - 1; i++) {
+    Entry current = history_.Get(i);
+    Entry previous = history_.Get(i + 1);
+    gc_time += current.end - current.start;
+    total_time += current.end - previous.end;
   }
   if (total_time == 0) {
     return 0;

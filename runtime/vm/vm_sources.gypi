@@ -315,6 +315,8 @@
     'resolver.h',
     'resolver_test.cc',
     'reusable_handles.h',
+    'ring_buffer.h',
+    'ring_buffer_test.cc',
     'runtime_entry.h',
     'runtime_entry_arm.cc',
     'runtime_entry_arm64.cc',
