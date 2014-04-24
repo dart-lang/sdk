@@ -544,63 +544,108 @@ class Listener {
   }
 
   Token expected(String string, Token token) {
-    error("expected '$string', but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected '$string', but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
+  Token synthesizeIdentifier(Token token) {
+    Token synthesizedToken =
+        new StringToken.fromString(IDENTIFIER_INFO, '?', token.charOffset);
+    synthesizedToken.next = token.next;
+    return synthesizedToken;
+  }
+
   Token expectedIdentifier(Token token) {
-    error("expected identifier, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected identifier, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedType(Token token) {
-    error("expected a type, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a type, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    String message;
-    if (token.info == BAD_INPUT_INFO) {
-      message = token.value;
+    if (token is ErrorToken) {
+      reportErrorToken(token);
     } else {
-      message = "expected an expression, but got '${token.value}'";
+      error("expected an expression, but got '${token.value}'", token);
     }
-    error(message, token);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    error("unexpected token '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("unexpected token '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedBlockToSkip(Token token) {
-    error("expected a block, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a block, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedFunctionBody(Token token) {
-    error("expected a function body, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a function body, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    error("expected a class body, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a class body, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Token expectedClassBodyToSkip(Token token) {
-    error("expected a class body, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a class body, but got '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
   Link<Token> expectedDeclaration(Token token) {
-    error("expected a declaration, but got '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("expected a declaration, but got '${token.value}'", token);
+    }
     return const Link<Token>();
   }
 
   Token unmatched(Token token) {
-    error("unmatched '${token.value}'", token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      error("unmatched '${token.value}'", token);
+    }
     return skipToEof(token);
   }
 
@@ -633,6 +678,50 @@ class Listener {
       throw new ParserError(message);
     }
     recoverableError(token, message);
+  }
+
+  void reportErrorToken(ErrorToken token) {
+    if (token is BadInputToken) {
+      String hex = token.character.toRadixString(16);
+      if (hex.length < 4) {
+        String padding = "0000".substring(hex.length);
+        hex = "$padding$hex";
+      }
+      reportError(
+          token, MessageKind.BAD_INPUT_CHARACTER, {'characterHex': hex});
+    } else if (token is UnterminatedToken) {
+      String start = token.start;
+      MessageKind kind;
+      var arguments = const {};
+      switch (token.start) {
+        case '1e':
+          kind = MessageKind.EXPONENT_MISSING;
+          break;
+        case '"':
+        case "'":
+        case '"""':
+        case "'''":
+        case 'r"':
+        case "r'":
+        case 'r"""':
+        case "r'''":
+          kind = MessageKind.UNTERMINATED_STRING;
+          arguments = {'quote': token.start};
+          break;
+        case '0x':
+          kind = MessageKind.HEX_DIGIT_EXPECTED;
+          break;
+        case r'$':
+          kind = MessageKind.MALFORMED_STRING_LITERAL;
+          break;
+        default:
+          kind = MessageKind.UNTERMINATED_TOKEN;
+          break;
+      }
+      reportError(token, kind, arguments);
+    } else {
+      throw new SpannableAssertionFailure(token, token.assertionMessage);
+    }
   }
 }
 
@@ -958,8 +1047,12 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    reportFatalError(token,
-        "Expected '$string', but got '${token.value}'.");
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      reportFatalError(
+          token, "Expected '$string', but got '${token.value}'.");
+    }
     return skipToEof(token);
   }
 
@@ -968,6 +1061,9 @@ class ElementListener extends Listener {
       reportError(
           token, MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
           {'keyword': token.value});
+    } else if (token is ErrorToken) {
+      reportErrorToken(token);
+      return synthesizeIdentifier(token);
     } else {
       reportFatalError(token,
           "Expected identifier, but got '${token.value}'.");
@@ -976,15 +1072,20 @@ class ElementListener extends Listener {
   }
 
   Token expectedType(Token token) {
-    reportFatalError(token,
-                     "Expected a type, but got '${token.value}'.");
     pushNode(null);
-    return skipToEof(token);
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+      return synthesizeIdentifier(token);
+    } else {
+      reportFatalError(
+          token, "Expected a type, but got '${token.value}'.");
+      return skipToEof(token);
+    }
   }
 
   Token expectedExpression(Token token) {
-    if (token.info == BAD_INPUT_INFO) {
-      reportError(token, MessageKind.GENERIC, {'text': token.value});
+    if (token is ErrorToken) {
+      reportErrorToken(token);
       pushNode(new ErrorExpression(token));
       return token.next;
     } else {
@@ -996,11 +1097,15 @@ class ElementListener extends Listener {
   }
 
   Token unexpected(Token token) {
-    String message = "Unexpected token '${token.value}'.";
-    if (token.info == BAD_INPUT_INFO) {
-      message = token.value;
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      String message = "Unexpected token '${token.value}'.";
+      if (token.info == BAD_INPUT_INFO) {
+        message = token.value;
+      }
+      reportFatalError(token, message);
     }
-    reportFatalError(token, message);
     return skipToEof(token);
   }
 
@@ -1013,15 +1118,23 @@ class ElementListener extends Listener {
   }
 
   Token expectedFunctionBody(Token token) {
-    String printString = token.value;
-    reportFatalError(token,
-                     "Expected a function body, but got '$printString'.");
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      String printString = token.value;
+      reportFatalError(token,
+                       "Expected a function body, but got '$printString'.");
+    }
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    reportFatalError(token,
-                     "Expected a class body, but got '${token.value}'.");
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      reportFatalError(token,
+                       "Expected a class body, but got '${token.value}'.");
+    }
     return skipToEof(token);
   }
 
@@ -1034,14 +1147,22 @@ class ElementListener extends Listener {
   }
 
   Link<Token> expectedDeclaration(Token token) {
-    reportFatalError(token,
-                     "Expected a declaration, but got '${token.value}'.");
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      reportFatalError(token,
+                       "Expected a declaration, but got '${token.value}'.");
+    }
     return const Link<Token>();
   }
 
   Token unmatched(Token token) {
-    reportFatalError(token,
-                     "Unmatched '${token.value}'.");
+    if (token is ErrorToken) {
+      reportErrorToken(token);
+    } else {
+      reportFatalError(token,
+                       "Unmatched '${token.value}'.");
+    }
     return skipToEof(token);
   }
 
@@ -1351,6 +1472,8 @@ class NodeListener extends ElementListener {
   Token expectedFunctionBody(Token token) {
     if (identical(token.stringValue, 'native')) {
       return native.handleNativeFunctionBody(this, token);
+    } else if (token is ErrorToken) {
+      reportErrorToken(token);
     } else {
       reportFatalError(token,
                        "Expected a function body, but got '${token.value}'.");
@@ -1361,6 +1484,8 @@ class NodeListener extends ElementListener {
   Token expectedClassBody(Token token) {
     if (identical(token.stringValue, 'native')) {
       return native.handleNativeClassBody(this, token);
+    } else if (token is ErrorToken) {
+      reportErrorToken(token);
     } else {
       reportFatalError(token,
                        "Expected a class body, but got '${token.value}'.");

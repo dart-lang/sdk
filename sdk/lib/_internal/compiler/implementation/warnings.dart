@@ -1717,6 +1717,104 @@ main() {
   var m = const {'foo': 1, 'foo': 2};
 }"""]);
 
+  static const MessageKind BAD_INPUT_CHARACTER = const MessageKind(
+      "Character U+#{characterHex} isn't allowed here.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["""
+main() {
+  print(ç);
+}
+"""]);
+
+  static const MessageKind UNTERMINATED_STRING = const MessageKind(
+      "String must end with #{quote}.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["""
+main() {
+  return '
+;
+}
+""",
+"""
+main() {
+  return \"
+;
+}
+""",
+"""
+main() {
+  return r'
+;
+}
+""",
+"""
+main() {
+  return r\"
+;
+}
+""",
+"""
+main() => '''
+""",
+"""
+main() => \"\"\"
+""",
+"""
+main() => r'''
+""",
+"""
+main() => r\"\"\"
+"""]);
+
+  static const MessageKind UNTERMINATED_TOKEN = const MessageKind(
+      // This is a fall-back message that shouldn't happen.
+      "Incomplete token.");
+
+  static const MessageKind EXPONENT_MISSING = const MessageKind(
+      "Numbers in exponential notation should always contain an exponent"
+      " (an integer number with an optional sign).",
+      howToFix: "Make sure there is an exponent, and remove any whitespace "
+      "before it.",
+      examples: const ["""
+main() {
+  var i = 1e;
+}
+"""]);
+
+  static const MessageKind HEX_DIGIT_EXPECTED = const MessageKind(
+      "A hex digit (0-9 or A-F) must follow '0x'.",
+      howToFix: DONT_KNOW_HOW_TO_FIX, // Seems obvious from the error message.
+      examples: const ["""
+main() {
+  var i = 0x;
+}
+"""]);
+
+  static const MessageKind MALFORMED_STRING_LITERAL = const MessageKind(
+      r"A '$' has special meaning inside a string, and must be followed by an"
+      " identifier or an expression in curly braces ({}).",
+      howToFix: r"Try adding a backslash (\) to escape the '$'.",
+      examples: const [r"""
+main() {
+  return '$';
+}
+""",
+r'''
+main() {
+  return "$";
+}
+''',
+r"""
+main() {
+  return '''$''';
+}
+""",
+r'''
+main() {
+  return """$""";
+}
+''']);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 

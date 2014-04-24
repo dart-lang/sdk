@@ -194,6 +194,11 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendSubstringToken(COMMENT_INFO, start, asciiOnly);
   }
 
+  void appendErrorToken(ErrorToken token) {
+    tail.next = token;
+    tail = token;
+  }
+
   /**
    * This method is called to discard '<' from the "grouping" stack.
    *

@@ -395,11 +395,9 @@ class Parser {
 
   Token parseTypeOpt(Token token) {
     String value = token.stringValue;
-    if (!identical(value, 'this')) {
-      Token peek = peekAfterExpectedType(token);
-      if (peek.isIdentifier() || optional('this', peek)) {
-        return parseType(token);
-      }
+    Token peek = peekAfterIfType(token);
+    if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
+      return parseType(token);
     }
     listener.handleNoType(token);
     return token;
@@ -999,8 +997,12 @@ class Parser {
     return token;
   }
 
+  /**
+   * Returns the first token after the type starting at [token].
+   * This method assumes that [token] is an identifier (or void).
+   * Use [peekAfterIfType] if [token] isn't known to be an identifier.
+   */
   Token peekAfterType(Token token) {
-    // TODO(ahe): Also handle var?
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
@@ -1024,12 +1026,12 @@ class Parser {
   }
 
   /**
-   * Returns the token after the type which is expected to begin at [token].
-   * If [token] is not the start of a type, [Listener.expectedType] is called.
+   * If [token] is the start of a type, returns the token after that type.
+   * If [token] is not the start of a type, null is returned.
    */
-  Token peekAfterExpectedType(Token token) {
-    if (!identical('void', token.stringValue) && !token.isIdentifier()) {
-      return listener.expectedType(token);
+  Token peekAfterIfType(Token token) {
+    if (!optional('void', token) && !token.isIdentifier()) {
+      return null;
     }
     return peekAfterType(token);
   }
@@ -1874,8 +1876,10 @@ class Parser {
 
   Token parseSendOrFunctionLiteral(Token token) {
     if (!mayParseFunctionExpressions) return parseSend(token);
-    Token peek = peekAfterExpectedType(token);
-    if (identical(peek.kind, IDENTIFIER_TOKEN) && isFunctionDeclaration(peek.next)) {
+    Token peek = peekAfterIfType(token);
+    if (peek != null &&
+        identical(peek.kind, IDENTIFIER_TOKEN) &&
+        isFunctionDeclaration(peek.next)) {
       return parseFunctionExpression(token);
     } else if (isFunctionDeclaration(token.next)) {
       return parseFunctionExpression(token);
