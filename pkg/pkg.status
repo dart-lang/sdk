@@ -16,6 +16,7 @@ polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
+polymer/test/build/script_compactor_test: Pass, Slow
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
@@ -26,7 +27,6 @@ analyzer/test/generated/parser_test: Pass, Timeout
 code_transformers/test/resolver_test: Pass, Timeout
 docgen/test/*: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
-polymer/test/build/script_compactor_test: Pass, Timeout
 polymer_expressions/test/globals_test: Pass, Timeout
 smoke/test/codegen/end_to_end_test: Pass, Timeout
 smoke/test/codegen/recorder_test: Pass, Timeout
