@@ -10,6 +10,7 @@ import 'domain_context_test.dart' as domain_context_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'protocol_test.dart' as protocol_test;
 import 'socket_server_test.dart' as socket_server_test;
+import 'typed_mock_test.dart' as typed_mock_test;
 
 /// Utility for manually running all tests
 main() {
@@ -20,5 +21,6 @@ main() {
     domain_server_test.main();
     protocol_test.main();
     socket_server_test.main();
+    typed_mock_test.main();
   });
 }
