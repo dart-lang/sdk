@@ -1615,10 +1615,34 @@ class SsaBuilder extends ResolvedVisitor {
    * function.
    */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
+    if (!compiler.enableTypeAssertions) return;
+
     FunctionSignature signature = function.functionSignature;
+
+    InterfaceType contextType;
+    if (function.isSynthesized && function.isGenerativeConstructor()) {
+      // Synthesized constructors reuse the parameters from the
+      // [targetConstructor]. In face of generic types, the type variables
+      // occurring in the parameter types must be substituted by the type
+      // arguments of the enclosing class.
+      FunctionElement target = function;
+      while (target.targetConstructor != null) {
+        target = target.targetConstructor;
+      }
+      if (target != function) {
+        ClassElement functionClass = function.getEnclosingClass();
+        ClassElement targetClass = target.getEnclosingClass();
+        contextType = functionClass.thisType.asInstanceOf(targetClass);
+      }
+    }
+
     signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckType(argument, parameter.type);
+      DartType parameterType = parameter.type;
+      if (contextType != null) {
+        parameterType = parameterType.substByContext(contextType);
+      }
+      potentiallyCheckType(argument, parameterType);
     });
   }
 
