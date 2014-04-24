@@ -485,8 +485,13 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeKnown(HTypeKnown node) {
-    assert(node.inputs.length == 1);
-    return "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
+    assert(node.inputs.length <= 2);
+    String result =
+        "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
+    if (node.witness != null) {
+      result += " witnessed by ${temporaryId(node.witness)}";
+    }
+    return result;
   }
 
   String visitRangeConversion(HRangeConversion node) {
