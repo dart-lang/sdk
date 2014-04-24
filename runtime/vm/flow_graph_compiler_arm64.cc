@@ -365,7 +365,19 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
 }
 
 
@@ -446,7 +458,37 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  // TODO(srdjan): Improve performance of function recognition.
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(target_function);
+  int num_args_checked = 0;
+  if ((recognized_kind == MethodRecognizer::kMathMin) ||
+      (recognized_kind == MethodRecognizer::kMathMax)) {
+    num_args_checked = 2;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(parsed_function().function(),  // Caller function.
+                  String::Handle(target_function.name()),
+                  arguments_descriptor,
+                  deopt_id,
+                  num_args_checked));  // No arguments checked.
+  ic_data.AddTarget(target_function);
+  uword label_address = 0;
+  if (ic_data.num_args_tested() == 0) {
+    label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
+  } else if (ic_data.num_args_tested() == 2) {
+    label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
+  } else {
+    UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("StaticCallICStub", label_address);
+  __ LoadObject(R5, ic_data, PP);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &target_label,
+                   PcDescriptors::kUnoptStaticCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 

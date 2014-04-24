@@ -403,9 +403,16 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 }
 
 
+// Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  __ Stop("GenerateUsageCounterIncrement");
+  Register ic_reg = R5;
+  Register func_reg = temp_reg;
+  ASSERT(temp_reg == R6);
+  __ LoadFieldFromOffset(func_reg, ic_reg, ICData::function_offset());
+  __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset());
+  __ AddImmediate(R7, R7, 1, PP);
+  __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset());
 }
 
 
@@ -461,7 +468,62 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
 
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
-  __ Stop("GenerateZeroArgsUnoptimizedStaticCallStub");
+  GenerateUsageCounterIncrement(assembler, R6);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
+    // 'num_args_tested' is stored as an untagged int.
+    __ LoadFieldFromOffset(R6, R5, ICData::num_args_tested_offset());
+    __ CompareImmediate(R6, 0, PP);
+    __ b(&ok, EQ);
+    __ Stop("Incorrect IC data for unoptimized static call");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset());
+  __ LoadFromOffset(R6, R6, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R6, 0, PP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
+  // R5: IC data object (preserved).
+  __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
+  // R6: ic_data_array with entries: target functions and count.
+  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag, PP);
+  // R6: points directly to the first ic data array element.
+  const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
+
+  // Increment count for this call.
+  Label increment_done;
+  __ LoadFromOffset(R1, R6, count_offset);
+  __ adds(R1, R1, Operand(Smi::RawValue(1)));
+  __ StoreToOffset(R1, R6, count_offset);
+  __ b(&increment_done, VC);  // No overflow.
+  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), PP);
+  __ StoreToOffset(R1, R6, count_offset);
+  __ Bind(&increment_done);
+
+  // Load arguments descriptor into R4.
+  __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset());
+
+  // Get function and call it, if possible.
+  __ LoadFromOffset(R0, R6, target_offset);
+  __ LoadFieldFromOffset(R2, R0, Function::code_offset());
+
+  // R0: function.
+  // R2: target code.
+  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset());
+  __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag, PP);
+  __ br(R2);
 }
 
 

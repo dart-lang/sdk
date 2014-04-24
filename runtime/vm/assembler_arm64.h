@@ -525,9 +525,10 @@ class Assembler : public ValueObject {
   }
 
   // Loads and Stores.
-  void ldr(Register rt, Address a) {
+  void ldr(Register rt, Address a, OperandSize sz = kDoubleWord) {
     if (a.type() == Address::PCOffset) {
-      EmitLoadRegLiteral(LDRpc, rt, a, kDoubleWord);
+      ASSERT(sz == kDoubleWord);
+      EmitLoadRegLiteral(LDRpc, rt, a, sz);
     } else {
       // If we are doing pre-/post-indexing, and the base and result registers
       // are the same, then the result of the load will be clobbered by the
@@ -535,11 +536,11 @@ class Assembler : public ValueObject {
       ASSERT(((a.type() != Address::PreIndex) &&
               (a.type() != Address::PostIndex)) ||
              (rt != a.base()));
-      EmitLoadStoreReg(LDR, rt, a, kDoubleWord);
+      EmitLoadStoreReg(LDR, rt, a, sz);
     }
   }
-  void str(Register rt, Address a) {
-    EmitLoadStoreReg(STR, rt, a, kDoubleWord);
+  void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    EmitLoadStoreReg(STR, rt, a, sz);
   }
 
   // Comparison.
@@ -609,19 +610,19 @@ class Assembler : public ValueObject {
     madd(rd, rn, rm, ZR);
   }
   void Push(Register reg) {
-    ASSERT(reg != PP);  // Only push PP with PushPP().
+    ASSERT(reg != PP);  // Only push PP with TagAndPushPP().
     str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
   void Pop(Register reg) {
-    ASSERT(reg != PP);  // Only pop PP with PopPP().
+    ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
-  void PushPP() {
+  void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
     add(PP, PP, Operand(kHeapObjectTag));
     str(PP, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
-  void PopPP() {
+  void PopAndUntagPP() {
     ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
     sub(PP, PP, Operand(kHeapObjectTag));
   }
@@ -684,11 +685,15 @@ class Assembler : public ValueObject {
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
   void CompareImmediate(Register rn, int64_t imm, Register pp);
-  void LoadFromOffset(Register dest, Register base, int32_t offset);
+
+  void LoadFromOffset(Register dest, Register base, int32_t offset,
+                      OperandSize sz = kDoubleWord);
   void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag);
   }
-  void StoreToOffset(Register dest, Register base, int32_t offset);
+
+  void StoreToOffset(Register dest, Register base, int32_t offset,
+                     OperandSize sz = kDoubleWord);
   void StoreFieldToOffset(Register dest, Register base, int32_t offset) {
     StoreToOffset(dest, base, offset - kHeapObjectTag);
   }
@@ -742,8 +747,12 @@ class Assembler : public ValueObject {
 
   void EnterCallRuntimeFrame(intptr_t frame_size);
   void LeaveCallRuntimeFrame();
-
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.

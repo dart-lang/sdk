@@ -28,8 +28,6 @@ CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {
 }
 CODEGEN_TEST_RUN(SimpleReturnCodegen, Instance::null())
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
@@ -46,6 +44,9 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
 }
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
+
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {

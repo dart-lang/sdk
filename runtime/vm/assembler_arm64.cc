@@ -265,11 +265,11 @@ void Assembler::LoadPoolPointer(Register pp) {
   ldr(pp, Address::PC(-object_pool_pc_dist));
 
   // When in the PP register, the pool pointer is untagged. When we
-  // push it on the stack with PushPP it is tagged again. PopPP then untags
-  // when restoring from the stack. This will make loading from the object
-  // pool only one instruction for the first 4096 entries. Otherwise, because
-  // the offset wouldn't be aligned, it would be only one instruction for the
-  // first 64 entries.
+  // push it on the stack with TagAndPushPP it is tagged again. PopAndUntagPP
+  // then untags when restoring from the stack. This will make loading from the
+  // object pool only one instruction for the first 4096 entries. Otherwise,
+  // because the offset wouldn't be aligned, it would be only one instruction
+  // for the first 64 entries.
   sub(pp, pp, Operand(kHeapObjectTag));
 }
 
@@ -561,30 +561,29 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
 }
 
 
-void Assembler::LoadFromOffset(Register dest, Register base, int32_t offset) {
+void Assembler::LoadFromOffset(
+    Register dest, Register base, int32_t offset, OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset)) {
-    ldr(dest, Address(base, offset));
+    ldr(dest, Address(base, offset), sz);
   } else {
     // Since offset is 32-bits, it won't be loaded from the pool.
     AddImmediate(TMP2, base, offset, kNoRegister);
-    ldr(dest, Address(TMP2));
+    ldr(dest, Address(TMP2), sz);
   }
 }
 
 
-void Assembler::StoreToOffset(Register src, Register base, int32_t offset) {
+void Assembler::StoreToOffset(
+    Register src, Register base, int32_t offset, OperandSize sz) {
   ASSERT(src != TMP2);
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset)) {
-    str(src, Address(base, offset));
-  } else if (Address::CanHoldOffset(offset, Address::PreIndex)) {
-    mov(TMP2, base);
-    str(src, Address(TMP2, offset, Address::PreIndex));
+    str(src, Address(base, offset), sz);
   } else {
     // Since offset is 32-bits, it won't be loaded from the pool.
     AddImmediate(TMP2, base, offset, kNoRegister);
-    str(src, Address(TMP2));
+    str(src, Address(TMP2), sz);
   }
 }
 
@@ -713,7 +712,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   adr(TMP, 0);  // TMP gets PC of this instruction.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
-  PushPP();  // Save PP.
+  TagAndPushPP();  // Save PP.
 
   // Load the pool pointer.
   LoadPoolPointer(PP);
@@ -730,7 +729,7 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
   adr(TMP, 0);  // TMP gets PC of this instruction.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
-  PushPP();  // Save PP.
+  TagAndPushPP();  // Save PP.
 
   // Load the pool pointer.
   if (new_pp == kNoRegister) {
@@ -816,6 +815,24 @@ void Assembler::LeaveCallRuntimeFrame() {
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
+}
+
+
+void Assembler::EnterStubFrame(bool load_pp) {
+  EnterFrame(0);
+  Push(ZR);  // Push 0 in the saved PC area for stub frames.
+  TagAndPushPP();  // Save caller's pool pointer
+  if (load_pp) {
+    LoadPoolPointer(PP);
+  }
+}
+
+
+void Assembler::LeaveStubFrame() {
+  // Restore and untag PP.
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  sub(PP, PP, Operand(kHeapObjectTag));
+  LeaveFrame();
 }
 
 }  // namespace dart
