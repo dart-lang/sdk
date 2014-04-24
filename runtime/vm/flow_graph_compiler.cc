@@ -696,11 +696,6 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 }
 
 
-void FlowGraphCompiler::FinalizeComments(const Code& code) {
-  code.set_comments(assembler()->GetCodeComments());
-}
-
-
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
   code.set_static_calls_target_table(

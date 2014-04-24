@@ -556,7 +556,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         graph_compiler.FinalizeStackmaps(code);
         graph_compiler.FinalizeVarDescriptors(code);
         graph_compiler.FinalizeExceptionHandlers(code);
-        graph_compiler.FinalizeComments(code);
         graph_compiler.FinalizeStaticCallTargetsTable(code);
 
         if (optimized) {

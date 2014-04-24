@@ -1552,7 +1552,6 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 
 
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Comment("BreakpointRuntime stub");
   __ EnterStubFrame();
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   // Preserve arguments descriptor and make room for result.

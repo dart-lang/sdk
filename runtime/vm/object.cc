@@ -10888,6 +10888,7 @@ RawCode* Code::FinalizeCode(const char* name,
                                    : VirtualMemory::kReadWriteExecute);
     ASSERT(status);
   }
+  code.set_comments(assembler->GetCodeComments());
   return code.raw();
 }
 

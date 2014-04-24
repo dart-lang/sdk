@@ -219,8 +219,8 @@ void Assembler::Comment(const char* format, ...) {
     va_end(args);
 
     comments_.Add(new CodeComment(buffer_.GetPosition(),
-                                  String::Handle(String::New(buffer,
-                                                             Heap::kOld))));
+                                  String::ZoneHandle(String::New(buffer,
+                                                                 Heap::kOld))));
   }
 }
 

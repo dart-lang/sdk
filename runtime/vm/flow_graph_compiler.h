@@ -425,7 +425,6 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeDeoptInfo(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
-  void FinalizeComments(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
 
   const Class& double_class() const { return double_class_; }
