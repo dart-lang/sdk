@@ -1910,7 +1910,6 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
                                             /* is_super_getter */ true,
                                             super_class,
                                             function_name);
-    EnsureSavedCurrentContext();
     // 'this' is not passed as parameter to the closure.
     ArgumentListNode* closure_arguments = new ArgumentListNode(supercall_pos);
     for (int i = 1; i < arguments->length(); i++) {
@@ -6752,7 +6751,6 @@ AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
   if (condition->IsClosureNode() ||
       (condition->IsStoreLocalNode() &&
        condition->AsStoreLocalNode()->value()->IsClosureNode())) {
-    EnsureSavedCurrentContext();
     // Function literal in assert implies a call.
     const intptr_t pos = condition->token_pos();
     condition = BuildClosureCall(pos, condition, new ArgumentListNode(pos));
@@ -8268,7 +8266,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                      Object::empty_array());
       if (!func.IsNull()) {
         ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
-        EnsureSavedCurrentContext();
         closure = new StaticGetterNode(call_pos,
                                        NULL,
                                        false,
@@ -8277,7 +8274,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         return BuildClosureCall(call_pos, closure, arguments);
       }
     } else {
-      EnsureSavedCurrentContext();
       closure = GenerateStaticFieldLookup(field, call_pos);
       return BuildClosureCall(call_pos, closure, arguments);
     }
@@ -8317,7 +8313,6 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
   TRACE_PARSER("ParseClosureCall");
   const intptr_t call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
-  EnsureSavedCurrentContext();
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return BuildClosureCall(call_pos, closure, arguments);
 }
