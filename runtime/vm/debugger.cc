@@ -1787,8 +1787,8 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   SourceBreakpoint* bpt = GetSourceBreakpoint(script, token_pos);
   if (bpt == NULL) {
     bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
+    RegisterSourceBreakpoint(bpt);
   }
-  RegisterSourceBreakpoint(bpt);
   bpt->Enable();
   return bpt;
 }
