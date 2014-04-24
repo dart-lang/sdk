@@ -11,7 +11,6 @@ pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
-pkg/browser: PubGetError
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
 
 [ $use_public_packages ]

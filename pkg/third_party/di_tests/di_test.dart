@@ -12,7 +12,6 @@ import '../../../third_party/pkg/di/test/main.dart' as di;
  * Tests Angular's DI package
  */
 main() {
-
   group('main', () {
     di.main();
   });

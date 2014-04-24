@@ -8,22 +8,42 @@ library angular_vm_tests;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-import '../../../third_party/pkg/angular/test/tools/html_extractor_spec.dart' as test_0;
-import '../../../third_party/pkg/angular/test/tools/selector_spec.dart' as test_1;
-import '../../../third_party/pkg/angular/test/tools/source_metadata_extractor_spec.dart' as test_2;
+import '../../../third_party/pkg/angular/test/tools/selector_spec.dart' as test_0;
+import '../../../third_party/pkg/angular/test/tools/source_metadata_extractor_spec.dart' as test_1;
+import '../../../third_party/pkg/angular/test/tools/html_extractor_spec.dart' as test_2;
+import '../../../third_party/pkg/angular/test/tools/transformer/expression_generator_spec.dart' as test_3;
+import '../../../third_party/pkg/angular/test/tools/transformer/metadata_generator_spec.dart' as test_4;
+import '../../../third_party/pkg/angular/test/tools/transformer/static_angular_generator_spec.dart' as test_5;
+import '../../../third_party/pkg/angular/test/tools/symbol_inspector/symbol_inspector_spec.dart' as test_6;
 
 main() {
   useCompactVMConfiguration();
 
-  group('tools/html_extractor', () {
+  group('tools/selector', () {
     test_0.main();
   });
 
-  group('tools/selector', () {
+  group('tools/source_metadata_extractor', () {
     test_1.main();
   });
 
-  group('tools/source_metadata_extractor', () {
+  group('tools/html_extractor', () {
     test_2.main();
+  });
+
+  group('tools/transformer/expression_generator', () {
+    test_3.main();
+  });
+
+  group('tools/transformer/metadata_generator', () {
+    test_4.main();
+  });
+
+  group('tools/transformer/static_angular_generator', () {
+    test_5.main();
+  });
+
+  group('tools/symbol_inspector/symbol_inspector', () {
+    test_6.main();
   });
 }
