@@ -62,6 +62,14 @@ DECLARE_FLAG(bool, compiler_stats);
     if (FLAG_trace_inlining) statement;                                        \
   } while (false)
 
+#define PRINT_INLINING_TREE(comment, caller, target, instance_call)            \
+  do {                                                                         \
+    if (FLAG_print_inlining_tree) {                                            \
+      inlined_info_.Add(InlinedInfo(                                           \
+          caller, target, inlining_depth_, instance_call, comment));           \
+      }                                                                        \
+  } while (false)                                                              \
+
 
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Code& code, Definition* call) {
@@ -167,7 +175,7 @@ struct InlinedInfo {
               const Function* inlined_function,
               const intptr_t depth,
               const Definition* call,
-              const char* reason = NULL)
+              const char* reason)
       : caller(caller_function),
         inlined(inlined_function),
         inlined_depth(depth),
@@ -276,12 +284,51 @@ class CallSites : public ValueObject {
     }
   }
 
+  static void RecordAllNotInlinedFunction(
+      FlowGraph* graph,
+      intptr_t depth,
+      GrowableArray<InlinedInfo>* inlined_info) {
+    const Function* caller = &graph->parsed_function().function();
+    Function& target  = Function::ZoneHandle();
+    for (BlockIterator block_it = graph->postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      for (ForwardInstructionIterator it(block_it.Current());
+           !it.Done();
+           it.Advance()) {
+        Instruction* current = it.Current();
+        Definition* call = NULL;
+        if (current->IsPolymorphicInstanceCall()) {
+          PolymorphicInstanceCallInstr* instance_call =
+              current->AsPolymorphicInstanceCall();
+          target = instance_call->ic_data().GetTargetAt(0);
+          call = instance_call;
+        } else if (current->IsStaticCall()) {
+          StaticCallInstr* static_call = current->AsStaticCall();
+          target = static_call->function().raw();
+          call = static_call;
+        } else if (current->IsClosureCall()) {
+          // TODO(srdjan): Add data for closure calls.
+        }
+        if (call != NULL) {
+          inlined_info->Add(InlinedInfo(
+              caller, &target, depth + 1, call, "Too deep"));
+        }
+      }
+    }
+  }
+
+
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
     ASSERT(graph != NULL);
-
-    if (depth > FLAG_inlining_depth_threshold) return;
+    if (depth > FLAG_inlining_depth_threshold) {
+      if (FLAG_print_inlining_tree) {
+        RecordAllNotInlinedFunction(graph, depth, inlined_info);
+      }
+      return;
+    }
 
     // Recognized methods are not treated as normal calls. They don't have
     // calls in themselves, so we keep adding those even when at the threshold.
@@ -313,7 +360,7 @@ class CallSites : public ValueObject {
                   &Function::ZoneHandle(
                       instance_call->ic_data().GetTargetAt(0));
               inlined_info->Add(InlinedInfo(
-                  caller, target, depth, instance_call, "Too deep"));
+                  caller, target, depth + 1, instance_call, "Too deep"));
             }
           }
         } else if (current->IsStaticCall()) {
@@ -328,7 +375,7 @@ class CallSites : public ValueObject {
               const Function* caller = &graph->parsed_function().function();
               const Function* target = &static_call->function();
               inlined_info->Add(InlinedInfo(
-                  caller, target, depth, static_call, "Too deep"));
+                  caller, target, depth + 1, static_call, "Too deep"));
             }
           }
         } else if (current->IsClosureCall()) {
@@ -502,11 +549,8 @@ class CallSiteInliner : public ValueObject {
     if (call_data->call->GetBlock()->try_index() !=
         CatchClauseNode::kInvalidTryIndex) {
       TRACE_INLINING(OS::Print("     Bailout: inside try-block\n"));
-      if (FLAG_print_inlining_tree) {
-        inlined_info_.Add(InlinedInfo(
-            &call_data->caller, &function, inlining_depth_, call_data->call,
-            "Inside try-block"));
-      }
+      PRINT_INLINING_TREE("Inside try-block",
+          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -516,11 +560,8 @@ class CallSiteInliner : public ValueObject {
     // Abort if the inlinable bit on the function is low.
     if (!function.IsInlineable()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
-      if (FLAG_print_inlining_tree) {
-        inlined_info_.Add(InlinedInfo(
-            &call_data->caller, &function, inlining_depth_, call_data->call,
-            "Not inlinable"));
-      }
+      PRINT_INLINING_TREE("Not inlinable",
+          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -529,11 +570,8 @@ class CallSiteInliner : public ValueObject {
         FLAG_deoptimization_counter_threshold) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: deoptimization threshold\n"));
-      if (FLAG_print_inlining_tree) {
-        inlined_info_.Add(InlinedInfo(
-            &call_data->caller, &function, inlining_depth_, call_data->call,
-            "Deoptimization threshold exceeded"));
-      }
+      PRINT_INLINING_TREE("Deoptimization threshold exceeded",
+          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -550,11 +588,8 @@ class CallSiteInliner : public ValueObject {
                                function.optimized_instruction_count(),
                                function.optimized_call_site_count(),
                                constant_arguments));
-      if (FLAG_print_inlining_tree) {
-        inlined_info_.Add(InlinedInfo(
-            &call_data->caller, &function, inlining_depth_, call_data->call,
-            "Early heuristic"));
-      }
+      PRINT_INLINING_TREE("Early heuristic",
+          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -563,6 +598,8 @@ class CallSiteInliner : public ValueObject {
     if (!FLAG_inline_recursive && IsCallRecursive(unoptimized_code, call)) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
+      PRINT_INLINING_TREE("Recursive function",
+          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -632,6 +669,8 @@ class CallSiteInliner : public ValueObject {
                                          callee_graph)) {
           function.set_is_inlinable(false);
           TRACE_INLINING(OS::Print("     Bailout: optional arg mismatch\n"));
+          PRINT_INLINING_TREE("Optional arg mismatch",
+              &call_data->caller, &function, call_data->call);
           return false;
         }
       }
@@ -706,11 +745,8 @@ class CallSiteInliner : public ValueObject {
                                  size,
                                  call_site_count,
                                  constants_count));
-        if (FLAG_print_inlining_tree) {
-          inlined_info_.Add(InlinedInfo(
-              &call_data->caller, &function, inlining_depth_, call_data->call,
-              "Heuristic fail"));
-        }
+        PRINT_INLINING_TREE("Heuristic fail",
+            &call_data->caller, &function, call_data->call);
         return false;
       }
 
@@ -752,10 +788,8 @@ class CallSiteInliner : public ValueObject {
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(OS::Print("     Success\n"));
-      if (FLAG_print_inlining_tree) {
-        inlined_info_.Add(
-            InlinedInfo(&call_data->caller, &function, inlining_depth_, call));
-      }
+      PRINT_INLINING_TREE(NULL,
+          &call_data->caller, &function, call);
       return true;
     } else {
       Error& error = Error::Handle();
@@ -763,6 +797,8 @@ class CallSiteInliner : public ValueObject {
       isolate->object_store()->clear_sticky_error();
       isolate->set_deopt_id(prev_deopt_id);
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
+      PRINT_INLINING_TREE("Bailout",
+          &call_data->caller, &function, call);
       return false;
     }
   }
@@ -785,7 +821,9 @@ class CallSiteInliner : public ValueObject {
     // Print those that were inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {
       const InlinedInfo& info = inlined_info_[i];
-      if (info.bailout_reason != NULL) continue;
+      if (info.bailout_reason != NULL) {
+        continue;
+      }
       if ((info.inlined_depth == depth) &&
           (info.caller->raw() == caller.raw())) {
         for (int t = 0; t < depth; t++) {
@@ -800,7 +838,9 @@ class CallSiteInliner : public ValueObject {
     // Print those that were not inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {
       const InlinedInfo& info = inlined_info_[i];
-      if (info.bailout_reason == NULL) continue;
+      if (info.bailout_reason == NULL) {
+        continue;
+      }
       if ((info.inlined_depth == depth) &&
           (info.caller->raw() == caller.raw())) {
         for (int t = 0; t < depth; t++) {
@@ -930,14 +970,8 @@ class CallSiteInliner : public ValueObject {
             target.ToCString(),
             target.deoptimization_counter(),
             call_info[call_idx].ratio));
-        if (FLAG_print_inlining_tree) {
-          inlined_info_.Add(InlinedInfo(
-              call_info[call_idx].caller,
-              &call->function(),
-              inlining_depth_,
-              call,
-              "Too cold"));
-        }
+        PRINT_INLINING_TREE("Too cold",
+            call_info[call_idx].caller, &call->function(), call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -969,6 +1003,8 @@ class CallSiteInliner : public ValueObject {
       }
       if (target.IsNull()) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
+        PRINT_INLINING_TREE("Non-closure operator",
+            call_info[call_idx].caller, &target, call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -1007,14 +1043,8 @@ class CallSiteInliner : public ValueObject {
             target.ToCString(),
             target.deoptimization_counter(),
             call_info[call_idx].ratio));
-        if (FLAG_print_inlining_tree) {
-          inlined_info_.Add(InlinedInfo(
-              call_info[call_idx].caller,
-              &target,
-              inlining_depth_,
-              call,
-              "Too cold"));
-        }
+        PRINT_INLINING_TREE("Too cold",
+            call_info[call_idx].caller, &target, call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
