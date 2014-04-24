@@ -260,13 +260,8 @@ abstract class TestSuite {
     // Handle sharding based on the original test path (i.e. all multitests
     // of a given original test belong to the same shard)
     int shards = configuration['shards'];
-    if (shards > 1) {
-      int shard = configuration['shard'];
-      var testPath =
-          testCase.info.originTestPath.relativeTo(TestUtils.dartDir);
-      if ("$testPath".hashCode % shards != shard - 1) {
-        return;
-      }
+    if (shards > 1 && testCase.hash % shards != configuration['shard'] - 1) {
+      return;
     }
     // Test if the selector includes this test.
     RegExp pattern = configuration['selectors'][suiteName];
@@ -277,8 +272,7 @@ abstract class TestSuite {
     // Update Summary report
     if (configuration['report']) {
       SummaryReport.add(expectations);
-      if (testCase.info != null &&
-          testCase.expectCompileError &&
+      if (testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
         SummaryReport.addCompileErrorSkipTest();
@@ -503,7 +497,6 @@ class CCTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  VoidFunction doDone;
 
   CCTestSuite(Map configuration,
               String suiteName,
@@ -545,8 +538,6 @@ class CCTestSuite extends TestSuite {
 
   void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
     doTest = onTest;
-    doDone = onDone;
-
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
 
@@ -554,7 +545,8 @@ class CCTestSuite extends TestSuite {
         .then((TestExpectations expectations) {
       ccTestLister(hostRunnerPath).then((Iterable<String> names) {
         names.forEach((testName) => testNameHandler(expectations, testName));
-        onDone();
+        doTest = null;
+        if (onDone != null) onDone();
       }).catchError((error) {
         print("Fatal error occured: $error");
         exit(1);
@@ -1810,6 +1802,7 @@ class PkgBuildTestSuite extends TestSuite {
       localPackageDirectories.forEach(enqueueTestCase);
       localSampleDirectories.forEach(enqueueTestCase);
 
+      doTest = null;
       // Notify we're done
       if (onDone != null) onDone();
     }
