@@ -22,13 +22,15 @@ class RawWeakProperty;
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
 class GCMarker : public ValueObject {
  public:
-  explicit GCMarker(Heap* heap) : heap_(heap) { }
+  explicit GCMarker(Heap* heap) : heap_(heap), marked_bytes_(0) { }
   ~GCMarker() { }
 
   void MarkObjects(Isolate* isolate,
                    PageSpace* page_space,
                    bool invoke_api_callbacks,
                    bool collect_code);
+
+  intptr_t marked_words() { return marked_bytes_ >> kWordSizeLog2; }
 
  private:
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);
@@ -47,6 +49,7 @@ class GCMarker : public ValueObject {
 
 
   Heap* heap_;
+  intptr_t marked_bytes_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };

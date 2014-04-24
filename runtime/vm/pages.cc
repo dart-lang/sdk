@@ -535,12 +535,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = usage_;
-  usage_.used_in_words = 0;
 
   // Mark all reachable old-gen objects.
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
+  usage_.used_in_words = marker.marked_words();
 
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
@@ -557,12 +557,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   HeapPage* page = pages_;
   while (page != NULL) {
     HeapPage* next_page = page->next();
-    intptr_t page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
-    if (page_in_use == 0) {
-      FreePage(page, prev_page);
-    } else {
-      usage_.used_in_words += (page_in_use >> kWordSizeLog2);
+    bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
+    if (page_in_use) {
       prev_page = page;
+    } else {
+      FreePage(page, prev_page);
     }
     // Advance to the next page.
     page = next_page;
@@ -573,13 +572,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   prev_page = NULL;
   page = large_pages_;
   while (page != NULL) {
-    intptr_t page_in_use = sweeper.SweepLargePage(page);
     HeapPage* next_page = page->next();
-    if (page_in_use == 0) {
-      FreeLargePage(page, prev_page);
-    } else {
-      usage_.used_in_words += (page_in_use >> kWordSizeLog2);
+    bool page_in_use = sweeper.SweepLargePage(page);
+    if (page_in_use) {
       prev_page = page;
+    } else {
+      FreeLargePage(page, prev_page);
     }
     // Advance to the next page.
     page = next_page;

@@ -418,9 +418,10 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
     RawObject* raw_obj = visitor->marking_stack()->Pop();
     visitor->VisitingOldObject(raw_obj);
     if (raw_obj->GetClassId() != kWeakPropertyCid) {
-      raw_obj->VisitPointers(visitor);
+      marked_bytes_ += raw_obj->VisitPointers(visitor);
     } else {
       RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+      marked_bytes_ += raw_weak->Size();
       ProcessWeakProperty(raw_weak, visitor);
     }
   }

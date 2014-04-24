@@ -23,10 +23,10 @@ class GCSweeper {
 
   // Sweep the memory area for the page while clearing the mark bits and adding
   // all the unmarked objects to the freelist.
-  // Returns the size of memory used by the marked objects.
-  intptr_t SweepPage(HeapPage* page, FreeList* freelist);
+  // Returns true if the page is in use.
+  bool SweepPage(HeapPage* page, FreeList* freelist);
 
-  intptr_t SweepLargePage(HeapPage* page);
+  bool SweepLargePage(HeapPage* page);
 
  private:
   Heap* heap_;
