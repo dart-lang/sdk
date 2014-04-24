@@ -8,11 +8,11 @@ import 'dart:async';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -41,15 +41,6 @@ main() {
   });
 }
 
-class MockAnalysisContext_withPerformAnalysisTask extends MockAnalysisContext {
-  List<AnalysisResult> results = [];
-
-  @override
-  AnalysisResult performAnalysisTask() => results.removeAt(0);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class AnalysisServerTest {
   static MockServerChannel channel;
   static AnalysisServer server;
@@ -72,26 +63,27 @@ class AnalysisServerTest {
   }
 
   static Future addContextToWorkQueue_whenRunning() {
-    MockAnalysisContext_withPerformAnalysisTask context =
-        new MockAnalysisContext_withPerformAnalysisTask();
+    MockAnalysisContext context = new MockAnalysisContext();
     server.addContextToWorkQueue(context);
-    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    MockSource source = new MockSource();
+    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
     ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
     LineInfo lineInfo = new LineInfo([0]);
     AnalysisError analysisError = new AnalysisError.con1(source,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, []);
     changeNoticeImpl.setErrors([analysisError], lineInfo);
-    context.results.add(new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0)
-        );
-    context.results.add(new AnalysisResult(null, 0, null, 0));
+    context.when(callsTo('performAnalysisTask')).thenReturn(
+        new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0));
+    context.when(callsTo('performAnalysisTask')).thenReturn(
+        new AnalysisResult(null, 0, null, 0));
     return pumpEventQueue().then((_) {
-      expect(context.results, isEmpty);
+      context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(2));
       expect(channel.notificationsReceived, hasLength(2));
       expect(channel.notificationsReceived[0].event, equals('server.connected')
           );
       expect(channel.notificationsReceived[1].event, equals('context.errors'));
       expect(channel.notificationsReceived[1].params['source'], equals(
-          source.encoding));
+          'foo.dart'));
       List<AnalysisError> errors =
           channel.notificationsReceived[1].params['errors'];
       expect(errors, hasLength(1));
@@ -101,12 +93,13 @@ class AnalysisServerTest {
 
   static Future addContextToWorkQueue_twice() {
     // The context should only be asked to perform its analysis task once.
-    MockAnalysisContext_withPerformAnalysisTask context =
-        new MockAnalysisContext_withPerformAnalysisTask();
+    MockAnalysisContext context = new MockAnalysisContext();
     server.addContextToWorkQueue(context);
     server.addContextToWorkQueue(context);
-    context.results.add(new AnalysisResult(null, 0, null, 0));
-    return pumpEventQueue().then((_) => expect(context.results, isEmpty));
+    context.when(callsTo('performAnalysisTask')).thenReturn(
+        new AnalysisResult(null, 0, null, 0));
+    return pumpEventQueue().then((_) =>
+        context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(1)));
   }
 
   static Future createContext() {
@@ -132,7 +125,8 @@ class AnalysisServerTest {
   }
 
   static void errorToJson_formattingApplied() {
-    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    MockSource source = new MockSource();
+    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
     AnalysisError analysisError =
         new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
@@ -143,14 +137,15 @@ class AnalysisServerTest {
   }
 
   static void errorToJson_noCorrection() {
-    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    MockSource source = new MockSource();
+    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
     CompileTimeErrorCode errorCode =
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
     AnalysisError analysisError =
         new AnalysisError.con2(source, 10, 5, errorCode, []);
     Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
     expect(json, hasLength(5));
-    expect(json['source'], equals(source.encoding));
+    expect(json['source'], equals('foo.dart'));
     expect(json['errorCode'], equals(errorCode.ordinal));
     expect(json['offset'], equals(analysisError.offset));
     expect(json['length'], equals(analysisError.length));
@@ -158,7 +153,8 @@ class AnalysisServerTest {
   }
 
   static void errorToJson_withCorrection() {
-    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    MockSource source = new MockSource();
+    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
 
     // TODO(paulberry): in principle we should test an error or hint that uses
     // %s formatting in its correction string.  But no such errors or hints
