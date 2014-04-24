@@ -23,19 +23,22 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
 }
 
 class JSSyntaxRegExp implements RegExp {
+  final String pattern;
   final _nativeRegExp;
   var _nativeGlobalRegExp;
   var _nativeAnchoredRegExp;
 
-  JSSyntaxRegExp(String pattern,
+
+  JSSyntaxRegExp(String source,
                  { bool multiLine: false,
                    bool caseSensitive: true })
-      : this._nativeRegExp =
-            makeNative(pattern, multiLine, caseSensitive, false);
+      : this.pattern = source,
+        this._nativeRegExp =
+            makeNative(source, multiLine, caseSensitive, false);
 
   get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
-    return _nativeGlobalRegExp = makeNative(_pattern,
+    return _nativeGlobalRegExp = makeNative(pattern,
                                             _isMultiLine,
                                             _isCaseSensitive,
                                             true);
@@ -48,19 +51,18 @@ class JSSyntaxRegExp implements RegExp {
     // that it tries, and you can see if the original regexp matched, or it
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative("$_pattern|()",
+    return _nativeAnchoredRegExp = makeNative("$pattern|()",
                                               _isMultiLine,
                                               _isCaseSensitive,
                                               true);
   }
 
-  String get _pattern  => JS("String", "#.source", _nativeRegExp);
   bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
   bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
 
   static makeNative(
-      String pattern, bool multiLine, bool caseSensitive, bool global) {
-    checkString(pattern);
+      String source, bool multiLine, bool caseSensitive, bool global) {
+    checkString(source);
     String m = multiLine ? 'm' : '';
     String i = caseSensitive ? '' : 'i';
     String g = global ? 'g' : '';
@@ -74,13 +76,13 @@ class JSSyntaxRegExp implements RegExp {
          '} catch (e) {'
            'return e;'
          '}'
-        '})()', pattern, m, i, g);
+        '})()', source, m, i, g);
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
     throw new FormatException(
-        "Illegal RegExp pattern: $pattern, $errorMessage");
+        "Illegal RegExp pattern: $source, $errorMessage");
   }
 
   Match firstMatch(String str) {
@@ -134,7 +136,6 @@ class JSSyntaxRegExp implements RegExp {
     return _execAnchored(string, start);
   }
 
-  String get pattern => _pattern;
   bool get isMultiLine => _isMultiLine;
   bool get isCaseSensitive => _isCaseSensitive;
 }

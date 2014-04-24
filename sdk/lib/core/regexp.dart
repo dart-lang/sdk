@@ -149,7 +149,7 @@ abstract class RegExp implements Pattern {
   String stringMatch(String input);
 
   /**
-   * The pattern of this regular expression.
+   * The source regular expression string used to create this `RegExp`.
    */
   String get pattern;
 
