@@ -25,11 +25,11 @@ import '../../pkg/async_helper/lib/async_helper.dart';
 const Map<String, String> tests = const <String, String> {
   '<span><p>//...</p>}</span>': '//...\n}\n',
   'someText': 'someText\n',
-  '"\$"': '"\$"<DIAGNOSTIC>\n',
-  '"\$\$"': '"\$\$<DIAGNOSTIC>"<DIAGNOSTIC>\n',
-  '"\$\$4"': '"\$\$<DIAGNOSTIC>4<DIAGNOSTIC>"\n',
-  '"\$\$4 "': '"\$\$<DIAGNOSTIC>4<DIAGNOSTIC> "\n',
-  '1e': '1<DIAGNOSTIC>e\n',
+  '"\$"': '"\$<DIAGNOSTIC>"\n',
+  '"\$\$"': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>"\n',
+  '"\$\$4"': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>4"\n',
+  '"\$\$4 "': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>4 "\n',
+  '1e': '1e<DIAGNOSTIC>\n',
 };
 
 List<Node> queryDiagnosticNodes() {
