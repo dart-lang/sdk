@@ -29,15 +29,12 @@ DEFINE_FLAG(bool, verify_before_gc, false,
 DEFINE_FLAG(bool, verify_after_gc, false,
             "Enables heap verification after GC.");
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
-DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
-            "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
-DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
-            "old gen heap size in MB,"
-            "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 DEFINE_FLAG(int, new_gen_ext_limit, 64,
             "maximum total external size (MB) in new gen before triggering GC");
 
-Heap::Heap() : read_only_(false), gc_in_progress_(false) {
+Heap::Heap(intptr_t max_new_gen_words,
+           intptr_t max_old_gen_words)
+    : read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -45,9 +42,9 @@ Heap::Heap() : read_only_(false), gc_in_progress_(false) {
     old_weak_tables_[sel] = new WeakTable();
   }
   new_space_ = new Scavenger(this,
-                             (FLAG_new_gen_heap_size * MBInWords),
+                             max_new_gen_words,
                              kNewObjectAlignmentOffset);
-  old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MBInWords));
+  old_space_ = new PageSpace(this, max_old_gen_words);
   stats_.num_ = 0;
 }
 
@@ -317,16 +314,23 @@ uword Heap::EndAddress() {
 }
 
 
-void Heap::Init(Isolate* isolate) {
+void Heap::Init(Isolate* isolate,
+                intptr_t max_new_gen_words,
+                intptr_t max_old_gen_words) {
   ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap();
+  Heap* heap = new Heap(max_new_gen_words, max_old_gen_words);
   isolate->set_heap(heap);
 }
 
 
-void Heap::StartEndAddress(uword* start, uword* end) const {
-  ASSERT(new_space_->CapacityInWords() != 0);
-  new_space_->StartEndAddress(start, end);
+void Heap::GetMergedAddressRange(uword* start, uword* end) const {
+  if (new_space_->CapacityInWords() != 0) {
+    uword new_start;
+    uword new_end;
+    new_space_->StartEndAddress(&new_start, &new_end);
+    *start = Utils::Minimum(new_start, *start);
+    *end = Utils::Maximum(new_end, *end);
+  }
   if (old_space_->CapacityInWords() != 0) {
     uword old_start;
     uword old_end;
@@ -339,18 +343,18 @@ void Heap::StartEndAddress(uword* start, uword* end) const {
 
 
 ObjectSet* Heap::CreateAllocatedObjectSet() const {
-  Isolate* isolate = Isolate::Current();
-  uword start, end;
-  isolate->heap()->StartEndAddress(&start, &end);
-
+  uword start = static_cast<uword>(-1);
+  uword end = 0;
   Isolate* vm_isolate = Dart::vm_isolate();
-  uword vm_start, vm_end;
-  vm_isolate->heap()->StartEndAddress(&vm_start, &vm_end);
+  vm_isolate->heap()->GetMergedAddressRange(&start, &end);
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->heap() == this);
+  isolate->heap()->GetMergedAddressRange(&start, &end);
 
-  ObjectSet* allocated_set = new ObjectSet(Utils::Minimum(start, vm_start),
-                                           Utils::Maximum(end, vm_end));
+  ObjectSet* allocated_set = new ObjectSet(start, end);
 
   VerifyObjectVisitor object_visitor(isolate, allocated_set);
+  // TODO(koda): Consider adding a const visitor to enable using 'this'.
   isolate->heap()->IterateObjects(&object_visitor);
   vm_isolate->heap()->IterateObjects(&object_visitor);
 
@@ -360,8 +364,10 @@ ObjectSet* Heap::CreateAllocatedObjectSet() const {
 
 bool Heap::Verify() const {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->heap() == this);
   ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet();
   VerifyPointersVisitor visitor(isolate, allocated_set);
+  // TODO(koda): Consider adding a const visitor to enable using 'this'.
   isolate->heap()->IteratePointers(&visitor);
   delete allocated_set;
   // Only returning a value so that Heap::Validate can be called from an ASSERT.

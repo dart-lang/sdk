@@ -317,21 +317,27 @@ Scavenger::Scavenger(Heap* heap,
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
 
-  // Allocate the virtual memory for this scavenge heap.
-  space_ = VirtualMemory::Reserve(max_capacity_in_words << kWordSizeLog2);
-  if (space_ == NULL) {
-    FATAL("Out of memory.\n");
+  if (max_capacity_in_words == 0) {
+    space_ = NULL;
+    to_ = new MemoryRegion(NULL, 0);
+    from_ = new MemoryRegion(NULL, 0);
+  } else {
+    // Allocate the virtual memory for this scavenge heap.
+    space_ = VirtualMemory::Reserve(max_capacity_in_words << kWordSizeLog2);
+    if (space_ == NULL) {
+      FATAL("Out of memory.\n");
+    }
+
+    // Allocate the entire space at the beginning.
+    space_->Commit(false);
+
+    // Setup the semi spaces.
+    uword semi_space_size = space_->size() / 2;
+    ASSERT((semi_space_size & (VirtualMemory::PageSize() - 1)) == 0);
+    to_ = new MemoryRegion(space_->address(), semi_space_size);
+    uword middle = space_->start() + semi_space_size;
+    from_ = new MemoryRegion(reinterpret_cast<void*>(middle), semi_space_size);
   }
-
-  // Allocate the entire space at the beginning.
-  space_->Commit(false);
-
-  // Setup the semi spaces.
-  uword semi_space_size = space_->size() / 2;
-  ASSERT((semi_space_size & (VirtualMemory::PageSize() - 1)) == 0);
-  to_ = new MemoryRegion(space_->address(), semi_space_size);
-  uword middle = space_->start() + semi_space_size;
-  from_ = new MemoryRegion(reinterpret_cast<void*>(middle), semi_space_size);
 
   // Make sure that the two semi-spaces are aligned properly.
   ASSERT(Utils::IsAligned(to_->start(), kObjectAlignment));
@@ -733,8 +739,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
 
 void Scavenger::WriteProtect(bool read_only) {
-  space_->Protect(
-      read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+  if (space_ != NULL) {
+    space_->Protect(
+        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+  }
 }
 
 

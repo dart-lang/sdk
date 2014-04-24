@@ -163,7 +163,9 @@ class Heap {
   static intptr_t new_space_offset() { return OFFSET_OF(Heap, new_space_); }
 
   // Initialize the heap and register it with the isolate.
-  static void Init(Isolate* isolate);
+  static void Init(Isolate* isolate,
+                   intptr_t max_new_gen_words,
+                   intptr_t max_old_gen_words);
 
   // Verify that all pointers in the heap point to the heap.
   bool Verify() const;
@@ -179,8 +181,6 @@ class Heap {
   int64_t GCTimeInMicros(Space space) const;
 
   intptr_t Collections(Space space) const;
-  // Returns the [lowest, highest) addresses in the heap.
-  void StartEndAddress(uword* start, uword* end) const;
 
   ObjectSet* CreateAllocatedObjectSet() const;
 
@@ -282,7 +282,7 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
-  Heap();
+  Heap(intptr_t max_new_gen_words, intptr_t max_old_gen_words);
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
@@ -292,6 +292,11 @@ class Heap {
   void RecordAfterGC();
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
+
+  // If this heap is non-empty, updates start and end to the smallest range that
+  // contains both the original [start, end) and the [lowest, highest) addresses
+  // of this heap.
+  void GetMergedAddressRange(uword* start, uword* end) const;
 
   // The different spaces used for allocation.
   Scavenger* new_space_;

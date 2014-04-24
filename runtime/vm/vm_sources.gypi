@@ -329,6 +329,7 @@
     'scanner_test.cc',
     'scavenger.cc',
     'scavenger.h',
+    'scavenger_test.cc',
     'scopes.cc',
     'scopes.h',
     'scopes_test.cc',
