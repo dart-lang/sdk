@@ -2726,6 +2726,13 @@ checkMalformedType(value, message) {
   throw new TypeErrorImplementation.fromMessage(message);
 }
 
+@NoInline()
+void checkDeferredIsLoaded(String loadId, String uri) {
+  if (!_loadedLibraries.contains(loadId)) {
+    throw new DeferredNotLoadedError(uri);
+  }
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
@@ -2816,6 +2823,16 @@ class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
   String toString() => "RuntimeError: $message";
+}
+
+class DeferredNotLoadedError extends Error {
+  String libraryName;
+
+  DeferredNotLoadedError(this.libraryName);
+
+  String toString() {
+    return "Deferred library $libraryName was not loaded.";
+  }
 }
 
 abstract class RuntimeType {
@@ -3231,10 +3248,10 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
   return () => loadDeferredLibrary(loadId);
 }
 
-final Map<String, Future<Null>> _loadedLibraries = <String, Future<Null>>{};
+final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
+final Set<String> _loadedLibraries = new Set<String>();
 
-Future<bool> loadDeferredLibrary(String loadId, [String uri]) {
-
+Future<Null> loadDeferredLibrary(String loadId, [String uri]) {
   List<List<String>> hunkLists = JS('JSExtendableArray|Null',
       '\$.libraries_to_load[#]', loadId);
   if (hunkLists == null) return new Future.value(null);
@@ -3243,14 +3260,14 @@ Future<bool> loadDeferredLibrary(String loadId, [String uri]) {
     Iterable<Future<Null>> allLoads =
         hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
     return Future.wait(allLoads).then((_) => null);
-  });
+  }).then((_) => _loadedLibraries.add(loadId));
 }
 
 Future<Null> _loadHunk(String hunkName, String uri) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want
   // to be able to experiment with the effect of toggling @DeferLoad,
   // so perhaps we should silently ignore "bad" library names.
-  Future<Null> future = _loadedLibraries[hunkName];
+  Future<Null> future = _loadingLibraries[hunkName];
   if (future != null) {
     return future.then((_) => null);
   }
@@ -3264,7 +3281,7 @@ Future<Null> _loadHunk(String hunkName, String uri) {
   if (Primitives.isJsshell || Primitives.isD8) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
-    return _loadedLibraries[hunkName] = new Future<Null>(() {
+    return _loadingLibraries[hunkName] = new Future<Null>(() {
       try {
         // Create a new function to avoid getting access to current function
         // context.
@@ -3276,7 +3293,7 @@ Future<Null> _loadHunk(String hunkName, String uri) {
     });
   } else if (isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
-    return _loadedLibraries[hunkName] = new Future<Null>(() {
+    return _loadingLibraries[hunkName] = new Future<Null>(() {
       Completer completer = new Completer<Null>();
       enterJsAsync();
       Future<Null> leavingFuture = completer.future.whenComplete(() {
@@ -3318,7 +3335,7 @@ Future<Null> _loadHunk(String hunkName, String uri) {
     });
   }
   // We are in a dom-context.
-  return _loadedLibraries[hunkName] = new Future<Null>(() {
+  return _loadingLibraries[hunkName] = new Future<Null>(() {
     Completer completer = new Completer<Null>();
     // Inject a script tag.
     var script = JS('', 'document.createElement("script")');

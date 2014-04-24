@@ -1172,9 +1172,8 @@ class SsaBuilder extends ResolvedVisitor {
     bool meetsHardConstraints() {
       // Don't inline from one output unit to another. If something is deferred
       // it is to save space in the loading code.
-      var getOutputUnit = compiler.deferredLoadTask.outputUnitForElement;
-      if (getOutputUnit(element) !=
-          getOutputUnit(compiler.currentElement)) {
+      if (!compiler.deferredLoadTask
+          .inSameOutputUnit(element,compiler.currentElement)) {
         return false;
       }
       if (compiler.disableInlining) return false;
@@ -2929,6 +2928,24 @@ class SsaBuilder extends ResolvedVisitor {
     pushInvokeDynamic(send, selector, [receiver]);
   }
 
+  /// Inserts a call to checkDeferredIsLoaded if the send has a prefix that
+  /// resolves to a deferred library.
+  void generateIsDeferredLoadedCheckIfNeeded(ast.Send node) {
+    DeferredLoadTask deferredTask = compiler.deferredLoadTask;
+    PrefixElement prefixElement =
+         deferredTask.deferredPrefixElement(node, elements);
+    if (prefixElement != null) {
+      String loadId =
+          deferredTask.importDeferName[prefixElement.deferredImport];
+      HInstruction loadIdConstant = addConstantString(loadId);
+      String uri = prefixElement.deferredImport.uri.dartString.slowToString();
+      HInstruction uriConstant = addConstantString(uri);
+      Element helper = backend.getCheckDeferredIsLoaded();
+      pushInvokeStatic(node, helper, [loadIdConstant, uriConstant]);
+      pop();
+    }
+  }
+
   void generateGetter(ast.Send send, Element element) {
     if (element != null && element.isForeign(compiler)) {
       visitForeignGetter(send);
@@ -3921,6 +3938,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
+    generateIsDeferredLoadedCheckIfNeeded(send);
+
     bool isFixedList = false;
     bool isFixedListConstructorCall =
         Elements.isFixedListConstructorCall(elements[send], send, compiler);
@@ -4172,6 +4191,7 @@ class SsaBuilder extends ResolvedVisitor {
       return;
     }
     invariant(element, !element.isGenerativeConstructor());
+    generateIsDeferredLoadedCheckIfNeeded(node);
     if (element.isFunction()) {
       var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
@@ -4247,6 +4267,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitGetterSend(ast.Send node) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
     generateGetter(node, elements[node]);
   }
 
@@ -4515,6 +4536,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitSendSet(ast.SendSet node) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
       ast.Identifier selector = node.selector;
