@@ -1177,10 +1177,10 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 42, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1192,10 +1192,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0xf1234123, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1207,10 +1207,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x4321f1234124, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1222,10 +1222,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x9287436598237465, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1239,10 +1239,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Object::null_object(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1255,10 +1255,10 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::True(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1271,10 +1271,10 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::False(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1292,7 +1292,7 @@ ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
 // R1: value.
 // R2: growable array.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ PushPP();
+  __ TagAndPushPP();
   __ LoadPoolPointer(PP);
   __ Push(CTX);
   __ Push(LR);
@@ -1302,7 +1302,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                      R1);
   __ Pop(LR);
   __ Pop(CTX);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
