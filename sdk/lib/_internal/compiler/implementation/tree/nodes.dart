@@ -319,14 +319,12 @@ abstract class Statement extends Node {
   bool isValidBreakTarget() => true;
 }
 
-/// Errorneous expression that behaves as a literal integer (0).
-class ErrorExpression extends LiteralInt {
+/// Errorneous expression that behaves as a literal null.
+class ErrorExpression extends LiteralNull {
   ErrorExpression(token)
-      : super(token, null);
+      : super(token);
 
   ErrorExpression asErrorExpression() => this;
-
-  int get value => 0;
 }
 
 /**

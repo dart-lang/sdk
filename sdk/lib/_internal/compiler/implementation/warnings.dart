@@ -1497,7 +1497,7 @@ main() {}
 class Class {
   method();
 }
-main() => new Class();
+main() => new Class().method();
 """]);
 
   static const MessageKind ABSTRACT_GETTER = const MessageKind(
@@ -1722,7 +1722,7 @@ main() {
       howToFix: DONT_KNOW_HOW_TO_FIX,
       examples: const ["""
 main() {
-  print(ç);
+  String x = ç;
 }
 """]);
 

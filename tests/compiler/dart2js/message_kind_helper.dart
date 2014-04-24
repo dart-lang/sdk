@@ -15,6 +15,33 @@ import 'memory_compiler.dart';
 
 const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 
+/// Most examples generate a single diagnostic.
+/// Add an exception here if a single diagnostic cannot be produced.
+/// However, consider that a single concise diagnostic is easier to understand,
+/// so try to change error reporting logic before adding an exception.
+final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
+    // See http://dartbug.com/18361.
+    MessageKind.CANNOT_EXTEND_MALFORMED,
+    MessageKind.CANNOT_IMPLEMENT_MALFORMED,
+    MessageKind.CANNOT_MIXIN,
+    MessageKind.CANNOT_MIXIN_MALFORMED,
+    MessageKind.CYCLIC_TYPEDEF_ONE,
+    MessageKind.EQUAL_MAP_ENTRY_KEY,
+    MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
+    MessageKind.FORMAL_DECLARED_CONST,
+    MessageKind.FORMAL_DECLARED_STATIC,
+    MessageKind.HEX_DIGIT_EXPECTED,
+    MessageKind.HIDDEN_IMPLICIT_IMPORT,
+    MessageKind.HIDDEN_IMPORT,
+    MessageKind.INHERIT_GETTER_AND_METHOD,
+    MessageKind.UNIMPLEMENTED_METHOD,
+    MessageKind.UNIMPLEMENTED_METHOD_ONE,
+    MessageKind.UNTERMINATED_STRING,
+    MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
+    MessageKind.VOID_NOT_ALLOWED,
+    MessageKind.UNMATCHED_TOKEN,
+]);
+
 Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
   Expect.isNotNull(kind.howToFix);
   Expect.isFalse(kind.examples.isEmpty);
@@ -30,7 +57,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
     }
     List<String> messages = <String>[];
     void collect(Uri uri, int begin, int end, String message, kind) {
-      if (kind.name == 'verbose info') {
+      if (kind.name == 'verbose info' || kind.name == 'info') {
         return;
       }
       messages.add(message);
@@ -55,13 +82,26 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
       // TODO(johnniwinther): Extend MessageKind to contain information on
       // where info messages are expected.
       bool messageFound = false;
+      List unexpectedMessages = [];
       for (String message in messages) {
-        if (new RegExp('^$pattern\$').hasMatch(message)) {
+        if (!messageFound && new RegExp('^$pattern\$').hasMatch(message)) {
           messageFound = true;
+        } else {
+          unexpectedMessages.add(message);
         }
       }
       Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
       Expect.isFalse(compiler.hasCrashed);
+      if (!unexpectedMessages.isEmpty) {
+        for (String message in unexpectedMessages) {
+          print("Unexpected message: $message");
+        }
+        if (!kindsWithExtraMessages.contains(kind)) {
+          // Try changing the error reporting logic before adding an exception
+          // to [kindsWithExtraMessages].
+          throw 'Unexpected messages found.';
+        }
+      }
       cachedCompiler = compiler;
     });
   }).then((_) => cachedCompiler);
