@@ -6,6 +6,8 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
+
+@MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/engine.dart';

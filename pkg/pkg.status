@@ -42,7 +42,6 @@ polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 
 [ $compiler == dart2js ]
-analysis_server/test/analysis_server_test: Pass, Timeout
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
