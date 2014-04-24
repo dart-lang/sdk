@@ -190,7 +190,7 @@ def Main(argv):
   os.makedirs(LIB)
 
   #
-  # Create and populate lib/{core, crypto, isolate, ...}.
+  # Create and populate lib/{async, core, isolate, ...}.
   #
 
   os.makedirs(join(LIB, 'html'))
@@ -199,7 +199,7 @@ def Main(argv):
                   join('_internal', 'compiler'),
                   join('_internal', 'lib'),
                   'async', 'collection', 'convert', 'core',
-                  'crypto', 'internal', 'io', 'isolate',
+                  'internal', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
