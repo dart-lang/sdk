@@ -39,6 +39,7 @@ import 'js/js.dart' as js;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'dump_info.dart';
+import 'helpers/helpers.dart';
 import 'tracer.dart' show Tracer;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;

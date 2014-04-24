@@ -4,7 +4,7 @@
 
 library dart2js.mirrors;
 
-import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
+import 'dart:collection' show UnmodifiableListView;
 
 import '../elements/elements.dart';
 import '../scanner/scannerlib.dart';
@@ -385,7 +385,7 @@ abstract class ContainerMixin {
 
   Map<Symbol, DeclarationMirror> get declarations {
     _ensureDeclarations();
-    return new UnmodifiableMapView<Symbol, DeclarationMirror>(_declarations);
+    return new ImmutableMapWrapper<Symbol, DeclarationMirror>(_declarations);
   }
 }
 

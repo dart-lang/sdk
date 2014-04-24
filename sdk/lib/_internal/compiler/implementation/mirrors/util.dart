@@ -135,3 +135,50 @@ class FilteredImmutableMap<K, V> extends ImmutableMapWrapper<K, V> {
     });
   }
 }
+
+/**
+ * An [AsFilter] takes a [value] of type [V1] and returns [value] iff it is of
+ * type [V2] or [:null:] otherwise. An [AsFilter] therefore behaves like the
+ * [:as:] expression.
+ */
+typedef V2 AsFilter<V1, V2>(V1 value);
+
+/**
+ * An immutable map wrapper capable of filtering the input map based on types.
+ * It takes an [AsFilter] function which converts the original values of type
+ * [Vin] into values of type [Vout], or returns [:null:] if the value should
+ * not be included in the filtered map.
+ */
+class AsFilteredImmutableMap<K, Vin, Vout> extends AbstractMap<K, Vout> {
+  final Map<K, Vin> _map;
+  final AsFilter<Vin, Vout> _filter;
+
+  AsFilteredImmutableMap(this._map, this._filter);
+
+  int get length {
+    var count = 0;
+    forEach((k,v) {
+      count++;
+    });
+    return count;
+  }
+
+  Vout operator [](K key) {
+    if (key is K) {
+      Vin value = _map[key];
+      if (value != null) {
+        return _filter(value);
+      }
+    }
+    return null;
+  }
+
+  void forEach(void f(K key, Vout value)) {
+    _map.forEach((K k, Vin v) {
+      var value = _filter(v);
+      if (value != null) {
+        f(k, value);
+      }
+    });
+  }
+}
