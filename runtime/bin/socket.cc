@@ -20,12 +20,6 @@ namespace bin {
 
 static const int kSocketIdNativeField = 0;
 
-dart::Mutex* Socket::mutex_ = new dart::Mutex();
-int Socket::service_ports_size_ = 0;
-Dart_Port* Socket::service_ports_ = NULL;
-int Socket::service_ports_index_ = 0;
-
-
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   const char* address =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));

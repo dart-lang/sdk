@@ -282,11 +282,6 @@ class Socket {
   static intptr_t GetSocketIdNativeField(Dart_Handle socket);
 
  private:
-  static dart::Mutex* mutex_;
-  static int service_ports_size_;
-  static Dart_Port* service_ports_;
-  static int service_ports_index_;
-
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Socket);
 };
