@@ -264,6 +264,18 @@ class UnterminatedToken extends ErrorToken {
   int get charCount => endOffset - charOffset;
 }
 
+class UnmatchedToken extends ErrorToken {
+  final BeginGroupToken begin;
+
+  UnmatchedToken(BeginGroupToken begin)
+      : this.begin = begin,
+        super(begin.charOffset);
+
+  String toString() => "UnmatchedToken(${begin.value})";
+
+  String get assertionMessage => "'$begin' isn't closed.";
+}
+
 /**
  * A String-valued token. Represents identifiers, string literals,
  * number literals, comments, and error tokens, using the corresponding

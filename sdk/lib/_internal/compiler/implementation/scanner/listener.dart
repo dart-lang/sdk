@@ -719,10 +719,25 @@ class Listener {
           break;
       }
       reportError(token, kind, arguments);
+    } else if (token is UnmatchedToken) {
+      String begin = token.begin.value;
+      String end = closeBraceFor(begin);
+      reportError(
+          token, MessageKind.UNMATCHED_TOKEN, {'begin': begin, 'end': end});
     } else {
       throw new SpannableAssertionFailure(token, token.assertionMessage);
     }
   }
+}
+
+String closeBraceFor(String openBrace) {
+  return const {
+    '(': ')',
+    '[': ']',
+    '{': '}',
+    '<': '>',
+    r'${': '}',
+  }[openBrace];
 }
 
 class ParserError {
@@ -1160,10 +1175,16 @@ class ElementListener extends Listener {
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
-      reportFatalError(token,
-                       "Unmatched '${token.value}'.");
+      String begin = token.value;
+      String end = closeBraceFor(begin);
+      reportError(
+          token, MessageKind.UNMATCHED_TOKEN, {'begin': begin, 'end': end});
     }
-    return skipToEof(token);
+    Token next = token.next;
+    while (next is ErrorToken) {
+      next = next.next;
+    }
+    return next;
   }
 
   void recoverableError(Spannable node, String message) {

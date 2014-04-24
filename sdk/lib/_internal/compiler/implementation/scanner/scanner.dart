@@ -1096,29 +1096,63 @@ abstract class AbstractScanner implements Scanner {
   }
 
   void unmatchedBeginGroup(BeginGroupToken begin) {
-    String error = 'unmatched "${begin.stringValue}"';
-    Token close =
-        new StringToken.fromString(
-            BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
-
-    // We want to ensure that unmatched BeginGroupTokens are reported
-    // as errors. However, the rest of the parser assumes the groups
-    // are well-balanced and will never look at the endGroup
-    // token. This is a nice property that allows us to skip quickly
-    // over correct code. By inserting an additional error token in
-    // the stream, we can keep ignoring endGroup tokens.
+    // We want to ensure that unmatched BeginGroupTokens are reported as
+    // errors.  However, the diet parser assumes that groups are well-balanced
+    // and will never look at the endGroup token.  This is a nice property that
+    // allows us to skip quickly over correct code. By inserting an additional
+    // synthetic token in the stream, we can keep ignoring endGroup tokens.
     //
     // [begin] --next--> [tail]
-    // [begin] --endG--> [close] --next--> [next] --next--> [tail]
+    // [begin] --endG--> [synthetic] --next--> [next] --next--> [tail]
     //
-    // This allows the parser to skip from [begin] via endGroup to [close] and
-    // ignore the [close] token (assuming it's correct), then the error will be
-    // reported when parsing the [next] token.
-
-    Token next = new StringToken.fromString(
-        BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
-    begin.endGroup = close;
-    close.next = next;
-    next.next = begin.next;
+    // This allows the diet parser to skip from [begin] via endGroup to
+    // [synthetic] and ignore the [synthetic] token (assuming it's correct),
+    // then the error will be reported when parsing the [next] token.
+    //
+    // For example, tokenize("{[1};") produces:
+    //
+    // SymbolToken({) --endGroup-----+
+    //      |                        |
+    //     next                      |
+    //      v                        |
+    // SymbolToken([) --endGroup--+  |
+    //      |                     |  |
+    //     next                   |  |
+    //      v                     |  |
+    // StringToken(1)             |  |
+    //      |                     v  |
+    //     next       SymbolToken(]) | <- Synthetic token.
+    //      |                     |  |
+    //      |                   next |
+    //      v                     |  |
+    // UnmatchedToken([)<---------+  |
+    //      |                        |
+    //     next                      |
+    //      v                        |
+    // SymbolToken(})<---------------+
+    //      |
+    //     next
+    //      v
+    // SymbolToken(;)
+    //      |
+    //     next
+    //      v
+    //     EOF
+    Token synthetic =
+        new SymbolToken(closeBraceInfoFor(begin), begin.charOffset);
+    UnmatchedToken next = new UnmatchedToken(begin);
+    begin.endGroup = synthetic;
+    synthetic.next = next;
+    appendErrorToken(next);
   }
+}
+
+PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
+  return const {
+    '(': CLOSE_PAREN_INFO,
+    '[': CLOSE_SQUARE_BRACKET_INFO,
+    '{': CLOSE_CURLY_BRACKET_INFO,
+    '<': GT_INFO,
+    r'${': CLOSE_CURLY_BRACKET_INFO,
+  }[begin.value];
 }

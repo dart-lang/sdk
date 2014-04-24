@@ -1766,6 +1766,15 @@ main() => r'''
 main() => r\"\"\"
 """]);
 
+  static const MessageKind UNMATCHED_TOKEN = const MessageKind(
+      "Can't find '#{end}' to match '#{begin}'.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const[
+          "main(",
+          "main(){",
+          "main(){]}",
+        ]);
+
   static const MessageKind UNTERMINATED_TOKEN = const MessageKind(
       // This is a fall-back message that shouldn't happen.
       "Incomplete token.");
