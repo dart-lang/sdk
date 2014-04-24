@@ -87,6 +87,7 @@ class GroupRunner {
 
   /// Removes this group and all sub-phases within it.
   void remove() {
+    _onLogPool.close();
     for (var phase in _phases) {
       phase.remove();
     }

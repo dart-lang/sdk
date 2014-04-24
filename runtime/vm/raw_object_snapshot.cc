@@ -1023,6 +1023,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
+    library.raw_ptr()->is_dart_scheme_ = reader->Read<bool>();
     library.raw_ptr()->debuggable_ = reader->Read<bool>();
     library.raw_ptr()->load_state_ = reader->Read<int8_t>();
     // The native resolver is not serialized.
@@ -1072,6 +1073,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->num_imports_);
     writer->WriteIntptrValue(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
+    writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
     writer->Write<int8_t>(ptr()->load_state_);
     // We do not serialize the native resolver over, this needs to be explicitly
@@ -2510,6 +2512,72 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
 }
 #undef TYPED_DATA_WRITE
 #undef EXT_TYPED_DATA_WRITE
+
+
+RawCapability* Capability::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+  return Capability::null();
+}
+
+
+void RawCapability::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+}
+
+
+RawReceivePort* ReceivePort::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
+  UNREACHABLE();
+  return ReceivePort::null();
+}
+
+
+void RawReceivePort::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
+  if (kind == Snapshot::kMessage) {
+    // We do not allow objects with native fields in an isolate message.
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (object is a RawReceivePort)");
+  } else {
+    UNREACHABLE();
+  }
+}
+
+
+RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind) {
+  uint64_t id = reader->Read<uint64_t>();
+
+  SendPort& result = SendPort::ZoneHandle(reader->isolate(),
+                                          SendPort::New(id));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+  return result.raw();
+}
+
+
+void RawSendPort::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kSendPortCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  writer->Write(ptr()->id_);
+}
 
 
 RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,

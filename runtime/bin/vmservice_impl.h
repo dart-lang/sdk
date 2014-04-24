@@ -15,12 +15,12 @@ namespace bin {
 class VmService {
  public:
   // Returns false if service could not be started.
-  static bool Start(intptr_t server_port);
+  static bool Start(const char *server_ip, intptr_t server_port);
   // Error message if startup failed.
   static const char* GetErrorMessage();
 
  private:
-  static bool _Start(intptr_t server_port);
+  static bool _Start(const char *server_ip, intptr_t server_port);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);

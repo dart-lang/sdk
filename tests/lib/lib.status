@@ -124,7 +124,6 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-mirrors/to_string_test: Fail # Safari bug TODO(ahe): Add bug number if able to submit bug.
 mirrors/null_test: Fail # http://dartbug.com/16831
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
@@ -135,8 +134,8 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
-[ $compiler == dart2js && $jscl ]
-mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15566
+[ $compiler == dart2js && ($jscl || $runtime == d8) ]
+mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -247,7 +246,6 @@ async/timer_test: Fail, Pass
 
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
-mirrors/invoke_natives_fuzz_test: RuntimeError # Issue 15274
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $compiler == none  ]
@@ -327,6 +325,7 @@ mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared 
 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 mirrors/metadata_scope_test/01: MissingCompileTimeError # Issue 17894
+mirrors/new_instance_with_type_arguments_test: StaticWarning # Issue 18374
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Skip # Issue 17458

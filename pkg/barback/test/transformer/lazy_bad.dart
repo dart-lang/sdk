@@ -4,10 +4,7 @@
 
 library barback.test.transformer.lazy_bad;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 
@@ -21,20 +18,16 @@ class LazyBadTransformer extends MockTransformer implements LazyTransformer {
 
   LazyBadTransformer(this.output);
 
-  Future<bool> doIsPrimary(_) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      var id = new AssetId.parse(output);
-      transform.addOutput(new Asset.fromString(id, output));
-    });
+  void doApply(Transform transform) {
+    var id = new AssetId.parse(output);
+    transform.addOutput(new Asset.fromString(id, output));
   }
 
-  Future declareOutputs(DeclaringTransform transform) {
-    return newFuture(() {
-      var id = new AssetId.parse(output);
-      transform.declareOutput(id);
-      throw ERROR;
-    });
+  void declareOutputs(DeclaringTransform transform) {
+    var id = new AssetId.parse(output);
+    transform.declareOutput(id);
+    throw ERROR;
   }
 }

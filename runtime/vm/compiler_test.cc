@@ -94,7 +94,9 @@ TEST_CASE(EvalExpression) {
   String& expr_text = String::Handle();
   expr_text = String::New("apa + ' ${calc(10)}' + dot");
   Object& val = Object::Handle();
-  val = Instance::Cast(obj).Evaluate(expr_text);
+  val = Instance::Cast(obj).Evaluate(expr_text,
+                                     Array::empty_array(),
+                                     Array::empty_array());
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsString());

@@ -226,9 +226,9 @@ class _Manager {
 
   void _nativeInitWorkerMessageHandler() {
     var function = JS('',
-                      "function (e) { #(#, e); }",
-                      DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
-                      mainManager);
+        "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
+        DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
+        mainManager);
     JS("void", r"#.onmessage = #", globalThis, function);
     // We define dartPrint so that the implementation of the Dart
     // print method knows what to call.
@@ -953,7 +953,7 @@ class IsolateNatives {
     final worker = JS('var', 'new Worker(#)', uri);
 
     var processWorkerMessageTrampoline =
-      JS('', 'function(e) { #(#, e); }',
+      JS('', "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
          DART_CLOSURE_TO_JS(_processWorkerMessage),
          worker);
     JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);

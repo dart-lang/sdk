@@ -160,7 +160,9 @@ const RegList kDartAvailableCpuRegs =
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-const int kDartVolatileCpuRegCount = 17;
+const Register kDartFirstVolatileCpuReg = R0;
+const Register kDartLastVolatileCpuReg = R18;
+const int kDartVolatileCpuRegCount = 17;  // Excluding R16 and R17.
 const VRegister kDartFirstVolatileFpuReg = V0;
 const VRegister kDartLastVolatileFpuReg = V7;
 const int kDartVolatileFpuRegCount = 8;

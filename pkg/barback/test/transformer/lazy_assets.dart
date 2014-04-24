@@ -4,8 +4,6 @@
 
 library barback.test.transformer.lazy_assets;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 
 import 'declare_assets.dart';

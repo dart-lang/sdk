@@ -284,7 +284,9 @@ list_literal4_test: StaticWarning
 list_literal_negative_test: CompileTimeError
 list_test: StaticWarning
 malbounded_type_cast_test: StaticWarning
+malbounded_type_cast2_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
+malbounded_type_test2_test: StaticWarning
 malformed_type_test: StaticWarning
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning
@@ -453,6 +455,3 @@ deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
 deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
-deferred_load_library_wrong_args_test/01: StaticWarning
-deferred_load_library_wrong_args_test/none: StaticWarning
-deferred_load_inval_code_test: StaticWarning

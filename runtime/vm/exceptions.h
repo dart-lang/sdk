@@ -18,6 +18,7 @@ class Instance;
 class Object;
 class RawInstance;
 class RawScript;
+class RawStacktrace;
 class RawObject;
 class Script;
 class String;
@@ -29,6 +30,7 @@ class Exceptions : AllStatic {
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);
   static void PropagateError(const Error& error);
+  static RawStacktrace* CurrentStacktrace();
 
   // Helpers to create and throw errors.
   static RawScript* GetCallerScript(DartFrameIterator* iterator);

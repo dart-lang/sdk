@@ -345,6 +345,28 @@ static RawField* LookupStacktraceField(const Instance& instance) {
 }
 
 
+RawStacktrace* Exceptions::CurrentStacktrace() {
+  Isolate* isolate = Isolate::Current();
+  RegularStacktraceBuilder frame_builder(true);
+  BuildStackTrace(&frame_builder);
+
+  // Create arrays for code and pc_offset tuples of each frame.
+  const Array& full_code_array = Array::Handle(isolate,
+      Array::MakeArray(frame_builder.code_list()));
+  const Array& full_pc_offset_array = Array::Handle(isolate,
+      Array::MakeArray(frame_builder.pc_offset_list()));
+  const Array& full_catch_code_array = Array::Handle(isolate,
+      Array::MakeArray(frame_builder.catch_code_list()));
+  const Array& full_catch_pc_offset_array = Array::Handle(isolate,
+      Array::MakeArray(frame_builder.catch_pc_offset_list()));
+  const Stacktrace& full_stacktrace = Stacktrace::Handle(
+      Stacktrace::New(full_code_array, full_pc_offset_array));
+  full_stacktrace.SetCatchStacktrace(full_catch_code_array,
+                                     full_catch_pc_offset_array);
+  return full_stacktrace.raw();
+}
+
+
 static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   bool use_preallocated_stacktrace = false;
@@ -391,22 +413,8 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
         // This is an error object and we need to capture the full stack trace
         // here implicitly, so we set up the stack trace. The stack trace field
         // is set only once, it is not overriden.
-        RegularStacktraceBuilder frame_builder(true);
-        BuildStackTrace(&frame_builder);
-
-        // Create arrays for code and pc_offset tuples of each frame.
-        const Array& full_code_array = Array::Handle(isolate,
-            Array::MakeArray(frame_builder.code_list()));
-        const Array& full_pc_offset_array = Array::Handle(isolate,
-            Array::MakeArray(frame_builder.pc_offset_list()));
-        const Array& full_catch_code_array = Array::Handle(isolate,
-            Array::MakeArray(frame_builder.catch_code_list()));
-        const Array& full_catch_pc_offset_array = Array::Handle(isolate,
-            Array::MakeArray(frame_builder.catch_pc_offset_list()));
-        const Stacktrace& full_stacktrace = Stacktrace::Handle(isolate,
-            Stacktrace::New(full_code_array, full_pc_offset_array));
-        full_stacktrace.SetCatchStacktrace(full_catch_code_array,
-                                           full_catch_pc_offset_array);
+        const Stacktrace& full_stacktrace =
+            Stacktrace::Handle(isolate, Exceptions::CurrentStacktrace());
         exception.SetField(stacktrace_field, full_stacktrace);
       }
     }

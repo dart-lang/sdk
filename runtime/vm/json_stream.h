@@ -26,7 +26,7 @@ class JSONStream : ValueObject {
   ~JSONStream();
 
   void Setup(Zone* zone,
-             const Instance& reply_port,
+             Dart_Port reply_port,
              const GrowableObjectArray& path,
              const GrowableObjectArray& option_keys,
              const GrowableObjectArray& option_values);

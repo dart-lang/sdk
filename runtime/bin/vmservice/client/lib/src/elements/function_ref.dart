@@ -17,6 +17,11 @@ class FunctionRefElement extends ServiceRefElement {
     notifyPropertyChange(#hasParent, 0, 1);
     notifyPropertyChange(#hasClass, 0, 1);
     ServiceMap refMap = ref;
+    isDart = (refMap != null) &&
+             (refMap['kind'] != 'Collected') &&
+             (refMap['kind'] != 'Native') &&
+             (refMap['kind'] != 'Tag') &&
+             (refMap['kind'] != 'Reused');
     hasParent = (refMap != null && refMap['parent'] != null);
     hasClass = (refMap != null &&
                 refMap['owner'] != null &&
@@ -25,6 +30,7 @@ class FunctionRefElement extends ServiceRefElement {
 
   @observable bool hasParent = false;
   @observable bool hasClass = false;
+  @observable bool isDart = false;
 
   FunctionRefElement.created() : super.created();
 }

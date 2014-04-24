@@ -34,7 +34,6 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-DECLARE_FLAG(bool, enable_type_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -1524,10 +1523,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
       constant_type_args->value().IsTypeArguments()) {
     const TypeArguments& instantiator_type_args =
         TypeArguments::Cast(constant_type_args->value());
+    Error& bound_error = Error::Handle();
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, NULL));
+        dst_type().InstantiateFrom(instantiator_type_args, &bound_error));
     // If dst_type is instantiated to dynamic or Object, skip the test.
-    if (!new_dst_type.IsMalformedOrMalbounded() &&
+    if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
       return value()->definition();
     }

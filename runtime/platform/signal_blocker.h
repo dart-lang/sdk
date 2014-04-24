@@ -73,7 +73,9 @@ class ThreadSignalBlocker {
 // was expected to not return EINTR, but did it anyway.
 #define NO_RETRY_EXPECTED(expression)                                          \
     ({ intptr_t __result = (expression);                                       \
-       ASSERT(__result != -1L || errno != EINTR);                              \
+       if (__result == -1L && errno == EINTR) {                                \
+         FATAL("Unexpected EINTR errno");                                      \
+       }                                                                       \
        __result; })
 
 #define VOID_NO_RETRY_EXPECTED(expression)                                     \

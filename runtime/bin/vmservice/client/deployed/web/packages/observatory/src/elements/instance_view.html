@@ -11,6 +11,7 @@
 </head>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
@@ -19,28 +20,6 @@
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
 
     <template if="{{ instance['error'] != null }}">
       <error-view error_obj="{{ instance['error'] }}"></error-view>

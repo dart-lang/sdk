@@ -1,11 +1,13 @@
 <head>
   <link rel="import" href="code_ref.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="sliding_checkbox.html">
 </head>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css" />
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
@@ -13,67 +15,136 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
+      .table {
+        border-collapse: collapse!important;
+        width: 100%;
+        margin-bottom: 20px
       }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .member, .memberHeader {
+      .table thead > tr > th,
+      .table tbody > tr > th,
+      .table tfoot > tr > th,
+      .table thead > tr > td,
+      .table tbody > tr > td,
+      .table tfoot > tr > td {
+        padding: 8px;
         vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
       }
-      .monospace {
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: nowrap;
+      .table thead > tr > th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom:2px solid #ddd;
       }
+
+      tr:hover > td {
+        background-color: #FFF3E3;
+      }
+      .rowColor0 {
+        background-color: #FFE9CC;
+      }
+      .rowColor1 {
+        background-color: #FFDEB2;
+      }
+      .rowColor2 {
+        background-color: #FFD399;
+      }
+      .rowColor3 {
+        background-color: #FFC87F;
+      }
+      .rowColor4 {
+        background-color: #FFBD66;
+      }
+      .rowColor5 {
+        background-color: #FFB24C;
+      }
+      .rowColor6 {
+        background-color: #FFA733;
+      }
+      .rowColor7 {
+        background-color: #FF9C19;
+      }
+      .rowColor8 {
+        background-color: #FF9100;
+      }
+
+      .tooltip {
+        display: block;
+        position: absolute;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+      }
+
+      tr:hover .tooltip {
+        display: block;
+        position: absolute;
+        top: 100%;
+        right: 100%;
+        visibility: visible;
+        z-index: 999;
+        width: 400px;
+        color: #ffffff;
+        background-color: #0489c3;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+        opacity: 1;
+      }
+
+      .white {
+        color: #ffffff;
+      }
+
     </style>
     <div class="content">
       <h1>Sampled CPU profile</h1>
-      <table>
-        <tr>
-          <td class="memberHeader">Timestamp</td>
-          <td class="member">{{ refreshTime }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample count</td>
-          <td class="member">{{ sampleCount }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample rate</td>
-          <td class="member">{{ sampleRate }} Hz</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample depth</td>
-          <td class="member">{{ sampleDepth }} stack frames</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Call graph tree</td>
-          <td class="member">
-            <input type="checkbox" checked="{{ callGraphChecked }}">
-          </td>
-         <tr>
-          <td class="memberHeader">Display cutoff</td>
-          <td class="member">{{ displayCutoff }}</td>
-         </tr>
-         <tr>
-          <td class="memberHeader">Hide tags</td>
-          <td class="member">
-            <input type="checkbox" checked="{{ hideTagsChecked }}">
-          </td>
-         </tr>
-      </table>
+      <div class="memberList">
+        <div class="memberItem">
+         <div class="memberName">Timestamp</div>
+         <div class="memberValue">{{ refreshTime }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Time span</div>
+         <div class="memberValue">{{ timeSpan }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample count</div>
+         <div class="memberValue">{{ sampleCount }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample rate</div>
+         <div class="memberValue">{{ sampleRate }} Hz</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample depth</div>
+         <div class="memberValue">{{ sampleDepth }} stack frames</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Display cutoff</div>
+         <div class="memberValue">{{ displayCutoff }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Tags</div>
+         <div class="memberValue">
+          <select value="{{tagSelector}}">
+            <option value="uv">User &gt; VM</option>
+            <option value="u">User</option>
+            <option value="vu">VM &gt; User</option>
+            <option value="v">VM</option>
+            <option value="hide">None</option>
+          </select>
+         </div>
+        </div>
+      </div>
       <hr>
-      <table id="tableTree" class="table table-hover">
+      <table id="tableTree" class="table">
         <thead>
           <tr>
             <th>Method</th>
-            <th>Caller</th>
-            <th>Exclusive</th>
+            <th>Self</th>
           </tr>
         </thead>
         <tbody>
@@ -82,10 +153,34 @@
                 class="{{ coloring(row) }}"
                 style="{{ padding(row) }}">
               <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
-              <code-ref ref="{{ row.code }}"></code-ref>
+              <div style="position: relative;display: inline">
+                {{row.columns[0]}}
+              </div>
+              <function-ref ref="{{ row.code.function }}"></function-ref>
             </td>
-            <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-            <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+            <td class="{{ coloring(row) }}" style="position: relative">
+              {{row.columns[1]}}
+              <div class="tooltip">
+                <div class="memberList">
+                  <div class="memberItem">
+                   <div class="memberName white">Kind</div>
+                   <div class="memberValue white">{{ row.tipKind }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Percent of Parent</div>
+                   <div class="memberValue white">{{ row.tipParent }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Sample Count</div>
+                   <div class="memberValue white">{{ row.tipTicks }} ({{ row.tipExclusive }})</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Approximate Execution Time</div>
+                   <div class="memberValue white">{{ row.tipTime }}</div>
+                  </div>
+                </div>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

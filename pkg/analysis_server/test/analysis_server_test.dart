@@ -6,6 +6,10 @@ library test.analysis_server;
 
 import 'dart:async';
 
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -16,20 +20,93 @@ import 'mocks.dart';
 main() {
   group('AnalysisServer', () {
     setUp(AnalysisServerTest.setUp);
+    test('addContextToWorkQueue_twice',
+        AnalysisServerTest.addContextToWorkQueue_twice);
+    test('addContextToWorkQueue_whenNotRunning',
+        AnalysisServerTest.addContextToWorkQueue_whenNotRunning);
+    test('addContextToWorkQueue_whenRunning',
+        AnalysisServerTest.addContextToWorkQueue_whenRunning);
     test('createContext', AnalysisServerTest.createContext);
     test('echo', AnalysisServerTest.echo);
+    test('errorToJson_formattingApplied',
+        AnalysisServerTest.errorToJson_formattingApplied);
+    test('errorToJson_noCorrection',
+        AnalysisServerTest.errorToJson_noCorrection);
+    test('errorToJson_withCorrection',
+        AnalysisServerTest.errorToJson_withCorrection);
+    test('performTask_whenNotRunning',
+        AnalysisServerTest.performTask_whenNotRunning);
     test('shutdown', AnalysisServerTest.shutdown);
     test('unknownRequest', AnalysisServerTest.unknownRequest);
   });
 }
 
+class MockAnalysisContext_withPerformAnalysisTask extends MockAnalysisContext {
+  List<AnalysisResult> results = [];
+
+  @override
+  AnalysisResult performAnalysisTask() => results.removeAt(0);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class AnalysisServerTest {
   static MockServerChannel channel;
   static AnalysisServer server;
+  static MockAnalysisLogger logger;
 
   static void setUp() {
     channel = new MockServerChannel();
     server = new AnalysisServer(channel);
+    logger = new MockAnalysisLogger();
+    AnalysisEngine.instance.logger = logger;
+  }
+
+  static Future addContextToWorkQueue_whenNotRunning() {
+    server.running = false;
+    MockAnalysisContext context = new MockAnalysisContext();
+    server.addContextToWorkQueue(context);
+    // Pump the event queue to make sure the server doesn't try to do any
+    // analysis.
+    return pumpEventQueue();
+  }
+
+  static Future addContextToWorkQueue_whenRunning() {
+    MockAnalysisContext_withPerformAnalysisTask context =
+        new MockAnalysisContext_withPerformAnalysisTask();
+    server.addContextToWorkQueue(context);
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
+    LineInfo lineInfo = new LineInfo([0]);
+    AnalysisError analysisError = new AnalysisError.con1(source,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, []);
+    changeNoticeImpl.setErrors([analysisError], lineInfo);
+    context.results.add(new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0)
+        );
+    context.results.add(new AnalysisResult(null, 0, null, 0));
+    return pumpEventQueue().then((_) {
+      expect(context.results, isEmpty);
+      expect(channel.notificationsReceived, hasLength(2));
+      expect(channel.notificationsReceived[0].event, equals('server.connected')
+          );
+      expect(channel.notificationsReceived[1].event, equals('context.errors'));
+      expect(channel.notificationsReceived[1].params['source'], equals(
+          source.encoding));
+      List<AnalysisError> errors =
+          channel.notificationsReceived[1].params['errors'];
+      expect(errors, hasLength(1));
+      expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
+    });
+  }
+
+  static Future addContextToWorkQueue_twice() {
+    // The context should only be asked to perform its analysis task once.
+    MockAnalysisContext_withPerformAnalysisTask context =
+        new MockAnalysisContext_withPerformAnalysisTask();
+    server.addContextToWorkQueue(context);
+    server.addContextToWorkQueue(context);
+    context.results.add(new AnalysisResult(null, 0, null, 0));
+    return pumpEventQueue().then((_) => expect(context.results, isEmpty));
   }
 
   static Future createContext() {
@@ -52,6 +129,58 @@ class AnalysisServerTest {
           expect(response.id, equals('my22'));
           expect(response.error, isNull);
         });
+  }
+
+  static void errorToJson_formattingApplied() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
+    AnalysisError analysisError =
+        new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+
+    expect(json['message'],
+        equals("The element 'foo' is defined in the libraries 'bar' and 'baz'"));
+  }
+
+  static void errorToJson_noCorrection() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+    CompileTimeErrorCode errorCode =
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
+    AnalysisError analysisError =
+        new AnalysisError.con2(source, 10, 5, errorCode, []);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+    expect(json, hasLength(5));
+    expect(json['source'], equals(source.encoding));
+    expect(json['errorCode'], equals(errorCode.ordinal));
+    expect(json['offset'], equals(analysisError.offset));
+    expect(json['length'], equals(analysisError.length));
+    expect(json['message'], equals(errorCode.message));
+  }
+
+  static void errorToJson_withCorrection() {
+    Source source = new FileBasedSource.con1(new JavaFile('/foo.dart'));
+
+    // TODO(paulberry): in principle we should test an error or hint that uses
+    // %s formatting in its correction string.  But no such errors or hints
+    // currently exist!
+    HintCode errorCode = HintCode.MISSING_RETURN;
+
+    AnalysisError analysisError =
+        new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
+    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+    expect(json['correction'], equals(errorCode.correction));
+  }
+
+  static Future performTask_whenNotRunning() {
+    // If the server is shut down while there is analysis still pending,
+    // performTask() should notice that the server is no longer running and
+    // do no analysis.
+    MockAnalysisContext context = new MockAnalysisContext();
+    server.addContextToWorkQueue(context);
+    server.running = false;
+    // Pump the event queue to make sure the server doesn't try to do any
+    // analysis.
+    return pumpEventQueue();
   }
 
   static Future shutdown() {

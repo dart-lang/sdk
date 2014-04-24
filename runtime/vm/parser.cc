@@ -39,7 +39,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef");
+DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
@@ -3396,6 +3396,14 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
   func.set_is_redirecting(is_redirecting);
+  if (method->has_native && library_.is_dart_scheme() &&
+      library_.IsPrivate(*method->name)) {
+    func.set_is_visible(false);
+  }
+  if (method->IsFactoryOrConstructor() && library_.is_dart_scheme() &&
+      library_.IsPrivate(*method->name)) {
+    func.set_is_visible(false);
+  }
   if (method->metadata_pos > 0) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }
@@ -4081,6 +4089,9 @@ void Parser::AddImplicitConstructor(const Class& cls) {
                     cls,
                     cls.token_pos()));
   ctor.set_end_token_pos(ctor.token_pos());
+  if (library_.is_dart_scheme() && library_.IsPrivate(ctor_name)) {
+    ctor.set_is_visible(false);
+  }
 
   ParamList params;
   // Add implicit 'this' parameter.
@@ -4757,6 +4768,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                     decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
+  if (is_native && library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
+    func.set_is_visible(false);
+  }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
   if (!is_patch) {
@@ -4891,6 +4905,10 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                     decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(accessor_end_pos);
+  if (is_native && library_.is_dart_scheme() &&
+      library_.IsPrivate(accessor_name)) {
+    func.set_is_visible(false);
+  }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
   if (!is_patch) {

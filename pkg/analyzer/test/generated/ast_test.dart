@@ -260,6 +260,11 @@ class ClassDeclarationTest extends ParserTestCase {
     JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
   }
 
+  void test_isAbstract() {
+    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
+    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
+  }
+
   static dartSuite() {
     _ut.group('ClassDeclarationTest', () {
       _ut.test('test_getConstructor', () {
@@ -273,6 +278,10 @@ class ClassDeclarationTest extends ParserTestCase {
       _ut.test('test_getMethod', () {
         final __test = new ClassDeclarationTest();
         runJUnitTest(__test, __test.test_getMethod);
+      });
+      _ut.test('test_isAbstract', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_isAbstract);
       });
     });
   }
@@ -1412,6 +1421,22 @@ class NodeListTest extends EngineTestCase {
       _ut.test('test_set_tooBig', () {
         final __test = new NodeListTest();
         runJUnitTest(__test, __test.test_set_tooBig);
+      });
+    });
+  }
+}
+
+class ClassTypeAliasTest extends ParserTestCase {
+  void test_isAbstract() {
+    JUnitTestCase.assertFalse(AstFactory.classTypeAlias("A", null, null, null, null, null).isAbstract);
+    JUnitTestCase.assertTrue(AstFactory.classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null).isAbstract);
+  }
+
+  static dartSuite() {
+    _ut.group('ClassTypeAliasTest', () {
+      _ut.test('test_isAbstract', () {
+        final __test = new ClassTypeAliasTest();
+        runJUnitTest(__test, __test.test_isAbstract);
       });
     });
   }
@@ -4248,6 +4273,7 @@ main() {
   ToSourceVisitorTest.dartSuite();
   BreadthFirstVisitorTest.dartSuite();
   ClassDeclarationTest.dartSuite();
+  ClassTypeAliasTest.dartSuite();
   IndexExpressionTest.dartSuite();
   NodeListTest.dartSuite();
   SimpleIdentifierTest.dartSuite();

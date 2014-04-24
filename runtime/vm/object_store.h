@@ -251,35 +251,11 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, stacktrace_class_);
   }
 
-  RawClass* jsregexp_class() const {
-    return jsregexp_class_;
-  }
-  void set_jsregexp_class(const Class& value) {
-    jsregexp_class_ = value.raw();
-  }
-  static intptr_t jsregexp_class_offset() {
-    return OFFSET_OF(ObjectStore, jsregexp_class_);
-  }
-
   RawClass* weak_property_class() const {
     return weak_property_class_;
   }
   void set_weak_property_class(const Class& value) {
     weak_property_class_ = value.raw();
-  }
-
-  RawClass* mirror_reference_class() const {
-    return mirror_reference_class_;
-  }
-  void set_mirror_reference_class(const Class& value) {
-    mirror_reference_class_ = value.raw();
-  }
-
-  RawClass* user_tag_class() const {
-    return user_tag_class_;
-  }
-  void set_user_tag_class(const Class& value) {
-    user_tag_class_ = value.raw();
   }
 
   RawArray* symbol_table() const { return symbol_table_; }
@@ -407,18 +383,11 @@ class ObjectStore {
     preallocated_stack_trace_ = value.raw();
   }
 
-  RawFunction* receive_port_create_function() const {
-    return receive_port_create_function_;
+  RawFunction* lookup_port_handler() const {
+    return lookup_port_handler_;
   }
-  void set_receive_port_create_function(const Function& function) {
-    receive_port_create_function_ = function.raw();
-  }
-
-  RawFunction* lookup_receive_port_function() const {
-    return lookup_receive_port_function_;
-  }
-  void set_lookup_receive_port_function(const Function& function) {
-    lookup_receive_port_function_ = function.raw();
+  void set_lookup_port_handler(const Function& function) {
+    lookup_port_handler_ = function.raw();
   }
 
   RawFunction* handle_message_function() const {
@@ -484,10 +453,7 @@ class ObjectStore {
   RawArray* typed_data_classes_;
   RawClass* error_class_;
   RawClass* stacktrace_class_;
-  RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
-  RawClass* mirror_reference_class_;
-  RawClass* user_tag_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
@@ -512,8 +478,7 @@ class ObjectStore {
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
   RawStacktrace* preallocated_stack_trace_;
-  RawFunction* receive_port_create_function_;
-  RawFunction* lookup_receive_port_function_;
+  RawFunction* lookup_port_handler_;
   RawFunction* handle_message_function_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&handle_message_function_);

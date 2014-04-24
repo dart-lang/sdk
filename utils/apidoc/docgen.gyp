@@ -18,9 +18,9 @@
       'target_name': 'docgen',
       'type': 'none',
       'dependencies': [
-        '../../utils/compiler/compiler.gyp:dart2js',
-        '../../runtime/dart-runtime.gyp:dart',
+        '../../create_sdk.gyp:create_sdk_internal',
         '../../pkg/pkg.gyp:pkg_packages',
+        '../../pkg/pkg_files.gyp:pkg_files_stamp',
       ],
       'includes': [
         '../../sdk/lib/core/corelib_sources.gypi',
@@ -65,6 +65,8 @@
             '../../sdk/bin/docgen',
             '../../sdk/bin/docgen.bat',
             '../../tools/only_in_release_mode.py',
+            '<(PRODUCT_DIR)/dart-sdk/README',
+            '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/docgen/index.json',
@@ -74,9 +76,7 @@
             '../../tools/only_in_release_mode.py',
             '<@(_outputs)',
             '--',
-            '../../sdk/bin/dart',
-            '--package-root=<(PRODUCT_DIR)/packages',
-            '../../pkg/docgen/bin/docgen.dart',
+            '<(PRODUCT_DIR)/dart-sdk/bin/docgen<(script_suffix)',
             '--out=<(PRODUCT_DIR)/api_docs/docgen',
             '--include-sdk',
             '--no-include-dependent-packages',

@@ -47,7 +47,7 @@ abstract class Indexable<TMirror extends DeclarationMirror>
 
   Indexable(TMirror mirror)
       : this.mirror = mirror,
-        this.isPrivate = isHidden(mirror) {
+        this.isPrivate = isHidden(mirror as DeclarationSourceMirror) {
 
     var mirrorQualifiedName = dart2js_util.qualifiedNameOf(this.mirror);
 

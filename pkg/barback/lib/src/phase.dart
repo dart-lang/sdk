@@ -13,10 +13,10 @@ import 'errors.dart';
 import 'group_runner.dart';
 import 'log.dart';
 import 'multiset.dart';
+import 'node_streams.dart';
 import 'phase_forwarder.dart';
 import 'phase_input.dart';
 import 'phase_output.dart';
-import 'stream_pool.dart';
 import 'transformer.dart';
 import 'transformer_group.dart';
 import 'utils.dart';
@@ -78,21 +78,11 @@ class Phase {
   /// so, it's been forwarded unmodified.
   final _inputOrigins = new Multiset<AssetNode>();
 
-  /// A stream that emits an event whenever [this] is no longer dirty.
-  ///
-  /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDoneController.stream;
-  final _onDoneController = new StreamController.broadcast(sync: true);
-
-  /// A stream that emits any new assets emitted by [this].
-  ///
-  /// Assets are emitted synchronously to ensure that any changes are thoroughly
-  /// propagated as soon as they occur. Only a phase with no [next] phase will
-  /// emit assets.
-  Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController =
-      new StreamController<AssetNode>.broadcast(sync: true);
+  /// The streams exposed by this phase.
+  final _streams = new NodeStreams();
+  Stream get onDone => _streams.onDone;
+  Stream<AssetNode> get onAsset => _streams.onAsset;
+  Stream<LogEntry> get onLog => _streams.onLog;
 
   /// Whether [this] is dirty and still has more processing to do.
   ///
@@ -102,11 +92,6 @@ class Phase {
   bool get isDirty => (previous != null && previous.isDirty) ||
       _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
-
-  /// A stream that emits an event whenever any transforms in this phase logs
-  /// an entry.
-  Stream<LogEntry> get onLog => _onLogPool.stream;
-  final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   /// The previous phase in the cascade, or null if this is the first phase.
   final Phase previous;
@@ -142,7 +127,7 @@ class Phase {
     if (previous != null) {
       _previousOnAssetSubscription = previous.onAsset.listen(addInput);
       _previousOnDoneSubscription = previous.onDone.listen((_) {
-        if (!isDirty) _onDoneController.add(null);
+        if (!isDirty) _streams.onDoneController.add(null);
       });
     }
 
@@ -187,12 +172,12 @@ class Phase {
       _inputOrigins.remove(node.origin);
       _inputs.remove(node.id);
       _forwarders.remove(node.id).remove();
-      if (!isDirty) _onDoneController.add(null);
+      if (!isDirty) _streams.onDoneController.add(null);
     });
     input.onAsset.listen(_handleOutput);
-    _onLogPool.add(input.onLog);
+    _streams.onLogPool.add(input.onLog);
     input.onDone.listen((_) {
-      if (!isDirty) _onDoneController.add(null);
+      if (!isDirty) _streams.onDoneController.add(null);
     });
 
     input.updateTransformers(_transformers);
@@ -266,9 +251,9 @@ class Phase {
       var runner = new GroupRunner(cascade, added, "$_location.$_index");
       _groups[added] = runner;
       runner.onAsset.listen(_handleOutput);
-      _onLogPool.add(runner.onLog);
+      _streams.onLogPool.add(runner.onLog);
       runner.onDone.listen((_) {
-        if (!isDirty) _onDoneController.add(null);
+        if (!isDirty) _streams.onDoneController.add(null);
       });
       for (var input in _inputs.values) {
         runner.addInput(input.input);
@@ -316,8 +301,7 @@ class Phase {
     for (var group in _groups.values) {
       group.remove();
     }
-    _onAssetController.close();
-    _onLogPool.close();
+    _streams.close();
     if (_previousOnDoneSubscription != null) {
       _previousOnDoneSubscription.cancel();
     }
@@ -356,7 +340,7 @@ class Phase {
   /// This should be called after [_handleOutput], so that collisions are
   /// resolved.
   void _emit(AssetNode asset) {
-    _onAssetController.add(asset);
+    _streams.onAssetController.add(asset);
     _providePendingAsset(asset);
   }
 

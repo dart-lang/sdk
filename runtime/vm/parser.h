@@ -386,7 +386,7 @@ class Parser : public ValueObject {
                                 bool evaluate_metadata,
                                 ParamList* params);
   void CheckFieldsInitialized(const Class& cls);
-  static void AddImplicitConstructor(const Class& cls);
+  void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   AstNode* ParseExternalInitializedField(const Field& field);
   void ParseInitializedInstanceFields(

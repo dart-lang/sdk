@@ -18,6 +18,17 @@ patch class DateTime {
   static int _localTimeZoneAdjustmentInSeconds()
       native "DateNatives_localTimeZoneAdjustmentInSeconds";
 
+  static const _MILLISECOND_INDEX = 0;
+  static const _SECOND_INDEX = 1;
+  static const _MINUTE_INDEX = 2;
+  static const _HOUR_INDEX = 3;
+  static const _DAY_INDEX = 4;
+  static const _WEEKDAY_INDEX = 5;
+  static const _MONTH_INDEX = 6;
+  static const _YEAR_INDEX = 7;
+
+  List __parts;
+
   /* patch */ DateTime._internal(int year,
                                  int month,
                                  int day,
@@ -49,62 +60,13 @@ patch class DateTime {
     return new Duration(seconds: offsetInSeconds);
   }
 
-  /* patch */ int get year => _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
-
-  /* patch */ int get month => _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
-
-  /* patch */ int get day => _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
-
-  /* patch */ int get hour {
-    int valueInHours = _flooredDivision(_localDateInUtcMs,
-                                        Duration.MILLISECONDS_PER_HOUR);
-    return valueInHours % Duration.HOURS_PER_DAY;
-  }
-
-  /* patch */ int get minute {
-    int valueInMinutes = _flooredDivision(_localDateInUtcMs,
-                                          Duration.MILLISECONDS_PER_MINUTE);
-    return valueInMinutes % Duration.MINUTES_PER_HOUR;
-  }
-
-  /* patch */ int get second {
-    // Seconds are unaffected by the timezone the user is in. So we can
-    // directly use the millisecondsSinceEpoch and not [_localDateInUtcMs].
-    int valueInSeconds =
-        _flooredDivision(millisecondsSinceEpoch,
-                         Duration.MILLISECONDS_PER_SECOND);
-    return valueInSeconds % Duration.SECONDS_PER_MINUTE;
-  }
-
-  /* patch */ int get millisecond {
-    // Milliseconds are unaffected by the timezone the user is in. So we can
-    // directly use the value and not the [_localDateInUtcValue].
-    return millisecondsSinceEpoch % Duration.MILLISECONDS_PER_SECOND;
-  }
-
-  /** Returns the weekday of [this]. In accordance with ISO 8601 a week
-    * starts with Monday. Monday has the value 1 up to Sunday with 7. */
-  /* patch */ int get weekday {
-    int daysSince1970 =
-        _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
-    // 1970-1-1 was a Thursday.
-    return ((daysSince1970 + DateTime.THURSDAY - DateTime.MONDAY)
-            % DateTime.DAYS_PER_WEEK) +
-        DateTime.MONDAY;
-  }
-
-
   /** The first list contains the days until each month in non-leap years. The
     * second list contains the days in leap years. */
   static const List<List<int>> _DAYS_UNTIL_MONTH =
       const [const [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
              const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]];
 
-  // Returns the UTC year, month and day for the corresponding
-  // [millisecondsSinceEpoch].
-  // Code is adapted from V8.
-  static List<int> _decomposeIntoYearMonthDay(int millisecondsSinceEpoch) {
-    // TODO(floitsch): cache result.
+  static List _computeUpperPart(int localMs) {
     final int DAYS_IN_4_YEARS = 4 * 365 + 1;
     final int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     final int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
@@ -118,8 +80,9 @@ patch class DateTime {
     int resultDay = 0;
 
     // Always round down.
-    int days = _flooredDivision(millisecondsSinceEpoch,
-                                Duration.MILLISECONDS_PER_DAY);
+    final int daysSince1970 = _flooredDivision(localMs,
+                                               Duration.MILLISECONDS_PER_DAY);
+    int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
     days = days.remainder(DAYS_IN_400_YEARS);
@@ -146,8 +109,59 @@ patch class DateTime {
       // Do nothing.
     }
     resultDay = days - daysUntilMonth[resultMonth - 1] + 1;
-    return <int>[resultYear, resultMonth, resultDay];
+
+    int resultMillisecond = localMs % Duration.MILLISECONDS_PER_SECOND;
+    int resultSecond =
+        _flooredDivision(localMs, Duration.MILLISECONDS_PER_SECOND) %
+            Duration.SECONDS_PER_MINUTE;
+
+    int resultMinute = _flooredDivision(localMs,
+                                        Duration.MILLISECONDS_PER_MINUTE);
+    resultMinute %= Duration.MINUTES_PER_HOUR;
+
+    int resultHour = _flooredDivision(localMs, Duration.MILLISECONDS_PER_HOUR);
+    resultHour %= Duration.HOURS_PER_DAY;
+
+    // In accordance with ISO 8601 a week
+    // starts with Monday. Monday has the value 1 up to Sunday with 7.
+    // 1970-1-1 was a Thursday.
+    int resultWeekday = ((daysSince1970 + DateTime.THURSDAY - DateTime.MONDAY) %
+          DateTime.DAYS_PER_WEEK) + DateTime.MONDAY;
+
+    List list = new List(_YEAR_INDEX + 1);
+    list[_MILLISECOND_INDEX] = resultMillisecond;
+    list[_SECOND_INDEX] = resultSecond;
+    list[_MINUTE_INDEX] = resultMinute;
+    list[_HOUR_INDEX] = resultHour;
+    list[_DAY_INDEX] = resultDay;
+    list[_WEEKDAY_INDEX] = resultWeekday;
+    list[_MONTH_INDEX] = resultMonth;
+    list[_YEAR_INDEX] = resultYear;
+    return list;
   }
+
+  get _parts {
+    if (__parts == null) {
+      __parts = _computeUpperPart(_localDateInUtcMs);
+    }
+    return __parts;
+  }
+
+  /* patch */ int get millisecond => _parts[_MILLISECOND_INDEX];
+
+  /* patch */ int get second => _parts[_SECOND_INDEX];
+
+  /* patch */ int get minute => _parts[_MINUTE_INDEX];
+
+  /* patch */ int get hour => _parts[_HOUR_INDEX];
+
+  /* patch */ int get day => _parts[_DAY_INDEX];
+
+  /* patch */ int get weekday => _parts[_WEEKDAY_INDEX];
+
+  /* patch */ int get month => _parts[_MONTH_INDEX];
+
+  /* patch */ int get year => _parts[_YEAR_INDEX];
 
   /**
    * Returns the amount of milliseconds in UTC that represent the same values
@@ -284,7 +298,7 @@ patch class DateTime {
       return 1970 + (4 * days + 2) ~/ DAYS_IN_4_YEARS;
     }
     int ms = secondsSinceEpoch * Duration.MILLISECONDS_PER_SECOND;
-    return _decomposeIntoYearMonthDay(ms)[0];
+    return _computeUpperPart(ms)[_YEAR_INDEX];
   }
 
   /**

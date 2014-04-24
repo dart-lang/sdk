@@ -31,7 +31,7 @@ abstract class ServiceObject extends Observable {
 
   /// The complete service url of this object with a '#/' prefix.
   @reflectable String get hashLink => '#/${link}';
-  set hashLink(var o) { /* silence polymer */ }
+  @reflectable set hashLink(var o) { /* silence polymer */ }
 
   /// Has this object been fully loaded?
   bool get loaded => _loaded;

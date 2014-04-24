@@ -16,7 +16,7 @@ import 'scanner.dart' show Keyword;
 import 'ast.dart';
 import 'sdk.dart' show DartSdk;
 import 'html.dart' show XmlAttributeNode, XmlTagNode;
-import 'engine.dart' show AnalysisContext;
+import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'constant.dart' show EvaluationResultImpl;
 import 'utilities_dart.dart';
 
@@ -740,7 +740,7 @@ abstract class ElementAnnotation {
  * The enumeration `ElementKind` defines the various kinds of elements in the element model.
  */
 class ElementKind extends Enum<ElementKind> {
-  static const ElementKind ANGULAR_FILTER = const ElementKind('ANGULAR_FILTER', 0, "Angular filter");
+  static const ElementKind ANGULAR_FORMATTER = const ElementKind('ANGULAR_FORMATTER', 0, "Angular formatter");
 
   static const ElementKind ANGULAR_COMPONENT = const ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
 
@@ -813,7 +813,7 @@ class ElementKind extends Enum<ElementKind> {
   static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 35, "<universe>");
 
   static const List<ElementKind> values = const [
-      ANGULAR_FILTER,
+      ANGULAR_FORMATTER,
       ANGULAR_COMPONENT,
       ANGULAR_CONTROLLER,
       ANGULAR_DIRECTIVE,
@@ -900,9 +900,9 @@ abstract class ElementVisitor<R> {
 
   R visitAngularControllerElement(AngularControllerElement element);
 
-  R visitAngularDirectiveElement(AngularDirectiveElement element);
+  R visitAngularDirectiveElement(AngularDecoratorElement element);
 
-  R visitAngularFilterElement(AngularFilterElement element);
+  R visitAngularFormatterElement(AngularFormatterElement element);
 
   R visitAngularPropertyElement(AngularPropertyElement element);
 
@@ -1346,6 +1346,20 @@ abstract class LibraryElement implements Element {
   List<ImportElement> get imports;
 
   /**
+   * Return an array containing all of the imports that share the given prefix, or an empty array if
+   * there are no such imports.
+   *
+   * @param prefixElement the prefix element shared by the returned imports
+   */
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement);
+
+  /**
+   * Return the element representing the synthetic function `loadLibrary` that is implicitly
+   * defined for this library if the library is imported using a deferred import.
+   */
+  FunctionElement get loadLibraryFunction;
+
+  /**
    * Return an array containing all of the compilation units that are included in this library using
    * a `part` directive. This does not include the defining compilation unit that contains the
    * `part` directives.
@@ -1408,7 +1422,7 @@ abstract class LibraryElement implements Element {
   bool get isAngularHtml;
 
   /**
-   * Answer `true` if this library is an application that can be run in the browser.
+   * Return `true` if this library is an application that can be run in the browser.
    *
    * @return `true` if this library is an application that can be run in the browser
    */
@@ -1871,7 +1885,7 @@ abstract class VariableElement implements Element {
 
 /**
  * The interface `AngularControllerElement` defines the Angular component described by
- * <code>NgComponent</code> annotation.
+ * <code>Component</code> annotation.
  */
 abstract class AngularComponentElement implements AngularHasSelectorElement, AngularHasTemplateElement {
   /**
@@ -1900,16 +1914,16 @@ abstract class AngularComponentElement implements AngularHasSelectorElement, Ang
 
 /**
  * The interface `AngularControllerElement` defines the Angular controller described by
- * <code>NgController</code> annotation.
+ * <code>Controller</code> annotation.
  */
 abstract class AngularControllerElement implements AngularHasSelectorElement {
 }
 
 /**
  * The interface `AngularDirectiveElement` defines the Angular controller described by
- * <code>NgDirective</code> annotation.
+ * <code>Decorator</code> annotation.
  */
-abstract class AngularDirectiveElement implements AngularHasSelectorElement {
+abstract class AngularDecoratorElement implements AngularHasSelectorElement {
   /**
    * Return an array containing all of the properties declared by this directive.
    */
@@ -1940,10 +1954,10 @@ abstract class AngularElement implements ToolkitObjectElement {
 }
 
 /**
- * The interface `AngularFilterElement` defines the Angular filter described by
- * <code>NgFilter</code> annotation.
+ * The interface `AngularFormatterElement` defines the Angular formatter described by
+ * <code>Formatter</code> annotation.
  */
-abstract class AngularFilterElement implements AngularElement {
+abstract class AngularFormatterElement implements AngularElement {
 }
 
 /**
@@ -2281,12 +2295,12 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularControllerElement(AngularControllerElement element) => visitAngularHasSelectorElement(element);
 
   @override
-  R visitAngularDirectiveElement(AngularDirectiveElement element) => visitAngularHasSelectorElement(element);
+  R visitAngularDirectiveElement(AngularDecoratorElement element) => visitAngularHasSelectorElement(element);
 
   R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
 
   @override
-  R visitAngularFilterElement(AngularFilterElement element) => visitAngularElement(element);
+  R visitAngularFormatterElement(AngularFormatterElement element) => visitAngularElement(element);
 
   R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
 
@@ -2430,13 +2444,13 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R visitAngularDirectiveElement(AngularDirectiveElement element) {
+  R visitAngularDirectiveElement(AngularDecoratorElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAngularFilterElement(AngularFilterElement element) {
+  R visitAngularFormatterElement(AngularFormatterElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -2630,10 +2644,10 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularControllerElement(AngularControllerElement element) => null;
 
   @override
-  R visitAngularDirectiveElement(AngularDirectiveElement element) => null;
+  R visitAngularDirectiveElement(AngularDecoratorElement element) => null;
 
   @override
-  R visitAngularFilterElement(AngularFilterElement element) => null;
+  R visitAngularFormatterElement(AngularFormatterElement element) => null;
 
   @override
   R visitAngularPropertyElement(AngularPropertyElement element) => null;
@@ -3670,7 +3684,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    *
    * @param name the name of this element
    */
-  ConstructorElementImpl.con1(Identifier name) : super.con1(name);
+  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created constructor element to have the given name.
@@ -3679,7 +3693,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ConstructorElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
+  ConstructorElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
@@ -4572,7 +4586,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    *
    * @param name the name of this element
    */
-  ExecutableElementImpl.con1(Identifier name) : super.forNode(name);
+  ExecutableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created executable element to have the given name.
@@ -4581,7 +4595,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ExecutableElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
+  ExecutableElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   ElementImpl getChild(String identifier) {
@@ -4877,7 +4891,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    *
    * @param name the name of this element
    */
-  FunctionElementImpl.con1(Identifier name) : super.con1(name);
+  FunctionElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created function element to have no name and the given offset. This is used
@@ -4886,7 +4900,16 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset);
+  FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
+
+  /**
+   * Initialize a newly created function element to have the given name and offset.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  FunctionElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
@@ -5455,6 +5478,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   bool _isAngularHtml = false;
 
   /**
+   * The element representing the synthetic function `loadLibrary` that is defined for this
+   * library, or `null` if the element has not yet been created.
+   */
+  FunctionElement _loadLibraryFunction;
+
+  /**
    * Initialize a newly created library element to have the given name.
    *
    * @param context the analysis context in which the library is defined
@@ -5525,10 +5554,35 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<ImportElement> get imports => _imports;
 
   @override
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
+    int count = _imports.length;
+    List<ImportElement> importList = new List<ImportElement>();
+    for (int i = 0; i < count; i++) {
+      if (identical(_imports[i].prefix, prefixElement)) {
+        importList.add(_imports[i]);
+      }
+    }
+    return new List.from(importList);
+  }
+
+  @override
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
   LibraryElement get library => this;
+
+  @override
+  FunctionElement get loadLibraryFunction {
+    if (_loadLibraryFunction == null) {
+      FunctionElementImpl function = new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+      function.synthetic = true;
+      function.enclosingElement = this;
+      function.returnType = loadLibraryReturnType;
+      function.type = new FunctionTypeImpl.con1(function);
+      _loadLibraryFunction = function;
+    }
+    return _loadLibraryFunction;
+  }
 
   @override
   List<CompilationUnitElement> get parts => _parts;
@@ -5726,6 +5780,37 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   /**
+   * Return the object representing the type "Future" from the dart:async library, or the type
+   * "void" if the type "Future" cannot be accessed.
+   *
+   * @return the type "Future" from the dart:async library
+   */
+  DartType get loadLibraryReturnType {
+    try {
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      if (asyncSource == null) {
+        AnalysisEngine.instance.logger.logError("Could not create a source for dart:async");
+        return VoidTypeImpl.instance;
+      }
+      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
+      if (asyncElement == null) {
+        AnalysisEngine.instance.logger.logError("Could not build the element model for dart:async");
+        return VoidTypeImpl.instance;
+      }
+      ClassElement futureElement = asyncElement.getType("Future");
+      if (futureElement == null) {
+        AnalysisEngine.instance.logger.logError("Could not find type Future in dart:async");
+        return VoidTypeImpl.instance;
+      }
+      InterfaceType futureType = futureElement.type;
+      return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
+    } on AnalysisException catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", exception);
+      return VoidTypeImpl.instance;
+    }
+  }
+
+  /**
    * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
    *
    * @return `true` if the receiver directly or indirectly imports the dart:html libraries
@@ -5790,7 +5875,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    *
    * @param name the name of this element
    */
-  LocalVariableElementImpl(Identifier name) : super.con1(name);
+  LocalVariableElementImpl(Identifier name) : super.forNode(name);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
@@ -5886,7 +5971,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    *
    * @param name the name of this element
    */
-  MethodElementImpl.con1(Identifier name) : super.con1(name);
+  MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created method element to have the given name.
@@ -5895,7 +5980,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
+  MethodElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
@@ -6242,7 +6327,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements Mu
    */
   List<ExecutableElement> _elements = MethodElementImpl.EMPTY_ARRAY;
 
-  MultiplyInheritedMethodElementImpl(Identifier name) : super.con1(name) {
+  MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
     synthetic = true;
   }
 
@@ -6265,7 +6350,7 @@ class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorEleme
    */
   List<ExecutableElement> _elements = PropertyAccessorElementImpl.EMPTY_ARRAY;
 
-  MultiplyInheritedPropertyAccessorElementImpl(Identifier name) : super.con1(name) {
+  MultiplyInheritedPropertyAccessorElementImpl(Identifier name) : super.forNode(name) {
     synthetic = true;
   }
 
@@ -6334,7 +6419,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    *
    * @param name the name of this element
    */
-  ParameterElementImpl.con1(Identifier name) : super.con1(name);
+  ParameterElementImpl.con1(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created parameter element to have the given name.
@@ -6343,7 +6428,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ParameterElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
+  ParameterElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
@@ -6544,7 +6629,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    *
    * @param name the name of this element
    */
-  PropertyAccessorElementImpl.con1(Identifier name) : super.con1(name);
+  PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic property accessor element to be associated with the given
@@ -6552,7 +6637,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    *
    * @param variable the variable with which this access is associated
    */
-  PropertyAccessorElementImpl.con2(PropertyInducingElementImpl variable) : super.con2(variable.name, variable.nameOffset) {
+  PropertyAccessorElementImpl(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
     this.variable = variable;
     synthetic = true;
   }
@@ -6694,14 +6779,14 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
    *
    * @param name the name of this element
    */
-  PropertyInducingElementImpl.con1(Identifier name) : super.con1(name);
+  PropertyInducingElementImpl.con1(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic element to have the given name.
    *
    * @param name the name of this element
    */
-  PropertyInducingElementImpl.con2(String name) : super.con2(name, -1) {
+  PropertyInducingElementImpl.con2(String name) : super(name, -1) {
     synthetic = true;
   }
 }
@@ -6888,7 +6973,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    *
    * @param name the name of this element
    */
-  VariableElementImpl.con1(Identifier name) : super.forNode(name);
+  VariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created variable element to have the given name.
@@ -6897,7 +6982,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  VariableElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
+  VariableElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   /**
    * Return the result of evaluating this variable's initializer as a compile-time constant
@@ -7017,7 +7102,7 @@ class AngularApplication {
  */
 class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
   /**
-   * The offset of the defining <code>NgComponent</code> annotation.
+   * The offset of the defining <code>Component</code> annotation.
    */
   final int _annotationOffset;
 
@@ -7135,7 +7220,7 @@ class AngularControllerElementImpl extends AngularHasSelectorElementImpl impleme
 /**
  * Implementation of `AngularDirectiveElement`.
  */
-class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implements AngularDirectiveElement {
+class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implements AngularDecoratorElement {
   /**
    * The offset of the annotation that defines this directive.
    */
@@ -7151,7 +7236,7 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
    *
    * @param offset the offset of the annotation that defines this directive
    */
-  AngularDirectiveElementImpl(this._offset) : super(null, -1);
+  AngularDecoratorElementImpl(this._offset) : super(null, -1);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
@@ -7190,7 +7275,7 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
   }
 
   @override
-  String get identifier => "NgDirective@${_offset}";
+  String get identifier => "Decorator@${_offset}";
 }
 
 /**
@@ -7223,23 +7308,23 @@ abstract class AngularElementImpl extends ToolkitObjectElementImpl implements An
 }
 
 /**
- * Implementation of `AngularFilterElement`.
+ * Implementation of `AngularFormatterElement`.
  */
-class AngularFilterElementImpl extends AngularElementImpl implements AngularFilterElement {
+class AngularFormatterElementImpl extends AngularElementImpl implements AngularFormatterElement {
   /**
-   * Initialize a newly created Angular filter to have the given name.
+   * Initialize a newly created Angular formatter to have the given name.
    *
    * @param name the name of this element
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  AngularFilterElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  AngularFormatterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitAngularFilterElement(this);
+  accept(ElementVisitor visitor) => visitor.visitAngularFormatterElement(this);
 
   @override
-  ElementKind get kind => ElementKind.ANGULAR_FILTER;
+  ElementKind get kind => ElementKind.ANGULAR_FORMATTER;
 }
 
 /**
@@ -7368,7 +7453,7 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
 }
 
 /**
- * Implementation of `AngularFilterElement`.
+ * Implementation of `AngularFormatterElement`.
  */
 abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
   /**

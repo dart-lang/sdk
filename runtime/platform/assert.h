@@ -144,7 +144,7 @@ void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
   ass << actual;
   std::string es = ess.str(), as = ass.str();
   if (as == es) return;
-  Fail("expected: <\"%s\"> but was: <\"%s\">", es.c_str(), as.c_str());
+  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
 }
 
 

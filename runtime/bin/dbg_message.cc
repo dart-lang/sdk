@@ -690,7 +690,8 @@ bool DbgMessage::HandleEvaluateExprCmd(DbgMessage* in_msg) {
   ASSERT(in_msg != NULL);
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
   int msg_id = msg_parser.MessageId();
-  Dart_Handle target;
+  Dart_Handle target = Dart_Null();
+  Dart_ActivationFrame frame = NULL;
 
   if (msg_parser.HasParam("libraryId")) {
     intptr_t lib_id = msg_parser.GetIntParam("libraryId");
@@ -701,15 +702,26 @@ bool DbgMessage::HandleEvaluateExprCmd(DbgMessage* in_msg) {
   } else if (msg_parser.HasParam("objectId")) {
     intptr_t obj_id = msg_parser.GetIntParam("objectId");
     target = Dart_GetCachedObject(obj_id);
+  } else if (msg_parser.HasParam("frameId")) {
+    intptr_t frame_index = msg_parser.GetIntParam("frameId");
+    Dart_Handle res;
+    Dart_StackTrace stack_trace;
+    res = Dart_GetStackTrace(&stack_trace);
+    ASSERT_NOT_ERROR(res);
+    intptr_t trace_length = 0;
+    res = Dart_StackTraceLength(stack_trace, &trace_length);
+    ASSERT_NOT_ERROR(res);
+    if (frame_index >= trace_length) {
+      in_msg->SendErrorReply(msg_id, "illegal frame index");
+      return false;
+    }
+    res = Dart_GetActivationFrame(stack_trace, frame_index, &frame);
+    ASSERT_NOT_ERROR(res);
   } else {
     in_msg->SendErrorReply(msg_id, "illegal evaluation target");
     return false;
   }
 
-  if (Dart_IsError(target)) {
-    in_msg->SendErrorReply(msg_id, Dart_GetError(target));
-    return false;
-  }
   char* expr_chars = msg_parser.GetStringParam("expression");
   Dart_Handle expr = Dart_NewStringFromCString(expr_chars);
   if (Dart_IsError(expr)) {
@@ -717,15 +729,24 @@ bool DbgMessage::HandleEvaluateExprCmd(DbgMessage* in_msg) {
     return false;
   }
 
-  Dart_Handle value = Dart_EvaluateExpr(target, expr);
-  if (Dart_IsError(value)) {
-    in_msg->SendErrorReply(msg_id, Dart_GetError(value));
+  Dart_Handle eval_result = Dart_Null();
+  if (frame != NULL) {
+    eval_result = Dart_ActivationFrameEvaluate(frame, expr);
+  } else {
+    if (Dart_IsError(target)) {
+      in_msg->SendErrorReply(msg_id, Dart_GetError(target));
+      return false;
+    }
+    eval_result = Dart_EvaluateExpr(target, expr);
+  }
+  if (Dart_IsError(eval_result)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(eval_result));
     return false;
   }
 
   dart::TextBuffer msg(64);
   msg.Printf("{\"id\":%d, \"result\":", msg_id);
-  FormatRemoteObj(&msg, value);
+  FormatRemoteObj(&msg, eval_result);
   msg.Printf("}");
   in_msg->SendReply(&msg);
   return false;

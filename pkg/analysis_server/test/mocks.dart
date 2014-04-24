@@ -6,13 +6,15 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:matcher/matcher.dart';
+import 'package:unittest/unittest.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running
@@ -141,5 +143,53 @@ class MockServerChannel implements ServerCommunicationChannel {
   void expectMsgCount({responseCount: 0, notificationCount: 0}) {
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
+  }
+}
+
+/**
+ * Exception thrown when an unexpected function call is made on a mock.
+ */
+class UnexpectedMockCall extends Error {
+  UnexpectedMockCall(this.functionName);
+
+  final String functionName;
+
+  String toString() => "Unexpected call to $functionName";
+}
+
+/**
+ * Shorthand function for throwing an UnexpectedMockCall exception.
+ */
+_unexpected(String functionName) {
+  throw new UnexpectedMockCall(functionName);
+}
+
+/**
+ * A mock [AnalysisLogger] that treats all errors and warnings as unexpected.
+ */
+@proxy
+class MockAnalysisLogger extends Logger {
+
+  void logError(String message) {
+    print(message);
+    _unexpected('MockAnalysisLogger.logError');
+  }
+
+  noSuchMethod(Invocation invocation) {
+    var name = MirrorSystem.getName(invocation.memberName);
+    return _unexpected("MockAnalysisLogger.$name");
+  }
+}
+
+/**
+ * A mock [AnalysisContext] for testing [AnalysisServer].  This class raises an
+ * exception for every abstract method in [AnalysisContext].  Tests should
+ * derive from this and re-implement the methods they need.
+ */
+@proxy
+class MockAnalysisContext extends AnalysisContext {
+  noSuchMethod(Invocation invocation) {
+    var name = MirrorSystem.getName(invocation.memberName);
+    return _unexpected("MockAnalysisContext.$name");
   }
 }

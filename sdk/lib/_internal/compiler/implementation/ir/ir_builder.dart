@@ -110,11 +110,11 @@ class IrBuilderTask extends CompilerTask {
     if (signature.optionalParameterCount > 0) return false;
 
     SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
-    if (!signature.type.returnType.accept(typeVerifier, null)) return false;
+    if (!typeVerifier.visit(signature.type.returnType, null)) return false;
     bool parameters_ok = true;
     signature.forEachParameter((parameter) {
       parameters_ok =
-          parameters_ok && parameter.type.accept(typeVerifier, null);
+          parameters_ok && typeVerifier.visit(parameter.type, null);
     });
     if (!parameters_ok) return false;
 
@@ -214,7 +214,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
       assignedVars.add(parameter);
     });
 
-    function.body.accept(this);
+    visit(function.body);
     ensureReturn(function);
     return new ir.FunctionDefinition(returnContinuation, parameters, root);
   }
@@ -249,20 +249,23 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     current = null;
   }
 
-  // Build(EmptyStatement, C) = C
-  ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
-    assert(isOpen);
-    return null;
-  }
+  ir.Definition visit(ast.Node node) => node.accept(this);
 
+  // ==== Statements ====
   // Build(Block(stamements), C) = C'
   //   where C' = statements.fold(Build, C)
   ir.Definition visitBlock(ast.Block node) {
     assert(isOpen);
-    for (var n in node.statements.nodes) {
-      n.accept(this);
+    for (ast.Node n in node.statements.nodes) {
+      visit(n);
       if (!isOpen) return null;
     }
+    return null;
+  }
+
+  // Build(EmptyStatement, C) = C
+  ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
+    assert(isOpen);
     return null;
   }
 
@@ -270,7 +273,39 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   //   where (C', _) = Build(e, C)
   ir.Definition visitExpressionStatement(ast.ExpressionStatement node) {
     assert(isOpen);
-    node.expression.accept(this);
+    visit(node.expression);
+    return null;
+  }
+
+  ir.Definition visitIf(ast.If node) {
+    assert(isOpen);
+    return giveup();
+  }
+
+  ir.Definition visitVariableDefinitions(ast.VariableDefinitions node) {
+    assert(isOpen);
+    for (ast.Node definition in node.definitions.nodes) {
+      Element element = elements[definition];
+      // Definitions are either SendSets if there is an initializer, or
+      // Identifiers if there is no initializer.
+      if (definition is ast.SendSet) {
+        assert(!definition.arguments.isEmpty);
+        assert(definition.arguments.tail.isEmpty);
+        ir.Definition initialValue = visit(definition.arguments.head);
+        // Do not continue adding instructions if the initializer throws.
+        if (!isOpen) return null;
+        variableIndex[element] = assignedVars.length;
+        assignedVars.add(initialValue);
+      } else {
+        assert(definition is ast.Identifier);
+        // The initial value is null.
+        // TODO(kmillikin): Consider pooling constants.
+        ir.Constant constant = new ir.Constant(constantSystem.createNull());
+        add(new ir.LetPrim(constant));
+        variableIndex[element] = assignedVars.length;
+        assignedVars.add(constant);
+      }
+    }
     return null;
   }
 
@@ -287,7 +322,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
       value = new ir.Constant(constantSystem.createNull());
       add(new ir.LetPrim(value));
     } else {
-      value = node.expression.accept(this);
+      value = visit(node.expression);
       if (!isOpen) return null;
     }
     add(new ir.InvokeContinuation(returnContinuation, value));
@@ -295,6 +330,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     return null;
   }
 
+  // ==== Expressions ====
   // For all simple literals:
   // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Definition visitLiteralBool(ast.LiteralBool node) {
@@ -337,6 +373,12 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   //   LiteralMapEntry
   //   LiteralSymbol
 
+  ir.Definition visitParenthesizedExpression(
+      ast.ParenthesizedExpression node) {
+    return visit(node.expression);
+  }
+
+  // ==== Sends ====
   ir.Definition visitAssert(ast.Send node) {
     return giveup();
   }
@@ -390,7 +432,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     bool succeeded = selector.addArgumentsToList(
         node.arguments, arguments, element.implementation,
         // Guard against visiting arguments after an argument expression throws.
-        (node) => isOpen ? node.accept(this) : null,
+        (node) => isOpen ? visit(node) : null,
         (node) => giveup(),
         compiler);
     if (!succeeded) {
@@ -399,7 +441,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     }
     if (!isOpen) return null;
     ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation(v);
+    ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
         new ir.InvokeStatic(element, selector, k, arguments);
     add(new ir.LetCont(k, invoke));
@@ -421,36 +463,9 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     // Exactly one argument expected for a simple assignment.
     assert(!node.arguments.isEmpty);
     assert(node.arguments.tail.isEmpty);
-    ir.Definition result = node.arguments.head.accept(this);
+    ir.Definition result = visit(node.arguments.head);
     assignedVars[variableIndex[element]] = result;
     return result;
-  }
-
-  ir.Definition visitVariableDefinitions(ast.VariableDefinitions node) {
-    assert(isOpen);
-    for (ast.Node definition in node.definitions.nodes) {
-      Element element = elements[definition];
-      // Definitions are either SendSets if there is an initializer, or
-      // Identifiers if there is no initializer.
-      if (definition is ast.SendSet) {
-        assert(!definition.arguments.isEmpty);
-        assert(definition.arguments.tail.isEmpty);
-        ir.Definition initialValue = definition.arguments.head.accept(this);
-        // Do not continue adding instructions if the initializer throws.
-        if (!isOpen) return null;
-        variableIndex[element] = assignedVars.length;
-        assignedVars.add(initialValue);
-      } else {
-        assert(definition is ast.Identifier);
-        // The initial value is null.
-        // TODO(kmillikin): Consider pooling constants.
-        ir.Constant constant = new ir.Constant(constantSystem.createNull());
-        add(new ir.LetPrim(constant));
-        variableIndex[element] = assignedVars.length;
-        assignedVars.add(constant);
-      }
-    }
-    return null;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
@@ -473,6 +488,8 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
 
 // Verify that types are ones that can be reconstructed by the type emitter.
 class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
+  bool visit(DartType type, Null _) => type.accept(this, null);
+
   bool visitType(DartType type, Null _) => false;
 
   bool visitVoidType(VoidType type, Null _) => true;

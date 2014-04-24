@@ -24,6 +24,14 @@ class SampleBuffer;
 // Profiler
 class Profiler : public AllStatic {
  public:
+  enum TagOrder {
+    kNoTags,
+    kUser,
+    kUserVM,
+    kVM,
+    kVMUser
+  };
+
   static void InitOnce();
   static void Shutdown();
 
@@ -38,7 +46,7 @@ class Profiler : public AllStatic {
   static void EndExecution(Isolate* isolate);
 
   static void PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                bool full, bool use_tags);
+                                bool full, TagOrder tag_order);
   static void WriteProfile(Isolate* isolate);
 
   static SampleBuffer* sample_buffer() {

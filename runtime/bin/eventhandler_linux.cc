@@ -36,7 +36,7 @@ static const int kShutdownId = -2;
 intptr_t SocketData::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
   // triggered anyway.
-  intptr_t events = EPOLLET | EPOLLRDHUP;
+  intptr_t events = 0;
   if ((mask_ & (1 << kInEvent)) != 0) {
     events |= EPOLLIN;
   }
@@ -58,7 +58,10 @@ static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
 
 static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
   struct epoll_event event;
-  event.events = sd->GetPollEvents();
+  event.events = EPOLLRDHUP | sd->GetPollEvents();
+  if (!sd->IsListeningSocket()) {
+    event.events |= EPOLLET;
+  }
   event.data.ptr = sd;
   int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
                                            EPOLL_CTL_ADD,
@@ -279,7 +282,7 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
       if (event_mask != 0) {
-        if (!sd->IsListeningSocket() && sd->TakeToken()) {
+        if (sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromEpollInstance(epoll_fd_, sd);
         }

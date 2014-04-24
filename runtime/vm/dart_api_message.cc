@@ -316,20 +316,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         // TODO(sgjesse): Handle other instances. Currently this will
         // skew the reading as the fields of the instance is not read.
       }
-    } else if (strcmp("dart:isolate", library_uri) == 0 &&
-               strncmp("_SendPortImpl@", class_name, 14) == 0) {
-      Dart_CObject_Internal* cls =
-          reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
-      ASSERT(cls == object->cls);
-      // Read the port id.
-      Dart_CObject* port = ReadObjectImpl();
-      if (port->type == Dart_CObject_kInt32) {
-        object->type = Dart_CObject_kSendPort;
-        object->value.as_send_port = port->value.as_int32;
-      } else if (port->type == Dart_CObject_kInt64) {
-        object->type = Dart_CObject_kSendPort;
-        object->value.as_send_port = port->value.as_int64;
-      }
     } else {
       // TODO(sgjesse): Handle other instances. Currently this will
       // skew the reading as the fields of the instance is not read.
@@ -599,6 +585,13 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       *p = '\0';
       ASSERT(p == (object->value.as_string + utf8_len));
       ::free(utf16);
+      return object;
+    }
+    case kSendPortCid: {
+      int64_t value64 = Read<int64_t>();
+      Dart_CObject* object = AllocateDartCObject(Dart_CObject_kSendPort);
+      object->value.as_send_port = value64;
+      AddBackRef(object_id, object, kIsDeserialized);
       return object;
     }
 

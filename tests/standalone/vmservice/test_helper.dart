@@ -140,9 +140,9 @@ class TestLauncher {
       var first = true;
       process.stdout.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {
-        if (line.startsWith('VMService listening on port ')) {
-          RegExp portExp = new RegExp(r"\d+");
-          var port = portExp.stringMatch(line);
+        if (line.startsWith('VMService listening on ')) {
+          RegExp portExp = new RegExp(r"\d+.\d+.\d+.\d+:(\d+)");
+          var port = portExp.firstMatch(line).group(1);
           portNumber = int.parse(port);
         }
         if (line == '') {

@@ -4,11 +4,13 @@
 
 library pub.asset.serialize.transformer;
 
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
 
 import '../serialize.dart';
+import '../utils.dart';
 import 'transform.dart';
 
 /// Converts [transformer] into a serializable map.
@@ -19,16 +21,18 @@ Map _serializeTransformer(Transformer transformer) {
       if (message['type'] == 'isPrimary') {
         return transformer.isPrimary(deserializeId(message['id']));
       } else if (message['type'] == 'declareOutputs') {
-        return (transformer as DeclaringTransformer).declareOutputs(
-            new ForeignDeclaringTransform(message['transform']))
-            .then((_) => null);
+        return new Future.sync(() {
+          return (transformer as DeclaringTransformer).declareOutputs(
+              new ForeignDeclaringTransform(message['transform']));
+        }).then((_) => null);
       } else {
         assert(message['type'] == 'apply');
 
         // Make sure we return null so that if the transformer's [apply] returns
         // a non-serializable value it doesn't cause problems.
-        return transformer.apply(
-            new ForeignTransform(message['transform'])).then((_) => null);
+        return new Future.sync(() {
+          return transformer.apply(new ForeignTransform(message['transform']));
+        }).then((_) => null);
       }
     });
   });

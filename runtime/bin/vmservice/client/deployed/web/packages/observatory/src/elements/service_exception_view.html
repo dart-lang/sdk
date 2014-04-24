@@ -4,22 +4,14 @@
 </head>
 <polymer-element name="service-exception-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css" />
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">{{ exception.kind }}</div>
-        <div class="panel-body">
-          <p>{{ exception.message }}</p>
-        </div>
-        <div class="well">
-          <p>{{ exception.response }}</p>
-        </div>
-      </div>
-    </div>
+    <div class="content">
+        <h1>{{ exception.kind }}</h1>
+        <div class="well">{{ exception.message }}</div>
+        <div class="well">{{ exception.response }}</div>
     </div>
   </template>
   <script type="application/dart" src="service_exception_view.dart"></script>

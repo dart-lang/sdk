@@ -88,8 +88,8 @@ class Resources {
 
 const char* VmService::error_msg_ = NULL;
 
-bool VmService::Start(intptr_t server_port) {
-  bool r = _Start(server_port);
+bool VmService::Start(const char *server_ip, intptr_t server_port) {
+  bool r = _Start(server_ip, server_port);
   if (!r) {
     return r;
   }
@@ -99,7 +99,7 @@ bool VmService::Start(intptr_t server_port) {
 }
 
 
-bool VmService::_Start(intptr_t server_port) {
+bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   ASSERT(Dart_CurrentIsolate() == NULL);
   Dart_Isolate isolate = Dart_GetServiceIsolate(NULL);
   if (isolate == NULL) {
@@ -129,6 +129,7 @@ bool VmService::_Start(intptr_t server_port) {
   Dart_EnterScope();
   library = Dart_RootLibrary();
   // Set requested TCP port.
+  DartUtils::SetStringField(library, "_ip", server_ip);
   DartUtils::SetIntegerField(library, "_port", server_port);
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);

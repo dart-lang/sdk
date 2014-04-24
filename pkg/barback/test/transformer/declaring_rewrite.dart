@@ -4,8 +4,6 @@
 
 library barback.test.transformer.declaring_rewrite;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 
 import 'rewrite.dart';
@@ -16,7 +14,7 @@ class DeclaringRewriteTransformer extends RewriteTransformer
   DeclaringRewriteTransformer(String from, String to)
       : super(from, to);
 
-  Future declareOutputs(DeclaringTransform transform) {
+  void declareOutputs(DeclaringTransform transform) {
     if (consumePrimary) transform.consumePrimary();
     for (var extension in to.split(" ")) {
       var id = transform.primaryId.changeExtension(".$extension");

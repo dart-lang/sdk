@@ -367,6 +367,11 @@ class LibraryMap {
  */
 abstract class DartSdk {
   /**
+   * The short name of the dart SDK async library.
+   */
+  static final String DART_ASYNC = "dart:async";
+
+  /**
    * The short name of the dart SDK core library.
    */
   static final String DART_CORE = "dart:core";

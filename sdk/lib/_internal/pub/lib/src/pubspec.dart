@@ -379,20 +379,18 @@ class Pubspec {
         _error('"$field.$name" field must be a string or a mapping.');
       }
 
-      // If we have a valid source, use it to process the description. Allow
-      // unknown sources so pub doesn't choke on old pubspecs.
-      if (_sources.contains(sourceName)) {
-        var descriptionField = "$field.$name";
-        if (spec is Map) descriptionField = "$descriptionField.$sourceName";
-        _wrapFormatException('description', descriptionField, () {
-          var pubspecPath;
-          if (_location != null && _isFileUri(_location)) {
-            pubspecPath = path.fromUri(_location);
-          }
-          description = _sources[sourceName].parseDescription(
-              pubspecPath, description, fromLockFile: false);
-        });
-      }
+      // Let the source validate the description.
+      var descriptionField = "$field.$name";
+      if (spec is Map) descriptionField = "$descriptionField.$sourceName";
+      _wrapFormatException('description', descriptionField, () {
+        var pubspecPath;
+        if (_location != null && _isFileUri(_location)) {
+          pubspecPath = path.fromUri(_location);
+        }
+
+        description = _sources[sourceName].parseDescription(
+            pubspecPath, description, fromLockFile: false);
+      });
 
       dependencies.add(new PackageDep(
           name, sourceName, versionConstraint, description));

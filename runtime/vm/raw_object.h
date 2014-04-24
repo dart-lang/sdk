@@ -60,15 +60,18 @@ namespace dart {
       V(Double)                                                                \
     V(Bool)                                                                    \
     V(GrowableObjectArray)                                                     \
+    V(Float32x4)                                                               \
+    V(Int32x4)                                                                 \
+    V(Float64x2)                                                               \
     V(TypedData)                                                               \
     V(ExternalTypedData)                                                       \
+    V(Capability)                                                              \
+    V(ReceivePort)                                                             \
+    V(SendPort)                                                                \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
-    V(Float32x4)                                                               \
-    V(Int32x4)                                                                 \
-    V(Float64x2)                                                               \
     V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
@@ -777,6 +780,7 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   bool corelib_imported_;
+  bool is_dart_scheme_;
   bool debuggable_;              // True if debugger can stop in library.
   int8_t load_state_;            // Of type LibraryState.
 
@@ -1504,6 +1508,34 @@ class RawExternalTypedData : public RawInstance {
   friend class RawTokenStream;
 };
 
+// VM implementations of the basic types in the isolate.
+class RawCapability : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
+  uint64_t id_;
+};
+
+
+class RawSendPort : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
+  Dart_Port id_;
+
+  friend class ReceivePort;
+};
+
+
+class RawReceivePort : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ReceivePort);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->send_port_);
+  }
+  RawSendPort* send_port_;
+  RawInstance* handler_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->handler_);
+  }
+};
+
 
 // VM type for capturing stacktraces when exceptions are thrown,
 // Currently we don't have any interface that this object is supposed
@@ -1685,10 +1717,9 @@ inline bool RawObject::IsExternalStringClassId(intptr_t index) {
 
 inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
-  ASSERT(kImmutableArrayCid == kArrayCid + 1 &&
-         kTypedDataCid == kGrowableObjectArrayCid + 1);
+  ASSERT(kImmutableArrayCid == kArrayCid + 1);
   return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
-          (index >= kGrowableObjectArrayCid && index < kTypedDataCid) ||
+          (index == kGrowableObjectArrayCid) ||
           IsTypedDataClassId(index) ||
           IsTypedDataViewClassId(index) ||
           IsExternalTypedDataClassId(index));

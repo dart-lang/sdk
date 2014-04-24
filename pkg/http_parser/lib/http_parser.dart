@@ -7,6 +7,7 @@ library http_parser;
 import 'package:string_scanner/string_scanner.dart';
 
 export 'src/media_type.dart';
+export 'src/web_socket.dart';
 
 const _WEEKDAYS = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const _MONTHS = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",

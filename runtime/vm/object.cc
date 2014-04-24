@@ -156,47 +156,11 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // The following functions are marked as invisible, meaning they will be hidden
 // in the stack trace and will be hidden from reflective access.
 // (Library, class name, method name)
+// Additionally, private functions in dart:* that are native or constructors are
+// marked as invisible by the parser.
 #define INVISIBLE_LIST(V)                                                      \
-  V(CoreLibrary, Object, _noSuchMethod)                                        \
-  V(CoreLibrary, Object, _as)                                                  \
-  V(CoreLibrary, Object, _instanceOf)                                          \
-  V(CoreLibrary, _List, _List.)                                                \
-  V(CoreLibrary, AssertionError, _throwNew)                                    \
-  V(CoreLibrary, TypeError, _throwNew)                                         \
-  V(CoreLibrary, FallThroughError, _throwNew)                                  \
-  V(CoreLibrary, AbstractClassInstantiationError, _throwNew)                   \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
-  V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
-  V(CoreLibrary, _OneByteString, _setAt)                                       \
-  V(CoreLibrary, _StringBase, _substringUncheckedNative)                       \
-  V(CoreLibrary, _OneByteString, _substringUncheckedNative)                    \
-  V(CoreLibrary, _GrowableList, _setData)                                      \
-  V(CoreLibrary, _GrowableList, _setLength)                                    \
-  V(TypedDataLibrary, _TypedList, _getInt8)                                    \
-  V(TypedDataLibrary, _TypedList, _setInt8)                                    \
-  V(TypedDataLibrary, _TypedList, _getUint8)                                   \
-  V(TypedDataLibrary, _TypedList, _setUint8)                                   \
-  V(TypedDataLibrary, _TypedList, _getInt16)                                   \
-  V(TypedDataLibrary, _TypedList, _setInt16)                                   \
-  V(TypedDataLibrary, _TypedList, _getUint16)                                  \
-  V(TypedDataLibrary, _TypedList, _setUint16)                                  \
-  V(TypedDataLibrary, _TypedList, _getInt32)                                   \
-  V(TypedDataLibrary, _TypedList, _setInt32)                                   \
-  V(TypedDataLibrary, _TypedList, _getUint32)                                  \
-  V(TypedDataLibrary, _TypedList, _setUint32)                                  \
-  V(TypedDataLibrary, _TypedList, _getInt64)                                   \
-  V(TypedDataLibrary, _TypedList, _setInt64)                                   \
-  V(TypedDataLibrary, _TypedList, _getUint64)                                  \
-  V(TypedDataLibrary, _TypedList, _setUint64)                                  \
-  V(TypedDataLibrary, _TypedList, _getFloat32)                                 \
-  V(TypedDataLibrary, _TypedList, _setFloat32)                                 \
-  V(TypedDataLibrary, _TypedList, _getFloat64)                                 \
-  V(TypedDataLibrary, _TypedList, _setFloat64)                                 \
-  V(TypedDataLibrary, _TypedList, _getFloat32x4)                               \
-  V(TypedDataLibrary, _TypedList, _setFloat32x4)                               \
-
-
 
 static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* class_name,
@@ -707,10 +671,10 @@ void Object::InitOnce() {
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
 
   String& error_str = String::Handle();
-  error_str = String::New("SnapshotWriter Error");
-  *snapshot_writer_error_ = LanguageError::New(error_str);
-  error_str = String::New("Branch offset overflow");
-  *branch_offset_error_ = LanguageError::New(error_str);
+  error_str = String::New("SnapshotWriter Error", Heap::kOld);
+  *snapshot_writer_error_ = LanguageError::New(error_str, Heap::kOld);
+  error_str = String::New("Branch offset overflow", Heap::kOld);
+  *branch_offset_error_ = LanguageError::New(error_str, Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -803,7 +767,7 @@ void Object::CreateInternalMetaData() {
 
   // TODO(iposva): Add more of the VM classes here.
   cls = context_class_;
-  fields = Array::New(1);
+  fields = Array::New(1, Heap::kOld);
   name = Symbols::New("@parent_");
   fld = Field::New(name, false, false, false, cls, 0);
   fields.SetAt(0, fld);
@@ -891,10 +855,10 @@ RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
-  Class& cls = Class::Handle();
-  Type& type = Type::Handle();
-  Array& array = Array::Handle();
-  Library& lib = Library::Handle();
+  Class& cls = Class::Handle(isolate);
+  Type& type = Type::Handle(isolate);
+  Array& array = Array::Handle(isolate);
+  Library& lib = Library::Handle(isolate);
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -922,7 +886,8 @@ RawError* Object::Init(Isolate* isolate) {
   // Last element contains the count of used slots.
   const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
   array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
-  array.SetAt(kInitialCanonicalTypeArgumentsSize, Smi::Handle(Smi::New(0)));
+  array.SetAt(kInitialCanonicalTypeArgumentsSize,
+              Smi::Handle(isolate, Smi::New(0)));
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
@@ -956,34 +921,34 @@ RawError* Object::Init(Isolate* isolate) {
   Symbols::SetupSymbolTable(isolate);
 
   // Set up the libraries array before initializing the core library.
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      isolate, GrowableObjectArray::New(Heap::kOld));
   object_store->set_libraries(libraries);
 
   // Pre-register the core library.
   Library::InitCoreLibrary(isolate);
 
   // Basic infrastructure has been setup, initialize the class dictionary.
-  Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
   object_store->set_pending_classes(pending_classes);
 
-  Context& context = Context::Handle(Context::New(0, Heap::kOld));
+  Context& context = Context::Handle(isolate, Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  String& name = String::Handle();
+  String& name = String::Handle(isolate);
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
-  type ^= Type::New(Object::Handle(cls.raw()),
-                    TypeArguments::Handle(),
+  type ^= Type::New(Object::Handle(isolate, cls.raw()),
+                    TypeArguments::Handle(isolate),
                     Scanner::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
@@ -1021,6 +986,31 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
   pending_classes.Add(cls);
 
+  // Pre-register the isolate library so the native class implementations
+  // can be hooked up before compiling it.
+  Library& isolate_lib =
+      Library::Handle(isolate, Library::LookupLibrary(Symbols::DartIsolate()));
+  if (isolate_lib.IsNull()) {
+    isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
+    isolate_lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kIsolate,
+                                                   isolate_lib);
+  }
+  ASSERT(!isolate_lib.IsNull());
+  ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
+
+  cls = Class::New<Capability>();
+  RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
+  pending_classes.Add(cls);
+
+  cls = Class::New<ReceivePort>();
+  RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
+  pending_classes.Add(cls);
+
+  cls = Class::New<SendPort>();
+  RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
+  pending_classes.Add(cls);
+
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
   RegisterClass(cls, Symbols::StackTrace(), core_lib);
@@ -1028,7 +1018,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
-  object_store->set_jsregexp_class(cls);
   RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
   pending_classes.Add(cls);
 
@@ -1139,7 +1128,6 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  object_store->set_mirror_reference_class(cls);
   RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
   // Pre-register the profiler library so we can place the vm class
@@ -1157,7 +1145,6 @@ RawError* Object::Init(Isolate* isolate) {
   lib = Library::LookupLibrary(Symbols::DartProfiler());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
-  object_store->set_user_tag_class(cls);
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
   pending_classes.Add(cls);
 
@@ -1443,11 +1430,14 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Instance>(kNullCid);
   object_store->set_null_class(cls);
 
+  cls = Class::New<Capability>();
+  cls = Class::New<ReceivePort>();
+  cls = Class::New<SendPort>();
+
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
 
   cls = Class::New<JSRegExp>();
-  object_store->set_jsregexp_class(cls);
 
   // Some classes are not stored in the object store. Yet we still need to
   // create their Class object so that they get put into the class_table
@@ -1458,10 +1448,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
 
   cls = Class::New<MirrorReference>();
-  object_store->set_mirror_reference_class(cls);
 
   cls = Class::New<UserTag>();
-  object_store->set_user_tag_class(cls);
 }
 
 
@@ -2655,13 +2643,35 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
 }
 
 
+static RawString* BuildClosureSource(const Array& formal_params,
+                                     const String& expr) {
+  const GrowableObjectArray& src_pieces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  String& piece = String::Handle();
+  src_pieces.Add(Symbols::LParen());
+  // Add formal parameters.
+  intptr_t num_formals = formal_params.Length();
+  for (intptr_t i = 0; i < num_formals; i++) {
+    if (i > 0) {
+      src_pieces.Add(Symbols::CommaSpace());
+    }
+    piece ^= formal_params.At(i);
+    src_pieces.Add(piece);
+  }
+  src_pieces.Add(Symbols::RParenArrow());
+  src_pieces.Add(expr);
+  src_pieces.Add(Symbols::Semicolon());
+  return String::ConcatAll(Array::Handle(Array::MakeArray(src_pieces)));
+}
+
+
 static RawPatchClass* MakeTempPatchClass(const Class& cls,
-                                         const String& expr) {
-  String& src = String::Handle(String::New("() => "));
-  src = String::Concat(src, expr);
-  src = String::Concat(src, Symbols::Semicolon());
+                                         const String& expr,
+                                         const Array& formal_params) {
+  const String& func_src =
+      String::Handle(BuildClosureSource(formal_params, expr));
   Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(), src, RawScript::kSourceTag);
+  script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the object's class
   // originates.
@@ -2679,9 +2689,11 @@ static RawPatchClass* MakeTempPatchClass(const Class& cls,
 }
 
 
-RawObject* Class::Evaluate(const String& expr) const {
+RawObject* Class::Evaluate(const String& expr,
+                           const Array& param_names,
+                           const Array& param_values) const {
   const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(*this, expr));
+      PatchClass::Handle(MakeTempPatchClass(*this, expr, param_names));
   const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
       Function::Handle(Function::New(eval_func_name,
@@ -2694,13 +2706,12 @@ RawObject* Class::Evaluate(const String& expr) const {
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(0);
+  eval_func.set_num_fixed_parameters(param_names.Length());
   eval_func.SetNumOptionalParameters(0, true);
   eval_func.SetIsOptimizable(false);
 
-  const Array& args = Array::Handle(Array::New(0));
   const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
+      Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
   return result.raw();
 }
 
@@ -5894,12 +5905,7 @@ RawFunction* Function::New(const String& name,
     result.set_data(data);
   }
 
-// TODO(zra): Remove when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
   result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
-#else
-  result.set_code(Code::Handle());
-#endif
   return result.raw();
 }
 
@@ -8963,6 +8969,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_symbol_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
   result.set_debuggable(false);
+  result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.raw_ptr()->index_ = -1;
   const intptr_t kInitialNameCacheSize = 64;
@@ -9002,7 +9009,9 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
-RawObject* Library::Evaluate(const String& expr) const {
+RawObject* Library::Evaluate(const String& expr,
+                             const Array& param_names,
+                             const Array& param_values) const {
   // Make a fake top-level class and evaluate the expression
   // as a static function of the class.
   Script& script = Script::Handle();
@@ -9013,7 +9022,7 @@ RawObject* Library::Evaluate(const String& expr) const {
       Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
   temp_class.set_library(*this);
   temp_class.set_is_finalized();
-  return temp_class.Evaluate(expr);
+  return temp_class.Evaluate(expr, param_names, param_values);
 }
 
 
@@ -10879,6 +10888,7 @@ RawCode* Code::FinalizeCode(const char* name,
                                    : VirtualMemory::kReadWriteExecute);
     ASSERT(status);
   }
+  code.set_comments(assembler->GetCodeComments());
   return code.raw();
 }
 
@@ -11001,7 +11011,8 @@ RawString* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    return String::New(name);
+    const String& stub_name = String::Handle(String::New(name));
+    return String::Concat(Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
@@ -11022,7 +11033,8 @@ RawString* Code::UserName() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    return String::New(name);
+    const String& stub_name = String::Handle(String::New(name));
+    return String::Concat(Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
@@ -11806,12 +11818,12 @@ bool ICData::HasOneTarget() const {
 }
 
 
-RawICData* ICData::New(const Function& function,
+RawICData* ICData::New(const Function& caller_function,
                        const String& target_name,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
-  ASSERT(!function.IsNull());
+  ASSERT(!caller_function.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
   ASSERT(Object::icdata_class() != Class::null());
@@ -11825,7 +11837,7 @@ RawICData* ICData::New(const Function& function,
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_function(function);
+  result.set_function(caller_function);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
@@ -12419,10 +12431,12 @@ void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawObject* Instance::Evaluate(const String& expr) const {
+RawObject* Instance::Evaluate(const String& expr,
+                              const Array& param_names,
+                              const Array& param_values) const {
   const Class& cls = Class::Handle(clazz());
-  const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(cls, expr));
+  const PatchClass& temp_class = PatchClass::Handle(
+      MakeTempPatchClass(cls, expr, param_names));
   const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
       Function::Handle(Function::New(eval_func_name,
@@ -12435,12 +12449,17 @@ RawObject* Instance::Evaluate(const String& expr) const {
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(1);
+  eval_func.set_num_fixed_parameters(1 + param_values.Length());
   eval_func.SetNumOptionalParameters(0, true);
   eval_func.SetIsOptimizable(false);
 
-  const Array& args = Array::Handle(Array::New(1));
+  const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
+  Object& param = Object::Handle();
   args.SetAt(0, *this);
+  for (intptr_t i = 0; i < param_values.Length(); i++) {
+    param = param_values.At(i);
+    args.SetAt(i + 1, param);
+  }
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(eval_func, args));
   return result.raw();
@@ -14199,7 +14218,8 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
   if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
     return true;
   }
-  if (bound_error->IsNull()) {
+  // Set bound_error if the caller is interested and if this is the first error.
+  if ((bound_error != NULL) && bound_error->IsNull()) {
     // Report the bound error only if both the bounded type and the upper bound
     // are instantiated. Otherwise, we cannot tell yet it is a bound error.
     if (bounded_type.IsInstantiated() && upper_bound.IsInstantiated()) {
@@ -14428,7 +14448,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error,
                                                 trail);
   }
-  if (FLAG_enable_type_checks && bound_error->IsNull()) {
+  if (FLAG_enable_type_checks &&
+      (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
@@ -14697,7 +14718,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
       !IsJavascriptInt(value)) {
-    const Integer &i = Integer::Handle(Mint::New(value));
+    const Integer& i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
   return Mint::New(value, space);
@@ -17860,6 +17881,81 @@ void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
 }
 
 
+RawCapability* Capability::New(uint64_t id, Heap::Space space) {
+  Capability& result = Capability::Handle();
+  {
+    RawObject* raw = Object::Allocate(Capability::kClassId,
+                                      Capability::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->id_ = id;
+  }
+  return result.raw();
+}
+
+
+const char* Capability::ToCString() const {
+  return "Capability";
+}
+
+
+void Capability::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
+RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  const SendPort& send_port = SendPort::Handle(isolate, SendPort::New(id));
+
+  ReceivePort& result = ReceivePort::Handle(isolate);
+  {
+    RawObject* raw = Object::Allocate(ReceivePort::kClassId,
+                                      ReceivePort::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->send_port_ = send_port.raw();
+  }
+  PortMap::SetLive(id);
+  return result.raw();
+}
+
+
+const char* ReceivePort::ToCString() const {
+  return "ReceivePort";
+}
+
+
+void ReceivePort::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
+RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
+  SendPort& result = SendPort::Handle();
+  {
+    RawObject* raw = Object::Allocate(SendPort::kClassId,
+                                      SendPort::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->id_ = id;
+  }
+  return result.raw();
+}
+
+
+const char* SendPort::ToCString() const {
+  return "SendPort";
+}
+
+
+void SendPort::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
 
 const char* Closure::ToCString(const Instance& closure) {
   const Function& fun = Function::Handle(Closure::function(closure));
@@ -18094,7 +18190,8 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
 }
 
 
-const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
+const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
+                                          intptr_t max_frames) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -18102,7 +18199,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
   // for each frame.
   intptr_t total_len = 0;
   GrowableArray<char*> frame_strings;
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
       // Check if null function object indicates a stack trace overflow.
@@ -18120,7 +18217,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+        for (InlinedFunctionsIterator it(code, pc);
+             !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
           if (function.is_visible() || FLAG_verbose_stacktrace) {
             code = it.code();
@@ -18131,8 +18229,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
             ASSERT(pc < (code.EntryPoint() + code.Size()));
             total_len += PrintOneStacktrace(
                 isolate, &frame_strings, pc, function, code, *frame_index);
+            (*frame_index)++;  // To account for inlined frames.
           }
-          (*frame_index)++;  // To account for inlined frames.
         }
       } else {
         total_len += PrintOneStacktrace(
@@ -18167,8 +18265,6 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 
 
 RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->jsregexp_class() !=
-         Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in JSRegexp::New: invalid len %" Pd "\n", len);
@@ -18316,8 +18412,6 @@ RawTypeParameter* MirrorReference::GetTypeParameterReferent() const {
 
 RawMirrorReference* MirrorReference::New(const Object& referent,
                                          Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
-         != Class::null());
   MirrorReference& result = MirrorReference::Handle();
   {
     RawObject* raw = Object::Allocate(MirrorReference::kClassId,
@@ -18357,7 +18451,6 @@ void UserTag::ClearActive() {
 
 RawUserTag* UserTag::New(const String& label, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->object_store()->user_tag_class() != Class::null());
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
   UserTag& result = UserTag::Handle(FindTagInIsolate(isolate, label));

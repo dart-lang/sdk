@@ -110,8 +110,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
       OS::Print("Code for allocation stub '%s': {\n", name);
-      Disassembler::Disassemble(stub.EntryPoint(),
-                                stub.EntryPoint() + assembler.CodeSize());
+      DisassembleToStdout formatter;
+      stub.Disassemble(&formatter);
       OS::Print("}\n");
     }
   }
@@ -126,8 +126,8 @@ RawCode* StubCode::Generate(const char* name,
   const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
   if (FLAG_disassemble_stubs) {
     OS::Print("Code for stub '%s': {\n", name);
-    Disassembler::Disassemble(code.EntryPoint(),
-                              code.EntryPoint() + assembler.CodeSize());
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
     OS::Print("}\n");
   }
   return code.raw();

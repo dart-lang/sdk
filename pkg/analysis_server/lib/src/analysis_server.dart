@@ -10,6 +10,8 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -43,7 +45,9 @@ class AnalysisServer {
   final ServerCommunicationChannel channel;
 
   /**
-   * A flag indicating whether the server is running.
+   * A flag indicating whether the server is running.  When false, contexts
+   * will no longer be added to [contextWorkQueue], and [performTask] will
+   * discard any tasks it finds on [contextWorkQueue].
    */
   bool running;
 
@@ -61,6 +65,10 @@ class AnalysisServer {
   /**
    * A list of the analysis contexts for which analysis work needs to be
    * performed.
+   *
+   * Invariant: when this list is non-empty, there is exactly one pending call
+   * to [performTask] on the event queue.  When this list is empty, there are
+   * no calls to [performTask] on the event queue.
    */
   final List<AnalysisContext> contextWorkQueue = new List<AnalysisContext>();
 
@@ -77,13 +85,20 @@ class AnalysisServer {
   }
 
   /**
-   * Add the given [context] to the list of analysis contexts for which analysis
-   * work needs to be performed. Ensure that the work will be performed.
+   * If [running] is true, add the given [context] to the list of analysis
+   * contexts for which analysis work needs to be performed, and ensure that
+   * the work will be performed.
    */
   void addContextToWorkQueue(AnalysisContext context) {
+    if (!running) {
+      return;
+    }
     if (!contextWorkQueue.contains(context)) {
       contextWorkQueue.add(context);
-      run();
+      if (contextWorkQueue.length == 1) {
+        // Work queue was previously empty, so schedule analysis.
+        _scheduleTask();
+      }
     }
   }
 
@@ -128,28 +143,42 @@ class AnalysisServer {
    * needs to be done and do that. Otherwise, do nothing.
    */
   void performTask() {
+    if (!running) {
+      // An error has occurred, or the connection to the client has been
+      // closed, since performTask() was scheduled on the event queue.  So
+      // don't do any analysis.  Instead clear the work queue.
+      contextWorkQueue.clear();
+    }
+    if (contextWorkQueue.isEmpty) {
+      // Nothing to do.
+      return;
+    }
     //
     // Look for a context that has work to be done and then perform one task.
     //
-    if (!contextWorkQueue.isEmpty) {
+    List<ChangeNotice> notices = null;
+    try {
       AnalysisContext context = contextWorkQueue[0];
       AnalysisResult result = context.performAnalysisTask();
-      List<ChangeNotice> notices = result.changeNotices;
+      notices = result.changeNotices;
+    } finally {
       if (notices == null) {
+        // Either we have no more work to do for this context, or there was an
+        // unhandled exception trying to perform the analysis.  In either case,
+        // remove the context form the work queue so we won't try to do more
+        // analysis on it.
         contextWorkQueue.removeAt(0);
-      } else { //if (context.analysisOptions.provideErrors) {
-        sendNotices(notices);
+      }
+      //
+      // Schedule this method to be run again if there is any more work to be
+      // done.
+      //
+      if (!contextWorkQueue.isEmpty) {
+        _scheduleTask();
       }
     }
-    //
-    // Schedule this method to be run again if there is any more work to be done.
-    //
-    if (contextWorkQueue.isEmpty) {
-      running = false;
-    } else {
-      new Future(performTask).catchError((ex, st) {
-        AnalysisEngine.instance.logger.logError("${ex}\n${st}");
-      });
+    if (notices != null) {
+      sendNotices(notices);
     }
   }
 
@@ -161,22 +190,29 @@ class AnalysisServer {
       ChangeNotice notice = notices[i];
       Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
       notification.setParameter(SOURCE_PARAM, notice.source.encoding);
-      notification.setParameter(ERRORS_PARAM, notice.errors);
+      notification.setParameter(ERRORS_PARAM, notice.errors.map(
+          errorToJson).toList());
       sendNotification(notification);
     }
   }
 
-  /**
-   * Perform the tasks that are waiting for execution until the server is shut
-   * down.
-   */
-  void run() {
-    if (!running) {
-      running = true;
-      new Future(performTask).catchError((exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError(exception);
-      });
+  static Map<String, Object> errorToJson(AnalysisError analysisError) {
+    // TODO(paulberry): move this function into the AnalysisError class.
+
+    // TODO(paulberry): we really shouldn't be exposing errorCode.ordinal
+    // outside the analyzer, since the ordinal numbers change whenever we
+    // regenerate the analysis engine.
+    Map<String, Object> result = {
+      'source': analysisError.source.encoding,
+      'errorCode': (analysisError.errorCode as Enum).ordinal,
+      'offset': analysisError.offset,
+      'length': analysisError.length,
+      'message': analysisError.message
+    };
+    if (analysisError.correction != null) {
+      result['correction'] = analysisError.correction;
     }
+    return result;
   }
 
   /**
@@ -184,5 +220,11 @@ class AnalysisServer {
    */
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
+  }
+
+  void _scheduleTask() {
+    new Future(performTask).catchError((ex, st) {
+      AnalysisEngine.instance.logger.logError("${ex}\n${st}");
+    });
   }
 }

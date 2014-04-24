@@ -17,9 +17,8 @@ import '../utils.dart';
 /// A package [Source] that gets packages from a given local file path.
 class PathSource extends Source {
   final name = 'path';
-  final shouldCache = false;
 
-  Future<Pubspec> describeUncached(PackageId id) {
+  Future<Pubspec> doDescribe(PackageId id) {
     return syncFuture(() {
       var dir = _validatePath(id.name, id.description);
       return new Pubspec.load(dir, systemCache.sources,
@@ -34,17 +33,13 @@ class PathSource extends Source {
     return path1 == path2;
   }
 
-  Future<bool> get(PackageId id, String destination) {
+  /// Create a symlink from the source path directly to the destination
+  /// directory.
+  Future get(PackageId id, String destination) {
     return syncFuture(() {
-      try {
-        var dir = _validatePath(id.name, id.description);
-        createPackageSymlink(id.name, dir, destination,
-            relative: id.description["relative"]);
-      } on FormatException catch(err) {
-        return false;
-      }
-
-      return true;
+      var dir = _validatePath(id.name, id.description);
+      createPackageSymlink(id.name, dir, destination,
+          relative: id.description["relative"]);
     });
   }
 

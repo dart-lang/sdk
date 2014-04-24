@@ -40,13 +40,13 @@ namespace dart {
 
 
 static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
+  struct timeval tv;
   int64_t secs = micros / kMicrosecondsPerSecond;
-  int64_t nanos =
-      (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
-  int result = clock_gettime(CLOCK_MONOTONIC, ts);
+  int64_t remaining_micros = (micros - (secs * kMicrosecondsPerSecond));
+  int result = gettimeofday(&tv, NULL);
   ASSERT(result == 0);
-  ts->tv_sec += secs;
-  ts->tv_nsec += nanos;
+  ts->tv_sec = tv.tv_sec + secs;
+  ts->tv_nsec = (tv.tv_usec + remaining_micros) * kNanosecondsPerMicrosecond;
   if (ts->tv_nsec >= kNanosecondsPerSecond) {
     ts->tv_sec += 1;
     ts->tv_nsec -= kNanosecondsPerSecond;
@@ -145,7 +145,7 @@ intptr_t Thread::GetMaxStackSize() {
 
 
 ThreadId Thread::GetCurrentThreadId() {
-  return pthread_self();
+  return gettid();
 }
 
 
@@ -156,7 +156,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return a == b;
 }
 
 

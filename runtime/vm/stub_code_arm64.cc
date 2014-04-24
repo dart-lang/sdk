@@ -324,8 +324,66 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
+
+// Helper stub to implement Assembler::StoreIntoObject.
+// Input parameters:
+//   R0: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  __ Stop("GenerateUpdateStoreBufferStub");
+  Label add_to_buffer;
+  // Check whether this object has already been remembered. Skip adding to the
+  // store buffer if the object is in the store buffer already.
+  __ LoadFieldFromOffset(TMP, R0, Object::tags_offset());
+  __ tsti(TMP, 1 << RawObject::kRememberedBit);
+  __ b(&add_to_buffer, EQ);
+  __ ret();
+
+  __ Bind(&add_to_buffer);
+  // Save values being destroyed.
+  __ Push(R1);
+  __ Push(R2);
+  __ Push(R3);
+
+  __ orri(R2, TMP, 1 << RawObject::kRememberedBit);
+  __ StoreFieldToOffset(R2, R0, Object::tags_offset());
+
+  // Load the isolate out of the context.
+  // Spilled: R1, R2, R3.
+  // R0: address being stored.
+  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset());
+
+  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // StoreBufferBlock and add the address to the pointers_.
+  // R1: isolate.
+  __ LoadFromOffset(R1, R1, Isolate::store_buffer_offset());
+  __ LoadFromOffset(R2, R1, StoreBufferBlock::top_offset());
+  __ add(R3, R1, Operand(R2, LSL, 3));
+  __ StoreToOffset(R0, R3, StoreBufferBlock::pointers_offset());
+
+  // Increment top_ and check for overflow.
+  // R2: top_.
+  // R1: StoreBufferBlock.
+  Label L;
+  __ add(R2, R2, Operand(1));
+  __ StoreToOffset(R2, R1, StoreBufferBlock::top_offset());
+  __ CompareImmediate(R2, StoreBufferBlock::kSize, PP);
+  // Restore values.
+  __ Pop(R3);
+  __ Pop(R2);
+  __ Pop(R1);
+  __ b(&L, EQ);
+  __ ret();
+
+  // Handle overflow: Call the runtime leaf function.
+  __ Bind(&L);
+  // Setup frame, push callee-saved registers.
+
+  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset());
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
+  // Restore callee-saved registers, tear down frame.
+  __ LeaveCallRuntimeFrame();
+  __ ret();
 }
 
 

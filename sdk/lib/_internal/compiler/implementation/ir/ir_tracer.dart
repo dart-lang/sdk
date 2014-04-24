@@ -193,7 +193,7 @@ class BlockCollector extends ir.Visitor {
   Block getBlock(ir.Continuation c) {
     Block block = cont2block[c];
     if (block == null) {
-      block = new Block(names.name(c), [c.parameter], c.body);
+      block = new Block(names.name(c), c.parameters, c.body);
       cont2block[c] = block;
     }
     return block;

@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
+#include <sys/syscall.h>  // NOLINT
+
 #include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 
@@ -26,6 +28,15 @@ class ThreadInterrupterAndroid : public AllStatic {
       return;
     }
     ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
+    // Extract thread state.
+    ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
+    mcontext_t mcontext = context->uc_mcontext;
+    InterruptedThreadState its;
+    its.tid = state->id;
+    its.pc = SignalHandler::GetProgramCounter(mcontext);
+    its.fp = SignalHandler::GetFramePointer(mcontext);
+    its.sp = SignalHandler::GetStackPointer(mcontext);
+    state->callback(its, state->data);
   }
 };
 
@@ -35,7 +46,7 @@ void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
     OS::Print("ThreadInterrupter interrupting %p\n",
               reinterpret_cast<void*>(state->id));
   }
-  pthread_kill(state->id, SIGPROF);
+  syscall(__NR_tgkill, getpid(), state->id, SIGPROF);
 }
 
 

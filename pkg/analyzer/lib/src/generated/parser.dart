@@ -1500,6 +1500,24 @@ class Parser {
   }
 
   /**
+   * Parse the script tag and directives in a compilation unit, starting with the given token, until
+   * the first non-directive is encountered. The remainder of the compilation unit will not be
+   * parsed. Specifically, if there are directives later in the file, they will not be parsed.
+   *
+   * @param token the first token of the compilation unit
+   * @return the compilation unit that was parsed
+   */
+  CompilationUnit parseDirectives(Token token) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseDirectives");
+    try {
+      _currentToken = token;
+      return _parseDirectives();
+    } finally {
+      instrumentation.log2(2);
+    }
+  }
+
+  /**
    * Parse an expression, starting with the given token.
    *
    * @param token the first token of the expression
@@ -4338,6 +4356,41 @@ class Parser {
       // other than one of the above.
       throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = ${_currentToken}");
     }
+  }
+
+  /**
+   * Parse the script tag and directives in a compilation unit until the first non-directive is
+   * encountered.
+   *
+   *
+   * <pre>
+   * compilationUnit ::=
+   *     scriptTag? directive*
+   * </pre>
+   *
+   * @return the compilation unit that was parsed
+   */
+  CompilationUnit _parseDirectives() {
+    Token firstToken = _currentToken;
+    ScriptTag scriptTag = null;
+    if (_matches(TokenType.SCRIPT_TAG)) {
+      scriptTag = new ScriptTag(andAdvance);
+    }
+    List<Directive> directives = new List<Directive>();
+    while (!_matches(TokenType.EOF)) {
+      CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
+      if ((_matchesKeyword(Keyword.IMPORT) || _matchesKeyword(Keyword.EXPORT) || _matchesKeyword(Keyword.LIBRARY) || _matchesKeyword(Keyword.PART)) && !_tokenMatches(_peek(), TokenType.PERIOD) && !_tokenMatches(_peek(), TokenType.LT) && !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+        directives.add(_parseDirective(commentAndMetadata));
+      } else if (_matches(TokenType.SEMICOLON)) {
+        _advance();
+      } else {
+        while (!_matches(TokenType.EOF)) {
+          _advance();
+        }
+        return new CompilationUnit(firstToken, scriptTag, directives, new List<CompilationUnitMember>(), _currentToken);
+      }
+    }
+    return new CompilationUnit(firstToken, scriptTag, directives, new List<CompilationUnitMember>(), _currentToken);
   }
 
   /**
@@ -8816,6 +8869,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 }
 Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {
   'parseCompilationUnit_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCompilationUnit(arg0)),
+  'parseDirectives_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseDirectives(arg0)),
   'parseExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseExpression(arg0)),
   'parseStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatement(arg0)),
   'parseStatements_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatements(arg0)),
@@ -8905,6 +8959,7 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {
   'parseConstructorFieldInitializer_0': new MethodTrampoline(0, (Parser target) => target._parseConstructorFieldInitializer()),
   'parseContinueStatement_0': new MethodTrampoline(0, (Parser target) => target._parseContinueStatement()),
   'parseDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target._parseDirective(arg0)),
+  'parseDirectives_0': new MethodTrampoline(0, (Parser target) => target._parseDirectives()),
   'parseDocumentationComment_0': new MethodTrampoline(0, (Parser target) => target._parseDocumentationComment()),
   'parseDoStatement_0': new MethodTrampoline(0, (Parser target) => target._parseDoStatement()),
   'parseEmptyStatement_0': new MethodTrampoline(0, (Parser target) => target._parseEmptyStatement()),

@@ -185,6 +185,7 @@ Usage:
   sbp [<file>] <line> Set breakpoint
   rbp <id>    Remove breakpoint with given id
   po <id>     Print object info for given id
+  eval fr  <n> <expr> Evaluate expr on stack frame index n
   eval obj <id> <expr> Evaluate expr on object id
   eval cls <id> <expr> Evaluate expr on class id
   eval lib <id> <expr> Evaluate expr in toplevel of library id
@@ -621,6 +622,8 @@ void processCommand(String cmdLine) {
       target = "classId";
     } else if (target == "lib") {
       target = "libraryId";
+    } else if (target == "fr") {
+      target = "frameId";
     } else {
       huh();
       return;

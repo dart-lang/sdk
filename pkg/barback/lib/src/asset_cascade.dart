@@ -13,9 +13,9 @@ import 'asset_set.dart';
 import 'log.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
+import 'node_streams.dart';
 import 'package_graph.dart';
 import 'phase.dart';
-import 'stream_pool.dart';
 import 'transformer.dart';
 
 /// The asset cascade for an individual package.
@@ -67,11 +67,6 @@ class AssetCascade {
   final _errorsController =
       new StreamController<BarbackException>.broadcast(sync: true);
 
-  /// A stream that emits an event whenever any transforms in this cascade logs
-  /// an entry.
-  Stream<LogEntry> get onLog => _onLogPool.stream;
-  final _onLogPool = new StreamPool<LogEntry>.broadcast();
-
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty {
     // Just check the last phase, since it will check all the previous phases
@@ -79,12 +74,10 @@ class AssetCascade {
     return _phases.last.isDirty;
   }
 
-  /// A stream that emits an event whenever [this] is no longer dirty.
-  ///
-  /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDoneController.stream;
-  final _onDoneController = new StreamController.broadcast(sync: true);
+  /// The streams exposed by this cascade.
+  final _streams = new NodeStreams();
+  Stream<LogEntry> get onLog => _streams.onLog;
+  Stream get onDone => _streams.onDone;
 
   /// Returns all currently-available output assets from this cascade.
   AssetSet get availableOutputs =>
@@ -199,7 +192,7 @@ class AssetCascade {
 
     _phaseOnDoneSubscription.cancel();
     _phaseOnDoneSubscription = _phases.last.onDone
-        .listen(_onDoneController.add);
+        .listen(_streams.onDoneController.add);
   }
 
   /// Force all [LazyTransformer]s' transforms in this cascade to begin
@@ -216,9 +209,10 @@ class AssetCascade {
 
   /// Add [phase] to the end of [_phases] and watch its streams.
   void _addPhase(Phase phase) {
-    _onLogPool.add(phase.onLog);
+    _streams.onLogPool.add(phase.onLog);
     if (_phaseOnDoneSubscription != null) _phaseOnDoneSubscription.cancel();
-    _phaseOnDoneSubscription = phase.onDone.listen(_onDoneController.add);
+    _phaseOnDoneSubscription =
+        phase.onDone.listen(_streams.onDoneController.add);
 
     _phases.add(phase);
   }

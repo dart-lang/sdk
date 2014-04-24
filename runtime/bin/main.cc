@@ -45,10 +45,10 @@ static const char* breakpoint_at = NULL;
 // Global state that indicates whether we should open a connection
 // and listen for a debugger to connect.
 static bool start_debugger = false;
-static const int DEFAULT_DEBUG_PORT = 5858;
-static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
-static const char* debug_ip = DEFAULT_DEBUG_IP;
+static const char* debug_ip = NULL;
 static int debug_port = -1;
+static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
+static const int DEFAULT_DEBUG_PORT = 5858;
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -67,7 +67,9 @@ static bool has_print_script = false;
 
 // VM Service options.
 static bool start_vm_service = false;
+static const char *vm_service_server_ip = NULL;
 static int vm_service_server_port = -1;
+static const char *DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 
 // The environment provided through the command line using -D options.
@@ -136,6 +138,50 @@ static void* GetHashmapKeyFromString(char* key) {
   return reinterpret_cast<void*>(key);
 }
 
+
+static bool ExtractPortAndIP(const char *option_value,
+                             int *out_port,
+                             const char **out_ip,
+                             int default_port,
+                             const char *default_ip) {
+  // [option_value] has to be one of the following formats:
+  //   - ""
+  //   - ":8181"
+  //   - "=8181"
+  //   - ":8181/192.168.0.1"
+  //   - "=8181/192.168.0.1"
+
+  if (*option_value== '\0') {
+    *out_ip = default_ip;
+    *out_port = default_port;
+    return true;
+  }
+
+  if ((*option_value != '=') && (*option_value != ':')) {
+    return false;
+  }
+
+  int port = atoi(option_value + 1);
+  const char *slash = strstr(option_value, "/");
+  if (slash == NULL) {
+    *out_ip = default_ip;
+    *out_port = port;
+    return true;
+  }
+
+  int _, n;
+  if (sscanf(option_value + 1, "%d/%d.%d.%d.%d%n",  // NOLINT(runtime/printf)
+             &_, &_, &_, &_, &_, &n)) {
+    if (option_value[1 + n] == '\0') {
+      *out_ip = slash + 1;
+      *out_port = port;
+      return true;
+    }
+  }
+  return false;
+}
+
+
 static bool ProcessEnvironmentOption(const char* arg) {
   ASSERT(arg != NULL);
   if (*arg == '\0') {
@@ -183,24 +229,15 @@ static bool ProcessCompileAllOption(const char* arg) {
   return true;
 }
 
-
-static bool ProcessDebugOption(const char* port) {
-  // TODO(hausner): Add support for specifying an IP address on which
-  // the debugger should listen.
-  ASSERT(port != NULL);
-  debug_port = -1;
-  if (*port == '\0') {
-    debug_port = DEFAULT_DEBUG_PORT;
-  } else {
-    if ((*port == '=') || (*port == ':')) {
-      debug_port = atoi(port + 1);
-    }
-  }
-  if (debug_port < 0) {
+static bool ProcessDebugOption(const char* option_value) {
+  ASSERT(option_value != NULL);
+  if (!ExtractPortAndIP(option_value, &debug_port, &debug_ip,
+                        DEFAULT_DEBUG_PORT, DEFAULT_DEBUG_IP)) {
     Log::PrintErr("unrecognized --debug option syntax. "
-                    "Use --debug[:<port number>]\n");
+                  "Use --debug[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
+
   breakpoint_at = "main";
   start_debugger = true;
   return true;
@@ -238,21 +275,19 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
 }
 
 
-static bool ProcessEnableVmServiceOption(const char* port) {
-  ASSERT(port != NULL);
-  vm_service_server_port = -1;
-  if (*port == '\0') {
-    vm_service_server_port = DEFAULT_VM_SERVICE_SERVER_PORT;
-  } else {
-    if ((*port == '=') || (*port == ':')) {
-      vm_service_server_port = atoi(port + 1);
-    }
-  }
-  if (vm_service_server_port < 0) {
+static bool ProcessEnableVmServiceOption(const char* option_value) {
+  ASSERT(option_value != NULL);
+
+  if (!ExtractPortAndIP(option_value,
+                        &vm_service_server_port,
+                        &vm_service_server_ip,
+                        DEFAULT_VM_SERVICE_SERVER_PORT,
+                        DEFAULT_VM_SERVICE_SERVER_IP)) {
     Log::PrintErr("unrecognized --enable-vm-service option syntax. "
-                    "Use --enable-vm-service[:<port number>]\n");
+                  "Use --enable-vm-service[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
+
   start_vm_service = true;
   return true;
 }
@@ -944,8 +979,8 @@ void main(int argc, char** argv) {
   ASSERT(Dart_CurrentIsolate() == NULL);
   // Start the VM service isolate, if necessary.
   if (start_vm_service) {
-    ASSERT(vm_service_server_port >= 0);
-    bool r = VmService::Start(vm_service_server_port);
+    ASSERT(vm_service_server_ip != NULL && vm_service_server_port >= 0);
+    bool r = VmService::Start(vm_service_server_ip , vm_service_server_port);
     if (!r) {
       Log::PrintErr("Could not start VM Service isolate %s\n",
                     VmService::GetErrorMessage());

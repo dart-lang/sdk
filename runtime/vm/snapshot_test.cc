@@ -2643,53 +2643,50 @@ UNIT_TEST_CASE(PostCObject) {
       "    messageCount++;\n"
       "    if (messageCount == 9) throw new Exception(exception);\n"
       "  };\n"
-      "  return port.sendPort;\n"
+      "  return port;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
 
-  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(send_port);
-  Dart_Handle result = Dart_GetField(send_port, NewString("_id"));
+  Dart_Handle recv_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(recv_port);
+  Dart_Port port_id;
+  Dart_Handle result = Dart_ReceivePortGetId(recv_port, &port_id);
   ASSERT(!Dart_IsError(result));
-  ASSERT(Dart_IsInteger(result));
-  int64_t send_port_id;
-  Dart_Handle result2 = Dart_IntegerToInt64(result, &send_port_id);
-  ASSERT(!Dart_IsError(result2));
 
   // Setup single object message.
   Dart_CObject object;
 
   object.type = Dart_CObject_kNull;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kBool;
   object.value.as_bool = true;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kBool;
   object.value.as_bool = false;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kInt32;
   object.value.as_int32 = 123;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kString;
   object.value.as_string = const_cast<char*>("456");
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kString;
   object.value.as_string = const_cast<char*>("æøå");
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kDouble;
   object.value.as_double = 3.14;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kArray;
   object.value.as_array.length = 0;
-  EXPECT(Dart_PostCObject(send_port_id, &object));
+  EXPECT(Dart_PostCObject(port_id, &object));
 
   static const int kArrayLength = 10;
   Dart_CObject* array =
@@ -2708,7 +2705,7 @@ UNIT_TEST_CASE(PostCObject) {
     element->value.as_int32 = i;
     array->value.as_array.values[i] = element;
   }
-  EXPECT(Dart_PostCObject(send_port_id, array));
+  EXPECT(Dart_PostCObject(port_id, array));
 
   result = Dart_RunLoop();
   EXPECT(Dart_IsError(result));

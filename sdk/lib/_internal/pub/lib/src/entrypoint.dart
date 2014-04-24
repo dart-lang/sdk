@@ -15,6 +15,7 @@ import 'log.dart' as log;
 import 'package.dart';
 import 'package_graph.dart';
 import 'solver/version_solver.dart';
+import 'source/cached.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
@@ -70,7 +71,7 @@ class Entrypoint {
   ///
   /// This automatically downloads the package to the system-wide cache as well
   /// if it requires network access to retrieve (specifically, if the package's
-  /// source has [shouldCache] as `true`).
+  /// source is a [CachedSource]).
   ///
   /// See also [getDependencies].
   Future<PackageId> get(PackageId id) {
@@ -78,7 +79,6 @@ class Entrypoint {
     if (pending != null) return pending;
 
     var packageDir = path.join(packagesDir, id.name);
-    var source;
 
     var future = syncFuture(() {
       ensureDir(path.dirname(packageDir));
@@ -90,18 +90,9 @@ class Entrypoint {
         deleteEntry(packageDir);
       }
 
-      source = cache.sources[id.source];
-
-      if (source.shouldCache) {
-        return cache.download(id).then(
-            (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
-      } else {
-        return source.get(id, packageDir).then((found) {
-          if (found) return null;
-          fail('Package ${id.name} not found in source "${id.source}".');
-        });
-      }
-    }).then((_) => source.resolveId(id));
+      var source = cache.sources[id.source];
+      return source.get(id, packageDir).then((_) => source.resolveId(id));
+    });
 
     _pendingGets[id] = future;
 
@@ -196,7 +187,7 @@ class Entrypoint {
       // We only care about cached sources. Uncached sources aren't "installed".
       // If one of those is missing, we want to show the user the file not
       // found error later since installing won't accomplish anything.
-      if (!source.shouldCache) return new Future.value(true);
+      if (source is! CachedSource) return new Future.value(true);
 
       // Get the directory.
       return source.getDirectory(package).then((dir) {

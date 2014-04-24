@@ -1285,6 +1285,27 @@ ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
             EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
+
+// Called from assembler_test.cc.
+// LR: return address.
+// R0: context.
+// R1: value.
+// R2: growable array.
+ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ PushPP();
+  __ LoadPoolPointer(PP);
+  __ Push(CTX);
+  __ Push(LR);
+  __ mov(CTX, R0);
+  __ StoreIntoObject(R2,
+                     FieldAddress(R2, GrowableObjectArray::data_offset()),
+                     R1);
+  __ Pop(LR);
+  __ Pop(CTX);
+  __ PopPP();
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)

@@ -18,6 +18,7 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
+import '../source/cached.dart';
 import 'admin_server.dart';
 import 'barback_server.dart';
 import 'dart_forwarding_transformer.dart';
@@ -556,7 +557,7 @@ class AssetEnvironment {
     // application package, since that's not locked.
     var packageId = graph.lockFile.packages[package.name];
     if (packageId != null &&
-        graph.entrypoint.cache.sources[packageId.source].shouldCache) {
+        graph.entrypoint.cache.sources[packageId.source] is CachedSource) {
       return new Future.value();
     }
 

@@ -60,12 +60,10 @@ class LockFile {
         }
         var description = spec['description'];
 
-        // Parse the description if we know the source.
-        if (sources.contains(sourceName)) {
-          var source = sources[sourceName];
-          description = source.parseDescription(filePath, description,
-              fromLockFile: true);
-        }
+        // Let the source parse the description.
+        var source = sources[sourceName];
+        description = source.parseDescription(filePath, description,
+            fromLockFile: true);
 
         var id = new PackageId(name, sourceName, version, description);
 

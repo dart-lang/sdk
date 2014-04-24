@@ -1930,6 +1930,48 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
+  void test_parseDirectives_complete() {
+    CompilationUnit unit = _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}", []);
+    JUnitTestCase.assertNotNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(1, unit.directives);
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = _parseDirectives("", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit = _parseDirectives("library l; class A {} part 'foo.dart';", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(1, unit.directives);
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(2, unit.directives);
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = _parseDirectives("#! /bin/dart", []);
+    JUnitTestCase.assertNotNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = _parseDirectives("library l;", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(1, unit.directives);
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = _parseDirectives("class A {}", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+  }
+
   void test_parseDocumentationComment_block() {
     Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** */ class", []);
     JUnitTestCase.assertFalse(comment.isBlock);
@@ -4608,6 +4650,28 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   /**
+   * Parse the given source as a compilation unit.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  CompilationUnit _parseDirectives(String source, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseDirectives(token);
+    JUnitTestCase.assertNotNull(unit);
+    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
+  /**
    * Invoke a "skip" method in [Parser]. The method is assumed to take a token as it's
    * parameter and is given the first token in the scanned source.
    *
@@ -5612,6 +5676,34 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseDirective_partOf', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseDirective_partOf);
+      });
+      _ut.test('test_parseDirectives_complete', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_complete);
+      });
+      _ut.test('test_parseDirectives_empty', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_empty);
+      });
+      _ut.test('test_parseDirectives_mixed', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_mixed);
+      });
+      _ut.test('test_parseDirectives_multiple', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_multiple);
+      });
+      _ut.test('test_parseDirectives_script', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_script);
+      });
+      _ut.test('test_parseDirectives_single', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_single);
+      });
+      _ut.test('test_parseDirectives_topLevelDeclaration', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDirectives_topLevelDeclaration);
       });
       _ut.test('test_parseDoStatement', () {
         final __test = new SimpleParserTest();

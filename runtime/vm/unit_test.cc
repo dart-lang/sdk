@@ -169,9 +169,6 @@ void AssemblerTest::Assemble() {
 }
 
 
-// TODO(zra): Remove once supported.
-#if !defined(TARGET_ARCH_ARM64)
-
 CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
     node_sequence_(new SequenceNode(Scanner::kNoSourcePos,
@@ -208,6 +205,9 @@ void CodeGenTest::Compile() {
   EXPECT(error.IsNull());
 }
 
+
+// TODO(zra): Remove once supported.
+#if !defined(TARGET_ARCH_ARM64)
 
 LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
   char name[64];

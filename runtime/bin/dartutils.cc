@@ -35,8 +35,6 @@ const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kHttpScheme = "http:";
 const char* DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-const char* DartUtils::kIdFieldName = "_id";
-
 uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
 static bool IsWindowsHost() {

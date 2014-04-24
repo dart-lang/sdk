@@ -765,6 +765,61 @@ RawArray* ActivationFrame::GetLocalVariables() {
 }
 
 
+RawObject* ActivationFrame::GetReceiver() {
+  GetDescIndices();
+  intptr_t num_variables = desc_indices_.length();
+  String& var_name = String::Handle();
+  Instance& value = Instance::Handle();
+  for (intptr_t i = 0; i < num_variables; i++) {
+    intptr_t ignore;
+    VariableAt(i, &var_name, &ignore, &ignore, &value);
+    if (var_name.Equals(Symbols::This())) {
+      return value.raw();
+    }
+  }
+  return Object::null();
+}
+
+
+RawObject* ActivationFrame::Evaluate(const String& expr) {
+  GetDescIndices();
+  const GrowableObjectArray& param_names =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const GrowableObjectArray& param_values =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  String& name = String::Handle();
+  Instance& value = Instance::Handle();
+  intptr_t num_variables = desc_indices_.length();
+  for (intptr_t i = 0; i < num_variables; i++) {
+    intptr_t ignore;
+    VariableAt(i, &name, &ignore, &ignore, &value);
+    if (!name.Equals(Symbols::This())) {
+      param_names.Add(name);
+      param_values.Add(value);
+    }
+  }
+
+  if (function().is_static()) {
+    const Class& cls = Class::Handle(function().Owner());
+    return cls.Evaluate(expr,
+                        Array::Handle(Array::MakeArray(param_names)),
+                        Array::Handle(Array::MakeArray(param_values)));
+  } else {
+    const Object& receiver = Object::Handle(GetReceiver());
+    ASSERT(receiver.IsInstance());
+    if (!receiver.IsInstance()) {
+      return Object::null();
+    }
+    const Instance& inst = Instance::Cast(receiver);
+    return inst.Evaluate(expr,
+                         Array::Handle(Array::MakeArray(param_names)),
+                         Array::Handle(Array::MakeArray(param_values)));
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();

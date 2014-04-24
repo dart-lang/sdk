@@ -155,6 +155,12 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     Message::Priority saved_priority = message->priority();
     result = HandleMessage(message);
     monitor_.Enter();
+    if (FLAG_trace_isolates) {
+      OS::Print("[.] Message handled:\n"
+                "\thandler:    %s\n"
+                "\tport:       %" Pd64 "\n",
+                name(), message->dest_port());
+    }
     if (!result) {
       // If we hit an error, we're done processing messages.
       break;

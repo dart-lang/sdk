@@ -37,8 +37,8 @@ class MetadataEmitter extends CodeEmitterHelper {
         }
       }
       if (metadata.isEmpty) return null;
-      return js.fun(
-          [], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+      return js('function() { return # }',
+          new jsAst.ArrayInitializer.from(metadata));
     });
   }
 
@@ -70,7 +70,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   int reifyType(DartType type) {
     jsAst.Expression representation =
         backend.rti.getTypeRepresentation(type, (variable) {
-          return js.toExpression(
+          return js.number(
               task.typeVariableHandler.reifyTypeVariable(variable.element));
         });
 
@@ -95,13 +95,13 @@ class MetadataEmitter extends CodeEmitterHelper {
     var properties = [];
     for (TypedefElement literal in literals) {
       var key = namer.getNameX(literal);
-      var value = js.toExpression(reifyType(literal.rawType));
+      var value = js.number(reifyType(literal.rawType));
       properties.add(new jsAst.Property(js.string(key), value));
     }
     var map = new jsAst.ObjectInitializer(properties);
     buffer.write(
         jsAst.prettyPrint(
-            js('init.functionAliases = #', map).toStatement(), compiler));
+            js.statement('init.functionAliases = #', map), compiler));
     buffer.write('${N}init.metadata$_=$_[');
     for (var metadata in globalMetadata) {
       if (metadata is String) {

@@ -144,12 +144,12 @@ class Parameter extends Primitive {
 /// parameter (or body) is used to represent a function's return continuation.
 /// The return continuation is bound by the Function, not by 'let cont'.
 class Continuation extends Definition {
-  final Parameter parameter;
+  final List<Parameter> parameters;
   Expression body = null;
 
-  Continuation(this.parameter);
+  Continuation(this.parameters);
 
-  Continuation.retrn() : parameter = null;
+  Continuation.retrn() : parameters = null;
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
@@ -226,12 +226,17 @@ class SExpressionStringifier extends Visitor<String> {
 
   String visitLetCont(LetCont expr) {
     String cont = newContinuationName();
-    String param = newValueName();
     names[expr.continuation] = cont;
-    names[expr.continuation.parameter] = param;
+    String parameters = expr.continuation.parameters
+        .map((p) {
+          String name = newValueName();
+          names[p] = name;
+          return name;
+        })
+       .join(' ');
     String contBody = expr.continuation.body.accept(this);
-    String body = expr.body == null ? 'null' : expr.body.accept(this);
-    return '(LetCont ($cont $param) $contBody) $body';
+    String body = expr.body.accept(this);
+    return '(LetCont ($cont $parameters) $contBody) $body';
   }
 
   String visitInvokeStatic(InvokeStatic expr) {

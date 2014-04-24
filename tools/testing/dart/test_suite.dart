@@ -205,7 +205,7 @@ abstract class TestSuite {
 
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
-    var d8Dir = TestUtils.dartDir().append('third_party/d8');
+    var d8Dir = TestUtils.dartDir.append('third_party/d8');
     var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, configuration);
@@ -215,7 +215,7 @@ abstract class TestSuite {
   String get jsShellFileName {
     var executableSuffix = getExecutableSuffix('jsshell');
     var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${TestUtils.dartDir()}/tools/testing/bin';
+    var jsshellDir = '${TestUtils.dartDir}/tools/testing/bin';
     return '$jsshellDir/$executable';
   }
 
@@ -263,7 +263,7 @@ abstract class TestSuite {
     if (shards > 1) {
       int shard = configuration['shard'];
       var testPath =
-          testCase.info.originTestPath.relativeTo(TestUtils.dartDir());
+          testCase.info.originTestPath.relativeTo(TestUtils.dartDir);
       if ("$testPath".hashCode % shards != shard - 1) {
         return;
       }
@@ -297,7 +297,7 @@ abstract class TestSuite {
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath, String optionsName) {
-    Path relative = testPath.relativeTo(TestUtils.dartDir());
+    Path relative = testPath.relativeTo(TestUtils.dartDir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = TestUtils.getShortName(relative.toString());
     if (!optionsName.isEmpty) {
@@ -364,7 +364,7 @@ abstract class TestSuite {
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
-    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir());
+    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir);
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var pkg = configuration['use_public_packages']
         ? 'public_packages' : 'repo_packages';
@@ -373,7 +373,7 @@ abstract class TestSuite {
   }
 
   String createPubPackageBuildsDirectory(Path directoryOfPubspecYaml) {
-    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir());
+    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir);
     var pkg = configuration['use_public_packages']
         ? 'public_packages' : 'repo_packages';
     return createGeneratedTestDirectoryHelper(
@@ -410,7 +410,7 @@ abstract class TestSuite {
 
     isValid(packageName) => packageName != 'third_party';
 
-    var dartDir = TestUtils.dartDir();
+    var dartDir = TestUtils.dartDir;
     var futures = [
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('pkg').append('third_party'), isValid),
@@ -443,7 +443,7 @@ abstract class TestSuite {
 
     isValid(packageName) => packageName != 'third_party';
 
-    var dartDir = TestUtils.dartDir();
+    var dartDir = TestUtils.dartDir;
     var futures = [
       listDir(dartDir.append('samples'), isValid),
       listDir(dartDir.append('samples').append('third_party'), isValid),
@@ -511,7 +511,7 @@ class CCTestSuite extends TestSuite {
               this.statusFilePaths,
               {this.testPrefix: ''})
       : super(configuration, suiteName),
-        dartDir = TestUtils.dartDir().toNativePath() {
+        dartDir = TestUtils.dartDir.toNativePath() {
     // For running the tests we use the given '$runnerName' binary
     targetRunnerPath = '$buildDir/$runnerName';
 
@@ -606,9 +606,9 @@ class StandardTestSuite extends TestSuite {
                     {this.isTestFilePredicate,
                     bool recursive: false})
   : super(configuration, suiteName),
-    dartDir = TestUtils.dartDir(),
+    dartDir = TestUtils.dartDir,
     listRecursively = recursive,
-    suiteDir = TestUtils.dartDir().join(suiteDirectory),
+    suiteDir = TestUtils.dartDir.join(suiteDirectory),
     extraVmOptions = TestUtils.getExtraVmOptions(configuration);
 
   /**
@@ -794,7 +794,7 @@ class StandardTestSuite extends TestSuite {
   static Path _findPubspecYamlFile(Path filePath) {
     final existsCache = TestUtils.existsCache;
 
-    Path root = TestUtils.dartDir();
+    Path root = TestUtils.dartDir;
     assert ("$filePath".startsWith("$root"));
 
     // We start with the parent directory of [filePath] and go up until
@@ -842,7 +842,7 @@ class StandardTestSuite extends TestSuite {
       // NOTE: We make a link in the package-root to pkg/expect, since
       // 'package:expect' is not available on pub.dartlang.org!
       var expectLink = newPackageRoot.append('expect');
-      var expectLinkTarget = TestUtils.dartDir()
+      var expectLinkTarget = TestUtils.dartDir
           .append('pkg').append('expect').append('lib');
 
       // Generate dependency overrides if we use repository packages.
@@ -1054,7 +1054,7 @@ class StandardTestSuite extends TestSuite {
 
     var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
     var buildDir = TestUtils.absolutePath(relativeBuildDir);
-    var dartDir = TestUtils.absolutePath(TestUtils.dartDir());
+    var dartDir = TestUtils.absolutePath(TestUtils.dartDir);
 
     var fileString = file.toString();
     if (fileString.startsWith(buildDir.toString())) {
@@ -1749,7 +1749,7 @@ class PkgBuildTestSuite extends TestSuite {
         }
 
         var directoryPath =
-            absoluteDirectoryPath.relativeTo(TestUtils.dartDir());
+            absoluteDirectoryPath.relativeTo(TestUtils.dartDir);
         var testName = "$directoryPath";
         var displayName = '$suiteName/$testName';
         var packageName = directoryPath.filename;
@@ -1818,7 +1818,7 @@ class PkgBuildTestSuite extends TestSuite {
     Map<String, String> _localPackageDirectories;
     Map<String, String> _localSampleDirectories;
     List<String> statusFiles = [
-        TestUtils.dartDir().join(new Path(statusFilePath)).toNativePath()];
+        TestUtils.dartDir.join(new Path(statusFilePath)).toNativePath()];
     ReadTestExpectations(statusFiles, configuration).then((expectations) {
       Future.wait([discoverPackagesInRepository(),
                    discoverSamplesInRepository()]).then((List results) {
@@ -1884,6 +1884,9 @@ class TestUtils {
   static ExistsCache existsCache = new ExistsCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
+  static Path dartDir = new Path(new File(testScriptPath).absolute.path)
+      .directoryPath.directoryPath;
+
   /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
@@ -1984,12 +1987,6 @@ class TestUtils {
     return result;
   }
 
-  static Path dartDir() {
-    File scriptFile = new File(testScriptPath);
-    Path scriptPath = new Path(scriptFile.absolute.path);
-    return scriptPath.directoryPath.directoryPath;
-  }
-
   static List<String> standardOptions(Map configuration) {
     List args = ["--ignore-unrecognized-flags"];
     if (configuration["checked"]) {
@@ -2081,7 +2078,7 @@ class TestUtils {
     // "output" directory is a sibling of the dart directory instead of a child.
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
-    if (currentWorkingDirectory != dartDir()) {
+    if (currentWorkingDirectory != dartDir) {
       return getValidOutputDir(configuration, mode, arch);
     } else {
       return mode;
@@ -2093,7 +2090,7 @@ class TestUtils {
    * bootstrapping test.dart.
    */
   static Path get dartTestExecutable {
-    var path = '${TestUtils.dartDir()}/tools/testing/bin/'
+    var path = '$dartDir/tools/testing/bin/'
         '${Platform.operatingSystem}/dart';
     if (Platform.operatingSystem == 'windows') {
       path = '$path.exe';

@@ -38,7 +38,6 @@ class SocketServer {
     }
     analysisServer = new AnalysisServer(serverChannel);
     _initializeHandlers(analysisServer);
-    analysisServer.run();
   }
 
   /**

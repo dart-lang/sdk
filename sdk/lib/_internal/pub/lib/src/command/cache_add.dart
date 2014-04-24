@@ -78,7 +78,7 @@ class CacheAddCommand extends PubCommand {
           }
 
           // Download it.
-          return cache.download(id);
+          return source.downloadToSystemCache(id);
         });
       }
 

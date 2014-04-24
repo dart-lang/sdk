@@ -270,8 +270,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     Uri sdk = useSdk ?
         nativeDirectoryToUri(buildDir).resolve('dart-sdk/') :
-        nativeDirectoryToUri(TestUtils.dartDir().toNativePath())
-                                                .resolve('sdk/');
+        nativeDirectoryToUri(TestUtils.dartDir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
         ..add(artifact.filename);

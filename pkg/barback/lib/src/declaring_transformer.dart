@@ -21,5 +21,8 @@ abstract class DeclaringTransformer {
   /// First, instead of having access to the primary input's contents, it only
   /// has access to its id. Second, instead of emitting [Asset]s, it just emits
   /// [AssetId]s through [transform.addOutputId].
-  Future declareOutputs(DeclaringTransform transform);
+  ///
+  /// If this does asynchronous work, it should return a [Future] that completes
+  /// once it's finished.
+  declareOutputs(DeclaringTransform transform);
 }

@@ -1050,8 +1050,12 @@ class Class : public Object {
 
   // Evaluate the given expression as if it appeared in a static
   // method of this class and return the resulting value, or an
-  // error object if evaluating the expression fails.
-  RawObject* Evaluate(const String& expr) const;
+  // error object if evaluating the expression fails. The method has
+  // the formal parameters given in param_names, and is invoked with
+  // the argument values given in param_values.
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values) const;
 
   RawError* EnsureIsFinalized(Isolate* isolate) const;
 
@@ -2542,7 +2546,14 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
-  RawObject* Evaluate(const String& expr) const;
+  // Evaluate the given expression as if it appeared in an top-level
+  // method of this library and return the resulting value, or an
+  // error object if evaluating the expression fails. The method has
+  // the formal parameters given in param_names, and is invoked with
+  // the argument values given in param_values.
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values) const;
 
   // Library scope name dictionary.
   //
@@ -2637,6 +2648,13 @@ class Library : public Object {
   }
   void set_debuggable(bool value) const {
     raw_ptr()->debuggable_ = value;
+  }
+
+  bool is_dart_scheme() const {
+    return raw_ptr()->is_dart_scheme_;
+  }
+  void set_is_dart_scheme(bool value) const {
+    raw_ptr()->is_dart_scheme_ = value;
   }
 
   bool IsCoreLibrary() const {
@@ -4055,8 +4073,12 @@ class Instance : public Object {
 
   // Evaluate the given expression as if it appeared in an instance
   // method of this instance and return the resulting value, or an
-  // error object if evaluating the expression fails.
-  RawObject* Evaluate(const String& expr) const;
+  // error object if evaluating the expression fails. The method has
+  // the formal parameters given in param_names, and is invoked with
+  // the argument values given in param_values.
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
@@ -6469,6 +6491,55 @@ class Closure : public AllStatic {
 };
 
 
+class Capability : public Instance {
+ public:
+  uint64_t Id() const { return raw_ptr()->id_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawCapability));
+  }
+  static RawCapability* New(uint64_t id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Capability, Instance);
+  friend class Class;
+};
+
+
+class ReceivePort : public Instance {
+ public:
+  RawSendPort* send_port() const { return raw_ptr()->send_port_; }
+  Dart_Port Id() const { return send_port()->ptr()->id_; }
+
+  RawInstance* handler() const { return raw_ptr()->handler_; }
+  void set_handler(const Instance& value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawReceivePort));
+  }
+  static RawReceivePort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
+  friend class Class;
+};
+
+
+class SendPort : public Instance {
+ public:
+  Dart_Port Id() const { return raw_ptr()->id_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSendPort));
+  }
+  static RawSendPort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);
+  friend class Class;
+};
+
+
 // Internal stacktrace object used in exceptions for printing stack traces.
 class Stacktrace : public Instance {
  public:
@@ -6497,7 +6568,10 @@ class Stacktrace : public Instance {
                             Heap::Space space = Heap::kNew);
 
   RawString* FullStacktrace() const;
-  const char* ToCStringInternal(intptr_t* frame_index) const;
+
+  // The argument 'max_frames' limits the number of printed frames.
+  const char* ToCStringInternal(intptr_t* frame_index,
+                                intptr_t max_frames = kMaxInt32) const;
 
  private:
   void set_code_array(const Array& code_array) const;

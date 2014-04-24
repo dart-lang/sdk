@@ -5,16 +5,25 @@
 </head>
 <polymer-element name="heap-map" extends="observatory-element">
 <template>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .hover {
+      position: fixed;
+      z-index: 999;
+      width: 100%;
+      background: #ffffff;
+    }
+  </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
-  <div class="row">
+  <div class="hover">
     <p style="text-align:center">{{ status }}</p>
   </div>
-  <div class="row">
+  <div class="flex-row">
     <canvas id="fragmentation" width="1px" height="1px"></canvas>
   </div>
 </template>

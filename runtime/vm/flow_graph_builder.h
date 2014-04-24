@@ -143,14 +143,15 @@ class FlowGraphBuilder: public ValueObject {
   FlowGraphBuilder(ParsedFunction* parsed_function,
                    const Array& ic_data_array,
                    InlineExitCollector* exit_collector,
-                   intptr_t osr_id);
+                   intptr_t osr_id,
+                   bool is_optimizing);
 
   FlowGraph* BuildGraph();
 
   ParsedFunction* parsed_function() const { return parsed_function_; }
   const Array& ic_data_array() const { return ic_data_array_; }
 
-  void Bailout(const char* reason);
+  void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   void SetInitialBlockId(intptr_t id) { last_used_block_id_ = id; }
@@ -183,6 +184,8 @@ class FlowGraphBuilder: public ValueObject {
 
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
+
+  bool is_optimizing() const { return is_optimizing_; }
 
   ZoneGrowableArray<const Field*>* guarded_fields() const {
     return guarded_fields_;
@@ -241,6 +244,10 @@ class FlowGraphBuilder: public ValueObject {
   // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
+
+  // The graph is being rebuilt for the optimizing compiler.
+  // Do not generate a different graph based on this flag.
+  const bool is_optimizing_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -434,6 +441,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
  private:
   friend class TempLocalScope;  // For ReturnDefinition.
 
+  // Helper to drop the result value.
+  virtual void ReturnValue(Value* value) {
+    Do(new DropTempsInstr(0, value));
+  }
+
   // Specify a definition of the final result.  Adds the definition to
   // the graph, but normally overridden in subclasses.
   virtual void ReturnDefinition(Definition* definition) {
@@ -491,9 +503,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void ReturnDefinition(Definition* definition) {
     ReturnValue(Bind(definition));
   }
-
-  virtual void BuildTypeTest(ComparisonNode* node);
-  virtual void BuildTypeCast(ComparisonNode* node);
 };
 
 

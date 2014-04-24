@@ -121,16 +121,16 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
 
-  // If the message is in band we lookup the receive port to dispatch to.  If
-  // the receive port is closed, we drop the message without deserializing it.
-  Object& receive_port = Object::Handle();
+  // If the message is in band we lookup the handler to dispatch to.  If the
+  // receive port was closed, we drop the message without deserializing it.
+  Object& msg_handler = Object::Handle();
   if (!message->IsOOB()) {
-    receive_port = DartLibraryCalls::LookupReceivePort(message->dest_port());
-    if (receive_port.IsError()) {
+    msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
+    if (msg_handler.IsError()) {
       return ProcessUnhandledException(Object::null_instance(),
-                                       Error::Cast(receive_port));
+                                       Error::Cast(msg_handler));
     }
-    if (receive_port.IsNull()) {
+    if (msg_handler.IsNull()) {
       delete message;
       return true;
     }
@@ -162,7 +162,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     Service::HandleIsolateMessage(isolate_, msg);
   } else {
     const Object& result = Object::Handle(
-        DartLibraryCalls::HandleMessage(receive_port, msg));
+        DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
       success = ProcessUnhandledException(msg, Error::Cast(result));
     } else {

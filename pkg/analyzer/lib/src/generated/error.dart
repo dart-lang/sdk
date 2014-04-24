@@ -192,7 +192,7 @@ class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
 class AngularCode extends Enum<AngularCode> implements ErrorCode {
   static const AngularCode CANNOT_PARSE_SELECTOR = const AngularCode('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
 
-  static const AngularCode INVALID_FILTER_NAME = const AngularCode('INVALID_FILTER_NAME', 1, "Filter name must be a simple identifier");
+  static const AngularCode INVALID_FORMATTER_NAME = const AngularCode('INVALID_FORMATTER_NAME', 1, "Formatter name must be a simple identifier");
 
   static const AngularCode INVALID_PROPERTY_KIND = const AngularCode('INVALID_PROPERTY_KIND', 2, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
 
@@ -210,7 +210,7 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
 
   static const AngularCode INVALID_URI = const AngularCode('INVALID_URI', 9, "Invalid URI syntax: '%s'");
 
-  static const AngularCode MISSING_FILTER_COLON = const AngularCode('MISSING_FILTER_COLON', 10, "Missing ':' before filter argument");
+  static const AngularCode MISSING_FORMATTER_COLON = const AngularCode('MISSING_FORMATTER_COLON', 10, "Missing ':' before formatter argument");
 
   static const AngularCode MISSING_NAME = const AngularCode('MISSING_NAME', 11, "Argument 'name' must be provided");
 
@@ -222,7 +222,7 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
 
   static const List<AngularCode> values = const [
       CANNOT_PARSE_SELECTOR,
-      INVALID_FILTER_NAME,
+      INVALID_FORMATTER_NAME,
       INVALID_PROPERTY_KIND,
       INVALID_PROPERTY_FIELD,
       INVALID_PROPERTY_MAP,
@@ -231,7 +231,7 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
       INVALID_REPEAT_SYNTAX,
       INVALID_REPEAT_ITEM_SYNTAX,
       INVALID_URI,
-      MISSING_FILTER_COLON,
+      MISSING_FORMATTER_COLON,
       MISSING_NAME,
       MISSING_PUBLISH_AS,
       MISSING_SELECTOR,

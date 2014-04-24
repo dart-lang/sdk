@@ -1175,7 +1175,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   __ Comment("Edge counter");
   __ LoadObject(R0, counter);
   __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
-  __ adds(IP, IP, ShifterOperand(Smi::RawValue(1)));
+  __ add(IP, IP, ShifterOperand(Smi::RawValue(1)));
   __ str(IP, FieldAddress(R0, Array::element_offset(0)));
 }
 

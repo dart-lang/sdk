@@ -1004,7 +1004,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
 
   @override
   void visitExpression(Expression expression) {
-    // NgFilter
+    // Formatter
     if (expression is SimpleIdentifier) {
       SimpleIdentifier identifier = expression;
       Element element = identifier.bestElement;
@@ -2185,8 +2185,8 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
         if (object is AngularComponentElement) {
           _indexComponent(object);
         }
-        if (object is AngularDirectiveElement) {
-          AngularDirectiveElement directive = object;
+        if (object is AngularDecoratorElement) {
+          AngularDecoratorElement directive = object;
           _indexDirective(directive);
         }
       }
@@ -2202,7 +2202,7 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
     _indexProperties(component.properties);
   }
 
-  void _indexDirective(AngularDirectiveElement directive) {
+  void _indexDirective(AngularDecoratorElement directive) {
     _indexProperties(directive.properties);
   }
 

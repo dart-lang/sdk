@@ -22,6 +22,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(int, reoptimization_counter_threshold);
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -161,7 +164,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  UNIMPLEMENTED();
+  if (is_optimizing()) {
+    return;
+  }
+  Definition* defn = instr->AsDefinition();
+  if ((defn != NULL) && defn->is_used()) {
+    __ Push(defn->locs()->out(0).reg());
+  }
 }
 
 
@@ -181,12 +190,165 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 
 void FlowGraphCompiler::EmitFrameEntry() {
-  UNIMPLEMENTED();
+  const Function& function = parsed_function().function();
+  Register new_pp = kNoRegister;
+  if (CanOptimizeFunction() &&
+      function.IsOptimizable() &&
+      (!is_optimizing() || may_reoptimize())) {
+    const Register function_reg = R6;
+    new_pp = R13;
+
+    // Set up pool pointer in new_pp.
+    __ LoadPoolPointer(new_pp);
+
+    // Load function object using the callee's pool pointer.
+    __ LoadObject(function_reg, function, new_pp);
+
+    // Patch point is after the eventually inlined function object.
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                         Isolate::kNoDeoptId,
+                         0);  // No token position.
+    intptr_t threshold = FLAG_optimization_counter_threshold;
+    __ LoadFieldFromOffset(R7, function_reg, Function::usage_counter_offset());
+    if (is_optimizing()) {
+      // Reoptimization of an optimized function is triggered by counting in
+      // IC stubs, but not at the entry of the function.
+      threshold = FLAG_reoptimization_counter_threshold;
+    } else {
+      __ add(R7, R7, Operand(1));
+      __ StoreFieldToOffset(R7, function_reg, Function::usage_counter_offset());
+    }
+    __ CompareImmediate(R7, threshold, new_pp);
+    ASSERT(function_reg == R6);
+    Label dont_optimize;
+    __ b(&dont_optimize, LT);
+    __ Branch(&StubCode::OptimizeFunctionLabel(), new_pp);
+    __ Bind(&dont_optimize);
+  } else if (!flow_graph().IsCompiledForOsr()) {
+    // We have to load the PP here too because a load of an external label
+    // may be patched at the AddCurrentDescriptor below.
+    new_pp = R13;
+
+    __ LoadPoolPointer(new_pp);
+
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                         Isolate::kNoDeoptId,
+                         0);  // No token position.
+  }
+  __ Comment("Enter frame");
+  if (flow_graph().IsCompiledForOsr()) {
+    intptr_t extra_slots = StackSize()
+        - flow_graph().num_stack_locals()
+        - flow_graph().num_copied_params();
+    ASSERT(extra_slots >= 0);
+    __ EnterOsrFrame(extra_slots * kWordSize, new_pp);
+  } else {
+    ASSERT(StackSize() >= 0);
+    __ EnterDartFrameWithInfo(StackSize() * kWordSize, new_pp);
+  }
 }
 
 
+// Input parameters:
+//   LR: return address.
+//   SP: address of last argument.
+//   FP: caller's frame pointer.
+//   PP: caller's pool pointer.
+//   R5: ic-data.
+//   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
-  UNIMPLEMENTED();
+  InitCompiler();
+
+  TryIntrinsify();
+
+  EmitFrameEntry();
+
+  const Function& function = parsed_function().function();
+
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_copied_params = parsed_function().num_copied_params();
+  const int num_locals = parsed_function().num_stack_locals();
+
+  // We check the number of passed arguments when we have to copy them due to
+  // the presence of optional parameters.
+  // No such checking code is generated if only fixed parameters are declared,
+  // unless we are in debug mode or unless we are compiling a closure.
+  if (num_copied_params == 0) {
+#ifdef DEBUG
+    ASSERT(!parsed_function().function().HasOptionalParameters());
+    const bool check_arguments = !flow_graph().IsCompiledForOsr();
+#else
+    const bool check_arguments =
+        function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
+#endif
+    if (check_arguments) {
+      __ Comment("Check argument count");
+      // Check that exactly num_fixed arguments are passed in.
+      Label correct_num_arguments, wrong_num_arguments;
+      __ LoadFieldFromOffset(R0, R4, ArgumentsDescriptor::count_offset());
+      __ CompareImmediate(R0, Smi::RawValue(num_fixed_params), PP);
+      __ b(&wrong_num_arguments, NE);
+      __ LoadFieldFromOffset(R1, R4,
+            ArgumentsDescriptor::positional_count_offset());
+      __ CompareRegisters(R0, R1);
+      __ b(&correct_num_arguments, EQ);
+      __ Bind(&wrong_num_arguments);
+      if (function.IsClosureFunction()) {
+        // Invoke noSuchMethod function passing the original function name.
+        // For closure functions, use "call" as the original name.
+        const String& name =
+            String::Handle(function.IsClosureFunction()
+                             ? Symbols::Call().raw()
+                             : function.name());
+        const int kNumArgsChecked = 1;
+        const ICData& ic_data = ICData::ZoneHandle(
+            ICData::New(function, name, Object::empty_array(),
+                        Isolate::kNoDeoptId, kNumArgsChecked));
+        __ LoadObject(R5, ic_data, PP);
+        __ LeaveDartFrame();  // The arguments are still on the stack.
+        __ Branch(&StubCode::CallNoSuchMethodFunctionLabel(), PP);
+        // The noSuchMethod call may return to the caller, but not here.
+        __ hlt(0);
+      } else {
+        __ Stop("Wrong number of arguments");
+      }
+      __ Bind(&correct_num_arguments);
+    }
+  } else if (!flow_graph().IsCompiledForOsr()) {
+    CopyParameters();
+  }
+
+  // In unoptimized code, initialize (non-argument) stack allocated slots to
+  // null.
+  if (!is_optimizing() && (num_locals > 0)) {
+    __ Comment("Initialize spill slots");
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
+    __ LoadObject(R0, Object::null_object(), PP);
+    for (intptr_t i = 0; i < num_locals; ++i) {
+      // Subtract index i (locals lie at lower addresses than FP).
+      __ StoreToOffset(R0, FP, (slot_base - i) * kWordSize);
+    }
+  }
+
+  VisitBlocks();
+
+  __ hlt(0);
+  GenerateDeferredCode();
+  // Emit function patching code. This will be swapped with the first 3
+  // instructions at entry point.
+  AddCurrentDescriptor(PcDescriptors::kPatchCode,
+                       Isolate::kNoDeoptId,
+                       0);  // No token position.
+  // This is patched up to a point in FrameEntry where the PP for the
+  // current function is in R13 instead of PP.
+  __ BranchPatchable(&StubCode::FixCallersTargetLabel(), R13);
+
+  AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
+                       Isolate::kNoDeoptId,
+                       0);  // No token position.
+  // TODO(zra): Can I use a normal BranchPatchable here? Probably have to change
+  // the CodePatcher.
+  __ BranchFixed(&StubCode::DeoptimizeLazyLabel());
 }
 
 
@@ -212,12 +374,37 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ CallRuntime(entry, argument_count);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+    }
+  }
 }
 
 
 void FlowGraphCompiler::EmitEdgeCounter() {
-  UNIMPLEMENTED();
+  // We do not check for overflow when incrementing the edge counter.  The
+  // function should normally be optimized long before the counter can
+  // overflow; and though we do not reset the counters when we optimize or
+  // deoptimize, there is a bound on the number of
+  // optimization/deoptimization cycles we will attempt.
+  const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+  counter.SetAt(0, Smi::Handle(Smi::New(0)));
+  __ Comment("Edge counter");
+  __ LoadObject(R0, counter, PP);
+  __ LoadFieldFromOffset(TMP, R0, Array::element_offset(0));
+  __ add(TMP, TMP, Operand(Smi::RawValue(1)));
+  __ StoreFieldToOffset(TMP, R0, Array::element_offset(0));
 }
 
 
@@ -293,12 +480,30 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
-  UNIMPLEMENTED();
+  // TODO(zra): Save live FPU Registers.
+
+  // Store general purpose registers with the highest register number at the
+  // lowest address.
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ Push(reg);
+    }
+  }
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  UNIMPLEMENTED();
+  // General purpose registers have the highest register number at the
+  // lowest address.
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ Pop(reg);
+    }
+  }
+
+  // TODO(zra): Restore live FPU registers.
 }
 
 

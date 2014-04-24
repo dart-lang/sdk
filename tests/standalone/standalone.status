@@ -33,6 +33,9 @@ io/directory_fuzz_test: Skip
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
+[ $runtime == vm && $system == windows && $mode == debug ]
+io/raw_datagram_socket_test: Crash  # Issue 18402
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921

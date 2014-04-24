@@ -1649,10 +1649,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         methodName = backend.namer.getNameOfInstanceMember(superMethod);
       }
-      js.PropertyAccess method =
-          backend.namer.elementAccess(superClass)['prototype'][methodName];
-      push(jsPropertyCall(
-          method, "call", visitArguments(node.inputs, start: 0)), node);
+      push(js.js('#.prototype.#.call(#)', [
+          backend.namer.elementAccess(superClass),
+          methodName, visitArguments(node.inputs, start: 0)]),
+          node);
     }
   }
 
@@ -1725,22 +1725,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeign(HForeign node) {
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
-      if (!inputs.isEmpty) {
-        compiler.internalError(node, "Foreign statement with inputs.");
+      List<js.Expression> interpolatedExpressions = <js.Expression>[];
+      for (int i = 0; i < inputs.length; i++) {
+        use(inputs[i]);
+        interpolatedExpressions.add(pop());
       }
-      pushStatement(node.codeAst, node);
+      pushStatement(node.codeTemplate.instantiate(interpolatedExpressions));
     } else {
-      if (!inputs.isEmpty) {
-        List<js.Expression> interpolatedExpressions = <js.Expression>[];
-        for (int i = 0; i < inputs.length; i++) {
-          use(inputs[i]);
-          interpolatedExpressions.add(pop());
-        }
-        var visitor = new js.UninterpolateJSExpression(interpolatedExpressions);
-        push(visitor.visit(node.codeAst), node);
-      } else {
-        push(node.codeAst, node);
+      List<js.Expression> interpolatedExpressions = <js.Expression>[];
+      for (int i = 0; i < inputs.length; i++) {
+        use(inputs[i]);
+        interpolatedExpressions.add(pop());
       }
+      push(node.codeTemplate.instantiate(interpolatedExpressions));
     }
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
@@ -2623,13 +2620,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!optionalParameterTypes.isEmpty) {
         arguments.add(new js.ArrayInitializer.from(optionalParameterTypes));
       }
-      push(accessHelper('buildFunctionType')(arguments));
+      push(js.js('#(#)', [accessHelper('buildFunctionType'), arguments]));
     } else {
       var arguments = [
           returnType,
           new js.ArrayInitializer.from(parameterTypes),
           new js.ObjectInitializer(namedParameters)];
-      push(accessHelper('buildNamedFunctionType')(arguments));
+      push(js.js('#(#)', [accessHelper('buildNamedFunctionType'), arguments]));
     }
   }
 
@@ -2644,17 +2641,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         int index = RuntimeTypes.getTypeVariableIndex(element);
         js.Expression receiver = pop();
         js.Expression helper = backend.namer.elementAccess(helperElement);
-        push(helper(js.js(r'#.$builtinTypeInfo && #.$builtinTypeInfo[#]',
-                          [receiver, receiver, js.js.toExpression(index)])));
+        push(js.js(r'#(#.$builtinTypeInfo && #.$builtinTypeInfo[#])',
+                [helper, receiver, receiver, js.js.number(index)]));
       } else {
         backend.emitter.registerReadTypeVariable(element);
-        push(
-            js.js('#.${backend.namer.readTypeVariableName(element)}()', pop()));
+        push(js.js('#.#()',
+                [pop(), backend.namer.readTypeVariableName(element)]));
       }
     } else {
-      push(
+      push(js.js('#(#)', [
           backend.namer.elementAccess(
-              compiler.findHelper('convertRtiToRuntimeType'))(pop()));
+              compiler.findHelper('convertRtiToRuntimeType')),
+          pop()]));
     }
   }
 
@@ -2671,15 +2669,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer.from(typeArguments));
     }
-    push(accessHelper('buildInterfaceType')(arguments));
+    push(js.js('#(#)', [accessHelper('buildInterfaceType'), arguments]));
   }
 
   void visitVoidType(HVoidType node) {
-    push(accessHelper('getVoidRuntimeType')());
+    push(js.js('#()', accessHelper('getVoidRuntimeType')));
   }
 
   void visitDynamicType(HDynamicType node) {
-    push(accessHelper('getDynamicRuntimeType')());
+    push(js.js('#()', accessHelper('getDynamicRuntimeType')));
   }
 
   js.PropertyAccess accessHelper(String name) {

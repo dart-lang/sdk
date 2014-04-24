@@ -1296,7 +1296,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.kind() == RawFunction::kConstructor) {
+    if (func.is_visible() && func.kind() == RawFunction::kConstructor) {
       constructor_mirror = CreateMethodMirror(func, owner_mirror);
       constructor_mirrors.Add(constructor_mirror);
     }
@@ -1445,7 +1445,9 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
     }
   }
   ASSERT(!ctxt_library.IsNull());
-  return ctxt_library.Evaluate(expression);
+  return ctxt_library.Evaluate(expression,
+                               Array::empty_array(),
+                               Array::empty_array());
 }
 
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {

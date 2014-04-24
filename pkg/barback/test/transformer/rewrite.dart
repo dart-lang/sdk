@@ -25,8 +25,7 @@ class RewriteTransformer extends MockTransformer {
   /// created for each input.
   RewriteTransformer(this.from, this.to);
 
-  Future<bool> doIsPrimary(AssetId id) =>
-      new Future.value(id.extension == ".$from");
+  bool doIsPrimary(AssetId id) => id.extension == ".$from";
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((input) {

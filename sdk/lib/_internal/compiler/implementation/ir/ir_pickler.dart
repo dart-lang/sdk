@@ -36,7 +36,7 @@ part 'ir_unpickler.dart';
  *            | byte(STRING_UTF8) int(length) {byte(utf8)}
  *
  * node      ::= byte(NODE_CONSTANT) constant node(next)
- *             | byte(NODE_LET_CONT) node(next) node(body)
+ *             | byte(NODE_LET_CONT) int(parameter count) node(next) node(body)
  *             | byte(NODE_INVOKE_STATIC) element selector
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_INVOKE_CONTINUATION) reference(continuation)
@@ -381,11 +381,12 @@ class Pickler extends ir.Visitor {
     // LetCont contexts is in the continuation body, the continuation should be
     // written second.
     writeByte(Pickles.NODE_LET_CONT);
+    writeInt(node.continuation.parameters.length);
     // The continuation is bound in the body.
     recordForBackReference(node.continuation);
     node.body.accept(this);
-    // The continuation parameter is bound in the continuation's body.
-    recordForBackReference(node.continuation.parameter);
+    // The continuation parameters are bound in the continuation's body.
+    node.continuation.parameters.forEach(recordForBackReference);
     node.continuation.body.accept(this);
   }
 

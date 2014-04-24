@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when test is ready to enable.
-#include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
-
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/os.h"
@@ -21,10 +17,10 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 #if defined(USING_SIMULATOR)
 #define test_code(ctx, value, growable_array)                                  \
   Simulator::Current()->Call(                                                  \
-      bit_cast<int32_t, uword>(test->entry()),                                 \
-      reinterpret_cast<int32_t>(ctx),                                          \
-      reinterpret_cast<int32_t>(value),                                        \
-      reinterpret_cast<int32_t>(growable_array),                               \
+      bit_cast<intptr_t, uword>(test->entry()),                                \
+      reinterpret_cast<intptr_t>(ctx),                                         \
+      reinterpret_cast<intptr_t>(value),                                       \
+      reinterpret_cast<intptr_t>(growable_array),                              \
       0)
 #else
   typedef void (*StoreData)(RawContext* ctx,
@@ -77,5 +73,3 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(TARGET_ARCH_ARM64)

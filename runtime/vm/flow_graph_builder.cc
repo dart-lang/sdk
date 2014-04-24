@@ -204,7 +204,8 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
-                                   intptr_t osr_id)
+                                   intptr_t osr_id,
+                                   bool is_optimizing)
   : parsed_function_(parsed_function),
     ic_data_array_(ic_data_array),
     num_copied_params_(parsed_function->num_copied_params()),
@@ -223,7 +224,8 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     temp_count_(0),
     args_pushed_(0),
     nesting_stack_(NULL),
-    osr_id_(osr_id) { }
+    osr_id_(osr_id),
+    is_optimizing_(is_optimizing) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -1381,14 +1383,6 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
-  EffectGraphVisitor for_left_value(owner());
-  node->left()->Visit(&for_left_value);
-  Append(for_left_value);
-}
-
-
-void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
-  ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   const bool negate_result = (node->kind() == Token::kISNOT);
@@ -1464,27 +1458,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 
 
 void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
-  ASSERT(Token::IsTypeCastOperator(node->kind()));
-  const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-  ValueGraphVisitor for_value(owner());
-  node->left()->Visit(&for_value);
-  Append(for_value);
-  const String& dst_name = String::ZoneHandle(
-      Symbols::New(Exceptions::kCastErrorDstName));
-  if (CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
-    // Drop the value and 0 additional temporaries.
-    Do(new DropTempsInstr(0, for_value.value()));
-  } else {
-    Do(BuildAssertAssignable(node->token_pos(),
-                             for_value.value(),
-                             type,
-                             dst_name));
-  }
-}
-
-
-void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
@@ -3875,7 +3848,7 @@ void FlowGraphBuilder::PruneUnreachable() {
 }
 
 
-void FlowGraphBuilder::Bailout(const char* reason) {
+void FlowGraphBuilder::Bailout(const char* reason) const {
   const Function& function = parsed_function_->function();
   const Error& error = Error::Handle(
       LanguageError::NewFormatted(Error::Handle(),  // No previous error.
@@ -3888,6 +3861,5 @@ void FlowGraphBuilder::Bailout(const char* reason) {
                                   reason));
   Isolate::Current()->long_jump_base()->Jump(1, error);
 }
-
 
 }  // namespace dart

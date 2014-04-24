@@ -36,13 +36,10 @@ third_party/html5lib/test/tokenizer_test: Pass, Timeout
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
-docgen/test/*: Skip # Issue 17003
+docgen/test/*: Skip # Too slow
 polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
-
-[ $runtime == vm ]
-docgen/test/typedef_test: RuntimeError # Issue 18352
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -214,6 +211,7 @@ http/test/multipart_test: Fail, OK # Uses dart:io.
 http/test/request_test: Fail, OK # Uses dart:io.
 http/test/response_test: Fail, OK # Uses dart:io.
 http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.

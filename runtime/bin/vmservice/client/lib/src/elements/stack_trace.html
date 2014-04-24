@@ -5,16 +5,15 @@
 </head>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="css/shared.css" />
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
     <template if="{{ trace['members'].isEmpty }}">
-      <div class="col-md-1"></div>
-      <div class="col-md-11">
+      <div class="content">
         <em>No stack</em>
       </div>
     </template>

@@ -3,13 +3,14 @@
 <link rel="import" href="service_ref.html">
 </head>
 <polymer-element name="function-ref" extends="service-ref">
-  <template><!-- These comments are here to allow newlines.
-     --><template if="{{ qualified && !hasParent && hasClass }}"><!--
+  <template><link rel="stylesheet" href="css/shared.css" /><!-- These comments are here to allow newlines.
+     --><template if="{{ isDart }}"><!--
+       --><template if="{{ qualified && !hasParent && hasClass }}"><!--
        --><class-ref ref="{{ ref['owner'] }}"></class-ref>.</template><!--
      --><template if="{{ qualified && hasParent }}"><!--
        --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
           </function-ref>.<!--
      --></template><a href="{{ url }}">{{ name }}</a><!--
-  --></template>
+  --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
 <script type="application/dart" src="function_ref.dart"></script>
 </polymer-element>

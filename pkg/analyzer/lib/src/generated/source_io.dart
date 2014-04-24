@@ -95,7 +95,7 @@ class FileBasedSource implements Source {
   FileBasedSource.con2(this.file, this.uriKind);
 
   @override
-  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == (object as FileBasedSource).file;
+  bool operator ==(Object object) => object != null && object is FileBasedSource && file == object.file;
 
   @override
   bool exists() => file.isFile();

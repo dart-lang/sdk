@@ -161,16 +161,12 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
 
-  // Returns the receive port if it is in the port map and null otherwise.
-  // On failure, a RawError.
-  static RawObject* LookupReceivePort(Dart_Port port_id);
+  // Returns the handler if one has been registered for this port id.
+  static RawObject* LookupHandler(Dart_Port port_id);
 
   // Returns null on success, a RawError on failure.
-  static RawObject* HandleMessage(const Object& receive_port,
+  static RawObject* HandleMessage(const Object& handler,
                                   const Instance& dart_message);
-
-  // On success returns new SendPort, on failure returns a RawError.
-  static RawObject* NewSendPort(Dart_Port port_id);
 
   // map[key] = value;
   //
@@ -178,14 +174,6 @@ class DartLibraryCalls : public AllStatic {
   static RawObject* MapSetAt(const Instance& map,
                              const Instance& key,
                              const Instance& value);
-
-  // Gets the _id field of a SendPort/ReceivePort.
-  //
-  // Returns the value of _id on success, a RawError on failure.
-  static RawObject* PortGetId(const Instance& port);
-
-  static bool IsSendPort(const Instance& obj);
-  static bool IsReceivePort(const Instance& obj);
 };
 
 }  // namespace dart

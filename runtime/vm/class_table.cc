@@ -221,15 +221,11 @@ void ClassHeapStats::ResetAtOldGC() {
 
 
 void ClassHeapStats::UpdateSize(intptr_t instance_size) {
-  ASSERT(instance_size > 0);
-  // For classes with fixed instance size we do not emit code to update
-  // the size statistics. Update them here.
-  pre_gc.old_size = pre_gc.old_count * instance_size;
-  pre_gc.new_size = pre_gc.new_count * instance_size;
-  post_gc.old_size = post_gc.old_count * instance_size;
-  post_gc.new_size = post_gc.new_count * instance_size;
-  recent.new_size = recent.new_count * instance_size;
-  recent.old_size = recent.old_count * instance_size;
+  pre_gc.UpdateSize(instance_size);
+  post_gc.UpdateSize(instance_size);
+  recent.UpdateSize(instance_size);
+  accumulated.UpdateSize(instance_size);
+  last_reset.UpdateSize(instance_size);
 }
 
 

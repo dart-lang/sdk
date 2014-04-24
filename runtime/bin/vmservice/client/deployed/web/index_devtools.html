@@ -3,7 +3,7 @@
 
   <title>Dart VM Observatory</title>
   <meta charset="utf-8">
-  <link type="text/css" rel="stylesheet" href="bootstrap_css/css/bootstrap.min.css">
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script src="packages/browser/interop.js"></script>
   
@@ -15,6 +15,7 @@
 </polymer-element>
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <style>
       nav ul {
         display: inline-table;
@@ -58,10 +59,10 @@
       .menu ul {
         display: none;
         position: absolute;
-        top: 100%;
+        top: 98%;
         list-style: none;
+        margin: 0;
         padding: 0;
-        margin-left: 0;
         width: auto;
         z-index: 10;
         font: 400 16px 'Montserrat', sans-serif;
@@ -174,7 +175,7 @@
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>                     
+      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
@@ -200,16 +201,16 @@
 
 <polymer-element name="breakpoint-list" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
     <template if="{{ msg['breakpoints'].isEmpty }}">
-      <div class="panel panel-warning">
-        <div class="panel-body">No breakpoints</div>
+      <div>
+        <div>No breakpoints</div>
       </div>
     </template>
     <template if="{{ msg['breakpoints'].isNotEmpty }}">
@@ -228,7 +229,7 @@
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 
-<template><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+<template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css"><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
 
 
 </polymer-element>
@@ -274,20 +275,7 @@
 </polymer-element>
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
-    <style>
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <span>
       <template if="{{ isUnexpected(ref.serviceType) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
@@ -440,6 +428,7 @@
 
 <polymer-element name="field-ref" extends="service-ref">
   <template>
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <div>
       <template if="{{ ref['static'] }}">static</template>
       <template if="{{ ref['final'] }}">final</template>
@@ -457,51 +446,32 @@
   
 </polymer-element>
 <polymer-element name="function-ref" extends="service-ref">
-  <template><!-- These comments are here to allow newlines.
-     --><template if="{{ qualified &amp;&amp; !hasParent &amp;&amp; hasClass }}"><!--
+  <template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css"><!-- These comments are here to allow newlines.
+     --><template if="{{ isDart }}"><!--
+       --><template if="{{ qualified &amp;&amp; !hasParent &amp;&amp; hasClass }}"><!--
        --><class-ref ref="{{ ref['owner'] }}"></class-ref>.</template><!--
      --><template if="{{ qualified &amp;&amp; hasParent }}"><!--
        --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
           </function-ref>.<!--
      --></template><a href="{{ url }}">{{ name }}</a><!--
-  --></template>
+  --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
 
 </polymer-element>
 <polymer-element name="library-ref" extends="service-ref">
-<template>
+<template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <a href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element><polymer-element name="script-ref" extends="service-ref">
 <template>
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element>
 <polymer-element name="class-view" extends="observatory-element">
   <template>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
-
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
@@ -634,6 +604,7 @@
 </polymer-element>
 <polymer-element name="code-ref" extends="service-ref">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <template if="{{ code.isDartCode }}">
       <a href="{{ url }}">{{ name }}</a>
     </template>
@@ -644,39 +615,13 @@
 
 </polymer-element><polymer-element name="code-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      .monospace {
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: nowrap;
-      }
-    </style>
     <div class="content">
       <h1>Code for {{ code.name }}</h1>
       <div class="memberList">
@@ -710,19 +655,19 @@
     <hr>
     <div class="content">
       <template if="{{ code.hasDisassembly }}">
-        <div class="row">
-            <div class="col-md-2 memberHeader">Inclusive</div>
-            <div class="col-md-2 memberHeader">Exclusive</div>
-            <div class="col-md-2 memberHeader">Address</div>
-            <div class="col-md-6 memberHeader">Disassembly</div>
+        <div class="flex-row">
+            <div class="flex-item-fixed-2-12 memberHeader">Inclusive</div>
+            <div class="flex-item-fixed-2-12 memberHeader">Exclusive</div>
+            <div class="flex-item-fixed-2-12 memberHeader">Address</div>
+            <div class="flex-item-fixed-6-12 memberHeader">Disassembly</div>
         </div>
       </template>
       <template repeat="{{ instruction in code.instructions }}">
-        <div class="row">
-          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
-          <div class="col-md-6 monospace">{{ instruction.human }}</div>
+        <div class="flex-row">
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
+          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedAddress() }}</div>
+          <div class="flex-item-fixed-6-12 monospace">{{ instruction.human }}</div>
         </div>
       </template>
     </div>
@@ -743,19 +688,13 @@
   
 </polymer-element><polymer-element name="error-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">{{ error.kind }}</div>
-        <div class="panel-body">
-          <p>{{ error.message }}</p>
-        </div>
-      </div>
-    </div>
+    <div class="content">
+        <h1>{{ error.kind }}</h1>
+        <div class="well">{{ error.message }}</div>
     </div>
   </template>
   
@@ -788,27 +727,7 @@
 </polymer-element>
 <polymer-element name="field-view" extends="observatory-element">
   <template>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
 
     <nav-bar>
       <top-nav-menu></top-nav-menu>
@@ -939,28 +858,7 @@
 </polymer-element>
 <polymer-element name="function-view" extends="observatory-element">
   <template>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
-
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
@@ -1068,42 +966,57 @@
 </polymer-element>
 <polymer-element name="heap-map" extends="observatory-element">
 <template>
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+  <style>
+    .hover {
+      position: fixed;
+      z-index: 999;
+      width: 100%;
+      background: #ffffff;
+    }
+  </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
-  <div class="row">
+  <div class="hover">
     <p style="text-align:center">{{ status }}</p>
   </div>
-  <div class="row">
+  <div class="flex-row">
     <canvas id="fragmentation" width="1px" height="1px"></canvas>
   </div>
 </template>
 
 </polymer-element>
 <polymer-element name="isolate-ref" extends="service-ref">
-<template>
+<template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <a href="{{ url }}">{{ ref.name }}</a>
 </template>
 
 </polymer-element>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <div class="row">
-      <div class="col-md-1">
-        <img src="packages/observatory/src/elements/img/isolate_icon.png" class="img-polaroid">
-      </div>
-
-      <div class="col-md-1">{{ isolate.mainPort }}</div>
-
-      <div class="col-md-4">
-        <div class="row">
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <style>
+      .counters {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+      .counter {
+        margin: 10px;
+      }
+    </style>
+    <div class="flex-row">
+      <div class="flex-item-fixed-1-12"><img src="packages/observatory/src/elements/img/isolate_icon.png"></div>
+      <div class="flex-item-fixed-1-12">{{ isolate.mainPort }}</div>
+      <div class="flex-item-fixed-4-12">
+        <div class="flex-row">
           <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
-
-        <div class="row">
+        <div class="flex-row">
           <small>
             (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
             (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
@@ -1112,13 +1025,13 @@
         </div>
       </div>
 
-      <div class="col-md-2">
+      <div class="flex-item-fixed-2-12">
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
         ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
       </div>
-      <div class="col-md-2">
+      <div class="flex-item-fixed-2-12">
         <template if="{{ isolate.topFrame == null }}">
           idle
         </template>
@@ -1129,9 +1042,9 @@
       </div>
     </div>
 
-    <div class="content">
+    <div class="counters">
       <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+        <div class="counter">{{ key }} ({{ isolate.counters[key] }})</div>
       </template>
     </div>
 
@@ -1146,26 +1059,8 @@
 </polymer-element>
 <polymer-element name="isolate-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
       .sourceInset {
         padding-left: 15%;
         padding-right: 15%;
@@ -1362,6 +1257,7 @@
 </polymer-element>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
@@ -1370,28 +1266,6 @@
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
 
     <template if="{{ instance['error'] != null }}">
       <error-view error_obj="{{ instance['error'] }}"></error-view>
@@ -1529,27 +1403,7 @@
 </polymer-element>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
 
     <nav-bar>
       <top-nav-menu></top-nav-menu>
@@ -1752,6 +1606,7 @@
 </polymer-element>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
@@ -1759,77 +1614,170 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
+      .table {
+        border-collapse: collapse!important;
+        width: 100%;
+        margin-bottom: 20px
       }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .member, .memberHeader {
+      .table thead > tr > th,
+      .table tbody > tr > th,
+      .table tfoot > tr > th,
+      .table thead > tr > td,
+      .table tbody > tr > td,
+      .table tfoot > tr > td {
+        padding: 8px;
         vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
       }
-      .monospace {
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: nowrap;
+      .table thead > tr > th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom:2px solid #ddd;
       }
+
+      tr:hover > td {
+        background-color: #FFF3E3;
+      }
+      .rowColor0 {
+        background-color: #FFE9CC;
+      }
+      .rowColor1 {
+        background-color: #FFDEB2;
+      }
+      .rowColor2 {
+        background-color: #FFD399;
+      }
+      .rowColor3 {
+        background-color: #FFC87F;
+      }
+      .rowColor4 {
+        background-color: #FFBD66;
+      }
+      .rowColor5 {
+        background-color: #FFB24C;
+      }
+      .rowColor6 {
+        background-color: #FFA733;
+      }
+      .rowColor7 {
+        background-color: #FF9C19;
+      }
+      .rowColor8 {
+        background-color: #FF9100;
+      }
+
+      .tooltip {
+        display: block;
+        position: absolute;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+      }
+
+      tr:hover .tooltip {
+        display: block;
+        position: absolute;
+        top: 100%;
+        right: 100%;
+        visibility: visible;
+        z-index: 999;
+        width: 400px;
+        color: #ffffff;
+        background-color: #0489c3;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+        opacity: 1;
+      }
+
+      .white {
+        color: #ffffff;
+      }
+
     </style>
     <div class="content">
       <h1>Sampled CPU profile</h1>
-      <table>
-        <tbody><tr>
-          <td class="memberHeader">Timestamp</td>
-          <td class="member">{{ refreshTime }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample count</td>
-          <td class="member">{{ sampleCount }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample rate</td>
-          <td class="member">{{ sampleRate }} Hz</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Sample depth</td>
-          <td class="member">{{ sampleDepth }} stack frames</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Call graph tree</td>
-          <td class="member">
-            <input type="checkbox" checked="{{ callGraphChecked }}">
-          </td>
-         </tr><tr>
-          <td class="memberHeader">Display cutoff</td>
-          <td class="member">{{ displayCutoff }}</td>
-         </tr>
-         <tr>
-          <td class="memberHeader">Hide tags</td>
-          <td class="member">
-            <input type="checkbox" checked="{{ hideTagsChecked }}">
-          </td>
-         </tr>
-      </tbody></table>
+      <div class="memberList">
+        <div class="memberItem">
+         <div class="memberName">Timestamp</div>
+         <div class="memberValue">{{ refreshTime }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Time span</div>
+         <div class="memberValue">{{ timeSpan }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample count</div>
+         <div class="memberValue">{{ sampleCount }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample rate</div>
+         <div class="memberValue">{{ sampleRate }} Hz</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample depth</div>
+         <div class="memberValue">{{ sampleDepth }} stack frames</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Display cutoff</div>
+         <div class="memberValue">{{ displayCutoff }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Tags</div>
+         <div class="memberValue">
+          <select value="{{tagSelector}}">
+            <option value="uv">User &gt; VM</option>
+            <option value="u">User</option>
+            <option value="vu">VM &gt; User</option>
+            <option value="v">VM</option>
+            <option value="hide">None</option>
+          </select>
+         </div>
+        </div>
+      </div>
       <hr>
-      <table id="tableTree" class="table table-hover">
+      <table id="tableTree" class="table">
         <thead>
           <tr>
             <th>Method</th>
-            <th>Caller</th>
-            <th>Exclusive</th>
+            <th>Self</th>
           </tr>
         </thead>
         <tbody>
           <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
             <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
               <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
-              <code-ref ref="{{ row.code }}"></code-ref>
+              <div style="position: relative;display: inline">
+                {{row.columns[0]}}
+              </div>
+              <function-ref ref="{{ row.code.function }}"></function-ref>
             </td>
-            <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-            <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+            <td class="{{ coloring(row) }}" style="position: relative">
+              {{row.columns[1]}}
+              <div class="tooltip">
+                <div class="memberList">
+                  <div class="memberItem">
+                   <div class="memberName white">Kind</div>
+                   <div class="memberValue white">{{ row.tipKind }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Percent of Parent</div>
+                   <div class="memberValue white">{{ row.tipParent }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Sample Count</div>
+                   <div class="memberValue white">{{ row.tipTicks }} ({{ row.tipExclusive }})</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Approximate Execution Time</div>
+                   <div class="memberValue white">{{ row.tipTime }}</div>
+                  </div>
+                </div>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -1839,67 +1787,111 @@
 </polymer-element>
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+  <style>
+    .table {
+      border-collapse: collapse!important;
+      width: 100%;
+      margin-bottom: 20px
+      table-layout: fixed;
+    }
+    .table td:nth-of-type(1) {
+      width: 30%;
+    }
+    .th, .td {
+      padding: 8px;
+      vertical-align: top;
+    }
+    .table thead > tr > th {
+      vertical-align: bottom;
+      text-align: left;
+      border-bottom:2px solid #ddd;
+    }
+    .clickable {
+      color: #0489c3;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .clickable:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    #classtable tr:hover > td {
+      background-color: #F4C7C3;
+    }
+  </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
+    <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
 
-  <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
-  <div class="row">
-    <div id="newPieChart" class="col-md-4" style="height: 400px">
+  <div class="flex-row">
+    <div id="newPieChart" class="flex-item-fixed-4-12" style="height: 400px">
     </div>
-    <div id="newStatus" class="col-md-2">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>Collections</td>
-            <td>{{ formattedCollections(true) }}</td>
-          </tr>
-          <tr>
-            <td>Average Collection Time</td>
-            <td>{{ formattedAverage(true) }}</td>
-          </tr>
-          <tr>
-            <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(true) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="newStatus" class="flex-item-fixed-2-12">
+      <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Collections</div>
+            <div class="memberValue">{{ formattedCollections(true) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Average Collection Time</div>
+            <div class="memberValue">{{ formattedAverage(true) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberValue">{{ formattedTotalCollectionTime(true) }}</div>
+          </div>
+      </div>
     </div>
-    <div id="oldPieChart" class="col-md-4" style="height: 400px">
+    <div id="oldPieChart" class="flex-item-fixed-4-12" style="height: 400px">
     </div>
-    <div id="oldStatus" class="col-md-2">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>Collections</td>
-            <td>{{ formattedCollections(false) }}</td>
-          </tr>
-          <tr>
-            <td>Average Collection Time</td>
-            <td>{{ formattedAverage(false) }}</td>
-          </tr>
-          <tr>
-            <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(false) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="oldStatus" class="flex-item-fixed-2-12">
+      <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Collections</div>
+            <div class="memberValue">{{ formattedCollections(false) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Average Collection Time</div>
+            <div class="memberValue">{{ formattedAverage(false) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberValue">{{ formattedTotalCollectionTime(false) }}</div>
+          </div>
+      </div>
     </div>
   </div>
-  <div class="row">
-  <p class="col-md-2">Aggregate heap table</p>
-  </div>
-  <div class="row">
-    <div id="simpleTable" class="col-md-12" style="height: 800px"></div>
-  </div>
-  <div class="row">
-  <p class="col-md-2">Individual heap table</p>
-  </div>
-  <div class="row">
-    <div id="table" class="col-md-12" style="height: 800px"></div>
+  <div class="flex-row">
+    <table id="classtable" class="flex-item-fixed-12-12 table">
+      <thead>
+        <tr>
+          <th on-click="{{changeSort}}" class="clickable" title="Class">{{ classTable.getColumnLabel(0) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Size">{{ classTable.getColumnLabel(3) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Instances">{{ classTable.getColumnLabel(4) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Current Size">{{ classTable.getColumnLabel(5) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Total Current Instances">{{ classTable.getColumnLabel(6) }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template="" repeat="{{row in classTable.sortedRows }}">
+          <td><class-ref ref="{{ classTable.getValue(row, 0) }}"></class-ref></td>
+          <td title="{{ classTable.getValue(row, 1) }}">{{ classTable.getFormattedValue(row, 1) }}</td>
+          <td title="{{ classTable.getValue(row, 2) }}">{{ classTable.getFormattedValue(row, 2) }}</td>
+          <td title="{{ classTable.getValue(row, 3) }}">{{ classTable.getFormattedValue(row, 3) }}</td>
+          <td title="{{ classTable.getValue(row, 4) }}">{{ classTable.getFormattedValue(row, 4) }}</td>
+          <td title="{{ classTable.getValue(row, 5) }}">{{ classTable.getFormattedValue(row, 5) }}</td>
+          <td title="{{ classTable.getValue(row, 6) }}">{{ classTable.getFormattedValue(row, 6) }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -1930,63 +1922,48 @@
 </polymer-element>
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
-    <style>
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-    </style>
-    <div class="row">
-      <div class="col-md-1"></div>
-      <div class="col-md-1">
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <div class="flex-row">
+      <div class="flex-item-fixed-1-12">
+      </div>
+      <div class="flex-item-fixed-1-12">
         #{{ frame['depth'] }}
       </div>
-      <div class="col-md-9">
+      <div class="flex-item-fixed-9-12">
         <function-ref ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
-        </script-ref> )
+          ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
+          </script-ref> )
 
-        <curly-block>
-          <div class="memberList">
-            <template repeat="{{ v in frame['vars'] }}">
-              <div class="memberItem">
-                <div class="memberName">{{ v['name']}}</div>
-                <div class="memberValue">
-                  <instance-ref ref="{{ v['value'] }}"></instance-ref>
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ v in frame['vars'] }}">
+                <div class="memberItem">
+                  <div class="memberName">{{ v['name']}}</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                  </div>
                 </div>
-              </div>
-            </template>
-          </div>
-        </curly-block>
-
+              </template>
+            </div>
+          </curly-block>
       </div>
-      <div class="col-md-1"></div>
+      <div class="flex-item-fixed-1-12">
+      </div>
     </div>
-
-
   </template>
   
 </polymer-element>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
     <template if="{{ trace['members'].isEmpty }}">
-      <div class="col-md-1"></div>
-      <div class="col-md-11">
+      <div class="content">
         <em>No stack</em>
       </div>
     </template>
@@ -2004,31 +1981,7 @@
 </polymer-element>
 <polymer-element name="vm-view" extends="observatory-element">
   <template>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .memberList {
-        display: table;
-      }
-      .memberItem {
-        display: table-row;
-      }
-      .memberName, .memberValue {
-        display: table-cell;
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      .sourceInset {
-        padding-left: 15%;
-        padding-right: 15%;
-      }
-    </style>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
@@ -2046,16 +1999,26 @@
           <div class="memberName">uptime</div>
           <div class="memberValue">{{ vm.uptime | formatTime }}</div>
         </div>
+        <div class="memberItem">
+          <div class="memberName">type checks enabled</div>
+          <div class="memberValue">{{ vm.typeChecksEnabled }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">asserts enabled</div>
+          <div class="memberValue">{{ vm.assertsEnabled }}</div>
+        </div>
       </div>
     </div>
 
     <br>
+    <hr>
 
     <ul class="list-group">
       <template repeat="{{ isolate in vm.isolates }}">
       	<li class="list-group-item">
           <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>
+        <hr>
       </template>
     </ul>
   </template>
@@ -2079,47 +2042,33 @@
 </polymer-element>
 <polymer-element name="service-exception-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">{{ exception.kind }}</div>
-        <div class="panel-body">
-          <p>{{ exception.message }}</p>
-        </div>
-        <div class="well">
-          <p>{{ exception.response }}</p>
-        </div>
-      </div>
-    </div>
+    <div class="content">
+        <h1>{{ exception.kind }}</h1>
+        <div class="well">{{ exception.message }}</div>
+        <div class="well">{{ exception.response }}</div>
     </div>
   </template>
   
 </polymer-element>
 <polymer-element name="service-error-view" extends="observatory-element">
   <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">{{ error.kind }}</div>
-        <div class="panel-body">
-          <p>{{ error.message }}</p>
-        </div>
-      </div>
-    </div>
+    <div class="content">
+      <h1>{{ error.kind }}</h1>
+      <div class="well">{{ error.message }}</div>
     </div>
   </template>
   
 </polymer-element>
 <polymer-element name="vm-ref" extends="service-ref">
-<template>
+<template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <a href="{{ url }}">{{ ref.name }}</a>
 </template>
 

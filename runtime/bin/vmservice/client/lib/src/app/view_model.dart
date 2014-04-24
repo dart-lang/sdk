@@ -99,3 +99,90 @@ class TableTree extends Observable {
     rows.removeRange(index + 1, index + 1 + childCount);
   }
 }
+
+typedef String ValueFormatter(dynamic value);
+
+class SortedTableColumn {
+  static String toStringFormatter(dynamic v) {
+    return v != null ? v.toString() : '<null>';
+  }
+  final String label;
+  final ValueFormatter formatter;
+  SortedTableColumn.withFormatter(this.label, this.formatter);
+  SortedTableColumn(this.label)
+      : formatter = toStringFormatter;
+}
+
+class SortedTableRow {
+  final List values;
+  SortedTableRow(this.values);
+}
+
+class SortedTable extends Observable {
+  final List<SortedTableColumn> columns;
+  final List<SortedTableRow> rows = new List<SortedTableRow>();
+  final List<int> _sortedRows = [];
+
+  SortedTable(this.columns);
+
+  int _sortColumnIndex = 0;
+  set sortColumnIndex(var index) {
+    assert(index >= 0);
+    assert(index < columns.length);
+    _sortColumnIndex = index;
+    notifyPropertyChange(#getColumnLabel, 0, 1);
+  }
+  int get sortColumnIndex => _sortColumnIndex;
+  bool _sortDescending = true;
+
+  void sort() {
+    assert(_sortColumnIndex >= 0);
+    assert(_sortColumnIndex < columns.length);
+    _sortedRows.sort((i, j) {
+      var a = rows[i].values[_sortColumnIndex];
+      var b = rows[j].values[_sortColumnIndex];
+      if (_sortDescending) {
+        return b.compareTo(a);
+      } else {
+        return a.compareTo(b);
+      }
+    });
+    notifyPropertyChange(#sortedRows, 0, 1);
+  }
+
+  @observable List<int> get sortedRows => _sortedRows;
+
+  void clearRows() {
+    rows.clear();
+    _sortedRows.clear();
+  }
+
+  void addRow(SortedTableRow row) {
+    _sortedRows.add(rows.length);
+    rows.add(row);
+    notifyPropertyChange(#sortedRows, 0, 1);
+  }
+
+  @reflectable String getFormattedValue(int row, int column) {
+    var value = getValue(row, column);
+    var formatter = columns[column].formatter;
+    return formatter(value);
+  }
+
+  @reflectable String getColumnLabel(int column) {
+    assert(column >= 0);
+    assert(column < columns.length);
+    // TODO(johnmccutchan): Move expander display decisions into html once
+    // tables and templates are better supported.
+    const arrowUp = '\u25BC';
+    const arrowDown = '\u25B2';
+    if (column != _sortColumnIndex) {
+      return columns[column].label + '\u2003';
+    }
+    return columns[column].label + (_sortDescending ? arrowUp : arrowDown);
+  }
+
+  @reflectable dynamic getValue(int row, int column) {
+    return rows[row].values[column];
+  }
+}

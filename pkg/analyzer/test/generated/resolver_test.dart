@@ -2859,6 +2859,18 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_loadLibraryDefined() {
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["library lib;", "foo() => 22;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib.dart' deferred as other;",
+        "main() {",
+        "  other.loadLibrary().then((_) => other.foo());",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mapKeyTypeNotAssignable() {
     Source source = addSource(EngineTestCase.createSource(["var v = <String, int > {'a' : 1};"]));
     resolve(source);
@@ -5442,6 +5454,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_listElementTypeNotAssignable', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_listElementTypeNotAssignable);
+      });
+      _ut.test('test_loadLibraryDefined', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_loadLibraryDefined);
       });
       _ut.test('test_mapKeyTypeNotAssignable', () {
         final __test = new NonErrorResolverTest();
@@ -10073,8 +10089,8 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType stringType = _classElement("String", objectType, []).type;
     InterfaceType symbolType = _classElement("Symbol", objectType, []).type;
     InterfaceType typeType = _classElement("Type", objectType, []).type;
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl("lib.dart");
-    unit.types = <ClassElement> [
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
+    coreUnit.types = <ClassElement> [
         boolType.element,
         doubleType.element,
         functionType.element,
@@ -10086,12 +10102,12 @@ class TypeProviderImplTest extends EngineTestCase {
         stringType.element,
         symbolType.element,
         typeType.element];
-    LibraryElementImpl library = new LibraryElementImpl(new AnalysisContextImpl(), AstFactory.libraryIdentifier2(["lib"]));
-    library.definingCompilationUnit = unit;
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(new AnalysisContextImpl(), AstFactory.libraryIdentifier2(["dart.core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
     //
-    TypeProviderImpl provider = new TypeProviderImpl(library);
+    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary);
     JUnitTestCase.assertSame(boolType, provider.boolType);
     JUnitTestCase.assertNotNull(provider.bottomType);
     JUnitTestCase.assertSame(doubleType, provider.doubleType);
@@ -20971,7 +20987,9 @@ class AnalysisContextHelper {
   }
 
   void runTasks() {
-    while (context.performAnalysisTask().changeNotices != null) {
+    AnalysisResult result = context.performAnalysisTask();
+    while (result.changeNotices != null) {
+      result = context.performAnalysisTask();
     }
   }
 }
@@ -21503,6 +21521,46 @@ class AnalysisContextFactory {
     LibraryElementImpl coreLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
+    // dart:async
+    //
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl("async.dart");
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    context.setContents(asyncSource, "");
+    asyncUnit.source = asyncSource;
+    // Future
+    ClassElementImpl futureElement = ElementFactory.classElement2("Future", ["T"]);
+    InterfaceType futureType = futureElement.type;
+    //   factory Future.value([value])
+    ConstructorElementImpl futureConstructor = ElementFactory.constructorElement2(futureElement, "value", []);
+    futureConstructor.parameters = <ParameterElement> [ElementFactory.positionalParameter2("value", provider.dynamicType)];
+    futureConstructor.factory = true;
+    (futureConstructor.type as FunctionTypeImpl).typeArguments = futureElement.type.typeArguments;
+    futureElement.constructors = <ConstructorElement> [futureConstructor];
+    //   Future then(onValue(T value), { Function onError });
+    List<ParameterElement> parameters = <ParameterElement> [ElementFactory.requiredParameter2("value", futureElement.typeParameters[0].type)];
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    aliasElement.synthetic = true;
+    aliasElement.shareParameters(parameters);
+    aliasElement.returnType = provider.dynamicType;
+    FunctionTypeImpl aliasType = new FunctionTypeImpl.con2(aliasElement);
+    aliasElement.shareTypeParameters(futureElement.typeParameters);
+    aliasType.typeArguments = futureElement.type.typeArguments;
+    MethodElement thenMethod = ElementFactory.methodElementWithParameters("then", futureElement.type.typeArguments, futureType, [
+        ElementFactory.requiredParameter2("onValue", aliasType),
+        ElementFactory.namedParameter2("onError", provider.functionType)]);
+    futureElement.methods = <MethodElement> [thenMethod];
+    // Completer
+    ClassElementImpl completerElement = ElementFactory.classElement2("Completer", ["T"]);
+    ConstructorElementImpl completerConstructor = ElementFactory.constructorElement2(completerElement, null, []);
+    (completerConstructor.type as FunctionTypeImpl).typeArguments = completerElement.type.typeArguments;
+    completerElement.constructors = <ConstructorElement> [completerConstructor];
+    asyncUnit.types = <ClassElement> [
+        completerElement,
+        futureElement,
+        ElementFactory.classElement2("Stream", ["T"])];
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "async"]));
+    asyncLibrary.definingCompilationUnit = asyncUnit;
+    //
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
@@ -21532,6 +21590,7 @@ class AnalysisContextFactory {
     htmlLibrary.definingCompilationUnit = htmlUnit;
     Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
+    elementMap[asyncSource] = asyncLibrary;
     elementMap[htmlSource] = htmlLibrary;
     context.recordLibraryElements(elementMap);
     return context;
@@ -23056,7 +23115,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       parameterElements.add(element);
     }
     FunctionExpression node = AstFactory.functionExpression2(parameters, body);
-    FunctionElementImpl element = new FunctionElementImpl.con1(null);
+    FunctionElementImpl element = new FunctionElementImpl.forNode(null);
     element.parameters = new List.from(parameterElements);
     element.type = new FunctionTypeImpl.con1(element);
     node.element = element;

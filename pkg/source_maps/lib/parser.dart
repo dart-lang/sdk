@@ -185,7 +185,7 @@ class SingleMapping extends Mapping {
       if (tokenizer.nextKind.isNewSegment) throw _segmentError(0, line);
       column += tokenizer._consumeValue();
       if (!tokenizer.nextKind.isValue) {
-        entries.add(new TargetEntry(column, srcUrlId, srcLine, srcColumn));
+        entries.add(new TargetEntry(column));
       } else {
         srcUrlId += tokenizer._consumeValue();
         if (srcUrlId >= urls.length) {
@@ -204,8 +204,8 @@ class SingleMapping extends Mapping {
             throw new StateError(
                 'Invalid name id: $targetUrl, $line, $srcNameId');
           }
-          entries.add(
-              new TargetEntry(column, srcUrlId, srcLine, srcColumn, srcNameId));
+          entries.add(new TargetEntry(column, srcUrlId, srcLine, srcColumn,
+              srcNameId));
         }
       }
       if (tokenizer.nextKind.isNewSegment) tokenizer._consumeNewSegment();
@@ -242,7 +242,7 @@ class SingleMapping extends Mapping {
 
   Span spanFor(int line, int column, {Map<String, SourceFile> files}) {
     var entry = _findColumn(line, column, _findLine(line));
-    if (entry == null) return null;
+    if (entry == null || entry.sourceUrlId == null) return null;
     var url = urls[entry.sourceUrlId];
     if (files != null && files[url] != null) {
       var file = files[url];
@@ -322,8 +322,8 @@ class TargetEntry {
   final int sourceColumn;
   final int sourceNameId;
 
-  TargetEntry(this.column, this.sourceUrlId, this.sourceLine,
-      this.sourceColumn, [this.sourceNameId]);
+  TargetEntry(this.column, [this.sourceUrlId, this.sourceLine,
+      this.sourceColumn, this.sourceNameId]);
 
   String toString() => '$runtimeType: '
       '($column, $sourceUrlId, $sourceLine, $sourceColumn, $sourceNameId)';

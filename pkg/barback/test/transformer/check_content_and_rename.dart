@@ -21,8 +21,7 @@ class CheckContentAndRenameTransformer extends MockTransformer {
   CheckContentAndRenameTransformer(this.oldExtension, this.oldContent,
       this.newExtension, this.newContent);
 
-  Future<bool> doIsPrimary(AssetId id) =>
-      new Future.value(id.extension != '.$oldExtension');
+  bool doIsPrimary(AssetId id) => id.extension != '.$oldExtension';
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((input) {

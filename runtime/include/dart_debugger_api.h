@@ -505,6 +505,15 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
 
 /**
  * Execute the expression given in string \expr in the context
+ * of stack frame \activation_frame.
+ */
+DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
+                            Dart_ActivationFrame activation_frame,
+                            Dart_Handle expr_in);
+
+
+/**
+ * Execute the expression given in string \expr in the context
  * of \target.
  *
  * Requires there to be a current isolate.
@@ -514,7 +523,8 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
  * it were an instance method of the class of the object.
  * If \target is a Class, the expression is evaluated as if it
  * were a static method of that class.
- * TODO(hausner): add 'library' execution context.
+ * If \target is a Library, the expression is evaluated as if it
+ * were a top-level function in that library.
  * 
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws

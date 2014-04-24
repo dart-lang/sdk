@@ -4,10 +4,7 @@
 
 library barback.test.transformer.declare_asset;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 
@@ -27,19 +24,15 @@ class DeclareAssetsTransformer extends MockTransformer
         this.emitted = (emitted == null ? declared : emitted)
             .map((id) => new AssetId.parse(id)).toList();
 
-  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      for (var id in emitted) {
-        transform.addOutput(new Asset.fromString(id, id.toString()));
-      }
-    });
+  void doApply(Transform transform) {
+    for (var id in emitted) {
+      transform.addOutput(new Asset.fromString(id, id.toString()));
+    }
   }
 
-  Future declareOutputs(DeclaringTransform transform) {
-    return newFuture(() {
-      declared.forEach(transform.declareOutput);
-    });
+  void declareOutputs(DeclaringTransform transform) {
+    declared.forEach(transform.declareOutput);
   }
 }

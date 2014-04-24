@@ -176,8 +176,12 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
+  RawObject* GetReceiver();
+
   RawContext* GetSavedEntryContext();
   RawContext* GetSavedCurrentContext();
+
+  RawObject* Evaluate(const String& expr);
 
   void PrintToJSONObject(JSONObject* jsobj);
 

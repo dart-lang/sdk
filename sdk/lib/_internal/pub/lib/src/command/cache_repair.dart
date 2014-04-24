@@ -10,6 +10,7 @@ import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
+import '../source/cached.dart';
 import '../utils.dart';
 
 /// Handles the `cache repair` pub command.
@@ -24,7 +25,7 @@ class CacheRepairCommand extends PubCommand {
 
     // Repair every cached source.
     return Future.forEach(cache.sources.where(
-        (source) => source.shouldCache), (source) {
+        (source) => source is CachedSource), (source) {
       return source.repairCachedPackages().then((results) {
         successes += results.first;
         failures += results.last;

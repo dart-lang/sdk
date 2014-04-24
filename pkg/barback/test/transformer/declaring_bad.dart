@@ -4,10 +4,7 @@
 
 library barback.test.transformer.declaring_bad;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'bad.dart';
 import 'mock.dart';
@@ -31,20 +28,16 @@ class DeclaringBadTransformer extends MockTransformer
         this.declareError = declareError,
         this.applyError = applyError;
 
-  Future<bool> doIsPrimary(AssetId id) => new Future.value(true);
+  bool doIsPrimary(AssetId id) => true;
 
-  Future doApply(Transform transform) {
-    return newFuture(() {
-      transform.addOutput(new Asset.fromString(output, "bad out"));
-      if (applyError) throw BadTransformer.ERROR;
-    });
+  void doApply(Transform transform) {
+    transform.addOutput(new Asset.fromString(output, "bad out"));
+    if (applyError) throw BadTransformer.ERROR;
   }
 
-  Future declareOutputs(DeclaringTransform transform) {
-    return newFuture(() {
-      if (consumePrimary) transform.consumePrimary();
-      transform.declareOutput(output);
-      if (declareError) throw BadTransformer.ERROR;
-    });
+  void declareOutputs(DeclaringTransform transform) {
+    if (consumePrimary) transform.consumePrimary();
+    transform.declareOutput(output);
+    if (declareError) throw BadTransformer.ERROR;
   }
 }
