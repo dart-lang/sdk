@@ -45,9 +45,6 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
-
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
   const String& variable_name = String::ZoneHandle(Symbols::New(name));
@@ -120,6 +117,9 @@ CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen,
                   SmiParamSumCodegen,
                   Smi::New(5))
 
+
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 CODEGEN_TEST_GENERATE(SmiAddCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();

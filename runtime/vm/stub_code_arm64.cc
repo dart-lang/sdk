@@ -44,7 +44,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset());
+  __ mov(TMP, SP);  // Can't directly store SP.
+  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
   __ StoreToOffset(CTX, R0, Isolate::top_context_offset());
@@ -133,8 +134,103 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   LR : return address.
+//   SP : address of return value.
+//   R5 : address of the native function to call.
+//   R2 : address of first argument in argument array.
+//   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
-  __ Stop("GenerateCallBootstrapCFunctionStub");
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ EnterFrame(0);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset());
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to native code.
+  __ mov(TMP, SP);  // Can't store SP directly, first copy to TMP.
+  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset());
+
+  // Save current Context pointer into Isolate structure.
+  __ StoreToOffset(CTX, R0, Isolate::top_context_offset());
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ mov(CTX, R0);
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ LoadFromOffset(R6, CTX, Isolate::vm_tag_offset());
+    __ CompareImmediate(R6, VMTag::kScriptTagId, PP);
+    __ b(&ok, EQ);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ StoreToOffset(R5, CTX, Isolate::vm_tag_offset());
+
+  // Reserve space for the native arguments structure passed on the stack (the
+  // outgoing pointer parameter to the native arguments structure is passed in
+  // R0) and align frame before entering the C++ world.
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
+
+  // Initialize NativeArguments structure and call native function.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  // Set isolate in NativeArgs: R0 already contains CTX.
+
+  // There are no native calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  // Set argc in NativeArguments: R1 already contains argc.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  // Set argv in NativeArguments: R2 already contains argv.
+
+  // Set retval in NativeArgs.
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ AddImmediate(R3, FP, 2 * kWordSize, PP);
+
+  // TODO(regis): Should we pass the structure by value as in runtime calls?
+  // It would require changing Dart API for native functions.
+  // For now, space is reserved on the stack and we pass a pointer to it.
+  __ StoreToOffset(R0, SP, isolate_offset);
+  __ StoreToOffset(R1, SP, argc_tag_offset);
+  __ StoreToOffset(R2, SP, argv_offset);
+  __ StoreToOffset(R3, SP, retval_offset);
+  __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
+
+  // Call native function or redirection via simulator.
+  __ blr(R5);
+
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kScriptTagId, PP);
+  __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0, PP);
+  __ StoreToOffset(R2, CTX, Isolate::top_exit_frame_info_offset());
+
+  // Load Context pointer from Isolate structure into R2.
+  __ LoadFromOffset(R2, CTX, Isolate::top_context_offset());
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadObject(R3, Object::null_object(), PP);
+  __ StoreToOffset(R3, CTX, Isolate::top_context_offset());
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, R2);
+
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -416,21 +512,224 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 }
 
 
+// Generate inline cache check for 'num_args'.
+//  LR: return address.
+//  R5: inline cache data object.
+// Control flow:
+// - If receiver is null -> jump to IC miss.
+// - If receiver is Smi -> load Smi class.
+// - If receiver is not-Smi -> load receiver's class.
+// - Check if 'num_args' (including receiver) match any IC data group.
+// - Match found -> jump to target.
+// - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(
     Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss) {
-  __ Stop("GenerateNArgsCheckInlineCacheStub");
+  ASSERT(num_args > 0);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
+    // 'num_args_tested' is stored as an untagged int.
+    __ LoadFieldFromOffset(R6, R5, ICData::num_args_tested_offset());
+    __ CompareImmediate(R6, num_args, PP);
+    __ b(&ok, EQ);
+    __ Stop("Incorrect stub for IC data");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset());
+  __ LoadFromOffset(R6, R6, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R6, 0, PP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
+  // Load arguments descriptor into R4.
+  __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset());
+  // Loop that checks if there is an IC data match.
+  Label loop, update, test, found, get_class_id_as_smi;
+  // R5: IC data object (preserved).
+  __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
+  // R6: ic_data_array with check entries: classes and target functions.
+  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag, PP);
+  // R6: points directly to the first ic data array element.
+
+  // Get the receiver's class ID (first read number of arguments from
+  // arguments descriptor array and then access the receiver from the stack).
+  __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+  __ SmiUntag(R7);  // Untag so we can use the LSL 3 addressing mode.
+  __ sub(R7, R7, Operand(1));
+
+  // R0 <- [SP + (R7 << 3)]
+  __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
+
+  {
+    // TODO(zra): Put this code in a subroutine call as with other architectures
+    // when we have a bl(Label& l) instruction.
+    // Instance in R0, return its class-id in R0 as Smi.
+    // Test if Smi -> load Smi class for comparison.
+    Label not_smi, done;
+    __ tsti(R0, kSmiTagMask);
+    __ b(&not_smi, NE);
+    __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
+    __ b(&done);
+
+    __ Bind(&not_smi);
+    __ LoadClassId(R0, R0);
+    __ SmiTag(R0);
+    __ Bind(&done);
+  }
+
+  // R7: argument_count - 1 (untagged).
+  // R0: receiver's class ID (smi).
+  __ ldr(R1, Address(R6));  // First class id (smi) to check.
+  __ b(&test);
+
+  __ Bind(&loop);
+  for (int i = 0; i < num_args; i++) {
+    if (i > 0) {
+      // If not the first, load the next argument's class ID.
+      __ AddImmediate(R0, R7, -i, PP);
+      // R0 <- [SP + (R0 << 3)]
+      __ ldr(R0, Address(SP, R0, UXTX, Address::Scaled));
+      {
+        // Instance in R0, return its class-id in R0 as Smi.
+        // Test if Smi -> load Smi class for comparison.
+        Label not_smi, done;
+        __ tsti(R0, kSmiTagMask);
+        __ b(&not_smi, NE);
+        __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
+        __ b(&done);
+
+        __ Bind(&not_smi);
+        __ LoadClassId(R0, R0);
+        __ SmiTag(R0);
+        __ Bind(&done);
+      }
+      // R0: next argument class ID (smi).
+      __ LoadFromOffset(R1, R6, i * kWordSize);
+      // R1: next class ID to check (smi).
+    }
+    __ CompareRegisters(R0, R1);  // Class id match?
+    if (i < (num_args - 1)) {
+      __ b(&update, NE);  // Continue.
+    } else {
+      // Last check, all checks before matched.
+      __ b(&found, EQ);  // Break.
+    }
+  }
+  __ Bind(&update);
+  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
+  if (num_args > 1) {
+    __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
+    {
+      // Instance in R0, return its class-id in R0 as Smi.
+      // Test if Smi -> load Smi class for comparison.
+      Label not_smi, done;
+      __ tsti(R0, kSmiTagMask);
+      __ b(&not_smi, NE);
+      __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
+      __ b(&done);
+
+      __ Bind(&not_smi);
+      __ LoadClassId(R0, R0);
+      __ SmiTag(R0);
+      __ Bind(&done);
+    }
+  }
+
+  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
+  __ AddImmediate(R6, R6, entry_size, PP);  // Next entry.
+  __ ldr(R1, Address(R6));  // Next class ID.
+
+  __ Bind(&test);
+  __ CompareImmediate(R1, Smi::RawValue(kIllegalCid), PP);  // Done?
+  __ b(&loop, NE);
+
+  // IC miss.
+  // Compute address of arguments.
+  // R7: argument_count - 1 (untagged).
+  // R7 <- SP + (R7 << 3)
+  __ add(R7, SP, Operand(R7, UXTX, 3));  // R7 is Untagged.
+  // R7: address of receiver.
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadObject(R0, Object::null_object(), PP);
+  // Preserve IC data object and arguments descriptor array and
+  // setup space on stack for result (target code object).
+  __ Push(R4);  // Preserve arguments descriptor array.
+  __ Push(R5);  // Preserve IC Data.
+  __ Push(R0);  // Setup space on stack for the result (target code object).
+  // Push call arguments.
+  for (intptr_t i = 0; i < num_args; i++) {
+    __ LoadFromOffset(TMP, R7, -i * kWordSize);
+    __ Push(TMP);
+  }
+  // Pass IC data object.
+  __ Push(R5);
+  __ CallRuntime(handle_ic_miss, num_args + 1);
+  // Remove the call arguments pushed earlier, including the IC data object.
+  __ Drop(num_args + 1);
+  // Pop returned function object into R0.
+  // Restore arguments descriptor array and IC data array.
+  __ Pop(R0);  // Pop returned function object into R0.
+  __ Pop(R5);  // Restore IC Data.
+  __ Pop(R4);  // Restore arguments descriptor array.
+  __ LeaveStubFrame();
+  Label call_target_function;
+  __ b(&call_target_function);
+
+  __ Bind(&found);
+  // R6: pointer to an IC data check group.
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  __ LoadFromOffset(R0, R6, target_offset);
+  __ LoadFromOffset(R1, R6, count_offset);
+  __ adds(R1, R1, Operand(Smi::RawValue(1)));
+  __ StoreToOffset(R1, R6, count_offset);
+  __ b(&call_target_function, VC);  // No overflow.
+  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), PP);
+  __ StoreToOffset(R1, R6, count_offset);
+
+  __ Bind(&call_target_function);
+  // R0: target function.
+  __ LoadFieldFromOffset(R2, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset());
+  __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag, PP);
+  __ br(R2);
 }
 
 
+// Use inline cache data array to invoke the target or continue in inline
+// cache miss handler. Stub for 1-argument check (receiver class).
+//  LR: return address.
+//  R5: inline cache data object.
+// Inline cache data object structure:
+// 0: function-name
+// 1: N, number of arguments checked.
+// 2 .. (length - 1): group of checks, each check containing:
+//   - N classes.
+//   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
-  __ Stop("GenerateOneArgCheckInlineCacheStub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
-  __ Stop("GenerateTwoArgsCheckInlineCacheStub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry);
 }
 
 
@@ -532,8 +831,26 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
+// Stub for compiling a function and jumping to the compiled code.
+// R5: IC-Data (for methods).
+// R4: Arguments descriptor.
+// R0: Function.
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
-  __ Stop("GenerateLazyCompileStub");
+  // Preserve arg desc. and IC data object.
+  __ EnterStubFrame();
+  __ Push(R5);  // Save IC Data.
+  __ Push(R4);  // Save arg. desc.
+  __ Push(R0);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+  __ Pop(R0);  // Restore argument.
+  __ Pop(R4);  // Restore arg desc.
+  __ Pop(R5);  // Restore IC Data.
+  __ LeaveStubFrame();
+
+  __ LoadFieldFromOffset(R2, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset());
+  __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag, PP);
+  __ br(R2);
 }
 
 
@@ -542,8 +859,20 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
-  __ Stop("GenerateDebugStepCheckStub");
+// Called only from unoptimized code. All relevant registers have been saved.
+void StubCode::GenerateDebugStepCheckStub(
+    Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset());
+  __ LoadFromOffset(R1, R1, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R1, 0, PP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+  __ ret();
 }
 
 
@@ -577,18 +906,96 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
+                           BigintCompare,
+                           RawBigint* left,
+                           RawBigint* right);
+
+
+// Does identical check (object references are equal or not equal) with special
+// checks for boxed numbers.
+// Left and right are pushed on stack.
+// Return Zero condition flag set if equal.
+// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
+// cannot contain a value that fits in Mint or Smi.
 void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                     const Register left,
                                                     const Register right,
-                                                    const Register temp,
-                                                    const Register unused) {
-  __ Stop("GenerateIdenticalWithNumberCheckStub");
+                                                    const Register unused1,
+                                                    const Register unused2) {
+  Label reference_compare, done, check_mint, check_bigint;
+  // If any of the arguments is Smi do reference compare.
+  __ tsti(left, kSmiTagMask);
+  __ b(&reference_compare, EQ);
+  __ tsti(right, kSmiTagMask);
+  __ b(&reference_compare, EQ);
+
+  // Value compare for two doubles.
+  __ CompareClassId(left, kDoubleCid);
+  __ b(&check_mint, NE);
+  __ CompareClassId(right, kDoubleCid);
+  __ b(&done, NE);
+
+  // Double values bitwise compare.
+  __ LoadFieldFromOffset(left, left, Double::value_offset());
+  __ LoadFieldFromOffset(right, right, Double::value_offset());
+  __ CompareRegisters(left, right);
+  __ b(&done);
+
+  __ Bind(&check_mint);
+  __ CompareClassId(left, kMintCid);
+  __ b(&check_bigint, NE);
+  __ CompareClassId(right, kMintCid);
+  __ b(&done, NE);
+  __ LoadFieldFromOffset(left, left, Mint::value_offset());
+  __ LoadFieldFromOffset(right, right, Mint::value_offset());
+  __ b(&done);
+
+  __ Bind(&check_bigint);
+  __ CompareClassId(left, kBigintCid);
+  __ b(&reference_compare, NE);
+  __ CompareClassId(right, kBigintCid);
+  __ b(&done, NE);
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ StoreToOffset(left, SP, 0 * kWordSize);
+  __ StoreToOffset(right, SP, 1 * kWordSize);
+  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
+  // Result in R0, 0 means equal.
+  __ LeaveFrame();
+  __ cmp(R0, Operand(0));
+  __ b(&done);
+
+  __ Bind(&reference_compare);
+  __ CompareRegisters(left, right);
+  __ Bind(&done);
 }
 
 
+// Called only from unoptimized code. All relevant registers have been saved.
+// LR: return address.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  __ Stop("GenerateUnoptimizedIdenticalWithNumberCheckStub");
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset());
+  __ LoadFromOffset(R1, R1, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R1, 0, PP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
+  const Register left = R1;
+  const Register right = R0;
+  __ LoadFromOffset(left, SP, 1 * kWordSize);
+  __ LoadFromOffset(right, SP, 0 * kWordSize);
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right);
+  __ ret();
 }
 
 

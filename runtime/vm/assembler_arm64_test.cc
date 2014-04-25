@@ -379,8 +379,8 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ movz(R2, 10, 0);
   __ sub(SP, SP, Operand(10*kWordSize));
   // Store R1 into SP + R2 * kWordSize.
-  __ str(R1, Address(SP, R2, UXTX, true));
-  __ ldr(R0, Address(SP, R2, UXTX, true));
+  __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
+  __ ldr(R0, Address(SP, R2, UXTX, Address::Scaled));
   __ add(SP, SP, Operand(10*kWordSize));
   __ ret();
 }
@@ -1283,6 +1283,36 @@ ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(reinterpret_cast<int64_t>(Bool::False().raw()),
             EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csel(R0, R1, R2, LT);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CSelTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csel(R0, R1, R2, GE);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CSelFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
 

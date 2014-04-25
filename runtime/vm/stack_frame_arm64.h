@@ -35,11 +35,13 @@ static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
 
 static const int kFirstLocalSlotFromFp = -3;
 static const int kSavedCallerPpSlotFromFp = -2;
+static const int kPcMarkerSlotFromFp = -1;
 static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
-static const int kPcMarkerSlotFromFp = -1;
+
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
+static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
 static const int kSavedContextSlotFromEntryFp = -14;

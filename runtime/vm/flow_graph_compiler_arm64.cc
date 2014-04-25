@@ -356,7 +356,9 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
 }
 
 
@@ -437,7 +439,13 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(R5, ic_data, PP);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 
@@ -515,7 +523,27 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
                                                   bool needs_number_check,
                                                   intptr_t token_pos) {
-  UNIMPLEMENTED();
+  if (needs_number_check) {
+    __ Push(left);
+    __ Push(right);
+    if (is_optimizing()) {
+      __ BranchLinkPatchable(
+          &StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLinkPatchable(
+          &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    __ Pop(right);
+    __ Pop(left);
+  } else {
+    __ CompareRegisters(left, right);
+  }
 }
 
 

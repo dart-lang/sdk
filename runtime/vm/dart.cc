@@ -245,15 +245,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
-  // TODO(zra): ifndef to be removed when ARM64 port is ready.
-#if !defined(TARGET_ARCH_ARM64)
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
       return isolate->object_store()->sticky_error();
     }
   }
   isolate->megamorphic_cache_table()->InitMissHandler();
-#endif
 
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);

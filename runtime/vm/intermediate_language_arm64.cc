@@ -34,13 +34,31 @@ LocationSummary* Instruction::MakeCallSummary() {
 
 
 LocationSummary* PushArgumentInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
 }
 
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ Push(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant(), PP);
+    } else {
+      ASSERT(value.IsStackSlot());
+      const intptr_t value_offset = value.ToStackSlotOffset();
+      __ LoadFromOffset(TMP, FP, value_offset);
+      __ Push(TMP);
+    }
+  }
 }
 
 
@@ -102,24 +120,30 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out(0).reg();
+  __ LoadFromOffset(result, FP, local().index() * kWordSize);
 }
 
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ StoreToOffset(value, FP, local().index() * kWordSize);
 }
 
 
@@ -228,13 +252,63 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* NativeCallInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  locs->set_temp(1, Location::RegisterLocation(R2));
+  locs->set_temp(2, Location::RegisterLocation(R5));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == R1);
+  ASSERT(locs()->temp(1).reg() == R2);
+  ASSERT(locs()->temp(2).reg() == R5);
+  Register result = locs()->out(0).reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle(), PP);
+  // Pass a pointer to the first argument in R2.
+  if (!function().HasOptionalParameters()) {
+    __ AddImmediate(R2, FP, (kParamEndSlotFromFp +
+                             function().NumParameters()) * kWordSize, PP);
+  } else {
+    __ AddImmediate(R2, FP, kFirstLocalSlotFromFp * kWordSize, PP);
+  }
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(native_c_function());
+  const ExternalLabel* stub_entry;
+  if (is_bootstrap_native()) {
+    stub_entry = &StubCode::CallBootstrapCFunctionLabel();
+#if defined(USING_SIMULATOR)
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+#endif
+  } else {
+    // In the case of non bootstrap native methods the CallNativeCFunction
+    // stub generates the redirection address when running under the simulator
+    // and hence we do not change 'entry' here.
+    stub_entry = &StubCode::CallNativeCFunctionLabel();
+#if defined(USING_SIMULATOR)
+    if (!function().IsNativeAutoSetupScope()) {
+      entry = Simulator::RedirectExternalReference(
+          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+    }
+#endif
+  }
+  __ LoadImmediate(R5, entry, PP);
+  __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()), PP);
+  compiler->GenerateCall(token_pos(),
+                         stub_entry,
+                         PcDescriptors::kOther,
+                         locs());
+  __ Pop(result);
 }
 
 
@@ -1170,13 +1244,15 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BranchInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  comparison()->InitializeLocationSummary(opt);
+  // Branches don't produce a result.
+  comparison()->locs()->set_out(0, Location::NoLocation());
+  return comparison()->locs();
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  comparison()->EmitBranchCode(compiler, this);
 }
 
 
@@ -1316,13 +1392,31 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* GotoInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.  On ARM64 this descriptor
+    // points after the edge counter code so that we can reuse the same
+    // pattern matching code as at call sites, which matches backwards from
+    // the end of the pattern.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   Scanner::kNoSourcePos);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+
+  // We can fall through if the successor is the next block in the list.
+  // Otherwise, we need a jump.
+  if (!compiler->CanFallThroughTo(successor())) {
+    __ b(compiler->GetJumpLabel(successor()));
+  }
 }
 
 
@@ -1337,27 +1431,121 @@ void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    case CC: return CS;
+    case LS: return HI;
+    case HI: return LS;
+    case CS: return CC;
+    default:
+      UNREACHABLE();
+      return EQ;
+  }
+}
+
+
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  BranchLabels labels) {
+  if (labels.fall_through == labels.false_label) {
+    // If the next block is the false successor we will fall through to it.
+    __ b(labels.true_label, true_condition);
+  } else {
+    // If the next block is not the false successor we will branch to it.
+    Condition false_condition = NegateCondition(true_condition);
+    __ b(labels.false_label, false_condition);
+
+    // Fall through or jump to the true successor.
+    if (labels.fall_through != labels.true_label) {
+      __ b(labels.true_label);
+    }
+  }
+}
+
+
 LocationSummary* StrictCompareInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  if (needs_number_check()) {
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    locs->set_in(0, Location::RegisterLocation(R0));
+    locs->set_in(1, Location::RegisterLocation(R1));
+    locs->set_out(0, Location::RegisterLocation(R0));
+    return locs;
+  }
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
 
 Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                  BranchLabels labels) {
-  UNIMPLEMENTED();
-  return VS;
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+  if (left.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check(),
+                                          token_pos());
+  } else if (right.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check(),
+                                          token_pos());
+  } else {
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                       right.reg(),
+                                       needs_number_check(),
+                                       token_pos());
+  }
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
+  return true_condition;
 }
 
 
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  __ Comment("StrictCompareInstr");
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+
+  Register result = locs()->out(0).reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False(), PP);
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True(), PP);
+  __ Bind(&done);
 }
 
 
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
-  UNIMPLEMENTED();
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 

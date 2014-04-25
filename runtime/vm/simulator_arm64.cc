@@ -131,7 +131,7 @@ static Register LookupCpuRegisterByName(const char* name) {
       R16, R17, R18, R19, R20, R21, R22, R23,
       R24, R25, R26, R27, R28, R29, R30,
 
-      IP0, IP1, PP, CTX, FP, LR, SP, ZR,
+      IP0, IP1, PP, CTX, FP, LR, R31, ZR,
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -146,6 +146,10 @@ static Register LookupCpuRegisterByName(const char* name) {
 bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
   Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
+    if (reg == ZR) {
+      *value = 0;
+      return true;
+    }
     *value = sim_->get_register(reg);
     return true;
   }
@@ -592,7 +596,7 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
 // and if not, will likely take a number of additional cycles to execute,
 // so let's just not generate any.
 void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
-  char buffer[64];
+  char buffer[128];
   snprintf(buffer, sizeof(buffer),
            "unaligned %s at 0x%" Px ", pc=%p\n", msg, addr, instr);
   SimulatorDebugger dbg(this);
@@ -604,8 +608,10 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 
 
 void Simulator::UnimplementedInstruction(Instr* instr) {
-  char buffer[64];
-  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer),
+      "Unimplemented instruction: at %p, last_pc=0x%"Px"\n",
+      instr, get_last_pc());
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   FATAL("Cannot continue execution after unimplemented instruction.");
@@ -1010,7 +1016,13 @@ void Simulator::DecodeCompareAndBranch(Instr* instr) {
 
 
 bool Simulator::ConditionallyExecute(Instr* instr) {
-  switch (instr->ConditionField()) {
+  Condition cond;
+  if (instr->IsConditionalSelectOp()) {
+    cond = instr->SelectConditionField();
+  } else {
+    cond = instr->ConditionField();
+  }
+  switch (cond) {
     case EQ: return z_flag_;
     case NE: return !z_flag_;
     case CS: return c_flag_;
@@ -1818,6 +1830,36 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
 }
 
 
+void Simulator::DecodeConditionalSelect(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
+    // Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
+    const Register rd = instr->RdField();
+    const Register rn = instr->RnField();
+    const Register rm = instr->RmField();
+    if (instr->SFField() == 1) {
+      int64_t res = 0;
+      if (ConditionallyExecute(instr)) {
+        res = get_register(rn, instr->RnMode());
+      } else {
+        res = get_register(rm, R31IsZR);
+      }
+      set_register(rd, res, instr->RdMode());
+    } else {
+      int32_t res = 0;
+      if (ConditionallyExecute(instr)) {
+        res = get_wregister(rn, instr->RnMode());
+      } else {
+        res = get_wregister(rm, R31IsZR);
+      }
+      set_wregister(rd, res, instr->RdMode());
+    }
+
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 void Simulator::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
@@ -1827,6 +1869,8 @@ void Simulator::DecodeDPRegister(Instr* instr) {
     DecodeMiscDP2Source(instr);
   } else if (instr->IsMiscDP3SourceOp()) {
     DecodeMiscDP3Source(instr);
+  } else if (instr->IsConditionalSelectOp()) {
+    DecodeConditionalSelect(instr);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -1862,9 +1906,10 @@ void Simulator::InstructionDecode(Instr* instr) {
     DecodeDPRegister(instr);
   } else if (instr->IsDPSimd1Op()) {
     DecodeDPSimd1(instr);
-  } else {
-    ASSERT(instr->IsDPSimd2Op());
+  } else if (instr->IsDPSimd2Op()) {
     DecodeDPSimd2(instr);
+  } else {
+    UnimplementedInstruction(instr);
   }
 
   if (!pc_modified_) {

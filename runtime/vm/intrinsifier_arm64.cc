@@ -18,61 +18,61 @@ namespace dart {
 #define __ assembler->
 
 void Intrinsifier::List_Allocate(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Array_getLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Array_getIndexed(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Array_setIndexed(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+2), index (+1), value (+0).
 void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
@@ -80,66 +80,66 @@ void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
 // be greater than the length of the data container.
 // On stack: growable array (+1), length (+0).
 void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // Set data of growable object array.
 // On stack: growable array (+1), data (+0).
 void Intrinsifier::GrowableList_setData(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::GrowableList_add(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // Gets the length of a TypedData.
 void Intrinsifier::TypedData_getLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
 void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  UNIMPLEMENTED();                                                             \
+  return;                                                                      \
 }                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
-  UNIMPLEMENTED();                                                             \
+  return;                                                                      \
 }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 #undef TYPED_DATA_ALLOCATOR
 
 
 void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_add(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_sub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_mul(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
@@ -153,180 +153,180 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 //    }
 //  }
 void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_negate(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_shl(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // This is called for Smi, Mint and Bigint receivers. The right argument
 // can be Smi, Mint, Bigint or double.
 void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_equal(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Integer_sar(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_equal(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_add(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_sub(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_div(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_fromInteger(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Double_toInt(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Math_sqrt(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
@@ -334,37 +334,37 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
 void Intrinsifier::Random_nextState(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Object_equal(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::String_getLength(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::String_getIsEmpty(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
@@ -373,48 +373,48 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 // Arg2: End index as Smi.
 // The indexes must be valid.
 void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::OneByteString_setAt(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 // TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
 void StringEquality(Assembler* assembler, intptr_t string_cid) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::OneByteString_equality(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 
 void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
-  UNIMPLEMENTED();
+  return;
 }
 
 }  // namespace dart

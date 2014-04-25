@@ -48,6 +48,30 @@ Assembler::Assembler(bool use_far_branches)
     object_pool_.Add(Bool::False(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
     object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
+
+    if (StubCode::UpdateStoreBuffer_entry() != NULL) {
+      FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
+    } else {
+      object_pool_.Add(Object::null_object(), Heap::kOld);
+      patchable_pool_entries_.Add(kNotPatchable);
+    }
+
+    if (StubCode::CallToRuntime_entry() != NULL) {
+      FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
+    } else {
+      object_pool_.Add(Object::null_object(), Heap::kOld);
+      patchable_pool_entries_.Add(kNotPatchable);
+    }
+
+    // Create fixed object pool entry for debugger stub.
+    if (StubCode::BreakpointRuntime_entry() != NULL) {
+      intptr_t index =
+          FindExternalLabel(&StubCode::BreakpointRuntimeLabel(), kNotPatchable);
+      ASSERT(index == kBreakpointRuntimeCPIndex);
+    } else {
+      object_pool_.Add(Object::null_object(), Heap::kOld);
+      patchable_pool_entries_.Add(kNotPatchable);
+    }
   }
 }
 
@@ -676,6 +700,40 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
+                 kUnsignedHalfword);
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  LoadFieldFromOffset(result, CTX, Context::isolate_offset());
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(result, result, table_offset_in_isolate);
+  ldr(result, Address(result, class_id, UXTX, Address::Scaled));
+}
+
+
+void Assembler::LoadClass(Register result, Register object) {
+  ASSERT(object != TMP);
+  LoadClassId(TMP, object);
+  LoadClassById(result, TMP);
+}
+
+
+void Assembler::CompareClassId(Register object,
+                               intptr_t class_id) {
+  LoadClassId(TMP, object);
+  CompareImmediate(TMP, class_id, PP);
+}
+
+
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -709,7 +767,7 @@ void Assembler::LeaveFrame() {
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Setup the frame.
-  adr(TMP, 0);  // TMP gets PC of this instruction.
+  adr(TMP, -CodeSize());  // TMP gets PC marker.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
   TagAndPushPP();  // Save PP.
@@ -719,14 +777,14 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
   // Reserve space.
   if (frame_size > 0) {
-    sub(SP, SP, Operand(frame_size));
+    AddImmediate(SP, SP, -frame_size, PP);
   }
 }
 
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
   // Setup the frame.
-  adr(TMP, 0);  // TMP gets PC of this instruction.
+  adr(TMP, -CodeSize());  // TMP gets PC marker.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
   TagAndPushPP();  // Save PP.
@@ -740,7 +798,7 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
 
   // Reserve space.
   if (frame_size > 0) {
-    sub(SP, SP, Operand(frame_size));
+    AddImmediate(SP, SP, -frame_size, PP);
   }
 }
 
@@ -754,7 +812,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   const intptr_t offset = CodeSize();
 
   Comment("EnterOsrFrame");
-  adr(TMP, 0);
+  adr(TMP, -CodeSize());
 
   AddImmediate(TMP, TMP, -offset, kNoRegister);
   StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
@@ -767,7 +825,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   }
 
   if (extra_size > 0) {
-    sub(SP, SP, Operand(extra_size));
+    AddImmediate(SP, SP, -extra_size, PP);
   }
 }
 
@@ -787,7 +845,9 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
 
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     const Register reg = static_cast<Register>(i);
-    Push(reg);
+    if ((reg != R16) && (reg != R17)) {
+      Push(reg);
+    }
   }
 
   ReserveAlignedFrameSpace(frame_size);
@@ -804,7 +864,9 @@ void Assembler::LeaveCallRuntimeFrame() {
   AddImmediate(SP, FP, -kPushedRegistersSize, PP);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
-    Pop(reg);
+    if ((reg != R16) && (reg != R17)) {
+      Pop(reg);
+    }
   }
 
   Pop(FP);

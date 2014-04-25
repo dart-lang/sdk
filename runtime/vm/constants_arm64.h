@@ -373,6 +373,13 @@ enum AddSubShiftExtOp {
   SUB = AddSubShiftExtFixed | B30,
 };
 
+// C3.5.6
+enum ConditionalSelectOp {
+  ConditionalSelectMask = 0x1fe00000,
+  ConditionalSelectFixed = DPRegisterFixed | B28 | B23,
+  CSEL = ConditionalSelectFixed,
+};
+
 // C3.5.8
 enum MiscDP2SourceOp {
   MiscDP2SourceMask = 0x5fe00000,
@@ -426,6 +433,7 @@ _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
 _V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
+_V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
@@ -509,6 +517,9 @@ enum InstructionFields {
 
   kCondShift = 0,
   kCondBits = 4,
+
+  kSelCondShift = 12,
+  kSelCondBits = 4,
 
   // Bitfield immediates.
   kNShift = 22,
@@ -674,6 +685,9 @@ class Instr {
 
   inline Condition ConditionField() const {
     return static_cast<Condition>(Bits(kCondShift, kCondBits));
+  }
+  inline Condition SelectConditionField() const {
+    return static_cast<Condition>(Bits(kSelCondShift, kSelCondBits));
   }
 
   // Shift and Extend.

@@ -126,7 +126,11 @@ static const char* cond_names[kMaxCondition] = {
 
 // Print the condition guarding the instruction.
 void ARM64Decoder::PrintCondition(Instr* instr) {
-  Print(cond_names[instr->ConditionField()]);
+  if (instr->IsConditionalSelectOp()) {
+    Print(cond_names[instr->SelectConditionField()]);
+  } else {
+    Print(cond_names[instr->ConditionField()]);
+  }
 }
 
 
@@ -844,6 +848,15 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
+    Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
@@ -853,6 +866,8 @@ void ARM64Decoder::DecodeDPRegister(Instr* instr) {
     DecodeMiscDP2Source(instr);
   } else if (instr->IsMiscDP3SourceOp()) {
     DecodeMiscDP3Source(instr);
+  } else if (instr->IsConditionalSelectOp()) {
+    DecodeConditionalSelect(instr);
   } else {
     Unknown(instr);
   }
