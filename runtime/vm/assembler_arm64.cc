@@ -428,6 +428,16 @@ void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
 }
 
 
+void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
+  if (CanLoadObjectFromPool(object)) {
+    LoadObject(TMP, object, pp);
+    CompareRegisters(reg, TMP);
+  } else {
+    CompareImmediate(reg, reinterpret_cast<int64_t>(object.raw()), pp);
+  }
+}
+
+
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
   if ((pp != kNoRegister) && (Isolate::Current() != Dart::vm_isolate())) {
     int64_t val_smi_tag = imm & kSmiTagMask;
@@ -566,6 +576,17 @@ void Assembler::AddImmediate(
   } else {
     LoadImmediate(TMP2, imm, pp);
     add(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::TestImmediate(Register rn, int64_t imm, Register pp) {
+  Operand imm_op;
+  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
+    tsti(rn, imm);
+  } else {
+    LoadImmediate(TMP, imm, pp);
+    tst(rn, Operand(TMP));
   }
 }
 
@@ -895,6 +916,42 @@ void Assembler::LeaveStubFrame() {
   LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
+}
+
+
+void Assembler::UpdateAllocationStats(intptr_t cid,
+                                      Register temp_reg,
+                                      Heap::Space space) {
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(temp_reg != TMP);
+  ASSERT(cid > 0);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  if (cid < kNumPredefinedCids) {
+    const uword class_heap_stats_table_address =
+        class_table->PredefinedClassHeapStatsTableAddress();
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset, PP);
+    const Address& count_address = Address(temp_reg, count_field_offset);
+    ldr(TMP, count_address);
+    AddImmediate(TMP, TMP, 1, PP);
+    str(TMP, count_address);
+  } else {
+    ASSERT(temp_reg != kNoRegister);
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress(), PP);
+    ldr(temp_reg, Address(temp_reg));
+    AddImmediate(temp_reg, temp_reg, class_offset, PP);
+    ldr(TMP, Address(temp_reg, count_field_offset));
+    AddImmediate(TMP, TMP, 1, PP);
+    str(TMP, Address(temp_reg, count_field_offset));
+  }
 }
 
 }  // namespace dart

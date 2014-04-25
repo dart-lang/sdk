@@ -206,9 +206,6 @@ void CodeGenTest::Compile() {
 }
 
 
-// TODO(zra): Remove once supported.
-#if !defined(TARGET_ARCH_ARM64)
-
 LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
   char name[64];
   OS::SNPrint(name, 64, ":%s", name_part);
@@ -243,6 +240,5 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   return error.IsNull();
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

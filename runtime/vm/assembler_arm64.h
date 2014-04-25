@@ -699,6 +699,7 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
+  void TestImmediate(Register rn, int64_t imm, Register pp);
   void CompareImmediate(Register rn, int64_t imm, Register pp);
 
   void LoadFromOffset(Register dest, Register base, int32_t offset,
@@ -754,6 +755,7 @@ class Assembler : public ValueObject {
     LoadObject(TMP, object, pp);
     Push(TMP);
   }
+  void CompareObject(Register reg, const Object& object, Register pp);
 
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
@@ -776,6 +778,10 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame(bool load_pp = false);
   void LeaveStubFrame();
+
+  void UpdateAllocationStats(intptr_t cid,
+                             Register temp_reg,
+                             Heap::Space space = Heap::kNew);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.

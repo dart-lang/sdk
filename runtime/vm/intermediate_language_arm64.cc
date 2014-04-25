@@ -1345,13 +1345,17 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ThrowInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return new LocationSummary(0, 0, LocationSummary::kCall);
 }
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  compiler->GenerateRuntimeCall(token_pos(),
+                                deopt_id(),
+                                kThrowRuntimeEntry,
+                                1,
+                                locs());
+  __ hlt(0);
 }
 
 
@@ -1550,24 +1554,36 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+
+  __ LoadObject(result, Bool::True(), PP);
+  __ LoadObject(TMP, Bool::False(), PP);
+  __ CompareRegisters(result, value);
+  __ csel(result, TMP, result, EQ);
 }
 
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
+  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kOther,
+                         locs());
+  __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 }  // namespace dart

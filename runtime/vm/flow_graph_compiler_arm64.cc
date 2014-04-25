@@ -174,8 +174,218 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 }
 
 
+// Input parameters:
+//   R4: arguments descriptor array.
 void FlowGraphCompiler::CopyParameters() {
-  UNIMPLEMENTED();
+  __ Comment("Copy parameters");
+  const Function& function = parsed_function().function();
+  LocalScope* scope = parsed_function().node_sequence()->scope();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_pos_params = function.NumOptionalPositionalParameters();
+  const int num_opt_named_params = function.NumOptionalNamedParameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  ASSERT(function.NumParameters() == num_params);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotFromFp);
+
+  // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
+  // where num_pos_args is the number of positional arguments passed in.
+  const int min_num_pos_args = num_fixed_params;
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
+
+  __ LoadFieldFromOffset(
+      R8, R4, ArgumentsDescriptor::positional_count_offset());
+  // Check that min_num_pos_args <= num_pos_args.
+  Label wrong_num_arguments;
+  __ CompareImmediate(R8, Smi::RawValue(min_num_pos_args), PP);
+  __ b(&wrong_num_arguments, LT);
+  // Check that num_pos_args <= max_num_pos_args.
+  __ CompareImmediate(R8, Smi::RawValue(max_num_pos_args), PP);
+  __ b(&wrong_num_arguments, GT);
+
+  // Copy positional arguments.
+  // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
+  // to fp[kFirstLocalSlotFromFp - i].
+
+  __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+  // Since R7 and R8 are Smi, use LSL 2 instead of LSL 3.
+  // Let R7 point to the last passed positional argument, i.e. to
+  // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
+  __ sub(R7, R7, Operand(R8));
+  __ add(R7, FP, Operand(R7, LSL, 2));
+  __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+
+  // Let R6 point to the last copied positional argument, i.e. to
+  // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
+  __ AddImmediate(R6, FP, (kFirstLocalSlotFromFp + 1) * kWordSize, PP);
+  __ sub(R6, R6, Operand(R8, LSL, 2));  // R8 is a Smi.
+  __ SmiUntag(R8);
+  Label loop, loop_condition;
+  __ b(&loop_condition);
+  // We do not use the final allocation index of the variable here, i.e.
+  // scope->VariableAt(i)->index(), because captured variables still need
+  // to be copied to the context that is not yet allocated.
+  const Address argument_addr(R7, R8, UXTX, Address::Scaled);
+  const Address copy_addr(R6, R8, UXTX, Address::Scaled);
+  __ Bind(&loop);
+  __ ldr(TMP, argument_addr);
+  __ str(TMP, copy_addr);
+  __ Bind(&loop_condition);
+  __ subs(R8, R8, Operand(1));
+  __ b(&loop, PL);
+
+  // Copy or initialize optional named arguments.
+  Label all_arguments_processed;
+#ifdef DEBUG
+    const bool check_correct_named_args = true;
+#else
+    const bool check_correct_named_args = function.IsClosureFunction();
+#endif
+  if (num_opt_named_params > 0) {
+    // Start by alphabetically sorting the names of the optional parameters.
+    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
+    int* opt_param_position = new int[num_opt_named_params];
+    for (int pos = num_fixed_params; pos < num_params; pos++) {
+      LocalVariable* parameter = scope->VariableAt(pos);
+      const String& opt_param_name = parameter->name();
+      int i = pos - num_fixed_params;
+      while (--i >= 0) {
+        LocalVariable* param_i = opt_param[i];
+        const intptr_t result = opt_param_name.CompareTo(param_i->name());
+        ASSERT(result != 0);
+        if (result > 0) break;
+        opt_param[i + 1] = opt_param[i];
+        opt_param_position[i + 1] = opt_param_position[i];
+      }
+      opt_param[i + 1] = parameter;
+      opt_param_position[i + 1] = pos;
+    }
+    // Generate code handling each optional parameter in alphabetical order.
+    __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+    __ LoadFieldFromOffset(
+        R8, R4, ArgumentsDescriptor::positional_count_offset());
+    __ SmiUntag(R8);
+    // Let R7 point to the first passed argument, i.e. to
+    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
+    __ add(R7, FP, Operand(R7, LSL, 2));
+    __ AddImmediate(R7, R7, kParamEndSlotFromFp * kWordSize, PP);
+    // Let R6 point to the entry of the first named argument.
+    __ add(R6, R4, Operand(
+        ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
+    for (int i = 0; i < num_opt_named_params; i++) {
+      Label load_default_value, assign_optional_parameter;
+      const int param_pos = opt_param_position[i];
+      // Check if this named parameter was passed in.
+      // Load R5 with the name of the argument.
+      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::name_offset());
+      ASSERT(opt_param[i]->name().IsSymbol());
+      __ CompareObject(R5, opt_param[i]->name(), PP);
+      __ b(&load_default_value, NE);
+      // Load R5 with passed-in argument at provided arg_pos, i.e. at
+      // fp[kParamEndSlotFromFp + num_args - arg_pos].
+      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::position_offset());
+      // R5 is arg_pos as Smi.
+      // Point to next named entry.
+      __ add(R6, R6, Operand(ArgumentsDescriptor::named_entry_size()));
+      // Negate and untag R5 so we can use in scaled address mode.
+      __ subs(R5, ZR, Operand(R5, ASR, 1));
+      Address argument_addr(R7, R5, UXTX, Address::Scaled);  // R5 is untagged.
+      __ ldr(R5, argument_addr);
+      __ b(&assign_optional_parameter);
+      __ Bind(&load_default_value);
+      // Load R5 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(
+              param_pos - num_fixed_params));
+      __ LoadObject(R5, value, PP);
+      __ Bind(&assign_optional_parameter);
+      // Assign R5 to fp[kFirstLocalSlotFromFp - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
+      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize);
+    }
+    delete[] opt_param;
+    delete[] opt_param_position;
+    if (check_correct_named_args) {
+      // Check that R6 now points to the null terminator in the arguments
+      // descriptor.
+      __ ldr(R5, Address(R6));
+      __ LoadObject(TMP, Object::null_object(), PP);
+      __ CompareRegisters(R5, TMP);
+      __ b(&all_arguments_processed, EQ);
+    }
+  } else {
+    ASSERT(num_opt_pos_params > 0);
+    __ LoadFieldFromOffset(
+        R8, R4, ArgumentsDescriptor::positional_count_offset());
+    __ SmiUntag(R8);
+    for (int i = 0; i < num_opt_pos_params; i++) {
+      Label next_parameter;
+      // Handle this optional positional parameter only if k or fewer positional
+      // arguments have been passed, where k is param_pos, the position of this
+      // optional parameter in the formal parameter list.
+      const int param_pos = num_fixed_params + i;
+      __ CompareImmediate(R8, param_pos, PP);
+      __ b(&next_parameter, GT);
+      // Load R5 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(i));
+      __ LoadObject(R5, value, PP);
+      // Assign R5 to fp[kFirstLocalSlotFromFp - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
+      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize);
+      __ Bind(&next_parameter);
+    }
+    if (check_correct_named_args) {
+      __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+      __ SmiUntag(R7);
+      // Check that R8 equals R7, i.e. no named arguments passed.
+      __ CompareRegisters(R8, R7);
+      __ b(&all_arguments_processed, EQ);
+    }
+  }
+
+  __ Bind(&wrong_num_arguments);
+  if (function.IsClosureFunction()) {
+    // Invoke noSuchMethod function passing "call" as the original name.
+    const int kNumArgsChecked = 1;
+    const ICData& ic_data = ICData::ZoneHandle(
+        ICData::New(function, Symbols::Call(), Object::empty_array(),
+                    Isolate::kNoDeoptId, kNumArgsChecked));
+    __ LoadObject(R5, ic_data, PP);
+    __ LeaveDartFrame();  // The arguments are still on the stack.
+    __ Branch(&StubCode::CallNoSuchMethodFunctionLabel(), PP);
+    // The noSuchMethod call may return to the caller, but not here.
+    __ hlt(0);
+  } else if (check_correct_named_args) {
+    __ Stop("Wrong arguments");
+  }
+
+  __ Bind(&all_arguments_processed);
+  // Nullify originally passed arguments only after they have been copied and
+  // checked, otherwise noSuchMethod would not see their original values.
+  // This step can be skipped in case we decide that formal parameters are
+  // implicitly final, since garbage collecting the unmodified value is not
+  // an issue anymore.
+
+  // R4 : arguments descriptor array.
+  __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::count_offset());
+  __ SmiUntag(R8);
+  __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+  const Address original_argument_addr(R7, R8, UXTX, Address::Scaled);
+  __ LoadObject(TMP, Object::null_object(), PP);
+  Label null_args_loop, null_args_loop_condition;
+  __ b(&null_args_loop_condition);
+  __ Bind(&null_args_loop);
+  __ str(TMP, original_argument_addr);
+  __ Bind(&null_args_loop_condition);
+  __ subs(R8, R8, Operand(1));
+  __ b(&null_args_loop, PL);
 }
 
 

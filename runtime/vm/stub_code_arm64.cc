@@ -21,6 +21,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
+DEFINE_FLAG(bool, use_slow_path, false,
+    "Set to true for debugging & verifying the slow paths.");
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of last argument in argument array.
@@ -129,8 +133,124 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   LR : return address.
+//   SP : address of return value.
+//   R5 : address of the native function to call.
+//   R2 : address of first argument in argument array.
+//   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  __ Stop("GenerateCallNativeCFunctionStub");
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ EnterFrame(0);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset());
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to native code.
+  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset());
+
+  // Save current Context pointer into Isolate structure.
+  __ StoreToOffset(CTX, R0, Isolate::top_context_offset());
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ mov(CTX, R0);
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ LoadFromOffset(R6, CTX, Isolate::vm_tag_offset());
+    __ CompareImmediate(R6, VMTag::kScriptTagId, PP);
+    __ b(&ok, EQ);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ StoreToOffset(R5, CTX, Isolate::vm_tag_offset());
+
+  // Reserve space for the native arguments structure passed on the stack (the
+  // outgoing pointer parameter to the native arguments structure is passed in
+  // R0) and align frame before entering the C++ world.
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
+
+  // Initialize NativeArguments structure and call native function.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  // Set isolate in NativeArgs: R0 already contains CTX.
+
+  // There are no native calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  // Set argc in NativeArguments: R1 already contains argc.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  // Set argv in NativeArguments: R2 already contains argv.
+
+  // Set retval in NativeArgs.
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ AddImmediate(R3, FP, 2 * kWordSize, PP);
+
+  // TODO(regis): Should we pass the structure by value as in runtime calls?
+  // It would require changing Dart API for native functions.
+  // For now, space is reserved on the stack and we pass a pointer to it.
+  __ StoreToOffset(R0, SP, isolate_offset);
+  __ StoreToOffset(R1, SP, argc_tag_offset);
+  __ StoreToOffset(R2, SP, argv_offset);
+  __ StoreToOffset(R3, SP, retval_offset);
+  __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
+
+  // Call native function (setsup scope if not leaf function).
+  Label leaf_call;
+  Label done;
+  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask(), PP);
+  __ b(&leaf_call, EQ);
+
+  __ mov(R1, R5);  // Pass the function entrypoint to call.
+  // Call native function invocation wrapper or redirection via simulator.
+#if defined(USING_SIMULATOR)
+  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+  __ LoadImmediate(R2, entry, PP);
+  __ blr(R2);
+#else
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+#endif
+  __ b(&done);
+
+  __ Bind(&leaf_call);
+  // Call native function or redirection via simulator.
+  __ blr(R5);
+
+  __ Bind(&done);
+
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kScriptTagId, PP);
+  __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0, PP);
+  __ StoreToOffset(R2, CTX, Isolate::top_exit_frame_info_offset());
+
+  // Load Context pointer from Isolate structure into R2.
+  __ LoadFromOffset(R2, CTX, Isolate::top_context_offset());
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadObject(R3, Object::null_object(), PP);
+  __ StoreToOffset(R3, CTX, Isolate::top_context_offset());
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, R2);
+
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -483,9 +603,129 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of objects.
+// Input parameters:
+//   LR : return address.
+//   SP + 0 : type arguments object (only if class is parameterized).
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  __ Stop("GenerateAllocationStubForClass");
+  // The generated code is different if the class is parameterized.
+  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
+  ASSERT(!is_cls_parameterized ||
+         (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
+  // kInlineInstanceSize is a constant used as a threshold for determining
+  // when the object initialization should be done as a loop or as
+  // straight line code.
+  const int kInlineInstanceSize = 12;
+  const intptr_t instance_size = cls.instance_size();
+  ASSERT(instance_size > 0);
+  if (is_cls_parameterized) {
+    __ ldr(R1, Address(SP));
+    // R1: instantiated type arguments.
+  }
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+    Label slow_case;
+    // Allocate the object and update top to point to
+    // next object start and initialize the allocated object.
+    // R1: instantiated type arguments (if is_cls_parameterized).
+    Heap* heap = Isolate::Current()->heap();
+    __ LoadImmediate(R5, heap->TopAddress(), PP);
+    __ ldr(R2, Address(R5));
+    __ AddImmediate(R3, R2, instance_size, PP);
+    // Check if the allocation fits into the remaining space.
+    // R2: potential new object start.
+    // R3: potential next object start.
+    __ LoadImmediate(TMP, heap->EndAddress(), PP);
+    __ ldr(TMP, Address(TMP));
+    __ CompareRegisters(R3, TMP);
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, CS);  // Unsigned higher or equal.
+    }
+    __ str(R3, Address(R5));
+    __ UpdateAllocationStats(cls.id(), R5);
+
+    // R2: new object start.
+    // R3: next object start.
+    // R1: new object type arguments (if is_cls_parameterized).
+    // Set the tags.
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    __ LoadImmediate(R0, tags, PP);
+    __ StoreToOffset(R0, R2, Instance::tags_offset());
+
+    // Initialize the remaining words of the object.
+    __ LoadObject(R0, Object::null_object(), PP);
+
+    // R0: raw null.
+    // R2: new object start.
+    // R3: next object start.
+    // R1: new object type arguments (if is_cls_parameterized).
+    // First try inlining the initialization without a loop.
+    if (instance_size < (kInlineInstanceSize * kWordSize)) {
+      // Check if the object contains any non-header fields.
+      // Small objects are initialized using a consecutive set of writes.
+      for (intptr_t current_offset = Instance::NextFieldOffset();
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        __ StoreToOffset(R0, R2, current_offset);
+      }
+    } else {
+      __ AddImmediate(R4, R2, Instance::NextFieldOffset(), PP);
+      // Loop until the whole object is initialized.
+      // R0: raw null.
+      // R2: new object.
+      // R3: next object start.
+      // R4: next word to be initialized.
+      // R1: new object type arguments (if is_cls_parameterized).
+      Label init_loop;
+      Label done;
+      __ Bind(&init_loop);
+      __ CompareRegisters(R4, R3);
+      __ b(&done, CS);
+      __ str(R0, Address(R4));
+      __ AddImmediate(R4, R4, kWordSize, PP);
+      __ b(&init_loop);
+      __ Bind(&done);
+    }
+    if (is_cls_parameterized) {
+      // R1: new object type arguments.
+      // Set the type arguments in the new object.
+      __ StoreToOffset(R1, R2, cls.type_arguments_field_offset());
+    }
+    // Done allocating and initializing the instance.
+    // R2: new object still missing its heap tag.
+    __ add(R0, R2, Operand(kHeapObjectTag));
+    // R0: new object.
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+  // If is_cls_parameterized:
+  // R1: new object type arguments.
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  // Setup space on stack for return value.
+  __ PushObject(Object::null_object(), PP);
+  __ PushObject(cls, PP);  // Push class of object to be allocated.
+  if (is_cls_parameterized) {
+    // Push type arguments.
+    __ Push(R1);
+  } else {
+    // Push null type arguments.
+    __ Push(R2);
+  }
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
+  __ Drop(2);  // Pop arguments.
+  __ Pop(R0);  // Pop result (newly allocated object).
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame();
+  __ ret();
 }
 
 

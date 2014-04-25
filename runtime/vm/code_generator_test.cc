@@ -118,9 +118,6 @@ CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen,
                   Smi::New(5))
 
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
-
 CODEGEN_TEST_GENERATE(SmiAddCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* a = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
@@ -569,7 +566,5 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
       app_lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT_EQ(cls.raw(), result.clazz());
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart
