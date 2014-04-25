@@ -1,3 +1,11 @@
+## 0.5.1+1
+
+* Capture all asynchronous errors thrown by handlers if they would otherwise be
+  top-leveled.
+
+* Add more detail to the README about handlers, middleware, and the rules for
+  implementing an adapter.
+
 ## 0.5.1
 
 * Add a `context` map to `Request` and `Response` for passing data among

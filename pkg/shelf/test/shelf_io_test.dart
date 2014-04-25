@@ -184,6 +184,38 @@ void main() {
       expect(response.stream.bytesToString(), completion('Hello from /'));
     });
   });
+
+  test('passes asynchronous exceptions to the parent error zone', () {
+    return runZoned(() {
+      return shelf_io.serve((request) {
+        new Future(() => throw 'oh no');
+        return syncHandler(request);
+      }, 'localhost', 0).then((server) {
+        return http.get('http://localhost:${server.port}').then((response) {
+          expect(response.statusCode, HttpStatus.OK);
+          expect(response.body, 'Hello from /');
+          server.close();
+        });
+      });
+    }, onError: expectAsync((error) {
+      expect(error, equals('oh no'));
+    }));
+  });
+
+  test("doesn't pass asynchronous exceptions to the root error zone", () {
+    return Zone.ROOT.run(() {
+      return shelf_io.serve((request) {
+        new Future(() => throw 'oh no');
+        return syncHandler(request);
+      }, 'localhost', 0).then((server) {
+        return http.get('http://localhost:${server.port}').then((response) {
+          expect(response.statusCode, HttpStatus.OK);
+          expect(response.body, 'Hello from /');
+          server.close();
+        });
+      });
+    });
+  });
 }
 
 int _serverPort;
