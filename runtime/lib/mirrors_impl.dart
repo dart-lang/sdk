@@ -298,23 +298,28 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return identityHashCode(_reflectee) ^ 0x36363636;
   }
 
-  // TODO(16539): Make these weak or soft.
+  // TODO(18445): Use an LRU cache.
   static var _getFieldClosures = new HashMap();
   static var _setFieldClosures = new HashMap();
   static var _getFieldCallCounts = new HashMap();
   static var _setFieldCallCounts = new HashMap();
   static const _closureThreshold = 20;
+  static const _cacheSizeLimit = 255;
 
   _getFieldSlow(unwrapped) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
+    if (_getFieldCallCounts.length == 2 * _cacheSizeLimit) {
+      // Prevent unbounded cache growth.
+      _getFieldCallCounts = new HashMap();
+    }
     var callCount = _getFieldCallCounts[unwrapped];
     if (callCount == null) {
       callCount = 0;
     }
     if (callCount == _closureThreshold) {
-      // We've seen a success getter invocation a few times: time to invest in a
-      // closure.
+      // We've seen a successful setter invocation a few times: time to invest
+      // in a closure.
       var f;
       var atPosition = unwrapped.indexOf('@');
       if (atPosition == -1) {
@@ -325,6 +330,10 @@ class _LocalInstanceMirror extends _LocalObjectMirror
         var withoutKey = unwrapped.substring(0, atPosition);
         var privateKey = unwrapped.substring(atPosition);
         f = _eval('(x) => x.$withoutKey', privateKey);
+      }
+      if (_getFieldClosures.length == _cacheSizeLimit) {
+        // Prevent unbounded cache growth.
+        _getFieldClosures = new HashMap();
       }
       _getFieldClosures[unwrapped] = f;
       _getFieldCallCounts.remove(unwrapped);  // We won't look for this again.
@@ -346,13 +355,16 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   _setFieldSlow(unwrapped, arg) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
+    if (_setFieldCallCounts.length == 2 * _cacheSizeLimit) {
+      _setFieldCallCounts = new HashMap();
+    }
     var callCount = _setFieldCallCounts[unwrapped];
     if (callCount == null) {
       callCount = 0;
     }
     if (callCount == _closureThreshold) {
-      // We've seen a success getter invocation a few times: time to invest in a
-      // closure.
+      // We've seen a successful getter invocation a few times: time to invest
+      // in a closure.
       var f;
       var atPosition = unwrapped.indexOf('@');
       if (atPosition == -1) {
@@ -363,6 +375,10 @@ class _LocalInstanceMirror extends _LocalObjectMirror
         var withoutKey = unwrapped.substring(0, atPosition);
         var privateKey = unwrapped.substring(atPosition);
         f = _eval('(x, v) => x.$withoutKey = v', privateKey);
+      }
+      if (_setFieldClosures.length == _cacheSizeLimit) {
+        // Prevent unbounded cache growth.
+        _setFieldClosures = new HashMap();
       }
       _setFieldClosures[unwrapped] = f;
       _setFieldCallCounts.remove(unwrapped);
