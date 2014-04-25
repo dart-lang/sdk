@@ -494,37 +494,14 @@ class _File extends FileSystemEntity implements File {
   Future<String> readAsString({Encoding encoding: UTF8}) =>
     readAsBytes().then((bytes) => _tryDecode(bytes, encoding));
 
-  String readAsStringSync({Encoding encoding: UTF8}) {
-    List<int> bytes = readAsBytesSync();
-    return _tryDecode(bytes, encoding);
-  }
+  String readAsStringSync({Encoding encoding: UTF8}) =>
+    _tryDecode(readAsBytesSync(), encoding);
 
-  List<String> _decodeLines(List<int> bytes, Encoding encoding) {
-    if (bytes.length == 0) return [];
-    var list = [];
-    var controller = new StreamController(sync: true);
-    var error = null;
-    controller.stream
-        .transform(encoding.decoder)
-        .transform(new LineSplitter())
-        .listen((line) => list.add(line), onError: (e) => error = e);
-    controller.add(bytes);
-    controller.close();
-    if (error != null) {
-      throw new FileSystemException(
-          "Failed to decode data using encoding '${encoding.name}'", path);
-    }
-    return list;
-  }
-
-  Future<List<String>> readAsLines({Encoding encoding: UTF8}) {
-    return readAsBytes().then((bytes) {
-      return _decodeLines(bytes, encoding);
-    });
-  }
+  Future<List<String>> readAsLines({Encoding encoding: UTF8}) =>
+    readAsString(encoding: encoding).then(const LineSplitter().convert);
 
   List<String> readAsLinesSync({Encoding encoding: UTF8}) =>
-      _decodeLines(readAsBytesSync(), encoding);
+    const LineSplitter().convert(readAsStringSync(encoding: encoding));
 
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE,
