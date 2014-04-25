@@ -195,7 +195,8 @@ def Main(argv):
 
   os.makedirs(join(LIB, 'html'))
 
-  for library in [join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
+  for library in [join('blink', 'dartium'),
+                  join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
                   join('_internal', 'compiler'),
                   join('_internal', 'lib'),
                   'async', 'collection', 'convert', 'core',
