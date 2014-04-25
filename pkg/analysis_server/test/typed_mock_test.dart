@@ -87,16 +87,6 @@ main() {
       expect(obj.testProperty, 20);
     });
 
-    test('thenReturn can replace behavior, method with 1 argument', () {
-      TestInterface obj = new TestInterfaceMock();
-      when(obj.testMethod1(anyInt)).thenReturn('aaa');
-      expect(obj.testMethod1(2), 'aaa');
-      expect(obj.testMethod1(3), 'aaa');
-      when(obj.testMethod1(anyInt)).thenReturn('bbb');
-      expect(obj.testMethod1(2), 'bbb');
-      expect(obj.testMethod1(3), 'bbb');
-    });
-
     test('thenReturn for getter', () {
       TestInterface obj = new TestInterfaceMock();
       when(obj.testProperty).thenReturn(42);
@@ -162,6 +152,15 @@ main() {
       expect(obj.testMethod2('ccc', 20), 'any+20');
       expect(obj.testMethod2('ddd', 20), 'any+20');
       expect(obj.testMethod2('eee', 99), 'everything else');
+    });
+
+    test('thenReturnList for getter', () {
+      TestInterface obj = new TestInterfaceMock();
+      when(obj.testProperty).thenReturnList(['a', 'b', 'c']);
+      expect(obj.testProperty, 'a');
+      expect(obj.testProperty, 'b');
+      expect(obj.testProperty, 'c');
+      expect(() => obj.testProperty, throwsA(new isInstanceOf<StateError>()));
     });
 
     test('thenThrow for getter', () {

@@ -1,10 +1,7 @@
 library typed_mock;
 
-import 'package:collection/collection.dart';
 
-InvocationMatcher _lastMatcher;
-
-ListEquality LIST_EQUALITY = new ListEquality();
+_InvocationMatcher _lastMatcher;
 
 
 /// Enables stubbing methods.
@@ -12,7 +9,7 @@ ListEquality LIST_EQUALITY = new ListEquality();
 /// method is called.
 Behavior when(_ignored) {
   try {
-    var behavior = new Behavior(_lastMatcher);
+    var behavior = new Behavior();
     _lastMatcher._behavior = behavior;
     return behavior;
   } finally {
@@ -22,12 +19,12 @@ Behavior when(_ignored) {
 }
 
 
-class InvocationMatcher {
+class _InvocationMatcher {
   List<ArgumentMatcher> _matchers = [];
 
   Behavior _behavior;
 
-  InvocationMatcher(Invocation invocation) {
+  _InvocationMatcher(Invocation invocation) {
     invocation.positionalArguments.forEach((argument) {
       ArgumentMatcher matcher;
       if (argument is ArgumentMatcher) {
@@ -39,10 +36,7 @@ class InvocationMatcher {
     });
   }
 
-  bool operator ==(other) => LIST_EQUALITY.equals(other._matchers,
-      _matchers);
-
-  bool _match(Invocation invocation) {
+  bool match(Invocation invocation) {
     var arguments = invocation.positionalArguments;
     if (arguments.length != _matchers.length) {
       return false;
@@ -59,18 +53,18 @@ class InvocationMatcher {
 }
 
 class Behavior {
-  final InvocationMatcher _matcher;
-
   bool _thenFunctionEnabled = false;
   Function _thenFunction;
 
   bool _returnAlwaysEnabled = false;
   var _returnAlways;
 
+  bool _returnListEnabled = false;
+  List _returnList;
+  int _returnListIndex;
+
   bool _throwExceptionEnabled = false;
   var _throwException;
-
-  Behavior(InvocationMatcher this._matcher);
 
   Behavior thenInvoke(Function function) {
     _reset();
@@ -86,6 +80,14 @@ class Behavior {
     return this;
   }
 
+  Behavior thenReturnList(List list) {
+    _reset();
+    _returnListEnabled = true;
+    _returnList = list;
+    _returnListIndex = 0;
+    return this;
+  }
+
   Behavior thenThrow(exception) {
     _reset();
     _throwExceptionEnabled = true;
@@ -96,10 +98,11 @@ class Behavior {
   _reset() {
     _thenFunctionEnabled = false;
     _returnAlwaysEnabled = false;
+    _returnListEnabled = false;
     _throwExceptionEnabled = false;
   }
 
-  dynamic getReturnValue(Invocation invocation) {
+  dynamic _getReturnValue(Invocation invocation) {
     // function
     if (_thenFunctionEnabled) {
       return Function.apply(_thenFunction, invocation.positionalArguments,
@@ -108,6 +111,14 @@ class Behavior {
     // always
     if (_returnAlwaysEnabled) {
       return _returnAlways;
+    }
+    // list
+    if (_returnListEnabled) {
+      if (_returnListIndex >= _returnList.length) {
+        throw new StateError('List of ${_returnList.length} elements'
+          ' $_returnList has been exhausted.');
+      }
+      return _returnList[_returnListIndex++];
     }
     // exception
     if (_throwExceptionEnabled) {
@@ -120,7 +131,7 @@ class Behavior {
 
 
 class TypedMock {
-  final Map<Symbol, List<InvocationMatcher>> _invocationMatchersMap = {};
+  final Map<Symbol, List<_InvocationMatcher>> _invocationMatchersMap = {};
 
   noSuchMethod(Invocation invocation) {
     var member = invocation.memberName;
@@ -132,14 +143,13 @@ class TypedMock {
     }
     // check if there is a matcher
     for (var matcher in matchers) {
-      if (matcher._match(invocation)) {
+      if (matcher.match(invocation)) {
         _lastMatcher = matcher;
-        return matcher._behavior.getReturnValue(invocation);
+        return matcher._behavior._getReturnValue(invocation);
       }
     }
     // add a new matcher
-    InvocationMatcher matcher = new InvocationMatcher(invocation);
-    matchers.remove(matcher);
+    _InvocationMatcher matcher = new _InvocationMatcher(invocation);
     matchers.add(matcher);
     _lastMatcher = matcher;
   }

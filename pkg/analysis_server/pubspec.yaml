@@ -8,7 +8,6 @@ environment:
 dependencies:
   analyzer: 0.14.1
   args: any
-  collection: any
   logging: any
 dev_dependencies:
   unittest: '>=0.10.0 <0.12.0'
