@@ -4558,26 +4558,36 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       while (iterator.moveNext()) {
         Source source = iterator.key;
         SourceEntry sourceEntry = iterator.value;
-        if (!source.isInSystemLibrary && sourceEntry is DartEntry) {
+        if (!source.isInSystemLibrary && (sourceEntry is DartEntry || sourceEntry is HtmlEntry)) {
           sourcesToInvalidate.add(source);
         }
       }
       int count = sourcesToInvalidate.length;
       for (int i = 0; i < count; i++) {
         Source source = sourcesToInvalidate[i];
-        DartEntry dartEntry = _getReadableDartEntry(source);
-        _removeFromParts(source, dartEntry);
-        DartEntryImpl dartCopy = dartEntry.writableCopy;
-        dartCopy.invalidateAllResolutionInformation();
-        _cache.put(source, dartCopy);
-        SourcePriority priority = SourcePriority.UNKNOWN;
-        SourceKind kind = dartCopy.kind;
-        if (kind == SourceKind.LIBRARY) {
-          priority = SourcePriority.LIBRARY;
-        } else if (kind == SourceKind.PART) {
-          priority = SourcePriority.NORMAL_PART;
+        SourceEntry entry = _getReadableSourceEntry(source);
+        if (entry is DartEntry) {
+          DartEntry dartEntry = entry;
+          _removeFromParts(source, dartEntry);
+          DartEntryImpl dartCopy = dartEntry.writableCopy;
+          dartCopy.invalidateAllResolutionInformation();
+          _cache.put(source, dartCopy);
+          SourcePriority priority = SourcePriority.UNKNOWN;
+          SourceKind kind = dartCopy.kind;
+          if (kind == SourceKind.LIBRARY) {
+            priority = SourcePriority.LIBRARY;
+          } else if (kind == SourceKind.PART) {
+            priority = SourcePriority.NORMAL_PART;
+          }
+          _workManager.add(source, priority);
         }
-        _workManager.add(source, priority);
+        if (entry is HtmlEntry) {
+          HtmlEntry htmlEntry = entry;
+          HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+          htmlCopy.invalidateAllResolutionInformation();
+          _cache.put(source, htmlCopy);
+          _workManager.add(source, SourcePriority.HTML);
+        }
       }
     }
   }
@@ -13168,7 +13178,8 @@ class BuildDartElementModelTask extends AnalysisTask {
               directive.element = importElement;
               imports.add(importElement);
               if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                ErrorCode errorCode = (importElement.isDeferred ? StaticWarningCode.IMPORT_OF_NON_LIBRARY : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, errorCode, [uriLiteral.toSource()]));
               }
             }
           }
@@ -13300,6 +13311,48 @@ class BuildDartElementModelTask extends AnalysisTask {
  */
 class GenerateDartErrorsTask extends AnalysisTask {
   /**
+   * Check each directive in the given compilation unit to see if the referenced source exists and
+   * report an error if it does not.
+   *
+   * @param context the context in which the library exists
+   * @param librarySource the source representing the library containing the directives
+   * @param unit the compilation unit containing the directives to be validated
+   * @param errorListener the error listener to which errors should be reported
+   */
+  static void validateDirectives(AnalysisContext context, Source librarySource, CompilationUnit unit, AnalysisErrorListener errorListener) {
+    for (Directive directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        validateReferencedSource(context, librarySource, directive, errorListener);
+      }
+    }
+  }
+
+  /**
+   * Check the given directive to see if the referenced source exists and report an error if it does
+   * not.
+   *
+   * @param context the context in which the library exists
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive to be verified
+   * @param errorListener the error listener to which errors should be reported
+   */
+  static void validateReferencedSource(AnalysisContext context, Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
+    Source source = directive.source;
+    if (source != null) {
+      if (context.exists(source)) {
+        return;
+      }
+    } else {
+      // Don't report errors already reported by ParseDartTask#resolveDirective
+      if (directive.validate() != null) {
+        return;
+      }
+    }
+    StringLiteral uriLiteral = directive.uri;
+    errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [directive.uriContent]));
+  }
+
+  /**
    * The source for which errors and warnings are to be produced.
    */
   final Source source;
@@ -13355,6 +13408,10 @@ class GenerateDartErrorsTask extends AnalysisTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       TypeProvider typeProvider = context.typeProvider;
+      //
+      // Validate the directives
+      //
+      validateDirectives(context, source, _unit, errorListener);
       //
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
@@ -13644,30 +13701,32 @@ class ParseDartTask extends AnalysisTask {
    * @param errorListener the error listener to which errors should be reported
    * @return the result of resolving the URI against the URI of the library
    */
-  static Source resolveSource(AnalysisContext analysisContext, Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
+  static Source resolveDirective(AnalysisContext context, Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
     StringLiteral uriLiteral = directive.uri;
-    if (uriLiteral is StringInterpolation) {
+    String uriContent = uriLiteral.stringValue;
+    if (uriContent != null) {
+      uriContent = uriContent.trim();
+      directive.uriContent = uriContent;
+    }
+    UriValidationCode code = directive.validate();
+    if (code == null) {
+      String encodedUriContent = Uri.encodeFull(uriContent);
+      Source source = context.sourceFactory.resolveUri(librarySource, encodedUriContent);
+      directive.source = source;
+      return source;
+    }
+    if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
+      return null;
+    }
+    if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
       errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
       return null;
     }
-    String uriContent = uriLiteral.stringValue.trim();
-    directive.uriContent = uriContent;
-    if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+    if (code == UriValidationCode.INVALID_URI) {
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
-    try {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      parseUriWithException(encodedUriContent);
-      Source source = analysisContext.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      if (!analysisContext.exists(source)) {
-        errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
-      }
-      directive.source = source;
-      return source;
-    } on URISyntaxException catch (exception) {
-      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
-    }
-    return null;
+    throw new RuntimeException(message: "Failed to handle validation code: ${code}");
   }
 
   /**
@@ -13724,11 +13783,6 @@ class ParseDartTask extends AnalysisTask {
    * The errors that were produced by scanning and parsing the source.
    */
   List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The prefix of a URI using the `dart-ext` scheme to reference a native code library.
-   */
-  static String _DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -13826,20 +13880,20 @@ class ParseDartTask extends AnalysisTask {
           _containsPartOfDirective = true;
         } else {
           _containsNonPartOfDirective = true;
-          if (directive is ExportDirective) {
-            Source exportSource = resolveSource(analysisContext, source, directive, errorListener);
-            if (exportSource != null) {
-              _exportedSources.add(exportSource);
-            }
-          } else if (directive is ImportDirective) {
-            Source importSource = resolveSource(analysisContext, source, directive, errorListener);
-            if (importSource != null) {
-              _importedSources.add(importSource);
-            }
-          } else if (directive is PartDirective) {
-            Source partSource = resolveSource(analysisContext, source, directive, errorListener);
-            if (partSource != null && partSource != source) {
-              _includedSources.add(partSource);
+          if (directive is UriBasedDirective) {
+            Source referencedSource = resolveDirective(analysisContext, source, directive, errorListener);
+            if (referencedSource != null) {
+              if (directive is ExportDirective) {
+                _exportedSources.add(referencedSource);
+              } else if (directive is ImportDirective) {
+                _importedSources.add(referencedSource);
+              } else if (directive is PartDirective) {
+                if (referencedSource != source) {
+                  _includedSources.add(referencedSource);
+                }
+              } else {
+                throw new AnalysisException.con1("${runtimeType.toString()} failed to handle a ${directive.runtimeType.toString()}");
+              }
             }
           }
         }
@@ -14005,12 +14059,8 @@ class ParseHtmlTask extends AnalysisTask {
     }
     AnalysisContext analysisContext = context;
     for (Directive directive in script.directives) {
-      if (directive is ExportDirective) {
-        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
-      } else if (directive is ImportDirective) {
-        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
-      } else if (directive is PartDirective) {
-        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
+      if (directive is UriBasedDirective) {
+        ParseDartTask.resolveDirective(analysisContext, source, directive, errorListener);
       }
     }
   }
@@ -14698,6 +14748,10 @@ class ResolveHtmlTask extends AnalysisTask {
     _element = builder.buildHtmlElement(source, modificationTime, _unit);
     RecordingErrorListener errorListener = builder.errorListener;
     //
+    // Validate the directives
+    //
+    _unit.accept(new RecursiveXmlVisitor_ResolveHtmlTask_internalPerform(this, errorListener));
+    //
     // Record all resolution errors.
     //
     _resolutionErrors = errorListener.getErrorsForSource(source);
@@ -14705,6 +14759,23 @@ class ResolveHtmlTask extends AnalysisTask {
     // Remember the resolved unit.
     //
     _resolvedUnit = _unit;
+  }
+}
+
+class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform extends ht.RecursiveXmlVisitor<Object> {
+  final ResolveHtmlTask ResolveHtmlTask_this;
+
+  RecordingErrorListener errorListener;
+
+  RecursiveXmlVisitor_ResolveHtmlTask_internalPerform(this.ResolveHtmlTask_this, this.errorListener) : super();
+
+  @override
+  Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
+    CompilationUnit script = node.script;
+    if (script != null) {
+      GenerateDartErrorsTask.validateDirectives(ResolveHtmlTask_this.context, ResolveHtmlTask_this.source, script, errorListener);
+    }
+    return null;
   }
 }
 

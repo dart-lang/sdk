@@ -3060,10 +3060,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           if (currentType.isObject) {
             // Found catch clause clause that has Object as an exception type, this is equivalent to
             // having a catch clause that doesn't have an exception type, visit the block, but
-            // generate an error on any following catch clauses (and don't visit them).
+             // generate an error on any following catch clauses (and don't visit them).
             _safelyVisit(catchClause);
             if (i + 1 != numOfCatchClauses) {
-              // this catch clause is not the last in the try statement
+               // this catch clause is not the last in the try statement
               CatchClause nextCatchClause = catchClauses[i + 1];
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
@@ -3085,7 +3085,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         }
         _safelyVisit(catchClause);
       } else {
-        // Found catch clause clause that doesn't have an exception type, visit the block, but
+         // Found catch clause clause that doesn't have an exception type, visit the block, but
         // generate an error on any following catch clauses (and don't visit them).
         _safelyVisit(catchClause);
         if (i + 1 != numOfCatchClauses) {
@@ -3140,15 +3140,24 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     }
     // Don't consider situations where we could evaluate to a constant boolean expression with the
     // ConstantVisitor
-    //    else {
-    //      EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-    //      if (result == ValidResult.RESULT_TRUE) {
-    //        return ValidResult.RESULT_TRUE;
-    //      } else if (result == ValidResult.RESULT_FALSE) {
-    //        return ValidResult.RESULT_FALSE;
-    //      }
-    //      return null;
-    //    }
+//
+       // else {
+//
+         // EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+//
+         // if (result == ValidResult.RESULT_TRUE) {
+//
+           // return ValidResult.RESULT_TRUE;
+//
+         // } else if (result == ValidResult.RESULT_FALSE) {
+//
+           // return ValidResult.RESULT_FALSE;
+//
+         // }
+//
+         // return null;
+//
+       // }
     return null;
   }
 
@@ -9920,7 +9929,8 @@ class LibraryResolver {
               directive.element = importElement;
               imports.add(importElement);
               if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                ErrorCode errorCode = (importElement.isDeferred ? StaticWarningCode.IMPORT_OF_NON_LIBRARY : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, errorCode, [uriLiteral.toSource()]));
               }
             }
           }
@@ -10497,7 +10507,8 @@ class LibraryResolver2 {
               directive.element = importElement;
               imports.add(importElement);
               if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                ErrorCode errorCode = (importElement.isDeferred ? StaticWarningCode.IMPORT_OF_NON_LIBRARY : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, errorCode, [uriLiteral.toSource()]));
               }
             }
           }
@@ -11263,27 +11274,30 @@ class ResolverVisitor extends ScopedVisitor {
     if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
+        _overrideManager.enterScope();
         try {
-          _overrideManager.enterScope();
           _promoteManager.enterScope();
-          _propagateTrueState(leftOperand);
-          // Type promotion.
-          _promoteTypes(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
-          // Visit right operand.
-          rightOperand.accept(this);
+          try {
+            _propagateTrueState(leftOperand);
+            // Type promotion.
+            _promoteTypes(leftOperand);
+            _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
+            _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
+            _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
+            // Visit right operand.
+            rightOperand.accept(this);
+          } finally {
+            _promoteManager.exitScope();
+          }
         } finally {
           _overrideManager.exitScope();
-          _promoteManager.exitScope();
         }
       }
     } else if (operatorType == sc.TokenType.BAR_BAR) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
+        _overrideManager.enterScope();
         try {
-          _overrideManager.enterScope();
           _propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
@@ -11302,8 +11316,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitBlockFunctionBody(node);
     } finally {
       _overrideManager.exitScope();
@@ -11368,8 +11382,8 @@ class ResolverVisitor extends ScopedVisitor {
     // for 'b', but not for 'a' because of the order of the visits). Ideally we would create a
     // dependency graph, but that would require references to be resolved, which they are not.
     //
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       NodeList<Directive> directives = node.directives;
       int directiveCount = directives.length;
       for (int i = 0; i < directiveCount; i++) {
@@ -11403,25 +11417,28 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(condition);
     Expression thenExpression = node.thenExpression;
     if (thenExpression != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         _promoteManager.enterScope();
-        _propagateTrueState(condition);
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
-        // Visit "then" expression.
-        thenExpression.accept(this);
+        try {
+          _propagateTrueState(condition);
+          // Type promotion.
+          _promoteTypes(condition);
+          _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
+          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
+          // Visit "then" expression.
+          thenExpression.accept(this);
+        } finally {
+          _promoteManager.exitScope();
+        }
       } finally {
         _overrideManager.exitScope();
-        _promoteManager.exitScope();
       }
     }
     Expression elseExpression = node.elseExpression;
     if (elseExpression != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         _propagateFalseState(condition);
         elseExpression.accept(this);
       } finally {
@@ -11489,8 +11506,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDoStatement(DoStatement node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -11509,8 +11526,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitExpressionFunctionBody(node);
     } finally {
       _overrideManager.exitScope();
@@ -11520,8 +11537,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitFieldDeclaration(node);
     } finally {
       Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.fields);
@@ -11533,8 +11550,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitForEachStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -11544,8 +11561,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForStatement(ForStatement node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitForStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -11572,9 +11589,12 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _enclosingFunction = node.element;
       _overrideManager.enterScope();
-      super.visitFunctionExpression(node);
+      try {
+        super.visitFunctionExpression(node);
+      } finally {
+        _overrideManager.exitScope();
+      }
     } finally {
-      _overrideManager.exitScope();
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -11600,27 +11620,30 @@ class ResolverVisitor extends ScopedVisitor {
     Map<Element, DartType> thenOverrides = null;
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         _promoteManager.enterScope();
-        _propagateTrueState(condition);
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
-        // Visit "then".
-        visitStatementInScope(thenStatement);
+        try {
+          _propagateTrueState(condition);
+          // Type promotion.
+          _promoteTypes(condition);
+          _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
+          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
+          // Visit "then".
+          visitStatementInScope(thenStatement);
+        } finally {
+          _promoteManager.exitScope();
+        }
       } finally {
         thenOverrides = _overrideManager.captureLocalOverrides();
         _overrideManager.exitScope();
-        _promoteManager.exitScope();
       }
     }
     Map<Element, DartType> elseOverrides = null;
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         _propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
@@ -11739,8 +11762,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitSwitchCase(SwitchCase node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitSwitchCase(node);
     } finally {
       _overrideManager.exitScope();
@@ -11750,8 +11773,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitSwitchDefault(node);
     } finally {
       _overrideManager.exitScope();
@@ -11761,8 +11784,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _overrideManager.enterScope();
     try {
-      _overrideManager.enterScope();
       super.visitTopLevelVariableDeclaration(node);
     } finally {
       Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.variables);
@@ -11781,8 +11804,8 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(condition);
     Statement body = node.body;
     if (body != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         _propagateTrueState(condition);
         visitStatementInScope(body);
       } finally {
@@ -11943,8 +11966,8 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(identifier);
     Statement body = node.body;
     if (body != null) {
+      _overrideManager.enterScope();
       try {
-        _overrideManager.enterScope();
         if (loopVariable != null && iterator != null) {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
@@ -18514,6 +18537,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         // Only check for all of the inheritance logic around clauses if there isn't an error code
         // such as "Cannot extend double" already on the class.
         if (!_checkForImplementsDisallowedClass(implementsClause) && !_checkForExtendsDisallowedClass(extendsClause) && !_checkForAllMixinErrorCodes(withClause)) {
+          _checkForExtendsDeferredClass(extendsClause);
+          _checkForImplementsDeferredClass(implementsClause);
           _checkForNonAbstractClassInheritsAbstractMember(node.name);
           _checkForInconsistentMethodInheritance();
           _checkForRecursiveInterfaceInheritance(_enclosingClass);
@@ -18554,6 +18579,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // Only check for all of the inheritance logic around clauses if there isn't an error code
       // such as "Cannot extend double" already on the class.
       if (!_checkForExtendsDisallowedClassInTypeAlias(node) && !_checkForImplementsDisallowedClass(node.implementsClause) && !_checkForAllMixinErrorCodes(node.withClause)) {
+        _checkForExtendsDeferredClassInTypeAlias(node);
+        _checkForImplementsDeferredClass(node.implementsClause);
         _checkForRecursiveInterfaceInheritance(node.element);
         _checkForTypeAliasCannotReferenceItself_mixin(node);
         _checkForNonAbstractClassInheritsAbstractMember(node.name);
@@ -18693,6 +18720,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
+    _checkForTypeAnnotationDeferredClass(node.type);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -18717,6 +18745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForNonVoidReturnTypeForSetter(returnType);
         }
       }
+      _checkForTypeAnnotationDeferredClass(node.returnType);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -18763,6 +18792,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     bool old = _isInFunctionTypedFormalParameter;
     _isInFunctionTypedFormalParameter = true;
     try {
+      _checkForTypeAnnotationDeferredClass(node.returnType);
       return super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -18808,6 +18838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(node);
           _checkForConstWithTypeParametersInCreation(node);
+          _checkForConstDeferredClass(node, constructorName, typeName);
         } else {
           _checkForNewWithUndefinedConstructor(node);
         }
@@ -18863,6 +18894,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (identifier != null) {
         methodName = identifier.name;
       }
+      TypeName returnTypeName = node.returnType;
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
@@ -18871,7 +18903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter) {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
-        _checkForNonVoidReturnTypeForSetter(node.returnType);
+        _checkForNonVoidReturnTypeForSetter(returnTypeName);
         _checkForConflictingStaticSetterAndInstanceMember(node);
       } else if (node.isOperator) {
         _checkForOptionalParameterInOperator(node);
@@ -18880,6 +18912,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _checkForConcreteClassWithAbstractMember(node);
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
+      _checkForTypeAnnotationDeferredClass(returnTypeName);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -18987,6 +19020,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
+    _checkForTypeAnnotationDeferredClass(node.type);
     return super.visitSimpleFormalParameter(node);
   }
 
@@ -19046,6 +19080,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitTypeParameter(TypeParameter node) {
     _checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeParameterSupertypeOfItsBound(node);
+    _checkForTypeAnnotationDeferredClass(node.bound);
     return super.visitTypeParameter(node);
   }
 
@@ -19074,7 +19109,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) => super.visitVariableDeclarationList(node);
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    _checkForTypeAnnotationDeferredClass(node.type);
+    return super.visitVariableDeclarationList(node);
+  }
 
   @override
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
@@ -19592,6 +19630,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         problemReported = true;
       } else {
         ClassElement mixinElement = (mixinType as InterfaceType).element;
+        problemReported = javaBooleanOr(problemReported, _checkForExtendsOrImplementsDeferredClass(mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS));
         problemReported = javaBooleanOr(problemReported, _checkForMixinDeclaresConstructor(mixinName, mixinElement));
         problemReported = javaBooleanOr(problemReported, _checkForMixinInheritsNotFromObject(mixinName, mixinElement));
         problemReported = javaBooleanOr(problemReported, _checkForMixinReferencesSuper(mixinName, mixinElement));
@@ -20428,6 +20467,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * This verifies that the passed 'const' instance creation expression is not creating a deferred
+   * type.
+   *
+   * @param node the instance creation expression to evaluate
+   * @param constructorName the constructor name from the instance creation expression
+   * @param typeName the type name off of the constructor name
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_DEFERRED_CLASS
+   */
+  bool _checkForConstDeferredClass(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
+    if (typeName.isDeferred) {
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_DEFERRED_CLASS, constructorName, [typeName.name.name]);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * This verifies that the passed throw expression is not enclosed in a 'const' constructor
    * declaration.
    *
@@ -20846,6 +20903,34 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * This verifies that the passed extends clause does not extend a deferred class.
+   *
+   * @param node the extends clause to test
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
+   */
+  bool _checkForExtendsDeferredClass(ExtendsClause node) {
+    if (node == null) {
+      return false;
+    }
+    return _checkForExtendsOrImplementsDeferredClass(node.superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+  }
+
+  /**
+   * This verifies that the passed type alias does not extend a deferred class.
+   *
+   * @param node the extends clause to test
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   */
+  bool _checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias node) {
+    if (node == null) {
+      return false;
+    }
+    return _checkForExtendsOrImplementsDeferredClass(node.superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+  }
+
+  /**
    * This verifies that the passed extends clause does not extend classes such as num or String.
    *
    * @param node the extends clause to test
@@ -20874,15 +20959,43 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * This verifies that the passed type name does not extend or implement classes such as 'num' or
-   * 'String'.
+   * This verifies that the passed type name does not extend, implement or mixin classes that are
+   * deferred.
+   *
+   * @param node the type name to test
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see #checkForExtendsDeferredClass(ExtendsClause)
+   * @see #checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias)
+   * @see #checkForImplementsDeferredClass(ImplementsClause)
+   * @see #checkForAllMixinErrorCodes(WithClause)
+   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
+   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
+   * @see CompileTimeErrorCode#MIXIN_DEFERRED_CLASS
+   */
+  bool _checkForExtendsOrImplementsDeferredClass(TypeName typeName, ErrorCode errorCode) {
+    if (typeName.isSynthetic) {
+      return false;
+    }
+    if (typeName.isDeferred) {
+      _errorReporter.reportErrorForNode(errorCode, typeName, [typeName.name.name]);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed type name does not extend, implement or mixin classes such as
+   * 'num' or 'String'.
    *
    * @param node the type name to test
    * @return `true` if and only if an error code is generated on the passed node
    * @see #checkForExtendsDisallowedClass(ExtendsClause)
+   * @see #checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias)
    * @see #checkForImplementsDisallowedClass(ImplementsClause)
+   * @see #checkForAllMixinErrorCodes(WithClause)
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   * @see CompileTimeErrorCode#MIXIN_OF_DISALLOWED_CLASS
    */
   bool _checkForExtendsOrImplementsDisallowedClass(TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic) {
@@ -21040,6 +21153,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         FieldDeclaration field = classMember;
         foundError = javaBooleanOr(foundError, _checkForFinalNotInitialized(field.fields));
       }
+    }
+    return foundError;
+  }
+
+  /**
+   * This verifies that the passed implements clause does not implement classes that are deferred.
+   *
+   * @param node the implements clause to test
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
+   */
+  bool _checkForImplementsDeferredClass(ImplementsClause node) {
+    if (node == null) {
+      return false;
+    }
+    bool foundError = false;
+    for (TypeName type in node.interfaces) {
+      foundError = javaBooleanOr(foundError, _checkForExtendsOrImplementsDeferredClass(type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS));
     }
     return foundError;
   }
@@ -22467,6 +22598,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _errorReporter.reportErrorForNode(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node, []);
     return true;
+  }
+
+  /**
+   * This verifies that the passed type name is not a deferred type.
+   *
+   * @param expression the expression to evaluate
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#TYPE_ANNOTATION_DEFERRED_CLASS
+   */
+  bool _checkForTypeAnnotationDeferredClass(TypeName node) {
+    if (node != null && node.isDeferred) {
+      _errorReporter.reportErrorForNode(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, node, [node.name]);
+    }
+    return false;
   }
 
   /**

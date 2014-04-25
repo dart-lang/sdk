@@ -20,717 +20,6 @@ import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 
-class NodeLocatorTest extends ParserTestCase {
-  void test_range() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    _assertLocate(unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
-  }
-
-  void test_searchWithin_null() {
-    NodeLocator locator = new NodeLocator.con2(0, 0);
-    JUnitTestCase.assertNull(locator.searchWithin(null));
-  }
-
-  void test_searchWithin_offset() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    _assertLocate(unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
-  }
-
-  void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
-    NodeLocator locator = new NodeLocator.con2(1024, 1024);
-    AstNode node = locator.searchWithin(unit.declarations[0]);
-    JUnitTestCase.assertNull(node);
-  }
-
-  void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
-    NodeLocator locator = new NodeLocator.con2(0, 0);
-    AstNode node = locator.searchWithin(unit.declarations[1]);
-    JUnitTestCase.assertNull(node);
-  }
-
-  void _assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
-    NodeLocator locator = new NodeLocator.con2(start, end);
-    AstNode node = locator.searchWithin(unit);
-    JUnitTestCase.assertNotNull(node);
-    JUnitTestCase.assertSame(node, locator.foundNode);
-    JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
-    JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
-    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
-  }
-
-  static dartSuite() {
-    _ut.group('NodeLocatorTest', () {
-      _ut.test('test_range', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_range);
-      });
-      _ut.test('test_searchWithin_null', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_null);
-      });
-      _ut.test('test_searchWithin_offset', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offset);
-      });
-      _ut.test('test_searchWithin_offsetAfterNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offsetAfterNode);
-      });
-      _ut.test('test_searchWithin_offsetBeforeNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offsetBeforeNode);
-      });
-    });
-  }
-}
-
-class IndexExpressionTest extends EngineTestCase {
-  void test_inGetterContext_assignment_compound_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
-
-  void test_inGetterContext_assignment_simple_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertFalse(expression.inGetterContext());
-  }
-
-  void test_inGetterContext_nonAssignment() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] + ?
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
-
-  void test_inSetterContext_assignment_compound_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_assignment_compound_right() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? += a[i]
-    AstFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_assignment_simple_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_assignment_simple_right() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? = a[i]
-    AstFactory.assignmentExpression(null, TokenType.EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_nonAssignment() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
-    // a[i] + ?
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_postfix() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-    // a[i]++
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_bang() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // !a[i]
-    AstFactory.prefixExpression(TokenType.BANG, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_minusMinus() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // --a[i]
-    AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_plusPlus() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ++a[i]
-    AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  static dartSuite() {
-    _ut.group('IndexExpressionTest', () {
-      _ut.test('test_inGetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inGetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inGetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
-      });
-      _ut.test('test_inSetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_postfix', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_postfix);
-      });
-      _ut.test('test_inSetterContext_prefix_bang', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
-      });
-      _ut.test('test_inSetterContext_prefix_minusMinus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
-      });
-      _ut.test('test_inSetterContext_prefix_plusPlus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
-      });
-    });
-  }
-}
-
-class ClassDeclarationTest extends ParserTestCase {
-  void test_getConstructor() {
-    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
-    ConstructorDeclaration defaultConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), null, AstFactory.formalParameterList([]), initializers);
-    ConstructorDeclaration aConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "a", AstFactory.formalParameterList([]), initializers);
-    ConstructorDeclaration bConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "b", AstFactory.formalParameterList([]), initializers);
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
-    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
-    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
-    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
-    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
-  }
-
-  void test_getField() {
-    VariableDeclaration aVar = AstFactory.variableDeclaration("a");
-    VariableDeclaration bVar = AstFactory.variableDeclaration("b");
-    VariableDeclaration cVar = AstFactory.variableDeclaration("c");
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [
-        AstFactory.fieldDeclaration2(false, null, [aVar]),
-        AstFactory.fieldDeclaration2(false, null, [bVar, cVar])]);
-    JUnitTestCase.assertSame(aVar, clazz.getField("a"));
-    JUnitTestCase.assertSame(bVar, clazz.getField("b"));
-    JUnitTestCase.assertSame(cVar, clazz.getField("c"));
-    JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
-  }
-
-  void test_getMethod() {
-    MethodDeclaration aMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("a"), AstFactory.formalParameterList([]));
-    MethodDeclaration bMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("b"), AstFactory.formalParameterList([]));
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
-    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
-    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
-    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
-  }
-
-  void test_isAbstract() {
-    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
-    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
-  }
-
-  static dartSuite() {
-    _ut.group('ClassDeclarationTest', () {
-      _ut.test('test_getConstructor', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getConstructor);
-      });
-      _ut.test('test_getField', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getField);
-      });
-      _ut.test('test_getMethod', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getMethod);
-      });
-      _ut.test('test_isAbstract', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_isAbstract);
-      });
-    });
-  }
-}
-
-class VariableDeclarationTest extends ParserTestCase {
-  void test_getDocumentationComment_onGrandParent() {
-    VariableDeclaration varDecl = AstFactory.variableDeclaration("a");
-    TopLevelVariableDeclaration decl = AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    JUnitTestCase.assertNull(varDecl.documentationComment);
-    decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(varDecl.documentationComment);
-    JUnitTestCase.assertNotNull(decl.documentationComment);
-  }
-
-  void test_getDocumentationComment_onNode() {
-    VariableDeclaration decl = AstFactory.variableDeclaration("a");
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(decl.documentationComment);
-  }
-
-  static dartSuite() {
-    _ut.group('VariableDeclarationTest', () {
-      _ut.test('test_getDocumentationComment_onGrandParent', () {
-        final __test = new VariableDeclarationTest();
-        runJUnitTest(__test, __test.test_getDocumentationComment_onGrandParent);
-      });
-      _ut.test('test_getDocumentationComment_onNode', () {
-        final __test = new VariableDeclarationTest();
-        runJUnitTest(__test, __test.test_getDocumentationComment_onNode);
-      });
-    });
-  }
-}
-
-/**
- * The class `AstFactory` defines utility methods that can be used to create AST nodes. The
- * nodes that are created are complete in the sense that all of the tokens that would have been
- * associated with the nodes by a parser are also created, but the token stream is not constructed.
- * None of the nodes are resolved.
- *
- * The general pattern is for the name of the factory method to be the same as the name of the class
- * of AST node being created. There are two notable exceptions. The first is for methods creating
- * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
- * second is places where a shorter name seemed unambiguous and easier to read, such as using
- * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
- */
-class AstFactory {
-  static AdjacentStrings adjacentStrings(List<StringLiteral> strings) => new AdjacentStrings(list(strings));
-
-  static Annotation annotation(Identifier name) => new Annotation(TokenFactory.tokenFromType(TokenType.AT), name, null, null, null);
-
-  static Annotation annotation2(Identifier name, SimpleIdentifier constructorName, ArgumentList arguments) => new Annotation(TokenFactory.tokenFromType(TokenType.AT), name, TokenFactory.tokenFromType(TokenType.PERIOD), constructorName, arguments);
-
-  static ArgumentDefinitionTest argumentDefinitionTest(String identifier) => new ArgumentDefinitionTest(TokenFactory.tokenFromType(TokenType.QUESTION), identifier3(identifier));
-
-  static ArgumentList argumentList(List<Expression> arguments) => new ArgumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(arguments), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static AsExpression asExpression(Expression expression, TypeName type) => new AsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
-
-  static AssertStatement assertStatement(Expression condition) => new AssertStatement(TokenFactory.tokenFromKeyword(Keyword.ASSERT), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static AssignmentExpression assignmentExpression(Expression leftHandSide, TokenType operator, Expression rightHandSide) => new AssignmentExpression(leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
-
-  static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator, Expression rightOperand) => new BinaryExpression(leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
-
-  static Block block(List<Statement> statements) => new Block(TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(statements), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static BlockFunctionBody blockFunctionBody(Block block) => new BlockFunctionBody(block);
-
-  static BlockFunctionBody blockFunctionBody2(List<Statement> statements) => new BlockFunctionBody(block(statements));
-
-  static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral(value ? TokenFactory.tokenFromKeyword(Keyword.TRUE) : TokenFactory.tokenFromKeyword(Keyword.FALSE), value);
-
-  static BreakStatement breakStatement() => new BreakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK), null, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static BreakStatement breakStatement2(String label) => new BreakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK), identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static IndexExpression cascadedIndexExpression(Expression index) => new IndexExpression.forCascade(TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
-  static MethodInvocation cascadedMethodInvocation(String methodName, List<Expression> arguments) => new MethodInvocation(null, TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), identifier3(methodName), argumentList(arguments));
-
-  static PropertyAccess cascadedPropertyAccess(String propertyName) => new PropertyAccess(null, TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), identifier3(propertyName));
-
-  static CascadeExpression cascadeExpression(Expression target, List<Expression> cascadeSections) => new CascadeExpression(target, list(cascadeSections));
-
-  static CatchClause catchClause(String exceptionParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, null, statements);
-
-  static CatchClause catchClause2(String exceptionParameter, String stackTraceParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, stackTraceParameter, statements);
-
-  static CatchClause catchClause3(TypeName exceptionType, List<Statement> statements) => catchClause5(exceptionType, null, null, statements);
-
-  static CatchClause catchClause4(TypeName exceptionType, String exceptionParameter, List<Statement> statements) => catchClause5(exceptionType, exceptionParameter, null, statements);
-
-  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause(exceptionType == null ? null : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.tokenFromKeyword(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.OPEN_PAREN), exceptionParameter == null ? null : identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.tokenFromType(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), block(statements));
-
-  static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration(null, null, abstractKeyword == null ? null : TokenFactory.tokenFromKeyword(abstractKeyword), TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias(null, null, TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name), typeParameters, TokenFactory.tokenFromType(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.tokenFromKeyword(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static CompilationUnit compilationUnit() => compilationUnit8(null, null, null);
-
-  static CompilationUnit compilationUnit2(List<CompilationUnitMember> declarations) => compilationUnit8(null, null, list(declarations));
-
-  static CompilationUnit compilationUnit3(List<Directive> directives) => compilationUnit8(null, list(directives), null);
-
-  static CompilationUnit compilationUnit4(List<Directive> directives, List<CompilationUnitMember> declarations) => compilationUnit8(null, directives, declarations);
-
-  static CompilationUnit compilationUnit5(String scriptTag) => compilationUnit8(scriptTag, null, null);
-
-  static CompilationUnit compilationUnit6(String scriptTag, List<CompilationUnitMember> declarations) => compilationUnit8(scriptTag, null, list(declarations));
-
-  static CompilationUnit compilationUnit7(String scriptTag, List<Directive> directives) => compilationUnit8(scriptTag, list(directives), null);
-
-  static CompilationUnit compilationUnit8(String scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit(TokenFactory.tokenFromType(TokenType.EOF), scriptTag == null ? null : AstFactory.scriptTag(scriptTag), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.tokenFromType(TokenType.EOF));
-
-  static ConditionalExpression conditionalExpression(Expression condition, Expression thenExpression, Expression elseExpression) => new ConditionalExpression(condition, TokenFactory.tokenFromType(TokenType.QUESTION), thenExpression, TokenFactory.tokenFromType(TokenType.COLON), elseExpression);
-
-  static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration(null, null, TokenFactory.tokenFromKeyword(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
-
-  static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration(null, null, null, constKeyword == null ? null : TokenFactory.tokenFromKeyword(constKeyword), factoryKeyword == null ? null : TokenFactory.tokenFromKeyword(factoryKeyword), returnType, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
-
-  static ConstructorFieldInitializer constructorFieldInitializer(bool prefixedWithThis, String fieldName, Expression expression) => new ConstructorFieldInitializer(prefixedWithThis ? TokenFactory.tokenFromKeyword(Keyword.THIS) : null, prefixedWithThis ? TokenFactory.tokenFromType(TokenType.PERIOD) : null, identifier3(fieldName), TokenFactory.tokenFromType(TokenType.EQ), expression);
-
-  static ConstructorName constructorName(TypeName type, String name) => new ConstructorName(type, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name));
-
-  static ContinueStatement continueStatement([String label]) {
-    SimpleIdentifier labelNode = label == null ? null : identifier3(label);
-    return new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE), labelNode, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-  }
-
-  static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) => declaredIdentifier2(keyword, null, identifier);
-
-  static DeclaredIdentifier declaredIdentifier2(Keyword keyword, TypeName type, String identifier) => new DeclaredIdentifier(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, identifier3(identifier));
-
-  static DeclaredIdentifier declaredIdentifier3(String identifier) => declaredIdentifier2(null, null, identifier);
-
-  static DeclaredIdentifier declaredIdentifier4(TypeName type, String identifier) => declaredIdentifier2(null, type, identifier);
-
-  static DoStatement doStatement(Statement body, Expression condition) => new DoStatement(TokenFactory.tokenFromKeyword(Keyword.DO), body, TokenFactory.tokenFromKeyword(Keyword.WHILE), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static DoubleLiteral doubleLiteral(double value) => new DoubleLiteral(TokenFactory.tokenFromString(value.toString()), value);
-
-  static EmptyFunctionBody emptyFunctionBody() => new EmptyFunctionBody(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static EmptyStatement emptyStatement() => new EmptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ExportDirective exportDirective(List<Annotation> metadata, String uri, List<Combinator> combinators) => new ExportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.EXPORT), string2(uri), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ExportDirective exportDirective2(String uri, List<Combinator> combinators) => exportDirective(new List<Annotation>(), uri, combinators);
-
-  static ExpressionFunctionBody expressionFunctionBody(Expression expression) => new ExpressionFunctionBody(TokenFactory.tokenFromType(TokenType.FUNCTION), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ExpressionStatement expressionStatement(Expression expression) => new ExpressionStatement(expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ExtendsClause extendsClause(TypeName type) => new ExtendsClause(TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
-
-  static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new FieldDeclaration(null, null, isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null, variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
-
-  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier, [FormalParameterList parameterList]) => new FieldFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, TokenFactory.tokenFromKeyword(Keyword.THIS), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier), parameterList);
-
-  static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
-
-  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
-
-  static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), null, initialization, TokenFactory.tokenFromType(TokenType.SEMICOLON), condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
-
-  static ForStatement forStatement2(VariableDeclarationList variableList, Expression condition, List<Expression> updaters, Statement body) => new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), variableList, null, TokenFactory.tokenFromType(TokenType.SEMICOLON), condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
-
-  static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclaration(null, null, null, type, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), identifier3(name), functionExpression);
-
-  static FunctionDeclarationStatement functionDeclarationStatement(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclarationStatement(functionDeclaration(type, keyword, name, functionExpression));
-
-  static FunctionExpression functionExpression() => new FunctionExpression(formalParameterList([]), blockFunctionBody2([]));
-
-  static FunctionExpression functionExpression2(FormalParameterList parameters, FunctionBody body) => new FunctionExpression(parameters, body);
-
-  static FunctionExpressionInvocation functionExpressionInvocation(Expression function, List<Expression> arguments) => new FunctionExpressionInvocation(function, argumentList(arguments));
-
-  static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter(null, null, returnType, identifier3(identifier), formalParameterList(parameters));
-
-  static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) => new HideCombinator(TokenFactory.tokenFromString("hide"), list(identifiers));
-
-  static HideCombinator hideCombinator2(List<String> identifiers) {
-    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
-    for (String identifier in identifiers) {
-      identifierList.add(identifier3(identifier));
-    }
-    return new HideCombinator(TokenFactory.tokenFromString("hide"), identifierList);
-  }
-
-  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) => new PrefixedIdentifier(prefix, TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
-
-  static SimpleIdentifier identifier3(String lexeme) => new SimpleIdentifier(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
-
-  static PrefixedIdentifier identifier4(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier(identifier3(prefix), TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
-
-  static PrefixedIdentifier identifier5(String prefix, String identifier) => new PrefixedIdentifier(identifier3(prefix), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier));
-
-  static IfStatement ifStatement(Expression condition, Statement thenStatement) => ifStatement2(condition, thenStatement, null);
-
-  static IfStatement ifStatement2(Expression condition, Statement thenStatement, Statement elseStatement) => new IfStatement(TokenFactory.tokenFromKeyword(Keyword.IF), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), thenStatement, elseStatement == null ? null : TokenFactory.tokenFromKeyword(Keyword.ELSE), elseStatement);
-
-  static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause(TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), list(types));
-
-  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), null, prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
-
-  static IndexExpression indexExpression(Expression array, Expression index) => new IndexExpression.forTarget(array, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
-  static InstanceCreationExpression instanceCreationExpression(Keyword keyword, ConstructorName name, List<Expression> arguments) => new InstanceCreationExpression(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), name, argumentList(arguments));
-
-  static InstanceCreationExpression instanceCreationExpression2(Keyword keyword, TypeName type, List<Expression> arguments) => instanceCreationExpression3(keyword, type, null, arguments);
-
-  static InstanceCreationExpression instanceCreationExpression3(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => instanceCreationExpression(keyword, new ConstructorName(type, identifier == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), identifier == null ? null : identifier3(identifier)), arguments);
-
-  static IntegerLiteral integer(int value) => new IntegerLiteral(TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()), value);
-
-  static InterpolationExpression interpolationExpression(Expression expression) => new InterpolationExpression(TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION), expression, TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression(TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier3(identifier), null);
-
-  static InterpolationString interpolationString(String contents, String value) => new InterpolationString(TokenFactory.tokenFromString(contents), value);
-
-  static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.IS), negated ? TokenFactory.tokenFromType(TokenType.BANG) : null, type);
-
-  static Label label(SimpleIdentifier label) => new Label(label, TokenFactory.tokenFromType(TokenType.COLON));
-
-  static Label label2(String label) => AstFactory.label(identifier3(label));
-
-  static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement(labels, statement);
-
-  static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.LIBRARY), libraryName, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
-
-  static LibraryIdentifier libraryIdentifier(List<SimpleIdentifier> components) => new LibraryIdentifier(list(components));
-
-  static LibraryIdentifier libraryIdentifier2(List<String> components) {
-    List<SimpleIdentifier> componentList = new List<SimpleIdentifier>();
-    for (String component in components) {
-      componentList.add(identifier3(component));
-    }
-    return new LibraryIdentifier(componentList);
-  }
-
-  static List list(List<Object> elements) {
-    List elementList = new List();
-    for (Object element in elements) {
-      elementList.add(element);
-    }
-    return elementList;
-  }
-
-  static ListLiteral listLiteral(List<Expression> elements) => listLiteral2(null, null, elements);
-
-  static ListLiteral listLiteral2(Keyword keyword, TypeArgumentList typeArguments, List<Expression> elements) => new ListLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), null, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), list(elements), TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
-  static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments, List<MapLiteralEntry> entries) => new MapLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(entries), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static MapLiteral mapLiteral2(List<MapLiteralEntry> entries) => mapLiteral(null, null, entries);
-
-  static MapLiteralEntry mapLiteralEntry(String key, Expression value) => new MapLiteralEntry(string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
-
-  static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) => new MethodDeclaration(null, null, TokenFactory.tokenFromKeyword(Keyword.EXTERNAL), modifier == null ? null : TokenFactory.tokenFromKeyword(modifier), returnType, property == null ? null : TokenFactory.tokenFromKeyword(property), operator == null ? null : TokenFactory.tokenFromKeyword(operator), name, parameters, emptyFunctionBody());
-
-  static MethodDeclaration methodDeclaration2(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) => new MethodDeclaration(null, null, null, modifier == null ? null : TokenFactory.tokenFromKeyword(modifier), returnType, property == null ? null : TokenFactory.tokenFromKeyword(property), operator == null ? null : TokenFactory.tokenFromKeyword(operator), name, parameters, body);
-
-  static MethodInvocation methodInvocation(Expression target, String methodName, List<Expression> arguments) => new MethodInvocation(target, target == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(methodName), argumentList(arguments));
-
-  static MethodInvocation methodInvocation2(String methodName, List<Expression> arguments) => methodInvocation(null, methodName, arguments);
-
-  static NamedExpression namedExpression(Label label, Expression expression) => new NamedExpression(label, expression);
-
-  static NamedExpression namedExpression2(String label, Expression expression) => namedExpression(label2(label), expression);
-
-  static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter(parameter, ParameterKind.NAMED, expression == null ? null : TokenFactory.tokenFromType(TokenType.COLON), expression);
-
-  static NativeClause nativeClause(String nativeCode) => new NativeClause(TokenFactory.tokenFromString("native"), string2(nativeCode));
-
-  static NativeFunctionBody nativeFunctionBody(String nativeMethodName) => new NativeFunctionBody(TokenFactory.tokenFromString("native"), string2(nativeMethodName), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static NullLiteral nullLiteral() => new NullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL));
-
-  static ParenthesizedExpression parenthesizedExpression(Expression expression) => new ParenthesizedExpression(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static PartDirective partDirective(List<Annotation> metadata, String url) => new PartDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.PART), string2(url), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static PartDirective partDirective2(String url) => partDirective(new List<Annotation>(), url);
-
-  static PartOfDirective partOfDirective(LibraryIdentifier libraryName) => partOfDirective2(new List<Annotation>(), libraryName);
-
-  static PartOfDirective partOfDirective2(List<Annotation> metadata, LibraryIdentifier libraryName) => new PartOfDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.PART), TokenFactory.tokenFromString("of"), libraryName, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter(parameter, ParameterKind.POSITIONAL, expression == null ? null : TokenFactory.tokenFromType(TokenType.EQ), expression);
-
-  static PostfixExpression postfixExpression(Expression expression, TokenType operator) => new PostfixExpression(expression, TokenFactory.tokenFromType(operator));
-
-  static PrefixExpression prefixExpression(TokenType operator, Expression expression) => new PrefixExpression(TokenFactory.tokenFromType(operator), expression);
-
-  static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) => new PropertyAccess(target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
-
-  static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess(target, TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(propertyName));
-
-  static RedirectingConstructorInvocation redirectingConstructorInvocation(List<Expression> arguments) => redirectingConstructorInvocation2(null, arguments);
-
-  static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation(TokenFactory.tokenFromKeyword(Keyword.THIS), constructorName == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), constructorName == null ? null : identifier3(constructorName), argumentList(arguments));
-
-  static RethrowExpression rethrowExpression() => new RethrowExpression(TokenFactory.tokenFromKeyword(Keyword.RETHROW));
-
-  static ReturnStatement returnStatement() => returnStatement2(null);
-
-  static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement(TokenFactory.tokenFromKeyword(Keyword.RETURN), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ScriptTag scriptTag(String scriptTag) => new ScriptTag(TokenFactory.tokenFromString(scriptTag));
-
-  static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator(TokenFactory.tokenFromString("show"), list(identifiers));
-
-  static ShowCombinator showCombinator2(List<String> identifiers) {
-    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
-    for (String identifier in identifiers) {
-      identifierList.add(identifier3(identifier));
-    }
-    return new ShowCombinator(TokenFactory.tokenFromString("show"), identifierList);
-  }
-
-  static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) => simpleFormalParameter2(keyword, null, parameterName);
-
-  static SimpleFormalParameter simpleFormalParameter2(Keyword keyword, TypeName type, String parameterName) => new SimpleFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, identifier3(parameterName));
-
-  static SimpleFormalParameter simpleFormalParameter3(String parameterName) => simpleFormalParameter2(null, null, parameterName);
-
-  static SimpleFormalParameter simpleFormalParameter4(TypeName type, String parameterName) => simpleFormalParameter2(null, type, parameterName);
-
-  static StringInterpolation string(List<InterpolationElement> elements) => new StringInterpolation(list(elements));
-
-  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'${content}'"), content);
-
-  static SuperConstructorInvocation superConstructorInvocation(List<Expression> arguments) => superConstructorInvocation2(null, arguments);
-
-  static SuperConstructorInvocation superConstructorInvocation2(String name, List<Expression> arguments) => new SuperConstructorInvocation(TokenFactory.tokenFromKeyword(Keyword.SUPER), name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), argumentList(arguments));
-
-  static SuperExpression superExpression() => new SuperExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
-
-  static SwitchCase switchCase(Expression expression, List<Statement> statements) => switchCase2(new List<Label>(), expression, statements);
-
-  static SwitchCase switchCase2(List<Label> labels, Expression expression, List<Statement> statements) => new SwitchCase(labels, TokenFactory.tokenFromKeyword(Keyword.CASE), expression, TokenFactory.tokenFromType(TokenType.COLON), list(statements));
-
-  static SwitchDefault switchDefault(List<Label> labels, List<Statement> statements) => new SwitchDefault(labels, TokenFactory.tokenFromKeyword(Keyword.DEFAULT), TokenFactory.tokenFromType(TokenType.COLON), list(statements));
-
-  static SwitchDefault switchDefault2(List<Statement> statements) => switchDefault(new List<Label>(), statements);
-
-  static SwitchStatement switchStatement(Expression expression, List<SwitchMember> members) => new SwitchStatement(TokenFactory.tokenFromKeyword(Keyword.SWITCH), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static SymbolLiteral symbolLiteral(List<String> components) {
-    List<Token> identifierList = new List<Token>();
-    for (String component in components) {
-      identifierList.add(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
-    }
-    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), new List.from(identifierList));
-  }
-
-  static ThisExpression thisExpression() => new ThisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
-
-  static ThrowExpression throwExpression() => throwExpression2(null);
-
-  static ThrowExpression throwExpression2(Expression expression) => new ThrowExpression(TokenFactory.tokenFromKeyword(Keyword.THROW), expression);
-
-  static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new TopLevelVariableDeclaration(null, null, variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static TopLevelVariableDeclaration topLevelVariableDeclaration2(Keyword keyword, List<VariableDeclaration> variables) => new TopLevelVariableDeclaration(null, null, variableDeclarationList(keyword, null, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static TryStatement tryStatement(Block body, Block finallyClause) => tryStatement3(body, new List<CatchClause>(), finallyClause);
-
-  static TryStatement tryStatement2(Block body, List<CatchClause> catchClauses) => tryStatement3(body, list(catchClauses), null);
-
-  static TryStatement tryStatement3(Block body, List<CatchClause> catchClauses, Block finallyClause) => new TryStatement(TokenFactory.tokenFromKeyword(Keyword.TRY), body, catchClauses, finallyClause == null ? null : TokenFactory.tokenFromKeyword(Keyword.FINALLY), finallyClause);
-
-  static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias(null, null, TokenFactory.tokenFromKeyword(Keyword.TYPEDEF), returnType, identifier3(name), typeParameters, parameters, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static TypeArgumentList typeArgumentList(List<TypeName> typeNames) => new TypeArgumentList(TokenFactory.tokenFromType(TokenType.LT), list(typeNames), TokenFactory.tokenFromType(TokenType.GT));
-
-  /**
-   * Create a type name whose name has been resolved to the given element and whose type has been
-   * resolved to the type of the given element.
-   *
-   * <b>Note:</b> This method does not correctly handle class elements that have type parameters.
-   *
-   * @param element the element defining the type represented by the type name
-   * @return the type name that was created
-   */
-  static TypeName typeName(ClassElement element, List<TypeName> arguments) {
-    SimpleIdentifier name = identifier3(element.name);
-    name.staticElement = element;
-    TypeName typeName = typeName3(name, arguments);
-    typeName.type = element.type;
-    return typeName;
-  }
-
-  static TypeName typeName3(Identifier name, List<TypeName> arguments) {
-    if (arguments.length == 0) {
-      return new TypeName(name, null);
-    }
-    return new TypeName(name, typeArgumentList(arguments));
-  }
-
-  static TypeName typeName4(String name, List<TypeName> arguments) {
-    if (arguments.length == 0) {
-      return new TypeName(identifier3(name), null);
-    }
-    return new TypeName(identifier3(name), typeArgumentList(arguments));
-  }
-
-  static TypeParameter typeParameter(String name) => new TypeParameter(null, null, identifier3(name), null, null);
-
-  static TypeParameter typeParameter2(String name, TypeName bound) => new TypeParameter(null, null, identifier3(name), TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
-
-  static TypeParameterList typeParameterList(List<String> typeNames) {
-    List<TypeParameter> typeParameters = new List<TypeParameter>();
-    for (String typeName in typeNames) {
-      typeParameters.add(typeParameter(typeName));
-    }
-    return new TypeParameterList(TokenFactory.tokenFromType(TokenType.LT), typeParameters, TokenFactory.tokenFromType(TokenType.GT));
-  }
-
-  static VariableDeclaration variableDeclaration(String name) => new VariableDeclaration(null, null, identifier3(name), null, null);
-
-  static VariableDeclaration variableDeclaration2(String name, Expression initializer) => new VariableDeclaration(null, null, identifier3(name), TokenFactory.tokenFromType(TokenType.EQ), initializer);
-
-  static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationList(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, list(variables));
-
-  static VariableDeclarationList variableDeclarationList2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationList(keyword, null, variables);
-
-  static VariableDeclarationStatement variableDeclarationStatement(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationStatement(variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static VariableDeclarationStatement variableDeclarationStatement2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationStatement(keyword, null, variables);
-
-  static WhileStatement whileStatement(Expression condition, Statement body) => new WhileStatement(TokenFactory.tokenFromKeyword(Keyword.WHILE), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
-
-  static WithClause withClause(List<TypeName> types) => new WithClause(TokenFactory.tokenFromKeyword(Keyword.WITH), list(types));
-}
-
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
     SimpleIdentifier identifier = AstFactory.argumentDefinitionTest("p").identifier;
@@ -1065,378 +354,66 @@ class WrapperKind extends Enum<WrapperKind> {
   const WrapperKind(String name, int ordinal) : super(name, ordinal);
 }
 
-class BreadthFirstVisitorTest extends ParserTestCase {
-  void testIt() {
-    String source = EngineTestCase.createSource([
-        "class A {",
-        "  bool get g => true;",
-        "}",
-        "class B {",
-        "  int f() {",
-        "    num q() {",
-        "      return 3;",
-        "    }",
-        "  return q() + 4;",
-        "  }",
-        "}",
-        "A f(var p) {",
-        "  if ((p as A).g) {",
-        "    return p;",
-        "  } else {",
-        "    return null;",
-        "  }",
-        "}"]);
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
-    List<AstNode> nodes = new List<AstNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
-    visitor.visitAllNodes(unit);
-    EngineTestCase.assertSizeOfList(59, nodes);
-    EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnit, CompilationUnit, nodes[0]);
-    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, nodes[2]);
-    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
-    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclarationStatement, FunctionDeclarationStatement, nodes[27]);
-    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, nodes[58]);
+class SimpleStringLiteralTest extends ParserTestCase {
+  void test_getValueOffset() {
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").valueOffset);
+  }
+
+  void test_isMultiline() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isMultiline);
+  }
+
+  void test_isRaw() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isRaw);
+  }
+
+  void test_simple() {
+    Token token = TokenFactory.tokenFromString("'value'");
+    SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
+    JUnitTestCase.assertSame(token, stringLiteral.literal);
+    JUnitTestCase.assertSame(token, stringLiteral.beginToken);
+    JUnitTestCase.assertSame(token, stringLiteral.endToken);
+    JUnitTestCase.assertEquals("value", stringLiteral.value);
   }
 
   static dartSuite() {
-    _ut.group('BreadthFirstVisitorTest', () {
-      _ut.test('testIt', () {
-        final __test = new BreadthFirstVisitorTest();
-        runJUnitTest(__test, __test.testIt);
+    _ut.group('SimpleStringLiteralTest', () {
+      _ut.test('test_getValueOffset', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_getValueOffset);
       });
-    });
-  }
-}
-
-class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends BreadthFirstVisitor<Object> {
-  List<AstNode> nodes;
-
-  BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(this.nodes) : super();
-
-  @override
-  Object visitNode(AstNode node) {
-    nodes.add(node);
-    return super.visitNode(node);
-  }
-}
-
-class NodeListTest extends EngineTestCase {
-  void test_add() {
-    AstNode parent = AstFactory.argumentList([]);
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    NodeList<AstNode> list = new NodeList<AstNode>(parent);
-    list.insert(0, secondNode);
-    list.insert(0, firstNode);
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    AstNode thirdNode = AstFactory.booleanLiteral(false);
-    list.insert(1, thirdNode);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
-    JUnitTestCase.assertSame(secondNode, list[2]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
-  }
-
-  void test_add_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.insert(-1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_add_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.insert(1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_addAll() {
-    AstNode parent = AstFactory.argumentList([]);
-    List<AstNode> firstNodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    firstNodes.add(firstNode);
-    firstNodes.add(secondNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(parent);
-    list.addAll(firstNodes);
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    List<AstNode> secondNodes = new List<AstNode>();
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    AstNode fourthNode = AstFactory.booleanLiteral(false);
-    secondNodes.add(thirdNode);
-    secondNodes.add(fourthNode);
-    list.addAll(secondNodes);
-    EngineTestCase.assertSizeOfList(4, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
-    JUnitTestCase.assertSame(fourthNode, list[3]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
-    JUnitTestCase.assertSame(parent, fourthNode.parent);
-  }
-
-  void test_create() {
-    AstNode owner = AstFactory.argumentList([]);
-    NodeList<AstNode> list = NodeList.create(owner);
-    JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
-  }
-
-  void test_creation() {
-    AstNode owner = AstFactory.argumentList([]);
-    NodeList<AstNode> list = new NodeList<AstNode>(owner);
-    JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
-  }
-
-  void test_get_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list[-1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_get_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list[1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_getBeginToken_empty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.beginToken);
-  }
-
-  void test_getBeginToken_nonEmpty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
-    list.add(node);
-    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
-  }
-
-  void test_getEndToken_empty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.endToken);
-  }
-
-  void test_getEndToken_nonEmpty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
-    list.add(node);
-    JUnitTestCase.assertSame(node.endToken, list.endToken);
-  }
-
-  void test_indexOf() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    AstNode fourthNode = AstFactory.booleanLiteral(false);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
-    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
-    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(null));
-  }
-
-  void test_remove() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
-  }
-
-  void test_remove_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.removeAt(-1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_remove_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.removeAt(1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_set() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    AstNode fourthNode = AstFactory.integer(0);
-    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(fourthNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
-  }
-
-  void test_set_negative() {
-    AstNode node = AstFactory.booleanLiteral(true);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      javaListSet(list, -1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_set_tooBig() {
-    AstNode node = AstFactory.booleanLiteral(true);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      javaListSet(list, 1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  static dartSuite() {
-    _ut.group('NodeListTest', () {
-      _ut.test('test_add', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add);
+      _ut.test('test_isMultiline', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isMultiline);
       });
-      _ut.test('test_addAll', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_addAll);
+      _ut.test('test_isRaw', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isRaw);
       });
-      _ut.test('test_add_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add_negative);
-      });
-      _ut.test('test_add_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add_tooBig);
-      });
-      _ut.test('test_create', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_create);
-      });
-      _ut.test('test_creation', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_creation);
-      });
-      _ut.test('test_getBeginToken_empty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getBeginToken_empty);
-      });
-      _ut.test('test_getBeginToken_nonEmpty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getBeginToken_nonEmpty);
-      });
-      _ut.test('test_getEndToken_empty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getEndToken_empty);
-      });
-      _ut.test('test_getEndToken_nonEmpty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getEndToken_nonEmpty);
-      });
-      _ut.test('test_get_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_get_negative);
-      });
-      _ut.test('test_get_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_get_tooBig);
-      });
-      _ut.test('test_indexOf', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_indexOf);
-      });
-      _ut.test('test_remove', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove);
-      });
-      _ut.test('test_remove_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove_negative);
-      });
-      _ut.test('test_remove_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove_tooBig);
-      });
-      _ut.test('test_set', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set);
-      });
-      _ut.test('test_set_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set_negative);
-      });
-      _ut.test('test_set_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set_tooBig);
-      });
-    });
-  }
-}
-
-class ClassTypeAliasTest extends ParserTestCase {
-  void test_isAbstract() {
-    JUnitTestCase.assertFalse(AstFactory.classTypeAlias("A", null, null, null, null, null).isAbstract);
-    JUnitTestCase.assertTrue(AstFactory.classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null).isAbstract);
-  }
-
-  static dartSuite() {
-    _ut.group('ClassTypeAliasTest', () {
-      _ut.test('test_isAbstract', () {
-        final __test = new ClassTypeAliasTest();
-        runJUnitTest(__test, __test.test_isAbstract);
+      _ut.test('test_simple', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_simple);
       });
     });
   }
@@ -1954,71 +931,6 @@ class ConstantEvaluatorTest extends ParserTestCase {
       _ut.test('test_unary_negated_integer', () {
         final __test = new ConstantEvaluatorTest();
         runJUnitTest(__test, __test.test_unary_negated_integer);
-      });
-    });
-  }
-}
-
-class SimpleStringLiteralTest extends ParserTestCase {
-  void test_getValueOffset() {
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").valueOffset);
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").valueOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").valueOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").valueOffset);
-  }
-
-  void test_isMultiline() {
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isMultiline);
-  }
-
-  void test_isRaw() {
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isRaw);
-  }
-
-  void test_simple() {
-    Token token = TokenFactory.tokenFromString("'value'");
-    SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
-    JUnitTestCase.assertSame(token, stringLiteral.literal);
-    JUnitTestCase.assertSame(token, stringLiteral.beginToken);
-    JUnitTestCase.assertSame(token, stringLiteral.endToken);
-    JUnitTestCase.assertEquals("value", stringLiteral.value);
-  }
-
-  static dartSuite() {
-    _ut.group('SimpleStringLiteralTest', () {
-      _ut.test('test_getValueOffset', () {
-        final __test = new SimpleStringLiteralTest();
-        runJUnitTest(__test, __test.test_getValueOffset);
-      });
-      _ut.test('test_isMultiline', () {
-        final __test = new SimpleStringLiteralTest();
-        runJUnitTest(__test, __test.test_isMultiline);
-      });
-      _ut.test('test_isRaw', () {
-        final __test = new SimpleStringLiteralTest();
-        runJUnitTest(__test, __test.test_isRaw);
-      });
-      _ut.test('test_simple', () {
-        final __test = new SimpleStringLiteralTest();
-        runJUnitTest(__test, __test.test_simple);
       });
     });
   }
@@ -4262,6 +3174,1094 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitWithClause_single', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitWithClause_single);
+      });
+    });
+  }
+}
+
+class NodeLocatorTest extends ParserTestCase {
+  void test_range() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
+    _assertLocate(unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
+  }
+
+  void test_searchWithin_null() {
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    JUnitTestCase.assertNull(locator.searchWithin(null));
+  }
+
+  void test_searchWithin_offset() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
+    _assertLocate(unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
+  }
+
+  void test_searchWithin_offsetAfterNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(1024, 1024);
+    AstNode node = locator.searchWithin(unit.declarations[0]);
+    JUnitTestCase.assertNull(node);
+  }
+
+  void test_searchWithin_offsetBeforeNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    AstNode node = locator.searchWithin(unit.declarations[1]);
+    JUnitTestCase.assertNull(node);
+  }
+
+  void _assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
+    NodeLocator locator = new NodeLocator.con2(start, end);
+    AstNode node = locator.searchWithin(unit);
+    JUnitTestCase.assertNotNull(node);
+    JUnitTestCase.assertSame(node, locator.foundNode);
+    JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
+    JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
+    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
+  }
+
+  static dartSuite() {
+    _ut.group('NodeLocatorTest', () {
+      _ut.test('test_range', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_range);
+      });
+      _ut.test('test_searchWithin_null', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_null);
+      });
+      _ut.test('test_searchWithin_offset', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offset);
+      });
+      _ut.test('test_searchWithin_offsetAfterNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetAfterNode);
+      });
+      _ut.test('test_searchWithin_offsetBeforeNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetBeforeNode);
+      });
+    });
+  }
+}
+
+/**
+ * The class `AstFactory` defines utility methods that can be used to create AST nodes. The
+ * nodes that are created are complete in the sense that all of the tokens that would have been
+ * associated with the nodes by a parser are also created, but the token stream is not constructed.
+ * None of the nodes are resolved.
+ *
+ * The general pattern is for the name of the factory method to be the same as the name of the class
+ * of AST node being created. There are two notable exceptions. The first is for methods creating
+ * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
+ * second is places where a shorter name seemed unambiguous and easier to read, such as using
+ * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
+ */
+class AstFactory {
+  static AdjacentStrings adjacentStrings(List<StringLiteral> strings) => new AdjacentStrings(list(strings));
+
+  static Annotation annotation(Identifier name) => new Annotation(TokenFactory.tokenFromType(TokenType.AT), name, null, null, null);
+
+  static Annotation annotation2(Identifier name, SimpleIdentifier constructorName, ArgumentList arguments) => new Annotation(TokenFactory.tokenFromType(TokenType.AT), name, TokenFactory.tokenFromType(TokenType.PERIOD), constructorName, arguments);
+
+  static ArgumentDefinitionTest argumentDefinitionTest(String identifier) => new ArgumentDefinitionTest(TokenFactory.tokenFromType(TokenType.QUESTION), identifier3(identifier));
+
+  static ArgumentList argumentList(List<Expression> arguments) => new ArgumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(arguments), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+
+  static AsExpression asExpression(Expression expression, TypeName type) => new AsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
+
+  static AssertStatement assertStatement(Expression condition) => new AssertStatement(TokenFactory.tokenFromKeyword(Keyword.ASSERT), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static AssignmentExpression assignmentExpression(Expression leftHandSide, TokenType operator, Expression rightHandSide) => new AssignmentExpression(leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
+
+  static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator, Expression rightOperand) => new BinaryExpression(leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
+
+  static Block block(List<Statement> statements) => new Block(TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(statements), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static BlockFunctionBody blockFunctionBody(Block block) => new BlockFunctionBody(block);
+
+  static BlockFunctionBody blockFunctionBody2(List<Statement> statements) => new BlockFunctionBody(block(statements));
+
+  static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral(value ? TokenFactory.tokenFromKeyword(Keyword.TRUE) : TokenFactory.tokenFromKeyword(Keyword.FALSE), value);
+
+  static BreakStatement breakStatement() => new BreakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK), null, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static BreakStatement breakStatement2(String label) => new BreakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK), identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static IndexExpression cascadedIndexExpression(Expression index) => new IndexExpression.forCascade(TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+
+  static MethodInvocation cascadedMethodInvocation(String methodName, List<Expression> arguments) => new MethodInvocation(null, TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), identifier3(methodName), argumentList(arguments));
+
+  static PropertyAccess cascadedPropertyAccess(String propertyName) => new PropertyAccess(null, TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD), identifier3(propertyName));
+
+  static CascadeExpression cascadeExpression(Expression target, List<Expression> cascadeSections) => new CascadeExpression(target, list(cascadeSections));
+
+  static CatchClause catchClause(String exceptionParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, null, statements);
+
+  static CatchClause catchClause2(String exceptionParameter, String stackTraceParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, stackTraceParameter, statements);
+
+  static CatchClause catchClause3(TypeName exceptionType, List<Statement> statements) => catchClause5(exceptionType, null, null, statements);
+
+  static CatchClause catchClause4(TypeName exceptionType, String exceptionParameter, List<Statement> statements) => catchClause5(exceptionType, exceptionParameter, null, statements);
+
+  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause(exceptionType == null ? null : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.tokenFromKeyword(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.OPEN_PAREN), exceptionParameter == null ? null : identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.tokenFromType(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), block(statements));
+
+  static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration(null, null, abstractKeyword == null ? null : TokenFactory.tokenFromKeyword(abstractKeyword), TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias(null, null, TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name), typeParameters, TokenFactory.tokenFromType(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.tokenFromKeyword(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static CompilationUnit compilationUnit() => compilationUnit8(null, null, null);
+
+  static CompilationUnit compilationUnit2(List<CompilationUnitMember> declarations) => compilationUnit8(null, null, list(declarations));
+
+  static CompilationUnit compilationUnit3(List<Directive> directives) => compilationUnit8(null, list(directives), null);
+
+  static CompilationUnit compilationUnit4(List<Directive> directives, List<CompilationUnitMember> declarations) => compilationUnit8(null, directives, declarations);
+
+  static CompilationUnit compilationUnit5(String scriptTag) => compilationUnit8(scriptTag, null, null);
+
+  static CompilationUnit compilationUnit6(String scriptTag, List<CompilationUnitMember> declarations) => compilationUnit8(scriptTag, null, list(declarations));
+
+  static CompilationUnit compilationUnit7(String scriptTag, List<Directive> directives) => compilationUnit8(scriptTag, list(directives), null);
+
+  static CompilationUnit compilationUnit8(String scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit(TokenFactory.tokenFromType(TokenType.EOF), scriptTag == null ? null : AstFactory.scriptTag(scriptTag), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.tokenFromType(TokenType.EOF));
+
+  static ConditionalExpression conditionalExpression(Expression condition, Expression thenExpression, Expression elseExpression) => new ConditionalExpression(condition, TokenFactory.tokenFromType(TokenType.QUESTION), thenExpression, TokenFactory.tokenFromType(TokenType.COLON), elseExpression);
+
+  static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration(null, null, TokenFactory.tokenFromKeyword(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
+
+  static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration(null, null, null, constKeyword == null ? null : TokenFactory.tokenFromKeyword(constKeyword), factoryKeyword == null ? null : TokenFactory.tokenFromKeyword(factoryKeyword), returnType, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
+
+  static ConstructorFieldInitializer constructorFieldInitializer(bool prefixedWithThis, String fieldName, Expression expression) => new ConstructorFieldInitializer(prefixedWithThis ? TokenFactory.tokenFromKeyword(Keyword.THIS) : null, prefixedWithThis ? TokenFactory.tokenFromType(TokenType.PERIOD) : null, identifier3(fieldName), TokenFactory.tokenFromType(TokenType.EQ), expression);
+
+  static ConstructorName constructorName(TypeName type, String name) => new ConstructorName(type, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name));
+
+  static ContinueStatement continueStatement([String label]) {
+    SimpleIdentifier labelNode = label == null ? null : identifier3(label);
+    return new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE), labelNode, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  }
+
+  static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) => declaredIdentifier2(keyword, null, identifier);
+
+  static DeclaredIdentifier declaredIdentifier2(Keyword keyword, TypeName type, String identifier) => new DeclaredIdentifier(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, identifier3(identifier));
+
+  static DeclaredIdentifier declaredIdentifier3(String identifier) => declaredIdentifier2(null, null, identifier);
+
+  static DeclaredIdentifier declaredIdentifier4(TypeName type, String identifier) => declaredIdentifier2(null, type, identifier);
+
+  static DoStatement doStatement(Statement body, Expression condition) => new DoStatement(TokenFactory.tokenFromKeyword(Keyword.DO), body, TokenFactory.tokenFromKeyword(Keyword.WHILE), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static DoubleLiteral doubleLiteral(double value) => new DoubleLiteral(TokenFactory.tokenFromString(value.toString()), value);
+
+  static EmptyFunctionBody emptyFunctionBody() => new EmptyFunctionBody(TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static EmptyStatement emptyStatement() => new EmptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ExportDirective exportDirective(List<Annotation> metadata, String uri, List<Combinator> combinators) => new ExportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.EXPORT), string2(uri), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ExportDirective exportDirective2(String uri, List<Combinator> combinators) => exportDirective(new List<Annotation>(), uri, combinators);
+
+  static ExpressionFunctionBody expressionFunctionBody(Expression expression) => new ExpressionFunctionBody(TokenFactory.tokenFromType(TokenType.FUNCTION), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ExpressionStatement expressionStatement(Expression expression) => new ExpressionStatement(expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ExtendsClause extendsClause(TypeName type) => new ExtendsClause(TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
+
+  static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new FieldDeclaration(null, null, isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null, variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
+
+  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier, [FormalParameterList parameterList]) => new FieldFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, TokenFactory.tokenFromKeyword(Keyword.THIS), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier), parameterList);
+
+  static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
+
+  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+
+  static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+
+  static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), null, initialization, TokenFactory.tokenFromType(TokenType.SEMICOLON), condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+
+  static ForStatement forStatement2(VariableDeclarationList variableList, Expression condition, List<Expression> updaters, Statement body) => new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), variableList, null, TokenFactory.tokenFromType(TokenType.SEMICOLON), condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+
+  static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclaration(null, null, null, type, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), identifier3(name), functionExpression);
+
+  static FunctionDeclarationStatement functionDeclarationStatement(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclarationStatement(functionDeclaration(type, keyword, name, functionExpression));
+
+  static FunctionExpression functionExpression() => new FunctionExpression(formalParameterList([]), blockFunctionBody2([]));
+
+  static FunctionExpression functionExpression2(FormalParameterList parameters, FunctionBody body) => new FunctionExpression(parameters, body);
+
+  static FunctionExpressionInvocation functionExpressionInvocation(Expression function, List<Expression> arguments) => new FunctionExpressionInvocation(function, argumentList(arguments));
+
+  static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter(null, null, returnType, identifier3(identifier), formalParameterList(parameters));
+
+  static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) => new HideCombinator(TokenFactory.tokenFromString("hide"), list(identifiers));
+
+  static HideCombinator hideCombinator2(List<String> identifiers) {
+    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    for (String identifier in identifiers) {
+      identifierList.add(identifier3(identifier));
+    }
+    return new HideCombinator(TokenFactory.tokenFromString("hide"), identifierList);
+  }
+
+  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) => new PrefixedIdentifier(prefix, TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
+
+  static SimpleIdentifier identifier3(String lexeme) => new SimpleIdentifier(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
+
+  static PrefixedIdentifier identifier4(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier(identifier3(prefix), TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
+
+  static PrefixedIdentifier identifier5(String prefix, String identifier) => new PrefixedIdentifier(identifier3(prefix), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier));
+
+  static IfStatement ifStatement(Expression condition, Statement thenStatement) => ifStatement2(condition, thenStatement, null);
+
+  static IfStatement ifStatement2(Expression condition, Statement thenStatement, Statement elseStatement) => new IfStatement(TokenFactory.tokenFromKeyword(Keyword.IF), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), thenStatement, elseStatement == null ? null : TokenFactory.tokenFromKeyword(Keyword.ELSE), elseStatement);
+
+  static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause(TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), list(types));
+
+  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), null, prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
+
+  static IndexExpression indexExpression(Expression array, Expression index) => new IndexExpression.forTarget(array, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+
+  static InstanceCreationExpression instanceCreationExpression(Keyword keyword, ConstructorName name, List<Expression> arguments) => new InstanceCreationExpression(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), name, argumentList(arguments));
+
+  static InstanceCreationExpression instanceCreationExpression2(Keyword keyword, TypeName type, List<Expression> arguments) => instanceCreationExpression3(keyword, type, null, arguments);
+
+  static InstanceCreationExpression instanceCreationExpression3(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => instanceCreationExpression(keyword, new ConstructorName(type, identifier == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), identifier == null ? null : identifier3(identifier)), arguments);
+
+  static IntegerLiteral integer(int value) => new IntegerLiteral(TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()), value);
+
+  static InterpolationExpression interpolationExpression(Expression expression) => new InterpolationExpression(TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION), expression, TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression(TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier3(identifier), null);
+
+  static InterpolationString interpolationString(String contents, String value) => new InterpolationString(TokenFactory.tokenFromString(contents), value);
+
+  static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.IS), negated ? TokenFactory.tokenFromType(TokenType.BANG) : null, type);
+
+  static Label label(SimpleIdentifier label) => new Label(label, TokenFactory.tokenFromType(TokenType.COLON));
+
+  static Label label2(String label) => AstFactory.label(identifier3(label));
+
+  static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement(labels, statement);
+
+  static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.LIBRARY), libraryName, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
+
+  static LibraryIdentifier libraryIdentifier(List<SimpleIdentifier> components) => new LibraryIdentifier(list(components));
+
+  static LibraryIdentifier libraryIdentifier2(List<String> components) {
+    List<SimpleIdentifier> componentList = new List<SimpleIdentifier>();
+    for (String component in components) {
+      componentList.add(identifier3(component));
+    }
+    return new LibraryIdentifier(componentList);
+  }
+
+  static List list(List<Object> elements) {
+    List elementList = new List();
+    for (Object element in elements) {
+      elementList.add(element);
+    }
+    return elementList;
+  }
+
+  static ListLiteral listLiteral(List<Expression> elements) => listLiteral2(null, null, elements);
+
+  static ListLiteral listLiteral2(Keyword keyword, TypeArgumentList typeArguments, List<Expression> elements) => new ListLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), null, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), list(elements), TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+
+  static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments, List<MapLiteralEntry> entries) => new MapLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(entries), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static MapLiteral mapLiteral2(List<MapLiteralEntry> entries) => mapLiteral(null, null, entries);
+
+  static MapLiteralEntry mapLiteralEntry(String key, Expression value) => new MapLiteralEntry(string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
+
+  static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) => new MethodDeclaration(null, null, TokenFactory.tokenFromKeyword(Keyword.EXTERNAL), modifier == null ? null : TokenFactory.tokenFromKeyword(modifier), returnType, property == null ? null : TokenFactory.tokenFromKeyword(property), operator == null ? null : TokenFactory.tokenFromKeyword(operator), name, parameters, emptyFunctionBody());
+
+  static MethodDeclaration methodDeclaration2(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) => new MethodDeclaration(null, null, null, modifier == null ? null : TokenFactory.tokenFromKeyword(modifier), returnType, property == null ? null : TokenFactory.tokenFromKeyword(property), operator == null ? null : TokenFactory.tokenFromKeyword(operator), name, parameters, body);
+
+  static MethodInvocation methodInvocation(Expression target, String methodName, List<Expression> arguments) => new MethodInvocation(target, target == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(methodName), argumentList(arguments));
+
+  static MethodInvocation methodInvocation2(String methodName, List<Expression> arguments) => methodInvocation(null, methodName, arguments);
+
+  static NamedExpression namedExpression(Label label, Expression expression) => new NamedExpression(label, expression);
+
+  static NamedExpression namedExpression2(String label, Expression expression) => namedExpression(label2(label), expression);
+
+  static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter(parameter, ParameterKind.NAMED, expression == null ? null : TokenFactory.tokenFromType(TokenType.COLON), expression);
+
+  static NativeClause nativeClause(String nativeCode) => new NativeClause(TokenFactory.tokenFromString("native"), string2(nativeCode));
+
+  static NativeFunctionBody nativeFunctionBody(String nativeMethodName) => new NativeFunctionBody(TokenFactory.tokenFromString("native"), string2(nativeMethodName), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static NullLiteral nullLiteral() => new NullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL));
+
+  static ParenthesizedExpression parenthesizedExpression(Expression expression) => new ParenthesizedExpression(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+
+  static PartDirective partDirective(List<Annotation> metadata, String url) => new PartDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.PART), string2(url), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static PartDirective partDirective2(String url) => partDirective(new List<Annotation>(), url);
+
+  static PartOfDirective partOfDirective(LibraryIdentifier libraryName) => partOfDirective2(new List<Annotation>(), libraryName);
+
+  static PartOfDirective partOfDirective2(List<Annotation> metadata, LibraryIdentifier libraryName) => new PartOfDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.PART), TokenFactory.tokenFromString("of"), libraryName, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter(parameter, ParameterKind.POSITIONAL, expression == null ? null : TokenFactory.tokenFromType(TokenType.EQ), expression);
+
+  static PostfixExpression postfixExpression(Expression expression, TokenType operator) => new PostfixExpression(expression, TokenFactory.tokenFromType(operator));
+
+  static PrefixExpression prefixExpression(TokenType operator, Expression expression) => new PrefixExpression(TokenFactory.tokenFromType(operator), expression);
+
+  static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) => new PropertyAccess(target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
+
+  static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess(target, TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(propertyName));
+
+  static RedirectingConstructorInvocation redirectingConstructorInvocation(List<Expression> arguments) => redirectingConstructorInvocation2(null, arguments);
+
+  static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation(TokenFactory.tokenFromKeyword(Keyword.THIS), constructorName == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), constructorName == null ? null : identifier3(constructorName), argumentList(arguments));
+
+  static RethrowExpression rethrowExpression() => new RethrowExpression(TokenFactory.tokenFromKeyword(Keyword.RETHROW));
+
+  static ReturnStatement returnStatement() => returnStatement2(null);
+
+  static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement(TokenFactory.tokenFromKeyword(Keyword.RETURN), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static ScriptTag scriptTag(String scriptTag) => new ScriptTag(TokenFactory.tokenFromString(scriptTag));
+
+  static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator(TokenFactory.tokenFromString("show"), list(identifiers));
+
+  static ShowCombinator showCombinator2(List<String> identifiers) {
+    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    for (String identifier in identifiers) {
+      identifierList.add(identifier3(identifier));
+    }
+    return new ShowCombinator(TokenFactory.tokenFromString("show"), identifierList);
+  }
+
+  static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) => simpleFormalParameter2(keyword, null, parameterName);
+
+  static SimpleFormalParameter simpleFormalParameter2(Keyword keyword, TypeName type, String parameterName) => new SimpleFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, identifier3(parameterName));
+
+  static SimpleFormalParameter simpleFormalParameter3(String parameterName) => simpleFormalParameter2(null, null, parameterName);
+
+  static SimpleFormalParameter simpleFormalParameter4(TypeName type, String parameterName) => simpleFormalParameter2(null, type, parameterName);
+
+  static StringInterpolation string(List<InterpolationElement> elements) => new StringInterpolation(list(elements));
+
+  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'${content}'"), content);
+
+  static SuperConstructorInvocation superConstructorInvocation(List<Expression> arguments) => superConstructorInvocation2(null, arguments);
+
+  static SuperConstructorInvocation superConstructorInvocation2(String name, List<Expression> arguments) => new SuperConstructorInvocation(TokenFactory.tokenFromKeyword(Keyword.SUPER), name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name), argumentList(arguments));
+
+  static SuperExpression superExpression() => new SuperExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
+
+  static SwitchCase switchCase(Expression expression, List<Statement> statements) => switchCase2(new List<Label>(), expression, statements);
+
+  static SwitchCase switchCase2(List<Label> labels, Expression expression, List<Statement> statements) => new SwitchCase(labels, TokenFactory.tokenFromKeyword(Keyword.CASE), expression, TokenFactory.tokenFromType(TokenType.COLON), list(statements));
+
+  static SwitchDefault switchDefault(List<Label> labels, List<Statement> statements) => new SwitchDefault(labels, TokenFactory.tokenFromKeyword(Keyword.DEFAULT), TokenFactory.tokenFromType(TokenType.COLON), list(statements));
+
+  static SwitchDefault switchDefault2(List<Statement> statements) => switchDefault(new List<Label>(), statements);
+
+  static SwitchStatement switchStatement(Expression expression, List<SwitchMember> members) => new SwitchStatement(TokenFactory.tokenFromKeyword(Keyword.SWITCH), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static SymbolLiteral symbolLiteral(List<String> components) {
+    List<Token> identifierList = new List<Token>();
+    for (String component in components) {
+      identifierList.add(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
+    }
+    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), new List.from(identifierList));
+  }
+
+  static ThisExpression thisExpression() => new ThisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
+
+  static ThrowExpression throwExpression() => throwExpression2(null);
+
+  static ThrowExpression throwExpression2(Expression expression) => new ThrowExpression(TokenFactory.tokenFromKeyword(Keyword.THROW), expression);
+
+  static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new TopLevelVariableDeclaration(null, null, variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static TopLevelVariableDeclaration topLevelVariableDeclaration2(Keyword keyword, List<VariableDeclaration> variables) => new TopLevelVariableDeclaration(null, null, variableDeclarationList(keyword, null, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static TryStatement tryStatement(Block body, Block finallyClause) => tryStatement3(body, new List<CatchClause>(), finallyClause);
+
+  static TryStatement tryStatement2(Block body, List<CatchClause> catchClauses) => tryStatement3(body, list(catchClauses), null);
+
+  static TryStatement tryStatement3(Block body, List<CatchClause> catchClauses, Block finallyClause) => new TryStatement(TokenFactory.tokenFromKeyword(Keyword.TRY), body, catchClauses, finallyClause == null ? null : TokenFactory.tokenFromKeyword(Keyword.FINALLY), finallyClause);
+
+  static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias(null, null, TokenFactory.tokenFromKeyword(Keyword.TYPEDEF), returnType, identifier3(name), typeParameters, parameters, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static TypeArgumentList typeArgumentList(List<TypeName> typeNames) => new TypeArgumentList(TokenFactory.tokenFromType(TokenType.LT), list(typeNames), TokenFactory.tokenFromType(TokenType.GT));
+
+  /**
+   * Create a type name whose name has been resolved to the given element and whose type has been
+   * resolved to the type of the given element.
+   *
+   * <b>Note:</b> This method does not correctly handle class elements that have type parameters.
+   *
+   * @param element the element defining the type represented by the type name
+   * @return the type name that was created
+   */
+  static TypeName typeName(ClassElement element, List<TypeName> arguments) {
+    SimpleIdentifier name = identifier3(element.name);
+    name.staticElement = element;
+    TypeName typeName = typeName3(name, arguments);
+    typeName.type = element.type;
+    return typeName;
+  }
+
+  static TypeName typeName3(Identifier name, List<TypeName> arguments) {
+    if (arguments.length == 0) {
+      return new TypeName(name, null);
+    }
+    return new TypeName(name, typeArgumentList(arguments));
+  }
+
+  static TypeName typeName4(String name, List<TypeName> arguments) {
+    if (arguments.length == 0) {
+      return new TypeName(identifier3(name), null);
+    }
+    return new TypeName(identifier3(name), typeArgumentList(arguments));
+  }
+
+  static TypeParameter typeParameter(String name) => new TypeParameter(null, null, identifier3(name), null, null);
+
+  static TypeParameter typeParameter2(String name, TypeName bound) => new TypeParameter(null, null, identifier3(name), TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
+
+  static TypeParameterList typeParameterList(List<String> typeNames) {
+    List<TypeParameter> typeParameters = new List<TypeParameter>();
+    for (String typeName in typeNames) {
+      typeParameters.add(typeParameter(typeName));
+    }
+    return new TypeParameterList(TokenFactory.tokenFromType(TokenType.LT), typeParameters, TokenFactory.tokenFromType(TokenType.GT));
+  }
+
+  static VariableDeclaration variableDeclaration(String name) => new VariableDeclaration(null, null, identifier3(name), null, null);
+
+  static VariableDeclaration variableDeclaration2(String name, Expression initializer) => new VariableDeclaration(null, null, identifier3(name), TokenFactory.tokenFromType(TokenType.EQ), initializer);
+
+  static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationList(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, list(variables));
+
+  static VariableDeclarationList variableDeclarationList2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationList(keyword, null, variables);
+
+  static VariableDeclarationStatement variableDeclarationStatement(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationStatement(variableDeclarationList(keyword, type, variables), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static VariableDeclarationStatement variableDeclarationStatement2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationStatement(keyword, null, variables);
+
+  static WhileStatement whileStatement(Expression condition, Statement body) => new WhileStatement(TokenFactory.tokenFromKeyword(Keyword.WHILE), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+
+  static WithClause withClause(List<TypeName> types) => new WithClause(TokenFactory.tokenFromKeyword(Keyword.WITH), list(types));
+}
+
+class NodeListTest extends EngineTestCase {
+  void test_add() {
+    AstNode parent = AstFactory.argumentList([]);
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
+    list.insert(0, secondNode);
+    list.insert(0, firstNode);
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    AstNode thirdNode = AstFactory.booleanLiteral(false);
+    list.insert(1, thirdNode);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+    JUnitTestCase.assertSame(secondNode, list[2]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+  }
+
+  void test_add_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.insert(-1, AstFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_add_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.insert(1, AstFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_addAll() {
+    AstNode parent = AstFactory.argumentList([]);
+    List<AstNode> firstNodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    firstNodes.add(firstNode);
+    firstNodes.add(secondNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
+    list.addAll(firstNodes);
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    List<AstNode> secondNodes = new List<AstNode>();
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    AstNode fourthNode = AstFactory.booleanLiteral(false);
+    secondNodes.add(thirdNode);
+    secondNodes.add(fourthNode);
+    list.addAll(secondNodes);
+    EngineTestCase.assertSizeOfList(4, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+    JUnitTestCase.assertSame(fourthNode, list[3]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+    JUnitTestCase.assertSame(parent, fourthNode.parent);
+  }
+
+  void test_create() {
+    AstNode owner = AstFactory.argumentList([]);
+    NodeList<AstNode> list = NodeList.create(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSizeOfList(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+
+  void test_creation() {
+    AstNode owner = AstFactory.argumentList([]);
+    NodeList<AstNode> list = new NodeList<AstNode>(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSizeOfList(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+
+  void test_get_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list[-1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_get_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list[1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_getBeginToken_empty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.beginToken);
+  }
+
+  void test_getBeginToken_nonEmpty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
+  }
+
+  void test_getEndToken_empty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.endToken);
+  }
+
+  void test_getEndToken_nonEmpty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.endToken, list.endToken);
+  }
+
+  void test_indexOf() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    AstNode fourthNode = AstFactory.booleanLiteral(false);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
+    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
+    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(null));
+  }
+
+  void test_remove() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+  }
+
+  void test_remove_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.removeAt(-1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_remove_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.removeAt(1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_set() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    AstNode fourthNode = AstFactory.integer(0);
+    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(fourthNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+  }
+
+  void test_set_negative() {
+    AstNode node = AstFactory.booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      javaListSet(list, -1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_set_tooBig() {
+    AstNode node = AstFactory.booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      javaListSet(list, 1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  static dartSuite() {
+    _ut.group('NodeListTest', () {
+      _ut.test('test_add', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add);
+      });
+      _ut.test('test_addAll', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_addAll);
+      });
+      _ut.test('test_add_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_negative);
+      });
+      _ut.test('test_add_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_tooBig);
+      });
+      _ut.test('test_create', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_create);
+      });
+      _ut.test('test_creation', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getBeginToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_empty);
+      });
+      _ut.test('test_getBeginToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_nonEmpty);
+      });
+      _ut.test('test_getEndToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_empty);
+      });
+      _ut.test('test_getEndToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_nonEmpty);
+      });
+      _ut.test('test_get_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_negative);
+      });
+      _ut.test('test_get_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_tooBig);
+      });
+      _ut.test('test_indexOf', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_indexOf);
+      });
+      _ut.test('test_remove', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove);
+      });
+      _ut.test('test_remove_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_negative);
+      });
+      _ut.test('test_remove_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_tooBig);
+      });
+      _ut.test('test_set', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set);
+      });
+      _ut.test('test_set_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_negative);
+      });
+      _ut.test('test_set_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_tooBig);
+      });
+    });
+  }
+}
+
+class BreadthFirstVisitorTest extends ParserTestCase {
+  void testIt() {
+    String source = EngineTestCase.createSource([
+        "class A {",
+        "  bool get g => true;",
+        "}",
+        "class B {",
+        "  int f() {",
+        "    num q() {",
+        "      return 3;",
+        "    }",
+        "  return q() + 4;",
+        "  }",
+        "}",
+        "A f(var p) {",
+        "  if ((p as A).g) {",
+        "    return p;",
+        "  } else {",
+        "    return null;",
+        "  }",
+        "}"]);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
+    List<AstNode> nodes = new List<AstNode>();
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
+    visitor.visitAllNodes(unit);
+    EngineTestCase.assertSizeOfList(59, nodes);
+    EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnit, CompilationUnit, nodes[0]);
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, nodes[2]);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclarationStatement, FunctionDeclarationStatement, nodes[27]);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, nodes[58]);
+  }
+
+  static dartSuite() {
+    _ut.group('BreadthFirstVisitorTest', () {
+      _ut.test('testIt', () {
+        final __test = new BreadthFirstVisitorTest();
+        runJUnitTest(__test, __test.testIt);
+      });
+    });
+  }
+}
+
+class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends BreadthFirstVisitor<Object> {
+  List<AstNode> nodes;
+
+  BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(this.nodes) : super();
+
+  @override
+  Object visitNode(AstNode node) {
+    nodes.add(node);
+    return super.visitNode(node);
+  }
+}
+
+class IndexExpressionTest extends EngineTestCase {
+  void test_inGetterContext_assignment_compound_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] += ?
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+
+  void test_inGetterContext_assignment_simple_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] = ?
+    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertFalse(expression.inGetterContext());
+  }
+
+  void test_inGetterContext_nonAssignment() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] + ?
+    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+
+  void test_inSetterContext_assignment_compound_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] += ?
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_compound_right() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ? += a[i]
+    AstFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_simple_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] = ?
+    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_simple_right() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ? = a[i]
+    AstFactory.assignmentExpression(null, TokenType.EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_nonAssignment() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
+    // a[i] + ?
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_postfix() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+    // a[i]++
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_bang() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // !a[i]
+    AstFactory.prefixExpression(TokenType.BANG, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_minusMinus() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // --a[i]
+    AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_plusPlus() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ++a[i]
+    AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  static dartSuite() {
+    _ut.group('IndexExpressionTest', () {
+      _ut.test('test_inGetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inGetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inGetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
+      });
+      _ut.test('test_inSetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_postfix', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_postfix);
+      });
+      _ut.test('test_inSetterContext_prefix_bang', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
+      });
+      _ut.test('test_inSetterContext_prefix_minusMinus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
+      });
+      _ut.test('test_inSetterContext_prefix_plusPlus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
+      });
+    });
+  }
+}
+
+class ClassTypeAliasTest extends ParserTestCase {
+  void test_isAbstract() {
+    JUnitTestCase.assertFalse(AstFactory.classTypeAlias("A", null, null, null, null, null).isAbstract);
+    JUnitTestCase.assertTrue(AstFactory.classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null).isAbstract);
+  }
+
+  static dartSuite() {
+    _ut.group('ClassTypeAliasTest', () {
+      _ut.test('test_isAbstract', () {
+        final __test = new ClassTypeAliasTest();
+        runJUnitTest(__test, __test.test_isAbstract);
+      });
+    });
+  }
+}
+
+class ClassDeclarationTest extends ParserTestCase {
+  void test_getConstructor() {
+    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
+    ConstructorDeclaration defaultConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), null, AstFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration aConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "a", AstFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration bConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "b", AstFactory.formalParameterList([]), initializers);
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
+    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
+    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
+    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
+    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
+  }
+
+  void test_getField() {
+    VariableDeclaration aVar = AstFactory.variableDeclaration("a");
+    VariableDeclaration bVar = AstFactory.variableDeclaration("b");
+    VariableDeclaration cVar = AstFactory.variableDeclaration("c");
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [
+        AstFactory.fieldDeclaration2(false, null, [aVar]),
+        AstFactory.fieldDeclaration2(false, null, [bVar, cVar])]);
+    JUnitTestCase.assertSame(aVar, clazz.getField("a"));
+    JUnitTestCase.assertSame(bVar, clazz.getField("b"));
+    JUnitTestCase.assertSame(cVar, clazz.getField("c"));
+    JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
+  }
+
+  void test_getMethod() {
+    MethodDeclaration aMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("a"), AstFactory.formalParameterList([]));
+    MethodDeclaration bMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("b"), AstFactory.formalParameterList([]));
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
+    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
+    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
+    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
+  }
+
+  void test_isAbstract() {
+    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
+    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
+  }
+
+  static dartSuite() {
+    _ut.group('ClassDeclarationTest', () {
+      _ut.test('test_getConstructor', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getConstructor);
+      });
+      _ut.test('test_getField', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getField);
+      });
+      _ut.test('test_getMethod', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getMethod);
+      });
+      _ut.test('test_isAbstract', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_isAbstract);
+      });
+    });
+  }
+}
+
+class VariableDeclarationTest extends ParserTestCase {
+  void test_getDocumentationComment_onGrandParent() {
+    VariableDeclaration varDecl = AstFactory.variableDeclaration("a");
+    TopLevelVariableDeclaration decl = AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    JUnitTestCase.assertNull(varDecl.documentationComment);
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(varDecl.documentationComment);
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+
+  void test_getDocumentationComment_onNode() {
+    VariableDeclaration decl = AstFactory.variableDeclaration("a");
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+
+  static dartSuite() {
+    _ut.group('VariableDeclarationTest', () {
+      _ut.test('test_getDocumentationComment_onGrandParent', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onGrandParent);
+      });
+      _ut.test('test_getDocumentationComment_onNode', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onNode);
       });
     });
   }

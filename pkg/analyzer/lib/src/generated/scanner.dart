@@ -16,527 +16,6 @@ import 'instrumentation.dart';
 import 'utilities_collection.dart' show TokenMap;
 
 /**
- * Instances of the abstract class `KeywordState` represent a state in a state machine used to
- * scan keywords.
- */
-class KeywordState {
-  /**
-   * An empty transition table used by leaf states.
-   */
-  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
-
-  /**
-   * The initial state in the state machine.
-   */
-  static KeywordState KEYWORD_STATE = _createKeywordStateTable();
-
-  /**
-   * Create the next state in the state machine where we have already recognized the subset of
-   * strings in the given array of strings starting at the given offset and having the given length.
-   * All of these strings have a common prefix and the next character is at the given start index.
-   *
-   * @param start the index of the character in the strings used to transition to a new state
-   * @param strings an array containing all of the strings that will be recognized by the state
-   *          machine
-   * @param offset the offset of the first string in the array that has the prefix that is assumed
-   *          to have been recognized by the time we reach the state being built
-   * @param length the number of strings in the array that pass through the state being built
-   * @return the state that was created
-   */
-  static KeywordState _computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>(26);
-    assert(length != 0);
-    int chunk = 0x0;
-    int chunkStart = -1;
-    bool isLeaf = false;
-    for (int i = offset; i < offset + length; i++) {
-      if (strings[i].length == start) {
-        isLeaf = true;
-      }
-      if (strings[i].length > start) {
-        int c = strings[i].codeUnitAt(start);
-        if (chunk != c) {
-          if (chunkStart != -1) {
-            result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
-          }
-          chunkStart = i;
-          chunk = c;
-        }
-      }
-    }
-    if (chunkStart != -1) {
-      assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
-    } else {
-      assert(length == 1);
-      return new KeywordState(_EMPTY_TABLE, strings[offset]);
-    }
-    if (isLeaf) {
-      return new KeywordState(result, strings[offset]);
-    } else {
-      return new KeywordState(result, null);
-    }
-  }
-
-  /**
-   * Create the initial state in the state machine.
-   *
-   * @return the state that was created
-   */
-  static KeywordState _createKeywordStateTable() {
-    List<Keyword> values = Keyword.values;
-    List<String> strings = new List<String>(values.length);
-    for (int i = 0; i < values.length; i++) {
-      strings[i] = values[i].syntax;
-    }
-    strings.sort();
-    return _computeKeywordStateTable(0, strings, 0, strings.length);
-  }
-
-  /**
-   * A table mapping characters to the states to which those characters will transition. (The index
-   * into the array is the offset from the character `'a'` to the transitioning character.)
-   */
-  final List<KeywordState> _table;
-
-  /**
-   * The keyword that is recognized by this state, or `null` if this state is not a terminal
-   * state.
-   */
-  Keyword _keyword;
-
-  /**
-   * Initialize a newly created state to have the given transitions and to recognize the keyword
-   * with the given syntax.
-   *
-   * @param table a table mapping characters to the states to which those characters will transition
-   * @param syntax the syntax of the keyword that is recognized by the state
-   */
-  KeywordState(this._table, String syntax) {
-    this._keyword = (syntax == null) ? null : Keyword.keywords[syntax];
-  }
-
-  /**
-   * Return the keyword that was recognized by this state, or `null` if this state does not
-   * recognized a keyword.
-   *
-   * @return the keyword that was matched by reaching this state
-   */
-  Keyword keyword() => _keyword;
-
-  /**
-   * Return the state that follows this state on a transition of the given character, or
-   * `null` if there is no valid state reachable from this state with such a transition.
-   *
-   * @param c the character used to transition from this state to another state
-   * @return the state that follows this state on a transition of the given character
-   */
-  KeywordState next(int c) => _table[c - 0x61];
-}
-
-/**
- * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
- * scanner.
- */
-class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
-  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
-
-  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
-
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
-
-  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
-
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = const ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
-
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL = const ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
-
-  static const List<ScannerErrorCode> values = const [
-      ILLEGAL_CHARACTER,
-      MISSING_DIGIT,
-      MISSING_HEX_DIGIT,
-      MISSING_QUOTE,
-      UNTERMINATED_MULTI_LINE_COMMENT,
-      UNTERMINATED_STRING_LITERAL];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for this error
-   */
-  const ScannerErrorCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given message and correction.
-   *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const ScannerErrorCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-}
-
-/**
- * Instances of the class `SubSequenceReader` implement a [CharacterReader] that reads
- * characters from a character sequence, but adds a delta when reporting the current character
- * offset so that the character sequence can be a subsequence from a larger sequence.
- */
-class SubSequenceReader extends CharSequenceReader {
-  /**
-   * The offset from the beginning of the file to the beginning of the source being scanned.
-   */
-  final int _offsetDelta;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given sequence.
-   *
-   * @param sequence the sequence from which characters will be read
-   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
-   *          being scanned
-   */
-  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
-
-  @override
-  int get offset => _offsetDelta + super.offset;
-
-  @override
-  String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
-
-  @override
-  void set offset(int offset) {
-    super.offset = offset - _offsetDelta;
-  }
-}
-
-/**
- * Instances of the class `TokenWithComment` represent a string token that is preceded by
- * comments.
- */
-class StringTokenWithComment extends StringToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  final Token _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given type and offset and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  StringTokenWithComment(TokenType type, String value, int offset, this._precedingComment) : super(type, value, offset);
-
-  @override
-  Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
-
-  @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = _precedingComment;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-}
-
-/**
- * The enumeration `Keyword` defines the keywords in the Dart programming language.
- */
-class Keyword extends Enum<Keyword> {
-  static const Keyword ASSERT = const Keyword.con1('ASSERT', 0, "assert");
-
-  static const Keyword BREAK = const Keyword.con1('BREAK', 1, "break");
-
-  static const Keyword CASE = const Keyword.con1('CASE', 2, "case");
-
-  static const Keyword CATCH = const Keyword.con1('CATCH', 3, "catch");
-
-  static const Keyword CLASS = const Keyword.con1('CLASS', 4, "class");
-
-  static const Keyword CONST = const Keyword.con1('CONST', 5, "const");
-
-  static const Keyword CONTINUE = const Keyword.con1('CONTINUE', 6, "continue");
-
-  static const Keyword DEFAULT = const Keyword.con1('DEFAULT', 7, "default");
-
-  static const Keyword DO = const Keyword.con1('DO', 8, "do");
-
-  static const Keyword ELSE = const Keyword.con1('ELSE', 9, "else");
-
-  static const Keyword ENUM = const Keyword.con1('ENUM', 10, "enum");
-
-  static const Keyword EXTENDS = const Keyword.con1('EXTENDS', 11, "extends");
-
-  static const Keyword FALSE = const Keyword.con1('FALSE', 12, "false");
-
-  static const Keyword FINAL = const Keyword.con1('FINAL', 13, "final");
-
-  static const Keyword FINALLY = const Keyword.con1('FINALLY', 14, "finally");
-
-  static const Keyword FOR = const Keyword.con1('FOR', 15, "for");
-
-  static const Keyword IF = const Keyword.con1('IF', 16, "if");
-
-  static const Keyword IN = const Keyword.con1('IN', 17, "in");
-
-  static const Keyword IS = const Keyword.con1('IS', 18, "is");
-
-  static const Keyword NEW = const Keyword.con1('NEW', 19, "new");
-
-  static const Keyword NULL = const Keyword.con1('NULL', 20, "null");
-
-  static const Keyword RETHROW = const Keyword.con1('RETHROW', 21, "rethrow");
-
-  static const Keyword RETURN = const Keyword.con1('RETURN', 22, "return");
-
-  static const Keyword SUPER = const Keyword.con1('SUPER', 23, "super");
-
-  static const Keyword SWITCH = const Keyword.con1('SWITCH', 24, "switch");
-
-  static const Keyword THIS = const Keyword.con1('THIS', 25, "this");
-
-  static const Keyword THROW = const Keyword.con1('THROW', 26, "throw");
-
-  static const Keyword TRUE = const Keyword.con1('TRUE', 27, "true");
-
-  static const Keyword TRY = const Keyword.con1('TRY', 28, "try");
-
-  static const Keyword VAR = const Keyword.con1('VAR', 29, "var");
-
-  static const Keyword VOID = const Keyword.con1('VOID', 30, "void");
-
-  static const Keyword WHILE = const Keyword.con1('WHILE', 31, "while");
-
-  static const Keyword WITH = const Keyword.con1('WITH', 32, "with");
-
-  static const Keyword ABSTRACT = const Keyword.con2('ABSTRACT', 33, "abstract", true);
-
-  static const Keyword AS = const Keyword.con2('AS', 34, "as", true);
-
-  static const Keyword DEFERRED = const Keyword.con2('DEFERRED', 35, "deferred", true);
-
-  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 36, "dynamic", true);
-
-  static const Keyword EXPORT = const Keyword.con2('EXPORT', 37, "export", true);
-
-  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 38, "external", true);
-
-  static const Keyword FACTORY = const Keyword.con2('FACTORY', 39, "factory", true);
-
-  static const Keyword GET = const Keyword.con2('GET', 40, "get", true);
-
-  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 41, "implements", true);
-
-  static const Keyword IMPORT = const Keyword.con2('IMPORT', 42, "import", true);
-
-  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 43, "library", true);
-
-  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 44, "operator", true);
-
-  static const Keyword PART = const Keyword.con2('PART', 45, "part", true);
-
-  static const Keyword SET = const Keyword.con2('SET', 46, "set", true);
-
-  static const Keyword STATIC = const Keyword.con2('STATIC', 47, "static", true);
-
-  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 48, "typedef", true);
-
-  static const List<Keyword> values = const [
-      ASSERT,
-      BREAK,
-      CASE,
-      CATCH,
-      CLASS,
-      CONST,
-      CONTINUE,
-      DEFAULT,
-      DO,
-      ELSE,
-      ENUM,
-      EXTENDS,
-      FALSE,
-      FINAL,
-      FINALLY,
-      FOR,
-      IF,
-      IN,
-      IS,
-      NEW,
-      NULL,
-      RETHROW,
-      RETURN,
-      SUPER,
-      SWITCH,
-      THIS,
-      THROW,
-      TRUE,
-      TRY,
-      VAR,
-      VOID,
-      WHILE,
-      WITH,
-      ABSTRACT,
-      AS,
-      DEFERRED,
-      DYNAMIC,
-      EXPORT,
-      EXTERNAL,
-      FACTORY,
-      GET,
-      IMPLEMENTS,
-      IMPORT,
-      LIBRARY,
-      OPERATOR,
-      PART,
-      SET,
-      STATIC,
-      TYPEDEF];
-
-  /**
-   * The lexeme for the keyword.
-   */
-  final String syntax;
-
-  /**
-   * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
-   * identifiers.
-   */
-  final bool isPseudoKeyword;
-
-  /**
-   * A table mapping the lexemes of keywords to the corresponding keyword.
-   */
-  static Map<String, Keyword> keywords = _createKeywordMap();
-
-  /**
-   * Create a table mapping the lexemes of keywords to the corresponding keyword.
-   *
-   * @return the table that was created
-   */
-  static Map<String, Keyword> _createKeywordMap() {
-    LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
-    for (Keyword keyword in values) {
-      result[keyword.syntax] = keyword;
-    }
-    return result;
-  }
-
-  /**
-   * Initialize a newly created keyword to have the given syntax. The keyword is not a
-   * pseudo-keyword.
-   *
-   * @param syntax the lexeme for the keyword
-   */
-  const Keyword.con1(String name, int ordinal, String syntax) : this.con2(name, ordinal, syntax, false);
-
-  /**
-   * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
-   * the given flag is `true`.
-   *
-   * @param syntax the lexeme for the keyword
-   * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
-   */
-  const Keyword.con2(String name, int ordinal, this.syntax, this.isPseudoKeyword) : super(name, ordinal);
-}
-
-/**
- * Instances of the class `CharSequenceReader` implement a [CharacterReader] that reads
- * characters from a character sequence.
- */
-class CharSequenceReader implements CharacterReader {
-  /**
-   * The sequence from which characters will be read.
-   */
-  final String _sequence;
-
-  /**
-   * The number of characters in the string.
-   */
-  int _stringLength = 0;
-
-  /**
-   * The index, relative to the string, of the last character that was read.
-   */
-  int _charOffset = 0;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given sequence.
-   *
-   * @param sequence the sequence from which characters will be read
-   */
-  CharSequenceReader(this._sequence) {
-    this._stringLength = _sequence.length;
-    this._charOffset = -1;
-  }
-
-  @override
-  int advance() {
-    if (_charOffset + 1 >= _stringLength) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(++_charOffset);
-  }
-
-  @override
-  int get offset => _charOffset;
-
-  @override
-  String getString(int start, int endDelta) => _sequence.substring(start, _charOffset + 1 + endDelta).toString();
-
-  @override
-  int peek() {
-    if (_charOffset + 1 >= _sequence.length) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(_charOffset + 1);
-  }
-
-  @override
-  void set offset(int offset) {
-    _charOffset = offset;
-  }
-}
-
-/**
- * Synthetic `StringToken` represent a token whose value is independent of it's type.
- */
-class SyntheticStringToken extends StringToken {
-  /**
-   * Initialize a newly created token to represent a token of the given type with the given value.
-   *
-   * @param type the type of the token
-   * @param value the lexeme represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
-
-  @override
-  bool get isSynthetic => true;
-}
-
-/**
  * Instances of the class `IncrementalScanner` implement a scanner that scans a subset of a
  * string and inserts the resulting tokens into the middle of an existing token stream.
  */
@@ -754,6 +233,1072 @@ class IncrementalScanner extends Scanner {
    * @return `true` if the two tokens are equal to each other
    */
   bool _equalTokens(Token oldToken, Token newToken) => oldToken.type == newToken.type && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
+}
+
+/**
+ * The interface `CharacterReader`
+ */
+abstract class CharacterReader {
+  /**
+   * Advance the current position and return the character at the new current position.
+   *
+   * @return the character at the new current position
+   */
+  int advance();
+
+  /**
+   * Return the current offset relative to the beginning of the source. Return the initial offset if
+   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
+   * the entire source code has been scanned.
+   *
+   * @return the current offset of the scanner in the source
+   */
+  int get offset;
+
+  /**
+   * Return the substring of the source code between the start offset and the modified current
+   * position. The current position is modified by adding the end delta.
+   *
+   * @param start the offset to the beginning of the string, relative to the start of the file
+   * @param endDelta the number of characters after the current location to be included in the
+   *          string, or the number of characters before the current location to be excluded if the
+   *          offset is negative
+   * @return the specified substring of the source code
+   */
+  String getString(int start, int endDelta);
+
+  /**
+   * Return the character at the current position without changing the current position.
+   *
+   * @return the character at the current position
+   */
+  int peek();
+
+  /**
+   * Set the current offset relative to the beginning of the source. The new offset must be between
+   * the initial offset and one (1) past the end of the source code.
+   *
+   * @param offset the new offset in the source
+   */
+  void set offset(int offset);
+}
+
+/**
+ * Instances of the class `TokenWithComment` represent a normal token that is preceded by
+ * comments.
+ */
+class TokenWithComment extends Token {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to have the given type and offset and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  TokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
+
+  @override
+  Token copy() => new TokenWithComment(type, offset, _precedingComment);
+
+  @override
+  Token get precedingComments => _precedingComment;
+}
+
+/**
+ * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
+ * comments.
+ */
+class BeginTokenWithComment extends BeginToken {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to have the given type and offset and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  BeginTokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
+
+  @override
+  Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
+
+  @override
+  Token get precedingComments => _precedingComment;
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+}
+
+/**
+ * Instances of the class `SubSequenceReader` implement a [CharacterReader] that reads
+ * characters from a character sequence, but adds a delta when reporting the current character
+ * offset so that the character sequence can be a subsequence from a larger sequence.
+ */
+class SubSequenceReader extends CharSequenceReader {
+  /**
+   * The offset from the beginning of the file to the beginning of the source being scanned.
+   */
+  final int _offsetDelta;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given sequence.
+   *
+   * @param sequence the sequence from which characters will be read
+   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
+   *          being scanned
+   */
+  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
+
+  @override
+  int get offset => _offsetDelta + super.offset;
+
+  @override
+  String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
+
+  @override
+  void set offset(int offset) {
+    super.offset = offset - _offsetDelta;
+  }
+}
+
+/**
+ * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
+ * scanner.
+ */
+class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
+  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
+
+  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
+
+  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
+
+  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
+
+  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = const ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
+
+  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL = const ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
+
+  static const List<ScannerErrorCode> values = const [
+      ILLEGAL_CHARACTER,
+      MISSING_DIGIT,
+      MISSING_HEX_DIGIT,
+      MISSING_QUOTE,
+      UNTERMINATED_MULTI_LINE_COMMENT,
+      UNTERMINATED_STRING_LITERAL];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  final String correction;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for this error
+   */
+  const ScannerErrorCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  const ScannerErrorCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+
+  @override
+  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+}
+
+/**
+ * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
+ * by comments.
+ */
+class KeywordTokenWithComment extends KeywordToken {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to to represent the given keyword and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment) : super(keyword, offset);
+
+  @override
+  Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
+
+  @override
+  Token get precedingComments => _precedingComment;
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+}
+
+/**
+ * The enumeration `TokenType` defines the types of tokens that can be returned by the
+ * scanner.
+ */
+class TokenType extends Enum<TokenType> {
+  /**
+   * The type of the token that marks the end of the input.
+   */
+  static const TokenType EOF = const TokenType_EOF('EOF', 0, TokenClass.NO_CLASS, "");
+
+  static const TokenType DOUBLE = const TokenType.con1('DOUBLE', 1);
+
+  static const TokenType HEXADECIMAL = const TokenType.con1('HEXADECIMAL', 2);
+
+  static const TokenType IDENTIFIER = const TokenType.con1('IDENTIFIER', 3);
+
+  static const TokenType INT = const TokenType.con1('INT', 4);
+
+  static const TokenType KEYWORD = const TokenType.con1('KEYWORD', 5);
+
+  static const TokenType MULTI_LINE_COMMENT = const TokenType.con1('MULTI_LINE_COMMENT', 6);
+
+  static const TokenType SCRIPT_TAG = const TokenType.con1('SCRIPT_TAG', 7);
+
+  static const TokenType SINGLE_LINE_COMMENT = const TokenType.con1('SINGLE_LINE_COMMENT', 8);
+
+  static const TokenType STRING = const TokenType.con1('STRING', 9);
+
+  static const TokenType AMPERSAND = const TokenType.con2('AMPERSAND', 10, TokenClass.BITWISE_AND_OPERATOR, "&");
+
+  static const TokenType AMPERSAND_AMPERSAND = const TokenType.con2('AMPERSAND_AMPERSAND', 11, TokenClass.LOGICAL_AND_OPERATOR, "&&");
+
+  static const TokenType AMPERSAND_EQ = const TokenType.con2('AMPERSAND_EQ', 12, TokenClass.ASSIGNMENT_OPERATOR, "&=");
+
+  static const TokenType AT = const TokenType.con2('AT', 13, TokenClass.NO_CLASS, "@");
+
+  static const TokenType BANG = const TokenType.con2('BANG', 14, TokenClass.UNARY_PREFIX_OPERATOR, "!");
+
+  static const TokenType BANG_EQ = const TokenType.con2('BANG_EQ', 15, TokenClass.EQUALITY_OPERATOR, "!=");
+
+  static const TokenType BAR = const TokenType.con2('BAR', 16, TokenClass.BITWISE_OR_OPERATOR, "|");
+
+  static const TokenType BAR_BAR = const TokenType.con2('BAR_BAR', 17, TokenClass.LOGICAL_OR_OPERATOR, "||");
+
+  static const TokenType BAR_EQ = const TokenType.con2('BAR_EQ', 18, TokenClass.ASSIGNMENT_OPERATOR, "|=");
+
+  static const TokenType COLON = const TokenType.con2('COLON', 19, TokenClass.NO_CLASS, ":");
+
+  static const TokenType COMMA = const TokenType.con2('COMMA', 20, TokenClass.NO_CLASS, ",");
+
+  static const TokenType CARET = const TokenType.con2('CARET', 21, TokenClass.BITWISE_XOR_OPERATOR, "^");
+
+  static const TokenType CARET_EQ = const TokenType.con2('CARET_EQ', 22, TokenClass.ASSIGNMENT_OPERATOR, "^=");
+
+  static const TokenType CLOSE_CURLY_BRACKET = const TokenType.con2('CLOSE_CURLY_BRACKET', 23, TokenClass.NO_CLASS, "}");
+
+  static const TokenType CLOSE_PAREN = const TokenType.con2('CLOSE_PAREN', 24, TokenClass.NO_CLASS, ")");
+
+  static const TokenType CLOSE_SQUARE_BRACKET = const TokenType.con2('CLOSE_SQUARE_BRACKET', 25, TokenClass.NO_CLASS, "]");
+
+  static const TokenType EQ = const TokenType.con2('EQ', 26, TokenClass.ASSIGNMENT_OPERATOR, "=");
+
+  static const TokenType EQ_EQ = const TokenType.con2('EQ_EQ', 27, TokenClass.EQUALITY_OPERATOR, "==");
+
+  static const TokenType FUNCTION = const TokenType.con2('FUNCTION', 28, TokenClass.NO_CLASS, "=>");
+
+  static const TokenType GT = const TokenType.con2('GT', 29, TokenClass.RELATIONAL_OPERATOR, ">");
+
+  static const TokenType GT_EQ = const TokenType.con2('GT_EQ', 30, TokenClass.RELATIONAL_OPERATOR, ">=");
+
+  static const TokenType GT_GT = const TokenType.con2('GT_GT', 31, TokenClass.SHIFT_OPERATOR, ">>");
+
+  static const TokenType GT_GT_EQ = const TokenType.con2('GT_GT_EQ', 32, TokenClass.ASSIGNMENT_OPERATOR, ">>=");
+
+  static const TokenType HASH = const TokenType.con2('HASH', 33, TokenClass.NO_CLASS, "#");
+
+  static const TokenType INDEX = const TokenType.con2('INDEX', 34, TokenClass.UNARY_POSTFIX_OPERATOR, "[]");
+
+  static const TokenType INDEX_EQ = const TokenType.con2('INDEX_EQ', 35, TokenClass.UNARY_POSTFIX_OPERATOR, "[]=");
+
+  static const TokenType IS = const TokenType.con2('IS', 36, TokenClass.RELATIONAL_OPERATOR, "is");
+
+  static const TokenType LT = const TokenType.con2('LT', 37, TokenClass.RELATIONAL_OPERATOR, "<");
+
+  static const TokenType LT_EQ = const TokenType.con2('LT_EQ', 38, TokenClass.RELATIONAL_OPERATOR, "<=");
+
+  static const TokenType LT_LT = const TokenType.con2('LT_LT', 39, TokenClass.SHIFT_OPERATOR, "<<");
+
+  static const TokenType LT_LT_EQ = const TokenType.con2('LT_LT_EQ', 40, TokenClass.ASSIGNMENT_OPERATOR, "<<=");
+
+  static const TokenType MINUS = const TokenType.con2('MINUS', 41, TokenClass.ADDITIVE_OPERATOR, "-");
+
+  static const TokenType MINUS_EQ = const TokenType.con2('MINUS_EQ', 42, TokenClass.ASSIGNMENT_OPERATOR, "-=");
+
+  static const TokenType MINUS_MINUS = const TokenType.con2('MINUS_MINUS', 43, TokenClass.UNARY_PREFIX_OPERATOR, "--");
+
+  static const TokenType OPEN_CURLY_BRACKET = const TokenType.con2('OPEN_CURLY_BRACKET', 44, TokenClass.NO_CLASS, "{");
+
+  static const TokenType OPEN_PAREN = const TokenType.con2('OPEN_PAREN', 45, TokenClass.UNARY_POSTFIX_OPERATOR, "(");
+
+  static const TokenType OPEN_SQUARE_BRACKET = const TokenType.con2('OPEN_SQUARE_BRACKET', 46, TokenClass.UNARY_POSTFIX_OPERATOR, "[");
+
+  static const TokenType PERCENT = const TokenType.con2('PERCENT', 47, TokenClass.MULTIPLICATIVE_OPERATOR, "%");
+
+  static const TokenType PERCENT_EQ = const TokenType.con2('PERCENT_EQ', 48, TokenClass.ASSIGNMENT_OPERATOR, "%=");
+
+  static const TokenType PERIOD = const TokenType.con2('PERIOD', 49, TokenClass.UNARY_POSTFIX_OPERATOR, ".");
+
+  static const TokenType PERIOD_PERIOD = const TokenType.con2('PERIOD_PERIOD', 50, TokenClass.CASCADE_OPERATOR, "..");
+
+  static const TokenType PLUS = const TokenType.con2('PLUS', 51, TokenClass.ADDITIVE_OPERATOR, "+");
+
+  static const TokenType PLUS_EQ = const TokenType.con2('PLUS_EQ', 52, TokenClass.ASSIGNMENT_OPERATOR, "+=");
+
+  static const TokenType PLUS_PLUS = const TokenType.con2('PLUS_PLUS', 53, TokenClass.UNARY_PREFIX_OPERATOR, "++");
+
+  static const TokenType QUESTION = const TokenType.con2('QUESTION', 54, TokenClass.CONDITIONAL_OPERATOR, "?");
+
+  static const TokenType SEMICOLON = const TokenType.con2('SEMICOLON', 55, TokenClass.NO_CLASS, ";");
+
+  static const TokenType SLASH = const TokenType.con2('SLASH', 56, TokenClass.MULTIPLICATIVE_OPERATOR, "/");
+
+  static const TokenType SLASH_EQ = const TokenType.con2('SLASH_EQ', 57, TokenClass.ASSIGNMENT_OPERATOR, "/=");
+
+  static const TokenType STAR = const TokenType.con2('STAR', 58, TokenClass.MULTIPLICATIVE_OPERATOR, "*");
+
+  static const TokenType STAR_EQ = const TokenType.con2('STAR_EQ', 59, TokenClass.ASSIGNMENT_OPERATOR, "*=");
+
+  static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType.con2('STRING_INTERPOLATION_EXPRESSION', 60, TokenClass.NO_CLASS, "\${");
+
+  static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType.con2('STRING_INTERPOLATION_IDENTIFIER', 61, TokenClass.NO_CLASS, "\$");
+
+  static const TokenType TILDE = const TokenType.con2('TILDE', 62, TokenClass.UNARY_PREFIX_OPERATOR, "~");
+
+  static const TokenType TILDE_SLASH = const TokenType.con2('TILDE_SLASH', 63, TokenClass.MULTIPLICATIVE_OPERATOR, "~/");
+
+  static const TokenType TILDE_SLASH_EQ = const TokenType.con2('TILDE_SLASH_EQ', 64, TokenClass.ASSIGNMENT_OPERATOR, "~/=");
+
+  static const TokenType BACKPING = const TokenType.con2('BACKPING', 65, TokenClass.NO_CLASS, "`");
+
+  static const TokenType BACKSLASH = const TokenType.con2('BACKSLASH', 66, TokenClass.NO_CLASS, "\\");
+
+  static const TokenType PERIOD_PERIOD_PERIOD = const TokenType.con2('PERIOD_PERIOD_PERIOD', 67, TokenClass.NO_CLASS, "...");
+
+  static const List<TokenType> values = const [
+      EOF,
+      DOUBLE,
+      HEXADECIMAL,
+      IDENTIFIER,
+      INT,
+      KEYWORD,
+      MULTI_LINE_COMMENT,
+      SCRIPT_TAG,
+      SINGLE_LINE_COMMENT,
+      STRING,
+      AMPERSAND,
+      AMPERSAND_AMPERSAND,
+      AMPERSAND_EQ,
+      AT,
+      BANG,
+      BANG_EQ,
+      BAR,
+      BAR_BAR,
+      BAR_EQ,
+      COLON,
+      COMMA,
+      CARET,
+      CARET_EQ,
+      CLOSE_CURLY_BRACKET,
+      CLOSE_PAREN,
+      CLOSE_SQUARE_BRACKET,
+      EQ,
+      EQ_EQ,
+      FUNCTION,
+      GT,
+      GT_EQ,
+      GT_GT,
+      GT_GT_EQ,
+      HASH,
+      INDEX,
+      INDEX_EQ,
+      IS,
+      LT,
+      LT_EQ,
+      LT_LT,
+      LT_LT_EQ,
+      MINUS,
+      MINUS_EQ,
+      MINUS_MINUS,
+      OPEN_CURLY_BRACKET,
+      OPEN_PAREN,
+      OPEN_SQUARE_BRACKET,
+      PERCENT,
+      PERCENT_EQ,
+      PERIOD,
+      PERIOD_PERIOD,
+      PLUS,
+      PLUS_EQ,
+      PLUS_PLUS,
+      QUESTION,
+      SEMICOLON,
+      SLASH,
+      SLASH_EQ,
+      STAR,
+      STAR_EQ,
+      STRING_INTERPOLATION_EXPRESSION,
+      STRING_INTERPOLATION_IDENTIFIER,
+      TILDE,
+      TILDE_SLASH,
+      TILDE_SLASH_EQ,
+      BACKPING,
+      BACKSLASH,
+      PERIOD_PERIOD_PERIOD];
+
+  /**
+   * The class of the token.
+   */
+  final TokenClass _tokenClass;
+
+  /**
+   * The lexeme that defines this type of token, or `null` if there is more than one possible
+   * lexeme for this type of token.
+   */
+  final String lexeme;
+
+  const TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
+
+  const TokenType.con2(String name, int ordinal, this._tokenClass, this.lexeme) : super(name, ordinal);
+
+  /**
+   * Return the precedence of the token, or `0` if the token does not represent an operator.
+   *
+   * @return the precedence of the token
+   */
+  int get precedence => _tokenClass.precedence;
+
+  /**
+   * Return `true` if this type of token represents an additive operator.
+   *
+   * @return `true` if this type of token represents an additive operator
+   */
+  bool get isAdditiveOperator => _tokenClass == TokenClass.ADDITIVE_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents an assignment operator.
+   *
+   * @return `true` if this type of token represents an assignment operator
+   */
+  bool get isAssignmentOperator => _tokenClass == TokenClass.ASSIGNMENT_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents an associative operator. An associative
+   * operator is an operator for which the following equality is true:
+   * `(a * b) * c == a * (b * c)`. In other words, if the result of applying the operator to
+   * multiple operands does not depend on the order in which those applications occur.
+   *
+   * Note: This method considers the logical-and and logical-or operators to be associative, even
+   * though the order in which the application of those operators can have an effect because
+   * evaluation of the right-hand operand is conditional.
+   *
+   * @return `true` if this type of token represents an associative operator
+   */
+  bool get isAssociativeOperator => this == AMPERSAND || this == AMPERSAND_AMPERSAND || this == BAR || this == BAR_BAR || this == CARET || this == PLUS || this == STAR;
+
+  /**
+   * Return `true` if this type of token represents an equality operator.
+   *
+   * @return `true` if this type of token represents an equality operator
+   */
+  bool get isEqualityOperator => _tokenClass == TokenClass.EQUALITY_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents an increment operator.
+   *
+   * @return `true` if this type of token represents an increment operator
+   */
+  bool get isIncrementOperator => identical(lexeme, "++") || identical(lexeme, "--");
+
+  /**
+   * Return `true` if this type of token represents a multiplicative operator.
+   *
+   * @return `true` if this type of token represents a multiplicative operator
+   */
+  bool get isMultiplicativeOperator => _tokenClass == TokenClass.MULTIPLICATIVE_OPERATOR;
+
+  /**
+   * Return `true` if this token type represents an operator.
+   *
+   * @return `true` if this token type represents an operator
+   */
+  bool get isOperator => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
+
+  /**
+   * Return `true` if this type of token represents a relational operator.
+   *
+   * @return `true` if this type of token represents a relational operator
+   */
+  bool get isRelationalOperator => _tokenClass == TokenClass.RELATIONAL_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents a shift operator.
+   *
+   * @return `true` if this type of token represents a shift operator
+   */
+  bool get isShiftOperator => _tokenClass == TokenClass.SHIFT_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents a unary postfix operator.
+   *
+   * @return `true` if this type of token represents a unary postfix operator
+   */
+  bool get isUnaryPostfixOperator => _tokenClass == TokenClass.UNARY_POSTFIX_OPERATOR;
+
+  /**
+   * Return `true` if this type of token represents a unary prefix operator.
+   *
+   * @return `true` if this type of token represents a unary prefix operator
+   */
+  bool get isUnaryPrefixOperator => _tokenClass == TokenClass.UNARY_PREFIX_OPERATOR;
+
+  /**
+   * Return `true` if this token type represents an operator that can be defined by users.
+   *
+   * @return `true` if this token type represents an operator that can be defined by users
+   */
+  bool get isUserDefinableOperator => identical(lexeme, "==") || identical(lexeme, "~") || identical(lexeme, "[]") || identical(lexeme, "[]=") || identical(lexeme, "*") || identical(lexeme, "/") || identical(lexeme, "%") || identical(lexeme, "~/") || identical(lexeme, "+") || identical(lexeme, "-") || identical(lexeme, "<<") || identical(lexeme, ">>") || identical(lexeme, ">=") || identical(lexeme, ">") || identical(lexeme, "<=") || identical(lexeme, "<") || identical(lexeme, "&") || identical(lexeme, "^") || identical(lexeme, "|");
+}
+
+class TokenType_EOF extends TokenType {
+  const TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);
+
+  @override
+  String toString() => "-eof-";
+}
+
+/**
+ * Synthetic `StringToken` represent a token whose value is independent of it's type.
+ */
+class SyntheticStringToken extends StringToken {
+  /**
+   * Initialize a newly created token to represent a token of the given type with the given value.
+   *
+   * @param type the type of the token
+   * @param value the lexeme represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
+
+  @override
+  bool get isSynthetic => true;
+}
+
+/**
+ * Instances of the class `CharSequenceReader` implement a [CharacterReader] that reads
+ * characters from a character sequence.
+ */
+class CharSequenceReader implements CharacterReader {
+  /**
+   * The sequence from which characters will be read.
+   */
+  final String _sequence;
+
+  /**
+   * The number of characters in the string.
+   */
+  int _stringLength = 0;
+
+  /**
+   * The index, relative to the string, of the last character that was read.
+   */
+  int _charOffset = 0;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given sequence.
+   *
+   * @param sequence the sequence from which characters will be read
+   */
+  CharSequenceReader(this._sequence) {
+    this._stringLength = _sequence.length;
+    this._charOffset = -1;
+  }
+
+  @override
+  int advance() {
+    if (_charOffset + 1 >= _stringLength) {
+      return -1;
+    }
+    return _sequence.codeUnitAt(++_charOffset);
+  }
+
+  @override
+  int get offset => _charOffset;
+
+  @override
+  String getString(int start, int endDelta) => _sequence.substring(start, _charOffset + 1 + endDelta).toString();
+
+  @override
+  int peek() {
+    if (_charOffset + 1 >= _sequence.length) {
+      return -1;
+    }
+    return _sequence.codeUnitAt(_charOffset + 1);
+  }
+
+  @override
+  void set offset(int offset) {
+    _charOffset = offset;
+  }
+}
+
+/**
+ * Instances of the class `Token` represent a token that was scanned from the input. Each
+ * token knows which token follows it, acting as the head of a linked list of tokens.
+ */
+class Token {
+  /**
+   * The type of the token.
+   */
+  final TokenType type;
+
+  /**
+   * The offset from the beginning of the file to the first character in the token.
+   */
+  int offset = 0;
+
+  /**
+   * The previous token in the token stream.
+   */
+  Token previous;
+
+  /**
+   * The next token in the token stream.
+   */
+  Token _next;
+
+  /**
+   * Initialize a newly created token to have the given type and offset.
+   *
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  Token(this.type, int offset) {
+    this.offset = offset;
+  }
+
+  /**
+   * Return a newly created token that is a copy of this token but that is not a part of any token
+   * stream.
+   *
+   * @return a newly created token that is a copy of this token
+   */
+  Token copy() => new Token(type, offset);
+
+  /**
+   * Return the offset from the beginning of the file to the character after last character of the
+   * token.
+   *
+   * @return the offset from the beginning of the file to the first character after last character
+   *         of the token
+   */
+  int get end => offset + length;
+
+  /**
+   * Return the number of characters in the node's source range.
+   *
+   * @return the number of characters in the node's source range
+   */
+  int get length => lexeme.length;
+
+  /**
+   * Return the lexeme that represents this token.
+   *
+   * @return the lexeme that represents this token
+   */
+  String get lexeme => type.lexeme;
+
+  /**
+   * Return the next token in the token stream.
+   *
+   * @return the next token in the token stream
+   */
+  Token get next => _next;
+
+  /**
+   * Return the first comment in the list of comments that precede this token, or `null` if
+   * there are no comments preceding this token. Additional comments can be reached by following the
+   * token stream using [getNext] until `null` is returned.
+   *
+   * @return the first comment in the list of comments that precede this token
+   */
+  Token get precedingComments => null;
+
+  /**
+   * Return `true` if this token represents an operator.
+   *
+   * @return `true` if this token represents an operator
+   */
+  bool get isOperator => type.isOperator;
+
+  /**
+   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
+   * introduced by the parser in order to recover from an error in the code.
+   *
+   * @return `true` if this token is a synthetic token
+   */
+  bool get isSynthetic => length == 0;
+
+  /**
+   * Return `true` if this token represents an operator that can be defined by users.
+   *
+   * @return `true` if this token represents an operator that can be defined by users
+   */
+  bool get isUserDefinableOperator => type.isUserDefinableOperator;
+
+  /**
+   * Return `true` if this token has any one of the given types.
+   *
+   * @param types the types of token that are being tested for
+   * @return `true` if this token has any of the given types
+   */
+  bool matchesAny(List<TokenType> types) {
+    for (TokenType type in types) {
+      if (this.type == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Set the next token in the token stream to the given token. This has the side-effect of setting
+   * this token to be the previous token for the given token.
+   *
+   * @param token the next token in the token stream
+   * @return the token that was passed in
+   */
+  Token setNext(Token token) {
+    _next = token;
+    token.previous = this;
+    return token;
+  }
+
+  /**
+   * Set the next token in the token stream to the given token without changing which token is the
+   * previous token for the given token.
+   *
+   * @param token the next token in the token stream
+   * @return the token that was passed in
+   */
+  Token setNextWithoutSettingPrevious(Token token) {
+    _next = token;
+    return token;
+  }
+
+  @override
+  String toString() => lexeme;
+
+  /**
+   * Return the value of this token. For keyword tokens, this is the keyword associated with the
+   * token, for other tokens it is the lexeme associated with the token.
+   *
+   * @return the value of this token
+   */
+  Object value() => type.lexeme;
+
+  /**
+   * Apply (add) the given delta to this token's offset.
+   *
+   * @param delta the amount by which the offset is to be adjusted
+   */
+  void applyDelta(int delta) {
+    offset += delta;
+  }
+
+  /**
+   * Copy a linked list of comment tokens identical to the given comment tokens.
+   *
+   * @param token the first token in the list, or `null` if there are no tokens to be copied
+   * @return the tokens that were created
+   */
+  Token copyComments(Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token head = token.copy();
+    Token tail = head;
+    token = token.next;
+    while (token != null) {
+      tail = tail.setNext(token.copy());
+      token = token.next;
+    }
+    return head;
+  }
+}
+
+/**
+ * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
+ */
+class TokenClass extends Enum<TokenClass> {
+  /**
+   * A value used to indicate that the token type is not part of any specific class of token.
+   */
+  static const TokenClass NO_CLASS = const TokenClass.con1('NO_CLASS', 0);
+
+  /**
+   * A value used to indicate that the token type is an additive operator.
+   */
+  static const TokenClass ADDITIVE_OPERATOR = const TokenClass.con2('ADDITIVE_OPERATOR', 1, 12);
+
+  /**
+   * A value used to indicate that the token type is an assignment operator.
+   */
+  static const TokenClass ASSIGNMENT_OPERATOR = const TokenClass.con2('ASSIGNMENT_OPERATOR', 2, 1);
+
+  /**
+   * A value used to indicate that the token type is a bitwise-and operator.
+   */
+  static const TokenClass BITWISE_AND_OPERATOR = const TokenClass.con2('BITWISE_AND_OPERATOR', 3, 10);
+
+  /**
+   * A value used to indicate that the token type is a bitwise-or operator.
+   */
+  static const TokenClass BITWISE_OR_OPERATOR = const TokenClass.con2('BITWISE_OR_OPERATOR', 4, 8);
+
+  /**
+   * A value used to indicate that the token type is a bitwise-xor operator.
+   */
+  static const TokenClass BITWISE_XOR_OPERATOR = const TokenClass.con2('BITWISE_XOR_OPERATOR', 5, 9);
+
+  /**
+   * A value used to indicate that the token type is a cascade operator.
+   */
+  static const TokenClass CASCADE_OPERATOR = const TokenClass.con2('CASCADE_OPERATOR', 6, 2);
+
+  /**
+   * A value used to indicate that the token type is a conditional operator.
+   */
+  static const TokenClass CONDITIONAL_OPERATOR = const TokenClass.con2('CONDITIONAL_OPERATOR', 7, 3);
+
+  /**
+   * A value used to indicate that the token type is an equality operator.
+   */
+  static const TokenClass EQUALITY_OPERATOR = const TokenClass.con2('EQUALITY_OPERATOR', 8, 6);
+
+  /**
+   * A value used to indicate that the token type is a logical-and operator.
+   */
+  static const TokenClass LOGICAL_AND_OPERATOR = const TokenClass.con2('LOGICAL_AND_OPERATOR', 9, 5);
+
+  /**
+   * A value used to indicate that the token type is a logical-or operator.
+   */
+  static const TokenClass LOGICAL_OR_OPERATOR = const TokenClass.con2('LOGICAL_OR_OPERATOR', 10, 4);
+
+  /**
+   * A value used to indicate that the token type is a multiplicative operator.
+   */
+  static const TokenClass MULTIPLICATIVE_OPERATOR = const TokenClass.con2('MULTIPLICATIVE_OPERATOR', 11, 13);
+
+  /**
+   * A value used to indicate that the token type is a relational operator.
+   */
+  static const TokenClass RELATIONAL_OPERATOR = const TokenClass.con2('RELATIONAL_OPERATOR', 12, 7);
+
+  /**
+   * A value used to indicate that the token type is a shift operator.
+   */
+  static const TokenClass SHIFT_OPERATOR = const TokenClass.con2('SHIFT_OPERATOR', 13, 11);
+
+  /**
+   * A value used to indicate that the token type is a unary operator.
+   */
+  static const TokenClass UNARY_POSTFIX_OPERATOR = const TokenClass.con2('UNARY_POSTFIX_OPERATOR', 14, 15);
+
+  /**
+   * A value used to indicate that the token type is a unary operator.
+   */
+  static const TokenClass UNARY_PREFIX_OPERATOR = const TokenClass.con2('UNARY_PREFIX_OPERATOR', 15, 14);
+
+  static const List<TokenClass> values = const [
+      NO_CLASS,
+      ADDITIVE_OPERATOR,
+      ASSIGNMENT_OPERATOR,
+      BITWISE_AND_OPERATOR,
+      BITWISE_OR_OPERATOR,
+      BITWISE_XOR_OPERATOR,
+      CASCADE_OPERATOR,
+      CONDITIONAL_OPERATOR,
+      EQUALITY_OPERATOR,
+      LOGICAL_AND_OPERATOR,
+      LOGICAL_OR_OPERATOR,
+      MULTIPLICATIVE_OPERATOR,
+      RELATIONAL_OPERATOR,
+      SHIFT_OPERATOR,
+      UNARY_POSTFIX_OPERATOR,
+      UNARY_PREFIX_OPERATOR];
+
+  /**
+   * The precedence of tokens of this class, or `0` if the such tokens do not represent an
+   * operator.
+   */
+  final int precedence;
+
+  const TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
+
+  const TokenClass.con2(String name, int ordinal, this.precedence) : super(name, ordinal);
+}
+
+/**
+ * Instances of the abstract class `KeywordState` represent a state in a state machine used to
+ * scan keywords.
+ */
+class KeywordState {
+  /**
+   * An empty transition table used by leaf states.
+   */
+  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
+
+  /**
+   * The initial state in the state machine.
+   */
+  static KeywordState KEYWORD_STATE = _createKeywordStateTable();
+
+  /**
+   * Create the next state in the state machine where we have already recognized the subset of
+   * strings in the given array of strings starting at the given offset and having the given length.
+   * All of these strings have a common prefix and the next character is at the given start index.
+   *
+   * @param start the index of the character in the strings used to transition to a new state
+   * @param strings an array containing all of the strings that will be recognized by the state
+   *          machine
+   * @param offset the offset of the first string in the array that has the prefix that is assumed
+   *          to have been recognized by the time we reach the state being built
+   * @param length the number of strings in the array that pass through the state being built
+   * @return the state that was created
+   */
+  static KeywordState _computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
+    List<KeywordState> result = new List<KeywordState>(26);
+    assert(length != 0);
+    int chunk = 0x0;
+    int chunkStart = -1;
+    bool isLeaf = false;
+    for (int i = offset; i < offset + length; i++) {
+      if (strings[i].length == start) {
+        isLeaf = true;
+      }
+      if (strings[i].length > start) {
+        int c = strings[i].codeUnitAt(start);
+        if (chunk != c) {
+          if (chunkStart != -1) {
+            result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
+          }
+          chunkStart = i;
+          chunk = c;
+        }
+      }
+    }
+    if (chunkStart != -1) {
+      assert(result[chunk - 0x61] == null);
+      result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
+    } else {
+      assert(length == 1);
+      return new KeywordState(_EMPTY_TABLE, strings[offset]);
+    }
+    if (isLeaf) {
+      return new KeywordState(result, strings[offset]);
+    } else {
+      return new KeywordState(result, null);
+    }
+  }
+
+  /**
+   * Create the initial state in the state machine.
+   *
+   * @return the state that was created
+   */
+  static KeywordState _createKeywordStateTable() {
+    List<Keyword> values = Keyword.values;
+    List<String> strings = new List<String>(values.length);
+    for (int i = 0; i < values.length; i++) {
+      strings[i] = values[i].syntax;
+    }
+    strings.sort();
+    return _computeKeywordStateTable(0, strings, 0, strings.length);
+  }
+
+  /**
+   * A table mapping characters to the states to which those characters will transition. (The index
+   * into the array is the offset from the character `'a'` to the transitioning character.)
+   */
+  final List<KeywordState> _table;
+
+  /**
+   * The keyword that is recognized by this state, or `null` if this state is not a terminal
+   * state.
+   */
+  Keyword _keyword;
+
+  /**
+   * Initialize a newly created state to have the given transitions and to recognize the keyword
+   * with the given syntax.
+   *
+   * @param table a table mapping characters to the states to which those characters will transition
+   * @param syntax the syntax of the keyword that is recognized by the state
+   */
+  KeywordState(this._table, String syntax) {
+    this._keyword = (syntax == null) ? null : Keyword.keywords[syntax];
+  }
+
+  /**
+   * Return the keyword that was recognized by this state, or `null` if this state does not
+   * recognized a keyword.
+   *
+   * @return the keyword that was matched by reaching this state
+   */
+  Keyword keyword() => _keyword;
+
+  /**
+   * Return the state that follows this state on a transition of the given character, or
+   * `null` if there is no valid state reachable from this state with such a transition.
+   *
+   * @param c the character used to transition from this state to another state
+   * @return the state that follows this state on a transition of the given character
+   */
+  KeywordState next(int c) => _table[c - 0x61];
 }
 
 /**
@@ -1827,6 +2372,243 @@ class Scanner {
 }
 
 /**
+ * The enumeration `Keyword` defines the keywords in the Dart programming language.
+ */
+class Keyword extends Enum<Keyword> {
+  static const Keyword ASSERT = const Keyword.con1('ASSERT', 0, "assert");
+
+  static const Keyword BREAK = const Keyword.con1('BREAK', 1, "break");
+
+  static const Keyword CASE = const Keyword.con1('CASE', 2, "case");
+
+  static const Keyword CATCH = const Keyword.con1('CATCH', 3, "catch");
+
+  static const Keyword CLASS = const Keyword.con1('CLASS', 4, "class");
+
+  static const Keyword CONST = const Keyword.con1('CONST', 5, "const");
+
+  static const Keyword CONTINUE = const Keyword.con1('CONTINUE', 6, "continue");
+
+  static const Keyword DEFAULT = const Keyword.con1('DEFAULT', 7, "default");
+
+  static const Keyword DO = const Keyword.con1('DO', 8, "do");
+
+  static const Keyword ELSE = const Keyword.con1('ELSE', 9, "else");
+
+  static const Keyword ENUM = const Keyword.con1('ENUM', 10, "enum");
+
+  static const Keyword EXTENDS = const Keyword.con1('EXTENDS', 11, "extends");
+
+  static const Keyword FALSE = const Keyword.con1('FALSE', 12, "false");
+
+  static const Keyword FINAL = const Keyword.con1('FINAL', 13, "final");
+
+  static const Keyword FINALLY = const Keyword.con1('FINALLY', 14, "finally");
+
+  static const Keyword FOR = const Keyword.con1('FOR', 15, "for");
+
+  static const Keyword IF = const Keyword.con1('IF', 16, "if");
+
+  static const Keyword IN = const Keyword.con1('IN', 17, "in");
+
+  static const Keyword IS = const Keyword.con1('IS', 18, "is");
+
+  static const Keyword NEW = const Keyword.con1('NEW', 19, "new");
+
+  static const Keyword NULL = const Keyword.con1('NULL', 20, "null");
+
+  static const Keyword RETHROW = const Keyword.con1('RETHROW', 21, "rethrow");
+
+  static const Keyword RETURN = const Keyword.con1('RETURN', 22, "return");
+
+  static const Keyword SUPER = const Keyword.con1('SUPER', 23, "super");
+
+  static const Keyword SWITCH = const Keyword.con1('SWITCH', 24, "switch");
+
+  static const Keyword THIS = const Keyword.con1('THIS', 25, "this");
+
+  static const Keyword THROW = const Keyword.con1('THROW', 26, "throw");
+
+  static const Keyword TRUE = const Keyword.con1('TRUE', 27, "true");
+
+  static const Keyword TRY = const Keyword.con1('TRY', 28, "try");
+
+  static const Keyword VAR = const Keyword.con1('VAR', 29, "var");
+
+  static const Keyword VOID = const Keyword.con1('VOID', 30, "void");
+
+  static const Keyword WHILE = const Keyword.con1('WHILE', 31, "while");
+
+  static const Keyword WITH = const Keyword.con1('WITH', 32, "with");
+
+  static const Keyword ABSTRACT = const Keyword.con2('ABSTRACT', 33, "abstract", true);
+
+  static const Keyword AS = const Keyword.con2('AS', 34, "as", true);
+
+  static const Keyword DEFERRED = const Keyword.con2('DEFERRED', 35, "deferred", true);
+
+  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 36, "dynamic", true);
+
+  static const Keyword EXPORT = const Keyword.con2('EXPORT', 37, "export", true);
+
+  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 38, "external", true);
+
+  static const Keyword FACTORY = const Keyword.con2('FACTORY', 39, "factory", true);
+
+  static const Keyword GET = const Keyword.con2('GET', 40, "get", true);
+
+  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 41, "implements", true);
+
+  static const Keyword IMPORT = const Keyword.con2('IMPORT', 42, "import", true);
+
+  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 43, "library", true);
+
+  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 44, "operator", true);
+
+  static const Keyword PART = const Keyword.con2('PART', 45, "part", true);
+
+  static const Keyword SET = const Keyword.con2('SET', 46, "set", true);
+
+  static const Keyword STATIC = const Keyword.con2('STATIC', 47, "static", true);
+
+  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 48, "typedef", true);
+
+  static const List<Keyword> values = const [
+      ASSERT,
+      BREAK,
+      CASE,
+      CATCH,
+      CLASS,
+      CONST,
+      CONTINUE,
+      DEFAULT,
+      DO,
+      ELSE,
+      ENUM,
+      EXTENDS,
+      FALSE,
+      FINAL,
+      FINALLY,
+      FOR,
+      IF,
+      IN,
+      IS,
+      NEW,
+      NULL,
+      RETHROW,
+      RETURN,
+      SUPER,
+      SWITCH,
+      THIS,
+      THROW,
+      TRUE,
+      TRY,
+      VAR,
+      VOID,
+      WHILE,
+      WITH,
+      ABSTRACT,
+      AS,
+      DEFERRED,
+      DYNAMIC,
+      EXPORT,
+      EXTERNAL,
+      FACTORY,
+      GET,
+      IMPLEMENTS,
+      IMPORT,
+      LIBRARY,
+      OPERATOR,
+      PART,
+      SET,
+      STATIC,
+      TYPEDEF];
+
+  /**
+   * The lexeme for the keyword.
+   */
+  final String syntax;
+
+  /**
+   * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
+   * identifiers.
+   */
+  final bool isPseudoKeyword;
+
+  /**
+   * A table mapping the lexemes of keywords to the corresponding keyword.
+   */
+  static Map<String, Keyword> keywords = _createKeywordMap();
+
+  /**
+   * Create a table mapping the lexemes of keywords to the corresponding keyword.
+   *
+   * @return the table that was created
+   */
+  static Map<String, Keyword> _createKeywordMap() {
+    LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
+    for (Keyword keyword in values) {
+      result[keyword.syntax] = keyword;
+    }
+    return result;
+  }
+
+  /**
+   * Initialize a newly created keyword to have the given syntax. The keyword is not a
+   * pseudo-keyword.
+   *
+   * @param syntax the lexeme for the keyword
+   */
+  const Keyword.con1(String name, int ordinal, String syntax) : this.con2(name, ordinal, syntax, false);
+
+  /**
+   * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
+   * the given flag is `true`.
+   *
+   * @param syntax the lexeme for the keyword
+   * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
+   */
+  const Keyword.con2(String name, int ordinal, this.syntax, this.isPseudoKeyword) : super(name, ordinal);
+}
+
+/**
+ * Instances of the class `TokenWithComment` represent a string token that is preceded by
+ * comments.
+ */
+class StringTokenWithComment extends StringToken {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to have the given type and offset and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  StringTokenWithComment(TokenType type, String value, int offset, this._precedingComment) : super(type, value, offset);
+
+  @override
+  Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
+
+  @override
+  Token get precedingComments => _precedingComment;
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+}
+
+/**
  * Instances of the class `StringToken` represent a token whose value is independent of it's
  * type.
  */
@@ -1858,300 +2640,27 @@ class StringToken extends Token {
 }
 
 /**
- * Instances of the class `TokenWithComment` represent a normal token that is preceded by
- * comments.
+ * Instances of the class `BeginToken` represent the opening half of a grouping pair of
+ * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
  */
-class TokenWithComment extends Token {
+class BeginToken extends Token {
   /**
-   * The first comment in the list of comments that precede this token.
+   * The token that corresponds to this token.
    */
-  final Token _precedingComment;
+  Token endToken;
 
   /**
-   * Initialize a newly created token to have the given type and offset and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  TokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
-
-  @override
-  Token copy() => new TokenWithComment(type, offset, _precedingComment);
-
-  @override
-  Token get precedingComments => _precedingComment;
-}
-
-/**
- * Instances of the class `Token` represent a token that was scanned from the input. Each
- * token knows which token follows it, acting as the head of a linked list of tokens.
- */
-class Token {
-  /**
-   * The type of the token.
-   */
-  final TokenType type;
-
-  /**
-   * The offset from the beginning of the file to the first character in the token.
-   */
-  int offset = 0;
-
-  /**
-   * The previous token in the token stream.
-   */
-  Token previous;
-
-  /**
-   * The next token in the token stream.
-   */
-  Token _next;
-
-  /**
-   * Initialize a newly created token to have the given type and offset.
+   * Initialize a newly created token representing the opening half of a grouping pair of tokens.
    *
    * @param type the type of the token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  Token(this.type, int offset) {
-    this.offset = offset;
-  }
-
-  /**
-   * Return a newly created token that is a copy of this token but that is not a part of any token
-   * stream.
-   *
-   * @return a newly created token that is a copy of this token
-   */
-  Token copy() => new Token(type, offset);
-
-  /**
-   * Return the offset from the beginning of the file to the character after last character of the
-   * token.
-   *
-   * @return the offset from the beginning of the file to the first character after last character
-   *         of the token
-   */
-  int get end => offset + length;
-
-  /**
-   * Return the number of characters in the node's source range.
-   *
-   * @return the number of characters in the node's source range
-   */
-  int get length => lexeme.length;
-
-  /**
-   * Return the lexeme that represents this token.
-   *
-   * @return the lexeme that represents this token
-   */
-  String get lexeme => type.lexeme;
-
-  /**
-   * Return the next token in the token stream.
-   *
-   * @return the next token in the token stream
-   */
-  Token get next => _next;
-
-  /**
-   * Return the first comment in the list of comments that precede this token, or `null` if
-   * there are no comments preceding this token. Additional comments can be reached by following the
-   * token stream using [getNext] until `null` is returned.
-   *
-   * @return the first comment in the list of comments that precede this token
-   */
-  Token get precedingComments => null;
-
-  /**
-   * Return `true` if this token represents an operator.
-   *
-   * @return `true` if this token represents an operator
-   */
-  bool get isOperator => type.isOperator;
-
-  /**
-   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
-   * introduced by the parser in order to recover from an error in the code.
-   *
-   * @return `true` if this token is a synthetic token
-   */
-  bool get isSynthetic => length == 0;
-
-  /**
-   * Return `true` if this token represents an operator that can be defined by users.
-   *
-   * @return `true` if this token represents an operator that can be defined by users
-   */
-  bool get isUserDefinableOperator => type.isUserDefinableOperator;
-
-  /**
-   * Return `true` if this token has any one of the given types.
-   *
-   * @param types the types of token that are being tested for
-   * @return `true` if this token has any of the given types
-   */
-  bool matchesAny(List<TokenType> types) {
-    for (TokenType type in types) {
-      if (this.type == type) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Set the next token in the token stream to the given token. This has the side-effect of setting
-   * this token to be the previous token for the given token.
-   *
-   * @param token the next token in the token stream
-   * @return the token that was passed in
-   */
-  Token setNext(Token token) {
-    _next = token;
-    token.previous = this;
-    return token;
-  }
-
-  /**
-   * Set the next token in the token stream to the given token without changing which token is the
-   * previous token for the given token.
-   *
-   * @param token the next token in the token stream
-   * @return the token that was passed in
-   */
-  Token setNextWithoutSettingPrevious(Token token) {
-    _next = token;
-    return token;
+  BeginToken(TokenType type, int offset) : super(type, offset) {
+    assert((type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION));
   }
 
   @override
-  String toString() => lexeme;
-
-  /**
-   * Return the value of this token. For keyword tokens, this is the keyword associated with the
-   * token, for other tokens it is the lexeme associated with the token.
-   *
-   * @return the value of this token
-   */
-  Object value() => type.lexeme;
-
-  /**
-   * Apply (add) the given delta to this token's offset.
-   *
-   * @param delta the amount by which the offset is to be adjusted
-   */
-  void applyDelta(int delta) {
-    offset += delta;
-  }
-
-  /**
-   * Copy a linked list of comment tokens identical to the given comment tokens.
-   *
-   * @param token the first token in the list, or `null` if there are no tokens to be copied
-   * @return the tokens that were created
-   */
-  Token copyComments(Token token) {
-    if (token == null) {
-      return null;
-    }
-    Token head = token.copy();
-    Token tail = head;
-    token = token.next;
-    while (token != null) {
-      tail = tail.setNext(token.copy());
-      token = token.next;
-    }
-    return head;
-  }
-}
-
-/**
- * The interface `CharacterReader`
- */
-abstract class CharacterReader {
-  /**
-   * Advance the current position and return the character at the new current position.
-   *
-   * @return the character at the new current position
-   */
-  int advance();
-
-  /**
-   * Return the current offset relative to the beginning of the source. Return the initial offset if
-   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
-   * the entire source code has been scanned.
-   *
-   * @return the current offset of the scanner in the source
-   */
-  int get offset;
-
-  /**
-   * Return the substring of the source code between the start offset and the modified current
-   * position. The current position is modified by adding the end delta.
-   *
-   * @param start the offset to the beginning of the string, relative to the start of the file
-   * @param endDelta the number of characters after the current location to be included in the
-   *          string, or the number of characters before the current location to be excluded if the
-   *          offset is negative
-   * @return the specified substring of the source code
-   */
-  String getString(int start, int endDelta);
-
-  /**
-   * Return the character at the current position without changing the current position.
-   *
-   * @return the character at the current position
-   */
-  int peek();
-
-  /**
-   * Set the current offset relative to the beginning of the source. The new offset must be between
-   * the initial offset and one (1) past the end of the source code.
-   *
-   * @param offset the new offset in the source
-   */
-  void set offset(int offset);
-}
-
-/**
- * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
- * comments.
- */
-class BeginTokenWithComment extends BeginToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  final Token _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given type and offset and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  BeginTokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
-
-  @override
-  Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
-
-  @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = _precedingComment;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
+  Token copy() => new BeginToken(type, offset);
 }
 
 /**
@@ -2179,513 +2688,4 @@ class KeywordToken extends Token {
 
   @override
   Keyword value() => keyword;
-}
-
-/**
- * Instances of the class `BeginToken` represent the opening half of a grouping pair of
- * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
- */
-class BeginToken extends Token {
-  /**
-   * The token that corresponds to this token.
-   */
-  Token endToken;
-
-  /**
-   * Initialize a newly created token representing the opening half of a grouping pair of tokens.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert((type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION));
-  }
-
-  @override
-  Token copy() => new BeginToken(type, offset);
-}
-
-/**
- * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
- */
-class TokenClass extends Enum<TokenClass> {
-  /**
-   * A value used to indicate that the token type is not part of any specific class of token.
-   */
-  static const TokenClass NO_CLASS = const TokenClass.con1('NO_CLASS', 0);
-
-  /**
-   * A value used to indicate that the token type is an additive operator.
-   */
-  static const TokenClass ADDITIVE_OPERATOR = const TokenClass.con2('ADDITIVE_OPERATOR', 1, 12);
-
-  /**
-   * A value used to indicate that the token type is an assignment operator.
-   */
-  static const TokenClass ASSIGNMENT_OPERATOR = const TokenClass.con2('ASSIGNMENT_OPERATOR', 2, 1);
-
-  /**
-   * A value used to indicate that the token type is a bitwise-and operator.
-   */
-  static const TokenClass BITWISE_AND_OPERATOR = const TokenClass.con2('BITWISE_AND_OPERATOR', 3, 10);
-
-  /**
-   * A value used to indicate that the token type is a bitwise-or operator.
-   */
-  static const TokenClass BITWISE_OR_OPERATOR = const TokenClass.con2('BITWISE_OR_OPERATOR', 4, 8);
-
-  /**
-   * A value used to indicate that the token type is a bitwise-xor operator.
-   */
-  static const TokenClass BITWISE_XOR_OPERATOR = const TokenClass.con2('BITWISE_XOR_OPERATOR', 5, 9);
-
-  /**
-   * A value used to indicate that the token type is a cascade operator.
-   */
-  static const TokenClass CASCADE_OPERATOR = const TokenClass.con2('CASCADE_OPERATOR', 6, 2);
-
-  /**
-   * A value used to indicate that the token type is a conditional operator.
-   */
-  static const TokenClass CONDITIONAL_OPERATOR = const TokenClass.con2('CONDITIONAL_OPERATOR', 7, 3);
-
-  /**
-   * A value used to indicate that the token type is an equality operator.
-   */
-  static const TokenClass EQUALITY_OPERATOR = const TokenClass.con2('EQUALITY_OPERATOR', 8, 6);
-
-  /**
-   * A value used to indicate that the token type is a logical-and operator.
-   */
-  static const TokenClass LOGICAL_AND_OPERATOR = const TokenClass.con2('LOGICAL_AND_OPERATOR', 9, 5);
-
-  /**
-   * A value used to indicate that the token type is a logical-or operator.
-   */
-  static const TokenClass LOGICAL_OR_OPERATOR = const TokenClass.con2('LOGICAL_OR_OPERATOR', 10, 4);
-
-  /**
-   * A value used to indicate that the token type is a multiplicative operator.
-   */
-  static const TokenClass MULTIPLICATIVE_OPERATOR = const TokenClass.con2('MULTIPLICATIVE_OPERATOR', 11, 13);
-
-  /**
-   * A value used to indicate that the token type is a relational operator.
-   */
-  static const TokenClass RELATIONAL_OPERATOR = const TokenClass.con2('RELATIONAL_OPERATOR', 12, 7);
-
-  /**
-   * A value used to indicate that the token type is a shift operator.
-   */
-  static const TokenClass SHIFT_OPERATOR = const TokenClass.con2('SHIFT_OPERATOR', 13, 11);
-
-  /**
-   * A value used to indicate that the token type is a unary operator.
-   */
-  static const TokenClass UNARY_POSTFIX_OPERATOR = const TokenClass.con2('UNARY_POSTFIX_OPERATOR', 14, 15);
-
-  /**
-   * A value used to indicate that the token type is a unary operator.
-   */
-  static const TokenClass UNARY_PREFIX_OPERATOR = const TokenClass.con2('UNARY_PREFIX_OPERATOR', 15, 14);
-
-  static const List<TokenClass> values = const [
-      NO_CLASS,
-      ADDITIVE_OPERATOR,
-      ASSIGNMENT_OPERATOR,
-      BITWISE_AND_OPERATOR,
-      BITWISE_OR_OPERATOR,
-      BITWISE_XOR_OPERATOR,
-      CASCADE_OPERATOR,
-      CONDITIONAL_OPERATOR,
-      EQUALITY_OPERATOR,
-      LOGICAL_AND_OPERATOR,
-      LOGICAL_OR_OPERATOR,
-      MULTIPLICATIVE_OPERATOR,
-      RELATIONAL_OPERATOR,
-      SHIFT_OPERATOR,
-      UNARY_POSTFIX_OPERATOR,
-      UNARY_PREFIX_OPERATOR];
-
-  /**
-   * The precedence of tokens of this class, or `0` if the such tokens do not represent an
-   * operator.
-   */
-  final int precedence;
-
-  const TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
-
-  const TokenClass.con2(String name, int ordinal, this.precedence) : super(name, ordinal);
-}
-
-/**
- * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
- * by comments.
- */
-class KeywordTokenWithComment extends KeywordToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  final Token _precedingComment;
-
-  /**
-   * Initialize a newly created token to to represent the given keyword and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment) : super(keyword, offset);
-
-  @override
-  Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
-
-  @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = _precedingComment;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-}
-
-/**
- * The enumeration `TokenType` defines the types of tokens that can be returned by the
- * scanner.
- */
-class TokenType extends Enum<TokenType> {
-  /**
-   * The type of the token that marks the end of the input.
-   */
-  static const TokenType EOF = const TokenType_EOF('EOF', 0, TokenClass.NO_CLASS, "");
-
-  static const TokenType DOUBLE = const TokenType.con1('DOUBLE', 1);
-
-  static const TokenType HEXADECIMAL = const TokenType.con1('HEXADECIMAL', 2);
-
-  static const TokenType IDENTIFIER = const TokenType.con1('IDENTIFIER', 3);
-
-  static const TokenType INT = const TokenType.con1('INT', 4);
-
-  static const TokenType KEYWORD = const TokenType.con1('KEYWORD', 5);
-
-  static const TokenType MULTI_LINE_COMMENT = const TokenType.con1('MULTI_LINE_COMMENT', 6);
-
-  static const TokenType SCRIPT_TAG = const TokenType.con1('SCRIPT_TAG', 7);
-
-  static const TokenType SINGLE_LINE_COMMENT = const TokenType.con1('SINGLE_LINE_COMMENT', 8);
-
-  static const TokenType STRING = const TokenType.con1('STRING', 9);
-
-  static const TokenType AMPERSAND = const TokenType.con2('AMPERSAND', 10, TokenClass.BITWISE_AND_OPERATOR, "&");
-
-  static const TokenType AMPERSAND_AMPERSAND = const TokenType.con2('AMPERSAND_AMPERSAND', 11, TokenClass.LOGICAL_AND_OPERATOR, "&&");
-
-  static const TokenType AMPERSAND_EQ = const TokenType.con2('AMPERSAND_EQ', 12, TokenClass.ASSIGNMENT_OPERATOR, "&=");
-
-  static const TokenType AT = const TokenType.con2('AT', 13, TokenClass.NO_CLASS, "@");
-
-  static const TokenType BANG = const TokenType.con2('BANG', 14, TokenClass.UNARY_PREFIX_OPERATOR, "!");
-
-  static const TokenType BANG_EQ = const TokenType.con2('BANG_EQ', 15, TokenClass.EQUALITY_OPERATOR, "!=");
-
-  static const TokenType BAR = const TokenType.con2('BAR', 16, TokenClass.BITWISE_OR_OPERATOR, "|");
-
-  static const TokenType BAR_BAR = const TokenType.con2('BAR_BAR', 17, TokenClass.LOGICAL_OR_OPERATOR, "||");
-
-  static const TokenType BAR_EQ = const TokenType.con2('BAR_EQ', 18, TokenClass.ASSIGNMENT_OPERATOR, "|=");
-
-  static const TokenType COLON = const TokenType.con2('COLON', 19, TokenClass.NO_CLASS, ":");
-
-  static const TokenType COMMA = const TokenType.con2('COMMA', 20, TokenClass.NO_CLASS, ",");
-
-  static const TokenType CARET = const TokenType.con2('CARET', 21, TokenClass.BITWISE_XOR_OPERATOR, "^");
-
-  static const TokenType CARET_EQ = const TokenType.con2('CARET_EQ', 22, TokenClass.ASSIGNMENT_OPERATOR, "^=");
-
-  static const TokenType CLOSE_CURLY_BRACKET = const TokenType.con2('CLOSE_CURLY_BRACKET', 23, TokenClass.NO_CLASS, "}");
-
-  static const TokenType CLOSE_PAREN = const TokenType.con2('CLOSE_PAREN', 24, TokenClass.NO_CLASS, ")");
-
-  static const TokenType CLOSE_SQUARE_BRACKET = const TokenType.con2('CLOSE_SQUARE_BRACKET', 25, TokenClass.NO_CLASS, "]");
-
-  static const TokenType EQ = const TokenType.con2('EQ', 26, TokenClass.ASSIGNMENT_OPERATOR, "=");
-
-  static const TokenType EQ_EQ = const TokenType.con2('EQ_EQ', 27, TokenClass.EQUALITY_OPERATOR, "==");
-
-  static const TokenType FUNCTION = const TokenType.con2('FUNCTION', 28, TokenClass.NO_CLASS, "=>");
-
-  static const TokenType GT = const TokenType.con2('GT', 29, TokenClass.RELATIONAL_OPERATOR, ">");
-
-  static const TokenType GT_EQ = const TokenType.con2('GT_EQ', 30, TokenClass.RELATIONAL_OPERATOR, ">=");
-
-  static const TokenType GT_GT = const TokenType.con2('GT_GT', 31, TokenClass.SHIFT_OPERATOR, ">>");
-
-  static const TokenType GT_GT_EQ = const TokenType.con2('GT_GT_EQ', 32, TokenClass.ASSIGNMENT_OPERATOR, ">>=");
-
-  static const TokenType HASH = const TokenType.con2('HASH', 33, TokenClass.NO_CLASS, "#");
-
-  static const TokenType INDEX = const TokenType.con2('INDEX', 34, TokenClass.UNARY_POSTFIX_OPERATOR, "[]");
-
-  static const TokenType INDEX_EQ = const TokenType.con2('INDEX_EQ', 35, TokenClass.UNARY_POSTFIX_OPERATOR, "[]=");
-
-  static const TokenType IS = const TokenType.con2('IS', 36, TokenClass.RELATIONAL_OPERATOR, "is");
-
-  static const TokenType LT = const TokenType.con2('LT', 37, TokenClass.RELATIONAL_OPERATOR, "<");
-
-  static const TokenType LT_EQ = const TokenType.con2('LT_EQ', 38, TokenClass.RELATIONAL_OPERATOR, "<=");
-
-  static const TokenType LT_LT = const TokenType.con2('LT_LT', 39, TokenClass.SHIFT_OPERATOR, "<<");
-
-  static const TokenType LT_LT_EQ = const TokenType.con2('LT_LT_EQ', 40, TokenClass.ASSIGNMENT_OPERATOR, "<<=");
-
-  static const TokenType MINUS = const TokenType.con2('MINUS', 41, TokenClass.ADDITIVE_OPERATOR, "-");
-
-  static const TokenType MINUS_EQ = const TokenType.con2('MINUS_EQ', 42, TokenClass.ASSIGNMENT_OPERATOR, "-=");
-
-  static const TokenType MINUS_MINUS = const TokenType.con2('MINUS_MINUS', 43, TokenClass.UNARY_PREFIX_OPERATOR, "--");
-
-  static const TokenType OPEN_CURLY_BRACKET = const TokenType.con2('OPEN_CURLY_BRACKET', 44, TokenClass.NO_CLASS, "{");
-
-  static const TokenType OPEN_PAREN = const TokenType.con2('OPEN_PAREN', 45, TokenClass.UNARY_POSTFIX_OPERATOR, "(");
-
-  static const TokenType OPEN_SQUARE_BRACKET = const TokenType.con2('OPEN_SQUARE_BRACKET', 46, TokenClass.UNARY_POSTFIX_OPERATOR, "[");
-
-  static const TokenType PERCENT = const TokenType.con2('PERCENT', 47, TokenClass.MULTIPLICATIVE_OPERATOR, "%");
-
-  static const TokenType PERCENT_EQ = const TokenType.con2('PERCENT_EQ', 48, TokenClass.ASSIGNMENT_OPERATOR, "%=");
-
-  static const TokenType PERIOD = const TokenType.con2('PERIOD', 49, TokenClass.UNARY_POSTFIX_OPERATOR, ".");
-
-  static const TokenType PERIOD_PERIOD = const TokenType.con2('PERIOD_PERIOD', 50, TokenClass.CASCADE_OPERATOR, "..");
-
-  static const TokenType PLUS = const TokenType.con2('PLUS', 51, TokenClass.ADDITIVE_OPERATOR, "+");
-
-  static const TokenType PLUS_EQ = const TokenType.con2('PLUS_EQ', 52, TokenClass.ASSIGNMENT_OPERATOR, "+=");
-
-  static const TokenType PLUS_PLUS = const TokenType.con2('PLUS_PLUS', 53, TokenClass.UNARY_PREFIX_OPERATOR, "++");
-
-  static const TokenType QUESTION = const TokenType.con2('QUESTION', 54, TokenClass.CONDITIONAL_OPERATOR, "?");
-
-  static const TokenType SEMICOLON = const TokenType.con2('SEMICOLON', 55, TokenClass.NO_CLASS, ";");
-
-  static const TokenType SLASH = const TokenType.con2('SLASH', 56, TokenClass.MULTIPLICATIVE_OPERATOR, "/");
-
-  static const TokenType SLASH_EQ = const TokenType.con2('SLASH_EQ', 57, TokenClass.ASSIGNMENT_OPERATOR, "/=");
-
-  static const TokenType STAR = const TokenType.con2('STAR', 58, TokenClass.MULTIPLICATIVE_OPERATOR, "*");
-
-  static const TokenType STAR_EQ = const TokenType.con2('STAR_EQ', 59, TokenClass.ASSIGNMENT_OPERATOR, "*=");
-
-  static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType.con2('STRING_INTERPOLATION_EXPRESSION', 60, TokenClass.NO_CLASS, "\${");
-
-  static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType.con2('STRING_INTERPOLATION_IDENTIFIER', 61, TokenClass.NO_CLASS, "\$");
-
-  static const TokenType TILDE = const TokenType.con2('TILDE', 62, TokenClass.UNARY_PREFIX_OPERATOR, "~");
-
-  static const TokenType TILDE_SLASH = const TokenType.con2('TILDE_SLASH', 63, TokenClass.MULTIPLICATIVE_OPERATOR, "~/");
-
-  static const TokenType TILDE_SLASH_EQ = const TokenType.con2('TILDE_SLASH_EQ', 64, TokenClass.ASSIGNMENT_OPERATOR, "~/=");
-
-  static const TokenType BACKPING = const TokenType.con2('BACKPING', 65, TokenClass.NO_CLASS, "`");
-
-  static const TokenType BACKSLASH = const TokenType.con2('BACKSLASH', 66, TokenClass.NO_CLASS, "\\");
-
-  static const TokenType PERIOD_PERIOD_PERIOD = const TokenType.con2('PERIOD_PERIOD_PERIOD', 67, TokenClass.NO_CLASS, "...");
-
-  static const List<TokenType> values = const [
-      EOF,
-      DOUBLE,
-      HEXADECIMAL,
-      IDENTIFIER,
-      INT,
-      KEYWORD,
-      MULTI_LINE_COMMENT,
-      SCRIPT_TAG,
-      SINGLE_LINE_COMMENT,
-      STRING,
-      AMPERSAND,
-      AMPERSAND_AMPERSAND,
-      AMPERSAND_EQ,
-      AT,
-      BANG,
-      BANG_EQ,
-      BAR,
-      BAR_BAR,
-      BAR_EQ,
-      COLON,
-      COMMA,
-      CARET,
-      CARET_EQ,
-      CLOSE_CURLY_BRACKET,
-      CLOSE_PAREN,
-      CLOSE_SQUARE_BRACKET,
-      EQ,
-      EQ_EQ,
-      FUNCTION,
-      GT,
-      GT_EQ,
-      GT_GT,
-      GT_GT_EQ,
-      HASH,
-      INDEX,
-      INDEX_EQ,
-      IS,
-      LT,
-      LT_EQ,
-      LT_LT,
-      LT_LT_EQ,
-      MINUS,
-      MINUS_EQ,
-      MINUS_MINUS,
-      OPEN_CURLY_BRACKET,
-      OPEN_PAREN,
-      OPEN_SQUARE_BRACKET,
-      PERCENT,
-      PERCENT_EQ,
-      PERIOD,
-      PERIOD_PERIOD,
-      PLUS,
-      PLUS_EQ,
-      PLUS_PLUS,
-      QUESTION,
-      SEMICOLON,
-      SLASH,
-      SLASH_EQ,
-      STAR,
-      STAR_EQ,
-      STRING_INTERPOLATION_EXPRESSION,
-      STRING_INTERPOLATION_IDENTIFIER,
-      TILDE,
-      TILDE_SLASH,
-      TILDE_SLASH_EQ,
-      BACKPING,
-      BACKSLASH,
-      PERIOD_PERIOD_PERIOD];
-
-  /**
-   * The class of the token.
-   */
-  final TokenClass _tokenClass;
-
-  /**
-   * The lexeme that defines this type of token, or `null` if there is more than one possible
-   * lexeme for this type of token.
-   */
-  final String lexeme;
-
-  const TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
-
-  const TokenType.con2(String name, int ordinal, this._tokenClass, this.lexeme) : super(name, ordinal);
-
-  /**
-   * Return the precedence of the token, or `0` if the token does not represent an operator.
-   *
-   * @return the precedence of the token
-   */
-  int get precedence => _tokenClass.precedence;
-
-  /**
-   * Return `true` if this type of token represents an additive operator.
-   *
-   * @return `true` if this type of token represents an additive operator
-   */
-  bool get isAdditiveOperator => _tokenClass == TokenClass.ADDITIVE_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents an assignment operator.
-   *
-   * @return `true` if this type of token represents an assignment operator
-   */
-  bool get isAssignmentOperator => _tokenClass == TokenClass.ASSIGNMENT_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents an associative operator. An associative
-   * operator is an operator for which the following equality is true:
-   * `(a * b) * c == a * (b * c)`. In other words, if the result of applying the operator to
-   * multiple operands does not depend on the order in which those applications occur.
-   *
-   * Note: This method considers the logical-and and logical-or operators to be associative, even
-   * though the order in which the application of those operators can have an effect because
-   * evaluation of the right-hand operand is conditional.
-   *
-   * @return `true` if this type of token represents an associative operator
-   */
-  bool get isAssociativeOperator => this == AMPERSAND || this == AMPERSAND_AMPERSAND || this == BAR || this == BAR_BAR || this == CARET || this == PLUS || this == STAR;
-
-  /**
-   * Return `true` if this type of token represents an equality operator.
-   *
-   * @return `true` if this type of token represents an equality operator
-   */
-  bool get isEqualityOperator => _tokenClass == TokenClass.EQUALITY_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents an increment operator.
-   *
-   * @return `true` if this type of token represents an increment operator
-   */
-  bool get isIncrementOperator => identical(lexeme, "++") || identical(lexeme, "--");
-
-  /**
-   * Return `true` if this type of token represents a multiplicative operator.
-   *
-   * @return `true` if this type of token represents a multiplicative operator
-   */
-  bool get isMultiplicativeOperator => _tokenClass == TokenClass.MULTIPLICATIVE_OPERATOR;
-
-  /**
-   * Return `true` if this token type represents an operator.
-   *
-   * @return `true` if this token type represents an operator
-   */
-  bool get isOperator => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
-
-  /**
-   * Return `true` if this type of token represents a relational operator.
-   *
-   * @return `true` if this type of token represents a relational operator
-   */
-  bool get isRelationalOperator => _tokenClass == TokenClass.RELATIONAL_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents a shift operator.
-   *
-   * @return `true` if this type of token represents a shift operator
-   */
-  bool get isShiftOperator => _tokenClass == TokenClass.SHIFT_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents a unary postfix operator.
-   *
-   * @return `true` if this type of token represents a unary postfix operator
-   */
-  bool get isUnaryPostfixOperator => _tokenClass == TokenClass.UNARY_POSTFIX_OPERATOR;
-
-  /**
-   * Return `true` if this type of token represents a unary prefix operator.
-   *
-   * @return `true` if this type of token represents a unary prefix operator
-   */
-  bool get isUnaryPrefixOperator => _tokenClass == TokenClass.UNARY_PREFIX_OPERATOR;
-
-  /**
-   * Return `true` if this token type represents an operator that can be defined by users.
-   *
-   * @return `true` if this token type represents an operator that can be defined by users
-   */
-  bool get isUserDefinableOperator => identical(lexeme, "==") || identical(lexeme, "~") || identical(lexeme, "[]") || identical(lexeme, "[]=") || identical(lexeme, "*") || identical(lexeme, "/") || identical(lexeme, "%") || identical(lexeme, "~/") || identical(lexeme, "+") || identical(lexeme, "-") || identical(lexeme, "<<") || identical(lexeme, ">>") || identical(lexeme, ">=") || identical(lexeme, ">") || identical(lexeme, "<=") || identical(lexeme, "<") || identical(lexeme, "&") || identical(lexeme, "^") || identical(lexeme, "|");
-}
-
-class TokenType_EOF extends TokenType {
-  const TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);
-
-  @override
-  String toString() => "-eof-";
 }

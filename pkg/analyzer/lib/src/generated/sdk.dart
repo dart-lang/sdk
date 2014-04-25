@@ -80,126 +80,6 @@ abstract class SdkLibrary {
   bool get isVmLibrary;
 }
 
-/**
- * Instances of the class `SdkLibrary` represent the information known about a single library
- * within the SDK.
- */
-class SdkLibraryImpl implements SdkLibrary {
-  /**
-   * The short name of the library. This is the name used after `dart:` in a URI.
-   */
-  String _shortName = null;
-
-  /**
-   * The path to the file defining the library. The path is relative to the `lib` directory
-   * within the SDK.
-   */
-  String path = null;
-
-  /**
-   * The name of the category containing the library. Unless otherwise specified in the libraries
-   * file all libraries are assumed to be shared between server and client.
-   */
-  String category = "Shared";
-
-  /**
-   * A flag indicating whether the library is documented.
-   */
-  bool _documented = true;
-
-  /**
-   * A flag indicating whether the library is an implementation library.
-   */
-  bool _implementation = false;
-
-  /**
-   * An encoding of which platforms this library is intended to work on.
-   */
-  int _platforms = 0;
-
-  /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the dart2js platform.
-   */
-  static int DART2JS_PLATFORM = 1;
-
-  /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the VM platform.
-   */
-  static int VM_PLATFORM = 2;
-
-  /**
-   * Initialize a newly created library to represent the library with the given name.
-   *
-   * @param name the short name of the library
-   */
-  SdkLibraryImpl(String name) {
-    this._shortName = name;
-  }
-
-  @override
-  String get shortName => _shortName;
-
-  @override
-  bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
-
-  @override
-  bool get isDocumented => _documented;
-
-  @override
-  bool get isImplementation => _implementation;
-
-  @override
-  bool get isInternal => "Internal" == category;
-
-  /**
-   * Return `true` if library can be used for both client and server
-   */
-  @override
-  bool get isShared => category == "Shared";
-
-  /**
-   * Return `true` if this library can be run on the VM.
-   *
-   * @return `true` if this library can be run on the VM
-   */
-  @override
-  bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
-
-  /**
-   * Record that this library can be compiled to JavaScript by dart2js.
-   */
-  void setDart2JsLibrary() {
-    _platforms |= DART2JS_PLATFORM;
-  }
-
-  /**
-   * Set whether the library is documented to match the given value.
-   *
-   * @param documented `true` if the library is documented
-   */
-  void set documented(bool documented) {
-    this._documented = documented;
-  }
-
-  /**
-   * Set whether the library is an implementation library to match the given value.
-   *
-   * @param implementation `true` if the library is an implementation library
-   */
-  void set implementation(bool implementation) {
-    this._implementation = implementation;
-  }
-
-  /**
-   * Record that this library can be run on the VM.
-   */
-  void setVmLibrary() {
-    _platforms |= VM_PLATFORM;
-  }
-}
-
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   /**
    * The prefix added to the name of a library to form the URI used in code to reference the
@@ -360,6 +240,126 @@ class LibraryMap {
    * @return the number of library URI's for which a mapping is available
    */
   int size() => _libraryMap.length;
+}
+
+/**
+ * Instances of the class `SdkLibrary` represent the information known about a single library
+ * within the SDK.
+ */
+class SdkLibraryImpl implements SdkLibrary {
+  /**
+   * The short name of the library. This is the name used after `dart:` in a URI.
+   */
+  String _shortName = null;
+
+  /**
+   * The path to the file defining the library. The path is relative to the `lib` directory
+   * within the SDK.
+   */
+  String path = null;
+
+  /**
+   * The name of the category containing the library. Unless otherwise specified in the libraries
+   * file all libraries are assumed to be shared between server and client.
+   */
+  String category = "Shared";
+
+  /**
+   * A flag indicating whether the library is documented.
+   */
+  bool _documented = true;
+
+  /**
+   * A flag indicating whether the library is an implementation library.
+   */
+  bool _implementation = false;
+
+  /**
+   * An encoding of which platforms this library is intended to work on.
+   */
+  int _platforms = 0;
+
+  /**
+   * The bit mask used to access the bit representing the flag indicating whether a library is
+   * intended to work on the dart2js platform.
+   */
+  static int DART2JS_PLATFORM = 1;
+
+  /**
+   * The bit mask used to access the bit representing the flag indicating whether a library is
+   * intended to work on the VM platform.
+   */
+  static int VM_PLATFORM = 2;
+
+  /**
+   * Initialize a newly created library to represent the library with the given name.
+   *
+   * @param name the short name of the library
+   */
+  SdkLibraryImpl(String name) {
+    this._shortName = name;
+  }
+
+  @override
+  String get shortName => _shortName;
+
+  @override
+  bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
+
+  @override
+  bool get isDocumented => _documented;
+
+  @override
+  bool get isImplementation => _implementation;
+
+  @override
+  bool get isInternal => "Internal" == category;
+
+  /**
+   * Return `true` if library can be used for both client and server
+   */
+  @override
+  bool get isShared => category == "Shared";
+
+  /**
+   * Return `true` if this library can be run on the VM.
+   *
+   * @return `true` if this library can be run on the VM
+   */
+  @override
+  bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
+
+  /**
+   * Record that this library can be compiled to JavaScript by dart2js.
+   */
+  void setDart2JsLibrary() {
+    _platforms |= DART2JS_PLATFORM;
+  }
+
+  /**
+   * Set whether the library is documented to match the given value.
+   *
+   * @param documented `true` if the library is documented
+   */
+  void set documented(bool documented) {
+    this._documented = documented;
+  }
+
+  /**
+   * Set whether the library is an implementation library to match the given value.
+   *
+   * @param implementation `true` if the library is an implementation library
+   */
+  void set implementation(bool implementation) {
+    this._implementation = implementation;
+  }
+
+  /**
+   * Record that this library can be run on the VM.
+   */
+  void setVmLibrary() {
+    _platforms |= VM_PLATFORM;
+  }
 }
 
 /**

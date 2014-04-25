@@ -19,75 +19,559 @@ import 'engine.dart';
 import 'html.dart' as ht;
 
 /**
- * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
- * any data based on the content of a specified source.
+ * Implementation of [UniverseElement].
  */
-class RemoveSourceOperation implements IndexOperation {
+class UniverseElementImpl extends ElementImpl implements UniverseElement {
+  static UniverseElementImpl INSTANCE = new UniverseElementImpl();
+
+  UniverseElementImpl() : super("--universe--", -1);
+
+  @override
+  accept(ElementVisitor visitor) => null;
+
+  @override
+  ElementKind get kind => ElementKind.UNIVERSE;
+}
+
+/**
+ * Container of information computed by the index - relationships between elements.
+ */
+abstract class IndexStore {
+  /**
+   * Notifies the index store that we are going to index the unit with the given element.
+   *
+   * If the unit is a part of a library, then all its locations are removed. If it is a defining
+   * compilation unit of a library, then index store also checks if some previously indexed parts of
+   * the library are not parts of the library anymore, and clears their information.
+   *
+   * @param the [AnalysisContext] in which unit being indexed
+   * @param unitElement the element of the unit being indexed
+   * @return `true` the given [AnalysisContext] is active, or `false` if it was
+   *         removed before, so no any unit may be indexed with it
+   */
+  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
+
+  /**
+   * Notifies the index store that we are going to index the given [HtmlElement].
+   *
+   * @param the [AnalysisContext] in which unit being indexed
+   * @param htmlElement the [HtmlElement] being indexed
+   * @return `true` the given [AnalysisContext] is active, or `false` if it was
+   *         removed before, so no any unit may be indexed with it
+   */
+  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
+
+  /**
+   * Return the locations of the elements that have the given relationship with the given element.
+   * For example, if the element represents a method and the relationship is the is-referenced-by
+   * relationship, then the returned locations will be all of the places where the method is
+   * invoked.
+   *
+   * @param element the the element that has the relationship with the locations to be returned
+   * @param relationship the [Relationship] between the given element and the locations to be
+   *          returned
+   * @return the locations that have the given relationship with the given element
+   */
+  List<Location> getRelationships(Element element, Relationship relationship);
+
+  /**
+   * Answer index statistics.
+   */
+  String get statistics;
+
+  /**
+   * Record that the given element and location have the given relationship. For example, if the
+   * relationship is the is-referenced-by relationship, then the element would be the element being
+   * referenced and the location would be the point at which it is referenced. Each element can have
+   * the same relationship with multiple locations. In other words, if the following code were
+   * executed
+   *
+   * <pre>
+   *   recordRelationship(element, isReferencedBy, location1);
+   *   recordRelationship(element, isReferencedBy, location2);
+   * </pre>
+   *
+   * then both relationships would be maintained in the index and the result of executing
+   *
+   * <pre>
+   *   getRelationship(element, isReferencedBy);
+   * </pre>
+   *
+   * would be an array containing both <code>location1</code> and <code>location2</code>.
+   *
+   * @param element the element that is related to the location
+   * @param relationship the [Relationship] between the element and the location
+   * @param location the [Location] where relationship happens
+   */
+  void recordRelationship(Element element, Relationship relationship, Location location);
+
+  /**
+   * Remove from the index all of the information associated with [AnalysisContext].
+   *
+   * This method should be invoked when a context is disposed.
+   *
+   * @param the [AnalysisContext] being removed
+   */
+  void removeContext(AnalysisContext context);
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * source. This includes relationships between an element in the given source and any other
+   * locations, relationships between any other elements and a location within the given source.
+   *
+   * This method should be invoked when a source is no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source] being removed
+   * @param source the source being removed
+   */
+  void removeSource(AnalysisContext context, Source source);
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * sources. This includes relationships between an element in the given sources and any other
+   * locations, relationships between any other elements and a location within the given sources.
+   *
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source]s being removed
+   * @param container the [SourceContainer] holding the sources being removed
+   */
+  void removeSources(AnalysisContext context, SourceContainer container);
+}
+
+/**
+ * Visits resolved [HtmlUnit] and adds relationships into [IndexStore].
+ */
+class AngularHtmlIndexContributor extends ExpressionVisitor {
+  /**
+   * The [IndexStore] to record relations into.
+   */
+  final IndexStore _store;
+
+  /**
+   * The index contributor used to index Dart [Expression]s.
+   */
+  IndexContributor _indexContributor;
+
+  HtmlElement _htmlUnitElement;
+
+  /**
+   * Initialize a newly created Angular HTML index contributor.
+   *
+   * @param store the [IndexStore] to record relations into.
+   */
+  AngularHtmlIndexContributor(this._store) {
+    _indexContributor = new IndexContributor_AngularHtmlIndexContributor(_store, this);
+  }
+
+  @override
+  void visitExpression(Expression expression) {
+    // Formatter
+    if (expression is SimpleIdentifier) {
+      SimpleIdentifier identifier = expression;
+      Element element = identifier.bestElement;
+      if (element is AngularElement) {
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, _createLocationForIdentifier(identifier));
+        return;
+      }
+    }
+    // index as a normal Dart expression
+    expression.accept(_indexContributor);
+  }
+
+  @override
+  Object visitHtmlUnit(ht.HtmlUnit node) {
+    _htmlUnitElement = node.element;
+    CompilationUnitElement dartUnitElement = _htmlUnitElement.angularCompilationUnit;
+    _indexContributor.enterScope(dartUnitElement);
+    return super.visitHtmlUnit(node);
+  }
+
+  @override
+  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
+    Element element = node.element;
+    if (element != null) {
+      ht.Token nameToken = node.nameToken;
+      Location location = _createLocationForToken(nameToken);
+      _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
+    }
+    return super.visitXmlAttributeNode(node);
+  }
+
+  @override
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    Element element = node.element;
+    if (element != null) {
+      // tag
+      {
+        ht.Token tagToken = node.tagToken;
+        Location location = _createLocationForToken(tagToken);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
+      }
+      // maybe add closing tag range
+      ht.Token closingTag = node.closingTag;
+      if (closingTag != null) {
+        Location location = _createLocationForToken(closingTag);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
+      }
+    }
+    return super.visitXmlTagNode(node);
+  }
+
+  Location _createLocationForIdentifier(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
+
+  Location _createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
+}
+
+class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
+  final AngularHtmlIndexContributor AngularHtmlIndexContributor_this;
+
+  IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
+
+  @override
+  Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
+
+  @override
+  void recordRelationship(Element element, Relationship relationship, Location location) {
+    AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+    if (angularElement != null) {
+      element = angularElement;
+      relationship = IndexConstants.ANGULAR_REFERENCE;
+    }
+    super.recordRelationship(element, relationship, location);
+  }
+}
+
+/**
+ * Recursively visits [HtmlUnit] and every embedded [Expression].
+ */
+abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
+  /**
+   * Visits the given [Expression]s embedded into tag or attribute.
+   *
+   * @param expression the [Expression] to visit, not `null`
+   */
+  void visitExpression(Expression expression);
+
+  @override
+  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
+    _visitExpressions(node.expressions);
+    return super.visitXmlAttributeNode(node);
+  }
+
+  @override
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    _visitExpressions(node.expressions);
+    return super.visitXmlTagNode(node);
+  }
+
+  /**
+   * Visits [Expression]s of the given [XmlExpression]s.
+   */
+  void _visitExpressions(List<ht.XmlExpression> expressions) {
+    for (ht.XmlExpression xmlExpression in expressions) {
+      if (xmlExpression is AngularXmlExpression) {
+        AngularXmlExpression angularXmlExpression = xmlExpression;
+        List<Expression> dartExpressions = angularXmlExpression.expression.expressions;
+        for (Expression dartExpression in dartExpressions) {
+          visitExpression(dartExpression);
+        }
+      }
+      if (xmlExpression is ht.RawXmlExpression) {
+        ht.RawXmlExpression rawXmlExpression = xmlExpression;
+        visitExpression(rawXmlExpression.expression);
+      }
+    }
+  }
+}
+
+/**
+ * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
+ * index based on the resolved [HtmlUnit].
+ */
+class IndexHtmlUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   final IndexStore _indexStore;
 
   /**
-   * The context in which source being removed.
+   * The context in which [HtmlUnit] was resolved.
    */
   final AnalysisContext _context;
 
   /**
-   * The source being removed.
+   * The [HtmlUnit] being indexed.
    */
-  final Source source;
+  final ht.HtmlUnit unit;
 
   /**
-   * Initialize a newly created operation that will remove the specified resource.
+   * The element of the [HtmlUnit] being indexed.
+   */
+  HtmlElement _htmlElement;
+
+  /**
+   * The source being indexed.
+   */
+  Source _source;
+
+  /**
+   * Initialize a newly created operation that will index the specified [HtmlUnit].
    *
    * @param indexStore the index store against which this operation is being run
-   * @param context the [AnalysisContext] to remove source in
-   * @param source the [Source] to remove from index
+   * @param context the context in which [HtmlUnit] was resolved
+   * @param unit the fully resolved [HtmlUnit]
    */
-  RemoveSourceOperation(this._indexStore, this._context, this.source);
+  IndexHtmlUnitOperation(this._indexStore, this._context, this.unit) {
+    this._htmlElement = unit.element;
+    this._source = _htmlElement.source;
+  }
+
+  /**
+   * @return the [Source] to be indexed.
+   */
+  Source get source => _source;
 
   @override
   bool get isQuery => false;
 
   @override
   void performOperation() {
-    _indexStore.removeSource(_context, source);
+    try {
+      bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
+      if (!mayIndex) {
+        return;
+      }
+      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
+      unit.accept(contributor);
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    }
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => this._source == source;
+
+  @override
+  String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
+}
+
+/**
+ * Visits resolved [CompilationUnit] and adds Angular specific relationships into
+ * [IndexStore].
+ */
+class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
+  final IndexStore _store;
+
+  AngularDartIndexContributor(this._store);
+
+  @override
+  Object visitClassDeclaration(ClassDeclaration node) {
+    ClassElement classElement = node.element;
+    if (classElement != null) {
+      List<ToolkitObjectElement> toolkitObjects = classElement.toolkitObjects;
+      for (ToolkitObjectElement object in toolkitObjects) {
+        if (object is AngularComponentElement) {
+          _indexComponent(object);
+        }
+        if (object is AngularDecoratorElement) {
+          AngularDecoratorElement directive = object;
+          _indexDirective(directive);
+        }
+      }
+    }
+    // stop visiting
+    return null;
+  }
+
+  @override
+  Object visitCompilationUnitMember(CompilationUnitMember node) => null;
+
+  void _indexComponent(AngularComponentElement component) {
+    _indexProperties(component.properties);
+  }
+
+  void _indexDirective(AngularDecoratorElement directive) {
+    _indexProperties(directive.properties);
+  }
+
+  /**
+   * Index [FieldElement] references from [AngularPropertyElement]s.
+   */
+  void _indexProperties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      FieldElement field = property.field;
+      if (field != null) {
+        int offset = property.fieldNameOffset;
+        if (offset == -1) {
+          continue;
+        }
+        int length = field.name.length;
+        Location location = new Location(property, offset, length);
+        // getter reference
+        if (property.propertyKind.callsGetter()) {
+          PropertyAccessorElement getter = field.getter;
+          if (getter != null) {
+            _store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+        // setter reference
+        if (property.propertyKind.callsSetter()) {
+          PropertyAccessorElement setter = field.setter;
+          if (setter != null) {
+            _store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Special [Element] which is used to index references to the name without specifying concrete
+ * kind of this name - field, method or something else.
+ */
+class NameElementImpl extends ElementImpl {
+  NameElementImpl(String name) : super("name:${name}", -1);
+
+  @override
+  accept(ElementVisitor visitor) => null;
+
+  @override
+  ElementKind get kind => ElementKind.NAME;
+}
+
+/**
+ * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
+ * with the results of a query about a given relationship.
+ */
+abstract class RelationshipCallback {
+  /**
+   * This method is invoked when the locations that have a specified relationship with a specified
+   * element are available. For example, if the element is a field and the relationship is the
+   * is-referenced-by relationship, then this method will be invoked with each location at which the
+   * field is referenced.
+   *
+   * @param element the [Element] that has the relationship with the locations
+   * @param relationship the relationship between the given element and the locations
+   * @param locations the locations that were found
+   */
+  void hasRelationships(Element element, Relationship relationship, List<Location> locations);
+}
+
+/**
+ * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
+ * index any data based on the content of source belonging to a [SourceContainer].
+ */
+class RemoveSourcesOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
+
+  /**
+   * The context to remove container.
+   */
+  final AnalysisContext _context;
+
+  /**
+   * The source container to remove.
+   */
+  final SourceContainer container;
+
+  /**
+   * Initialize a newly created operation that will remove the specified resource.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the [AnalysisContext] to remove container in
+   * @param container the [SourceContainer] to remove from index
+   */
+  RemoveSourcesOperation(this._indexStore, this._context, this.container);
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    _indexStore.removeSources(_context, container);
   }
 
   @override
   bool removeWhenSourceRemoved(Source source) => false;
 
   @override
-  String toString() => "RemoveSource(${source.fullName})";
+  String toString() => "RemoveSources(${container})";
 }
 
 /**
- * The interface [IndexOperation] defines the behavior of objects used to perform operations
- * on an index.
+ * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
+ * based on the resolved [CompilationUnit].
  */
-abstract class IndexOperation {
+class IndexUnitOperation implements IndexOperation {
   /**
-   * Return `true` if this operation returns information from the index.
-   *
-   * @return `true` if this operation returns information from the index
+   * The index store against which this operation is being run.
    */
-  bool get isQuery;
+  final IndexStore _indexStore;
 
   /**
-   * Perform the operation implemented by this operation.
+   * The context in which compilation unit was resolved.
    */
-  void performOperation();
+  final AnalysisContext _context;
 
   /**
-   * Return `true` if this operation should be removed from the operation queue when the
-   * given resource has been removed.
-   *
-   * @param source the [Source] that has been removed
-   * @return `true` if this operation should be removed from the operation queue as a
-   *         result of removing the resource
+   * The compilation unit being indexed.
    */
-  bool removeWhenSourceRemoved(Source source);
+  final CompilationUnit unit;
+
+  /**
+   * The element of the compilation unit being indexed.
+   */
+  CompilationUnitElement _unitElement;
+
+  /**
+   * The source being indexed.
+   */
+  Source _source;
+
+  /**
+   * Initialize a newly created operation that will index the specified unit.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the context in which compilation unit was resolved
+   * @param unit the fully resolved AST structure
+   */
+  IndexUnitOperation(this._indexStore, this._context, this.unit) {
+    this._unitElement = unit.element;
+    this._source = _unitElement.source;
+  }
+
+  /**
+   * @return the [Source] to be indexed.
+   */
+  Source get source => _source;
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    try {
+      bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
+      if (!mayIndex) {
+        return;
+      }
+      unit.accept(new IndexContributor(_indexStore));
+      unit.accept(new AngularDartIndexContributor(_indexStore));
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    }
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => this._source == source;
+
+  @override
+  String toString() => "IndexUnitOperation(${_source.fullName})";
 }
 
 /**
@@ -584,217 +1068,6 @@ class MemoryIndexStoreImpl_Source2 {
 }
 
 /**
- * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
- * based on the resolved [CompilationUnit].
- */
-class IndexUnitOperation implements IndexOperation {
-  /**
-   * The index store against which this operation is being run.
-   */
-  final IndexStore _indexStore;
-
-  /**
-   * The context in which compilation unit was resolved.
-   */
-  final AnalysisContext _context;
-
-  /**
-   * The compilation unit being indexed.
-   */
-  final CompilationUnit unit;
-
-  /**
-   * The element of the compilation unit being indexed.
-   */
-  CompilationUnitElement _unitElement;
-
-  /**
-   * The source being indexed.
-   */
-  Source _source;
-
-  /**
-   * Initialize a newly created operation that will index the specified unit.
-   *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the context in which compilation unit was resolved
-   * @param unit the fully resolved AST structure
-   */
-  IndexUnitOperation(this._indexStore, this._context, this.unit) {
-    this._unitElement = unit.element;
-    this._source = _unitElement.source;
-  }
-
-  /**
-   * @return the [Source] to be indexed.
-   */
-  Source get source => _source;
-
-  @override
-  bool get isQuery => false;
-
-  @override
-  void performOperation() {
-    try {
-      bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
-      if (!mayIndex) {
-        return;
-      }
-      unit.accept(new IndexContributor(_indexStore));
-      unit.accept(new AngularDartIndexContributor(_indexStore));
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
-    }
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => this._source == source;
-
-  @override
-  String toString() => "IndexUnitOperation(${_source.fullName})";
-}
-
-/**
- * Recursively visits [HtmlUnit] and every embedded [Expression].
- */
-abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
-  /**
-   * Visits the given [Expression]s embedded into tag or attribute.
-   *
-   * @param expression the [Expression] to visit, not `null`
-   */
-  void visitExpression(Expression expression);
-
-  @override
-  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
-    _visitExpressions(node.expressions);
-    return super.visitXmlAttributeNode(node);
-  }
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    _visitExpressions(node.expressions);
-    return super.visitXmlTagNode(node);
-  }
-
-  /**
-   * Visits [Expression]s of the given [XmlExpression]s.
-   */
-  void _visitExpressions(List<ht.XmlExpression> expressions) {
-    for (ht.XmlExpression xmlExpression in expressions) {
-      if (xmlExpression is AngularXmlExpression) {
-        AngularXmlExpression angularXmlExpression = xmlExpression;
-        List<Expression> dartExpressions = angularXmlExpression.expression.expressions;
-        for (Expression dartExpression in dartExpressions) {
-          visitExpression(dartExpression);
-        }
-      }
-      if (xmlExpression is ht.RawXmlExpression) {
-        ht.RawXmlExpression rawXmlExpression = xmlExpression;
-        visitExpression(rawXmlExpression.expression);
-      }
-    }
-  }
-}
-
-/**
- * Relationship between an element and a location. Relationships are identified by a globally unique
- * identifier.
- */
-class Relationship {
-  /**
-   * The unique identifier for this relationship.
-   */
-  final String _uniqueId;
-
-  /**
-   * A table mapping relationship identifiers to relationships.
-   */
-  static Map<String, Relationship> _RelationshipMap = {};
-
-  /**
-   * Return the relationship with the given unique identifier.
-   *
-   * @param uniqueId the unique identifier for the relationship
-   * @return the relationship with the given unique identifier
-   */
-  static Relationship getRelationship(String uniqueId) {
-    Relationship relationship = _RelationshipMap[uniqueId];
-    if (relationship == null) {
-      relationship = new Relationship(uniqueId);
-      _RelationshipMap[uniqueId] = relationship;
-    }
-    return relationship;
-  }
-
-  /**
-   * @return all registered [Relationship]s.
-   */
-  static Iterable<Relationship> values() => _RelationshipMap.values;
-
-  /**
-   * Initialize a newly created relationship to have the given unique identifier.
-   *
-   * @param uniqueId the unique identifier for this relationship
-   */
-  Relationship(this._uniqueId);
-
-  /**
-   * Return the unique identifier for this relationship.
-   *
-   * @return the unique identifier for this relationship
-   */
-  String get identifier => _uniqueId;
-
-  @override
-  String toString() => _uniqueId;
-}
-
-/**
- * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
- * index any data based on the content of source belonging to a [SourceContainer].
- */
-class RemoveSourcesOperation implements IndexOperation {
-  /**
-   * The index store against which this operation is being run.
-   */
-  final IndexStore _indexStore;
-
-  /**
-   * The context to remove container.
-   */
-  final AnalysisContext _context;
-
-  /**
-   * The source container to remove.
-   */
-  final SourceContainer container;
-
-  /**
-   * Initialize a newly created operation that will remove the specified resource.
-   *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the [AnalysisContext] to remove container in
-   * @param container the [SourceContainer] to remove from index
-   */
-  RemoveSourcesOperation(this._indexStore, this._context, this.container);
-
-  @override
-  bool get isQuery => false;
-
-  @override
-  void performOperation() {
-    _indexStore.removeSources(_context, container);
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => false;
-
-  @override
-  String toString() => "RemoveSources(${container})";
-}
-
-/**
  * The interface `UniverseElement` defines element to use when we want to request "defines"
  * relations without specifying exact library.
  */
@@ -975,323 +1248,6 @@ abstract class IndexConstants {
    * Reference to some closing tag of an XML element.
    */
   static final Relationship ANGULAR_CLOSING_TAG_REFERENCE = Relationship.getRelationship("angular-closing-tag-reference");
-}
-
-/**
- * Visits resolved [HtmlUnit] and adds relationships into [IndexStore].
- */
-class AngularHtmlIndexContributor extends ExpressionVisitor {
-  /**
-   * The [IndexStore] to record relations into.
-   */
-  final IndexStore _store;
-
-  /**
-   * The index contributor used to index Dart [Expression]s.
-   */
-  IndexContributor _indexContributor;
-
-  HtmlElement _htmlUnitElement;
-
-  /**
-   * Initialize a newly created Angular HTML index contributor.
-   *
-   * @param store the [IndexStore] to record relations into.
-   */
-  AngularHtmlIndexContributor(this._store) {
-    _indexContributor = new IndexContributor_AngularHtmlIndexContributor(_store, this);
-  }
-
-  @override
-  void visitExpression(Expression expression) {
-    // Formatter
-    if (expression is SimpleIdentifier) {
-      SimpleIdentifier identifier = expression;
-      Element element = identifier.bestElement;
-      if (element is AngularElement) {
-        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, _createLocationForIdentifier(identifier));
-        return;
-      }
-    }
-    // index as a normal Dart expression
-    expression.accept(_indexContributor);
-  }
-
-  @override
-  Object visitHtmlUnit(ht.HtmlUnit node) {
-    _htmlUnitElement = node.element;
-    CompilationUnitElement dartUnitElement = _htmlUnitElement.angularCompilationUnit;
-    _indexContributor.enterScope(dartUnitElement);
-    return super.visitHtmlUnit(node);
-  }
-
-  @override
-  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
-    Element element = node.element;
-    if (element != null) {
-      ht.Token nameToken = node.nameToken;
-      Location location = _createLocationForToken(nameToken);
-      _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
-    }
-    return super.visitXmlAttributeNode(node);
-  }
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    Element element = node.element;
-    if (element != null) {
-      // tag
-      {
-        ht.Token tagToken = node.tagToken;
-        Location location = _createLocationForToken(tagToken);
-        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
-      }
-      // maybe add closing tag range
-      ht.Token closingTag = node.closingTag;
-      if (closingTag != null) {
-        Location location = _createLocationForToken(closingTag);
-        _store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
-      }
-    }
-    return super.visitXmlTagNode(node);
-  }
-
-  Location _createLocationForIdentifier(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
-
-  Location _createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
-}
-
-class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
-  final AngularHtmlIndexContributor AngularHtmlIndexContributor_this;
-
-  IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
-
-  @override
-  Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
-
-  @override
-  void recordRelationship(Element element, Relationship relationship, Location location) {
-    AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
-    if (angularElement != null) {
-      element = angularElement;
-      relationship = IndexConstants.ANGULAR_REFERENCE;
-    }
-    super.recordRelationship(element, relationship, location);
-  }
-}
-
-/**
- * The interface [Index] defines the behavior of objects that maintain an index storing
- * [Relationship] between [Element]. All of the operations
- * defined on the index are asynchronous, and results, when there are any, are provided through a
- * callback.
- *
- * Despite being asynchronous, the results of the operations are guaranteed to be consistent with
- * the expectation that operations are performed in the order in which they are requested.
- * Modification operations are executed before any read operation. There is no guarantee about the
- * order in which the callbacks for read operations will be invoked.
- */
-abstract class Index {
-  /**
-   * Asynchronously invoke the given callback with an array containing all of the locations of the
-   * elements that have the given relationship with the given element. For example, if the element
-   * represents a method and the relationship is the is-referenced-by relationship, then the
-   * locations that will be passed into the callback will be all of the places where the method is
-   * invoked.
-   *
-   * @param element the element that has the relationship with the locations to be returned
-   * @param relationship the relationship between the given element and the locations to be returned
-   * @param callback the callback that will be invoked when the locations are found
-   */
-  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
-
-  /**
-   * Answer index statistics.
-   */
-  String get statistics;
-
-  /**
-   * Asynchronously process the given [HtmlUnit] in order to record the relationships.
-   *
-   * @param context the [AnalysisContext] in which [HtmlUnit] was resolved
-   * @param unit the [HtmlUnit] being indexed
-   */
-  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit);
-
-  /**
-   * Asynchronously process the given [CompilationUnit] in order to record the relationships.
-   *
-   * @param context the [AnalysisContext] in which [CompilationUnit] was resolved
-   * @param unit the [CompilationUnit] being indexed
-   */
-  void indexUnit(AnalysisContext context, CompilationUnit unit);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with the given context.
-   *
-   * This method should be invoked when a context is disposed.
-   *
-   * @param context the [AnalysisContext] to remove
-   */
-  void removeContext(AnalysisContext context);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with elements or
-   * locations in the given source. This includes relationships between an element in the given
-   * source and any other locations, relationships between any other elements and a location within
-   * the given source.
-   *
-   * This method should be invoked when a source is no longer part of the code base.
-   *
-   * @param context the [AnalysisContext] in which [Source] being removed
-   * @param source the [Source] being removed
-   */
-  void removeSource(AnalysisContext context, Source source);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with elements or
-   * locations in the given sources. This includes relationships between an element in the given
-   * sources and any other locations, relationships between any other elements and a location within
-   * the given sources.
-   *
-   * This method should be invoked when multiple sources are no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source]s being removed
-   * @param container the [SourceContainer] holding the sources being removed
-   */
-  void removeSources(AnalysisContext context, SourceContainer container);
-
-  /**
-   * Should be called in separate [Thread] to process request in this [Index]. Does not
-   * return until the [stop] method is called.
-   */
-  void run();
-
-  /**
-   * Should be called to stop process running [run], so stop processing requests.
-   */
-  void stop();
-}
-
-/**
- * Container of information computed by the index - relationships between elements.
- */
-abstract class IndexStore {
-  /**
-   * Notifies the index store that we are going to index the unit with the given element.
-   *
-   * If the unit is a part of a library, then all its locations are removed. If it is a defining
-   * compilation unit of a library, then index store also checks if some previously indexed parts of
-   * the library are not parts of the library anymore, and clears their information.
-   *
-   * @param the [AnalysisContext] in which unit being indexed
-   * @param unitElement the element of the unit being indexed
-   * @return `true` the given [AnalysisContext] is active, or `false` if it was
-   *         removed before, so no any unit may be indexed with it
-   */
-  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
-
-  /**
-   * Notifies the index store that we are going to index the given [HtmlElement].
-   *
-   * @param the [AnalysisContext] in which unit being indexed
-   * @param htmlElement the [HtmlElement] being indexed
-   * @return `true` the given [AnalysisContext] is active, or `false` if it was
-   *         removed before, so no any unit may be indexed with it
-   */
-  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
-
-  /**
-   * Return the locations of the elements that have the given relationship with the given element.
-   * For example, if the element represents a method and the relationship is the is-referenced-by
-   * relationship, then the returned locations will be all of the places where the method is
-   * invoked.
-   *
-   * @param element the the element that has the relationship with the locations to be returned
-   * @param relationship the [Relationship] between the given element and the locations to be
-   *          returned
-   * @return the locations that have the given relationship with the given element
-   */
-  List<Location> getRelationships(Element element, Relationship relationship);
-
-  /**
-   * Answer index statistics.
-   */
-  String get statistics;
-
-  /**
-   * Record that the given element and location have the given relationship. For example, if the
-   * relationship is the is-referenced-by relationship, then the element would be the element being
-   * referenced and the location would be the point at which it is referenced. Each element can have
-   * the same relationship with multiple locations. In other words, if the following code were
-   * executed
-   *
-   * <pre>
-   *   recordRelationship(element, isReferencedBy, location1);
-   *   recordRelationship(element, isReferencedBy, location2);
-   * </pre>
-   *
-   * then both relationships would be maintained in the index and the result of executing
-   *
-   * <pre>
-   *   getRelationship(element, isReferencedBy);
-   * </pre>
-   *
-   * would be an array containing both <code>location1</code> and <code>location2</code>.
-   *
-   * @param element the element that is related to the location
-   * @param relationship the [Relationship] between the element and the location
-   * @param location the [Location] where relationship happens
-   */
-  void recordRelationship(Element element, Relationship relationship, Location location);
-
-  /**
-   * Remove from the index all of the information associated with [AnalysisContext].
-   *
-   * This method should be invoked when a context is disposed.
-   *
-   * @param the [AnalysisContext] being removed
-   */
-  void removeContext(AnalysisContext context);
-
-  /**
-   * Remove from the index all of the information associated with elements or locations in the given
-   * source. This includes relationships between an element in the given source and any other
-   * locations, relationships between any other elements and a location within the given source.
-   *
-   * This method should be invoked when a source is no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source] being removed
-   * @param source the source being removed
-   */
-  void removeSource(AnalysisContext context, Source source);
-
-  /**
-   * Remove from the index all of the information associated with elements or locations in the given
-   * sources. This includes relationships between an element in the given sources and any other
-   * locations, relationships between any other elements and a location within the given sources.
-   *
-   * This method should be invoked when multiple sources are no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source]s being removed
-   * @param container the [SourceContainer] holding the sources being removed
-   */
-  void removeSources(AnalysisContext context, SourceContainer container);
-}
-
-/**
- * Implementation of [UniverseElement].
- */
-class UniverseElementImpl extends ElementImpl implements UniverseElement {
-  static UniverseElementImpl INSTANCE = new UniverseElementImpl();
-
-  UniverseElementImpl() : super("--universe--", -1);
-
-  @override
-  accept(ElementVisitor visitor) => null;
-
-  @override
-  ElementKind get kind => ElementKind.UNIVERSE;
 }
 
 /**
@@ -2154,88 +2110,96 @@ class IndexContributor_ImportElementInfo {
 }
 
 /**
- * Special [Element] which is used to index references to the name without specifying concrete
- * kind of this name - field, method or something else.
+ * The interface [Index] defines the behavior of objects that maintain an index storing
+ * [Relationship] between [Element]. All of the operations
+ * defined on the index are asynchronous, and results, when there are any, are provided through a
+ * callback.
+ *
+ * Despite being asynchronous, the results of the operations are guaranteed to be consistent with
+ * the expectation that operations are performed in the order in which they are requested.
+ * Modification operations are executed before any read operation. There is no guarantee about the
+ * order in which the callbacks for read operations will be invoked.
  */
-class NameElementImpl extends ElementImpl {
-  NameElementImpl(String name) : super("name:${name}", -1);
-
-  @override
-  accept(ElementVisitor visitor) => null;
-
-  @override
-  ElementKind get kind => ElementKind.NAME;
-}
-
-/**
- * Visits resolved [CompilationUnit] and adds Angular specific relationships into
- * [IndexStore].
- */
-class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
-  final IndexStore _store;
-
-  AngularDartIndexContributor(this._store);
-
-  @override
-  Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement classElement = node.element;
-    if (classElement != null) {
-      List<ToolkitObjectElement> toolkitObjects = classElement.toolkitObjects;
-      for (ToolkitObjectElement object in toolkitObjects) {
-        if (object is AngularComponentElement) {
-          _indexComponent(object);
-        }
-        if (object is AngularDecoratorElement) {
-          AngularDecoratorElement directive = object;
-          _indexDirective(directive);
-        }
-      }
-    }
-    // stop visiting
-    return null;
-  }
-
-  @override
-  Object visitCompilationUnitMember(CompilationUnitMember node) => null;
-
-  void _indexComponent(AngularComponentElement component) {
-    _indexProperties(component.properties);
-  }
-
-  void _indexDirective(AngularDecoratorElement directive) {
-    _indexProperties(directive.properties);
-  }
+abstract class Index {
+  /**
+   * Asynchronously invoke the given callback with an array containing all of the locations of the
+   * elements that have the given relationship with the given element. For example, if the element
+   * represents a method and the relationship is the is-referenced-by relationship, then the
+   * locations that will be passed into the callback will be all of the places where the method is
+   * invoked.
+   *
+   * @param element the element that has the relationship with the locations to be returned
+   * @param relationship the relationship between the given element and the locations to be returned
+   * @param callback the callback that will be invoked when the locations are found
+   */
+  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
 
   /**
-   * Index [FieldElement] references from [AngularPropertyElement]s.
+   * Answer index statistics.
    */
-  void _indexProperties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      FieldElement field = property.field;
-      if (field != null) {
-        int offset = property.fieldNameOffset;
-        if (offset == -1) {
-          continue;
-        }
-        int length = field.name.length;
-        Location location = new Location(property, offset, length);
-        // getter reference
-        if (property.propertyKind.callsGetter()) {
-          PropertyAccessorElement getter = field.getter;
-          if (getter != null) {
-            _store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
-          }
-        }
-        // setter reference
-        if (property.propertyKind.callsSetter()) {
-          PropertyAccessorElement setter = field.setter;
-          if (setter != null) {
-            _store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
-          }
-        }
-      }
-    }
-  }
+  String get statistics;
+
+  /**
+   * Asynchronously process the given [HtmlUnit] in order to record the relationships.
+   *
+   * @param context the [AnalysisContext] in which [HtmlUnit] was resolved
+   * @param unit the [HtmlUnit] being indexed
+   */
+  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit);
+
+  /**
+   * Asynchronously process the given [CompilationUnit] in order to record the relationships.
+   *
+   * @param context the [AnalysisContext] in which [CompilationUnit] was resolved
+   * @param unit the [CompilationUnit] being indexed
+   */
+  void indexUnit(AnalysisContext context, CompilationUnit unit);
+
+  /**
+   * Asynchronously remove from the index all of the information associated with the given context.
+   *
+   * This method should be invoked when a context is disposed.
+   *
+   * @param context the [AnalysisContext] to remove
+   */
+  void removeContext(AnalysisContext context);
+
+  /**
+   * Asynchronously remove from the index all of the information associated with elements or
+   * locations in the given source. This includes relationships between an element in the given
+   * source and any other locations, relationships between any other elements and a location within
+   * the given source.
+   *
+   * This method should be invoked when a source is no longer part of the code base.
+   *
+   * @param context the [AnalysisContext] in which [Source] being removed
+   * @param source the [Source] being removed
+   */
+  void removeSource(AnalysisContext context, Source source);
+
+  /**
+   * Asynchronously remove from the index all of the information associated with elements or
+   * locations in the given sources. This includes relationships between an element in the given
+   * sources and any other locations, relationships between any other elements and a location within
+   * the given sources.
+   *
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source]s being removed
+   * @param container the [SourceContainer] holding the sources being removed
+   */
+  void removeSources(AnalysisContext context, SourceContainer container);
+
+  /**
+   * Should be called in separate [Thread] to process request in this [Index]. Does not
+   * return until the [stop] method is called.
+   */
+  void run();
+
+  /**
+   * Should be called to stop process running [run], so stop processing requests.
+   */
+  void stop();
 }
 
 /**
@@ -2277,74 +2241,185 @@ class RemoveContextOperation implements IndexOperation {
 }
 
 /**
- * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
- * index based on the resolved [HtmlUnit].
+ * Instances of the [GetRelationshipsOperation] implement an operation used to access the
+ * locations that have a specified relationship with a specified element.
  */
-class IndexHtmlUnitOperation implements IndexOperation {
+class GetRelationshipsOperation implements IndexOperation {
+  final IndexStore _indexStore;
+
+  final Element element;
+
+  final Relationship relationship;
+
+  final RelationshipCallback callback;
+
+  /**
+   * Initialize a newly created operation that will access the locations that have a specified
+   * relationship with a specified element.
+   */
+  GetRelationshipsOperation(this._indexStore, this.element, this.relationship, this.callback);
+
+  @override
+  bool get isQuery => true;
+
+  @override
+  void performOperation() {
+    List<Location> locations;
+    locations = _indexStore.getRelationships(element, relationship);
+    callback.hasRelationships(element, relationship, locations);
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => false;
+
+  @override
+  String toString() => "GetRelationships(${element}, ${relationship})";
+}
+
+/**
+ * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
+ * any data based on the content of a specified source.
+ */
+class RemoveSourceOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   final IndexStore _indexStore;
 
   /**
-   * The context in which [HtmlUnit] was resolved.
+   * The context in which source being removed.
    */
   final AnalysisContext _context;
 
   /**
-   * The [HtmlUnit] being indexed.
+   * The source being removed.
    */
-  final ht.HtmlUnit unit;
+  final Source source;
 
   /**
-   * The element of the [HtmlUnit] being indexed.
-   */
-  HtmlElement _htmlElement;
-
-  /**
-   * The source being indexed.
-   */
-  Source _source;
-
-  /**
-   * Initialize a newly created operation that will index the specified [HtmlUnit].
+   * Initialize a newly created operation that will remove the specified resource.
    *
    * @param indexStore the index store against which this operation is being run
-   * @param context the context in which [HtmlUnit] was resolved
-   * @param unit the fully resolved [HtmlUnit]
+   * @param context the [AnalysisContext] to remove source in
+   * @param source the [Source] to remove from index
    */
-  IndexHtmlUnitOperation(this._indexStore, this._context, this.unit) {
-    this._htmlElement = unit.element;
-    this._source = _htmlElement.source;
-  }
-
-  /**
-   * @return the [Source] to be indexed.
-   */
-  Source get source => _source;
+  RemoveSourceOperation(this._indexStore, this._context, this.source);
 
   @override
   bool get isQuery => false;
 
   @override
   void performOperation() {
-    try {
-      bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
-      if (!mayIndex) {
-        return;
-      }
-      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
-      unit.accept(contributor);
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
-    }
+    _indexStore.removeSource(_context, source);
   }
 
   @override
-  bool removeWhenSourceRemoved(Source source) => this._source == source;
+  bool removeWhenSourceRemoved(Source source) => false;
 
   @override
-  String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
+  String toString() => "RemoveSource(${source.fullName})";
+}
+
+/**
+ * The interface [IndexOperation] defines the behavior of objects used to perform operations
+ * on an index.
+ */
+abstract class IndexOperation {
+  /**
+   * Return `true` if this operation returns information from the index.
+   *
+   * @return `true` if this operation returns information from the index
+   */
+  bool get isQuery;
+
+  /**
+   * Perform the operation implemented by this operation.
+   */
+  void performOperation();
+
+  /**
+   * Return `true` if this operation should be removed from the operation queue when the
+   * given resource has been removed.
+   *
+   * @param source the [Source] that has been removed
+   * @return `true` if this operation should be removed from the operation queue as a
+   *         result of removing the resource
+   */
+  bool removeWhenSourceRemoved(Source source);
+}
+
+/**
+ * [IndexStore] which keeps all information in memory, but can write it to stream and read
+ * later.
+ */
+abstract class MemoryIndexStore implements IndexStore {
+}
+
+/**
+ * [Location] with attached data.
+ */
+class LocationWithData<D> extends Location {
+  final D data;
+
+  LocationWithData.con1(Location location, this.data) : super(location.element, location.offset, location.length);
+
+  LocationWithData.con2(Element element, int offset, int length, this.data) : super(element, offset, length);
+
+  @override
+  Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);
+}
+
+/**
+ * Relationship between an element and a location. Relationships are identified by a globally unique
+ * identifier.
+ */
+class Relationship {
+  /**
+   * The unique identifier for this relationship.
+   */
+  final String _uniqueId;
+
+  /**
+   * A table mapping relationship identifiers to relationships.
+   */
+  static Map<String, Relationship> _RelationshipMap = {};
+
+  /**
+   * Return the relationship with the given unique identifier.
+   *
+   * @param uniqueId the unique identifier for the relationship
+   * @return the relationship with the given unique identifier
+   */
+  static Relationship getRelationship(String uniqueId) {
+    Relationship relationship = _RelationshipMap[uniqueId];
+    if (relationship == null) {
+      relationship = new Relationship(uniqueId);
+      _RelationshipMap[uniqueId] = relationship;
+    }
+    return relationship;
+  }
+
+  /**
+   * @return all registered [Relationship]s.
+   */
+  static Iterable<Relationship> values() => _RelationshipMap.values;
+
+  /**
+   * Initialize a newly created relationship to have the given unique identifier.
+   *
+   * @param uniqueId the unique identifier for this relationship
+   */
+  Relationship(this._uniqueId);
+
+  /**
+   * Return the unique identifier for this relationship.
+   *
+   * @return the unique identifier for this relationship
+   */
+  String get identifier => _uniqueId;
+
+  @override
+  String toString() => _uniqueId;
 }
 
 /**
@@ -2399,79 +2474,4 @@ class Location {
 
   @override
   String toString() => "[${offset} - ${(offset + length)}) in ${element}";
-}
-
-/**
- * [IndexStore] which keeps all information in memory, but can write it to stream and read
- * later.
- */
-abstract class MemoryIndexStore implements IndexStore {
-}
-
-/**
- * Instances of the [GetRelationshipsOperation] implement an operation used to access the
- * locations that have a specified relationship with a specified element.
- */
-class GetRelationshipsOperation implements IndexOperation {
-  final IndexStore _indexStore;
-
-  final Element element;
-
-  final Relationship relationship;
-
-  final RelationshipCallback callback;
-
-  /**
-   * Initialize a newly created operation that will access the locations that have a specified
-   * relationship with a specified element.
-   */
-  GetRelationshipsOperation(this._indexStore, this.element, this.relationship, this.callback);
-
-  @override
-  bool get isQuery => true;
-
-  @override
-  void performOperation() {
-    List<Location> locations;
-    locations = _indexStore.getRelationships(element, relationship);
-    callback.hasRelationships(element, relationship, locations);
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => false;
-
-  @override
-  String toString() => "GetRelationships(${element}, ${relationship})";
-}
-
-/**
- * [Location] with attached data.
- */
-class LocationWithData<D> extends Location {
-  final D data;
-
-  LocationWithData.con1(Location location, this.data) : super(location.element, location.offset, location.length);
-
-  LocationWithData.con2(Element element, int offset, int length, this.data) : super(element, offset, length);
-
-  @override
-  Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);
-}
-
-/**
- * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
- * with the results of a query about a given relationship.
- */
-abstract class RelationshipCallback {
-  /**
-   * This method is invoked when the locations that have a specified relationship with a specified
-   * element are available. For example, if the element is a field and the relationship is the
-   * is-referenced-by relationship, then this method will be invoked with each location at which the
-   * field is referenced.
-   *
-   * @param element the [Element] that has the relationship with the locations
-   * @param relationship the relationship between the given element and the locations
-   * @param locations the locations that were found
-   */
-  void hasRelationships(Element element, Relationship relationship, List<Location> locations);
 }

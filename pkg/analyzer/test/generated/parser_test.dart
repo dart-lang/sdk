@@ -22,6 +22,836 @@ import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show AstFactory;
 import 'element_test.dart' show ElementFactory;
 
+class NonErrorParserTest extends ParserTestCase {
+  void test_constFactory_external() {
+    ParserTestCase.parse("parseClassMember", <Object> ["C"], "external const factory C();");
+  }
+
+  static dartSuite() {
+    _ut.group('NonErrorParserTest', () {
+      _ut.test('test_constFactory_external', () {
+        final __test = new NonErrorParserTest();
+        runJUnitTest(__test, __test.test_constFactory_external);
+      });
+    });
+  }
+}
+
+class ParserTestCase extends EngineTestCase {
+  /**
+   * An empty array of objects used as arguments to zero-argument methods.
+   */
+  static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
+
+  /**
+   * A flag indicating whether parser is to parse function bodies.
+   */
+  static bool parseFunctionBodies = true;
+
+  /**
+   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
+   * type of parameters and will be invoked with the given arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the parse method is invoked.
+   *
+   * @param methodName the name of the parse method that should be invoked to parse the source
+   * @param objects the values of the arguments to the method
+   * @param source the source to be parsed by the parse method
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or if any errors are produced
+   */
+  static Object parse(String methodName, List<Object> objects, String source) => parse2(methodName, objects, source, new List<AnalysisError>(0));
+
+  /**
+   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
+   * type of parameters and will be invoked with the given arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the parse method is invoked.
+   *
+   * @param methodName the name of the parse method that should be invoked to parse the source
+   * @param objects the values of the arguments to the method
+   * @param source the source to be parsed by the parse method
+   * @param errors the errors that should be generated
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  static Object parse2(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Object result = invokeParserMethod(methodName, objects, source, listener);
+    listener.assertErrors(errors);
+    return result;
+  }
+
+  /**
+   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
+   * type of parameters and will be invoked with the given arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the parse method is invoked.
+   *
+   * @param methodName the name of the parse method that should be invoked to parse the source
+   * @param objects the values of the arguments to the method
+   * @param source the source to be parsed by the parse method
+   * @param errorCodes the error codes of the errors that should be generated
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  static Object parse3(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Object result = invokeParserMethod(methodName, objects, source, listener);
+    listener.assertErrorsWithCodes(errorCodes);
+    return result;
+  }
+
+  /**
+   * Invoke a parse method in [Parser]. The method is assumed to have no arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the parse method is invoked.
+   *
+   * @param methodName the name of the parse method that should be invoked to parse the source
+   * @param source the source to be parsed by the parse method
+   * @param errorCodes the error codes of the errors that should be generated
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  static Object parse4(String methodName, String source, List<ErrorCode> errorCodes) => parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
+
+  /**
+   * Parse the given source as a compilation unit.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    JUnitTestCase.assertNotNull(unit);
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
+  /**
+   * Parse the given source as an expression.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the expression that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Expression expression = parser.parseExpression(token);
+    JUnitTestCase.assertNotNull(expression);
+    listener.assertErrorsWithCodes(errorCodes);
+    return expression;
+  }
+
+  /**
+   * Parse the given source as a statement.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the statement that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Statement statement = parser.parseStatement(token);
+    JUnitTestCase.assertNotNull(statement);
+    listener.assertErrorsWithCodes(errorCodes);
+    return statement;
+  }
+
+  /**
+   * Parse the given source as a sequence of statements.
+   *
+   * @param source the source to be parsed
+   * @param expectedCount the number of statements that are expected
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the statements that were parsed
+   * @throws Exception if the source could not be parsed, if the number of statements does not match
+   *           the expected count, if the compilation errors in the source do not match those that
+   *           are expected, or if the result would have been `null`
+   */
+  static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    List<Statement> statements = parser.parseStatements(token);
+    EngineTestCase.assertSizeOfList(expectedCount, statements);
+    listener.assertErrorsWithCodes(errorCodes);
+    return statements;
+  }
+
+  /**
+   * Invoke a method in [Parser]. The method is assumed to have the given number and type of
+   * parameters and will be invoked with the given arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the method is invoked.
+   *
+   * @param methodName the name of the method that should be invoked
+   * @param objects the values of the arguments to the method
+   * @param source the source to be processed by the parse method
+   * @param listener the error listener that will be used for both scanning and parsing
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  static Object invokeParserMethod(String methodName, List<Object> objects, String source, GatheringErrorListener listener) {
+    //
+    // Scan the source.
+    //
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    Token tokenStream = scanner.tokenize();
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    //
+    // Parse the source.
+    //
+    Parser parser = new Parser(null, listener);
+    parser.parseFunctionBodies = parseFunctionBodies;
+    Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
+    //
+    // Partially test the results.
+    //
+    if (!listener.hasErrors) {
+      JUnitTestCase.assertNotNull(result);
+    }
+    return result;
+  }
+
+  /**
+   * Invoke a method in [Parser]. The method is assumed to have no arguments.
+   *
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the method is invoked.
+   *
+   * @param methodName the name of the method that should be invoked
+   * @param source the source to be processed by the parse method
+   * @param listener the error listener that will be used for both scanning and parsing
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is `null` or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  static Object invokeParserMethod2(String methodName, String source, GatheringErrorListener listener) => invokeParserMethod(methodName, _EMPTY_ARGUMENTS, source, listener);
+
+  /**
+   * Return a CommentAndMetadata object with the given values that can be used for testing.
+   *
+   * @param comment the comment to be wrapped in the object
+   * @param annotations the annotations to be wrapped in the object
+   * @return a CommentAndMetadata object that can be used for testing
+   */
+  CommentAndMetadata commentAndMetadata(Comment comment, List<Annotation> annotations) {
+    List<Annotation> metadata = new List<Annotation>();
+    for (Annotation annotation in annotations) {
+      metadata.add(annotation);
+    }
+    return new CommentAndMetadata(comment, metadata);
+  }
+
+  /**
+   * Return an empty CommentAndMetadata object that can be used for testing.
+   *
+   * @return an empty CommentAndMetadata object that can be used for testing
+   */
+  CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
+
+  @override
+  void setUp() {
+    super.setUp();
+    parseFunctionBodies = true;
+  }
+
+  static dartSuite() {
+    _ut.group('ParserTestCase', () {
+    });
+  }
+}
+
+/**
+ * Instances of the class `AstValidator` are used to validate the correct construction of an
+ * AST structure.
+ */
+class AstValidator extends UnifyingAstVisitor<Object> {
+  /**
+   * A list containing the errors found while traversing the AST structure.
+   */
+  List<String> _errors = new List<String>();
+
+  /**
+   * Assert that no errors were found while traversing any of the AST structures that have been
+   * visited.
+   */
+  void assertValid() {
+    if (!_errors.isEmpty) {
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("Invalid AST structure:");
+      for (String message in _errors) {
+        builder.append("\r\n   ");
+        builder.append(message);
+      }
+      JUnitTestCase.fail(builder.toString());
+    }
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    _validate(node);
+    return super.visitNode(node);
+  }
+
+  /**
+   * Validate that the given AST node is correctly constructed.
+   *
+   * @param node the AST node being validated
+   */
+  void _validate(AstNode node) {
+    AstNode parent = node.parent;
+    if (node is CompilationUnit) {
+      if (parent != null) {
+        _errors.add("Compilation units should not have a parent");
+      }
+    } else {
+      if (parent == null) {
+        _errors.add("No parent for ${node.runtimeType.toString()}");
+      }
+    }
+    if (node.beginToken == null) {
+      _errors.add("No begin token for ${node.runtimeType.toString()}");
+    }
+    if (node.endToken == null) {
+      _errors.add("No end token for ${node.runtimeType.toString()}");
+    }
+    int nodeStart = node.offset;
+    int nodeLength = node.length;
+    if (nodeStart < 0 || nodeLength < 0) {
+      _errors.add("No source info for ${node.runtimeType.toString()}");
+    }
+    if (parent != null) {
+      int nodeEnd = nodeStart + nodeLength;
+      int parentStart = parent.offset;
+      int parentEnd = parentStart + parent.length;
+      if (nodeStart < parentStart) {
+        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+      if (nodeEnd > parentEnd) {
+        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+    }
+  }
+}
+
+/**
+ * The class `ComplexParserTest` defines parser tests that test the parsing of more complex
+ * code fragments or the interactions between multiple parsing methods. For example, tests to ensure
+ * that the precedence of operations is being handled correctly should be defined in this class.
+ *
+ * Simpler tests should be defined in the class [SimpleParserTest].
+ */
+class ComplexParserTest extends ParserTestCase {
+  void test_additiveExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y - z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_additiveExpression_noSpaces() {
+    BinaryExpression expression = ParserTestCase.parseExpression("i+1", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightOperand);
+  }
+
+  void test_additiveExpression_precedence_multiplicative_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x * y + z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_additiveExpression_precedence_multiplicative_left_withSuper() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super * y - z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_additiveExpression_precedence_multiplicative_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y * z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_additiveExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super + y - z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_assignableExpression_arguments_normal_chain() {
+    PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f", []);
+    JUnitTestCase.assertEquals("f", propertyAccess1.propertyName.name);
+    //
+    // a(b)(c).d(e)
+    //
+    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, propertyAccess1.target);
+    JUnitTestCase.assertEquals("d", invocation2.methodName.name);
+    ArgumentList argumentList2 = invocation2.argumentList;
+    JUnitTestCase.assertNotNull(argumentList2);
+    EngineTestCase.assertSizeOfList(1, argumentList2.arguments);
+    //
+    // a(b)(c)
+    //
+    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
+    ArgumentList argumentList3 = invocation3.argumentList;
+    JUnitTestCase.assertNotNull(argumentList3);
+    EngineTestCase.assertSizeOfList(1, argumentList3.arguments);
+    //
+    // a(b)
+    //
+    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, invocation3.function);
+    JUnitTestCase.assertEquals("a", invocation4.methodName.name);
+    ArgumentList argumentList4 = invocation4.argumentList;
+    JUnitTestCase.assertNotNull(argumentList4);
+    EngineTestCase.assertSizeOfList(1, argumentList4.arguments);
+  }
+
+  void test_assignmentExpression_compound() {
+    AssignmentExpression expression = ParserTestCase.parseExpression("x = y = 0", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, expression.rightHandSide);
+  }
+
+  void test_assignmentExpression_indexExpression() {
+    AssignmentExpression expression = ParserTestCase.parseExpression("x[1] = 0", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
+  }
+
+  void test_assignmentExpression_prefixedIdentifier() {
+    AssignmentExpression expression = ParserTestCase.parseExpression("x.y = 0", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
+  }
+
+  void test_assignmentExpression_propertyAccess() {
+    AssignmentExpression expression = ParserTestCase.parseExpression("super.y = 0", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccess, PropertyAccess, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
+  }
+
+  void test_bitwiseAndExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x & y & z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseAndExpression_precedence_equality_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y && z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseAndExpression_precedence_equality_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y == z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_bitwiseAndExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super & y & z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseOrExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y | z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseOrExpression_precedence_xor_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y | z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseOrExpression_precedence_xor_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y ^ z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_bitwiseOrExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super | y | z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseXorExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y ^ z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseXorExpression_precedence_and_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x & y ^ z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_bitwiseXorExpression_precedence_and_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y & z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_bitwiseXorExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super ^ y ^ z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_cascade_withAssignment() {
+    CascadeExpression cascade = ParserTestCase.parseExpression("new Map()..[3] = 4 ..[0] = 11;", []);
+    Expression target = cascade.target;
+    for (Expression section in cascade.cascadeSections) {
+      EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, section);
+      Expression lhs = (section as AssignmentExpression).leftHandSide;
+      EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, lhs);
+      IndexExpression index = lhs as IndexExpression;
+      JUnitTestCase.assertTrue(index.isCascaded);
+      JUnitTestCase.assertSame(target, index.realTarget);
+    }
+  }
+
+  void test_conditionalExpression_precedence_logicalOrExpression() {
+    ConditionalExpression expression = ParserTestCase.parseExpression("a | b ? y : z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.condition);
+  }
+
+  void test_constructor_initializer_withParenthesizedExpression() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource([
+        "class C {",
+        "  C() :",
+        "    this.a = (b == null ? c : d) {",
+        "  }",
+        "}"]), []);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+  }
+
+  void test_equalityExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_equalityExpression_precedence_relational_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x is y == z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+  }
+
+  void test_equalityExpression_precedence_relational_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y is z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.rightOperand);
+  }
+
+  void test_equalityExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_logicalAndExpression() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y && z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_logicalAndExpression_precedence_bitwiseOr_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y < z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_logicalAndExpression_precedence_bitwiseOr_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x < y | z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_logicalOrExpression() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x || y || z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_logicalOrExpression_precedence_logicalAnd_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y || z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_logicalOrExpression_precedence_logicalAnd_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x || y && z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_multipleLabels_statement() {
+    LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
+    EngineTestCase.assertSizeOfList(3, statement.labels);
+    EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
+  }
+
+  void test_multiplicativeExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x * y / z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_multiplicativeExpression_precedence_unary_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("-x * y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.leftOperand);
+  }
+
+  void test_multiplicativeExpression_precedence_unary_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x * -y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.rightOperand);
+  }
+
+  void test_multiplicativeExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super * y / z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_relationalExpression_precedence_shift_right() {
+    IsExpression expression = ParserTestCase.parseExpression("x << y is z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.expression);
+  }
+
+  void test_shiftExpression_normal() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x >> 4 << 3", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_shiftExpression_precedence_additive_left() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y << z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_shiftExpression_precedence_additive_right() {
+    BinaryExpression expression = ParserTestCase.parseExpression("x << y + z", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_shiftExpression_super() {
+    BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
+  }
+
+  void test_topLevelVariable_withMetadata() {
+    ParserTestCase.parseCompilationUnit("String @A string;", []);
+  }
+
+  static dartSuite() {
+    _ut.group('ComplexParserTest', () {
+      _ut.test('test_additiveExpression_noSpaces', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_noSpaces);
+      });
+      _ut.test('test_additiveExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_normal);
+      });
+      _ut.test('test_additiveExpression_precedence_multiplicative_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_left);
+      });
+      _ut.test('test_additiveExpression_precedence_multiplicative_left_withSuper', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_left_withSuper);
+      });
+      _ut.test('test_additiveExpression_precedence_multiplicative_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_right);
+      });
+      _ut.test('test_additiveExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_additiveExpression_super);
+      });
+      _ut.test('test_assignableExpression_arguments_normal_chain', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_assignableExpression_arguments_normal_chain);
+      });
+      _ut.test('test_assignmentExpression_compound', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_assignmentExpression_compound);
+      });
+      _ut.test('test_assignmentExpression_indexExpression', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_assignmentExpression_indexExpression);
+      });
+      _ut.test('test_assignmentExpression_prefixedIdentifier', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_assignmentExpression_prefixedIdentifier);
+      });
+      _ut.test('test_assignmentExpression_propertyAccess', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_assignmentExpression_propertyAccess);
+      });
+      _ut.test('test_bitwiseAndExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseAndExpression_normal);
+      });
+      _ut.test('test_bitwiseAndExpression_precedence_equality_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseAndExpression_precedence_equality_left);
+      });
+      _ut.test('test_bitwiseAndExpression_precedence_equality_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseAndExpression_precedence_equality_right);
+      });
+      _ut.test('test_bitwiseAndExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseAndExpression_super);
+      });
+      _ut.test('test_bitwiseOrExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseOrExpression_normal);
+      });
+      _ut.test('test_bitwiseOrExpression_precedence_xor_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseOrExpression_precedence_xor_left);
+      });
+      _ut.test('test_bitwiseOrExpression_precedence_xor_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseOrExpression_precedence_xor_right);
+      });
+      _ut.test('test_bitwiseOrExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseOrExpression_super);
+      });
+      _ut.test('test_bitwiseXorExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseXorExpression_normal);
+      });
+      _ut.test('test_bitwiseXorExpression_precedence_and_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseXorExpression_precedence_and_left);
+      });
+      _ut.test('test_bitwiseXorExpression_precedence_and_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseXorExpression_precedence_and_right);
+      });
+      _ut.test('test_bitwiseXorExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_bitwiseXorExpression_super);
+      });
+      _ut.test('test_cascade_withAssignment', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_cascade_withAssignment);
+      });
+      _ut.test('test_conditionalExpression_precedence_logicalOrExpression', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_conditionalExpression_precedence_logicalOrExpression);
+      });
+      _ut.test('test_constructor_initializer_withParenthesizedExpression', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_constructor_initializer_withParenthesizedExpression);
+      });
+      _ut.test('test_equalityExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_equalityExpression_normal);
+      });
+      _ut.test('test_equalityExpression_precedence_relational_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_equalityExpression_precedence_relational_left);
+      });
+      _ut.test('test_equalityExpression_precedence_relational_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_equalityExpression_precedence_relational_right);
+      });
+      _ut.test('test_equalityExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_equalityExpression_super);
+      });
+      _ut.test('test_logicalAndExpression', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalAndExpression);
+      });
+      _ut.test('test_logicalAndExpression_precedence_bitwiseOr_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalAndExpression_precedence_bitwiseOr_left);
+      });
+      _ut.test('test_logicalAndExpression_precedence_bitwiseOr_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalAndExpression_precedence_bitwiseOr_right);
+      });
+      _ut.test('test_logicalOrExpression', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalOrExpression);
+      });
+      _ut.test('test_logicalOrExpression_precedence_logicalAnd_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_left);
+      });
+      _ut.test('test_logicalOrExpression_precedence_logicalAnd_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_right);
+      });
+      _ut.test('test_multipleLabels_statement', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_multipleLabels_statement);
+      });
+      _ut.test('test_multiplicativeExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_multiplicativeExpression_normal);
+      });
+      _ut.test('test_multiplicativeExpression_precedence_unary_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_multiplicativeExpression_precedence_unary_left);
+      });
+      _ut.test('test_multiplicativeExpression_precedence_unary_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_multiplicativeExpression_precedence_unary_right);
+      });
+      _ut.test('test_multiplicativeExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_multiplicativeExpression_super);
+      });
+      _ut.test('test_relationalExpression_precedence_shift_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_relationalExpression_precedence_shift_right);
+      });
+      _ut.test('test_shiftExpression_normal', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_shiftExpression_normal);
+      });
+      _ut.test('test_shiftExpression_precedence_additive_left', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_shiftExpression_precedence_additive_left);
+      });
+      _ut.test('test_shiftExpression_precedence_additive_right', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_shiftExpression_precedence_additive_right);
+      });
+      _ut.test('test_shiftExpression_super', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_shiftExpression_super);
+      });
+      _ut.test('test_topLevelVariable_withMetadata', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_topLevelVariable_withMetadata);
+      });
+    });
+  }
+}
+
 /**
  * The class `SimpleParserTest` defines parser tests that test individual parsing method. The
  * code fragments should be as minimal as possible in order to test the method, but should not test
@@ -6952,1568 +7782,401 @@ class AnalysisErrorListener_SimpleParserTest_computeStringValue implements Analy
   }
 }
 
-class NonErrorParserTest extends ParserTestCase {
-  void test_constFactory_external() {
-    ParserTestCase.parse("parseClassMember", <Object> ["C"], "external const factory C();");
+class IncrementalParserTest extends EngineTestCase {
+  void fail_replace_identifier_with_functionLiteral_in_initializer() {
+    // Function literals aren't allowed inside initializers; incremental parsing needs to gather
+    // the appropriate context.
+    //
+    // "class A { var a; A(b) : a = b ? b : 0 { } }"
+    // "class A { var a; A(b) : a = b ? () {} : 0 { } }"
+    _assertParse("class A { var a; A(b) : a = b ? ", "b", "() {}", " : 0 { } }");
+  }
+
+  void test_delete_everything() {
+    // "f() => a + b;"
+    // ""
+    _assertParse("", "f() => a + b;", "", "");
+  }
+
+  void test_delete_identifier_beginning() {
+    // "f() => abs + b;"
+    // "f() => s + b;"
+    _assertParse("f() => ", "ab", "", "s + b;");
+  }
+
+  void test_delete_identifier_end() {
+    // "f() => abs + b;"
+    // "f() => a + b;"
+    _assertParse("f() => a", "bs", "", " + b;");
+  }
+
+  void test_delete_identifier_middle() {
+    // "f() => abs + b;"
+    // "f() => as + b;"
+    _assertParse("f() => a", "b", "", "s + b;");
+  }
+
+  void test_delete_mergeTokens() {
+    // "f() => a + b + c;"
+    // "f() => ac;"
+    _assertParse("f() => a", " + b + ", "", "c;");
+  }
+
+  void test_insert_afterIdentifier1() {
+    // "f() => a + b;"
+    // "f() => abs + b;"
+    _assertParse("f() => a", "", "bs", " + b;");
+  }
+
+  void test_insert_afterIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + bar;"
+    _assertParse("f() => a + b", "", "ar", ";");
+  }
+
+  void test_insert_beforeIdentifier1() {
+    // "f() => a + b;"
+    // "f() => xa + b;"
+    _assertParse("f() => ", "", "x", "a + b;");
+  }
+
+  void test_insert_beforeIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + xb;"
+    _assertParse("f() => a + ", "", "x", "b;");
+  }
+
+  void test_insert_convertOneFunctionToTwo() {
+    // "f() {}"
+    // "f() => 0; g() {}"
+    _assertParse("f()", "", " => 0; g()", " {}");
+  }
+
+  void test_insert_end() {
+    // "class A {}"
+    // "class A {} class B {}"
+    _assertParse("class A {}", "", " class B {}", "");
+  }
+
+  void test_insert_insideClassBody() {
+    // "class C {C(); }"
+    // "class C { C(); }"
+    _assertParse("class C {", "", " ", "C(); }");
+  }
+
+  void test_insert_insideIdentifier() {
+    // "f() => cob;"
+    // "f() => cow.b;"
+    _assertParse("f() => co", "", "w.", "b;");
+  }
+
+  void test_insert_newIdentifier1() {
+    // "f() => a; c;"
+    // "f() => a; b c;"
+    _assertParse("f() => a;", "", " b", " c;");
+  }
+
+  void test_insert_newIdentifier2() {
+    // "f() => a;  c;"
+    // "f() => a;b  c;"
+    _assertParse("f() => a;", "", "b", "  c;");
+  }
+
+  void test_insert_newIdentifier3() {
+    // "/** A simple function. */ f() => a; c;"
+    // "/** A simple function. */ f() => a; b c;"
+    _assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
+  }
+
+  void test_insert_newIdentifier4() {
+    // "/** An [A]. */ class A {} class B { m() { return 1; } }"
+    // "/** An [A]. */ class A {} class B { m() { return 1 + 2; } }"
+    _assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
+  }
+
+  void test_insert_period() {
+    // "f() => a + b;"
+    // "f() => a + b.;"
+    _assertParse("f() => a + b", "", ".", ";");
+  }
+
+  void test_insert_period_betweenIdentifiers1() {
+    // "f() => a b;"
+    // "f() => a. b;"
+    _assertParse("f() => a", "", ".", " b;");
+  }
+
+  void test_insert_period_betweenIdentifiers2() {
+    // "f() => a b;"
+    // "f() => a .b;"
+    _assertParse("f() => a ", "", ".", "b;");
+  }
+
+  void test_insert_period_betweenIdentifiers3() {
+    // "f() => a  b;"
+    // "f() => a . b;"
+    _assertParse("f() => a ", "", ".", " b;");
+  }
+
+  void test_insert_period_insideExistingIdentifier() {
+    // "f() => ab;"
+    // "f() => a.b;"
+    _assertParse("f() => a", "", ".", "b;");
+  }
+
+  void test_insert_periodAndIdentifier() {
+    // "f() => a + b;"
+    // "f() => a + b.x;"
+    _assertParse("f() => a + b", "", ".x", ";");
+  }
+
+  void test_insert_simpleToComplexExression() {
+    // "/** An [A]. */ class A {} class B { m() => 1; }"
+    // "/** An [A]. */ class A {} class B { m() => 1 + 2; }"
+    _assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
+  }
+
+  void test_insert_whitespace_end() {
+    // "f() => a + b;"
+    // "f() => a + b; "
+    _assertParse("f() => a + b;", "", " ", "");
+  }
+
+  void test_insert_whitespace_end_multiple() {
+    // "f() => a + b;"
+    // "f() => a + b;  "
+    _assertParse("f() => a + b;", "", "  ", "");
+  }
+
+  void test_insert_whitespace_middle() {
+    // "f() => a + b;"
+    // "f() => a  + b;"
+    _assertParse("f() => a", "", " ", " + b;");
+  }
+
+  void test_replace_identifier_beginning() {
+    // "f() => bell + b;"
+    // "f() => fell + b;"
+    _assertParse("f() => ", "b", "f", "ell + b;");
+  }
+
+  void test_replace_identifier_end() {
+    // "f() => bell + b;"
+    // "f() => belt + b;"
+    _assertParse("f() => bel", "l", "t", " + b;");
+  }
+
+  void test_replace_identifier_middle() {
+    // "f() => first + b;"
+    // "f() => frost + b;"
+    _assertParse("f() => f", "ir", "ro", "st + b;");
+  }
+
+  void test_replace_multiple_partialFirstAndLast() {
+    // "f() => aa + bb;"
+    // "f() => ab * ab;"
+    _assertParse("f() => a", "a + b", "b * a", "b;");
+  }
+
+  void test_replace_operator_oneForMany() {
+    // "f() => a + b;"
+    // "f() => a * c - b;"
+    _assertParse("f() => a ", "+", "* c -", " b;");
+  }
+
+  void test_replace_operator_oneForOne() {
+    // "f() => a + b;"
+    // "f() => a * b;"
+    _assertParse("f() => a ", "+", "*", " b;");
+  }
+
+  /**
+   * Given a description of the original and modified contents, perform an incremental scan of the
+   * two pieces of text.
+   *
+   * @param prefix the unchanged text before the edit region
+   * @param removed the text that was removed from the original contents
+   * @param added the text that was added to the modified contents
+   * @param suffix the unchanged text after the edit region
+   */
+  void _assertParse(String prefix, String removed, String added, String suffix) {
+    //
+    // Compute the information needed to perform the test.
+    //
+    String originalContents = "${prefix}${removed}${suffix}";
+    String modifiedContents = "${prefix}${added}${suffix}";
+    int replaceStart = prefix.length;
+    Source source = new TestSource();
+    //
+    // Parse the original contents.
+    //
+    GatheringErrorListener originalListener = new GatheringErrorListener();
+    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
+    Token originalTokens = originalScanner.tokenize();
+    JUnitTestCase.assertNotNull(originalTokens);
+    Parser originalParser = new Parser(source, originalListener);
+    CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalTokens);
+    JUnitTestCase.assertNotNull(originalUnit);
+    //
+    // Parse the modified contents.
+    //
+    GatheringErrorListener modifiedListener = new GatheringErrorListener();
+    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
+    Token modifiedTokens = modifiedScanner.tokenize();
+    JUnitTestCase.assertNotNull(modifiedTokens);
+    Parser modifiedParser = new Parser(source, modifiedListener);
+    CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedTokens);
+    JUnitTestCase.assertNotNull(modifiedUnit);
+    //
+    // Incrementally parse the modified contents.
+    //
+    GatheringErrorListener incrementalListener = new GatheringErrorListener();
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
+    Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
+    JUnitTestCase.assertNotNull(incrementalTokens);
+    IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
+    CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.leftToken, incrementalScanner.rightToken, replaceStart, prefix.length + removed.length);
+    JUnitTestCase.assertNotNull(incrementalUnit);
+    //
+    // Validate that the results of the incremental parse are the same as the full parse of the
+    // modified source.
+    //
+    JUnitTestCase.assertTrue(AstComparator.equalNodes(modifiedUnit, incrementalUnit));
   }
 
   static dartSuite() {
-    _ut.group('NonErrorParserTest', () {
-      _ut.test('test_constFactory_external', () {
-        final __test = new NonErrorParserTest();
-        runJUnitTest(__test, __test.test_constFactory_external);
-      });
-    });
-  }
-}
-
-/**
- * The class `ComplexParserTest` defines parser tests that test the parsing of more complex
- * code fragments or the interactions between multiple parsing methods. For example, tests to ensure
- * that the precedence of operations is being handled correctly should be defined in this class.
- *
- * Simpler tests should be defined in the class [SimpleParserTest].
- */
-class ComplexParserTest extends ParserTestCase {
-  void test_additiveExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y - z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_additiveExpression_noSpaces() {
-    BinaryExpression expression = ParserTestCase.parseExpression("i+1", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightOperand);
-  }
-
-  void test_additiveExpression_precedence_multiplicative_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * y + z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super * y - z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_additiveExpression_precedence_multiplicative_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y * z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_additiveExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super + y - z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_assignableExpression_arguments_normal_chain() {
-    PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f", []);
-    JUnitTestCase.assertEquals("f", propertyAccess1.propertyName.name);
-    //
-    // a(b)(c).d(e)
-    //
-    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, propertyAccess1.target);
-    JUnitTestCase.assertEquals("d", invocation2.methodName.name);
-    ArgumentList argumentList2 = invocation2.argumentList;
-    JUnitTestCase.assertNotNull(argumentList2);
-    EngineTestCase.assertSizeOfList(1, argumentList2.arguments);
-    //
-    // a(b)(c)
-    //
-    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
-    ArgumentList argumentList3 = invocation3.argumentList;
-    JUnitTestCase.assertNotNull(argumentList3);
-    EngineTestCase.assertSizeOfList(1, argumentList3.arguments);
-    //
-    // a(b)
-    //
-    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, invocation3.function);
-    JUnitTestCase.assertEquals("a", invocation4.methodName.name);
-    ArgumentList argumentList4 = invocation4.argumentList;
-    JUnitTestCase.assertNotNull(argumentList4);
-    EngineTestCase.assertSizeOfList(1, argumentList4.arguments);
-  }
-
-  void test_assignmentExpression_compound() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x = y = 0", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, expression.rightHandSide);
-  }
-
-  void test_assignmentExpression_indexExpression() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x[1] = 0", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
-  }
-
-  void test_assignmentExpression_prefixedIdentifier() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x.y = 0", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
-  }
-
-  void test_assignmentExpression_propertyAccess() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("super.y = 0", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccess, PropertyAccess, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
-  }
-
-  void test_bitwiseAndExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x & y & z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseAndExpression_precedence_equality_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y && z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseAndExpression_precedence_equality_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y == z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_bitwiseAndExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super & y & z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseOrExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y | z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseOrExpression_precedence_xor_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y | z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseOrExpression_precedence_xor_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y ^ z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_bitwiseOrExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super | y | z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseXorExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y ^ z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseXorExpression_precedence_and_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x & y ^ z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_bitwiseXorExpression_precedence_and_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y & z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_bitwiseXorExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super ^ y ^ z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_cascade_withAssignment() {
-    CascadeExpression cascade = ParserTestCase.parseExpression("new Map()..[3] = 4 ..[0] = 11;", []);
-    Expression target = cascade.target;
-    for (Expression section in cascade.cascadeSections) {
-      EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, section);
-      Expression lhs = (section as AssignmentExpression).leftHandSide;
-      EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, lhs);
-      IndexExpression index = lhs as IndexExpression;
-      JUnitTestCase.assertTrue(index.isCascaded);
-      JUnitTestCase.assertSame(target, index.realTarget);
-    }
-  }
-
-  void test_conditionalExpression_precedence_logicalOrExpression() {
-    ConditionalExpression expression = ParserTestCase.parseExpression("a | b ? y : z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.condition);
-  }
-
-  void test_constructor_initializer_withParenthesizedExpression() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource([
-        "class C {",
-        "  C() :",
-        "    this.a = (b == null ? c : d) {",
-        "  }",
-        "}"]), []);
-    NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
-  }
-
-  void test_equalityExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x is y == z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.leftOperand);
-  }
-
-  void test_equalityExpression_precedence_relational_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y is z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.rightOperand);
-  }
-
-  void test_equalityExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_logicalAndExpression() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y && z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y < z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x < y | z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_logicalOrExpression() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x || y || z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_logicalOrExpression_precedence_logicalAnd_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y || z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_logicalOrExpression_precedence_logicalAnd_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x || y && z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_multipleLabels_statement() {
-    LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
-    EngineTestCase.assertSizeOfList(3, statement.labels);
-    EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
-  }
-
-  void test_multiplicativeExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * y / z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_multiplicativeExpression_precedence_unary_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("-x * y", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.leftOperand);
-  }
-
-  void test_multiplicativeExpression_precedence_unary_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * -y", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.rightOperand);
-  }
-
-  void test_multiplicativeExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super * y / z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_relationalExpression_precedence_shift_right() {
-    IsExpression expression = ParserTestCase.parseExpression("x << y is z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.expression);
-  }
-
-  void test_shiftExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x >> 4 << 3", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_shiftExpression_precedence_additive_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y << z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_shiftExpression_precedence_additive_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x << y + z", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
-  }
-
-  void test_shiftExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
-  }
-
-  void test_topLevelVariable_withMetadata() {
-    ParserTestCase.parseCompilationUnit("String @A string;", []);
-  }
-
-  static dartSuite() {
-    _ut.group('ComplexParserTest', () {
-      _ut.test('test_additiveExpression_noSpaces', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_noSpaces);
-      });
-      _ut.test('test_additiveExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_normal);
-      });
-      _ut.test('test_additiveExpression_precedence_multiplicative_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_left);
-      });
-      _ut.test('test_additiveExpression_precedence_multiplicative_left_withSuper', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_left_withSuper);
-      });
-      _ut.test('test_additiveExpression_precedence_multiplicative_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_precedence_multiplicative_right);
-      });
-      _ut.test('test_additiveExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_additiveExpression_super);
-      });
-      _ut.test('test_assignableExpression_arguments_normal_chain', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_assignableExpression_arguments_normal_chain);
-      });
-      _ut.test('test_assignmentExpression_compound', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_assignmentExpression_compound);
-      });
-      _ut.test('test_assignmentExpression_indexExpression', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_assignmentExpression_indexExpression);
-      });
-      _ut.test('test_assignmentExpression_prefixedIdentifier', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_assignmentExpression_prefixedIdentifier);
-      });
-      _ut.test('test_assignmentExpression_propertyAccess', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_assignmentExpression_propertyAccess);
-      });
-      _ut.test('test_bitwiseAndExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseAndExpression_normal);
-      });
-      _ut.test('test_bitwiseAndExpression_precedence_equality_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseAndExpression_precedence_equality_left);
-      });
-      _ut.test('test_bitwiseAndExpression_precedence_equality_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseAndExpression_precedence_equality_right);
-      });
-      _ut.test('test_bitwiseAndExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseAndExpression_super);
-      });
-      _ut.test('test_bitwiseOrExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseOrExpression_normal);
-      });
-      _ut.test('test_bitwiseOrExpression_precedence_xor_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseOrExpression_precedence_xor_left);
-      });
-      _ut.test('test_bitwiseOrExpression_precedence_xor_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseOrExpression_precedence_xor_right);
-      });
-      _ut.test('test_bitwiseOrExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseOrExpression_super);
-      });
-      _ut.test('test_bitwiseXorExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseXorExpression_normal);
-      });
-      _ut.test('test_bitwiseXorExpression_precedence_and_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseXorExpression_precedence_and_left);
-      });
-      _ut.test('test_bitwiseXorExpression_precedence_and_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseXorExpression_precedence_and_right);
-      });
-      _ut.test('test_bitwiseXorExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_bitwiseXorExpression_super);
-      });
-      _ut.test('test_cascade_withAssignment', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_cascade_withAssignment);
-      });
-      _ut.test('test_conditionalExpression_precedence_logicalOrExpression', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_conditionalExpression_precedence_logicalOrExpression);
-      });
-      _ut.test('test_constructor_initializer_withParenthesizedExpression', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_constructor_initializer_withParenthesizedExpression);
-      });
-      _ut.test('test_equalityExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_equalityExpression_normal);
-      });
-      _ut.test('test_equalityExpression_precedence_relational_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_equalityExpression_precedence_relational_left);
-      });
-      _ut.test('test_equalityExpression_precedence_relational_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_equalityExpression_precedence_relational_right);
-      });
-      _ut.test('test_equalityExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_equalityExpression_super);
-      });
-      _ut.test('test_logicalAndExpression', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalAndExpression);
-      });
-      _ut.test('test_logicalAndExpression_precedence_bitwiseOr_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalAndExpression_precedence_bitwiseOr_left);
-      });
-      _ut.test('test_logicalAndExpression_precedence_bitwiseOr_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalAndExpression_precedence_bitwiseOr_right);
-      });
-      _ut.test('test_logicalOrExpression', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalOrExpression);
-      });
-      _ut.test('test_logicalOrExpression_precedence_logicalAnd_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_left);
-      });
-      _ut.test('test_logicalOrExpression_precedence_logicalAnd_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_right);
-      });
-      _ut.test('test_multipleLabels_statement', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_multipleLabels_statement);
-      });
-      _ut.test('test_multiplicativeExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_multiplicativeExpression_normal);
-      });
-      _ut.test('test_multiplicativeExpression_precedence_unary_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_multiplicativeExpression_precedence_unary_left);
-      });
-      _ut.test('test_multiplicativeExpression_precedence_unary_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_multiplicativeExpression_precedence_unary_right);
-      });
-      _ut.test('test_multiplicativeExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_multiplicativeExpression_super);
-      });
-      _ut.test('test_relationalExpression_precedence_shift_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_relationalExpression_precedence_shift_right);
-      });
-      _ut.test('test_shiftExpression_normal', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_shiftExpression_normal);
-      });
-      _ut.test('test_shiftExpression_precedence_additive_left', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_shiftExpression_precedence_additive_left);
-      });
-      _ut.test('test_shiftExpression_precedence_additive_right', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_shiftExpression_precedence_additive_right);
-      });
-      _ut.test('test_shiftExpression_super', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_shiftExpression_super);
-      });
-      _ut.test('test_topLevelVariable_withMetadata', () {
-        final __test = new ComplexParserTest();
-        runJUnitTest(__test, __test.test_topLevelVariable_withMetadata);
-      });
-    });
-  }
-}
-
-class ParserTestCase extends EngineTestCase {
-  /**
-   * An empty array of objects used as arguments to zero-argument methods.
-   */
-  static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
-
-  /**
-   * A flag indicating whether parser is to parse function bodies.
-   */
-  static bool parseFunctionBodies = true;
-
-  /**
-   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
-   * type of parameters and will be invoked with the given arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   *
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param objects the values of the arguments to the method
-   * @param source the source to be parsed by the parse method
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or if any errors are produced
-   */
-  static Object parse(String methodName, List<Object> objects, String source) => parse2(methodName, objects, source, new List<AnalysisError>(0));
-
-  /**
-   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
-   * type of parameters and will be invoked with the given arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   *
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param objects the values of the arguments to the method
-   * @param source the source to be parsed by the parse method
-   * @param errors the errors that should be generated
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or the errors produced while
-   *           scanning and parsing the source do not match the expected errors
-   */
-  static Object parse2(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Object result = invokeParserMethod(methodName, objects, source, listener);
-    listener.assertErrors(errors);
-    return result;
-  }
-
-  /**
-   * Invoke a parse method in [Parser]. The method is assumed to have the given number and
-   * type of parameters and will be invoked with the given arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   *
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param objects the values of the arguments to the method
-   * @param source the source to be parsed by the parse method
-   * @param errorCodes the error codes of the errors that should be generated
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or the errors produced while
-   *           scanning and parsing the source do not match the expected errors
-   */
-  static Object parse3(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Object result = invokeParserMethod(methodName, objects, source, listener);
-    listener.assertErrorsWithCodes(errorCodes);
-    return result;
-  }
-
-  /**
-   * Invoke a parse method in [Parser]. The method is assumed to have no arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   *
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param source the source to be parsed by the parse method
-   * @param errorCodes the error codes of the errors that should be generated
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or the errors produced while
-   *           scanning and parsing the source do not match the expected errors
-   */
-  static Object parse4(String methodName, String source, List<ErrorCode> errorCodes) => parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
-
-  /**
-   * Parse the given source as a compilation unit.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the compilation unit that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
-  static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    JUnitTestCase.assertNotNull(unit);
-    listener.assertErrorsWithCodes(errorCodes);
-    return unit;
-  }
-
-  /**
-   * Parse the given source as an expression.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the expression that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
-  static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Expression expression = parser.parseExpression(token);
-    JUnitTestCase.assertNotNull(expression);
-    listener.assertErrorsWithCodes(errorCodes);
-    return expression;
-  }
-
-  /**
-   * Parse the given source as a statement.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statement that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
-  static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Statement statement = parser.parseStatement(token);
-    JUnitTestCase.assertNotNull(statement);
-    listener.assertErrorsWithCodes(errorCodes);
-    return statement;
-  }
-
-  /**
-   * Parse the given source as a sequence of statements.
-   *
-   * @param source the source to be parsed
-   * @param expectedCount the number of statements that are expected
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statements that were parsed
-   * @throws Exception if the source could not be parsed, if the number of statements does not match
-   *           the expected count, if the compilation errors in the source do not match those that
-   *           are expected, or if the result would have been `null`
-   */
-  static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    List<Statement> statements = parser.parseStatements(token);
-    EngineTestCase.assertSizeOfList(expectedCount, statements);
-    listener.assertErrorsWithCodes(errorCodes);
-    return statements;
-  }
-
-  /**
-   * Invoke a method in [Parser]. The method is assumed to have the given number and type of
-   * parameters and will be invoked with the given arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the method is invoked.
-   *
-   * @param methodName the name of the method that should be invoked
-   * @param objects the values of the arguments to the method
-   * @param source the source to be processed by the parse method
-   * @param listener the error listener that will be used for both scanning and parsing
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or the errors produced while
-   *           scanning and parsing the source do not match the expected errors
-   */
-  static Object invokeParserMethod(String methodName, List<Object> objects, String source, GatheringErrorListener listener) {
-    //
-    // Scan the source.
-    //
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-    Token tokenStream = scanner.tokenize();
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    //
-    // Parse the source.
-    //
-    Parser parser = new Parser(null, listener);
-    parser.parseFunctionBodies = parseFunctionBodies;
-    Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
-    //
-    // Partially test the results.
-    //
-    if (!listener.hasErrors) {
-      JUnitTestCase.assertNotNull(result);
-    }
-    return result;
-  }
-
-  /**
-   * Invoke a method in [Parser]. The method is assumed to have no arguments.
-   *
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the method is invoked.
-   *
-   * @param methodName the name of the method that should be invoked
-   * @param source the source to be processed by the parse method
-   * @param listener the error listener that will be used for both scanning and parsing
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   * @throws AssertionFailedError if the result is `null` or the errors produced while
-   *           scanning and parsing the source do not match the expected errors
-   */
-  static Object invokeParserMethod2(String methodName, String source, GatheringErrorListener listener) => invokeParserMethod(methodName, _EMPTY_ARGUMENTS, source, listener);
-
-  /**
-   * Return a CommentAndMetadata object with the given values that can be used for testing.
-   *
-   * @param comment the comment to be wrapped in the object
-   * @param annotations the annotations to be wrapped in the object
-   * @return a CommentAndMetadata object that can be used for testing
-   */
-  CommentAndMetadata commentAndMetadata(Comment comment, List<Annotation> annotations) {
-    List<Annotation> metadata = new List<Annotation>();
-    for (Annotation annotation in annotations) {
-      metadata.add(annotation);
-    }
-    return new CommentAndMetadata(comment, metadata);
-  }
-
-  /**
-   * Return an empty CommentAndMetadata object that can be used for testing.
-   *
-   * @return an empty CommentAndMetadata object that can be used for testing
-   */
-  CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
-
-  @override
-  void setUp() {
-    super.setUp();
-    parseFunctionBodies = true;
-  }
-
-  static dartSuite() {
-    _ut.group('ParserTestCase', () {
-    });
-  }
-}
-
-/**
- * Instances of the class `AstValidator` are used to validate the correct construction of an
- * AST structure.
- */
-class AstValidator extends UnifyingAstVisitor<Object> {
-  /**
-   * A list containing the errors found while traversing the AST structure.
-   */
-  List<String> _errors = new List<String>();
-
-  /**
-   * Assert that no errors were found while traversing any of the AST structures that have been
-   * visited.
-   */
-  void assertValid() {
-    if (!_errors.isEmpty) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("Invalid AST structure:");
-      for (String message in _errors) {
-        builder.append("\r\n   ");
-        builder.append(message);
-      }
-      JUnitTestCase.fail(builder.toString());
-    }
-  }
-
-  @override
-  Object visitNode(AstNode node) {
-    _validate(node);
-    return super.visitNode(node);
-  }
-
-  /**
-   * Validate that the given AST node is correctly constructed.
-   *
-   * @param node the AST node being validated
-   */
-  void _validate(AstNode node) {
-    AstNode parent = node.parent;
-    if (node is CompilationUnit) {
-      if (parent != null) {
-        _errors.add("Compilation units should not have a parent");
-      }
-    } else {
-      if (parent == null) {
-        _errors.add("No parent for ${node.runtimeType.toString()}");
-      }
-    }
-    if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
-    }
-    if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
-    }
-    int nodeStart = node.offset;
-    int nodeLength = node.length;
-    if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
-    }
-    if (parent != null) {
-      int nodeEnd = nodeStart + nodeLength;
-      int parentStart = parent.offset;
-      int parentEnd = parentStart + parent.length;
-      if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-      if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-    }
-  }
-}
-
-class ResolutionCopierTest extends EngineTestCase {
-  void test_visitAnnotation() {
-    String annotationName = "proxy";
-    Annotation fromNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
-    Element element = ElementFactory.topLevelVariableElement2(annotationName);
-    fromNode.element = element;
-    Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitArgumentDefinitionTest() {
-    String identifier = "p";
-    ArgumentDefinitionTest fromNode = AstFactory.argumentDefinitionTest(identifier);
-    DartType propagatedType = ElementFactory.classElement2("A", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B", []).type;
-    fromNode.staticType = staticType;
-    ArgumentDefinitionTest toNode = AstFactory.argumentDefinitionTest(identifier);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitAsExpression() {
-    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
-    DartType propagatedType = ElementFactory.classElement2("A", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B", []).type;
-    fromNode.staticType = staticType;
-    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitAssignmentExpression() {
-    AssignmentExpression fromNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitBinaryExpression() {
-    BinaryExpression fromNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitBooleanLiteral() {
-    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitCascadeExpression() {
-    CascadeExpression fromNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitCompilationUnit() {
-    CompilationUnit fromNode = AstFactory.compilationUnit();
-    CompilationUnitElement element = new CompilationUnitElementImpl("test.dart");
-    fromNode.element = element;
-    CompilationUnit toNode = AstFactory.compilationUnit();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitConditionalExpression() {
-    ConditionalExpression fromNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitConstructorDeclaration() {
-    String className = "A";
-    String constructorName = "c";
-    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
-    ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className, []), constructorName, []);
-    fromNode.element = element;
-    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitConstructorName() {
-    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A", []), "c", []);
-    fromNode.staticElement = staticElement;
-    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-  }
-
-  void test_visitDoubleLiteral() {
-    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitExportDirective() {
-    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri", []);
-    ExportElement element = new ExportElementImpl();
-    fromNode.element = element;
-    ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitFunctionExpression() {
-    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
-    MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    fromNode.element = element;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitImportDirective() {
-    ImportDirective fromNode = AstFactory.importDirective2("dart:uri", null, []);
-    ImportElement element = new ImportElementImpl(0);
-    fromNode.element = element;
-    ImportDirective toNode = AstFactory.importDirective2("dart:uri", null, []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitIndexExpression() {
-    IndexExpression fromNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
-    fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitInstanceCreationExpression() {
-    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitIntegerLiteral() {
-    IntegerLiteral fromNode = AstFactory.integer(2);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    IntegerLiteral toNode = AstFactory.integer(2);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitIsExpression() {
-    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitLibraryIdentifier() {
-    LibraryIdentifier fromNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitListLiteral() {
-    ListLiteral fromNode = AstFactory.listLiteral([]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    ListLiteral toNode = AstFactory.listLiteral([]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitMapLiteral() {
-    MapLiteral fromNode = AstFactory.mapLiteral2([]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    MapLiteral toNode = AstFactory.mapLiteral2([]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitMethodInvocation() {
-    MethodInvocation fromNode = AstFactory.methodInvocation2("m", []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitNamedExpression() {
-    NamedExpression fromNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitNullLiteral() {
-    NullLiteral fromNode = AstFactory.nullLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    NullLiteral toNode = AstFactory.nullLiteral();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitParenthesizedExpression() {
-    ParenthesizedExpression fromNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitPartDirective() {
-    PartDirective fromNode = AstFactory.partDirective2("part.dart");
-    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
-    fromNode.element = element;
-    PartDirective toNode = AstFactory.partDirective2("part.dart");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitPartOfDirective() {
-    PartOfDirective fromNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
-    fromNode.element = element;
-    PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitPostfixExpression() {
-    String variableName = "x";
-    PostfixExpression fromNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitPrefixedIdentifier() {
-    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitPrefixExpression() {
-    PrefixExpression fromNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
-    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitPropertyAccess() {
-    PropertyAccess fromNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitRedirectingConstructorInvocation() {
-    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation([]);
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
-    fromNode.staticElement = staticElement;
-    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-  }
-
-  void test_visitRethrowExpression() {
-    RethrowExpression fromNode = AstFactory.rethrowExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    RethrowExpression toNode = AstFactory.rethrowExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitSimpleIdentifier() {
-    SimpleIdentifier fromNode = AstFactory.identifier3("x");
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
-    fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    SimpleIdentifier toNode = AstFactory.identifier3("x");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitSimpleStringLiteral() {
-    SimpleStringLiteral fromNode = AstFactory.string2("abc");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    SimpleStringLiteral toNode = AstFactory.string2("abc");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitStringInterpolation() {
-    StringInterpolation fromNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitSuperConstructorInvocation() {
-    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation([]);
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
-    fromNode.staticElement = staticElement;
-    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-  }
-
-  void test_visitSuperExpression() {
-    SuperExpression fromNode = AstFactory.superExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    SuperExpression toNode = AstFactory.superExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitSymbolLiteral() {
-    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitThisExpression() {
-    ThisExpression fromNode = AstFactory.thisExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    ThisExpression toNode = AstFactory.thisExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitThrowExpression() {
-    ThrowExpression fromNode = AstFactory.throwExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    fromNode.staticType = staticType;
-    ThrowExpression toNode = AstFactory.throwExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
-  }
-
-  void test_visitTypeName() {
-    TypeName fromNode = AstFactory.typeName4("C", []);
-    DartType type = ElementFactory.classElement2("C", []).type;
-    fromNode.type = type;
-    TypeName toNode = AstFactory.typeName4("C", []);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(type, toNode.type);
-  }
-
-  static dartSuite() {
-    _ut.group('ResolutionCopierTest', () {
-      _ut.test('test_visitAnnotation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitAnnotation);
-      });
-      _ut.test('test_visitArgumentDefinitionTest', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
-      });
-      _ut.test('test_visitAsExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitAsExpression);
-      });
-      _ut.test('test_visitAssignmentExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitAssignmentExpression);
-      });
-      _ut.test('test_visitBinaryExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitBinaryExpression);
-      });
-      _ut.test('test_visitBooleanLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitBooleanLiteral);
-      });
-      _ut.test('test_visitCascadeExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitCascadeExpression);
-      });
-      _ut.test('test_visitCompilationUnit', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitCompilationUnit);
-      });
-      _ut.test('test_visitConditionalExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitConditionalExpression);
-      });
-      _ut.test('test_visitConstructorDeclaration', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitConstructorDeclaration);
-      });
-      _ut.test('test_visitConstructorName', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitConstructorName);
-      });
-      _ut.test('test_visitDoubleLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitDoubleLiteral);
-      });
-      _ut.test('test_visitExportDirective', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitExportDirective);
-      });
-      _ut.test('test_visitFunctionExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitFunctionExpression);
-      });
-      _ut.test('test_visitFunctionExpressionInvocation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitFunctionExpressionInvocation);
-      });
-      _ut.test('test_visitImportDirective', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitImportDirective);
-      });
-      _ut.test('test_visitIndexExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitIndexExpression);
-      });
-      _ut.test('test_visitInstanceCreationExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitInstanceCreationExpression);
-      });
-      _ut.test('test_visitIntegerLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitIntegerLiteral);
-      });
-      _ut.test('test_visitIsExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitIsExpression);
-      });
-      _ut.test('test_visitLibraryIdentifier', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitLibraryIdentifier);
-      });
-      _ut.test('test_visitListLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitListLiteral);
-      });
-      _ut.test('test_visitMapLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitMapLiteral);
-      });
-      _ut.test('test_visitMethodInvocation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitMethodInvocation);
-      });
-      _ut.test('test_visitNamedExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitNamedExpression);
-      });
-      _ut.test('test_visitNullLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitNullLiteral);
-      });
-      _ut.test('test_visitParenthesizedExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitParenthesizedExpression);
-      });
-      _ut.test('test_visitPartDirective', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPartDirective);
-      });
-      _ut.test('test_visitPartOfDirective', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPartOfDirective);
-      });
-      _ut.test('test_visitPostfixExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPostfixExpression);
-      });
-      _ut.test('test_visitPrefixExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPrefixExpression);
-      });
-      _ut.test('test_visitPrefixedIdentifier', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPrefixedIdentifier);
-      });
-      _ut.test('test_visitPropertyAccess', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitPropertyAccess);
-      });
-      _ut.test('test_visitRedirectingConstructorInvocation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitRedirectingConstructorInvocation);
-      });
-      _ut.test('test_visitRethrowExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitRethrowExpression);
-      });
-      _ut.test('test_visitSimpleIdentifier', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitSimpleIdentifier);
-      });
-      _ut.test('test_visitSimpleStringLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitSimpleStringLiteral);
-      });
-      _ut.test('test_visitStringInterpolation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitStringInterpolation);
-      });
-      _ut.test('test_visitSuperConstructorInvocation', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitSuperConstructorInvocation);
-      });
-      _ut.test('test_visitSuperExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitSuperExpression);
-      });
-      _ut.test('test_visitSymbolLiteral', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitSymbolLiteral);
-      });
-      _ut.test('test_visitThisExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitThisExpression);
-      });
-      _ut.test('test_visitThrowExpression', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitThrowExpression);
-      });
-      _ut.test('test_visitTypeName', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitTypeName);
+    _ut.group('IncrementalParserTest', () {
+      _ut.test('test_delete_everything', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_everything);
+      });
+      _ut.test('test_delete_identifier_beginning', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_identifier_beginning);
+      });
+      _ut.test('test_delete_identifier_end', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_identifier_end);
+      });
+      _ut.test('test_delete_identifier_middle', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_identifier_middle);
+      });
+      _ut.test('test_delete_mergeTokens', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_mergeTokens);
+      });
+      _ut.test('test_insert_afterIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_afterIdentifier1);
+      });
+      _ut.test('test_insert_afterIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_afterIdentifier2);
+      });
+      _ut.test('test_insert_beforeIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_beforeIdentifier1);
+      });
+      _ut.test('test_insert_beforeIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_beforeIdentifier2);
+      });
+      _ut.test('test_insert_convertOneFunctionToTwo', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_convertOneFunctionToTwo);
+      });
+      _ut.test('test_insert_end', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_end);
+      });
+      _ut.test('test_insert_insideClassBody', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_insideClassBody);
+      });
+      _ut.test('test_insert_insideIdentifier', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_insideIdentifier);
+      });
+      _ut.test('test_insert_newIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier1);
+      });
+      _ut.test('test_insert_newIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier2);
+      });
+      _ut.test('test_insert_newIdentifier3', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier3);
+      });
+      _ut.test('test_insert_newIdentifier4', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier4);
+      });
+      _ut.test('test_insert_period', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period);
+      });
+      _ut.test('test_insert_periodAndIdentifier', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_periodAndIdentifier);
+      });
+      _ut.test('test_insert_period_betweenIdentifiers1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers1);
+      });
+      _ut.test('test_insert_period_betweenIdentifiers2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers2);
+      });
+      _ut.test('test_insert_period_betweenIdentifiers3', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers3);
+      });
+      _ut.test('test_insert_period_insideExistingIdentifier', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period_insideExistingIdentifier);
+      });
+      _ut.test('test_insert_simpleToComplexExression', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_simpleToComplexExression);
+      });
+      _ut.test('test_insert_whitespace_end', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_whitespace_end);
+      });
+      _ut.test('test_insert_whitespace_end_multiple', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_whitespace_end_multiple);
+      });
+      _ut.test('test_insert_whitespace_middle', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_whitespace_middle);
+      });
+      _ut.test('test_replace_identifier_beginning', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_identifier_beginning);
+      });
+      _ut.test('test_replace_identifier_end', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_identifier_end);
+      });
+      _ut.test('test_replace_identifier_middle', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_identifier_middle);
+      });
+      _ut.test('test_replace_multiple_partialFirstAndLast', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_multiple_partialFirstAndLast);
+      });
+      _ut.test('test_replace_operator_oneForMany', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_operator_oneForMany);
+      });
+      _ut.test('test_replace_operator_oneForOne', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_operator_oneForOne);
       });
     });
   }
@@ -9464,401 +9127,738 @@ class RecoveryParserTest extends ParserTestCase {
   }
 }
 
-class IncrementalParserTest extends EngineTestCase {
-  void fail_replace_identifier_with_functionLiteral_in_initializer() {
-    // Function literals aren't allowed inside initializers; incremental parsing needs to gather
-    // the appropriate context.
-    //
-    // "class A { var a; A(b) : a = b ? b : 0 { } }"
-    // "class A { var a; A(b) : a = b ? () {} : 0 { } }"
-    _assertParse("class A { var a; A(b) : a = b ? ", "b", "() {}", " : 0 { } }");
+class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAnnotation() {
+    String annotationName = "proxy";
+    Annotation fromNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
+    Element element = ElementFactory.topLevelVariableElement2(annotationName);
+    fromNode.element = element;
+    Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_delete_everything() {
-    // "f() => a + b;"
-    // ""
-    _assertParse("", "f() => a + b;", "", "");
+  void test_visitArgumentDefinitionTest() {
+    String identifier = "p";
+    ArgumentDefinitionTest fromNode = AstFactory.argumentDefinitionTest(identifier);
+    DartType propagatedType = ElementFactory.classElement2("A", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B", []).type;
+    fromNode.staticType = staticType;
+    ArgumentDefinitionTest toNode = AstFactory.argumentDefinitionTest(identifier);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_delete_identifier_beginning() {
-    // "f() => abs + b;"
-    // "f() => s + b;"
-    _assertParse("f() => ", "ab", "", "s + b;");
+  void test_visitAsExpression() {
+    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
+    DartType propagatedType = ElementFactory.classElement2("A", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B", []).type;
+    fromNode.staticType = staticType;
+    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_delete_identifier_end() {
-    // "f() => abs + b;"
-    // "f() => a + b;"
-    _assertParse("f() => a", "bs", "", " + b;");
+  void test_visitAssignmentExpression() {
+    AssignmentExpression fromNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_delete_identifier_middle() {
-    // "f() => abs + b;"
-    // "f() => as + b;"
-    _assertParse("f() => a", "b", "", "s + b;");
+  void test_visitBinaryExpression() {
+    BinaryExpression fromNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_delete_mergeTokens() {
-    // "f() => a + b + c;"
-    // "f() => ac;"
-    _assertParse("f() => a", " + b + ", "", "c;");
+  void test_visitBooleanLiteral() {
+    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_afterIdentifier1() {
-    // "f() => a + b;"
-    // "f() => abs + b;"
-    _assertParse("f() => a", "", "bs", " + b;");
+  void test_visitCascadeExpression() {
+    CascadeExpression fromNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_afterIdentifier2() {
-    // "f() => a + b;"
-    // "f() => a + bar;"
-    _assertParse("f() => a + b", "", "ar", ";");
+  void test_visitCompilationUnit() {
+    CompilationUnit fromNode = AstFactory.compilationUnit();
+    CompilationUnitElement element = new CompilationUnitElementImpl("test.dart");
+    fromNode.element = element;
+    CompilationUnit toNode = AstFactory.compilationUnit();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_insert_beforeIdentifier1() {
-    // "f() => a + b;"
-    // "f() => xa + b;"
-    _assertParse("f() => ", "", "x", "a + b;");
+  void test_visitConditionalExpression() {
+    ConditionalExpression fromNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_beforeIdentifier2() {
-    // "f() => a + b;"
-    // "f() => a + xb;"
-    _assertParse("f() => a + ", "", "x", "b;");
+  void test_visitConstructorDeclaration() {
+    String className = "A";
+    String constructorName = "c";
+    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
+    ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className, []), constructorName, []);
+    fromNode.element = element;
+    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_insert_convertOneFunctionToTwo() {
-    // "f() {}"
-    // "f() => 0; g() {}"
-    _assertParse("f()", "", " => 0; g()", " {}");
+  void test_visitConstructorName() {
+    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A", []), "c", []);
+    fromNode.staticElement = staticElement;
+    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
-  void test_insert_end() {
-    // "class A {}"
-    // "class A {} class B {}"
-    _assertParse("class A {}", "", " class B {}", "");
+  void test_visitDoubleLiteral() {
+    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_insideClassBody() {
-    // "class C {C(); }"
-    // "class C { C(); }"
-    _assertParse("class C {", "", " ", "C(); }");
+  void test_visitExportDirective() {
+    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri", []);
+    ExportElement element = new ExportElementImpl();
+    fromNode.element = element;
+    ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_insert_insideIdentifier() {
-    // "f() => cob;"
-    // "f() => cow.b;"
-    _assertParse("f() => co", "", "w.", "b;");
+  void test_visitFunctionExpression() {
+    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
+    MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.element = element;
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_newIdentifier1() {
-    // "f() => a; c;"
-    // "f() => a; b c;"
-    _assertParse("f() => a;", "", " b", " c;");
+  void test_visitFunctionExpressionInvocation() {
+    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_newIdentifier2() {
-    // "f() => a;  c;"
-    // "f() => a;b  c;"
-    _assertParse("f() => a;", "", "b", "  c;");
+  void test_visitImportDirective() {
+    ImportDirective fromNode = AstFactory.importDirective2("dart:uri", null, []);
+    ImportElement element = new ImportElementImpl(0);
+    fromNode.element = element;
+    ImportDirective toNode = AstFactory.importDirective2("dart:uri", null, []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_insert_newIdentifier3() {
-    // "/** A simple function. */ f() => a; c;"
-    // "/** A simple function. */ f() => a; b c;"
-    _assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
+  void test_visitIndexExpression() {
+    IndexExpression fromNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_newIdentifier4() {
-    // "/** An [A]. */ class A {} class B { m() { return 1; } }"
-    // "/** An [A]. */ class A {} class B { m() { return 1 + 2; } }"
-    _assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
+  void test_visitInstanceCreationExpression() {
+    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_period() {
-    // "f() => a + b;"
-    // "f() => a + b.;"
-    _assertParse("f() => a + b", "", ".", ";");
+  void test_visitIntegerLiteral() {
+    IntegerLiteral fromNode = AstFactory.integer(2);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IntegerLiteral toNode = AstFactory.integer(2);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_period_betweenIdentifiers1() {
-    // "f() => a b;"
-    // "f() => a. b;"
-    _assertParse("f() => a", "", ".", " b;");
+  void test_visitIsExpression() {
+    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_period_betweenIdentifiers2() {
-    // "f() => a b;"
-    // "f() => a .b;"
-    _assertParse("f() => a ", "", ".", "b;");
+  void test_visitLibraryIdentifier() {
+    LibraryIdentifier fromNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_period_betweenIdentifiers3() {
-    // "f() => a  b;"
-    // "f() => a . b;"
-    _assertParse("f() => a ", "", ".", " b;");
+  void test_visitListLiteral() {
+    ListLiteral fromNode = AstFactory.listLiteral([]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ListLiteral toNode = AstFactory.listLiteral([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_period_insideExistingIdentifier() {
-    // "f() => ab;"
-    // "f() => a.b;"
-    _assertParse("f() => a", "", ".", "b;");
+  void test_visitMapLiteral() {
+    MapLiteral fromNode = AstFactory.mapLiteral2([]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    MapLiteral toNode = AstFactory.mapLiteral2([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_periodAndIdentifier() {
-    // "f() => a + b;"
-    // "f() => a + b.x;"
-    _assertParse("f() => a + b", "", ".x", ";");
+  void test_visitMethodInvocation() {
+    MethodInvocation fromNode = AstFactory.methodInvocation2("m", []);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_simpleToComplexExression() {
-    // "/** An [A]. */ class A {} class B { m() => 1; }"
-    // "/** An [A]. */ class A {} class B { m() => 1 + 2; }"
-    _assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
+  void test_visitNamedExpression() {
+    NamedExpression fromNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_whitespace_end() {
-    // "f() => a + b;"
-    // "f() => a + b; "
-    _assertParse("f() => a + b;", "", " ", "");
+  void test_visitNullLiteral() {
+    NullLiteral fromNode = AstFactory.nullLiteral();
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    NullLiteral toNode = AstFactory.nullLiteral();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_whitespace_end_multiple() {
-    // "f() => a + b;"
-    // "f() => a + b;  "
-    _assertParse("f() => a + b;", "", "  ", "");
+  void test_visitParenthesizedExpression() {
+    ParenthesizedExpression fromNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_insert_whitespace_middle() {
-    // "f() => a + b;"
-    // "f() => a  + b;"
-    _assertParse("f() => a", "", " ", " + b;");
+  void test_visitPartDirective() {
+    PartDirective fromNode = AstFactory.partDirective2("part.dart");
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartDirective toNode = AstFactory.partDirective2("part.dart");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_replace_identifier_beginning() {
-    // "f() => bell + b;"
-    // "f() => fell + b;"
-    _assertParse("f() => ", "b", "f", "ell + b;");
+  void test_visitPartOfDirective() {
+    PartOfDirective fromNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
   }
 
-  void test_replace_identifier_end() {
-    // "f() => bell + b;"
-    // "f() => belt + b;"
-    _assertParse("f() => bel", "l", "t", " + b;");
+  void test_visitPostfixExpression() {
+    String variableName = "x";
+    PostfixExpression fromNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_replace_identifier_middle() {
-    // "f() => first + b;"
-    // "f() => frost + b;"
-    _assertParse("f() => f", "ir", "ro", "st + b;");
+  void test_visitPrefixedIdentifier() {
+    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_replace_multiple_partialFirstAndLast() {
-    // "f() => aa + bb;"
-    // "f() => ab * ab;"
-    _assertParse("f() => a", "a + b", "b * a", "b;");
+  void test_visitPrefixExpression() {
+    PrefixExpression fromNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_replace_operator_oneForMany() {
-    // "f() => a + b;"
-    // "f() => a * c - b;"
-    _assertParse("f() => a ", "+", "* c -", " b;");
+  void test_visitPropertyAccess() {
+    PropertyAccess fromNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
-  void test_replace_operator_oneForOne() {
-    // "f() => a + b;"
-    // "f() => a * b;"
-    _assertParse("f() => a ", "+", "*", " b;");
+  void test_visitRedirectingConstructorInvocation() {
+    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation([]);
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    fromNode.staticElement = staticElement;
+    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
-  /**
-   * Given a description of the original and modified contents, perform an incremental scan of the
-   * two pieces of text.
-   *
-   * @param prefix the unchanged text before the edit region
-   * @param removed the text that was removed from the original contents
-   * @param added the text that was added to the modified contents
-   * @param suffix the unchanged text after the edit region
-   */
-  void _assertParse(String prefix, String removed, String added, String suffix) {
-    //
-    // Compute the information needed to perform the test.
-    //
-    String originalContents = "${prefix}${removed}${suffix}";
-    String modifiedContents = "${prefix}${added}${suffix}";
-    int replaceStart = prefix.length;
-    Source source = new TestSource();
-    //
-    // Parse the original contents.
-    //
-    GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
-    Token originalTokens = originalScanner.tokenize();
-    JUnitTestCase.assertNotNull(originalTokens);
-    Parser originalParser = new Parser(source, originalListener);
-    CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalTokens);
-    JUnitTestCase.assertNotNull(originalUnit);
-    //
-    // Parse the modified contents.
-    //
-    GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
-    Token modifiedTokens = modifiedScanner.tokenize();
-    JUnitTestCase.assertNotNull(modifiedTokens);
-    Parser modifiedParser = new Parser(source, modifiedListener);
-    CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedTokens);
-    JUnitTestCase.assertNotNull(modifiedUnit);
-    //
-    // Incrementally parse the modified contents.
-    //
-    GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
-    Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
-    JUnitTestCase.assertNotNull(incrementalTokens);
-    IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
-    CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.leftToken, incrementalScanner.rightToken, replaceStart, prefix.length + removed.length);
-    JUnitTestCase.assertNotNull(incrementalUnit);
-    //
-    // Validate that the results of the incremental parse are the same as the full parse of the
-    // modified source.
-    //
-    JUnitTestCase.assertTrue(AstComparator.equalNodes(modifiedUnit, incrementalUnit));
+  void test_visitRethrowExpression() {
+    RethrowExpression fromNode = AstFactory.rethrowExpression();
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    RethrowExpression toNode = AstFactory.rethrowExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitSimpleIdentifier() {
+    SimpleIdentifier fromNode = AstFactory.identifier3("x");
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SimpleIdentifier toNode = AstFactory.identifier3("x");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitSimpleStringLiteral() {
+    SimpleStringLiteral fromNode = AstFactory.string2("abc");
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SimpleStringLiteral toNode = AstFactory.string2("abc");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitStringInterpolation() {
+    StringInterpolation fromNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitSuperConstructorInvocation() {
+    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation([]);
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    fromNode.staticElement = staticElement;
+    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+  }
+
+  void test_visitSuperExpression() {
+    SuperExpression fromNode = AstFactory.superExpression();
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SuperExpression toNode = AstFactory.superExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitSymbolLiteral() {
+    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitThisExpression() {
+    ThisExpression fromNode = AstFactory.thisExpression();
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ThisExpression toNode = AstFactory.thisExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitThrowExpression() {
+    ThrowExpression fromNode = AstFactory.throwExpression();
+    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ThrowExpression toNode = AstFactory.throwExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+
+  void test_visitTypeName() {
+    TypeName fromNode = AstFactory.typeName4("C", []);
+    DartType type = ElementFactory.classElement2("C", []).type;
+    fromNode.type = type;
+    TypeName toNode = AstFactory.typeName4("C", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(type, toNode.type);
   }
 
   static dartSuite() {
-    _ut.group('IncrementalParserTest', () {
-      _ut.test('test_delete_everything', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_delete_everything);
+    _ut.group('ResolutionCopierTest', () {
+      _ut.test('test_visitAnnotation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAnnotation);
       });
-      _ut.test('test_delete_identifier_beginning', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_delete_identifier_beginning);
+      _ut.test('test_visitArgumentDefinitionTest', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
       });
-      _ut.test('test_delete_identifier_end', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_delete_identifier_end);
+      _ut.test('test_visitAsExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAsExpression);
       });
-      _ut.test('test_delete_identifier_middle', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_delete_identifier_middle);
+      _ut.test('test_visitAssignmentExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAssignmentExpression);
       });
-      _ut.test('test_delete_mergeTokens', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_delete_mergeTokens);
+      _ut.test('test_visitBinaryExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitBinaryExpression);
       });
-      _ut.test('test_insert_afterIdentifier1', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_afterIdentifier1);
+      _ut.test('test_visitBooleanLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitBooleanLiteral);
       });
-      _ut.test('test_insert_afterIdentifier2', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_afterIdentifier2);
+      _ut.test('test_visitCascadeExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitCascadeExpression);
       });
-      _ut.test('test_insert_beforeIdentifier1', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_beforeIdentifier1);
+      _ut.test('test_visitCompilationUnit', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitCompilationUnit);
       });
-      _ut.test('test_insert_beforeIdentifier2', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_beforeIdentifier2);
+      _ut.test('test_visitConditionalExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConditionalExpression);
       });
-      _ut.test('test_insert_convertOneFunctionToTwo', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_convertOneFunctionToTwo);
+      _ut.test('test_visitConstructorDeclaration', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConstructorDeclaration);
       });
-      _ut.test('test_insert_end', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_end);
+      _ut.test('test_visitConstructorName', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConstructorName);
       });
-      _ut.test('test_insert_insideClassBody', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_insideClassBody);
+      _ut.test('test_visitDoubleLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitDoubleLiteral);
       });
-      _ut.test('test_insert_insideIdentifier', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_insideIdentifier);
+      _ut.test('test_visitExportDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitExportDirective);
       });
-      _ut.test('test_insert_newIdentifier1', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_newIdentifier1);
+      _ut.test('test_visitFunctionExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitFunctionExpression);
       });
-      _ut.test('test_insert_newIdentifier2', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_newIdentifier2);
+      _ut.test('test_visitFunctionExpressionInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitFunctionExpressionInvocation);
       });
-      _ut.test('test_insert_newIdentifier3', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_newIdentifier3);
+      _ut.test('test_visitImportDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitImportDirective);
       });
-      _ut.test('test_insert_newIdentifier4', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_newIdentifier4);
+      _ut.test('test_visitIndexExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIndexExpression);
       });
-      _ut.test('test_insert_period', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_period);
+      _ut.test('test_visitInstanceCreationExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitInstanceCreationExpression);
       });
-      _ut.test('test_insert_periodAndIdentifier', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_periodAndIdentifier);
+      _ut.test('test_visitIntegerLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIntegerLiteral);
       });
-      _ut.test('test_insert_period_betweenIdentifiers1', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers1);
+      _ut.test('test_visitIsExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIsExpression);
       });
-      _ut.test('test_insert_period_betweenIdentifiers2', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers2);
+      _ut.test('test_visitLibraryIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitLibraryIdentifier);
       });
-      _ut.test('test_insert_period_betweenIdentifiers3', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers3);
+      _ut.test('test_visitListLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitListLiteral);
       });
-      _ut.test('test_insert_period_insideExistingIdentifier', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_period_insideExistingIdentifier);
+      _ut.test('test_visitMapLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitMapLiteral);
       });
-      _ut.test('test_insert_simpleToComplexExression', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_simpleToComplexExression);
+      _ut.test('test_visitMethodInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitMethodInvocation);
       });
-      _ut.test('test_insert_whitespace_end', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_whitespace_end);
+      _ut.test('test_visitNamedExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitNamedExpression);
       });
-      _ut.test('test_insert_whitespace_end_multiple', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_whitespace_end_multiple);
+      _ut.test('test_visitNullLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitNullLiteral);
       });
-      _ut.test('test_insert_whitespace_middle', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_insert_whitespace_middle);
+      _ut.test('test_visitParenthesizedExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitParenthesizedExpression);
       });
-      _ut.test('test_replace_identifier_beginning', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_identifier_beginning);
+      _ut.test('test_visitPartDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPartDirective);
       });
-      _ut.test('test_replace_identifier_end', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_identifier_end);
+      _ut.test('test_visitPartOfDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPartOfDirective);
       });
-      _ut.test('test_replace_identifier_middle', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_identifier_middle);
+      _ut.test('test_visitPostfixExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPostfixExpression);
       });
-      _ut.test('test_replace_multiple_partialFirstAndLast', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_multiple_partialFirstAndLast);
+      _ut.test('test_visitPrefixExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPrefixExpression);
       });
-      _ut.test('test_replace_operator_oneForMany', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_operator_oneForMany);
+      _ut.test('test_visitPrefixedIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPrefixedIdentifier);
       });
-      _ut.test('test_replace_operator_oneForOne', () {
-        final __test = new IncrementalParserTest();
-        runJUnitTest(__test, __test.test_replace_operator_oneForOne);
+      _ut.test('test_visitPropertyAccess', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPropertyAccess);
+      });
+      _ut.test('test_visitRedirectingConstructorInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitRedirectingConstructorInvocation);
+      });
+      _ut.test('test_visitRethrowExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitRethrowExpression);
+      });
+      _ut.test('test_visitSimpleIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSimpleIdentifier);
+      });
+      _ut.test('test_visitSimpleStringLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSimpleStringLiteral);
+      });
+      _ut.test('test_visitStringInterpolation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitStringInterpolation);
+      });
+      _ut.test('test_visitSuperConstructorInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSuperConstructorInvocation);
+      });
+      _ut.test('test_visitSuperExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSuperExpression);
+      });
+      _ut.test('test_visitSymbolLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSymbolLiteral);
+      });
+      _ut.test('test_visitThisExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitThisExpression);
+      });
+      _ut.test('test_visitThrowExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitThrowExpression);
+      });
+      _ut.test('test_visitTypeName', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitTypeName);
       });
     });
   }

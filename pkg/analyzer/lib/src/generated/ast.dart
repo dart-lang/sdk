@@ -9473,6 +9473,27 @@ class PrefixedIdentifier extends Identifier {
   }
 
   /**
+   * Return `true` if this type is a deferred type.
+   *
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form </i>p.T</i> where <i>p</i>
+   * is a deferred prefix.
+   *
+   * @return `true` if this type is a deferred type
+   */
+  bool get isDeferred {
+    Element element = _prefix.staticElement;
+    if (element is! PrefixElement) {
+      return false;
+    }
+    PrefixElement prefixElement = element as PrefixElement;
+    List<ImportElement> imports = prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
+    if (imports.length != 1) {
+      return false;
+    }
+    return imports[0].isDeferred;
+  }
+
+  /**
    * Set the identifier being prefixed to the given identifier.
    *
    * @param identifier the identifier being prefixed
@@ -11429,6 +11450,22 @@ class TypeName extends AstNode {
    */
   TypeArgumentList get typeArguments => _typeArguments;
 
+  /**
+   * Return `true` if this type is a deferred type.
+   *
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form </i>p.T</i> where <i>p</i>
+   * is a deferred prefix.
+   *
+   * @return `true` if this type is a deferred type
+   */
+  bool get isDeferred {
+    Identifier identifier = name;
+    if (identifier is! PrefixedIdentifier) {
+      return false;
+    }
+    return (identifier as PrefixedIdentifier).isDeferred;
+  }
+
   @override
   bool get isSynthetic => _name.isSynthetic && _typeArguments == null;
 
@@ -11670,6 +11707,11 @@ abstract class UriBasedDirective extends Directive {
   StringLiteral _uri;
 
   /**
+   * The prefix of a URI using the `dart-ext` scheme to reference a native code library.
+   */
+  static String _DART_EXT_SCHEME = "dart-ext:";
+
+  /**
    * The content of the URI.
    */
   String uriContent;
@@ -11715,11 +11757,54 @@ abstract class UriBasedDirective extends Directive {
     this._uri = becomeParentOf(uri);
   }
 
+  /**
+   * Validate the given directive, but do not check for existance.
+   *
+   * @return a code indicating the problem if there is one, or `null` no problem
+   */
+  UriValidationCode validate() {
+    StringLiteral uriLiteral = uri;
+    if (uriLiteral is StringInterpolation) {
+      return UriValidationCode.URI_WITH_INTERPOLATION;
+    }
+    String uriContent = this.uriContent;
+    if (uriContent == null) {
+      return UriValidationCode.INVALID_URI;
+    }
+    if (this is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+      return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
+    }
+    try {
+      parseUriWithException(Uri.encodeFull(uriContent));
+    } on URISyntaxException catch (exception) {
+      return UriValidationCode.INVALID_URI;
+    }
+    return null;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_uri, visitor);
   }
+}
+
+/**
+ * Validation codes returned by [UriBasedDirective#validate].
+ */
+class UriValidationCode extends Enum<UriValidationCode> {
+  static const UriValidationCode INVALID_URI = const UriValidationCode('INVALID_URI', 0);
+
+  static const UriValidationCode URI_WITH_INTERPOLATION = const UriValidationCode('URI_WITH_INTERPOLATION', 1);
+
+  static const UriValidationCode URI_WITH_DART_EXT_SCHEME = const UriValidationCode('URI_WITH_DART_EXT_SCHEME', 2);
+
+  static const List<UriValidationCode> values = const [
+      INVALID_URI,
+      URI_WITH_INTERPOLATION,
+      URI_WITH_DART_EXT_SCHEME];
+
+  const UriValidationCode(String name, int ordinal) : super(name, ordinal);
 }
 
 /**

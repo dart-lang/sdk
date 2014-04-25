@@ -19,620 +19,61 @@ import 'element.dart';
 import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver, ExpressionVisitor;
 
 /**
- * Instances of the class `Token` represent a token that was scanned from the input. Each
- * token knows which token follows it, acting as the head of a linked list of tokens.
+ * Instances of the class `XmlExpression` represent an abstract expression embedded into
+ * [XmlNode].
  */
-class Token {
+abstract class XmlExpression {
   /**
-   * The offset from the beginning of the file to the first character in the token.
+   * An empty array of expressions.
    */
-  final int offset;
+  static List<XmlExpression> EMPTY_ARRAY = new List<XmlExpression>(0);
 
   /**
-   * The previous token in the token stream.
+   * Check if the given offset belongs to the expression's source range.
    */
-  Token previous;
+  bool contains(int offset) => this.offset <= offset && offset < end;
 
   /**
-   * The next token in the token stream.
-   */
-  Token _next;
-
-  /**
-   * The type of the token.
-   */
-  final TokenType type;
-
-  /**
-   * The lexeme represented by this token.
-   */
-  String _value;
-
-  /**
-   * Initialize a newly created token.
+   * Return the offset of the character immediately following the last character of this
+   * expression's source range. This is equivalent to `getOffset() + getLength()`.
    *
-   * @param type the token type (not `null`)
-   * @param offset the offset from the beginning of the file to the first character in the token
+   * @return the offset of the character just past the expression's source range
    */
-  Token.con1(TokenType type, int offset) : this.con2(type, offset, type.lexeme);
+  int get end;
 
   /**
-   * Initialize a newly created token.
-   *
-   * @param type the token type (not `null`)
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param value the lexeme represented by this token (not `null`)
+   * Return the number of characters in the expression's source range.
    */
-  Token.con2(this.type, this.offset, String value) {
-    this._value = StringUtilities.intern(value);
-  }
+  int get length;
 
   /**
-   * Return the offset from the beginning of the file to the character after last character of the
-   * token.
-   *
-   * @return the offset from the beginning of the file to the first character after last character
-   *         of the token
+   * Return the offset of the first character in the expression's source range.
    */
-  int get end => offset + length;
+  int get offset;
 
   /**
-   * Return the number of characters in the node's source range.
+   * Return the [Reference] at the given offset.
    *
-   * @return the number of characters in the node's source range
+   * @param offset the offset from the beginning of the file
+   * @return the [Reference] at the given offset, maybe `null`
    */
-  int get length => lexeme.length;
-
-  /**
-   * Return the lexeme that represents this token.
-   *
-   * @return the lexeme (not `null`)
-   */
-  String get lexeme => _value;
-
-  /**
-   * Return the next token in the token stream.
-   *
-   * @return the next token in the token stream
-   */
-  Token get next => _next;
-
-  /**
-   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
-   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
-   * have a length of zero (`0`).
-   *
-   * @return `true` if this token is a synthetic token
-   */
-  bool get isSynthetic => length == 0;
-
-  /**
-   * Set the next token in the token stream to the given token. This has the side-effect of setting
-   * this token to be the previous token for the given token.
-   *
-   * @param token the next token in the token stream
-   * @return the token that was passed in
-   */
-  Token setNext(Token token) {
-    _next = token;
-    token.previous = this;
-    return token;
-  }
-
-  @override
-  String toString() => lexeme;
+  XmlExpression_Reference getReference(int offset);
 }
 
 /**
- * Implementation of [XmlExpression] for an [Expression] embedded without any wrapping
- * characters.
+ * The reference to the [Element].
  */
-class RawXmlExpression extends XmlExpression {
-  final Expression expression;
+class XmlExpression_Reference {
+  Element element;
 
-  RawXmlExpression(this.expression);
-
-  @override
-  int get end => expression.end;
-
-  @override
-  int get length => expression.length;
-
-  @override
-  int get offset => expression.offset;
-
-  @override
-  XmlExpression_Reference getReference(int offset) {
-    AstNode node = new NodeLocator.con1(offset).searchWithin(expression);
-    if (node != null) {
-      Element element = ElementLocator.locate(node);
-      return new XmlExpression_Reference(element, node.offset, node.length);
-    }
-    return null;
-  }
-}
-
-/**
- * Instances of the class `RecursiveXmlVisitor` implement an XML visitor that will recursively
- * visit all of the nodes in an XML structure. For example, using an instance of this class to visit
- * a [XmlTagNode] will also cause all of the contained [XmlAttributeNode]s and
- * [XmlTagNode]s to be visited.
- *
- * Subclasses that override a visit method must either invoke the overridden visit method or must
- * explicitly ask the visited node to visit its children. Failure to do so will cause the children
- * of the visited node to not be visited.
- */
-class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
-  @override
-  R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitHtmlUnit(HtmlUnit node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitXmlAttributeNode(XmlAttributeNode node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitXmlTagNode(XmlTagNode node) {
-    node.visitChildren(this);
-    return null;
-  }
-}
-
-/**
- * Utilities locating [Expression]s and [Element]s in [HtmlUnit].
- */
-class HtmlUnitUtils {
-  /**
-   * Returns the [XmlAttributeNode] that is part of the given [HtmlUnit] and encloses
-   * the given offset.
-   */
-  static XmlAttributeNode getAttributeNode(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    List<XmlAttributeNode> result = [null];
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset, result));
-    } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
-      return result[0];
-    }
-    return null;
-  }
-
-  /**
-   * Returns the best [Element] of the given [Expression].
-   */
-  static Element getElement(Expression expression) {
-    if (expression == null) {
-      return null;
-    }
-    return ElementLocator.locate(expression);
-  }
-
-  /**
-   * Returns the [Element] of the [Expression] in the given [HtmlUnit], enclosing
-   * the given offset.
-   */
-  static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
-    Expression expression = getExpression(htmlUnit, offset);
-    return getElement(expression);
-  }
-
-  /**
-   * Returns the [Element] to open when requested at the given [Expression].
-   */
-  static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
-    Element element = getElement(expression);
-    {
-      AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
-      if (angularElement != null) {
-        return angularElement;
-      }
-    }
-    return element;
-  }
-
-  /**
-   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
-   * given offset.
-   */
-  static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    List<XmlTagNode> result = [null];
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset, result));
-    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
-      return result[0];
-    }
-    return null;
-  }
-
-  /**
-   * Returns the [Expression] that is part of the given [HtmlUnit] and encloses the
-   * given offset.
-   */
-  static Expression getExpression(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    List<Expression> result = [null];
-    try {
-      // TODO(scheglov) this code is very Angular specific
-      htmlUnit.accept(new ExpressionVisitor_HtmlUnitUtils_getExpression(offset, result));
-    } on HtmlUnitUtils_FoundExpressionError catch (e) {
-      return result[0];
-    }
-    return null;
-  }
-
-  /**
-   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and its open or
-   * closing tag name encloses the given offset.
-   */
-  static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
-    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
-    // do we have an enclosing tag at all?
-    if (node == null) {
-      return null;
-    }
-    // is "offset" in the open tag?
-    Token openTag = node.tagToken;
-    if (openTag.offset <= offset && offset <= openTag.end) {
-      return node;
-    }
-    // is "offset" in the open tag?
-    Token closeTag = node.closingTag;
-    if (closeTag != null && closeTag.offset <= offset && offset <= closeTag.end) {
-      return node;
-    }
-    // not on a tag name
-    return null;
-  }
-
-  /**
-   * Returns the [Expression] that is part of the given root [AstNode] and encloses the
-   * given offset.
-   */
-  static Expression _getExpressionAt(AstNode root, int offset) {
-    if (root.offset <= offset && offset <= root.end) {
-      AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
-      if (dartNode is Expression) {
-        return dartNode;
-      }
-    }
-    return null;
-  }
-}
-
-class HtmlUnitUtils_FoundAttributeNodeError extends Error {
-}
-
-class HtmlUnitUtils_FoundExpressionError extends Error {
-}
-
-class HtmlUnitUtils_FoundTagNodeError extends Error {
-}
-
-class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
   int offset = 0;
 
-  List<XmlAttributeNode> result;
+  int length = 0;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
-
-  @override
-  Object visitXmlAttributeNode(XmlAttributeNode node) {
-    Token nameToken = node.nameToken;
-    if (nameToken.offset <= offset && offset <= nameToken.end) {
-      result[0] = node;
-      throw new HtmlUnitUtils_FoundAttributeNodeError();
-    }
-    return super.visitXmlAttributeNode(node);
-  }
-}
-
-class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
-
-  List<XmlTagNode> result;
-
-  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset, this.result) : super();
-
-  @override
-  Object visitXmlTagNode(XmlTagNode node) {
-    if (node.offset <= offset && offset < node.end) {
-      result[0] = node;
-      super.visitXmlTagNode(node);
-      throw new HtmlUnitUtils_FoundTagNodeError();
-    }
-    return null;
-  }
-}
-
-class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
-  int offset = 0;
-
-  List<Expression> result;
-
-  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
-
-  @override
-  void visitExpression(Expression expression) {
-    Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
-    if (at != null) {
-      result[0] = at;
-      throw new HtmlUnitUtils_FoundExpressionError();
-    }
-  }
-}
-
-/**
- * Instances of the class `HtmlScriptTagNode` represent a script tag within an HTML file that
- * references a Dart script.
- */
-class HtmlScriptTagNode extends XmlTagNode {
-  /**
-   * The AST structure representing the Dart code within this tag.
-   */
-  CompilationUnit _script;
-
-  /**
-   * The element representing this script.
-   */
-  HtmlScriptElement scriptElement;
-
-  /**
-   * Initialize a newly created node to represent a script tag within an HTML file that references a
-   * Dart script.
-   *
-   * @param nodeStart the token marking the beginning of the tag
-   * @param tag the name of the tag
-   * @param attributes the attributes in the tag
-   * @param attributeEnd the token terminating the region where attributes can be
-   * @param tagNodes the children of the tag
-   * @param contentEnd the token that starts the closing tag
-   * @param closingTag the name of the tag that occurs in the closing tag
-   * @param nodeEnd the last token in the tag
-   */
-  HtmlScriptTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-
-  @override
-  accept(XmlVisitor visitor) => visitor.visitHtmlScriptTagNode(this);
-
-  /**
-   * Return the AST structure representing the Dart code within this tag, or `null` if this
-   * tag references an external script.
-   *
-   * @return the AST structure representing the Dart code within this tag
-   */
-  CompilationUnit get script => _script;
-
-  /**
-   * Set the AST structure representing the Dart code within this tag to the given compilation unit.
-   *
-   * @param unit the AST structure representing the Dart code within this tag
-   */
-  void set script(CompilationUnit unit) {
-    _script = unit;
-  }
-}
-
-/**
- * The abstract class `XmlNode` defines behavior common to all XML/HTML nodes.
- */
-abstract class XmlNode {
-  /**
-   * The parent of the node, or `null` if the node is the root of an AST structure.
-   */
-  XmlNode _parent;
-
-  /**
-   * The element associated with this node or `null` if the receiver is not resolved.
-   */
-  Element _element;
-
-  /**
-   * Use the given visitor to visit this node.
-   *
-   * @param visitor the visitor that will visit this node
-   * @return the value returned by the visitor as a result of visiting this node
-   */
-  accept(XmlVisitor visitor);
-
-  /**
-   * Return the first token included in this node's source range.
-   *
-   * @return the first token or `null` if none
-   */
-  Token get beginToken;
-
-  /**
-   * Return the element associated with this node.
-   *
-   * @return the element or `null` if the receiver is not resolved
-   */
-  Element get element => _element;
-
-  /**
-   * Return the offset of the character immediately following the last character of this node's
-   * source range. This is equivalent to `node.getOffset() + node.getLength()`. For an html
-   * unit this will be equal to the length of the unit's source.
-   *
-   * @return the offset of the character just past the node's source range
-   */
-  int get end => offset + length;
-
-  /**
-   * Return the last token included in this node's source range.
-   *
-   * @return the last token or `null` if none
-   */
-  Token get endToken;
-
-  /**
-   * Return the number of characters in the node's source range.
-   *
-   * @return the number of characters in the node's source range
-   */
-  int get length {
-    Token beginToken = this.beginToken;
-    Token endToken = this.endToken;
-    if (beginToken == null || endToken == null) {
-      return -1;
-    }
-    return endToken.offset + endToken.length - beginToken.offset;
-  }
-
-  /**
-   * Return the offset from the beginning of the file to the first character in the node's source
-   * range.
-   *
-   * @return the offset from the beginning of the file to the first character in the node's source
-   *         range
-   */
-  int get offset {
-    Token beginToken = this.beginToken;
-    if (beginToken == null) {
-      return -1;
-    }
-    return this.beginToken.offset;
-  }
-
-  /**
-   * Return this node's parent node, or `null` if this node is the root of an AST structure.
-   *
-   * Note that the relationship between an AST node and its parent node may change over the lifetime
-   * of a node.
-   *
-   * @return the parent of this node, or `null` if none
-   */
-  XmlNode get parent => _parent;
-
-  /**
-   * Set the element associated with this node.
-   *
-   * @param element the element
-   */
-  void set element(Element element) {
-    this._element = element;
-  }
-
-  @override
-  String toString() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
-  }
-
-  /**
-   * Use the given visitor to visit all of the children of this node. The children will be visited
-   * in source order.
-   *
-   * @param visitor the visitor that will be used to visit the children of this node
-   */
-  void visitChildren(XmlVisitor visitor);
-
-  /**
-   * Make this node the parent of the given child node.
-   *
-   * @param child the node that will become a child of this node
-   * @return the node that was made a child of this node
-   */
-  XmlNode becomeParentOf(XmlNode child) {
-    if (child != null) {
-      XmlNode node = child;
-      node.parent = this;
-    }
-    return child;
-  }
-
-  /**
-   * Make this node the parent of the given child nodes.
-   *
-   * @param children the nodes that will become the children of this node
-   * @param ifEmpty the (empty) nodes to return if "children" is empty
-   * @return the nodes that were made children of this node
-   */
-  List becomeParentOfAll(List children, {List ifEmpty}) {
-    if (children == null || children.isEmpty) {
-      if (ifEmpty != null) {
-        return ifEmpty;
-      }
-    }
-    if (children != null) {
-      for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
-        XmlNode node = iter.next();
-        node.parent = this;
-      }
-      // This will create ArrayList for exactly given number of elements.
-      return new List.from(children);
-    }
-    return children;
-  }
-
-  /**
-   * This method exists for debugging purposes only.
-   */
-  void _appendIdentifier(JavaStringBuilder builder, XmlNode node) {
-    if (node is XmlTagNode) {
-      builder.append(node.tag);
-    } else if (node is XmlAttributeNode) {
-      builder.append(node.name);
-    } else {
-      builder.append("htmlUnit");
-    }
-  }
-
-  /**
-   * This method exists for debugging purposes only.
-   */
-  String _buildRecursiveStructureMessage(XmlNode newParent) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("Attempt to create recursive structure: ");
-    XmlNode current = newParent;
-    while (current != null) {
-      if (!identical(current, newParent)) {
-        builder.append(" -> ");
-      }
-      if (identical(current, this)) {
-        builder.appendChar(0x2A);
-        _appendIdentifier(builder, current);
-        builder.appendChar(0x2A);
-      } else {
-        _appendIdentifier(builder, current);
-      }
-      current = current.parent;
-    }
-    return builder.toString();
-  }
-
-  /**
-   * Set the parent of this node to the given node.
-   *
-   * @param newParent the node that is to be made the parent of this node
-   */
-  void set parent(XmlNode newParent) {
-    XmlNode current = newParent;
-    while (current != null) {
-      if (identical(current, this)) {
-        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(_buildRecursiveStructureMessage(newParent)));
-        return;
-      }
-      current = current.parent;
-    }
-    _parent = newParent;
+  XmlExpression_Reference(Element element, int offset, int length) {
+    this.element = element;
+    this.offset = offset;
+    this.length = length;
   }
 }
 
@@ -976,381 +417,329 @@ abstract class AbstractScanner {
 }
 
 /**
- * Instances of the class `StringScanner` implement a scanner that reads from a string. The
- * scanning logic is in the superclass.
+ * Instances of the class `Token` represent a token that was scanned from the input. Each
+ * token knows which token follows it, acting as the head of a linked list of tokens.
  */
-class StringScanner extends AbstractScanner {
+class Token {
   /**
-   * The string from which characters will be read.
+   * The offset from the beginning of the file to the first character in the token.
    */
-  final String _string;
+  final int offset;
 
   /**
-   * The number of characters in the string.
+   * The previous token in the token stream.
    */
-  int _stringLength = 0;
+  Token previous;
 
   /**
-   * The index, relative to the string, of the last character that was read.
+   * The next token in the token stream.
    */
-  int _charOffset = 0;
+  Token _next;
 
   /**
-   * Initialize a newly created scanner to scan the characters in the given string.
+   * The type of the token.
+   */
+  final TokenType type;
+
+  /**
+   * The lexeme represented by this token.
+   */
+  String _value;
+
+  /**
+   * Initialize a newly created token.
    *
-   * @param source the source being scanned
-   * @param string the string from which characters will be read
+   * @param type the token type (not `null`)
+   * @param offset the offset from the beginning of the file to the first character in the token
    */
-  StringScanner(Source source, this._string) : super(source) {
-    this._stringLength = _string.length;
-    this._charOffset = -1;
+  Token.con1(TokenType type, int offset) : this.con2(type, offset, type.lexeme);
+
+  /**
+   * Initialize a newly created token.
+   *
+   * @param type the token type (not `null`)
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param value the lexeme represented by this token (not `null`)
+   */
+  Token.con2(this.type, this.offset, String value) {
+    this._value = StringUtilities.intern(value);
+  }
+
+  /**
+   * Return the offset from the beginning of the file to the character after last character of the
+   * token.
+   *
+   * @return the offset from the beginning of the file to the first character after last character
+   *         of the token
+   */
+  int get end => offset + length;
+
+  /**
+   * Return the number of characters in the node's source range.
+   *
+   * @return the number of characters in the node's source range
+   */
+  int get length => lexeme.length;
+
+  /**
+   * Return the lexeme that represents this token.
+   *
+   * @return the lexeme (not `null`)
+   */
+  String get lexeme => _value;
+
+  /**
+   * Return the next token in the token stream.
+   *
+   * @return the next token in the token stream
+   */
+  Token get next => _next;
+
+  /**
+   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
+   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
+   * have a length of zero (`0`).
+   *
+   * @return `true` if this token is a synthetic token
+   */
+  bool get isSynthetic => length == 0;
+
+  /**
+   * Set the next token in the token stream to the given token. This has the side-effect of setting
+   * this token to be the previous token for the given token.
+   *
+   * @param token the next token in the token stream
+   * @return the token that was passed in
+   */
+  Token setNext(Token token) {
+    _next = token;
+    token.previous = this;
+    return token;
   }
 
   @override
-  int get offset => _charOffset;
-
-  void set offset(int offset) {
-    _charOffset = offset;
-  }
-
-  @override
-  int advance() {
-    if (++_charOffset < _stringLength) {
-      return _string.codeUnitAt(_charOffset);
-    }
-    _charOffset = _stringLength;
-    return -1;
-  }
-
-  @override
-  String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta).toString();
-
-  @override
-  int peek() {
-    if (_charOffset + 1 < _stringLength) {
-      return _string.codeUnitAt(_charOffset + 1);
-    }
-    return -1;
-  }
+  String toString() => lexeme;
 }
 
 /**
- * Instances of the class `ToSourceVisitor` write a source representation of a visited XML
- * node (and all of it's children) to a writer.
+ * Instances of `XmlTagNode` represent XML or HTML elements such as `` and
+ * `<body foo="bar"> ... </body>`.
  */
-class ToSourceVisitor implements XmlVisitor<Object> {
+class XmlTagNode extends XmlNode {
   /**
-   * The writer to which the source is to be written.
+   * Constant representing empty list of attributes.
    */
-  final PrintWriter _writer;
-
-  /**
-   * Initialize a newly created visitor to write source code representing the visited nodes to the
-   * given writer.
-   *
-   * @param writer the writer to which the source is to be written
-   */
-  ToSourceVisitor(this._writer);
-
-  @override
-  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) => visitXmlTagNode(node);
-
-  @override
-  Object visitHtmlUnit(HtmlUnit node) {
-    for (XmlTagNode child in node.tagNodes) {
-      _visit(child);
-    }
-    return null;
-  }
-
-  @override
-  Object visitXmlAttributeNode(XmlAttributeNode node) {
-    String name = node.name;
-    Token value = node.valueToken;
-    if (name.length == 0) {
-      _writer.print("__");
-    } else {
-      _writer.print(name);
-    }
-    _writer.print("=");
-    if (value == null) {
-      _writer.print("__");
-    } else {
-      _writer.print(value.lexeme);
-    }
-    return null;
-  }
-
-  @override
-  Object visitXmlTagNode(XmlTagNode node) {
-    _writer.print("<");
-    String tagName = node.tag;
-    _writer.print(tagName);
-    for (XmlAttributeNode attribute in node.attributes) {
-      _writer.print(" ");
-      _visit(attribute);
-    }
-    _writer.print(node.attributeEnd.lexeme);
-    if (node.closingTag != null) {
-      for (XmlTagNode child in node.tagNodes) {
-        _visit(child);
-      }
-      _writer.print("</");
-      _writer.print(tagName);
-      _writer.print(">");
-    }
-    return null;
-  }
+  static List<XmlAttributeNode> NO_ATTRIBUTES = new UnmodifiableListView(new List<XmlAttributeNode>());
 
   /**
-   * Safely visit the given node.
-   *
-   * @param node the node to be visited
+   * Constant representing empty list of tag nodes.
    */
-  void _visit(XmlNode node) {
-    if (node != null) {
-      node.accept(this);
-    }
-  }
-}
-
-/**
- * The enumeration `TokenType` defines the types of tokens that can be returned by the
- * scanner.
- */
-class TokenType extends Enum<TokenType> {
-  /**
-   * The type of the token that marks the end of the input.
-   */
-  static const TokenType EOF = const TokenType_EOF('EOF', 0, "");
-
-  static const TokenType EQ = const TokenType('EQ', 1, "=");
-
-  static const TokenType GT = const TokenType('GT', 2, ">");
-
-  static const TokenType LT_SLASH = const TokenType('LT_SLASH', 3, "</");
-
-  static const TokenType LT = const TokenType('LT', 4, "<");
-
-  static const TokenType SLASH_GT = const TokenType('SLASH_GT', 5, "/>");
-
-  static const TokenType COMMENT = const TokenType('COMMENT', 6, null);
-
-  static const TokenType DECLARATION = const TokenType('DECLARATION', 7, null);
-
-  static const TokenType DIRECTIVE = const TokenType('DIRECTIVE', 8, null);
-
-  static const TokenType STRING = const TokenType('STRING', 9, null);
-
-  static const TokenType TAG = const TokenType('TAG', 10, null);
-
-  static const TokenType TEXT = const TokenType('TEXT', 11, null);
-
-  static const List<TokenType> values = const [
-      EOF,
-      EQ,
-      GT,
-      LT_SLASH,
-      LT,
-      SLASH_GT,
-      COMMENT,
-      DECLARATION,
-      DIRECTIVE,
-      STRING,
-      TAG,
-      TEXT];
+  static List<XmlTagNode> NO_TAG_NODES = new UnmodifiableListView(new List<XmlTagNode>());
 
   /**
-   * The lexeme that defines this type of token, or `null` if there is more than one possible
-   * lexeme for this type of token.
+   * The starting [TokenType#LT] token (not `null`).
    */
-  final String lexeme;
+  final Token nodeStart;
 
-  const TokenType(String name, int ordinal, this.lexeme) : super(name, ordinal);
-}
+  /**
+   * The [TokenType#TAG] token after the starting '&lt;' (not `null`).
+   */
+  final Token _tag;
 
-class TokenType_EOF extends TokenType {
-  const TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
+  /**
+   * The attributes contained by the receiver (not `null`, contains no `null`s).
+   */
+  List<XmlAttributeNode> _attributes;
 
-  @override
-  String toString() => "-eof-";
-}
+  /**
+   * The [TokenType#GT] or [TokenType#SLASH_GT] token after the attributes (not
+   * `null`). The token may be the same token as [nodeEnd] if there are no child
+   * [tagNodes].
+   */
+  final Token attributeEnd;
 
-/**
- * Instances of `XmlAttributeNode` represent name/value pairs owned by an [XmlTagNode].
- */
-class XmlAttributeNode extends XmlNode {
-  final Token _name;
+  /**
+   * The tag nodes contained in the receiver (not `null`, contains no `null`s).
+   */
+  List<XmlTagNode> _tagNodes;
 
-  final Token equals;
+  /**
+   * The token (not `null`) after the content, which may be
+   * * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
+   * * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is self
+   * closing or the attributeEnd is [TokenType#SLASH_GT], or
+   * * (3) [TokenType#EOF] if the node does not have a closing tag and is the last node in
+   * the stream [TokenType#LT_SLASH] token after the content, or `null` if there is no
+   * content and the attributes ended with [TokenType#SLASH_GT].
+   */
+  final Token contentEnd;
 
-  final Token _value;
+  /**
+   * The closing [TokenType#TAG] after the child elements or `null` if there is no
+   * content and the attributes ended with [TokenType#SLASH_GT]
+   */
+  final Token closingTag;
 
+  /**
+   * The ending [TokenType#GT] or [TokenType#SLASH_GT] token (not `null`).
+   */
+  final Token nodeEnd;
+
+  /**
+   * The expressions that are embedded in the tag's content.
+   */
   List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
 
   /**
-   * Construct a new instance representing an XML attribute.
+   * Construct a new instance representing an XML or HTML element
    *
-   * @param name the name token (not `null`). This may be a zero length token if the attribute
-   *          is badly formed.
-   * @param equals the equals sign or `null` if none
-   * @param value the value token (not `null`)
+   * @param nodeStart the starting [TokenType#LT] token (not `null`)
+   * @param tag the [TokenType#TAG] token after the starting '&lt;' (not `null`).
+   * @param attributes the attributes associated with this element or [NO_ATTRIBUTES] (not
+   *          `null`, contains no `null`s)
+   * @param attributeEnd The [TokenType#GT] or [TokenType#SLASH_GT] token after the
+   *          attributes (not `null`). The token may be the same token as [nodeEnd] if
+   *          there are no child [tagNodes].
+   * @param tagNodes child tag nodes of the receiver or [NO_TAG_NODES] (not `null`,
+   *          contains no `null`s)
+   * @param contentEnd the token (not `null`) after the content, which may be
+   *          * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
+   *          * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is
+   *          self closing or the attributeEnd is [TokenType#SLASH_GT], or
+   *          * (3) [TokenType#EOF] if the node does not have a closing tag and is the last
+   *          node in the stream [TokenType#LT_SLASH] token after the content, or `null`
+   *          if there is no content and the attributes ended with [TokenType#SLASH_GT].
+   * @param closingTag the closing [TokenType#TAG] after the child elements or `null` if
+   *          there is no content and the attributes ended with [TokenType#SLASH_GT]
+   * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
+   *          `null`)
    */
-  XmlAttributeNode(this._name, this.equals, this._value);
+  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
+    this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
+    this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
+  }
 
   @override
-  accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
-
-  @override
-  Token get beginToken => _name;
-
-  @override
-  Token get endToken => _value;
+  accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
 
   /**
-   * Answer the attribute name. This may be a zero length string if the attribute is badly formed.
+   * Answer the attribute with the specified name.
    *
-   * @return the name (not `null`)
+   * @param name the attribute name
+   * @return the attribute or `null` if no matching attribute is found
    */
-  String get name => _name.lexeme;
-
-  /**
-   * Answer the attribute name token. This may be a zero length token if the attribute is badly
-   * formed.
-   *
-   * @return the name token (not `null`)
-   */
-  Token get nameToken => _name;
-
-  /**
-   * Answer the lexeme for the value token without the leading and trailing quotes.
-   *
-   * @return the text or `null` if the value is not specified
-   */
-  String get text {
-    if (_value == null) {
-      return null;
-    }
-    //TODO (danrubel): replace HTML character encodings with the actual characters
-    String text = _value.lexeme;
-    int len = text.length;
-    if (len > 0) {
-      if (text.codeUnitAt(0) == 0x22) {
-        if (len > 1 && text.codeUnitAt(len - 1) == 0x22) {
-          return text.substring(1, len - 1);
-        } else {
-          return text.substring(1);
-        }
-      } else if (text.codeUnitAt(0) == 0x27) {
-        if (len > 1 && text.codeUnitAt(len - 1) == 0x27) {
-          return text.substring(1, len - 1);
-        } else {
-          return text.substring(1);
-        }
+  XmlAttributeNode getAttribute(String name) {
+    for (XmlAttributeNode attribute in _attributes) {
+      if (attribute.name == name) {
+        return attribute;
       }
     }
-    return text;
+    return null;
   }
 
   /**
-   * Answer the offset of the value after the leading quote.
+   * Answer the receiver's attributes. Callers should not manipulate the returned list to edit the
+   * AST structure.
    *
-   * @return the offset of the value, or `-1` if the value is not specified
+   * @return the attributes (not `null`, contains no `null`s)
    */
-  int get textOffset {
-    if (_value == null) {
-      return -1;
+  List<XmlAttributeNode> get attributes => _attributes;
+
+  /**
+   * Find the attribute with the given name (see [getAttribute] and answer the lexeme
+   * for the attribute's value token without the leading and trailing quotes (see
+   * [XmlAttributeNode#getText]).
+   *
+   * @param name the attribute name
+   * @return the attribute text or `null` if no matching attribute is found
+   */
+  String getAttributeText(String name) {
+    XmlAttributeNode attribute = getAttribute(name);
+    return attribute != null ? attribute.text : null;
+  }
+
+  @override
+  Token get beginToken => nodeStart;
+
+  /**
+   * Answer a string representing the content contained in the receiver. This includes the textual
+   * representation of any child tag nodes ([getTagNodes]). Whitespace between '&lt;',
+   * '&lt;/', and '>', '/>' is discarded, but all other whitespace is preserved.
+   *
+   * @return the content (not `null`)
+   */
+  String get content {
+    Token token = attributeEnd.next;
+    if (identical(token, contentEnd)) {
+      return "";
     }
-    String text = _value.lexeme;
-    if (StringUtilities.startsWithChar(text, 0x22) || StringUtilities.startsWithChar(text, 0x27)) {
-      return _value.offset + 1;
+    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
+    String content = token.lexeme;
+    token = token.next;
+    if (identical(token, contentEnd)) {
+      return content;
     }
-    return _value.offset;
+    JavaStringBuilder buffer = new JavaStringBuilder();
+    while (!identical(token, contentEnd)) {
+      buffer.append(token.lexeme);
+      token = token.next;
+    }
+    return buffer.toString();
+  }
+
+  @override
+  Token get endToken {
+    if (nodeEnd != null) {
+      return nodeEnd;
+    }
+    if (closingTag != null) {
+      return closingTag;
+    }
+    if (contentEnd != null) {
+      return contentEnd;
+    }
+    if (!_tagNodes.isEmpty) {
+      return _tagNodes[_tagNodes.length - 1].endToken;
+    }
+    if (attributeEnd != null) {
+      return attributeEnd;
+    }
+    if (!_attributes.isEmpty) {
+      return _attributes[_attributes.length - 1].endToken;
+    }
+    return _tag;
   }
 
   /**
-   * Answer the attribute value token. A properly formed value will start and end with matching
-   * quote characters, but the value returned may not be properly formed.
+   * Answer the tag name after the starting '&lt;'.
    *
-   * @return the value token or `null` if this represents a badly formed attribute
+   * @return the tag name (not `null`)
    */
-  Token get valueToken => _value;
+  String get tag => _tag.lexeme;
+
+  /**
+   * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
+   * to edit the AST structure.
+   *
+   * @return the children (not `null`, contains no `null`s)
+   */
+  List<XmlTagNode> get tagNodes => _tagNodes;
+
+  /**
+   * Answer the [TokenType#TAG] token after the starting '&lt;'.
+   *
+   * @return the token (not `null`)
+   */
+  Token get tagToken => _tag;
 
   @override
   void visitChildren(XmlVisitor visitor) {
-  }
-}
-
-/**
- * The interface `XmlVisitor` defines the behavior of objects that can be used to visit an
- * [XmlNode] structure.
- */
-abstract class XmlVisitor<R> {
-  R visitHtmlScriptTagNode(HtmlScriptTagNode node);
-
-  R visitHtmlUnit(HtmlUnit htmlUnit);
-
-  R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode);
-
-  R visitXmlTagNode(XmlTagNode xmlTagNode);
-}
-
-/**
- * Instances of the class `XmlExpression` represent an abstract expression embedded into
- * [XmlNode].
- */
-abstract class XmlExpression {
-  /**
-   * An empty array of expressions.
-   */
-  static List<XmlExpression> EMPTY_ARRAY = new List<XmlExpression>(0);
-
-  /**
-   * Check if the given offset belongs to the expression's source range.
-   */
-  bool contains(int offset) => this.offset <= offset && offset < end;
-
-  /**
-   * Return the offset of the character immediately following the last character of this
-   * expression's source range. This is equivalent to `getOffset() + getLength()`.
-   *
-   * @return the offset of the character just past the expression's source range
-   */
-  int get end;
-
-  /**
-   * Return the number of characters in the expression's source range.
-   */
-  int get length;
-
-  /**
-   * Return the offset of the first character in the expression's source range.
-   */
-  int get offset;
-
-  /**
-   * Return the [Reference] at the given offset.
-   *
-   * @param offset the offset from the beginning of the file
-   * @return the [Reference] at the given offset, maybe `null`
-   */
-  XmlExpression_Reference getReference(int offset);
-}
-
-/**
- * The reference to the [Element].
- */
-class XmlExpression_Reference {
-  Element element;
-
-  int offset = 0;
-
-  int length = 0;
-
-  XmlExpression_Reference(Element element, int offset, int length) {
-    this.element = element;
-    this.offset = offset;
-    this.length = length;
+    for (XmlAttributeNode node in _attributes) {
+      node.accept(visitor);
+    }
+    for (XmlTagNode node in _tagNodes) {
+      node.accept(visitor);
+    }
   }
 }
 
@@ -1613,41 +1002,539 @@ class XmlParser {
 }
 
 /**
- * Instances of `XmlTagNode` represent XML or HTML elements such as `` and
- * `<body foo="bar"> ... </body>`.
+ * The abstract class `XmlNode` defines behavior common to all XML/HTML nodes.
  */
-class XmlTagNode extends XmlNode {
+abstract class XmlNode {
   /**
-   * Constant representing empty list of attributes.
+   * The parent of the node, or `null` if the node is the root of an AST structure.
    */
-  static List<XmlAttributeNode> NO_ATTRIBUTES = new UnmodifiableListView(new List<XmlAttributeNode>());
+  XmlNode _parent;
 
   /**
-   * Constant representing empty list of tag nodes.
+   * The element associated with this node or `null` if the receiver is not resolved.
    */
-  static List<XmlTagNode> NO_TAG_NODES = new UnmodifiableListView(new List<XmlTagNode>());
+  Element _element;
 
   /**
-   * The starting [TokenType#LT] token (not `null`).
+   * Use the given visitor to visit this node.
+   *
+   * @param visitor the visitor that will visit this node
+   * @return the value returned by the visitor as a result of visiting this node
    */
-  final Token nodeStart;
+  accept(XmlVisitor visitor);
 
   /**
-   * The [TokenType#TAG] token after the starting '&lt;' (not `null`).
+   * Return the first token included in this node's source range.
+   *
+   * @return the first token or `null` if none
    */
-  final Token _tag;
+  Token get beginToken;
 
   /**
-   * The attributes contained by the receiver (not `null`, contains no `null`s).
+   * Return the element associated with this node.
+   *
+   * @return the element or `null` if the receiver is not resolved
    */
-  List<XmlAttributeNode> _attributes;
+  Element get element => _element;
 
   /**
-   * The [TokenType#GT] or [TokenType#SLASH_GT] token after the attributes (not
-   * `null`). The token may be the same token as [nodeEnd] if there are no child
-   * [tagNodes].
+   * Return the offset of the character immediately following the last character of this node's
+   * source range. This is equivalent to `node.getOffset() + node.getLength()`. For an html
+   * unit this will be equal to the length of the unit's source.
+   *
+   * @return the offset of the character just past the node's source range
    */
-  final Token attributeEnd;
+  int get end => offset + length;
+
+  /**
+   * Return the last token included in this node's source range.
+   *
+   * @return the last token or `null` if none
+   */
+  Token get endToken;
+
+  /**
+   * Return the number of characters in the node's source range.
+   *
+   * @return the number of characters in the node's source range
+   */
+  int get length {
+    Token beginToken = this.beginToken;
+    Token endToken = this.endToken;
+    if (beginToken == null || endToken == null) {
+      return -1;
+    }
+    return endToken.offset + endToken.length - beginToken.offset;
+  }
+
+  /**
+   * Return the offset from the beginning of the file to the first character in the node's source
+   * range.
+   *
+   * @return the offset from the beginning of the file to the first character in the node's source
+   *         range
+   */
+  int get offset {
+    Token beginToken = this.beginToken;
+    if (beginToken == null) {
+      return -1;
+    }
+    return this.beginToken.offset;
+  }
+
+  /**
+   * Return this node's parent node, or `null` if this node is the root of an AST structure.
+   *
+   * Note that the relationship between an AST node and its parent node may change over the lifetime
+   * of a node.
+   *
+   * @return the parent of this node, or `null` if none
+   */
+  XmlNode get parent => _parent;
+
+  /**
+   * Set the element associated with this node.
+   *
+   * @param element the element
+   */
+  void set element(Element element) {
+    this._element = element;
+  }
+
+  @override
+  String toString() {
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
+  }
+
+  /**
+   * Use the given visitor to visit all of the children of this node. The children will be visited
+   * in source order.
+   *
+   * @param visitor the visitor that will be used to visit the children of this node
+   */
+  void visitChildren(XmlVisitor visitor);
+
+  /**
+   * Make this node the parent of the given child node.
+   *
+   * @param child the node that will become a child of this node
+   * @return the node that was made a child of this node
+   */
+  XmlNode becomeParentOf(XmlNode child) {
+    if (child != null) {
+      XmlNode node = child;
+      node.parent = this;
+    }
+    return child;
+  }
+
+  /**
+   * Make this node the parent of the given child nodes.
+   *
+   * @param children the nodes that will become the children of this node
+   * @param ifEmpty the (empty) nodes to return if "children" is empty
+   * @return the nodes that were made children of this node
+   */
+  List becomeParentOfAll(List children, {List ifEmpty}) {
+    if (children == null || children.isEmpty) {
+      if (ifEmpty != null) {
+        return ifEmpty;
+      }
+    }
+    if (children != null) {
+      for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
+        XmlNode node = iter.next();
+        node.parent = this;
+      }
+      // This will create ArrayList for exactly given number of elements.
+      return new List.from(children);
+    }
+    return children;
+  }
+
+  /**
+   * This method exists for debugging purposes only.
+   */
+  void _appendIdentifier(JavaStringBuilder builder, XmlNode node) {
+    if (node is XmlTagNode) {
+      builder.append(node.tag);
+    } else if (node is XmlAttributeNode) {
+      builder.append(node.name);
+    } else {
+      builder.append("htmlUnit");
+    }
+  }
+
+  /**
+   * This method exists for debugging purposes only.
+   */
+  String _buildRecursiveStructureMessage(XmlNode newParent) {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("Attempt to create recursive structure: ");
+    XmlNode current = newParent;
+    while (current != null) {
+      if (!identical(current, newParent)) {
+        builder.append(" -> ");
+      }
+      if (identical(current, this)) {
+        builder.appendChar(0x2A);
+        _appendIdentifier(builder, current);
+        builder.appendChar(0x2A);
+      } else {
+        _appendIdentifier(builder, current);
+      }
+      current = current.parent;
+    }
+    return builder.toString();
+  }
+
+  /**
+   * Set the parent of this node to the given node.
+   *
+   * @param newParent the node that is to be made the parent of this node
+   */
+  void set parent(XmlNode newParent) {
+    XmlNode current = newParent;
+    while (current != null) {
+      if (identical(current, this)) {
+        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(_buildRecursiveStructureMessage(newParent)));
+        return;
+      }
+      current = current.parent;
+    }
+    _parent = newParent;
+  }
+}
+
+/**
+ * Implementation of [XmlExpression] for an [Expression] embedded without any wrapping
+ * characters.
+ */
+class RawXmlExpression extends XmlExpression {
+  final Expression expression;
+
+  RawXmlExpression(this.expression);
+
+  @override
+  int get end => expression.end;
+
+  @override
+  int get length => expression.length;
+
+  @override
+  int get offset => expression.offset;
+
+  @override
+  XmlExpression_Reference getReference(int offset) {
+    AstNode node = new NodeLocator.con1(offset).searchWithin(expression);
+    if (node != null) {
+      Element element = ElementLocator.locate(node);
+      return new XmlExpression_Reference(element, node.offset, node.length);
+    }
+    return null;
+  }
+}
+
+/**
+ * Utilities locating [Expression]s and [Element]s in [HtmlUnit].
+ */
+class HtmlUnitUtils {
+  /**
+   * Returns the [XmlAttributeNode] that is part of the given [HtmlUnit] and encloses
+   * the given offset.
+   */
+  static XmlAttributeNode getAttributeNode(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<XmlAttributeNode> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset, result));
+    } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the best [Element] of the given [Expression].
+   */
+  static Element getElement(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    return ElementLocator.locate(expression);
+  }
+
+  /**
+   * Returns the [Element] of the [Expression] in the given [HtmlUnit], enclosing
+   * the given offset.
+   */
+  static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
+    Expression expression = getExpression(htmlUnit, offset);
+    return getElement(expression);
+  }
+
+  /**
+   * Returns the [Element] to open when requested at the given [Expression].
+   */
+  static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
+    Element element = getElement(expression);
+    {
+      AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+      if (angularElement != null) {
+        return angularElement;
+      }
+    }
+    return element;
+  }
+
+  /**
+   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
+   * given offset.
+   */
+  static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<XmlTagNode> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset, result));
+    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the [Expression] that is part of the given [HtmlUnit] and encloses the
+   * given offset.
+   */
+  static Expression getExpression(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<Expression> result = [null];
+    try {
+      // TODO(scheglov) this code is very Angular specific
+      htmlUnit.accept(new ExpressionVisitor_HtmlUnitUtils_getExpression(offset, result));
+    } on HtmlUnitUtils_FoundExpressionError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and its open or
+   * closing tag name encloses the given offset.
+   */
+  static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
+    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
+    // do we have an enclosing tag at all?
+    if (node == null) {
+      return null;
+    }
+    // is "offset" in the open tag?
+    Token openTag = node.tagToken;
+    if (openTag.offset <= offset && offset <= openTag.end) {
+      return node;
+    }
+    // is "offset" in the open tag?
+    Token closeTag = node.closingTag;
+    if (closeTag != null && closeTag.offset <= offset && offset <= closeTag.end) {
+      return node;
+    }
+    // not on a tag name
+    return null;
+  }
+
+  /**
+   * Returns the [Expression] that is part of the given root [AstNode] and encloses the
+   * given offset.
+   */
+  static Expression _getExpressionAt(AstNode root, int offset) {
+    if (root.offset <= offset && offset <= root.end) {
+      AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
+      if (dartNode is Expression) {
+        return dartNode;
+      }
+    }
+    return null;
+  }
+}
+
+class HtmlUnitUtils_FoundAttributeNodeError extends Error {
+}
+
+class HtmlUnitUtils_FoundExpressionError extends Error {
+}
+
+class HtmlUnitUtils_FoundTagNodeError extends Error {
+}
+
+class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<XmlAttributeNode> result;
+
+  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
+
+  @override
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    Token nameToken = node.nameToken;
+    if (nameToken.offset <= offset && offset <= nameToken.end) {
+      result[0] = node;
+      throw new HtmlUnitUtils_FoundAttributeNodeError();
+    }
+    return super.visitXmlAttributeNode(node);
+  }
+}
+
+class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<XmlTagNode> result;
+
+  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset, this.result) : super();
+
+  @override
+  Object visitXmlTagNode(XmlTagNode node) {
+    if (node.offset <= offset && offset < node.end) {
+      result[0] = node;
+      super.visitXmlTagNode(node);
+      throw new HtmlUnitUtils_FoundTagNodeError();
+    }
+    return null;
+  }
+}
+
+class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
+  int offset = 0;
+
+  List<Expression> result;
+
+  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
+
+  @override
+  void visitExpression(Expression expression) {
+    Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
+    if (at != null) {
+      result[0] = at;
+      throw new HtmlUnitUtils_FoundExpressionError();
+    }
+  }
+}
+
+/**
+ * The interface `XmlVisitor` defines the behavior of objects that can be used to visit an
+ * [XmlNode] structure.
+ */
+abstract class XmlVisitor<R> {
+  R visitHtmlScriptTagNode(HtmlScriptTagNode node);
+
+  R visitHtmlUnit(HtmlUnit htmlUnit);
+
+  R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode);
+
+  R visitXmlTagNode(XmlTagNode xmlTagNode);
+}
+
+/**
+ * Instances of the class `ToSourceVisitor` write a source representation of a visited XML
+ * node (and all of it's children) to a writer.
+ */
+class ToSourceVisitor implements XmlVisitor<Object> {
+  /**
+   * The writer to which the source is to be written.
+   */
+  final PrintWriter _writer;
+
+  /**
+   * Initialize a newly created visitor to write source code representing the visited nodes to the
+   * given writer.
+   *
+   * @param writer the writer to which the source is to be written
+   */
+  ToSourceVisitor(this._writer);
+
+  @override
+  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) => visitXmlTagNode(node);
+
+  @override
+  Object visitHtmlUnit(HtmlUnit node) {
+    for (XmlTagNode child in node.tagNodes) {
+      _visit(child);
+    }
+    return null;
+  }
+
+  @override
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    String name = node.name;
+    Token value = node.valueToken;
+    if (name.length == 0) {
+      _writer.print("__");
+    } else {
+      _writer.print(name);
+    }
+    _writer.print("=");
+    if (value == null) {
+      _writer.print("__");
+    } else {
+      _writer.print(value.lexeme);
+    }
+    return null;
+  }
+
+  @override
+  Object visitXmlTagNode(XmlTagNode node) {
+    _writer.print("<");
+    String tagName = node.tag;
+    _writer.print(tagName);
+    for (XmlAttributeNode attribute in node.attributes) {
+      _writer.print(" ");
+      _visit(attribute);
+    }
+    _writer.print(node.attributeEnd.lexeme);
+    if (node.closingTag != null) {
+      for (XmlTagNode child in node.tagNodes) {
+        _visit(child);
+      }
+      _writer.print("</");
+      _writer.print(tagName);
+      _writer.print(">");
+    }
+    return null;
+  }
+
+  /**
+   * Safely visit the given node.
+   *
+   * @param node the node to be visited
+   */
+  void _visit(XmlNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+}
+
+/**
+ * Instances of the class `HtmlUnit` represent the contents of an HTML file.
+ */
+class HtmlUnit extends XmlNode {
+  /**
+   * The first token in the token stream that was parsed to form this HTML unit.
+   */
+  final Token beginToken;
+
+  /**
+   * The last token in the token stream that was parsed to form this compilation unit. This token
+   * should always have a type of [TokenType.EOF].
+   */
+  final Token endToken;
 
   /**
    * The tag nodes contained in the receiver (not `null`, contains no `null`s).
@@ -1655,158 +1542,27 @@ class XmlTagNode extends XmlNode {
   List<XmlTagNode> _tagNodes;
 
   /**
-   * The token (not `null`) after the content, which may be
-   * * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
-   * * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is self
-   * closing or the attributeEnd is [TokenType#SLASH_GT], or
-   * * (3) [TokenType#EOF] if the node does not have a closing tag and is the last node in
-   * the stream [TokenType#LT_SLASH] token after the content, or `null` if there is no
-   * content and the attributes ended with [TokenType#SLASH_GT].
-   */
-  final Token contentEnd;
-
-  /**
-   * The closing [TokenType#TAG] after the child elements or `null` if there is no
-   * content and the attributes ended with [TokenType#SLASH_GT]
-   */
-  final Token closingTag;
-
-  /**
-   * The ending [TokenType#GT] or [TokenType#SLASH_GT] token (not `null`).
-   */
-  final Token nodeEnd;
-
-  /**
-   * The expressions that are embedded in the tag's content.
-   */
-  List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
-
-  /**
-   * Construct a new instance representing an XML or HTML element
+   * Construct a new instance representing the content of an HTML file.
    *
-   * @param nodeStart the starting [TokenType#LT] token (not `null`)
-   * @param tag the [TokenType#TAG] token after the starting '&lt;' (not `null`).
-   * @param attributes the attributes associated with this element or [NO_ATTRIBUTES] (not
-   *          `null`, contains no `null`s)
-   * @param attributeEnd The [TokenType#GT] or [TokenType#SLASH_GT] token after the
-   *          attributes (not `null`). The token may be the same token as [nodeEnd] if
-   *          there are no child [tagNodes].
-   * @param tagNodes child tag nodes of the receiver or [NO_TAG_NODES] (not `null`,
-   *          contains no `null`s)
-   * @param contentEnd the token (not `null`) after the content, which may be
-   *          * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
-   *          * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is
-   *          self closing or the attributeEnd is [TokenType#SLASH_GT], or
-   *          * (3) [TokenType#EOF] if the node does not have a closing tag and is the last
-   *          node in the stream [TokenType#LT_SLASH] token after the content, or `null`
-   *          if there is no content and the attributes ended with [TokenType#SLASH_GT].
-   * @param closingTag the closing [TokenType#TAG] after the child elements or `null` if
-   *          there is no content and the attributes ended with [TokenType#SLASH_GT]
-   * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
-   *          `null`)
+   * @param beginToken the first token in the file (not `null`)
+   * @param tagNodes child tag nodes of the receiver (not `null`, contains no `null`s)
+   * @param endToken the last token in the token stream which should be of type
+   *          [TokenType.EOF]
    */
-  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
-    this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
-    this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
+  HtmlUnit(this.beginToken, List<XmlTagNode> tagNodes, this.endToken) {
+    this._tagNodes = becomeParentOfAll(tagNodes);
   }
 
   @override
-  accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
+  accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
 
   /**
-   * Answer the attribute with the specified name.
+   * Return the element associated with this HTML unit.
    *
-   * @param name the attribute name
-   * @return the attribute or `null` if no matching attribute is found
+   * @return the element or `null` if the receiver is not resolved
    */
-  XmlAttributeNode getAttribute(String name) {
-    for (XmlAttributeNode attribute in _attributes) {
-      if (attribute.name == name) {
-        return attribute;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Answer the receiver's attributes. Callers should not manipulate the returned list to edit the
-   * AST structure.
-   *
-   * @return the attributes (not `null`, contains no `null`s)
-   */
-  List<XmlAttributeNode> get attributes => _attributes;
-
-  /**
-   * Find the attribute with the given name (see [getAttribute] and answer the lexeme
-   * for the attribute's value token without the leading and trailing quotes (see
-   * [XmlAttributeNode#getText]).
-   *
-   * @param name the attribute name
-   * @return the attribute text or `null` if no matching attribute is found
-   */
-  String getAttributeText(String name) {
-    XmlAttributeNode attribute = getAttribute(name);
-    return attribute != null ? attribute.text : null;
-  }
-
   @override
-  Token get beginToken => nodeStart;
-
-  /**
-   * Answer a string representing the content contained in the receiver. This includes the textual
-   * representation of any child tag nodes ([getTagNodes]). Whitespace between '&lt;',
-   * '&lt;/', and '>', '/>' is discarded, but all other whitespace is preserved.
-   *
-   * @return the content (not `null`)
-   */
-  String get content {
-    Token token = attributeEnd.next;
-    if (identical(token, contentEnd)) {
-      return "";
-    }
-    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
-    String content = token.lexeme;
-    token = token.next;
-    if (identical(token, contentEnd)) {
-      return content;
-    }
-    JavaStringBuilder buffer = new JavaStringBuilder();
-    while (!identical(token, contentEnd)) {
-      buffer.append(token.lexeme);
-      token = token.next;
-    }
-    return buffer.toString();
-  }
-
-  @override
-  Token get endToken {
-    if (nodeEnd != null) {
-      return nodeEnd;
-    }
-    if (closingTag != null) {
-      return closingTag;
-    }
-    if (contentEnd != null) {
-      return contentEnd;
-    }
-    if (!_tagNodes.isEmpty) {
-      return _tagNodes[_tagNodes.length - 1].endToken;
-    }
-    if (attributeEnd != null) {
-      return attributeEnd;
-    }
-    if (!_attributes.isEmpty) {
-      return _attributes[_attributes.length - 1].endToken;
-    }
-    return _tag;
-  }
-
-  /**
-   * Answer the tag name after the starting '&lt;'.
-   *
-   * @return the tag name (not `null`)
-   */
-  String get tag => _tag.lexeme;
+  HtmlElement get element => super.element as HtmlElement;
 
   /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
@@ -1816,21 +1572,78 @@ class XmlTagNode extends XmlNode {
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
 
-  /**
-   * Answer the [TokenType#TAG] token after the starting '&lt;'.
-   *
-   * @return the token (not `null`)
-   */
-  Token get tagToken => _tag;
+  @override
+  void set element(Element element) {
+    if (element != null && element is! HtmlElement) {
+      throw new IllegalArgumentException("HtmlElement expected, but ${element.runtimeType} given");
+    }
+    super.element = element;
+  }
 
   @override
   void visitChildren(XmlVisitor visitor) {
-    for (XmlAttributeNode node in _attributes) {
-      node.accept(visitor);
-    }
     for (XmlTagNode node in _tagNodes) {
       node.accept(visitor);
     }
+  }
+}
+
+/**
+ * Instances of the class `StringScanner` implement a scanner that reads from a string. The
+ * scanning logic is in the superclass.
+ */
+class StringScanner extends AbstractScanner {
+  /**
+   * The string from which characters will be read.
+   */
+  final String _string;
+
+  /**
+   * The number of characters in the string.
+   */
+  int _stringLength = 0;
+
+  /**
+   * The index, relative to the string, of the last character that was read.
+   */
+  int _charOffset = 0;
+
+  /**
+   * Initialize a newly created scanner to scan the characters in the given string.
+   *
+   * @param source the source being scanned
+   * @param string the string from which characters will be read
+   */
+  StringScanner(Source source, this._string) : super(source) {
+    this._stringLength = _string.length;
+    this._charOffset = -1;
+  }
+
+  @override
+  int get offset => _charOffset;
+
+  void set offset(int offset) {
+    _charOffset = offset;
+  }
+
+  @override
+  int advance() {
+    if (++_charOffset < _stringLength) {
+      return _string.codeUnitAt(_charOffset);
+    }
+    _charOffset = _stringLength;
+    return -1;
+  }
+
+  @override
+  String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta).toString();
+
+  @override
+  int peek() {
+    if (_charOffset + 1 < _stringLength) {
+      return _string.codeUnitAt(_charOffset + 1);
+    }
+    return -1;
   }
 }
 
@@ -1976,68 +1789,255 @@ class HtmlParser extends XmlParser {
 }
 
 /**
- * Instances of the class `HtmlUnit` represent the contents of an HTML file.
+ * Instances of the class `RecursiveXmlVisitor` implement an XML visitor that will recursively
+ * visit all of the nodes in an XML structure. For example, using an instance of this class to visit
+ * a [XmlTagNode] will also cause all of the contained [XmlAttributeNode]s and
+ * [XmlTagNode]s to be visited.
+ *
+ * Subclasses that override a visit method must either invoke the overridden visit method or must
+ * explicitly ask the visited node to visit its children. Failure to do so will cause the children
+ * of the visited node to not be visited.
  */
-class HtmlUnit extends XmlNode {
-  /**
-   * The first token in the token stream that was parsed to form this HTML unit.
-   */
-  final Token beginToken;
-
-  /**
-   * The last token in the token stream that was parsed to form this compilation unit. This token
-   * should always have a type of [TokenType.EOF].
-   */
-  final Token endToken;
-
-  /**
-   * The tag nodes contained in the receiver (not `null`, contains no `null`s).
-   */
-  List<XmlTagNode> _tagNodes;
-
-  /**
-   * Construct a new instance representing the content of an HTML file.
-   *
-   * @param beginToken the first token in the file (not `null`)
-   * @param tagNodes child tag nodes of the receiver (not `null`, contains no `null`s)
-   * @param endToken the last token in the token stream which should be of type
-   *          [TokenType.EOF]
-   */
-  HtmlUnit(this.beginToken, List<XmlTagNode> tagNodes, this.endToken) {
-    this._tagNodes = becomeParentOfAll(tagNodes);
+class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
+  @override
+  R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    node.visitChildren(this);
+    return null;
   }
 
   @override
-  accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
-
-  /**
-   * Return the element associated with this HTML unit.
-   *
-   * @return the element or `null` if the receiver is not resolved
-   */
-  @override
-  HtmlElement get element => super.element as HtmlElement;
-
-  /**
-   * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
-   * to edit the AST structure.
-   *
-   * @return the children (not `null`, contains no `null`s)
-   */
-  List<XmlTagNode> get tagNodes => _tagNodes;
+  R visitHtmlUnit(HtmlUnit node) {
+    node.visitChildren(this);
+    return null;
+  }
 
   @override
-  void set element(Element element) {
-    if (element != null && element is! HtmlElement) {
-      throw new IllegalArgumentException("HtmlElement expected, but ${element.runtimeType} given");
+  R visitXmlAttributeNode(XmlAttributeNode node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitXmlTagNode(XmlTagNode node) {
+    node.visitChildren(this);
+    return null;
+  }
+}
+
+/**
+ * Instances of the class `HtmlScriptTagNode` represent a script tag within an HTML file that
+ * references a Dart script.
+ */
+class HtmlScriptTagNode extends XmlTagNode {
+  /**
+   * The AST structure representing the Dart code within this tag.
+   */
+  CompilationUnit _script;
+
+  /**
+   * The element representing this script.
+   */
+  HtmlScriptElement scriptElement;
+
+  /**
+   * Initialize a newly created node to represent a script tag within an HTML file that references a
+   * Dart script.
+   *
+   * @param nodeStart the token marking the beginning of the tag
+   * @param tag the name of the tag
+   * @param attributes the attributes in the tag
+   * @param attributeEnd the token terminating the region where attributes can be
+   * @param tagNodes the children of the tag
+   * @param contentEnd the token that starts the closing tag
+   * @param closingTag the name of the tag that occurs in the closing tag
+   * @param nodeEnd the last token in the tag
+   */
+  HtmlScriptTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
+
+  @override
+  accept(XmlVisitor visitor) => visitor.visitHtmlScriptTagNode(this);
+
+  /**
+   * Return the AST structure representing the Dart code within this tag, or `null` if this
+   * tag references an external script.
+   *
+   * @return the AST structure representing the Dart code within this tag
+   */
+  CompilationUnit get script => _script;
+
+  /**
+   * Set the AST structure representing the Dart code within this tag to the given compilation unit.
+   *
+   * @param unit the AST structure representing the Dart code within this tag
+   */
+  void set script(CompilationUnit unit) {
+    _script = unit;
+  }
+}
+
+/**
+ * The enumeration `TokenType` defines the types of tokens that can be returned by the
+ * scanner.
+ */
+class TokenType extends Enum<TokenType> {
+  /**
+   * The type of the token that marks the end of the input.
+   */
+  static const TokenType EOF = const TokenType_EOF('EOF', 0, "");
+
+  static const TokenType EQ = const TokenType('EQ', 1, "=");
+
+  static const TokenType GT = const TokenType('GT', 2, ">");
+
+  static const TokenType LT_SLASH = const TokenType('LT_SLASH', 3, "</");
+
+  static const TokenType LT = const TokenType('LT', 4, "<");
+
+  static const TokenType SLASH_GT = const TokenType('SLASH_GT', 5, "/>");
+
+  static const TokenType COMMENT = const TokenType('COMMENT', 6, null);
+
+  static const TokenType DECLARATION = const TokenType('DECLARATION', 7, null);
+
+  static const TokenType DIRECTIVE = const TokenType('DIRECTIVE', 8, null);
+
+  static const TokenType STRING = const TokenType('STRING', 9, null);
+
+  static const TokenType TAG = const TokenType('TAG', 10, null);
+
+  static const TokenType TEXT = const TokenType('TEXT', 11, null);
+
+  static const List<TokenType> values = const [
+      EOF,
+      EQ,
+      GT,
+      LT_SLASH,
+      LT,
+      SLASH_GT,
+      COMMENT,
+      DECLARATION,
+      DIRECTIVE,
+      STRING,
+      TAG,
+      TEXT];
+
+  /**
+   * The lexeme that defines this type of token, or `null` if there is more than one possible
+   * lexeme for this type of token.
+   */
+  final String lexeme;
+
+  const TokenType(String name, int ordinal, this.lexeme) : super(name, ordinal);
+}
+
+class TokenType_EOF extends TokenType {
+  const TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
+
+  @override
+  String toString() => "-eof-";
+}
+
+/**
+ * Instances of `XmlAttributeNode` represent name/value pairs owned by an [XmlTagNode].
+ */
+class XmlAttributeNode extends XmlNode {
+  final Token _name;
+
+  final Token equals;
+
+  final Token _value;
+
+  List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
+
+  /**
+   * Construct a new instance representing an XML attribute.
+   *
+   * @param name the name token (not `null`). This may be a zero length token if the attribute
+   *          is badly formed.
+   * @param equals the equals sign or `null` if none
+   * @param value the value token (not `null`)
+   */
+  XmlAttributeNode(this._name, this.equals, this._value);
+
+  @override
+  accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
+
+  @override
+  Token get beginToken => _name;
+
+  @override
+  Token get endToken => _value;
+
+  /**
+   * Answer the attribute name. This may be a zero length string if the attribute is badly formed.
+   *
+   * @return the name (not `null`)
+   */
+  String get name => _name.lexeme;
+
+  /**
+   * Answer the attribute name token. This may be a zero length token if the attribute is badly
+   * formed.
+   *
+   * @return the name token (not `null`)
+   */
+  Token get nameToken => _name;
+
+  /**
+   * Answer the lexeme for the value token without the leading and trailing quotes.
+   *
+   * @return the text or `null` if the value is not specified
+   */
+  String get text {
+    if (_value == null) {
+      return null;
     }
-    super.element = element;
+    //TODO (danrubel): replace HTML character encodings with the actual characters
+    String text = _value.lexeme;
+    int len = text.length;
+    if (len > 0) {
+      if (text.codeUnitAt(0) == 0x22) {
+        if (len > 1 && text.codeUnitAt(len - 1) == 0x22) {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      } else if (text.codeUnitAt(0) == 0x27) {
+        if (len > 1 && text.codeUnitAt(len - 1) == 0x27) {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      }
+    }
+    return text;
   }
+
+  /**
+   * Answer the offset of the value after the leading quote.
+   *
+   * @return the offset of the value, or `-1` if the value is not specified
+   */
+  int get textOffset {
+    if (_value == null) {
+      return -1;
+    }
+    String text = _value.lexeme;
+    if (StringUtilities.startsWithChar(text, 0x22) || StringUtilities.startsWithChar(text, 0x27)) {
+      return _value.offset + 1;
+    }
+    return _value.offset;
+  }
+
+  /**
+   * Answer the attribute value token. A properly formed value will start and end with matching
+   * quote characters, but the value returned may not be properly formed.
+   *
+   * @return the value token or `null` if this represents a badly formed attribute
+   */
+  Token get valueToken => _value;
 
   @override
   void visitChildren(XmlVisitor visitor) {
-    for (XmlTagNode node in _tagNodes) {
-      node.accept(visitor);
-    }
   }
 }
