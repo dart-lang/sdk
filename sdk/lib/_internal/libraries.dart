@@ -32,7 +32,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Client",
       implementation: true,
       documented: false,
-      platforms: VM_PLATFORM)
+      platforms: VM_PLATFORM),
  
   "_chrome": const LibraryInfo(
       "_chrome/dart2js/chrome_dart2js.dart",
