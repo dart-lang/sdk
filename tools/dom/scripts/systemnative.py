@@ -171,6 +171,10 @@ _cpp_static_call_map = {
   'HTMLAreaElement': _url_utils,
 }
 
+# This goes away after the Chrome 35 roll (or whenever we commit to the
+# dart:blink refactor)
+dart_use_blink = False
+
 def _GetCPPPartialNames(interface):
   interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
   if not _cpp_partial_map:
@@ -212,19 +216,58 @@ def _GetCPPTypeName(interface_name, callback_name, cpp_name):
     cpp_type_name = interface_name
   return cpp_type_name
 
+def DeriveQualifiedName(library_name, name):
+    return library_name + "." + name
+
+def DeriveNativeName(interface_name, name, suffix):
+    fields = ["Native", interface_name, name]
+    if suffix != "":
+        fields.append(suffix)
+    return "_".join(fields)
+
+# FIXME(leafp) This should really go elsewhere.  I think the right thing
+# to do is to add support in the DartLibraries objects in systemhtml
+# for emitting top level code in libraries.  This can then just be a
+# normal use of that kind of object
+def GetNativeLibraryEmitter(emitters, template_loader, 
+                            dartium_output_dir, dart_output_dir,
+                            auxiliary_dir):
+    def massage_path(path):
+        # The most robust way to emit path separators is to use / always.
+        return path.replace('\\', '/')
+    template = template_loader.Load('blink_dartium.darttemplate')
+    dart_path = os.path.join(dartium_output_dir, 'blink_dartium.dart')
+    library_emitter = emitters.FileEmitter(dart_path)
+    auxiliary_dir = os.path.relpath(auxiliary_dir, dartium_output_dir)
+    emitter = \
+        library_emitter.Emit(template,
+                             AUXILIARY_DIR=massage_path(auxiliary_dir))
+    return emitter
+
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, cpp_library_emitter, options):
+  def __init__(self, interface, native_library_emitter,
+               cpp_library_emitter, options):
     super(DartiumBackend, self).__init__(interface, options)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
+    self._native_library_emitter = native_library_emitter
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
+    self._native_library_name = "blink"
+    # These get initialized by StartInterface
+    self._cpp_header_emitter = None
+    self._cpp_impl_emitter = None
+    self._members_emitter = None
+    self._cpp_declarations_emitter = None
+    self._cpp_impl_includes = None
+    self._cpp_definitions_emitter = None
+    self._cpp_resolver_emitter = None
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -353,6 +396,18 @@ class DartiumBackend(HtmlDartGenerator):
       template = self._template_loader.Load('dart_implementation.darttemplate')
     return template
 
+  def _NativeImplementationTemplate(self):
+    template = None
+    interface_name = self._interface.doc_js_name
+    if (interface_name == self._interface.id or
+       not self._database.HasInterface(interface_name)):
+      template_file = 'impl_blink_%s.darttemplate' % interface_name
+      template = self._template_loader.TryLoad(template_file)
+    if not template:
+      template = \
+          self._template_loader.Load('dart_blink_implementation.darttemplate')
+    return template
+
   def RootClassName(self):
     return 'NativeFieldWrapperClass2'
 
@@ -361,21 +416,25 @@ class DartiumBackend(HtmlDartGenerator):
 
   def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
-    if not IsPureInterface(self._interface.id) and not IsCustomType(self._interface.id):
+    if not IsPureInterface(self._interface.id) and \
+        not IsCustomType(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
-          self._interface.id,
-          self._renamer.GetLibraryName(self._interface))
-      self._cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
+        self._interface.id,
+        self._renamer.GetLibraryName(self._interface))
+      self._cpp_impl_emitter = \
+        self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     else:
       self._cpp_header_emitter = emitter.Emitter()
       self._cpp_impl_emitter = emitter.Emitter()
 
     self._interface_type_info = self._TypeInfo(self._interface.id)
     self._members_emitter = members_emitter
+
     self._cpp_declarations_emitter = emitter.Emitter()
 
-    self._cpp_impl_includes = set(['"' + partial + '.h"'
-                                   for partial in _GetCPPPartialNames(self._interface)])
+    self._cpp_impl_includes = \
+      set(['"' + partial + '.h"'
+           for partial in _GetCPPPartialNames(self._interface)])
 
     # This is a hack to work around a strange C++ compile error that we weren't
     # able to track down the true cause of.
@@ -409,15 +468,42 @@ class DartiumBackend(HtmlDartGenerator):
     if argument_count is None:
       argument_count = len(constructor_info.param_infos)
 
-    self._members_emitter.Emit(
-        '\n  @DocsEditable()\n'
-        '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) '
+    typed_formals = constructor_info.ParametersAsArgumentList(argument_count)
+    parameters = constructor_info.ParametersAsStringOfVariables(argument_count)
+    interface_name =  self._interface_type_info.interface_name()
+
+    if dart_use_blink:
+        # First we emit the toplevel function
+        dart_native_name = \
+            DeriveNativeName(self._interface.id, constructor_callback_cpp_name, "")
+        self._native_library_emitter.Emit(
+            '\n'
+            '$FACTORY_METHOD_NAME($PARAMETERS) native "$ID";\n',
+            FACTORY_METHOD_NAME=dart_native_name,
+            PARAMETERS=parameters,
+            ID=constructor_callback_id)
+
+        # Then we emit the impedance matching wrapper to call out to the
+        # toplevel wrapper
+        self._members_emitter.Emit(
+            '\n  @DocsEditable()\n'
+            '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
+            '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
+            INTERFACE_NAME=self._interface_type_info.interface_name(),
+            FACTORY_METHOD_NAME=factory_method_name,
+            PARAMETERS=typed_formals,
+            TOPLEVEL_NAME=DeriveQualifiedName(self._native_library_name,
+                                              dart_native_name),
+            OUTPARAMETERS=parameters)
+    else:
+        self._members_emitter.Emit(
+            '\n  @DocsEditable()\n'
+            '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) '
             'native "$ID";\n',
-        INTERFACE_NAME=self._interface_type_info.interface_name(),
-        FACTORY_METHOD_NAME=factory_method_name,
-        # TODO: add types to parameters.
-        PARAMETERS=constructor_info.ParametersAsArgumentList(argument_count),
-        ID=constructor_callback_id)
+            INTERFACE_NAME=self._interface_type_info.interface_name(),
+            FACTORY_METHOD_NAME=factory_method_name,
+            PARAMETERS=typed_formals,
+            ID=constructor_callback_id)
 
     self._cpp_resolver_emitter.Emit(
         '    if (name == "$ID")\n'
@@ -437,7 +523,7 @@ class DartiumBackend(HtmlDartGenerator):
         '\n  $(ANNOTATIONS)factory $CTOR($PARAMS) => _create($FACTORY_PARAMS);\n',
         ANNOTATIONS=annotations,
         CTOR=constructor_info._ConstructorFullName(self._DartType),
-        PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+        PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
         FACTORY_PARAMS= \
             constructor_info.ParametersAsArgumentList())
 
@@ -676,8 +762,9 @@ class DartiumBackend(HtmlDartGenerator):
     if self._interface.id == 'ImageData' and html_name == 'data':
       html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = '%s get %s' % (
-        self.SecureOutputType(attr.type.id, False, read_only), html_name)
+    return_type = self.SecureOutputType(attr.type.id, False, read_only)
+    parameters = []
+    dart_declaration = '%s get %s' % (return_type, html_name)
     is_custom = ('Custom' in attr.ext_attrs and
                  (attr.ext_attrs['Custom'] == None or
                   attr.ext_attrs['Custom'] == 'Getter'))
@@ -687,7 +774,8 @@ class DartiumBackend(HtmlDartGenerator):
     native_suffix = 'Getter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
-        dart_declaration, native_suffix, is_custom, auto_scope_setup)
+        dart_declaration, False, return_type, parameters,
+        native_suffix, is_custom, auto_scope_setup)
     if is_custom:
       return
 
@@ -726,7 +814,10 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = 'void set %s(%s value)' % (html_name, self._DartType(attr.type.id))
+    return_type = 'void'
+    parameters = ['value']
+    ptype = self._DartType(attr.type.id)
+    dart_declaration = 'void set %s(%s value)' % (html_name, ptype)
     is_custom = ('Custom' in attr.ext_attrs and
                  (attr.ext_attrs['Custom'] == None or
                   attr.ext_attrs['Custom'] == 'Setter'))
@@ -737,7 +828,8 @@ class DartiumBackend(HtmlDartGenerator):
     native_suffix = 'Setter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
-        dart_declaration, native_suffix, is_custom, auto_scope_setup)
+        dart_declaration, False, return_type, parameters,
+        native_suffix, is_custom, auto_scope_setup)
     if is_custom:
       return
 
@@ -793,16 +885,47 @@ class DartiumBackend(HtmlDartGenerator):
     elif self._HasExplicitIndexedGetter():
       self._EmitExplicitIndexedGetter(dart_element_type)
     else:
-      self._members_emitter.Emit(
-          '\n'
-          '  $TYPE operator[](int index) {\n'
-          '    if (index < 0 || index >= length)\n'
-          '      throw new RangeError.range(index, 0, length);\n'
-          '    return _nativeIndexedGetter(index);\n'
-          '  }\n'
-          '  $TYPE _nativeIndexedGetter(int index) native "$(INTERFACE)_item_Callback";\n',
-          TYPE=self.SecureOutputType(element_type),
-          INTERFACE=self._interface.id)
+      if dart_use_blink:
+          dart_native_name = \
+              DeriveNativeName(self._interface.id, "NativeIndexed", "Getter")
+          # First emit a toplevel function to do the native call
+          # Calls to this are emitted elsewhere,
+          self._native_library_emitter.Emit(
+              '\n'
+              '$(DART_NATIVE_NAME)(mthis, index) '
+              'native "$(INTERFACE)_item_Callback";\n',
+              DART_NATIVE_NAME = dart_native_name,
+              INTERFACE=self._interface.id)
+
+          # Emit the method which calls the toplevel function, along with
+          # the [] operator.
+          self._members_emitter.Emit(
+              '\n'
+              '  $TYPE operator[](int index) {\n'
+              '    if (index < 0 || index >= length)\n'
+              '      throw new RangeError.range(index, 0, length);\n'
+              '    return $(DART_NATIVE_NAME)(this, index);\n'
+              '  }\n\n'
+              '  $TYPE _nativeIndexedGetter(int index) =>'
+              ' $(DART_NATIVE_NAME)(this, index);\n',
+              DART_NATIVE_NAME=DeriveQualifiedName(self._native_library_name,
+                                                   dart_native_name),
+              TYPE=self.SecureOutputType(element_type),
+              INTERFACE=self._interface.id)
+      else:
+          # Emit the method which calls the toplevel function, along with
+          # the [] operator.
+          self._members_emitter.Emit(
+              '\n'
+              '  $TYPE operator[](int index) {\n'
+              '    if (index < 0 || index >= length)\n'
+              '      throw new RangeError.range(index, 0, length);\n'
+              '    return _nativeIndexedGetter(index);\n'
+              '  }\n'
+              '  $TYPE _nativeIndexedGetter(int index)'
+              ' native "$(INTERFACE)_item_Callback";\n',
+              TYPE=self.SecureOutputType(element_type),
+              INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -835,10 +958,12 @@ class DartiumBackend(HtmlDartGenerator):
     return 'CustomIndexedGetter' in self._interface.ext_attrs
 
   def _EmitNativeIndexGetter(self, element_type):
-    dart_declaration = '%s operator[](int index)' % \
-        self.SecureOutputType(element_type, True)
-    self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
-        'Callback', True, False)
+    return_type = self.SecureOutputType(element_type, True)
+    parameters = ['index']
+    dart_declaration = '%s operator[](int index)' % return_type
+    self._GenerateNativeBinding('numericIndexGetter', 2,
+      dart_declaration, False, return_type, parameters,
+      'Callback', True, False)
 
   def _HasExplicitIndexedGetter(self):
     return any(op.id == 'getItem' for op in self._interface.operations)
@@ -861,21 +986,27 @@ class DartiumBackend(HtmlDartGenerator):
     return 'CustomIndexedSetter' in self._interface.ext_attrs
 
   def _EmitNativeIndexSetter(self, element_type):
-    dart_declaration = 'void operator[]=(int index, %s value)' % element_type
-    self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
-        'Callback', True, False)
+    return_type = 'void'
+    formals = ', '.join(['int index', '%s value' % element_type])
+    parameters = ['index', 'value']
+    dart_declaration = 'void operator[]=(%s)' % formals
+    self._GenerateNativeBinding('numericIndexSetter', 3, 
+      dart_declaration, False, return_type, parameters,
+      'Callback', True, False)
 
   def EmitOperation(self, info, html_name):
     """
     Arguments:
       info: An OperationInfo object.
     """
-
+    return_type = self.SecureOutputType(info.type_name, False, True)
+    formals = info.ParametersAsDeclaration(self._DartType)
+    parameters = info.ParametersAsListOfVariables()
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
-        self.SecureOutputType(info.type_name, False, True),
+        return_type,
         html_name,
-        info.ParametersDeclaration(self._DartType))
+        formals)
 
     operation = info.operations[0]
     is_custom = 'Custom' in operation.ext_attrs
@@ -890,8 +1021,9 @@ class DartiumBackend(HtmlDartGenerator):
       native_suffix = 'Callback'
       auto_scope_setup = self._GenerateAutoSetupScope(info.name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
-          info.name, argument_count, dart_declaration, native_suffix, is_custom,
-          auto_scope_setup)
+        info.name, argument_count, dart_declaration,
+        info.IsStatic(), return_type, parameters,
+        native_suffix, is_custom, auto_scope_setup)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
@@ -902,23 +1034,26 @@ class DartiumBackend(HtmlDartGenerator):
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
       overload_name = '_%s_%s' % (operation.id, version)
-      argument_list = ', '.join(
-          [p.name for p in info.param_infos[:argument_count]])
-      call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=argument_list)
-
+      return_type = self.SecureOutputType(operation.type.id)
+      actuals = info.ParametersAsListOfVariables(argument_count)
+      actuals_s = ", ".join(actuals)
+      call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
       dart_declaration = '%s%s %s(%s)' % (
           'static ' if operation.is_static else '',
-          self.SecureOutputType(operation.type.id),
-          overload_name, argument_list)
+          return_type,
+          overload_name, actuals_s)
       is_custom = 'Custom' in operation.ext_attrs
       native_suffix = 'Callback'
-      auto_scope_setup = self._GenerateAutoSetupScope(overload_name, native_suffix)
+      auto_scope_setup = \
+        self._GenerateAutoSetupScope(overload_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
-          overload_name, (0 if operation.is_static else 1) + argument_count,
-          dart_declaration, 'Callback', is_custom, auto_scope_setup,
-          emit_metadata=False)
+        overload_name, (0 if operation.is_static else 1) + argument_count,
+        dart_declaration, operation.is_static, return_type, actuals,
+        'Callback', is_custom, auto_scope_setup, emit_metadata=False)
       if not is_custom:
-        self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name, auto_scope_setup)
+        self._GenerateOperationNativeCallback(operation,
+          operation.arguments[:argument_count], cpp_callback_name,
+          auto_scope_setup)
 
     self._GenerateDispatcherBody(
         info,
@@ -965,7 +1100,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     cpp_arguments = []
     runtime_check = None
-    raises_exceptions = raises_dom_exception or arguments
+    raises_exceptions = raises_dom_exception or arguments or needs_receiver
     needs_custom_element_callbacks = False
 
     # TODO(antonm): unify with ScriptState below.
@@ -1115,9 +1250,21 @@ class DartiumBackend(HtmlDartGenerator):
           '        Document& document = *domWindow->document();\n')
 
     if needs_receiver:
-      body_emitter.Emit(
-          '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n',
-          WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
+      if dart_use_blink:
+          body_emitter.Emit(
+            '        $WEBCORE_CLASS_NAME* receiver = '
+            'DartDOMWrapper::receiverChecked<Dart$INTERFACE>(args, exception);\n'
+            '        if (exception)\n'
+            '            goto fail;\n',
+            WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
+            INTERFACE=self._interface.id)
+      else:
+          body_emitter.Emit(
+            '        $WEBCORE_CLASS_NAME* receiver = '
+            'DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
+            '        if (exception)\n'
+            '            goto fail;\n',
+            WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
     if requires_stack_info:
       self._cpp_impl_includes.add('"ScriptArguments.h"')
@@ -1306,23 +1453,49 @@ class DartiumBackend(HtmlDartGenerator):
         RETURN_VALUE=set_return_value)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
-      native_suffix, is_custom, auto_scope_setup=True, emit_metadata=True):
-
+      static, return_type, parameters, native_suffix, is_custom,
+      auto_scope_setup=True, emit_metadata=True):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
           self._renamer.GetLibraryName(self._interface),
           self._interface, idl_name, '  ')
-
+    dart_native_name = \
+        DeriveNativeName(self._interface.id, idl_name, native_suffix)
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
-    self._members_emitter.Emit(
-        '\n'
-        '  $METADATA$DART_DECLARATION native "$NATIVE_BINDING";\n',
-        DOMINTERFACE=self._interface.id,
-        METADATA=metadata,
-        DART_DECLARATION=dart_declaration,
-        NATIVE_BINDING=native_binding)
+    if dart_use_blink:
+        if not static:
+            formals = ", ".join(['mthis'] + parameters)
+            actuals = ", ".join(['this'] + parameters)
+        else:
+            formals = ", ".join(parameters)
+            actuals = ", ".join(parameters)
 
+        self._native_library_emitter.Emit(
+            '\n'
+            '$DART_NAME($FORMALS) native "$NATIVE_BINDING";\n',
+            DART_NAME=dart_native_name,
+            FORMALS=formals,
+            NATIVE_BINDING=native_binding)
+
+        # We then emit a class method which calls out to the mangled toplevel
+        # function.  Eventually this will be replaced with a call to an
+        # interceptor
+        self._members_emitter.Emit(
+            '\n'
+            '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
+            METADATA=metadata,
+            DART_DECLARATION=dart_declaration,
+            DART_NAME=DeriveQualifiedName(self._native_library_name,
+                                          dart_native_name),
+            ACTUALS=actuals)
+    else:
+        self._members_emitter.Emit(
+            '\n'
+            '  $METADATA$DART_DECLARATION native "$NATIVE_BINDING";\n',
+            METADATA=metadata,
+            DART_DECLARATION=dart_declaration,
+            NATIVE_BINDING=native_binding)
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(

@@ -10,6 +10,9 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
+$if DART_USE_BLINK
+import 'dart:blink' as blink;
+$endif
 
 part '$AUXILIARY_DIR/WebGLConstants.dart';
 

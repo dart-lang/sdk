@@ -51,6 +51,9 @@ import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
+$if DART_USE_BLINK
+import 'dart:blink' as blink;
+$endif
 
 export 'dart:math' show Rectangle, Point;
 
@@ -83,7 +86,11 @@ part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_Platform.dart';
 part '$AUXILIARY_DIR/shared_html.dart';
 
+$if DART_USE_BLINK
+part '$AUXILIARY_DIR/html_native_DOMImplementation.dart';
+$else
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';
+$endif
 
 Window _window;
 

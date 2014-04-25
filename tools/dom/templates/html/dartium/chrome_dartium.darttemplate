@@ -13,3 +13,5 @@
 /// For more information on these APIs, see the
 /// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
 library _chrome;
+
+import 'dart:blink' as blink;

@@ -481,7 +481,7 @@ class HtmlDartInterfaceGenerator(object):
     code.Emit('$(ANNOTATIONS)typedef void $NAME($PARAMS);\n',
               ANNOTATIONS=annotations,
               NAME=typedef_name,
-              PARAMS=info.ParametersDeclaration(self._DartType))
+              PARAMS=info.ParametersAsDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
@@ -565,7 +565,7 @@ class HtmlDartInterfaceGenerator(object):
     if not IsPureInterface(self._interface.id):
       native_spec = self._backend.NativeSpec()
 
-    self._implementation_members_emitter = implementation_emitter.Emit(
+    implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
@@ -578,22 +578,23 @@ class HtmlDartInterfaceGenerator(object):
         NATIVESPEC=native_spec)
     stream_getter_signatures_emitter = None
     element_stream_getters_emitter = None
-    if type(self._implementation_members_emitter) == tuple:
-      # We add event stream getters for both Element and ElementList, so in
-      # impl_Element.darttemplate, we have two additional "holes" for emitters
-      # to fill in, with small variations. These store these specialized
-      # emitters.
-      stream_getter_signatures_emitter = self._implementation_members_emitter[0]
-      element_stream_getters_emitter = self._implementation_members_emitter[1]
-      self._implementation_members_emitter = \
-          self._implementation_members_emitter[2]
-    self._backend.StartInterface(self._implementation_members_emitter)
-
+    if type(implementation_members_emitter) == tuple:
+        # We add event stream getters for both Element and ElementList, so in
+        # impl_Element.darttemplate, we have two additional "holes" for emitters
+        # to fill in, with small variations. These store these specialized
+        # emitters.
+        assert len(implementation_members_emitter) == 3;
+        stream_getter_signatures_emitter = \
+            implementation_members_emitter[0]
+        element_stream_getters_emitter = implementation_members_emitter[1]
+        implementation_members_emitter = \
+            implementation_members_emitter[2]
+    self._backend.StartInterface(implementation_members_emitter)
     self._backend.EmitHelpers(base_class)
     self._event_generator.EmitStreamProviders(
         self._interface,
         self._backend.CustomJSMembers(),
-        self._implementation_members_emitter,
+        implementation_members_emitter,
         self._library_name)
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
@@ -603,7 +604,7 @@ class HtmlDartInterfaceGenerator(object):
       if parent.id == 'Element':
         isElement = True
     if isElement and self._interface.id != 'Element':
-      self._implementation_members_emitter.Emit(
+      implementation_members_emitter.Emit(
           '  /**\n'
           '   * Constructor instantiated by the DOM when a custom element has been created.\n'
           '   *\n'
@@ -624,7 +625,7 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator.EmitStreamGetters(
         self._interface,
         [],
-        self._implementation_members_emitter,
+        implementation_members_emitter,
         self._library_name, stream_getter_signatures_emitter,
         element_stream_getters_emitter)
     self._backend.FinishInterface()
@@ -981,7 +982,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
-        PARAMS=info.ParametersDeclaration(self._NarrowInputType))
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
@@ -1071,7 +1072,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
-        info.ParametersDeclaration(InputType))
+        info.ParametersAsDeclaration(InputType))
     self._GenerateDispatcherBody(
         info,
         operations,
@@ -1086,7 +1087,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         '  $TYPE $NAME($PARAMS);\n',
         TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
-        PARAMS=info.ParametersDeclaration(self._NarrowInputType))
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
 
 
   def _OperationRequiresConversions(self, operation):

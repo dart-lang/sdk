@@ -9,6 +9,9 @@ import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+$if DART_USE_BLINK
+import 'dart:blink' as blink;
+$endif
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 

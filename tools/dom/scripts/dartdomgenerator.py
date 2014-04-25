@@ -23,7 +23,8 @@ from htmlrenamer import HtmlRenamer
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator, DartLibrary, DartLibraries,\
                        HTML_LIBRARY_NAMES
-from systemnative import CPPLibraryEmitter, DartiumBackend
+from systemnative import CPPLibraryEmitter, DartiumBackend, \
+                         GetNativeLibraryEmitter, dart_use_blink
 from templateloader import TemplateLoader
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -117,19 +118,23 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     template_paths = ['html/dartium', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': True, 'DART2JS': False})
+                                     {'DARTIUM': True, 'DART2JS': False,
+                                      'DART_USE_BLINK' : dart_use_blink})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
         metadata)
     cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
-    backend_factory = lambda interface:\
-        DartiumBackend(interface, cpp_library_emitter, backend_options)
-
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
+    native_library_emitter = \
+        GetNativeLibraryEmitter(emitters, template_loader,
+                                dartium_output_dir, dart_output_dir,
+                                auxiliary_dir)
+    backend_factory = lambda interface:\
+        DartiumBackend(interface, native_library_emitter,
+                       cpp_library_emitter, backend_options)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
-
     RunGenerator(dart_libraries, dart_output_dir,
                  template_loader, backend_factory)
     cpp_library_emitter.EmitDerivedSources(

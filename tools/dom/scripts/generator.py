@@ -414,30 +414,56 @@ class OperationInfo(object):
   def __init__(self):
     self.factory_parameters = None
 
-  def ParametersDeclaration(self, rename_type, force_optional=False):
+  def ParametersAsDecVarLists(self, rename_type, force_optional=False):
+    """ Returns a tuple (required, optional, named), where:
+      required is a list of parameter declarations corresponding to the
+        required parameters
+      optional is a list of parameter declarations corresponding to the
+        optional parameters
+      named is a boolean which is true if the optional parameters should
+        be named
+      A parameter declaration is a tuple (dec, var) where var is the 
+        variable name, and dec is a string suitable for declaring the
+        variable in a parameter list.  That is, dec + var is a valid
+        parameter declaration.
+    """
     def FormatParam(param):
       dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
-      return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
-
+      return (TypeOrNothing(dart_type, param.type_id), param.name)
     required = []
     optional = []
     for param_info in self.param_infos:
       if param_info.is_optional:
-        optional.append(param_info)
+        optional.append(FormatParam(param_info))
       else:
         if optional:
           raise Exception('Optional parameters cannot precede required ones: '
                           + str(params))
-        required.append(param_info)
+        required.append(FormatParam(param_info))
+    needs_named = optional and self.requires_named_arguments and not force_optional
+    return (required, optional, needs_named)
+
+  def ParametersAsDecStringList(self, rename_type, force_optional=False):
+    """Returns a list of strings where each string corresponds to a parameter
+    declaration.  All of the optional/named parameters if any will appear as 
+    a single entry at the end of the list.
+    """
+    (required, optional, needs_named) = \
+        self.ParametersAsDecVarLists(rename_type, force_optional)
+    def FormatParam(dec): 
+        return dec[0] + dec[1]
     argtexts = map(FormatParam, required)
     if optional:
-      needs_named = self.requires_named_arguments and not force_optional
       left_bracket, right_bracket = '{}' if needs_named else '[]'
       argtexts.append(
           left_bracket +
           ', '.join(map(FormatParam, optional)) +
           right_bracket)
-    return ', '.join(argtexts)
+    return argtexts
+
+  def ParametersAsDeclaration(self, rename_type, force_optional=False):
+    p_list = self.ParametersAsDecStringList(rename_type, force_optional)
+    return ', '.join(p_list)
 
   def NumberOfRequiredInDart(self):
     """ Returns a number of required arguments in Dart declaration of
@@ -458,6 +484,20 @@ class OperationInfo(object):
     if parameter_count is None:
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
+
+  def ParametersAsListOfVariables(self, parameter_count=None):
+    """Returns a list of the first parameter_count parameter names
+    as raw variables.
+    """
+    if parameter_count is None:
+      parameter_count = len(self.param_infos)
+    return [p.name for p in self.param_infos[:parameter_count]]
+
+  def ParametersAsStringOfVariables(self, parameter_count=None):
+    """Returns a string containing the first parameter_count parameter names
+    as raw variables, comma separated.
+    """
+    return ', '.join(self.ParametersAsListOfVariables(parameter_count))
 
   def IsStatic(self):
     is_static = self.overloads[0].is_static
