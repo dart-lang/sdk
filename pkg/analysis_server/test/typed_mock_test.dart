@@ -9,11 +9,11 @@ import 'typed_mock.dart' as typed_mocks show equals;
 abstract class TestInterface {
   int get testProperty;
   set testProperty(x);
+  int get testPropertyB;
   String testMethod0();
-  String testMethod1(int a);
-  String testMethod1b(bool a);
-  String testMethod1o(List a);
+  String testMethod1(a);
   String testMethod2(String a, int b);
+  void testMethodVoid(a);
   int operator [](index);
 }
 
@@ -24,7 +24,18 @@ class TestInterfaceMock extends TypedMock implements TestInterface {
 
 
 main() {
-  group("Matchers", () {
+  // lets make it redable
+  groupSep = ' | ';
+
+  group('VerifyError', () {
+    test('VerifyError', () {
+      var error = new VerifyError('msg');
+      expect(error.message, 'msg');
+      expect(error.toString(), 'VerifyError: msg');
+    });
+  });
+
+  group('Matchers', () {
     test('equals', () {
       expect(typed_mocks.equals(10).match(10), true);
       expect(typed_mocks.equals(10).match(20), false);
@@ -62,15 +73,18 @@ main() {
     });
   });
 
-  group("TypedMock", () {
+  group('when', () {
+    TestInterface obj;
+    setUp(() {
+      obj = new TestInterfaceMock();
+    });
+
     test('thenInvoke for getter', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testProperty).thenInvoke(() => 123);
       expect(obj.testProperty, 123);
     });
 
     test('thenInvoke for method with 1 argument', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testMethod1(anyInt)).thenInvoke((int p) => p + 10);
       expect(obj.testMethod1(1), 1 + 10);
       expect(obj.testMethod1(2), 2 + 10);
@@ -78,7 +92,6 @@ main() {
     });
 
     test('thenReturn can replace behavior, getter', () {
-      TestInterface obj = new TestInterfaceMock();
       // set a behavior
       when(obj.testProperty).thenReturn(10);
       expect(obj.testProperty, 10);
@@ -88,14 +101,12 @@ main() {
     });
 
     test('thenReturn for getter', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testProperty).thenReturn(42);
       expect(obj.testProperty, 42);
       expect(obj.testProperty, 42);
     });
 
     test('thenReturn for []', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj[1]).thenReturn(10);
       when(obj[2]).thenReturn(20);
       when(obj[anyInt]).thenReturn(99);
@@ -105,35 +116,30 @@ main() {
     });
 
     test('thenReturn for method with 0 arguments', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testMethod0()).thenReturn('abc');
       expect(obj.testMethod0(), 'abc');
       expect(obj.testMethod0(), 'abc');
     });
 
     test('thenReturn for method with 1 argument, anyBool', () {
-      TestInterface obj = new TestInterfaceMock();
-      when(obj.testMethod1b(anyBool)).thenReturn('qwerty');
-      expect(obj.testMethod1b(true), 'qwerty');
-      expect(obj.testMethod1b(false), 'qwerty');
+      when(obj.testMethod1(anyBool)).thenReturn('qwerty');
+      expect(obj.testMethod1(true), 'qwerty');
+      expect(obj.testMethod1(false), 'qwerty');
     });
 
     test('thenReturn for method with 1 argument, anyInt', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testMethod1(anyInt)).thenReturn('qwerty');
       expect(obj.testMethod1(2), 'qwerty');
       expect(obj.testMethod1(3), 'qwerty');
     });
 
     test('thenReturn for method with 1 argument, anyObject', () {
-      TestInterface obj = new TestInterfaceMock();
-      when(obj.testMethod1o(anyObject)).thenReturn('qwerty');
-      expect(obj.testMethod1o([]), 'qwerty');
-      expect(obj.testMethod1o([1, 2, 3]), 'qwerty');
+      when(obj.testMethod1(anyObject)).thenReturn('qwerty');
+      expect(obj.testMethod1([]), 'qwerty');
+      expect(obj.testMethod1([1, 2, 3]), 'qwerty');
     });
 
     test('thenReturn for method with 1 argument, argument value', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testMethod1(10)).thenReturn('ten');
       when(obj.testMethod1(20)).thenReturn('twenty');
       expect(obj.testMethod1(10), 'ten');
@@ -143,7 +149,6 @@ main() {
     });
 
     test('thenReturn for method with 2 arguments', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testMethod2(anyString, 10)).thenReturn('any+10');
       when(obj.testMethod2(anyString, 20)).thenReturn('any+20');
       when(obj.testMethod2(anyString, anyInt)).thenReturn('everything else');
@@ -155,7 +160,6 @@ main() {
     });
 
     test('thenReturnList for getter', () {
-      TestInterface obj = new TestInterfaceMock();
       when(obj.testProperty).thenReturnList(['a', 'b', 'c']);
       expect(obj.testProperty, 'a');
       expect(obj.testProperty, 'b');
@@ -164,21 +168,18 @@ main() {
     });
 
     test('thenThrow for getter', () {
-      TestInterface obj = new TestInterfaceMock();
       Exception e = new Exception();
       when(obj.testProperty).thenThrow(e);
       expect(() => obj.testProperty, throwsA(e));
     });
 
     test('thenThrow for setter, anyInt', () {
-      TestInterface obj = new TestInterfaceMock();
       Exception e = new Exception();
       when(obj.testProperty = anyInt).thenThrow(e);
       expect(() => (obj.testProperty = 2), throwsA(e));
     });
 
     test('thenThrow for setter, argument value', () {
-      TestInterface obj = new TestInterfaceMock();
       Exception e1 = new Exception('one');
       Exception e2 = new Exception('two');
       when(obj.testProperty = 1).thenThrow(e1);
@@ -189,4 +190,136 @@ main() {
       expect(() => (obj.testProperty = 2), throwsA(e2));
     });
   });
+
+  group('verify', () {
+    TestInterface obj;
+    setUp(() {
+      obj = new TestInterfaceMock();
+    });
+
+    group('times', () {
+      test('OK, getter', () {
+        obj.testProperty;
+        obj.testProperty;
+        verify(obj.testProperty).times(2);
+      });
+
+      test('OK, 2 getters', () {
+        obj.testProperty;
+        obj.testPropertyB;
+        obj.testProperty;
+        verify(obj.testProperty).times(2);
+        verify(obj.testPropertyB).times(1);
+      });
+
+      test('OK, method with 1 argument', () {
+        obj.testMethod1(10);
+        obj.testMethod1('abc');
+        obj.testMethod1(20);
+        verify(obj.testMethod1(10)).times(1);
+        verify(obj.testMethod1(20)).times(1);
+        verify(obj.testMethod1(30)).times(0);
+        verify(obj.testMethod1(anyInt)).times(2);
+        verify(obj.testMethod1(anyString)).times(1);
+        verify(obj.testMethod1(anyBool)).times(0);
+      });
+
+      test('OK, getter, with thenReturn', () {
+        when(obj.testProperty).thenReturn('abc');
+        obj.testProperty;
+        obj.testProperty;
+        verify(obj.testProperty).times(2);
+      });
+
+    test('OK, void method', () {
+      obj.testMethodVoid(10);
+      obj.testMethodVoid(20);
+      verify(obj.testMethodVoid(anyInt)).times(2);
+    });
+
+      test('mismatch, getter', () {
+        obj.testProperty;
+        obj.testProperty;
+        obj.testProperty;
+        expect(() {
+          verify(obj.testProperty).times(2);
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('never', () {
+      test('OK', () {
+        verify(obj.testProperty).never();
+      });
+      test('mismatch', () {
+        obj.testProperty;
+        expect(() {
+          verify(obj.testProperty).never();
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('once', () {
+      test('OK', () {
+        obj.testProperty;
+        verify(obj.testProperty).once();
+      });
+      test('mismatch, actually 0', () {
+        expect(() {
+          verify(obj.testProperty).once();
+        }, throwsA(_isVerifyError));
+      });
+      test('mismatch, actually 2', () {
+        obj.testProperty;
+        obj.testProperty;
+        expect(() {
+          verify(obj.testProperty).once();
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('atLeast', () {
+      test('OK, 1', () {
+        obj.testProperty;
+        verify(obj.testProperty).atLeast(1);
+      });
+      test('OK, 2', () {
+        obj.testProperty;
+        obj.testProperty;
+        verify(obj.testProperty).atLeast(1);
+        verify(obj.testProperty).atLeast(2);
+      });
+      test('mismatch', () {
+        obj.testProperty;
+        obj.testProperty;
+        expect(() {
+          verify(obj.testProperty).atLeast(10);
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('atMost', () {
+      test('OK, 0', () {
+        verify(obj.testProperty).atMost(5);
+        verify(obj.testProperty).atMost(0);
+      });
+      test('OK, 2', () {
+        obj.testProperty;
+        obj.testProperty;
+        verify(obj.testProperty).atMost(5);
+        verify(obj.testProperty).atMost(3);
+        verify(obj.testProperty).atMost(2);
+      });
+      test('mismatch', () {
+        obj.testProperty;
+        obj.testProperty;
+        obj.testProperty;
+        expect(() {
+          verify(obj.testProperty).atMost(2);
+        }, throwsA(_isVerifyError));
+      });
+    });
+  });
 }
+
+const _isVerifyError = const isInstanceOf<VerifyError>();
