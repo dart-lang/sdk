@@ -24,7 +24,7 @@ from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator, DartLibrary, DartLibraries,\
                        HTML_LIBRARY_NAMES
 from systemnative import CPPLibraryEmitter, DartiumBackend, \
-                         GetNativeLibraryEmitter, dart_use_blink
+                         GetNativeLibraryEmitter
 from templateloader import TemplateLoader
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -50,7 +50,8 @@ def LoadDatabase(database_dir, use_database_cache):
   return common_database
 
 def GenerateFromDatabase(common_database, dart2js_output_dir,
-                         dartium_output_dir, update_dom_metadata=False):
+                         dartium_output_dir, update_dom_metadata=False,
+                         dart_use_blink=False):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
   template_dir = os.path.join(current_dir, '..', 'templates')
@@ -132,7 +133,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
                                 auxiliary_dir)
     backend_factory = lambda interface:\
         DartiumBackend(interface, native_library_emitter,
-                       cpp_library_emitter, backend_options)
+                       cpp_library_emitter, backend_options, dart_use_blink)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
     RunGenerator(dart_libraries, dart_output_dir,
@@ -177,6 +178,10 @@ def main():
                     action='store', type='string',
                     default=None,
                     help='Directory to put the generated files')
+  parser.add_option('--use-blink', dest='dart_use_blink',
+                    action='store_true',
+                    default=False,
+                    help='''Delegate all native calls to dart:blink''')
   parser.add_option('--use-database-cache', dest='use_database_cache',
                     action='store_true',
                     default=False,
@@ -211,7 +216,7 @@ def main():
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
-      options.update_dom_metadata)
+      options.update_dom_metadata, options.dart_use_blink)
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')
@@ -225,6 +230,9 @@ def main():
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
+    GenerateSingleFile(
+        os.path.join(dartium_output_dir, 'blink_dartium.dart'),
+        os.path.join('..', '..', '..', 'sdk', 'lib', 'blink', 'dartium'))
 
 if __name__ == '__main__':
   sys.exit(main())

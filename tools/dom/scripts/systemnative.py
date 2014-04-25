@@ -171,10 +171,6 @@ _cpp_static_call_map = {
   'HTMLAreaElement': _url_utils,
 }
 
-# This goes away after the Chrome 35 roll (or whenever we commit to the
-# dart:blink refactor)
-dart_use_blink = False
-
 def _GetCPPPartialNames(interface):
   interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
   if not _cpp_partial_map:
@@ -248,7 +244,7 @@ class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, interface, native_library_emitter,
-               cpp_library_emitter, options):
+               cpp_library_emitter, options, dart_use_blink):
     super(DartiumBackend, self).__init__(interface, options)
 
     self._interface = interface
@@ -260,6 +256,9 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
     self._native_library_name = "blink"
+    # This goes away after the Chrome 35 roll (or whenever we commit to the
+    # dart:blink refactor)
+    self._dart_use_blink = dart_use_blink
     # These get initialized by StartInterface
     self._cpp_header_emitter = None
     self._cpp_impl_emitter = None
@@ -472,7 +471,7 @@ class DartiumBackend(HtmlDartGenerator):
     parameters = constructor_info.ParametersAsStringOfVariables(argument_count)
     interface_name =  self._interface_type_info.interface_name()
 
-    if dart_use_blink:
+    if self._dart_use_blink:
         # First we emit the toplevel function
         dart_native_name = \
             DeriveNativeName(self._interface.id, constructor_callback_cpp_name, "")
@@ -885,7 +884,7 @@ class DartiumBackend(HtmlDartGenerator):
     elif self._HasExplicitIndexedGetter():
       self._EmitExplicitIndexedGetter(dart_element_type)
     else:
-      if dart_use_blink:
+      if self._dart_use_blink:
           dart_native_name = \
               DeriveNativeName(self._interface.id, "NativeIndexed", "Getter")
           # First emit a toplevel function to do the native call
@@ -1250,7 +1249,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        Document& document = *domWindow->document();\n')
 
     if needs_receiver:
-      if dart_use_blink:
+      if self._dart_use_blink:
           body_emitter.Emit(
             '        $WEBCORE_CLASS_NAME* receiver = '
             'DartDOMWrapper::receiverChecked<Dart$INTERFACE>(args, exception);\n'
@@ -1463,7 +1462,7 @@ class DartiumBackend(HtmlDartGenerator):
     dart_native_name = \
         DeriveNativeName(self._interface.id, idl_name, native_suffix)
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
-    if dart_use_blink:
+    if self._dart_use_blink:
         if not static:
             formals = ", ".join(['mthis'] + parameters)
             actuals = ", ".join(['this'] + parameters)

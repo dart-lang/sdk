@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+import 'dart:blink' as blink;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -64,41 +65,41 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.direction')
   @DocsEditable()
-  String get direction native "IDBCursor_direction_Getter";
+  String get direction => blink.Native_IDBCursor_direction_Getter(this);
 
   @DomName('IDBCursor.key')
   @DocsEditable()
-  Object get key native "IDBCursor_key_Getter";
+  Object get key => blink.Native_IDBCursor_key_Getter(this);
 
   @DomName('IDBCursor.primaryKey')
   @DocsEditable()
-  Object get primaryKey native "IDBCursor_primaryKey_Getter";
+  Object get primaryKey => blink.Native_IDBCursor_primaryKey_Getter(this);
 
   @DomName('IDBCursor.source')
   @DocsEditable()
-  Object get source native "IDBCursor_source_Getter";
+  Object get source => blink.Native_IDBCursor_source_Getter(this);
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
-  void advance(int count) native "IDBCursor_advance_Callback";
+  void advance(int count) => blink.Native_IDBCursor_advance_Callback(this, count);
 
   @DomName('IDBCursor.continuePrimaryKey')
   @DocsEditable()
   @Experimental() // untriaged
-  void continuePrimaryKey(Object key, Object primaryKey) native "IDBCursor_continuePrimaryKey_Callback";
+  void continuePrimaryKey(Object key, Object primaryKey) => blink.Native_IDBCursor_continuePrimaryKey_Callback(this, key, primaryKey);
 
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request _delete() native "IDBCursor_delete_Callback";
+  Request _delete() => blink.Native_IDBCursor_delete_Callback(this);
 
   @DomName('IDBCursor.next')
   @DocsEditable()
   @Experimental() // non-standard
-  void next([Object key]) native "IDBCursor_next_Callback";
+  void next([Object key]) => blink.Native_IDBCursor_next_Callback(this, key);
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update(Object value) native "IDBCursor_update_Callback";
+  Request _update(Object value) => blink.Native_IDBCursor_update_Callback(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -117,7 +118,7 @@ class CursorWithValue extends Cursor {
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
-  Object get value native "IDBCursorWithValue_value_Getter";
+  Object get value => blink.Native_IDBCursorWithValue_value_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -200,27 +201,27 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.name')
   @DocsEditable()
-  String get name native "IDBDatabase_name_Getter";
+  String get name => blink.Native_IDBDatabase_name_Getter(this);
 
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  List<String> get objectStoreNames native "IDBDatabase_objectStoreNames_Getter";
+  List<String> get objectStoreNames => blink.Native_IDBDatabase_objectStoreNames_Getter(this);
 
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  Object get version native "IDBDatabase_version_Getter";
+  Object get version => blink.Native_IDBDatabase_version_Getter(this);
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
-  void close() native "IDBDatabase_close_Callback";
+  void close() => blink.Native_IDBDatabase_close_Callback(this);
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
+  ObjectStore _createObjectStore(String name, [Map options]) => blink.Native_IDBDatabase_createObjectStore_Callback(this, name, options);
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
-  void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
+  void deleteObjectStore(String name) => blink.Native_IDBDatabase_deleteObjectStore_Callback(this, name);
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
@@ -235,35 +236,35 @@ class Database extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  Transaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_1_Callback";
+  Transaction _transaction_1(storeName_OR_storeNames, mode) => blink.Native_IDBDatabase__transaction_1_Callback(this, storeName_OR_storeNames, mode);
 
-  Transaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_2_Callback";
+  Transaction _transaction_2(storeName_OR_storeNames, mode) => blink.Native_IDBDatabase__transaction_2_Callback(this, storeName_OR_storeNames, mode);
 
-  Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
+  Transaction _transaction_3(storeName_OR_storeNames, mode) => blink.Native_IDBDatabase__transaction_3_Callback(this, storeName_OR_storeNames, mode);
 
   @DomName('IDBDatabase.transactionList')
   @DocsEditable()
-  Transaction transactionList(List<String> storeNames, String mode) native "IDBDatabase_transactionList_Callback";
+  Transaction transactionList(List<String> storeNames, String mode) => blink.Native_IDBDatabase_transactionList_Callback(this, storeNames, mode);
 
   @DomName('IDBDatabase.transactionStore')
   @DocsEditable()
-  Transaction transactionStore(String storeName, String mode) native "IDBDatabase_transactionStore_Callback";
+  Transaction transactionStore(String storeName, String mode) => blink.Native_IDBDatabase_transactionStore_Callback(this, storeName, mode);
 
   @DomName('IDBDatabase.transactionStores')
   @DocsEditable()
-  Transaction transactionStores(List<String> storeNames, String mode) native "IDBDatabase_transactionStores_Callback";
+  Transaction transactionStores(List<String> storeNames, String mode) => blink.Native_IDBDatabase_transactionStores_Callback(this, storeNames, mode);
 
   @DomName('IDBDatabase.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBDatabase_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('IDBDatabase.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "IDBDatabase_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => blink.Native_IDBDatabase_dispatchEvent_Callback(this, event);
 
   @DomName('IDBDatabase.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBDatabase_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
@@ -379,11 +380,11 @@ class IdbFactory extends NativeFieldWrapperClass2 {
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
-  int cmp(Object first, Object second) native "IDBFactory_cmp_Callback";
+  int cmp(Object first, Object second) => blink.Native_IDBFactory_cmp_Callback(this, first, second);
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
+  OpenDBRequest _deleteDatabase(String name) => blink.Native_IDBFactory_deleteDatabase_Callback(this, name);
 
   OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
@@ -392,16 +393,16 @@ class IdbFactory extends NativeFieldWrapperClass2 {
     return _open_2(name);
   }
 
-  OpenDBRequest _open_1(name, version) native "IDBFactory__open_1_Callback";
+  OpenDBRequest _open_1(name, version) => blink.Native_IDBFactory__open_1_Callback(this, name, version);
 
-  OpenDBRequest _open_2(name) native "IDBFactory__open_2_Callback";
+  OpenDBRequest _open_2(name) => blink.Native_IDBFactory__open_2_Callback(this, name);
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Request _webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
+  Request _webkitGetDatabaseNames() => blink.Native_IDBFactory_webkitGetDatabaseNames_Callback(this);
 
 }
 
@@ -519,43 +520,43 @@ class Index extends NativeFieldWrapperClass2 {
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
-  Object get keyPath native "IDBIndex_keyPath_Getter";
+  Object get keyPath => blink.Native_IDBIndex_keyPath_Getter(this);
 
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
-  bool get multiEntry native "IDBIndex_multiEntry_Getter";
+  bool get multiEntry => blink.Native_IDBIndex_multiEntry_Getter(this);
 
   @DomName('IDBIndex.name')
   @DocsEditable()
-  String get name native "IDBIndex_name_Getter";
+  String get name => blink.Native_IDBIndex_name_Getter(this);
 
   @DomName('IDBIndex.objectStore')
   @DocsEditable()
-  ObjectStore get objectStore native "IDBIndex_objectStore_Getter";
+  ObjectStore get objectStore => blink.Native_IDBIndex_objectStore_Getter(this);
 
   @DomName('IDBIndex.unique')
   @DocsEditable()
-  bool get unique native "IDBIndex_unique_Getter";
+  bool get unique => blink.Native_IDBIndex_unique_Getter(this);
 
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request _count(Object key) native "IDBIndex_count_Callback";
+  Request _count(Object key) => blink.Native_IDBIndex_count_Callback(this, key);
 
   @DomName('IDBIndex.get')
   @DocsEditable()
-  Request _get(Object key) native "IDBIndex_get_Callback";
+  Request _get(Object key) => blink.Native_IDBIndex_get_Callback(this, key);
 
   @DomName('IDBIndex.getKey')
   @DocsEditable()
-  Request _getKey(Object key) native "IDBIndex_getKey_Callback";
+  Request _getKey(Object key) => blink.Native_IDBIndex_getKey_Callback(this, key);
 
   @DomName('IDBIndex.openCursor')
   @DocsEditable()
-  Request _openCursor(Object key, [String direction]) native "IDBIndex_openCursor_Callback";
+  Request _openCursor(Object key, [String direction]) => blink.Native_IDBIndex_openCursor_Callback(this, key, direction);
 
   @DomName('IDBIndex.openKeyCursor')
   @DocsEditable()
-  Request _openKeyCursor(Object key, [String direction]) native "IDBIndex_openKeyCursor_Callback";
+  Request _openKeyCursor(Object key, [String direction]) => blink.Native_IDBIndex_openKeyCursor_Callback(this, key, direction);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -589,39 +590,39 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
-  Object get lower native "IDBKeyRange_lower_Getter";
+  Object get lower => blink.Native_IDBKeyRange_lower_Getter(this);
 
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable()
-  bool get lowerOpen native "IDBKeyRange_lowerOpen_Getter";
+  bool get lowerOpen => blink.Native_IDBKeyRange_lowerOpen_Getter(this);
 
   @DomName('IDBKeyRange.upper')
   @DocsEditable()
-  Object get upper native "IDBKeyRange_upper_Getter";
+  Object get upper => blink.Native_IDBKeyRange_upper_Getter(this);
 
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable()
-  bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
+  bool get upperOpen => blink.Native_IDBKeyRange_upperOpen_Getter(this);
 
   @DomName('IDBKeyRange.bound_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) native "IDBKeyRange_bound__Callback";
+  static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) => blink.Native_IDBKeyRange_bound__Callback(lower, upper, lowerOpen, upperOpen);
 
   @DomName('IDBKeyRange.lowerBound_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange lowerBound_(Object bound, [bool open]) native "IDBKeyRange_lowerBound__Callback";
+  static KeyRange lowerBound_(Object bound, [bool open]) => blink.Native_IDBKeyRange_lowerBound__Callback(bound, open);
 
   @DomName('IDBKeyRange.only_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange only_(Object value) native "IDBKeyRange_only__Callback";
+  static KeyRange only_(Object value) => blink.Native_IDBKeyRange_only__Callback(value);
 
   @DomName('IDBKeyRange.upperBound_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange upperBound_(Object bound, [bool open]) native "IDBKeyRange_upperBound__Callback";
+  static KeyRange upperBound_(Object bound, [bool open]) => blink.Native_IDBKeyRange_upperBound__Callback(bound, open);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -764,35 +765,35 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
-  bool get autoIncrement native "IDBObjectStore_autoIncrement_Getter";
+  bool get autoIncrement => blink.Native_IDBObjectStore_autoIncrement_Getter(this);
 
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  List<String> get indexNames native "IDBObjectStore_indexNames_Getter";
+  List<String> get indexNames => blink.Native_IDBObjectStore_indexNames_Getter(this);
 
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
-  Object get keyPath native "IDBObjectStore_keyPath_Getter";
+  Object get keyPath => blink.Native_IDBObjectStore_keyPath_Getter(this);
 
   @DomName('IDBObjectStore.name')
   @DocsEditable()
-  String get name native "IDBObjectStore_name_Getter";
+  String get name => blink.Native_IDBObjectStore_name_Getter(this);
 
   @DomName('IDBObjectStore.transaction')
   @DocsEditable()
-  Transaction get transaction native "IDBObjectStore_transaction_Getter";
+  Transaction get transaction => blink.Native_IDBObjectStore_transaction_Getter(this);
 
   @DomName('IDBObjectStore.add')
   @DocsEditable()
-  Request _add(Object value, [Object key]) native "IDBObjectStore_add_Callback";
+  Request _add(Object value, [Object key]) => blink.Native_IDBObjectStore_add_Callback(this, value, key);
 
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request _clear() native "IDBObjectStore_clear_Callback";
+  Request _clear() => blink.Native_IDBObjectStore_clear_Callback(this);
 
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request _count(Object key) native "IDBObjectStore_count_Callback";
+  Request _count(Object key) => blink.Native_IDBObjectStore_count_Callback(this, key);
 
   Index _createIndex(String name, keyPath, [Map options]) {
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
@@ -804,38 +805,38 @@ class ObjectStore extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  Index _createIndex_1(name, keyPath, options) native "IDBObjectStore__createIndex_1_Callback";
+  Index _createIndex_1(name, keyPath, options) => blink.Native_IDBObjectStore__createIndex_1_Callback(this, name, keyPath, options);
 
-  Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
+  Index _createIndex_2(name, keyPath, options) => blink.Native_IDBObjectStore__createIndex_2_Callback(this, name, keyPath, options);
 
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request _delete(Object key) native "IDBObjectStore_delete_Callback";
+  Request _delete(Object key) => blink.Native_IDBObjectStore_delete_Callback(this, key);
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
-  void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
+  void deleteIndex(String name) => blink.Native_IDBObjectStore_deleteIndex_Callback(this, name);
 
   @DomName('IDBObjectStore.get')
   @DocsEditable()
-  Request _get(Object key) native "IDBObjectStore_get_Callback";
+  Request _get(Object key) => blink.Native_IDBObjectStore_get_Callback(this, key);
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) native "IDBObjectStore_index_Callback";
+  Index index(String name) => blink.Native_IDBObjectStore_index_Callback(this, name);
 
   @DomName('IDBObjectStore.openCursor')
   @DocsEditable()
-  Request _openCursor(Object key, [String direction]) native "IDBObjectStore_openCursor_Callback";
+  Request _openCursor(Object key, [String direction]) => blink.Native_IDBObjectStore_openCursor_Callback(this, key, direction);
 
   @DomName('IDBObjectStore.openKeyCursor')
   @DocsEditable()
   @Experimental() // untriaged
-  Request openKeyCursor(Object range, String direction) native "IDBObjectStore_openKeyCursor_Callback";
+  Request openKeyCursor(Object range, String direction) => blink.Native_IDBObjectStore_openKeyCursor_Callback(this, range, direction);
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()
-  Request _put(Object value, [Object key]) native "IDBObjectStore_put_Callback";
+  Request _put(Object value, [Object key]) => blink.Native_IDBObjectStore_put_Callback(this, value, key);
 
 
   /**
@@ -946,35 +947,35 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.error')
   @DocsEditable()
-  DomError get error native "IDBRequest_error_Getter";
+  DomError get error => blink.Native_IDBRequest_error_Getter(this);
 
   @DomName('IDBRequest.readyState')
   @DocsEditable()
-  String get readyState native "IDBRequest_readyState_Getter";
+  String get readyState => blink.Native_IDBRequest_readyState_Getter(this);
 
   @DomName('IDBRequest.result')
   @DocsEditable()
-  Object get result native "IDBRequest_result_Getter";
+  Object get result => blink.Native_IDBRequest_result_Getter(this);
 
   @DomName('IDBRequest.source')
   @DocsEditable()
-  Object get source native "IDBRequest_source_Getter";
+  Object get source => blink.Native_IDBRequest_source_Getter(this);
 
   @DomName('IDBRequest.transaction')
   @DocsEditable()
-  Transaction get transaction native "IDBRequest_transaction_Getter";
+  Transaction get transaction => blink.Native_IDBRequest_transaction_Getter(this);
 
   @DomName('IDBRequest.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBRequest_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('IDBRequest.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "IDBRequest_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => blink.Native_IDBRequest_dispatchEvent_Callback(this, event);
 
   @DomName('IDBRequest.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBRequest_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `error` events handled by this [Request].
   @DomName('IDBRequest.onerror')
@@ -1059,35 +1060,35 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.db')
   @DocsEditable()
-  Database get db native "IDBTransaction_db_Getter";
+  Database get db => blink.Native_IDBTransaction_db_Getter(this);
 
   @DomName('IDBTransaction.error')
   @DocsEditable()
-  DomError get error native "IDBTransaction_error_Getter";
+  DomError get error => blink.Native_IDBTransaction_error_Getter(this);
 
   @DomName('IDBTransaction.mode')
   @DocsEditable()
-  String get mode native "IDBTransaction_mode_Getter";
+  String get mode => blink.Native_IDBTransaction_mode_Getter(this);
 
   @DomName('IDBTransaction.abort')
   @DocsEditable()
-  void abort() native "IDBTransaction_abort_Callback";
+  void abort() => blink.Native_IDBTransaction_abort_Callback(this);
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
+  ObjectStore objectStore(String name) => blink.Native_IDBTransaction_objectStore_Callback(this, name);
 
   @DomName('IDBTransaction.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBTransaction_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('IDBTransaction.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "IDBTransaction_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => blink.Native_IDBTransaction_dispatchEvent_Callback(this, event);
 
   @DomName('IDBTransaction.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_IDBTransaction_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')
@@ -1122,19 +1123,19 @@ class VersionChangeEvent extends Event {
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()
   @Experimental() // untriaged
-  String get dataLoss native "IDBVersionChangeEvent_dataLoss_Getter";
+  String get dataLoss => blink.Native_IDBVersionChangeEvent_dataLoss_Getter(this);
 
   @DomName('IDBVersionChangeEvent.dataLossMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  String get dataLossMessage native "IDBVersionChangeEvent_dataLossMessage_Getter";
+  String get dataLossMessage => blink.Native_IDBVersionChangeEvent_dataLossMessage_Getter(this);
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()
-  Object get newVersion native "IDBVersionChangeEvent_newVersion_Getter";
+  Object get newVersion => blink.Native_IDBVersionChangeEvent_newVersion_Getter(this);
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
-  Object get oldVersion native "IDBVersionChangeEvent_oldVersion_Getter";
+  Object get oldVersion => blink.Native_IDBVersionChangeEvent_oldVersion_Getter(this);
 
 }

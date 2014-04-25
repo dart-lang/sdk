@@ -46,9 +46,9 @@ fi
 if [[ $CACHED ]] ; then
   reset &&
   ./dartdomgenerator.py --use-database-cache --systems="$SYSTEMS" \
-  --update-dom-metadata
+  --update-dom-metadata --use-blink
 else
   reset &&
   ./dartdomgenerator.py --rebuild --parallel --systems="$SYSTEMS" \
-  --update-dom-metadata
+  --update-dom-metadata --use-blink
 fi

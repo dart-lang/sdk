@@ -7,6 +7,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
+import 'dart:blink' as blink;
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 
@@ -30,51 +31,51 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
-  int get fftSize native "AnalyserNode_fftSize_Getter";
+  int get fftSize => blink.Native_AnalyserNode_fftSize_Getter(this);
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
-  void set fftSize(int value) native "AnalyserNode_fftSize_Setter";
+  void set fftSize(int value) => blink.Native_AnalyserNode_fftSize_Setter(this, value);
 
   @DomName('AnalyserNode.frequencyBinCount')
   @DocsEditable()
-  int get frequencyBinCount native "AnalyserNode_frequencyBinCount_Getter";
+  int get frequencyBinCount => blink.Native_AnalyserNode_frequencyBinCount_Getter(this);
 
   @DomName('AnalyserNode.maxDecibels')
   @DocsEditable()
-  num get maxDecibels native "AnalyserNode_maxDecibels_Getter";
+  num get maxDecibels => blink.Native_AnalyserNode_maxDecibels_Getter(this);
 
   @DomName('AnalyserNode.maxDecibels')
   @DocsEditable()
-  void set maxDecibels(num value) native "AnalyserNode_maxDecibels_Setter";
+  void set maxDecibels(num value) => blink.Native_AnalyserNode_maxDecibels_Setter(this, value);
 
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
-  num get minDecibels native "AnalyserNode_minDecibels_Getter";
+  num get minDecibels => blink.Native_AnalyserNode_minDecibels_Getter(this);
 
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
-  void set minDecibels(num value) native "AnalyserNode_minDecibels_Setter";
+  void set minDecibels(num value) => blink.Native_AnalyserNode_minDecibels_Setter(this, value);
 
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
-  num get smoothingTimeConstant native "AnalyserNode_smoothingTimeConstant_Getter";
+  num get smoothingTimeConstant => blink.Native_AnalyserNode_smoothingTimeConstant_Getter(this);
 
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
-  void set smoothingTimeConstant(num value) native "AnalyserNode_smoothingTimeConstant_Setter";
+  void set smoothingTimeConstant(num value) => blink.Native_AnalyserNode_smoothingTimeConstant_Setter(this, value);
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
-  void getByteFrequencyData(Uint8List array) native "AnalyserNode_getByteFrequencyData_Callback";
+  void getByteFrequencyData(Uint8List array) => blink.Native_AnalyserNode_getByteFrequencyData_Callback(this, array);
 
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable()
-  void getByteTimeDomainData(Uint8List array) native "AnalyserNode_getByteTimeDomainData_Callback";
+  void getByteTimeDomainData(Uint8List array) => blink.Native_AnalyserNode_getByteTimeDomainData_Callback(this, array);
 
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable()
-  void getFloatFrequencyData(Float32List array) native "AnalyserNode_getFloatFrequencyData_Callback";
+  void getFloatFrequencyData(Float32List array) => blink.Native_AnalyserNode_getFloatFrequencyData_Callback(this, array);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -94,31 +95,31 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
-  double get duration native "AudioBuffer_duration_Getter";
+  double get duration => blink.Native_AudioBuffer_duration_Getter(this);
 
   @DomName('AudioBuffer.gain')
   @DocsEditable()
-  num get gain native "AudioBuffer_gain_Getter";
+  num get gain => blink.Native_AudioBuffer_gain_Getter(this);
 
   @DomName('AudioBuffer.gain')
   @DocsEditable()
-  void set gain(num value) native "AudioBuffer_gain_Setter";
+  void set gain(num value) => blink.Native_AudioBuffer_gain_Setter(this, value);
 
   @DomName('AudioBuffer.length')
   @DocsEditable()
-  int get length native "AudioBuffer_length_Getter";
+  int get length => blink.Native_AudioBuffer_length_Getter(this);
 
   @DomName('AudioBuffer.numberOfChannels')
   @DocsEditable()
-  int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
+  int get numberOfChannels => blink.Native_AudioBuffer_numberOfChannels_Getter(this);
 
   @DomName('AudioBuffer.sampleRate')
   @DocsEditable()
-  double get sampleRate native "AudioBuffer_sampleRate_Getter";
+  double get sampleRate => blink.Native_AudioBuffer_sampleRate_Getter(this);
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
-  Float32List getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
+  Float32List getChannelData(int channelIndex) => blink.Native_AudioBuffer_getChannelData_Callback(this, channelIndex);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -176,59 +177,59 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
-  AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
+  AudioBuffer get buffer => blink.Native_AudioBufferSourceNode_buffer_Getter(this);
 
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
-  void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
+  void set buffer(AudioBuffer value) => blink.Native_AudioBufferSourceNode_buffer_Setter(this, value);
 
   @DomName('AudioBufferSourceNode.gain')
   @DocsEditable()
-  AudioParam get gain native "AudioBufferSourceNode_gain_Getter";
+  AudioParam get gain => blink.Native_AudioBufferSourceNode_gain_Getter(this);
 
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
-  bool get loop native "AudioBufferSourceNode_loop_Getter";
+  bool get loop => blink.Native_AudioBufferSourceNode_loop_Getter(this);
 
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
-  void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
+  void set loop(bool value) => blink.Native_AudioBufferSourceNode_loop_Setter(this, value);
 
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
-  num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
+  num get loopEnd => blink.Native_AudioBufferSourceNode_loopEnd_Getter(this);
 
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
-  void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
+  void set loopEnd(num value) => blink.Native_AudioBufferSourceNode_loopEnd_Setter(this, value);
 
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
-  num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
+  num get loopStart => blink.Native_AudioBufferSourceNode_loopStart_Getter(this);
 
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
-  void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
+  void set loopStart(num value) => blink.Native_AudioBufferSourceNode_loopStart_Setter(this, value);
 
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
-  AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
+  AudioParam get playbackRate => blink.Native_AudioBufferSourceNode_playbackRate_Getter(this);
 
   @DomName('AudioBufferSourceNode.playbackState')
   @DocsEditable()
-  int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
+  int get playbackState => blink.Native_AudioBufferSourceNode_playbackState_Getter(this);
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable()
-  void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
+  void noteGrainOn(num when, num grainOffset, num grainDuration) => blink.Native_AudioBufferSourceNode_noteGrainOn_Callback(this, when, grainOffset, grainDuration);
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable()
-  void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
+  void noteOff(num when) => blink.Native_AudioBufferSourceNode_noteOff_Callback(this, when);
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable()
-  void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
+  void noteOn(num when) => blink.Native_AudioBufferSourceNode_noteOn_Callback(this, when);
 
   void start([num when, num grainOffset, num grainDuration]) {
     if (grainDuration != null) {
@@ -247,13 +248,13 @@ class AudioBufferSourceNode extends AudioSourceNode {
     return;
   }
 
-  void _start_1(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_1_Callback";
+  void _start_1(when, grainOffset, grainDuration) => blink.Native_AudioBufferSourceNode__start_1_Callback(this, when, grainOffset, grainDuration);
 
-  void _start_2(when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
+  void _start_2(when, grainOffset) => blink.Native_AudioBufferSourceNode__start_2_Callback(this, when, grainOffset);
 
-  void _start_3(when) native "AudioBufferSourceNode__start_3_Callback";
+  void _start_3(when) => blink.Native_AudioBufferSourceNode__start_3_Callback(this, when);
 
-  void _start_4() native "AudioBufferSourceNode__start_4_Callback";
+  void _start_4() => blink.Native_AudioBufferSourceNode__start_4_Callback(this);
 
   void stop([num when]) {
     if (when != null) {
@@ -264,9 +265,9 @@ class AudioBufferSourceNode extends AudioSourceNode {
     return;
   }
 
-  void _stop_1(when) native "AudioBufferSourceNode__stop_1_Callback";
+  void _stop_1(when) => blink.Native_AudioBufferSourceNode__stop_1_Callback(this, when);
 
-  void _stop_2() native "AudioBufferSourceNode__stop_2_Callback";
+  void _stop_2() => blink.Native_AudioBufferSourceNode__stop_2_Callback(this);
 
   /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
@@ -304,50 +305,50 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable()
-  static AudioContext _create_1() native "AudioContext__create_1constructorCallback";
+  static AudioContext _create_1() => blink.Native_AudioContext__create_1constructorCallback();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('AudioContext.activeSourceCount')
   @DocsEditable()
-  int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
+  int get activeSourceCount => blink.Native_AudioContext_activeSourceCount_Getter(this);
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
-  double get currentTime native "AudioContext_currentTime_Getter";
+  double get currentTime => blink.Native_AudioContext_currentTime_Getter(this);
 
   @DomName('AudioContext.destination')
   @DocsEditable()
-  AudioDestinationNode get destination native "AudioContext_destination_Getter";
+  AudioDestinationNode get destination => blink.Native_AudioContext_destination_Getter(this);
 
   @DomName('AudioContext.listener')
   @DocsEditable()
-  AudioListener get listener native "AudioContext_listener_Getter";
+  AudioListener get listener => blink.Native_AudioContext_listener_Getter(this);
 
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
-  double get sampleRate native "AudioContext_sampleRate_Getter";
+  double get sampleRate => blink.Native_AudioContext_sampleRate_Getter(this);
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
-  AnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
+  AnalyserNode createAnalyser() => blink.Native_AudioContext_createAnalyser_Callback(this);
 
   @DomName('AudioContext.createBiquadFilter')
   @DocsEditable()
-  BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
+  BiquadFilterNode createBiquadFilter() => blink.Native_AudioContext_createBiquadFilter_Callback(this);
 
   @DomName('AudioContext.createBuffer')
   @DocsEditable()
-  AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) native "AudioContext_createBuffer_Callback";
+  AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) => blink.Native_AudioContext_createBuffer_Callback(this, numberOfChannels, numberOfFrames, sampleRate);
 
   @DomName('AudioContext.createBufferFromBuffer')
   @DocsEditable()
-  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) native "AudioContext_createBufferFromBuffer_Callback";
+  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) => blink.Native_AudioContext_createBufferFromBuffer_Callback(this, buffer, mixToMono);
 
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
-  AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
+  AudioBufferSourceNode createBufferSource() => blink.Native_AudioContext_createBufferSource_Callback(this);
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
     if (numberOfInputs != null) {
@@ -356,9 +357,9 @@ class AudioContext extends EventTarget {
     return _createChannelMerger_2();
   }
 
-  ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
+  ChannelMergerNode _createChannelMerger_1(numberOfInputs) => blink.Native_AudioContext__createChannelMerger_1_Callback(this, numberOfInputs);
 
-  ChannelMergerNode _createChannelMerger_2() native "AudioContext__createChannelMerger_2_Callback";
+  ChannelMergerNode _createChannelMerger_2() => blink.Native_AudioContext__createChannelMerger_2_Callback(this);
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
     if (numberOfOutputs != null) {
@@ -367,13 +368,13 @@ class AudioContext extends EventTarget {
     return _createChannelSplitter_2();
   }
 
-  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
+  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) => blink.Native_AudioContext__createChannelSplitter_1_Callback(this, numberOfOutputs);
 
-  ChannelSplitterNode _createChannelSplitter_2() native "AudioContext__createChannelSplitter_2_Callback";
+  ChannelSplitterNode _createChannelSplitter_2() => blink.Native_AudioContext__createChannelSplitter_2_Callback(this);
 
   @DomName('AudioContext.createConvolver')
   @DocsEditable()
-  ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
+  ConvolverNode createConvolver() => blink.Native_AudioContext_createConvolver_Callback(this);
 
   DelayNode createDelay([num maxDelayTime]) {
     if (maxDelayTime != null) {
@@ -382,9 +383,9 @@ class AudioContext extends EventTarget {
     return _createDelay_2();
   }
 
-  DelayNode _createDelay_1(maxDelayTime) native "AudioContext__createDelay_1_Callback";
+  DelayNode _createDelay_1(maxDelayTime) => blink.Native_AudioContext__createDelay_1_Callback(this, maxDelayTime);
 
-  DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
+  DelayNode _createDelay_2() => blink.Native_AudioContext__createDelay_2_Callback(this);
 
   DelayNode createDelayNode([num maxDelayTime]) {
     if (maxDelayTime != null) {
@@ -393,21 +394,21 @@ class AudioContext extends EventTarget {
     return _createDelayNode_2();
   }
 
-  DelayNode _createDelayNode_1(maxDelayTime) native "AudioContext__createDelayNode_1_Callback";
+  DelayNode _createDelayNode_1(maxDelayTime) => blink.Native_AudioContext__createDelayNode_1_Callback(this, maxDelayTime);
 
-  DelayNode _createDelayNode_2() native "AudioContext__createDelayNode_2_Callback";
+  DelayNode _createDelayNode_2() => blink.Native_AudioContext__createDelayNode_2_Callback(this);
 
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
-  DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
+  DynamicsCompressorNode createDynamicsCompressor() => blink.Native_AudioContext_createDynamicsCompressor_Callback(this);
 
   @DomName('AudioContext.createGain')
   @DocsEditable()
-  GainNode createGain() native "AudioContext_createGain_Callback";
+  GainNode createGain() => blink.Native_AudioContext_createGain_Callback(this);
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable()
-  GainNode createGainNode() native "AudioContext_createGainNode_Callback";
+  GainNode createGainNode() => blink.Native_AudioContext_createGainNode_Callback(this);
 
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
@@ -419,36 +420,36 @@ class AudioContext extends EventTarget {
     return _createJavaScriptNode_3(bufferSize);
   }
 
-  ScriptProcessorNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createJavaScriptNode_1_Callback";
+  ScriptProcessorNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) => blink.Native_AudioContext__createJavaScriptNode_1_Callback(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
 
-  ScriptProcessorNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) native "AudioContext__createJavaScriptNode_2_Callback";
+  ScriptProcessorNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) => blink.Native_AudioContext__createJavaScriptNode_2_Callback(this, bufferSize, numberOfInputChannels);
 
-  ScriptProcessorNode _createJavaScriptNode_3(bufferSize) native "AudioContext__createJavaScriptNode_3_Callback";
+  ScriptProcessorNode _createJavaScriptNode_3(bufferSize) => blink.Native_AudioContext__createJavaScriptNode_3_Callback(this, bufferSize);
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
-  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
+  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) => blink.Native_AudioContext_createMediaElementSource_Callback(this, mediaElement);
 
   @DomName('AudioContext.createMediaStreamDestination')
   @DocsEditable()
-  MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
+  MediaStreamAudioDestinationNode createMediaStreamDestination() => blink.Native_AudioContext_createMediaStreamDestination_Callback(this);
 
   @DomName('AudioContext.createMediaStreamSource')
   @DocsEditable()
-  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) => blink.Native_AudioContext_createMediaStreamSource_Callback(this, mediaStream);
 
   @DomName('AudioContext.createOscillator')
   @DocsEditable()
-  OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
+  OscillatorNode createOscillator() => blink.Native_AudioContext_createOscillator_Callback(this);
 
   @DomName('AudioContext.createPanner')
   @DocsEditable()
-  PannerNode createPanner() native "AudioContext_createPanner_Callback";
+  PannerNode createPanner() => blink.Native_AudioContext_createPanner_Callback(this);
 
   @DomName('AudioContext.createPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native "AudioContext_createPeriodicWave_Callback";
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => blink.Native_AudioContext_createPeriodicWave_Callback(this, real, imag);
 
   ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
@@ -463,40 +464,40 @@ class AudioContext extends EventTarget {
     return _createScriptProcessor_4();
   }
 
-  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
+  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) => blink.Native_AudioContext__createScriptProcessor_1_Callback(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
 
-  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
+  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) => blink.Native_AudioContext__createScriptProcessor_2_Callback(this, bufferSize, numberOfInputChannels);
 
-  ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
+  ScriptProcessorNode _createScriptProcessor_3(bufferSize) => blink.Native_AudioContext__createScriptProcessor_3_Callback(this, bufferSize);
 
-  ScriptProcessorNode _createScriptProcessor_4() native "AudioContext__createScriptProcessor_4_Callback";
+  ScriptProcessorNode _createScriptProcessor_4() => blink.Native_AudioContext__createScriptProcessor_4_Callback(this);
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
-  WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
+  WaveShaperNode createWaveShaper() => blink.Native_AudioContext_createWaveShaper_Callback(this);
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => blink.Native_AudioContext_decodeAudioData_Callback(this, audioData, successCallback, errorCallback);
 
   @DomName('AudioContext.startRendering')
   @DocsEditable()
-  void startRendering() native "AudioContext_startRendering_Callback";
+  void startRendering() => blink.Native_AudioContext_startRendering_Callback(this);
 
   @DomName('AudioContext.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_AudioContext_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('AudioContext.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "AudioContext_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => blink.Native_AudioContext_dispatchEvent_Callback(this, event);
 
   @DomName('AudioContext.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_AudioContext_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `complete` events handled by this [AudioContext].
   @DomName('AudioContext.oncomplete')
@@ -535,7 +536,7 @@ class AudioDestinationNode extends AudioNode {
 
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable()
-  int get maxChannelCount native "AudioDestinationNode_maxChannelCount_Getter";
+  int get maxChannelCount => blink.Native_AudioDestinationNode_maxChannelCount_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -555,31 +556,31 @@ class AudioListener extends NativeFieldWrapperClass2 {
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
-  num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
+  num get dopplerFactor => blink.Native_AudioListener_dopplerFactor_Getter(this);
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
-  void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
+  void set dopplerFactor(num value) => blink.Native_AudioListener_dopplerFactor_Setter(this, value);
 
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
-  num get speedOfSound native "AudioListener_speedOfSound_Getter";
+  num get speedOfSound => blink.Native_AudioListener_speedOfSound_Getter(this);
 
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
-  void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
+  void set speedOfSound(num value) => blink.Native_AudioListener_speedOfSound_Setter(this, value);
 
   @DomName('AudioListener.setOrientation')
   @DocsEditable()
-  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) => blink.Native_AudioListener_setOrientation_Callback(this, x, y, z, xUp, yUp, zUp);
 
   @DomName('AudioListener.setPosition')
   @DocsEditable()
-  void setPosition(num x, num y, num z) native "AudioListener_setPosition_Callback";
+  void setPosition(num x, num y, num z) => blink.Native_AudioListener_setPosition_Callback(this, x, y, z);
 
   @DomName('AudioListener.setVelocity')
   @DocsEditable()
-  void setVelocity(num x, num y, num z) native "AudioListener_setVelocity_Callback";
+  void setVelocity(num x, num y, num z) => blink.Native_AudioListener_setVelocity_Callback(this, x, y, z);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -596,39 +597,39 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.channelCount')
   @DocsEditable()
-  int get channelCount native "AudioNode_channelCount_Getter";
+  int get channelCount => blink.Native_AudioNode_channelCount_Getter(this);
 
   @DomName('AudioNode.channelCount')
   @DocsEditable()
-  void set channelCount(int value) native "AudioNode_channelCount_Setter";
+  void set channelCount(int value) => blink.Native_AudioNode_channelCount_Setter(this, value);
 
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
-  String get channelCountMode native "AudioNode_channelCountMode_Getter";
+  String get channelCountMode => blink.Native_AudioNode_channelCountMode_Getter(this);
 
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
-  void set channelCountMode(String value) native "AudioNode_channelCountMode_Setter";
+  void set channelCountMode(String value) => blink.Native_AudioNode_channelCountMode_Setter(this, value);
 
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
-  String get channelInterpretation native "AudioNode_channelInterpretation_Getter";
+  String get channelInterpretation => blink.Native_AudioNode_channelInterpretation_Getter(this);
 
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
-  void set channelInterpretation(String value) native "AudioNode_channelInterpretation_Setter";
+  void set channelInterpretation(String value) => blink.Native_AudioNode_channelInterpretation_Setter(this, value);
 
   @DomName('AudioNode.context')
   @DocsEditable()
-  AudioContext get context native "AudioNode_context_Getter";
+  AudioContext get context => blink.Native_AudioNode_context_Getter(this);
 
   @DomName('AudioNode.numberOfInputs')
   @DocsEditable()
-  int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
+  int get numberOfInputs => blink.Native_AudioNode_numberOfInputs_Getter(this);
 
   @DomName('AudioNode.numberOfOutputs')
   @DocsEditable()
-  int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
+  int get numberOfOutputs => blink.Native_AudioNode_numberOfOutputs_Getter(this);
 
   void _connect(destination, int output, [int input]) {
     if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
@@ -642,25 +643,25 @@ class AudioNode extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _connect_1(destination, output, input) native "AudioNode__connect_1_Callback";
+  void _connect_1(destination, output, input) => blink.Native_AudioNode__connect_1_Callback(this, destination, output, input);
 
-  void _connect_2(destination, output) native "AudioNode__connect_2_Callback";
+  void _connect_2(destination, output) => blink.Native_AudioNode__connect_2_Callback(this, destination, output);
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
-  void disconnect(int output) native "AudioNode_disconnect_Callback";
+  void disconnect(int output) => blink.Native_AudioNode_disconnect_Callback(this, output);
 
   @DomName('AudioNode.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_AudioNode_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('AudioNode.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => blink.Native_AudioNode_dispatchEvent_Callback(this, event);
 
   @DomName('AudioNode.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_AudioNode_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -687,59 +688,59 @@ class AudioParam extends NativeFieldWrapperClass2 {
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
-  double get defaultValue native "AudioParam_defaultValue_Getter";
+  double get defaultValue => blink.Native_AudioParam_defaultValue_Getter(this);
 
   @DomName('AudioParam.maxValue')
   @DocsEditable()
-  double get maxValue native "AudioParam_maxValue_Getter";
+  double get maxValue => blink.Native_AudioParam_maxValue_Getter(this);
 
   @DomName('AudioParam.minValue')
   @DocsEditable()
-  double get minValue native "AudioParam_minValue_Getter";
+  double get minValue => blink.Native_AudioParam_minValue_Getter(this);
 
   @DomName('AudioParam.name')
   @DocsEditable()
-  String get name native "AudioParam_name_Getter";
+  String get name => blink.Native_AudioParam_name_Getter(this);
 
   @DomName('AudioParam.units')
   @DocsEditable()
-  int get units native "AudioParam_units_Getter";
+  int get units => blink.Native_AudioParam_units_Getter(this);
 
   @DomName('AudioParam.value')
   @DocsEditable()
-  num get value native "AudioParam_value_Getter";
+  num get value => blink.Native_AudioParam_value_Getter(this);
 
   @DomName('AudioParam.value')
   @DocsEditable()
-  void set value(num value) native "AudioParam_value_Setter";
+  void set value(num value) => blink.Native_AudioParam_value_Setter(this, value);
 
   @DomName('AudioParam.cancelScheduledValues')
   @DocsEditable()
-  void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
+  void cancelScheduledValues(num startTime) => blink.Native_AudioParam_cancelScheduledValues_Callback(this, startTime);
 
   @DomName('AudioParam.exponentialRampToValueAtTime')
   @DocsEditable()
-  void exponentialRampToValueAtTime(num value, num time) native "AudioParam_exponentialRampToValueAtTime_Callback";
+  void exponentialRampToValueAtTime(num value, num time) => blink.Native_AudioParam_exponentialRampToValueAtTime_Callback(this, value, time);
 
   @DomName('AudioParam.linearRampToValueAtTime')
   @DocsEditable()
-  void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
+  void linearRampToValueAtTime(num value, num time) => blink.Native_AudioParam_linearRampToValueAtTime_Callback(this, value, time);
 
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable()
-  void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
+  void setTargetAtTime(num target, num time, num timeConstant) => blink.Native_AudioParam_setTargetAtTime_Callback(this, target, time, timeConstant);
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable()
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) => blink.Native_AudioParam_setTargetValueAtTime_Callback(this, targetValue, time, timeConstant);
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable()
-  void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
+  void setValueAtTime(num value, num time) => blink.Native_AudioParam_setValueAtTime_Callback(this, value, time);
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable()
-  void setValueCurveAtTime(Float32List values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
+  void setValueCurveAtTime(Float32List values, num time, num duration) => blink.Native_AudioParam_setValueCurveAtTime_Callback(this, values, time, duration);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -759,11 +760,11 @@ class AudioProcessingEvent extends Event {
 
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable()
-  AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
+  AudioBuffer get inputBuffer => blink.Native_AudioProcessingEvent_inputBuffer_Getter(this);
 
   @DomName('AudioProcessingEvent.outputBuffer')
   @DocsEditable()
-  AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
+  AudioBuffer get outputBuffer => blink.Native_AudioProcessingEvent_outputBuffer_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -831,31 +832,31 @@ class BiquadFilterNode extends AudioNode {
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
-  AudioParam get Q native "BiquadFilterNode_Q_Getter";
+  AudioParam get Q => blink.Native_BiquadFilterNode_Q_Getter(this);
 
   @DomName('BiquadFilterNode.detune')
   @DocsEditable()
-  AudioParam get detune native "BiquadFilterNode_detune_Getter";
+  AudioParam get detune => blink.Native_BiquadFilterNode_detune_Getter(this);
 
   @DomName('BiquadFilterNode.frequency')
   @DocsEditable()
-  AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
+  AudioParam get frequency => blink.Native_BiquadFilterNode_frequency_Getter(this);
 
   @DomName('BiquadFilterNode.gain')
   @DocsEditable()
-  AudioParam get gain native "BiquadFilterNode_gain_Getter";
+  AudioParam get gain => blink.Native_BiquadFilterNode_gain_Getter(this);
 
   @DomName('BiquadFilterNode.type')
   @DocsEditable()
-  String get type native "BiquadFilterNode_type_Getter";
+  String get type => blink.Native_BiquadFilterNode_type_Getter(this);
 
   @DomName('BiquadFilterNode.type')
   @DocsEditable()
-  void set type(String value) native "BiquadFilterNode_type_Setter";
+  void set type(String value) => blink.Native_BiquadFilterNode_type_Setter(this, value);
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable()
-  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) => blink.Native_BiquadFilterNode_getFrequencyResponse_Callback(this, frequencyHz, magResponse, phaseResponse);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -907,19 +908,19 @@ class ConvolverNode extends AudioNode {
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
-  AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
+  AudioBuffer get buffer => blink.Native_ConvolverNode_buffer_Getter(this);
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
-  void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
+  void set buffer(AudioBuffer value) => blink.Native_ConvolverNode_buffer_Setter(this, value);
 
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
-  bool get normalize native "ConvolverNode_normalize_Getter";
+  bool get normalize => blink.Native_ConvolverNode_normalize_Getter(this);
 
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
-  void set normalize(bool value) native "ConvolverNode_normalize_Setter";
+  void set normalize(bool value) => blink.Native_ConvolverNode_normalize_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -939,7 +940,7 @@ class DelayNode extends AudioNode {
 
   @DomName('DelayNode.delayTime')
   @DocsEditable()
-  AudioParam get delayTime native "DelayNode_delayTime_Getter";
+  AudioParam get delayTime => blink.Native_DelayNode_delayTime_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -959,27 +960,27 @@ class DynamicsCompressorNode extends AudioNode {
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable()
-  AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
+  AudioParam get attack => blink.Native_DynamicsCompressorNode_attack_Getter(this);
 
   @DomName('DynamicsCompressorNode.knee')
   @DocsEditable()
-  AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
+  AudioParam get knee => blink.Native_DynamicsCompressorNode_knee_Getter(this);
 
   @DomName('DynamicsCompressorNode.ratio')
   @DocsEditable()
-  AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
+  AudioParam get ratio => blink.Native_DynamicsCompressorNode_ratio_Getter(this);
 
   @DomName('DynamicsCompressorNode.reduction')
   @DocsEditable()
-  AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
+  AudioParam get reduction => blink.Native_DynamicsCompressorNode_reduction_Getter(this);
 
   @DomName('DynamicsCompressorNode.release')
   @DocsEditable()
-  AudioParam get release native "DynamicsCompressorNode_release_Getter";
+  AudioParam get release => blink.Native_DynamicsCompressorNode_release_Getter(this);
 
   @DomName('DynamicsCompressorNode.threshold')
   @DocsEditable()
-  AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
+  AudioParam get threshold => blink.Native_DynamicsCompressorNode_threshold_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -999,7 +1000,7 @@ class GainNode extends AudioNode {
 
   @DomName('GainNode.gain')
   @DocsEditable()
-  AudioParam get gain native "GainNode_gain_Getter";
+  AudioParam get gain => blink.Native_GainNode_gain_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1020,7 +1021,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable()
   @Experimental() // non-standard
-  MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
+  MediaElement get mediaElement => blink.Native_MediaElementAudioSourceNode_mediaElement_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1040,7 +1041,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
 
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable()
-  MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
+  MediaStream get stream => blink.Native_MediaStreamAudioDestinationNode_stream_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1060,7 +1061,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable()
-  MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
+  MediaStream get mediaStream => blink.Native_MediaStreamAudioSourceNode_mediaStream_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1080,7 +1081,7 @@ class OfflineAudioCompletionEvent extends Event {
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable()
-  AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
+  AudioBuffer get renderedBuffer => blink.Native_OfflineAudioCompletionEvent_renderedBuffer_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1105,7 +1106,7 @@ class OfflineAudioContext extends AudioContext {
   }
 
   @DocsEditable()
-  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext__create_1constructorCallback";
+  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) => blink.Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1152,36 +1153,36 @@ class OscillatorNode extends AudioSourceNode {
 
   @DomName('OscillatorNode.detune')
   @DocsEditable()
-  AudioParam get detune native "OscillatorNode_detune_Getter";
+  AudioParam get detune => blink.Native_OscillatorNode_detune_Getter(this);
 
   @DomName('OscillatorNode.frequency')
   @DocsEditable()
-  AudioParam get frequency native "OscillatorNode_frequency_Getter";
+  AudioParam get frequency => blink.Native_OscillatorNode_frequency_Getter(this);
 
   @DomName('OscillatorNode.playbackState')
   @DocsEditable()
-  int get playbackState native "OscillatorNode_playbackState_Getter";
+  int get playbackState => blink.Native_OscillatorNode_playbackState_Getter(this);
 
   @DomName('OscillatorNode.type')
   @DocsEditable()
-  String get type native "OscillatorNode_type_Getter";
+  String get type => blink.Native_OscillatorNode_type_Getter(this);
 
   @DomName('OscillatorNode.type')
   @DocsEditable()
-  void set type(String value) native "OscillatorNode_type_Setter";
+  void set type(String value) => blink.Native_OscillatorNode_type_Setter(this, value);
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable()
-  void noteOff(num when) native "OscillatorNode_noteOff_Callback";
+  void noteOff(num when) => blink.Native_OscillatorNode_noteOff_Callback(this, when);
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable()
-  void noteOn(num when) native "OscillatorNode_noteOn_Callback";
+  void noteOn(num when) => blink.Native_OscillatorNode_noteOn_Callback(this, when);
 
   @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  void setPeriodicWave(PeriodicWave periodicWave) native "OscillatorNode_setPeriodicWave_Callback";
+  void setPeriodicWave(PeriodicWave periodicWave) => blink.Native_OscillatorNode_setPeriodicWave_Callback(this, periodicWave);
 
   void start([num when]) {
     if (when != null) {
@@ -1192,9 +1193,9 @@ class OscillatorNode extends AudioSourceNode {
     return;
   }
 
-  void _start_1(when) native "OscillatorNode__start_1_Callback";
+  void _start_1(when) => blink.Native_OscillatorNode__start_1_Callback(this, when);
 
-  void _start_2() native "OscillatorNode__start_2_Callback";
+  void _start_2() => blink.Native_OscillatorNode__start_2_Callback(this);
 
   void stop([num when]) {
     if (when != null) {
@@ -1205,9 +1206,9 @@ class OscillatorNode extends AudioSourceNode {
     return;
   }
 
-  void _stop_1(when) native "OscillatorNode__stop_1_Callback";
+  void _stop_1(when) => blink.Native_OscillatorNode__stop_1_Callback(this, when);
 
-  void _stop_2() native "OscillatorNode__stop_2_Callback";
+  void _stop_2() => blink.Native_OscillatorNode__stop_2_Callback(this);
 
   /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')
@@ -1233,79 +1234,79 @@ class PannerNode extends AudioNode {
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
-  num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
+  num get coneInnerAngle => blink.Native_PannerNode_coneInnerAngle_Getter(this);
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
-  void set coneInnerAngle(num value) native "PannerNode_coneInnerAngle_Setter";
+  void set coneInnerAngle(num value) => blink.Native_PannerNode_coneInnerAngle_Setter(this, value);
 
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
-  num get coneOuterAngle native "PannerNode_coneOuterAngle_Getter";
+  num get coneOuterAngle => blink.Native_PannerNode_coneOuterAngle_Getter(this);
 
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
-  void set coneOuterAngle(num value) native "PannerNode_coneOuterAngle_Setter";
+  void set coneOuterAngle(num value) => blink.Native_PannerNode_coneOuterAngle_Setter(this, value);
 
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
-  num get coneOuterGain native "PannerNode_coneOuterGain_Getter";
+  num get coneOuterGain => blink.Native_PannerNode_coneOuterGain_Getter(this);
 
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
-  void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
+  void set coneOuterGain(num value) => blink.Native_PannerNode_coneOuterGain_Setter(this, value);
 
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
-  String get distanceModel native "PannerNode_distanceModel_Getter";
+  String get distanceModel => blink.Native_PannerNode_distanceModel_Getter(this);
 
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
-  void set distanceModel(String value) native "PannerNode_distanceModel_Setter";
+  void set distanceModel(String value) => blink.Native_PannerNode_distanceModel_Setter(this, value);
 
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
-  num get maxDistance native "PannerNode_maxDistance_Getter";
+  num get maxDistance => blink.Native_PannerNode_maxDistance_Getter(this);
 
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
-  void set maxDistance(num value) native "PannerNode_maxDistance_Setter";
+  void set maxDistance(num value) => blink.Native_PannerNode_maxDistance_Setter(this, value);
 
   @DomName('PannerNode.panningModel')
   @DocsEditable()
-  String get panningModel native "PannerNode_panningModel_Getter";
+  String get panningModel => blink.Native_PannerNode_panningModel_Getter(this);
 
   @DomName('PannerNode.panningModel')
   @DocsEditable()
-  void set panningModel(String value) native "PannerNode_panningModel_Setter";
+  void set panningModel(String value) => blink.Native_PannerNode_panningModel_Setter(this, value);
 
   @DomName('PannerNode.refDistance')
   @DocsEditable()
-  num get refDistance native "PannerNode_refDistance_Getter";
+  num get refDistance => blink.Native_PannerNode_refDistance_Getter(this);
 
   @DomName('PannerNode.refDistance')
   @DocsEditable()
-  void set refDistance(num value) native "PannerNode_refDistance_Setter";
+  void set refDistance(num value) => blink.Native_PannerNode_refDistance_Setter(this, value);
 
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
-  num get rolloffFactor native "PannerNode_rolloffFactor_Getter";
+  num get rolloffFactor => blink.Native_PannerNode_rolloffFactor_Getter(this);
 
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
-  void set rolloffFactor(num value) native "PannerNode_rolloffFactor_Setter";
+  void set rolloffFactor(num value) => blink.Native_PannerNode_rolloffFactor_Setter(this, value);
 
   @DomName('PannerNode.setOrientation')
   @DocsEditable()
-  void setOrientation(num x, num y, num z) native "PannerNode_setOrientation_Callback";
+  void setOrientation(num x, num y, num z) => blink.Native_PannerNode_setOrientation_Callback(this, x, y, z);
 
   @DomName('PannerNode.setPosition')
   @DocsEditable()
-  void setPosition(num x, num y, num z) native "PannerNode_setPosition_Callback";
+  void setPosition(num x, num y, num z) => blink.Native_PannerNode_setPosition_Callback(this, x, y, z);
 
   @DomName('PannerNode.setVelocity')
   @DocsEditable()
-  void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
+  void setVelocity(num x, num y, num z) => blink.Native_PannerNode_setVelocity_Callback(this, x, y, z);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1351,12 +1352,12 @@ class ScriptProcessorNode extends AudioNode {
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
-  int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
+  int get bufferSize => blink.Native_ScriptProcessorNode_bufferSize_Getter(this);
 
   @DomName('ScriptProcessorNode._setEventListener')
   @DocsEditable()
   @Experimental() // non-standard
-  void _setEventListener(EventListener eventListener) native "ScriptProcessorNode__setEventListener_Callback";
+  void _setEventListener(EventListener eventListener) => blink.Native_ScriptProcessorNode__setEventListener_Callback(this, eventListener);
 
   /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
 /**
@@ -1389,18 +1390,18 @@ class WaveShaperNode extends AudioNode {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  Float32List get curve native "WaveShaperNode_curve_Getter";
+  Float32List get curve => blink.Native_WaveShaperNode_curve_Getter(this);
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  void set curve(Float32List value) native "WaveShaperNode_curve_Setter";
+  void set curve(Float32List value) => blink.Native_WaveShaperNode_curve_Setter(this, value);
 
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
-  String get oversample native "WaveShaperNode_oversample_Getter";
+  String get oversample => blink.Native_WaveShaperNode_oversample_Getter(this);
 
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
-  void set oversample(String value) native "WaveShaperNode_oversample_Setter";
+  void set oversample(String value) => blink.Native_WaveShaperNode_oversample_Setter(this, value);
 
 }
