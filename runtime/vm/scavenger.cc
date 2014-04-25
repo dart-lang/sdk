@@ -255,7 +255,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   // 'prologue_weak_were_strong' is currently only used for sanity checking.
   explicit ScavengerWeakVisitor(Scavenger* scavenger,
                                 bool prologue_weak_were_strong)
-      :  HandleVisitor(Isolate::Current()),
+      :  HandleVisitor(scavenger->heap_->isolate()),
          scavenger_(scavenger),
          prologue_weak_were_strong_(prologue_weak_were_strong) {
   }
@@ -697,7 +697,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = heap_->isolate();
   NoHandleScope no_handles(isolate);
 
   if (FLAG_verify_before_gc) {

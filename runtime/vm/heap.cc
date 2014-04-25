@@ -32,9 +32,10 @@ DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
 DEFINE_FLAG(int, new_gen_ext_limit, 64,
             "maximum total external size (MB) in new gen before triggering GC");
 
-Heap::Heap(intptr_t max_new_gen_words,
+Heap::Heap(Isolate* isolate,
+           intptr_t max_new_gen_words,
            intptr_t max_old_gen_words)
-    : read_only_(false), gc_in_progress_(false) {
+    : isolate_(isolate), read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -62,7 +63,7 @@ Heap::~Heap() {
 
 
 uword Heap::AllocateNew(intptr_t size) {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_gc_scope_depth() == 0);
   uword addr = new_space_->TryAllocate(size);
   if (addr == 0) {
     CollectGarbage(kNew);
@@ -76,7 +77,7 @@ uword Heap::AllocateNew(intptr_t size) {
 
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_gc_scope_depth() == 0);
   uword addr = old_space_->TryAllocate(size, type);
   if (addr == 0) {
     CollectAllGarbage();
@@ -142,34 +143,34 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
-void Heap::IterateObjects(ObjectVisitor* visitor) {
+void Heap::IterateObjects(ObjectVisitor* visitor) const {
   new_space_->VisitObjects(visitor);
   old_space_->VisitObjects(visitor);
 }
 
 
-void Heap::IteratePointers(ObjectPointerVisitor* visitor) {
+void Heap::IteratePointers(ObjectPointerVisitor* visitor) const {
   new_space_->VisitObjectPointers(visitor);
   old_space_->VisitObjectPointers(visitor);
 }
 
 
-void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
+void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) const {
   new_space_->VisitObjectPointers(visitor);
 }
 
 
-void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
+void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) const {
   old_space_->VisitObjectPointers(visitor);
 }
 
 
-void Heap::IterateNewObjects(ObjectVisitor* visitor) {
+void Heap::IterateNewObjects(ObjectVisitor* visitor) const {
   new_space_->VisitObjects(visitor);
 }
 
 
-void Heap::IterateOldObjects(ObjectVisitor* visitor) {
+void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
   old_space_->VisitObjects(visitor);
 }
 
@@ -194,7 +195,7 @@ RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
 
 
 RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
   RawObject* raw_obj = FindNewObject(visitor);
   if (raw_obj != Object::null()) {
     return raw_obj;
@@ -211,12 +212,11 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 void Heap::CollectGarbage(Space space,
                           ApiCallbacks api_callbacks,
                           GCReason reason) {
-  Isolate* isolate = Isolate::Current();
-  TIMERSCOPE(isolate, time_gc);
+  TIMERSCOPE(isolate(), time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
-      VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
+      VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
       RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
@@ -230,7 +230,7 @@ void Heap::CollectGarbage(Space space,
     }
     case kOld:
     case kCode: {
-      VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
+      VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
       RecordBeforeGC(kOld, reason);
       UpdateClassHeapStatsBeforeGC(kOld);
       old_space_->MarkSweep(invoke_api_callbacks);
@@ -245,8 +245,7 @@ void Heap::CollectGarbage(Space space,
 
 
 void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = isolate()->class_table();
   if (space == kNew) {
     class_table->ResetCountersNew();
   } else {
@@ -266,10 +265,9 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
-  Isolate* isolate = Isolate::Current();
-  TIMERSCOPE(isolate, time_gc);
+  TIMERSCOPE(isolate(), time_gc);
   {
-    VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
+    VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
     RecordBeforeGC(kNew, kFull);
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_->Scavenge(kInvokeApiCallbacks);
@@ -277,7 +275,7 @@ void Heap::CollectAllGarbage() {
     PrintStats();
   }
   {
-    VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
+    VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
     RecordBeforeGC(kOld, kFull);
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_->MarkSweep(kInvokeApiCallbacks);
@@ -318,7 +316,7 @@ void Heap::Init(Isolate* isolate,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words) {
   ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap(max_new_gen_words, max_old_gen_words);
+  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words);
   isolate->set_heap(heap);
 }
 
@@ -347,15 +345,12 @@ ObjectSet* Heap::CreateAllocatedObjectSet() const {
   uword end = 0;
   Isolate* vm_isolate = Dart::vm_isolate();
   vm_isolate->heap()->GetMergedAddressRange(&start, &end);
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->heap() == this);
-  isolate->heap()->GetMergedAddressRange(&start, &end);
+  this->GetMergedAddressRange(&start, &end);
 
   ObjectSet* allocated_set = new ObjectSet(start, end);
 
-  VerifyObjectVisitor object_visitor(isolate, allocated_set);
-  // TODO(koda): Consider adding a const visitor to enable using 'this'.
-  isolate->heap()->IterateObjects(&object_visitor);
+  VerifyObjectVisitor object_visitor(isolate(), allocated_set);
+  this->IterateObjects(&object_visitor);
   vm_isolate->heap()->IterateObjects(&object_visitor);
 
   return allocated_set;
@@ -363,12 +358,9 @@ ObjectSet* Heap::CreateAllocatedObjectSet() const {
 
 
 bool Heap::Verify() const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->heap() == this);
-  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet();
-  VerifyPointersVisitor visitor(isolate, allocated_set);
-  // TODO(koda): Consider adding a const visitor to enable using 'this'.
-  isolate->heap()->IteratePointers(&visitor);
+  ObjectSet* allocated_set = CreateAllocatedObjectSet();
+  VerifyPointersVisitor visitor(isolate(), allocated_set);
+  IteratePointers(&visitor);
   delete allocated_set;
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
@@ -515,7 +507,6 @@ void Heap::RecordAfterGC() {
 
 void Heap::PrintStats() {
   if (!FLAG_verbose_gc) return;
-  Isolate* isolate = Isolate::Current();
 
   if ((FLAG_verbose_gc_hdr != 0) &&
       (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
@@ -540,9 +531,9 @@ void Heap::PrintStats() {
     "%.3f, %.3f, %.3f, %.3f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
-    isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
+    isolate()->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
+    MicrosecondsToSeconds(stats_.before_.micros_ - isolate()->start_time()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_.used_in_words),

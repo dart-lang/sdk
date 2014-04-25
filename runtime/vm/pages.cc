@@ -125,7 +125,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       large_pages_(NULL),
       max_capacity_in_words_(max_capacity_in_words),
       sweeping_(false),
-      page_space_controller_(FLAG_heap_growth_space_ratio,
+      page_space_controller_(heap,
+                             FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
                              FLAG_heap_growth_time_ratio),
       gc_time_micros_(0),
@@ -631,10 +632,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 }
 
 
-PageSpaceController::PageSpaceController(int heap_growth_ratio,
+PageSpaceController::PageSpaceController(Heap* heap,
+                                         int heap_growth_ratio,
                                          int heap_growth_max,
                                          int garbage_collection_time_ratio)
-    : is_enabled_(false),
+    : heap_(heap),
+      is_enabled_(false),
       grow_heap_(heap_growth_max / 2),
       heap_growth_ratio_(heap_growth_ratio),
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
@@ -667,7 +670,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   static const double kInitialTimeoutSeconds = 1.00;
   if (history_.IsEmpty()) {
     double seconds_since_init = MicrosecondsToSeconds(
-        OS::GetCurrentTimeMicros() - Isolate::Current()->start_time());
+        OS::GetCurrentTimeMicros() - heap_->isolate()->start_time());
     if (seconds_since_init > kInitialTimeoutSeconds) {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }
@@ -678,11 +681,10 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
 
 void PageSpaceController::EvaluateGarbageCollection(
     SpaceUsage before, SpaceUsage after, int64_t start, int64_t end) {
-  Heap* heap = Isolate::Current()->heap();
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
   int gc_time_fraction = history_.GarbageCollectionTimeFraction();
-  heap->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
+  heap_->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
 
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.
@@ -690,7 +692,7 @@ void PageSpaceController::EvaluateGarbageCollection(
       before.used_in_words - last_usage_.used_in_words;
   intptr_t garbage = before.used_in_words - after.used_in_words;
   double k = garbage / static_cast<double>(allocated_since_previous_gc);
-  heap->RecordData(PageSpace::kGarbageRatio, static_cast<int>(k * 100));
+  heap_->RecordData(PageSpace::kGarbageRatio, static_cast<int>(k * 100));
 
   // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
   double t = 1.0 - desired_utilization_;
@@ -710,14 +712,14 @@ void PageSpaceController::EvaluateGarbageCollection(
       break;
     }
   }
-  heap->RecordData(PageSpace::kPageGrowth, grow_heap_);
+  heap_->RecordData(PageSpace::kPageGrowth, grow_heap_);
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
   intptr_t freed_pages =
       (before.capacity_in_words - after.capacity_in_words) /
       PageSpace::kPageSizeInWords;
   grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);
-  heap->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
+  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
   last_usage_ = after;
 }
 

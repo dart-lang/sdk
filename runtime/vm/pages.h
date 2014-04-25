@@ -114,7 +114,10 @@ class PageSpaceGarbageCollectionHistory {
 // PageSpaceController controls the heap size.
 class PageSpaceController {
  public:
-  PageSpaceController(int heap_growth_ratio,
+  // The heap is passed in for recording stats only. The controller does not
+  // invoke GC by itself.
+  PageSpaceController(Heap* heap,
+                      int heap_growth_ratio,
                       int heap_growth_max,
                       int garbage_collection_time_ratio);
   ~PageSpaceController();
@@ -146,6 +149,8 @@ class PageSpaceController {
   }
 
  private:
+  Heap* heap_;
+
   bool is_enabled_;
 
   // Usage after last evaluated GC or last enabled.

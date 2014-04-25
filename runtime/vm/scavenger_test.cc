@@ -55,7 +55,7 @@ TEST_CASE(ZeroSizeScavenger) {
 TEST_CASE(ZeroSizeScavengerGC) {
   // Ensure 'Scavenge' doesn't crash. We must supply an actual heap.
   Scavenger* scavenger =
-      new Scavenger(Dart::vm_isolate()->heap(), 0, kNewObjectAlignmentOffset);
+      new Scavenger(Isolate::Current()->heap(), 0, kNewObjectAlignmentOffset);
   scavenger->Scavenge();
   delete scavenger;
 }
