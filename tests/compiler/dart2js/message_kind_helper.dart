@@ -20,7 +20,8 @@ const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 /// However, consider that a single concise diagnostic is easier to understand,
 /// so try to change error reporting logic before adding an exception.
 final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
-    // See http://dartbug.com/18361.
+    // If you add something here, please file a *new* bug report.
+    // See http://dartbug.com/18361:
     MessageKind.CANNOT_EXTEND_MALFORMED,
     MessageKind.CANNOT_IMPLEMENT_MALFORMED,
     MessageKind.CANNOT_MIXIN,
@@ -30,16 +31,17 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
     MessageKind.FORMAL_DECLARED_CONST,
     MessageKind.FORMAL_DECLARED_STATIC,
+    MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
     MessageKind.HEX_DIGIT_EXPECTED,
     MessageKind.HIDDEN_IMPLICIT_IMPORT,
     MessageKind.HIDDEN_IMPORT,
     MessageKind.INHERIT_GETTER_AND_METHOD,
     MessageKind.UNIMPLEMENTED_METHOD,
     MessageKind.UNIMPLEMENTED_METHOD_ONE,
+    MessageKind.UNMATCHED_TOKEN,
     MessageKind.UNTERMINATED_STRING,
     MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
     MessageKind.VOID_NOT_ALLOWED,
-    MessageKind.UNMATCHED_TOKEN,
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception
@@ -47,7 +49,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
 /// Try to avoid adding exceptions here; a fatal error causes the compiler to
 /// stop before analyzing all input, and it isn't safe to reuse it.
 final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
-    MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT,
+    // If you add something here, please file a *new* bug report.
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception
@@ -55,11 +57,8 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
 /// Try to avoid adding exceptions here; a fatal error causes the compiler to
 /// stop before analyzing all input, and it isn't safe to reuse it.
 final Set<MessageKind> kindsWithFatalErrors = new Set<MessageKind>.from([
-    MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
+    // If you add something here, please file a *new* bug report.
     MessageKind.HEX_DIGIT_EXPECTED,
-    MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT,
-    MessageKind.REFERENCE_IN_INITIALIZATION,
-    MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT,
     MessageKind.UNMATCHED_TOKEN,
     MessageKind.UNTERMINATED_STRING,
 ]);
@@ -124,9 +123,8 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
           throw 'Unexpected messages found.';
         }
       }
-      cachedCompiler = compiler;
-      Expect.isTrue(kindsWithFatalErrors.contains(kind) ||
-                    !compiler.compilerWasCancelled);
+      Expect.isTrue(!compiler.compilerWasCancelled ||
+                    kindsWithFatalErrors.contains(kind));
 
       bool pendingStuff = false;
       for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
@@ -141,14 +139,11 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be resolved.'});
       }
-      if (pendingStuff) {
-        if (!kindsWithPendingClasses.contains(kind)) {
-          throw 'Stuff was pending';
-        }
-        cachedCompiler = null;
-      } else if (compiler.compilerWasCancelled) {
-        cachedCompiler = null;
-      } else {
+      Expect.isTrue(!pendingStuff || kindsWithPendingClasses.contains(kind));
+
+      if (!pendingStuff && !compiler.compilerWasCancelled) {
+        // If there is pending stuff, or the compiler was cancelled, we
+        // shouldn't reuse the compiler.
         cachedCompiler = compiler;
       }
     });

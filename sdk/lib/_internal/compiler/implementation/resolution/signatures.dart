@@ -199,7 +199,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
-      error(defaultValue, defaultValuesError);
+      compiler.reportError(defaultValue, defaultValuesError);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.

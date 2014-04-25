@@ -4435,8 +4435,9 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
-                     {'variableName': name});
+      compiler.reportError(
+          identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
+          {'variableName': name});
     }
     return identifier;
   }

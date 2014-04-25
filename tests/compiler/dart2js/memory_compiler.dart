@@ -209,7 +209,8 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     cachedCompiler.irBuilder = null;
     cachedCompiler.typesTask = null;
     cachedCompiler.backend = null;
-    cachedCompiler.enqueuer = null;
+    // Don't null out the enqueuer as it prevents us from using cachedCompiler
+    // more than once.
     cachedCompiler.deferredLoadTask = null;
     cachedCompiler.mirrorUsageAnalyzerTask = null;
     cachedCompiler.dumpInfoTask = null;
