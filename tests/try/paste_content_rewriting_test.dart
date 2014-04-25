@@ -25,11 +25,11 @@ import '../../pkg/async_helper/lib/async_helper.dart';
 const Map<String, String> tests = const <String, String> {
   '<span><p>//...</p>}</span>': '//...\n}\n',
   'someText': 'someText\n',
-  '"\$"': '"\$<DIAGNOSTIC>"\n',
-  '"\$\$"': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>"\n',
-  '"\$\$4"': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>4"\n',
-  '"\$\$4 "': '"\$<DIAGNOSTIC>\$<DIAGNOSTIC>4 "\n',
-  '1e': '1e<DIAGNOSTIC>\n',
+  '"\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC>"\n',
+  '"\$\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>"\n',
+  '"\$\$4"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4"\n',
+  '"\$\$4 "': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4 "\n',
+  '1e': '<DIAGNOSTIC>1e</DIAGNOSTIC>\n',
 };
 
 List<Node> queryDiagnosticNodes() {
@@ -45,7 +45,9 @@ Future runTests() {
     String key = keys.current;
     print('Checking $key');
     queryDiagnosticNodes().forEach((Node node) {
-      node.replaceWith(new Text('<DIAGNOSTIC>'));
+      node.parent.insertBefore(
+          new Text('<DIAGNOSTIC>'), node.parent.firstChild);
+      node.replaceWith(new Text('</DIAGNOSTIC>'));
       observer.takeRecords(); // Discard mutations.
     });
     Expect.stringEquals(tests[key], mainEditorPane.text);
