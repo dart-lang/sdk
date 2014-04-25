@@ -1,0 +1,1444 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// OPEN DESIGN QUESTIONS:
+
+// Should the AST enforce that variable definitions are hoisted at the top?
+// This would simplify the AST for [For] and [ForIn] and also simplify block 
+// flattening.
+// On the other hand, the code gets harder to test because the unparser only
+// works together with the middle-end.
+
+// Should the ${E.toString()} ==> ${E} rewrite be in the unparser?
+// It seems more like a semantic rewrite than a syntactic one. 
+// On the other hand, it is really easy to do and costs almost nothing.
+
+// TODO(asgerf): Include metadata.
+// TODO(asgerf): Include cascade operator.
+library dart_printer;
+
+import '../dart2jslib.dart' as dart2js;
+import '../tree/tree.dart' as tree;
+import '../util/characters.dart' as characters;
+
+/// The following nodes correspond to [tree.Send] expressions: 
+/// [FieldExpression], [IndexExpression], [Assignment], [Increment], 
+/// [CallFunction], [CallMethod], [CallNew], [CallStatic], [UnaryOperator],
+/// [BinaryOperator], and [TypeOperator].  
+abstract class Node {}
+
+/// Receiver is an [Expression] or the [SuperReceiver].
+abstract class Receiver extends Node {}
+
+/// Argument is an [Expression] or a [NamedArgument].
+abstract class Argument extends Node {}
+
+abstract class Expression extends Node implements Receiver, Argument {
+  bool get assignable => false;
+}
+
+abstract class Statement extends Node {}
+
+/// Used as receiver in expressions that dispatch to the super class.
+/// For instance, an expression such as `super.f()` is represented 
+/// by a [CallMethod] node with [SuperReceiver] as its receiver.
+class SuperReceiver extends Receiver {
+  static final SuperReceiver _instance = new SuperReceiver._create();
+
+  factory SuperReceiver() => _instance;
+  SuperReceiver._create();
+}
+
+/// Named arguments may occur in the argument list of 
+/// [CallFunction], [CallMethod], [CallNew], and [CallStatic].
+class NamedArgument extends Argument {
+  final String name;
+  final Expression expression;
+  
+  NamedArgument(this.name, this.expression);
+}
+
+class TypeAnnotation extends Node {
+  final String name;
+  final List<TypeAnnotation> typeArguments;
+  
+  TypeAnnotation(this.name, [this.typeArguments]);
+  
+  static final TypeAnnotation NUM = new TypeAnnotation("num");
+  static final TypeAnnotation INT = new TypeAnnotation("int");
+  static final TypeAnnotation DOUBLE = new TypeAnnotation("double");
+  static final TypeAnnotation BOOL = new TypeAnnotation("bool");
+  static final TypeAnnotation STRING = new TypeAnnotation("String");
+  static final TypeAnnotation DYNAMIC = new TypeAnnotation("dynamic");
+}
+
+// STATEMENTS
+
+
+class Block extends Statement {
+  final List<Statement> statements;
+
+  Block(this.statements);
+}
+
+class Break extends Statement {
+  final String label;
+
+  Break([this.label]);
+}
+
+class Continue extends Statement {
+  final String label;
+
+  Continue([this.label]);
+}
+
+class EmptyStatement extends Statement {
+  static final EmptyStatement _instance = new EmptyStatement._create();
+  
+  factory EmptyStatement() => _instance;
+  EmptyStatement._create();
+}
+
+class ExpressionStatement extends Statement {
+  final Expression expression;
+
+  ExpressionStatement(this.expression);
+}
+
+class For extends Statement {
+  final Node initializer;
+  final Expression condition;
+  final List<Expression> updates;
+  final Statement body;
+
+  /// Initializer must be [VariableDeclarations] or [Expression] or null.
+  For(this.initializer, this.condition, this.updates, this.body) {
+    assert(initializer == null
+        || initializer is VariableDeclarations 
+        || initializer is Expression);
+  }
+}
+
+class ForIn extends Statement {
+  final Node leftHandValue;
+  final Expression expression;
+  final Statement body;
+
+  /// [leftHandValue] must be [Identifier] or [VariableDeclarations] with
+  /// exactly one definition, and that variable definition must have no 
+  /// initializer.
+  ForIn(Node leftHandValue, this.expression, this.body)
+      : this.leftHandValue = leftHandValue {
+    assert(leftHandValue is Identifier 
+        || (leftHandValue is VariableDeclarations 
+            && leftHandValue.definitions.length == 1
+            && leftHandValue.definitions[0].initializer == null));
+  }
+}
+
+class While extends Statement {
+  final Expression condition;
+  final Statement body;
+
+  While(this.condition, this.body);
+}
+
+class DoWhile extends Statement {
+  final Statement body;
+  final Expression condition;
+
+  DoWhile(this.body, this.condition);
+}
+
+class If extends Statement {
+  final Expression condition;
+  final Statement thenStatement;
+  final Statement elseStatement;
+
+  If(this.condition, this.thenStatement, [this.elseStatement]);
+}
+
+class LabeledStatement extends Statement {
+  final String label;
+  final Statement statement;
+
+  LabeledStatement(this.label, this.statement);
+}
+
+class Rethrow extends Statement {
+}
+
+class Return extends Statement {
+  final Expression expression;
+
+  Return([this.expression]);
+}
+
+class Switch extends Statement {
+  final Expression expression;
+  final List<SwitchCase> cases;
+
+  Switch(this.expression, this.cases);
+}
+
+/// A sequence of case clauses followed by a sequence of statements.
+/// Represents the default case if [expressions] is null.
+/// 
+/// NOTE:
+/// Control will never fall through to the following SwitchCase, even if
+/// the list of statements is empty. An empty list of statements will be
+/// unparsed to a semicolon to guarantee this behaviour. 
+class SwitchCase extends Node {
+  final List<Expression> expressions;
+  final List<Statement> statements;
+
+  SwitchCase(this.expressions, this.statements);
+  SwitchCase.defaultCase(this.statements) : expressions = null;
+  
+  bool get isDefaultCase => expressions == null;
+}
+
+/// A try statement. The try, catch and finally blocks will automatically
+/// be printed inside a block statement if necessary.
+class Try extends Statement {
+  final Statement tryBlock;
+  final List<CatchBlock> catchBlocks;
+  final Statement finallyBlock;
+
+  Try(this.tryBlock, this.catchBlocks, [this.finallyBlock]) {
+    assert(catchBlocks.length > 0 || finallyBlock != null);
+  }
+}
+
+class CatchBlock extends Node {
+  final TypeAnnotation onType;
+  final String exceptionVar;
+  final String stackVar;
+  final Statement body;
+
+  /// At least onType or exceptionVar must be given.
+  /// stackVar may only be given if exceptionVar is also given.
+  CatchBlock(this.body, {this.onType, this.exceptionVar, this.stackVar}) {
+    // Must specify at least a type or an exception binding.
+    assert(onType != null || exceptionVar != null);
+
+    // We cannot bind the stack trace without binding the exception too.
+    assert(stackVar == null || exceptionVar != null);
+  }
+}
+
+class VariableDeclarations extends Statement {
+  final TypeAnnotation type;
+  final bool isFinal;
+  final bool isConst;
+  final List<VariableDeclaration> definitions;
+
+  VariableDeclarations(this.definitions, 
+                      { this.type, 
+                        this.isFinal: false, 
+                        this.isConst: false }) {
+    // Cannot be both final and const.
+    assert(!isFinal || !isConst);
+  }
+}
+
+class VariableDeclaration extends Node {
+  final String name;
+  final Expression initializer;
+
+  VariableDeclaration(this.name, [this.initializer]);
+}
+
+
+class FunctionDeclaration extends Statement {
+  final TypeAnnotation returnType;
+  final Parameters parameters;
+  final String name;
+  final Statement body;
+
+  FunctionDeclaration(this.name,
+                    this.parameters,
+                    this.body, 
+                    [ this.returnType ]);
+}
+
+class Parameters extends Node {
+  final List<Parameter> requiredParameters;
+  final List<Parameter> optionalParameters;
+  final bool hasNamedParameters;
+  
+  Parameters(this.requiredParameters,
+             [ this.optionalParameters, 
+               this.hasNamedParameters = false ]);
+  
+  Parameters.named(this.requiredParameters, this.optionalParameters)
+      : hasNamedParameters = true;
+  
+  Parameters.positional(this.requiredParameters, this.optionalParameters)
+        : hasNamedParameters = false;
+  
+  bool get hasOptionalParameters => 
+      optionalParameters != null && optionalParameters.length > 0;
+}
+
+class Parameter extends Node {
+  final String name;
+  
+  /// Type of parameter, or return type of function parameter.
+  final TypeAnnotation type;
+  
+  final Expression defaultValue;
+  
+  /// Parameters to function parameter. Null for non-function parameters.
+  final Parameters parameters;
+  
+  Parameter(this.name, {this.type, this.defaultValue})
+      : parameters = null;
+  
+  Parameter.function(this.name, 
+                     TypeAnnotation returnType, 
+                     this.parameters, 
+                     [this.defaultValue]) : type = returnType {
+    assert(parameters != null);
+  }
+  
+  /// True if this is a function parameter.
+  bool get isFunction => parameters != null;
+  
+  // TODO(asgerf): Support modifiers on parameters (final, ...).
+}
+
+// EXPRESSIONS
+
+class FunctionExpression extends Expression {
+  final Parameters parameters;
+  final Statement body;
+
+  FunctionExpression(this.parameters, this.body);
+}
+
+class Conditional extends Expression {
+  final Expression condition;
+  final Expression thenExpression;
+  final Expression elseExpression;
+
+  Conditional(this.condition, this.thenExpression, this.elseExpression);
+}
+
+/// An identifier expression. 
+/// The unparser does not concern itself with scoping rules, and it is the 
+/// responsibility of the AST creator to ensure that the identifier resolves 
+/// to the proper definition.
+class Identifier extends Expression {
+  final String name;
+
+  Identifier(this.name);
+  
+  bool get assignable => true;
+}
+
+class Literal extends Expression {
+  final dart2js.PrimitiveConstant value;
+
+  Literal(this.value);
+}
+
+class LiteralList extends Expression {
+  final bool isConst;
+  final TypeAnnotation typeArgument;
+  final List<Expression> values;
+
+  LiteralList(this.values, {this.typeArgument, this.isConst: false});
+}
+
+class LiteralMap extends Expression {
+  final bool isConst;
+  final List<TypeAnnotation> typeArguments;
+  final List<LiteralMapEntry> entries;
+
+  LiteralMap(this.entries, {this.typeArguments, this.isConst: false}) {
+    assert(this.typeArguments == null 
+        || this.typeArguments.length == 0 
+        || this.typeArguments.length == 2);
+  }
+}
+
+class LiteralMapEntry extends Node {
+  final Expression key;
+  final Expression value;
+
+  LiteralMapEntry(this.key, this.value);
+}
+
+class LiteralSymbol extends Expression {
+  final String id;
+  
+  /// [id] should not include the # symbol
+  LiteralSymbol(this.id);
+}
+
+/// StringConcat is used in place of string interpolation and juxtaposition.
+/// Semantically, each subexpression is evaluated and converted to a string
+/// by `toString()`. These string are then concatenated and returned.
+/// StringConcat unparses to a string literal, possibly with interpolations.
+/// The unparser will flatten nested StringConcats.
+/// A StringConcat node may have any number of children, including zero and one.
+class StringConcat extends Expression {
+  final List<Expression> expressions;
+
+  StringConcat(this.expressions);
+}
+
+/// Expression of form `e.f`.
+class FieldExpression extends Expression {
+  final Receiver object;
+  final String fieldName;
+
+  FieldExpression(this.object, this.fieldName);
+  
+  bool get assignable => true;
+}
+
+/// Expression of form `e1[e2]`.
+class IndexExpression extends Expression {
+  final Receiver object;
+  final Expression index;
+
+  IndexExpression(this.object, this.index);
+  
+  bool get assignable => true;
+}
+
+/// Expression of form `e(..)`
+/// Note that if [callee] is a [FieldExpression] this will translate into
+/// `(e.f)(..)` and not `e.f(..)`. Use a [CallMethod] to generate
+/// the latter type of expression.
+class CallFunction extends Expression {
+  final Expression callee;
+  final List<Argument> arguments;
+
+  CallFunction(this.callee, this.arguments);
+}
+
+/// Expression of form `e.f(..)`. 
+class CallMethod extends Expression {
+  final Receiver object;
+  final String methodName;
+  final List<Argument> arguments;
+
+  CallMethod(this.object, this.methodName, this.arguments);
+}
+
+/// Expression of form `new T(..)`, `new T.f(..)`, `const T(..)`,
+/// or `const T.f(..)`.
+class CallNew extends Expression {
+  final bool isConst;
+  final TypeAnnotation type;
+  final String constructorName;
+  final List<Argument> arguments;
+
+  CallNew(this.type, 
+          this.arguments, 
+         { this.constructorName, 
+           this.isConst: false });
+}
+
+/// Expression of form `T.f(..)`.
+class CallStatic extends Expression {
+  final String className;
+  final String methodName;
+  final List<Argument> arguments;
+
+  CallStatic(this.className, this.methodName, this.arguments);
+}
+
+/// Expression of form `!e` or `-e` or `~e`.
+class UnaryOperator extends Expression {
+  final String operatorName;
+  final Receiver operand;
+
+  UnaryOperator(this.operatorName, this.operand) {
+    assert(isUnaryOperator(operatorName));
+  }
+}
+
+/// Expression of form `e1 + e2`, `e1 - e2`, etc. 
+/// This node also represents application of the logical operators && and ||.
+class BinaryOperator extends Expression {
+  final Receiver left;
+  final String operatorName;
+  final Expression right;
+
+  BinaryOperator(this.left, this.operatorName, this.right) {
+    assert(isBinaryOperator(operatorName));
+  }
+}
+
+/// Expression of form `e is T` or `e is! T` or `e as T`.
+class TypeOperator extends Expression {
+  final Expression expression;
+  final String operatorName;
+  final TypeAnnotation type;
+  
+  TypeOperator(this.expression, this.operatorName, this.type) {
+    assert(operatorName == 'is' 
+        || operatorName == 'as' 
+        || operatorName == 'is!');
+  }
+}
+
+class Increment extends Expression {
+  final Expression expression;
+  final String operatorName;
+  final bool isPrefix;
+
+  Increment(this.expression, this.operatorName, this.isPrefix) {
+    assert(operatorName == '++' || operatorName == '--');
+    assert(expression.assignable);
+  }
+
+  Increment.prefix(Expression expression, String operator) 
+      : this(expression, operator, true);
+
+  Increment.postfix(Expression expression, String operator)
+      : this(expression, operator, false);
+}
+
+class Assignment extends Expression {
+  static final _operators = 
+      new Set.from(['=', '|=', '^=', '&=', '<<=', '>>=',
+                    '+=', '-=', '*=', '/=', '%=', '~/=']);
+
+  final Expression left;
+  final String operatorName;
+  final Expression right;
+
+  Assignment(this.left, this.operatorName, this.right) {
+    assert(_operators.contains(operatorName));
+    assert(left.assignable);
+  }
+}
+
+class Throw extends Expression {
+  final Expression expression;
+
+  Throw(this.expression);
+}
+
+class This extends Expression {
+  static final This _instance = new This._create();
+
+  factory This() => _instance;
+  This._create();
+}
+
+// UNPARSER
+
+bool isUnaryOperator(String op) {
+  return op == '!' || op == '-' || op == '~';
+}
+bool isBinaryOperator(String op) {
+  return Unparser._binaryPrecedence.containsKey(op);
+}
+
+
+const int NEWLINE = 10;
+const int CARRIAGE_RETURN = 13;
+
+/// The unparser will apply the following syntactic rewritings:
+///   Use short-hand function returns:
+///     foo(){return E} ==> foo() => E;
+///   Remove empty else branch:
+///     if (E) S else ; ==> if (E) S
+///   Flatten nested blocks:
+///     {S; {S; S}; S} ==> {S; S; S; S}
+///   Remove empty statements from block:
+///     {S; ; S} ==> {S; S}
+///   Unfold singleton blocks:
+///     {S} ==> S
+///   Empty block to empty statement:
+///     {} ==> ;
+///   Introduce not-equals operator:
+///     !(E == E) ==> E != E
+///   Introduce is-not operator:
+///     !(E is T) ==> E is!T
+///   Remove .toString() from string interpolation (see [StringConcat])
+///     "X ${E.toString()} Y" ==> "X ${E} Y"
+/// 
+/// The following transformations will NOT be applied here:
+///   Use implicit this:
+///     this.foo ==> foo              (preconditions too complex for unparser)
+///   Merge adjacent variable definitions:
+///     var x; var y  ==> var x,y;    (hoisting will be done elsewhere)
+///   Merge adjacent labels:
+///     foo: bar: S ==> foobar: S     (scoping is categorically ignored)
+/// 
+/// The following transformations might be applied here in the future:
+///   Use implicit dynamic types:
+///     dynamic x = E ==> var x = E
+///     <dynamic>[]   ==> []
+class Unparser {
+  StringSink output;
+  
+  Unparser(this.output);
+  
+  // Precedence levels
+  static const EXPRESSION = 1;
+  static const CONDITIONAL = 2;
+  static const LOGICAL_OR = 3;
+  static const LOGICAL_AND = 4;
+  static const EQUALITY = 6;
+  static const RELATIONAL = 7;
+  static const BITWISE_OR = 8;
+  static const BITWISE_XOR = 9;
+  static const BITWISE_AND = 10;
+  static const SHIFT = 11;
+  static const ADDITIVE = 12;
+  static const MULTIPLICATIVE = 13;
+  static const UNARY = 14;
+  static const POSTFIX_INCREMENT = 15;
+  static const PRIMARY = 20;
+  
+  /// Precedence level required for the callee in a [FunctionCall]. 
+  static const CALLEE = 21;
+  
+  static const _binaryPrecedence = const {
+    '&&': LOGICAL_AND,
+    '||': LOGICAL_OR,
+                                    
+    '==': EQUALITY,
+    '!=': EQUALITY,
+    
+    '>': RELATIONAL,
+    '>=': RELATIONAL,
+    '<': RELATIONAL,
+    '<=': RELATIONAL,
+    
+    '|': BITWISE_OR,
+    '^': BITWISE_XOR,
+    '&': BITWISE_AND,
+    
+    '>>': SHIFT,
+    '<<': SHIFT,
+    
+    '+': ADDITIVE,
+    '-': ADDITIVE,
+    
+    '*': MULTIPLICATIVE,
+    '%': MULTIPLICATIVE,
+    '/': MULTIPLICATIVE,
+    '~/': MULTIPLICATIVE,
+  };
+  
+  /// The type of quote used around string literals.
+  static const QUOTE = "'";
+  static const QUOTE_CODE = 39;
+  
+  /// Return true if binary operators with the given precedence level are
+  /// (left) associative. False if they are non-associative.
+  static bool isAssociativeBinaryOperator(int precedence) {
+    return precedence != EQUALITY && precedence != RELATIONAL; 
+  }
+  
+
+  void write(String s) {
+    output.write(s);
+  }
+  
+  /// Outputs each element from [items] separated by [separator].
+  /// The actual printing must be performed by the [callback].
+  void writeEach(String separator, Iterable items, void callback(any)) {
+    bool first = true;
+    for (var x in items) {
+      if (first) {
+        first = false;
+      } else {
+        write(separator);
+      }
+      callback(x);
+    }
+  }
+  
+  void writeOperator(String operator) {
+    write(" "); // TODO(asgerf): Minimize use of whitespace.
+    write(operator);
+    write(" ");
+  }
+  
+  /// Unfolds singleton blocks and returns the inner statement.
+  /// If an empty block is found, the [EmptyStatement] is returned instead.
+  Statement unfoldBlocks(Statement stmt) {
+    while (stmt is Block && stmt.statements.length == 1) {
+      Statement inner = (stmt as Block).statements[0];
+      if (definesVariable(inner)) {
+        return stmt; // Do not unfold block with lexical scope.
+      }
+      stmt = inner;
+    }
+    if (stmt is Block && stmt.statements.length == 0)
+      return new EmptyStatement();
+    return stmt;
+  }
+  
+  void writeArgument(Argument arg) {
+    if (arg is NamedArgument) {
+      write(arg.name);
+      write(':');
+      writeExpression(arg.expression);
+    } else {
+      writeExpression(arg);
+    }
+  }
+  
+  /// Prints the expression [e]. 
+  void writeExpression(Expression e) {
+    writeExp(e, EXPRESSION);
+  }
+
+  /// Prints [e] as an expression with precedence of at least [minPrecedence],
+  /// using parentheses if necessary to raise the precedence level.
+  /// Abusing terminology slightly, the function accepts a [Receiver] which
+  /// may also be the [SuperReceiver] object.
+  void writeExp(Receiver e, int minPrecedence, {beginStmt:false}) {
+    // TODO(asgerf): 
+    //   Would there be a significant speedup using a Visitor or a method
+    //   on the AST instead of a chain of "if (e is T)" statements?  
+    void withPrecedence(int actual, void action()) {
+      if (actual < minPrecedence) {
+        write("(");
+        beginStmt = false;
+        action();
+        write(")");
+      } else {
+        action();
+      }
+    }
+    if (e is SuperReceiver) {
+      write('super');
+    } else if (e is FunctionExpression) {
+      Statement stmt = unfoldBlocks(e.body);
+      int precedence = stmt is Return ? EXPRESSION : PRIMARY;
+      withPrecedence(precedence, () {
+        writeParameters(e.parameters);
+        if (stmt is Return) {
+          write('=> '); // TODO(asgerf): Minimize use of whitespace.
+          writeExp(stmt.expression, EXPRESSION);
+        } else {
+          writeBlock(stmt);
+        }
+      });
+    } else if (e is Conditional) {
+      withPrecedence(CONDITIONAL, () {
+        writeExp(e.condition, LOGICAL_OR, beginStmt: beginStmt);
+        write(' ? '); // TODO(asgerf): Minimize use of whitespace.
+        writeExp(e.thenExpression, EXPRESSION);
+        write(' : ');
+        writeExp(e.elseExpression, EXPRESSION);
+      });
+    } else if (e is Identifier) {
+      write(e.name);
+    } else if (e is Literal) {
+      if (e.value is dart2js.StringConstant) {
+        writeStringLiteral(e);
+      }
+      else {
+        write(e.value.toString());
+      }
+    } else if (e is LiteralList) {
+      if (e.isConst) {
+        write(' const '); // TODO(asgerf): Minimize use of whitespace.
+      }
+      if (e.typeArgument != null) {
+        write('<');
+        writeType(e.typeArgument);
+        write('>');
+      }
+      write('[');
+      writeEach(',', e.values, writeExpression);
+      write(']');
+    }
+    else if (e is LiteralMap) {
+      // The curly brace can be mistaken for a block statement if we
+      // are at the beginning of a statement.
+      bool needParen = beginStmt;
+      if (e.isConst) {
+        write(' const '); // TODO(asgerf): Minimize use of whitespace.
+        needParen = false;
+      }
+      if (e.typeArguments != null && e.typeArguments.length > 0) {
+        write('<');
+        writeEach(',', e.typeArguments, writeType);
+        write('>');
+        needParen = false;
+      }
+      if (needParen) {
+        write('(');
+      }
+      write('{');
+      writeEach(',', e.entries, (LiteralMapEntry en) {
+        writeExp(en.key, EXPRESSION);
+        write(' : '); // TODO(asgerf): Minimize use of whitespace.
+        writeExp(en.value, EXPRESSION);
+      });
+      write('}');
+      if (needParen) {
+        write(')');
+      }
+    } else if (e is LiteralSymbol) {
+      write('#');
+      write(e.id); // TODO(asgerf): Do we need to escape something here?
+    } else if (e is StringConcat) {
+      writeStringLiteral(e);
+    } else if (e is UnaryOperator) {
+      Receiver operand = e.operand;
+      // !(x == y) ==> x != y.
+      if (e.operatorName == '!' && 
+          operand is BinaryOperator && operand.operatorName == '==') {
+        withPrecedence(EQUALITY, () {
+          writeExp(operand.left, RELATIONAL);
+          writeOperator('!=');
+          writeExp(operand.right, RELATIONAL);
+        });
+      }
+      // !(x is T) ==> x is!T
+      else if (e.operatorName == '!' &&
+          operand is TypeOperator && operand.operatorName == 'is') {
+        withPrecedence(RELATIONAL, () {
+          writeExp(operand.expression, BITWISE_OR);
+          write(' is!'); // TODO(asgerf): Minimize use of whitespace.
+          writeType(operand.type);
+        });
+      }
+      else {
+        withPrecedence(UNARY, () {
+          writeOperator(e.operatorName);
+          writeExp(e.operand, UNARY);
+        });
+      }
+    } else if (e is BinaryOperator) {
+      int precedence = _binaryPrecedence[e.operatorName];
+      withPrecedence(precedence, () {
+        // All binary operators are left-associative or non-associative.
+        // For each operand, we use either the same precedence level as
+        // the current operator, or one higher.
+        int deltaLeft = isAssociativeBinaryOperator(precedence) ? 0 : 1;
+        writeExp(e.left, precedence + deltaLeft, beginStmt: beginStmt);
+        writeOperator(e.operatorName);
+        writeExp(e.right, precedence + 1);
+      });
+    } else if (e is TypeOperator) {
+      withPrecedence(RELATIONAL, () {
+        writeExp(e.expression, BITWISE_OR, beginStmt: beginStmt);
+        write(' ');
+        write(e.operatorName);
+        write(' ');
+        writeType(e.type);
+      });
+    } else if (e is Assignment) {
+      withPrecedence(EXPRESSION, () {
+        writeExp(e.left, PRIMARY, beginStmt: beginStmt);
+        writeOperator(e.operatorName);
+        writeExp(e.right, EXPRESSION);
+      });
+    } else if (e is FieldExpression) {
+      withPrecedence(PRIMARY, () {
+        writeExp(e.object, PRIMARY, beginStmt: beginStmt);
+        write('.');
+        write(e.fieldName);        
+      });
+    } else if (e is IndexExpression) {
+      withPrecedence(CALLEE, () {
+        writeExp(e.object, PRIMARY, beginStmt: beginStmt);
+        write('[');
+        writeExp(e.index, EXPRESSION);
+        write(']');        
+      });
+    } else if (e is CallFunction) {
+      withPrecedence(CALLEE, () {
+        writeExp(e.callee, CALLEE, beginStmt: beginStmt);
+        write('(');
+        writeEach(',', e.arguments, writeArgument);
+        write(')');
+      });
+    } else if (e is CallMethod) {
+      withPrecedence(CALLEE, () {
+        writeExp(e.object, PRIMARY, beginStmt: beginStmt);
+        write('.');
+        write(e.methodName);
+        write('(');
+        writeEach(',', e.arguments, writeArgument);
+        write(')');
+      });
+    } else if (e is CallNew) {
+      withPrecedence(CALLEE, () {
+        write(' '); // TODO(asgerf): Minimize use of whitespace.
+        write(e.isConst ? 'const ' : 'new ');
+        writeType(e.type);
+        if (e.constructorName != null) {
+          write('.');
+          write(e.constructorName);
+        }
+        write('(');
+        writeEach(',', e.arguments, writeArgument);
+        write(')');
+      });
+    } else if (e is CallStatic) {
+      withPrecedence(CALLEE, () {
+        write(e.className);
+        write('.');
+        write(e.methodName);
+        write('(');
+        writeEach(',', e.arguments, writeArgument);
+        write(')');
+      });
+    } else if (e is Increment) {
+      int precedence = e.isPrefix ? UNARY : POSTFIX_INCREMENT;
+      withPrecedence(precedence, () {
+        if (e.isPrefix) {
+          write(e.operatorName);
+          writeExp(e.expression, PRIMARY);
+        } else {
+          writeExp(e.expression, PRIMARY, beginStmt: beginStmt);
+          write(e.operatorName);
+        }
+      });
+    } else if (e is Throw) {
+      withPrecedence(EXPRESSION, () {
+        write('throw ');
+        writeExp(e.expression, EXPRESSION);
+      });
+    } else if (e is This) {
+      write('this');
+    } else {
+      throw "Unexpected expression: $e";
+    }
+  }
+  
+  void writeParameters(Parameters params) {
+    write('(');
+    bool first = true;
+    writeEach(',', params.requiredParameters, (Parameter p) {
+      if (p.type != null) {
+        writeType(p.type);
+        write(' ');
+      }
+      write(p.name);
+      if (p.parameters != null) {
+        writeParameters(p.parameters);
+      }
+    });
+    if (params.hasOptionalParameters) {
+      if (params.requiredParameters.length > 0) {
+        write(',');
+      }
+      write(params.hasNamedParameters ? '{' : '[');
+      writeEach(',', params.optionalParameters, (Parameter p) {
+        if (p.type != null) {
+          writeType(p.type);
+          write(' ');
+        }
+        write(p.name);
+        if (p.parameters != null) {
+          writeParameters(p.parameters);
+        }
+        if (p.defaultValue != null) {
+          write(params.hasNamedParameters ? ':' : '=');
+          writeExp(p.defaultValue, EXPRESSION);
+        }
+      });
+      write(params.hasNamedParameters ? '}' : ']');
+    }
+    write(')');
+  }
+  
+  void writeStatement(Statement stmt, {bool shortIf: true}) {
+    stmt = unfoldBlocks(stmt);
+    if (stmt is Block) {
+      write('{');
+      stmt.statements.forEach(writeBlockMember);
+      write('}');
+    } else if (stmt is Break) {
+      write('break');
+      if (stmt.label != null) {
+        write(' ');
+        write(stmt.label);
+      }
+      write(';');
+    } else if (stmt is Continue) {
+      write('continue');
+      if (stmt.label != null) {
+        write(' ');
+        write(stmt.label);
+      }
+      write(';');
+    } else if (stmt is EmptyStatement) {
+      write(';');
+    } else if (stmt is ExpressionStatement) {
+      writeExp(stmt.expression, EXPRESSION, beginStmt:true);
+      write(';');
+    } else if (stmt is For) {
+      write('for(');
+      Node init = stmt.initializer;
+      if (init is Expression) {
+        writeExp(init, EXPRESSION);
+      } else if (init is VariableDeclarations) {
+        writeVariableDefinitions(init);
+      }
+      write(';');
+      if (stmt.condition != null) {
+        writeExp(stmt.condition, EXPRESSION);
+      }
+      write(';');
+      writeEach(',', stmt.updates, writeExpression);
+      write(')');
+      writeStatement(stmt.body, shortIf: shortIf);
+    } else if (stmt is ForIn) {
+      write('for(');
+      Node lhv = stmt.leftHandValue;
+      if (lhv is Identifier) {
+        write(lhv.name);
+      } else {
+        writeVariableDefinitions(lhv as VariableDeclarations);
+      }
+      write(' in ');
+      writeExp(stmt.expression, EXPRESSION);
+      write(')');
+      writeStatement(stmt.body, shortIf: shortIf);
+    } else if (stmt is While) {
+      write('while(');
+      writeExp(stmt.condition, EXPRESSION);
+      write(')');
+      writeStatement(stmt.body, shortIf: shortIf);
+    } else if (stmt is DoWhile) {
+      write('do '); // TODO(asgerf): Minimize use of whitespace.
+      writeStatement(stmt.body);
+      write('while(');
+      writeExp(stmt.condition, EXPRESSION);
+      write(');');
+    } else if (stmt is If) {
+      // if (E) S else ; ==> if (E) S
+      Statement elsePart = unfoldBlocks(stmt.elseStatement);
+      if (elsePart is EmptyStatement) {
+        elsePart = null;
+      }
+      if (!shortIf && elsePart == null) {
+        write('{');
+      }
+      write('if(');
+      writeExp(stmt.condition, EXPRESSION);
+      write(')');
+      writeStatement(stmt.thenStatement, shortIf: elsePart == null);
+      if (elsePart != null) {
+        write('else ');
+        writeStatement(elsePart, shortIf: shortIf);
+      }
+      if (!shortIf && elsePart == null) {
+        write('}');
+      }
+    } else if (stmt is LabeledStatement) {
+      write(stmt.label);
+      write(':');
+      writeStatement(stmt.statement, shortIf: shortIf);
+    } else if (stmt is Rethrow) {
+      write('rethrow;');
+    } else if (stmt is Return) {
+      write('return');
+      if (stmt.expression != null) {
+        write(' ');
+        writeExp(stmt.expression, EXPRESSION);
+      }
+      write(';');
+    } else if (stmt is Switch) {
+      write('switch(');
+      writeExp(stmt.expression, EXPRESSION);
+      write('){');
+      for (SwitchCase caze in stmt.cases) {
+        if (caze.isDefaultCase) {
+          write('default:');
+        } else {
+          for (Expression exp in caze.expressions) {
+            write('case ');
+            writeExp(exp, EXPRESSION);
+            write(':');
+          }
+        }
+        if (caze.statements.isEmpty) {
+          write(';'); // Prevent fall-through.
+        } else {
+          caze.statements.forEach(writeBlockMember);
+        }
+      }
+      write('}');
+    } else if (stmt is Try) {
+      write('try');
+      writeBlock(stmt.tryBlock);
+      for (CatchBlock block in stmt.catchBlocks) {
+        if (block.onType != null) {
+          write('on ');
+          writeType(block.onType);
+        }
+        if (block.exceptionVar != null) {
+          write('catch(');
+          write(block.exceptionVar);
+          if (block.stackVar != null) {
+            write(',');
+            write(block.stackVar);
+          }
+          write(')');
+        }
+        writeBlock(block.body);
+      }
+      if (stmt.finallyBlock != null) {
+        write('finally');
+        writeBlock(stmt.finallyBlock);
+      }
+    } else if (stmt is VariableDeclarations) {
+      writeVariableDefinitions(stmt);
+      write(';');
+    } else if (stmt is FunctionDeclaration) {
+      if (stmt.returnType != null) {
+        writeType(stmt.returnType);
+        write(' ');
+      }
+      write(stmt.name);
+      writeParameters(stmt.parameters);
+      Statement body = unfoldBlocks(stmt.body);
+      if (body is Return) {
+        write('=> '); // TODO(asgerf): Minimize use of whitespace.
+        writeExp(body.expression, EXPRESSION);
+        write(';');
+      } else {
+        writeBlock(body);
+      }
+    } else {
+      throw "Unexpected statement: $stmt";
+    }
+  }
+  
+  /// Writes a variable definition statement without the trailing semicolon
+  void writeVariableDefinitions(VariableDeclarations vds) {
+    if (vds.isConst)
+      write('const ');
+    else if (vds.isFinal)
+      write('final ');
+    if (vds.type != null) {
+      writeType(vds.type);
+      write(' ');
+    }
+    if (!vds.isConst && !vds.isFinal && vds.type == null) {
+      write('var ');
+    }
+    writeEach(',', vds.definitions, (VariableDeclaration vd) {
+      write(vd.name);
+      if (vd.initializer != null) {
+        write('=');
+        writeExp(vd.initializer, EXPRESSION);
+      }
+    });
+  }
+  
+  /// True of statements that introduce variables in the scope of their
+  /// surrounding block. Blocks containing such statements cannot be unfolded.
+  bool definesVariable(Statement s) {
+    return s is VariableDeclarations || s is FunctionDeclaration;
+  }
+  
+  /// Writes the given statement in a context where only blocks are allowed.
+  void writeBlock(Statement stmt) {
+    if (stmt is Block) {
+      writeStatement(stmt);
+    } else {
+      write('{');
+      writeBlockMember(stmt);
+      write('}');
+    }
+  }
+  
+  /// Outputs a statement that is a member of a block statement (or a similar
+  /// sequence of statements, such as in switch statement).
+  /// This will flatten blocks and skip empty statement.
+  void writeBlockMember(Statement stmt) {
+    if (stmt is Block && !stmt.statements.any(definesVariable)) {
+      stmt.statements.forEach(writeBlockMember);
+    } else if (stmt is EmptyStatement) {
+      // do nothing
+    } else {
+      writeStatement(stmt);
+    }
+  }
+  
+  void writeType(TypeAnnotation type) {
+    write(type.name);
+    if (type.typeArguments != null && type.typeArguments.length > 0) {
+      write('<');
+      writeEach(',', type.typeArguments, writeType);
+      write('>');
+    }  
+  }
+  
+  void writeStringLiteral(Expression node) {
+    // TODO(asgerf): This might be a bit too expensive. Benchmark.
+    // Flatten the StringConcat tree.
+    List parts = []; // Expression or int (char node)
+    void collectParts(Expression e) {
+      if (e is StringConcat) {
+        e.expressions.forEach(collectParts);
+      } else if (e is Literal && e.value is dart2js.StringConstant) {
+        for (int char in e.value.value) {
+          parts.add(char);
+        }
+      } else if (e is CallMethod && 
+                 e.object is Expression && // Do not match super.toString()
+                 e.methodName == "toString" && 
+                 e.arguments.length == 0) {
+        // ${e.toString()} ==> ${e}
+        collectParts(e.object);
+      } else {
+        parts.add(e);
+      }
+    }
+    collectParts(node);
+    
+    // We use a dynamic algorithm to compute the optimal way of printing
+    // the string literal.
+    //
+    // Using string juxtapositions, it is possible to switch from one quoting
+    // to another, e.g. the constant "''''" '""""' uses this trick.
+    //
+    // As we move through the string from left to right, we maintain a strategy 
+    // for each StringQuoting Q, denoting the best way to print the current 
+    // prefix so that we end with a string literal quoted with Q.
+    // At every step, each strategy is either:
+    //  1) Updated to include the cost of printing the next character.
+    //  2) Abandoned because it is cheaper to use another strategy as prefix,
+    //     and then switching quotation using a juxtaposition.
+    
+    int getQuoteCost(tree.StringQuoting quot) {
+      return quot.leftQuoteLength + quot.rightQuoteLength;
+    }
+    
+    // Create initial scores for each StringQuoting and index them
+    // into raw/non-raw and single-quote/double-quote.
+    List<OpenStringChunk> best = <OpenStringChunk>[];
+    List<int> raws = <int>[];
+    List<int> nonRaws = <int>[];
+    List<int> sqs = <int>[];
+    List<int> dqs = <int>[];
+    for (tree.StringQuoting q in tree.StringQuoting.mapping) {
+      // Ignore multiline quotings for now. Encoding of line breaks is unclear.
+      // TODO(asgerf): Include multiline quotation schemes.
+      if (q.leftQuoteCharCount >= 3)
+        continue; 
+      OpenStringChunk chunk = new OpenStringChunk(null, q, getQuoteCost(q));
+      int index = best.length;
+      best.add(chunk);
+      
+      if (q.raw) {
+        raws.add(index);
+      } else {
+        nonRaws.add(index);
+      }
+      if (q.quote == characters.$SQ) {
+        sqs.add(index);
+      } else {
+        dqs.add(index);
+      }
+    }
+    
+    /// True if [x] is a letter, digit, or underscore.
+    /// Such characters may not follow a shorthand string interpolation.
+    bool isIdentifierPartNoDollar(dynamic x) {
+      if (x is! int)
+        return false;
+      return (characters.$0 <= x && x <= characters.$9) 
+          || (characters.$A <= x && x <= characters.$Z) 
+          || (characters.$a <= x && x <= characters.$z)
+          || (x == characters.$_);
+    }
+
+    /// Applies additional cost to each track in [penalized], and considers
+    /// switching from each [penalized] to a [nonPenalized] track.
+    void penalize(List<int> penalized, 
+                  List<int> nonPenalized,
+                  int endIndex,
+                  num cost(tree.StringQuoting q)) {
+      for (int j in penalized) {
+        // Check if another track can benefit from switching from this track.
+        for (int k in nonPenalized) {
+          num newCost = best[j].cost 
+                      + 1             // Whitespace in string juxtaposition
+                      + getQuoteCost(best[k].quoting);
+          if (newCost < best[k].cost) {
+            best[k] = new OpenStringChunk(
+                best[j].end(endIndex), 
+                best[k].quoting,
+                newCost);
+          }
+        }
+        best[j].cost += cost(best[j].quoting);
+      }
+    }
+    
+    // Iterate through the string and update the score for each StringQuoting.
+    for (int i = 0; i < parts.length; i++) {
+      var part = parts[i];
+      if (part is int) {
+        int char = part;
+        switch (char) {
+          case characters.$$:
+          case characters.$BACKSLASH:
+            penalize(nonRaws, raws, i, (q) => 1);
+            break;
+          case characters.$DQ:
+            penalize(dqs, sqs, i, (q) => q.raw ? double.INFINITY : 1);
+            break;
+          case characters.$SQ:
+            penalize(sqs, dqs, i, (q) => q.raw ? double.INFINITY : 1);
+            break;
+          case NEWLINE:
+          case CARRIAGE_RETURN:
+            penalize(raws, nonRaws, i, (q) => double.INFINITY);
+            break;
+        }
+      } else {
+        // Penalize raw literals for string interpolation.
+        penalize(raws, nonRaws, i, (q) => double.INFINITY);
+        
+        // Splitting a string can sometimes allow us to use a shorthand
+        // string interpolation that would otherwise be illegal.
+        // E.g. "...${foo}x..." -> "...$foo" 'x...'
+        // If are other factors that make splitting advantageous, 
+        // we can gain even more by doing the split here.
+        if (part is Identifier &&
+            !part.name.contains(r'$') &&
+            i + 1 < parts.length &&
+            isIdentifierPartNoDollar(parts[i+1])) {
+          for (int j in nonRaws) {
+            for (int k = 0; k < best.length; k++) {
+              num newCost = best[j].cost 
+                          + 1             // Whitespace in string juxtaposition
+                          - 2             // Save two curly braces
+                          + getQuoteCost(best[k].quoting);
+              if (newCost < best[k].cost) {
+                best[k] = new OpenStringChunk(
+                    best[j].end(i+1), 
+                    best[k].quoting,
+                    newCost);
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Select the cheapest strategy
+    OpenStringChunk bestChunk = best[0];
+    for (OpenStringChunk chunk in best) {
+      if (chunk.cost < bestChunk.cost) {
+        bestChunk = chunk;
+      }
+    }
+    
+    void printChunk(StringChunk chunk) {
+      int startIndex;
+      if (chunk.previous != null) {
+        printChunk(chunk.previous);
+        write(' '); // String juxtaposition requires a space between literals.
+        startIndex = chunk.previous.endIndex;
+      } else {
+        startIndex = 0;
+      }
+      if (chunk.quoting.raw) {
+        write('r');
+      }
+      write(chunk.quoting.quoteChar);
+      bool raw = chunk.quoting.raw;
+      int quoteCode = chunk.quoting.quote;
+      for (int i=startIndex; i<chunk.endIndex; i++) {
+        var part = parts[i];
+        if (part is int) {
+          int char = part;
+          switch (char) {
+            case characters.$$:
+              if (raw)
+                write(r'$');
+              else
+                write(r'\$');
+              break;
+            case characters.$BACKSLASH:
+              if (raw)
+                write(r'\');
+              else
+                write(r'\\');
+              break;
+            case characters.$DQ:
+              if (quoteCode == char) {
+                write(r'\"');
+              } else {
+                write(r'"');
+              }
+              break;
+            case characters.$SQ:
+              if (quoteCode == char) {
+                write(r"\'");
+              } else {
+                write(r"'");
+              }
+              break;
+            case NEWLINE:
+              write(r'\n');
+              break;
+            case CARRIAGE_RETURN:
+              write(r'\r');
+              break;
+            default:
+              write(new String.fromCharCode(char));
+          }
+        } else if (part is Identifier &&
+                   !part.name.contains(r'$') &&
+                   (i == chunk.endIndex - 1 ||  
+                    !isIdentifierPartNoDollar(parts[i+1]))) {
+          write(r'$');
+          write(part.name);
+        } else {
+          write(r'${');
+          writeExpression(part);
+          write('}');
+        }
+      }
+      write(chunk.quoting.quoteChar);
+    }
+    printChunk(bestChunk.end(parts.length));
+  }
+  
+}
+
+
+/// Strategy for printing a prefix of a string literal.
+/// A chunk represents the substring going from [:previous.endIndex:] to
+/// [endIndex] (or from 0 to [endIndex] if [previous] is null).
+class StringChunk {
+  final StringChunk previous;
+  final tree.StringQuoting quoting;
+  final int endIndex;
+  
+  StringChunk(this.previous, this.quoting, this.endIndex);
+}
+
+/// [StringChunk] that has not yet been assigned an [endIndex]. 
+/// It additionally has a [cost] denoting the number of auxilliary characters 
+/// (quotes, spaces, etc) needed to print the literal using this strategy
+class OpenStringChunk {
+  final StringChunk previous;
+  final tree.StringQuoting quoting;
+  num cost;
+  
+  OpenStringChunk(this.previous, this.quoting, this.cost);
+  
+  StringChunk end(int endIndex) {
+    return new StringChunk(previous, quoting, endIndex);
+  }
+}
