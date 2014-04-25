@@ -4,6 +4,7 @@
 
 library shelf;
 
+export 'src/cascade.dart';
 export 'src/handler.dart';
 export 'src/handlers/logger.dart';
 export 'src/middleware.dart';
