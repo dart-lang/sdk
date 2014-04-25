@@ -225,7 +225,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
-                            const AbstractType& type) const;
+                            const AbstractType& type,
+                            ZoneGrowableArray<intptr_t>* results) const;
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);

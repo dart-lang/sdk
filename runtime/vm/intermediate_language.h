@@ -768,6 +768,7 @@ class EmbeddedArray<T, 0> {
   M(Int32x4ToFloat32x4)                                                        \
   M(BinaryInt32x4Op)                                                           \
   M(TestSmi)                                                                   \
+  M(TestCids)                                                                  \
   M(BoxFloat64x2)                                                              \
   M(UnboxFloat64x2)                                                            \
   M(BinaryFloat64x2Op)                                                         \
@@ -1115,6 +1116,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BlockEntryInstr;
   friend class RelationalOpInstr;
   friend class EqualityCompareInstr;
+  friend class TestCidsInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -2309,7 +2311,9 @@ class ComparisonInstr : public TemplateDefinition<2> {
                   Value* right)
       : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
     SetInputAt(0, left);
-    SetInputAt(1, right);
+    if (right != NULL) {
+      SetInputAt(1, right);
+    }
   }
 
  private:
@@ -3097,6 +3101,75 @@ class TestSmiInstr : public ComparisonInstr {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
+};
+
+
+// Checks the input value cid against cids stored in a table and returns either
+// a result or deoptimizes.
+// TODO(srdjan): Modify ComparisonInstr to allow 1 or 2 arguments, since
+// TestCidInstr needs only one argument
+class TestCidsInstr : public ComparisonInstr {
+ public:
+  TestCidsInstr(intptr_t token_pos,
+                Token::Kind kind,
+                Value* value,
+                const ZoneGrowableArray<intptr_t>& cid_results,
+                intptr_t deopt_id)
+      : ComparisonInstr(token_pos, kind, value, NULL),
+        cid_results_(cid_results) {
+    ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+    set_operation_cid(kObjectCid);
+    deopt_id_ = deopt_id;
+  }
+
+  virtual intptr_t InputCount() const { return 1; }
+
+  const ZoneGrowableArray<intptr_t>& cid_results() const {
+    return cid_results_;
+  }
+
+  DECLARE_INSTRUCTION(TestCids);
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const {
+    return deopt_id_ != Isolate::kNoDeoptId;
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // TestCid can be merged into Branch and thus needs an environment.
+    return true;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+ private:
+  const ZoneGrowableArray<intptr_t>& cid_results_;
+  DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
 

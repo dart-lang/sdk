@@ -2728,6 +2728,35 @@ ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,
 }
 
 
+
+ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
+                                                    Value* new_right) {
+  return new TestCidsInstr(token_pos(),
+                           kind(),
+                           new_left,
+                           cid_results(),
+                           deopt_id());
+}
+
+
+bool TestCidsInstr::AttributesEqual(Instruction* other) const {
+  TestCidsInstr* other_instr = other->AsTestCids();
+  ASSERT(other != NULL);
+  if (kind() != other_instr->kind()) {
+    return false;
+  }
+  if (cid_results().length() != other_instr->cid_results().length()) {
+    return false;
+  }
+  for (intptr_t i = 0; i < cid_results().length(); i++) {
+    if (cid_results()[i] != other_instr->cid_results()[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {

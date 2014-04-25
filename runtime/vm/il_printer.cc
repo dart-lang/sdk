@@ -395,6 +395,17 @@ void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
+  left()->PrintTo(f);
+  f->Print(" %s [", Token::Str(kind()));
+  for (intptr_t i = 0; i < cid_results().length(); i += 2) {
+    f->Print("0x%" Px ":%s ",
+        cid_results()[i], cid_results()[i + 1] == 0 ? "false" : "true");
+  }
+  f->Print("] ");
+}
+
+
 void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind()));

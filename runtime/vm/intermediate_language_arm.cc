@@ -676,6 +676,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
+
 void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Never emitted outside of the BranchInstr.
   UNREACHABLE();
@@ -687,6 +688,78 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
   EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+LocationSummary* TestCidsInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                            BranchLabels labels) {
+  ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
+  Register val_reg = locs()->in(0).reg();
+  Register cid_reg = locs()->temp(0).reg();
+
+  Label* deopt = CanDeoptimize() ?
+      compiler->AddDeoptStub(deopt_id(), kDeoptTestCids) : NULL;
+
+  const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
+  const ZoneGrowableArray<intptr_t>& data = cid_results();
+  ASSERT(data[0] == kSmiCid);
+  bool result = data[1] == true_result;
+  __ tst(val_reg, ShifterOperand(kSmiTagMask));
+  __ b(result ? labels.true_label : labels.false_label, EQ);
+  __ LoadClassId(cid_reg, val_reg);
+
+  for (intptr_t i = 2; i < data.length(); i += 2) {
+    const intptr_t test_cid = data[i];
+    ASSERT(test_cid != kSmiCid);
+    result = data[i + 1] == true_result;
+    __ CompareImmediate(cid_reg, test_cid);
+    __ b(result ? labels.true_label : labels.false_label, EQ);
+  }
+  // No match found, deoptimize or false.
+  if (deopt == NULL) {
+    Label* target = result ? labels.false_label : labels.true_label;
+    if (target != labels.fall_through) {
+      __ b(target);
+    }
+  } else {
+    __ b(deopt);
+  }
+  // Dummy result as the last instruction is a jump, any conditional
+  // branch using the result will therefore be skipped.
+  return EQ;
+}
+
+
+void TestCidsInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                   BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  EmitComparisonCode(compiler, labels);
+}
+
+
+void TestCidsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result_reg = locs()->out(0).reg();
+  Label is_true, is_false, done;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  EmitComparisonCode(compiler, labels);
+  __ Bind(&is_false);
+  __ LoadObject(result_reg, Bool::False());
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result_reg, Bool::True());
+  __ Bind(&done);
 }
 
 

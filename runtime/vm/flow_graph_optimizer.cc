@@ -3673,11 +3673,17 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
 }
 
 
-// Returns a Boolean constant if all classes in ic_data yield the same type-test
-// result and the type tests do not depend on type arguments. Otherwise return
-// Bool::null().
-RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
-                                              const AbstractType& type) const {
+// If type tests specified by 'ic_data' do not depend on type arguments,
+// return mapping cid->result in 'results' (i : cid; i + 1: result).
+// If all tests yield the same result, return it otherwise return Bool::null.
+// If no mapping is possible, 'results' is empty.
+// An instance-of test returning all same results can be converted to a class
+// check.
+RawBool* FlowGraphOptimizer::InstanceOfAsBool(
+    const ICData& ic_data,
+    const AbstractType& type,
+    ZoneGrowableArray<intptr_t>* results) const {
+  results->Clear();
   ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
   if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
@@ -3698,23 +3704,32 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
       return Bool::null();
     }
   }
+
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Bool& prev = Bool::Handle();
   Class& cls = Class::Handle();
+
+  bool results_differ = false;
   for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
     cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
-    if (cls.NumTypeArguments() > 0) return Bool::null();
+    if (cls.NumTypeArguments() > 0) {
+      return Bool::null();
+    }
     const bool is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
                                             type_class,
                                             TypeArguments::Handle(),
                                             NULL);
+    results->Add(cls.id());
+    results->Add(is_subtype);
     if (prev.IsNull()) {
       prev = Bool::Get(is_subtype).raw();
     } else {
-      if (is_subtype != prev.value()) return Bool::null();
+      if (is_subtype != prev.value()) {
+        results_differ = true;
+      }
     }
   }
-  return prev.raw();
+  return results_differ ?  Bool::null() : prev.raw();
 }
 
 
@@ -3759,6 +3774,63 @@ static bool TypeCheckAsClassEquality(const AbstractType& type) {
 }
 
 
+static bool CidTestResultsContains(const ZoneGrowableArray<intptr_t>& results,
+                                   intptr_t test_cid) {
+  for (intptr_t i = 0; i < results.length(); i += 2) {
+    if (results[i] == test_cid) return true;
+  }
+  return false;
+}
+
+
+static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
+                       intptr_t test_cid,
+                       bool result) {
+  if (!CidTestResultsContains(*results, test_cid)) {
+    results->Add(test_cid);
+    results->Add(result);
+  }
+}
+
+
+// Tries to add cid tests to 'results' so that no deoptimization is
+// necessary.
+// TODO(srdjan): Do also for other than 'int' type.
+static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
+                                    const AbstractType& type) {
+  ASSERT(results->length() >= 2);  // At least on eentry.
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  if ((*results)[0] != kSmiCid) {
+    const Class& cls = Class::Handle(class_table.At(kSmiCid));
+    const Class& type_class = Class::Handle(type.type_class());
+    const bool smi_is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
+                                                type_class,
+                                                TypeArguments::Handle(),
+                                                NULL);
+    results->Add((*results)[results->length() - 2]);
+    results->Add((*results)[results->length() - 2]);
+    for (intptr_t i = results->length() - 3; i > 1; --i) {
+      (*results)[i] = (*results)[i - 2];
+    }
+    (*results)[0] = kSmiCid;
+    (*results)[1] = smi_is_subtype;
+  }
+
+  ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+  ASSERT(results->length() >= 2);
+  // const Class& type_class = Class::Handle(type.type_class())
+  if (type.IsIntType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kMintCid, true);
+    TryAddTest(results, kBigintCid, true);
+    // Cannot deoptimize since all tests returning true have been added.
+    return false;
+  }
+
+  return true;  // May deoptimize since we have not identified all 'true' tests.
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -3772,8 +3844,26 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-    Bool& as_bool = Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type));
-    if (!as_bool.IsNull()) {
+    ZoneGrowableArray<intptr_t>* results =
+        new ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+    Bool& as_bool =
+        Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type, results));
+    if (as_bool.IsNull()) {
+      if (results->length() == unary_checks.NumberOfChecks() * 2) {
+        const bool can_deopt = TryExpandTestCidsResult(results, type);
+        TestCidsInstr* test_cids = new TestCidsInstr(
+            call->token_pos(),
+            negate ? Token::kISNOT : Token::kIS,
+            new Value(left),
+            *results,
+            can_deopt ? call->deopt_id() : Isolate::kNoDeoptId);
+        // Remove type.
+        ReplaceCall(call, test_cids);
+        return;
+      }
+    } else {
+      // TODO(srdjan): Use TestCidsInstr also for this case.
+      // One result only.
       AddReceiverCheck(call);
       if (negate) {
         as_bool = Bool::Get(!as_bool.value()).raw();
@@ -3823,6 +3913,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 }
 
 
+// TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
@@ -3834,7 +3925,10 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-    Bool& as_bool = Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type));
+    ZoneGrowableArray<intptr_t>* results =
+        new ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+    const Bool& as_bool =
+        Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.raw() == Bool::True().raw()) {
       AddReceiverCheck(call);
       // Remove the original push arguments.
@@ -7423,6 +7517,11 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -8506,7 +8605,8 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   Value* left = comparison->left();
   PhiInstr* phi = left->definition()->AsPhi();
   Value* right = comparison->right();
-  ConstantInstr* constant = right->definition()->AsConstant();
+  ConstantInstr* constant =
+      (right == NULL) ? NULL : right->definition()->AsConstant();
   return (phi != NULL) &&
       (constant != NULL) &&
       (phi->GetBlock() == block) &&

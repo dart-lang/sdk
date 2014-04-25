@@ -227,6 +227,36 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* TestCidsInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                            BranchLabels labels) {
+  UNIMPLEMENTED();
+  return EQ;
+}
+
+
+void TestCidsInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                   BranchInstr* branch) {
+  UNIMPLEMENTED();
+}
+
+
+void TestCidsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* RelationalOpInstr::MakeLocationSummary(bool opt) const {
   UNIMPLEMENTED();
   return NULL;

@@ -806,6 +806,11 @@ CompileType TestSmiInstr::ComputeType() const {
 }
 
 
+CompileType TestCidsInstr::ComputeType() const {
+  return CompileType::Bool();
+}
+
+
 CompileType EqualityCompareInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();

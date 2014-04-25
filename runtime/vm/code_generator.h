@@ -74,6 +74,7 @@ DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
   V(Int32Load)                                                                 \
   V(Uint32Load)                                                                \
   V(GuardField)                                                                \
+  V(TestCids)                                                                  \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {
