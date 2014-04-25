@@ -333,6 +333,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   bool isClosure(Element element) {
     if (!element.isFunction()) return false;
+    /// Creating an instance of a class that implements [Function] also
+    /// closurizes the corresponding [call] member. We do not currently
+    /// track these, thus the check for [isClosurized] on such a method will
+    /// return false. Instead we catch that case here for now.
+    // TODO(herhut): Handle creation of closures from instances of Function.
+    if (element.isInstanceMember() &&
+        element.name == Compiler.CALL_OPERATOR_NAME) {
+      return true;
+    }
     Element outermost = element.getOutermostEnclosingMemberOrTopLevel();
     return outermost.declaration != element.declaration;
   }
