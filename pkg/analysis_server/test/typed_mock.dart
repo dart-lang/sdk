@@ -34,12 +34,55 @@ Verifier verify(_ignored) {
   }
 }
 
+
+/// Verifies that the given mock doesn't have any unverified interaction.
+void verifyNoMoreInteractions(TypedMock mock) {
+  var notVerified = mock._computeNotVerifiedInvocations();
+  // OK
+  if (notVerified.isEmpty) {
+    return;
+  }
+  // fail
+  var invocationsString = _getInvocationsString(notVerified);
+  throw new VerifyError('Unexpected interactions:\n$invocationsString');
+}
+
+
+/// Verifies that no interactions happened on the given mock.
+void verifyZeroInteractions(TypedMock mock) {
+  var invocations = mock._invocations;
+  // OK
+  if (invocations.isEmpty) {
+    return;
+  }
+  // fail
+  var invocationsString = _getInvocationsString(invocations);
+  throw new VerifyError('Unexpected interactions:\n$invocationsString');
+}
+
+
 /// [VerifyError] is thrown when one of the [verify] checks fails.
 class VerifyError {
   final String message;
   VerifyError(this.message);
   String toString() => 'VerifyError: $message';
 }
+
+
+String _getInvocationsString(Iterable<Invocation> invocations) {
+  var buffer = new StringBuffer();
+  invocations.forEach((invocation) {
+    var member = invocation.memberName;
+    buffer.write(member);
+    buffer.write(' ');
+    buffer.write(invocation.positionalArguments);
+    buffer.write(' ');
+    buffer.write(invocation.namedArguments);
+    buffer.writeln();
+  });
+  return buffer.toString();
+}
+
 
 class _InvocationMatcher {
   final Symbol _member;
@@ -165,14 +208,23 @@ class Verifier {
 
   Verifier._(this._mock, this._matcher);
 
+  /// Marks matching interactions as verified and never fails.
+  void any() {
+    // mark as verified, but don't check the actual count
+    _count();
+  }
+
+  /// Verifies that there was no matching interactions.
   void never() {
     times(0);
   }
 
+  /// Verifies that there was excatly one martching interaction.
   void once() {
     times(1);
   }
 
+  /// Verifies that there was the specified number of matching interactions.
   void times(int expected) {
     var times = _count();
     if (times != expected) {
@@ -182,6 +234,8 @@ class Verifier {
     }
   }
 
+  /// Verifies that there was at least the specified number of matching
+  /// interactions.
   void atLeast(int expected) {
     var times = _count();
     if (times < expected) {
@@ -191,6 +245,18 @@ class Verifier {
     }
   }
 
+  /// Verifies that there was at least one matching interaction.
+  void atLeastOnce() {
+    var times = _count();
+    if (times == 0) {
+      var member = _matcher._member;
+      throw new VerifyError('At least one expected, but only zero'
+          ' invocations of $member recorded.');
+    }
+  }
+
+  /// Verifies that there was at most the specified number of matching
+  /// interactions.
   void atMost(int expected) {
     var times = _count();
     if (times > expected) {
@@ -209,6 +275,7 @@ class Verifier {
       if (!_matcher.match(invocation)) {
         return;
       }
+      _mock._verifiedInvocations.add(invocation);
       times++;
     });
     return times;
@@ -220,6 +287,7 @@ class TypedMock {
   final Map<Symbol, List<_InvocationMatcher>> _matchersMap = {};
 
   final List<Invocation> _invocations = [];
+  final Set<Invocation> _verifiedInvocations = new Set<Invocation>();
 
   noSuchMethod(Invocation invocation) {
     _invocations.add(invocation);
@@ -246,6 +314,11 @@ class TypedMock {
     var matcher = new _InvocationMatcher(this, member, invocation);
     matchers.add(matcher);
     _lastMatcher = matcher;
+  }
+
+  Iterable<Invocation> _computeNotVerifiedInvocations() {
+    notVerified(e) => !_verifiedInvocations.contains(e);
+    return _invocations.where(notVerified);
   }
 
   void _removeLastInvocation() {

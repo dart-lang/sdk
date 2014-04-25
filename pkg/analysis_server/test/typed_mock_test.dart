@@ -192,7 +192,7 @@ main() {
   });
 
   group('verify', () {
-    TestInterface obj;
+    TestInterfaceMock obj;
     setUp(() {
       obj = new TestInterfaceMock();
     });
@@ -259,6 +259,16 @@ main() {
       });
     });
 
+    group('any', () {
+      test('OK, 0', () {
+        verify(obj.testProperty).any();
+      });
+      test('OK, 1', () {
+        obj.testProperty;
+        verify(obj.testProperty).any();
+      });
+    });
+
     group('once', () {
       test('OK', () {
         obj.testProperty;
@@ -298,6 +308,23 @@ main() {
       });
     });
 
+    group('atLeastOnce', () {
+      test('OK, 1', () {
+        obj.testProperty;
+        verify(obj.testProperty).atLeastOnce();
+      });
+      test('OK, 2', () {
+        obj.testProperty;
+        obj.testProperty;
+        verify(obj.testProperty).atLeastOnce();
+      });
+      test('fail', () {
+        expect(() {
+          verify(obj.testProperty).atLeastOnce();
+        }, throwsA(_isVerifyError));
+      });
+    });
+
     group('atMost', () {
       test('OK, 0', () {
         verify(obj.testProperty).atMost(5);
@@ -316,6 +343,48 @@ main() {
         obj.testProperty;
         expect(() {
           verify(obj.testProperty).atMost(2);
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('verifyNoMoreInteractions', () {
+      test('OK, 0', () {
+        verifyNoMoreInteractions(obj);
+      });
+      test('OK, single method, 1', () {
+        obj.testMethod1(10);
+        verify(obj.testMethod1(anyInt)).any();
+        verifyNoMoreInteractions(obj);
+      });
+      test('fail, 3', () {
+        obj.testMethod1(10);
+        obj.testMethod2('foo', 20);
+        obj.testMethod1(30);
+        expect(() {
+          verifyNoMoreInteractions(obj);
+        }, throwsA(_isVerifyError));
+      });
+    });
+
+    group('verifyZeroInteractions', () {
+      test('OK, 0', () {
+        verifyZeroInteractions(obj);
+      });
+      test('OK, 0, local var', () {
+        var obj = new TestInterfaceMock();
+        verifyZeroInteractions(obj);
+      });
+      test('fail, 1, no verify()', () {
+        obj.testMethod1(10);
+        expect(() {
+          verifyZeroInteractions(obj);
+        }, throwsA(_isVerifyError));
+      });
+      test('fail, 1, with verify()', () {
+        obj.testMethod1(10);
+        verify(obj.testMethod1(anyInt)).any();
+        expect(() {
+          verifyZeroInteractions(obj);
         }, throwsA(_isVerifyError));
       });
     });
