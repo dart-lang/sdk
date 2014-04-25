@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 bool isInt(x) => x is int;
 
 
-bool isIntRes(x) {
+int isIntRes(x) {
   if (x is int) {
     return 1;
   } else {
@@ -19,7 +19,7 @@ bool isIntRes(x) {
 }
 
 
-bool isNotIntRes(x) {
+int isNotIntRes(x) {
   if (x is! int) {
     return 1;
   } else {
@@ -28,7 +28,7 @@ bool isNotIntRes(x) {
 }
 
 
-bool isIfThenElseIntRes(x) {
+int isIfThenElseIntRes(x) {
   return x is int ?  1 : 0;
 }
 
@@ -37,7 +37,7 @@ bool isIfThenElseIntRes(x) {
 bool isString(x) => x is String;
 
 
-bool isStringRes(x) {
+int isStringRes(x) {
   if (x is String) {
     return 1;
   } else {
@@ -46,7 +46,7 @@ bool isStringRes(x) {
 }
 
 
-bool isNotStringRes(x) {
+int isNotStringRes(x) {
   if (x is! String) {
     return 1;
   } else {
