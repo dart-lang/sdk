@@ -221,14 +221,14 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = SocketAddress::FromType(type);
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = 0;
+  hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no IPv6 addresses.
-    hints.ai_flags = AI_V4MAPPED;
+    hints.ai_flags = 0;
     status = getaddrinfo(host, 0, &hints, &info);
     if (status != 0) {
       ASSERT(*os_error == NULL);
