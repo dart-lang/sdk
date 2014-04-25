@@ -437,6 +437,10 @@ abstract class Compiler implements DiagnosticListener {
 
   bool disableInlining = false;
 
+  /// True if compilation was aborted with a [CompilerCancelledException]. Only
+  /// set after Future retuned by [run] has completed.
+  bool compilerWasCancelled = false;
+
   List<Uri> librariesToAnalyzeWhenRun;
 
   Tracer tracer;
@@ -800,6 +804,7 @@ abstract class Compiler implements DiagnosticListener {
 
     return new Future.sync(() => runCompiler(uri)).catchError((error) {
       if (error is CompilerCancelledException) {
+        compilerWasCancelled = true;
         log('Error: $error');
         return false;
       }

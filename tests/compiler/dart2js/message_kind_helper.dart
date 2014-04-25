@@ -42,6 +42,28 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.UNMATCHED_TOKEN,
 ]);
 
+/// Most messages can be tested without causing a fatal error. Add an exception
+/// here if a fatal error is unavoidable and leads to pending classes.
+/// Try to avoid adding exceptions here; a fatal error causes the compiler to
+/// stop before analyzing all input, and it isn't safe to reuse it.
+final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
+    MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT,
+]);
+
+/// Most messages can be tested without causing a fatal error. Add an exception
+/// here if a fatal error is unavoidable.
+/// Try to avoid adding exceptions here; a fatal error causes the compiler to
+/// stop before analyzing all input, and it isn't safe to reuse it.
+final Set<MessageKind> kindsWithFatalErrors = new Set<MessageKind>.from([
+    MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
+    MessageKind.HEX_DIGIT_EXPECTED,
+    MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT,
+    MessageKind.REFERENCE_IN_INITIALIZATION,
+    MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT,
+    MessageKind.UNMATCHED_TOKEN,
+    MessageKind.UNTERMINATED_STRING,
+]);
+
 Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
   Expect.isNotNull(kind.howToFix);
   Expect.isFalse(kind.examples.isEmpty);
@@ -103,6 +125,32 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
         }
       }
       cachedCompiler = compiler;
+      Expect.isTrue(kindsWithFatalErrors.contains(kind) ||
+                    !compiler.compilerWasCancelled);
+
+      bool pendingStuff = false;
+      for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
+        pendingStuff = true;
+        compiler.reportInfo(
+            e, MessageKind.GENERIC,
+            {'text': 'Pending class to be post-processed.'});
+      }
+      for (var e in compiler.resolver.pendingClassesToBeResolved) {
+        pendingStuff = true;
+        compiler.reportInfo(
+            e, MessageKind.GENERIC,
+            {'text': 'Pending class to be resolved.'});
+      }
+      if (pendingStuff) {
+        if (!kindsWithPendingClasses.contains(kind)) {
+          throw 'Stuff was pending';
+        }
+        cachedCompiler = null;
+      } else if (compiler.compilerWasCancelled) {
+        cachedCompiler = null;
+      } else {
+        cachedCompiler = compiler;
+      }
     });
   }).then((_) => cachedCompiler);
 }
