@@ -1391,7 +1391,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = S5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == T0);
-  __ lw(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
   __ addiu(T1, T1, Immediate(1));
   __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1416,9 +1416,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ lw(T0, FieldAddress(S5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
     __ BranchEqual(T0, num_args, &ok);
     __ Stop("Incorrect stub for IC data");
     __ Bind(&ok);
@@ -1668,9 +1670,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ TraceSimMsg("UnoptimizedStaticCallStub");
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
-    // 'num_args_tested' is stored as an untagged int.
-    __ lw(T0, FieldAddress(S5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == 0.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
     __ beq(T0, ZR, &ok);
     __ Stop("Incorrect IC data for unoptimized static call");
     __ Bind(&ok);

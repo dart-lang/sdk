@@ -109,9 +109,9 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // to megamorphic call.
     return false;
   }
-  GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
-  ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
+  GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
+  ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
     const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
@@ -173,7 +173,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 
 
 static const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid) {
-  ASSERT(ic_data.num_args_tested() == 1);
+  ASSERT(ic_data.NumArgsTested() == 1);
 
   if ((ic_data.NumberOfChecks() == 1) &&
       (ic_data.GetReceiverClassIdAt(0) == cid)) {
@@ -186,12 +186,12 @@ static const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid) {
   // not found in the ICData.
   if (!function.IsNull()) {
     const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
-        Function::Handle(ic_data.function()),
+        Function::Handle(ic_data.owner()),
         String::Handle(ic_data.target_name()),
         Object::empty_array(),  // Dummy argument descriptor.
         ic_data.deopt_id(),
-        ic_data.num_args_tested()));
-    new_ic_data.set_deopt_reason(ic_data.deopt_reason());
+        ic_data.NumArgsTested()));
+    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
     new_ic_data.AddReceiverCheck(cid, function);
     return new_ic_data;
   }
@@ -817,7 +817,7 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t argument_class_id) {
   ASSERT(receiver_class_id != kIllegalCid);
   ASSERT(argument_class_id != kIllegalCid);
-  if (ic_data.num_args_tested() != 2) return false;
+  if (ic_data.NumArgsTested() != 2) return false;
 
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
@@ -851,7 +851,7 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
     const GrowableArray<intptr_t>& receiver_class_ids,
     const GrowableArray<intptr_t>& argument_class_ids) {
-  if (ic_data.num_args_tested() != 2) return false;
+  if (ic_data.NumArgsTested() != 2) return false;
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
@@ -988,7 +988,7 @@ void FlowGraphOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
 static bool ArgIsAlways(intptr_t cid,
                         const ICData& ic_data,
                         intptr_t arg_number) {
-  ASSERT(ic_data.num_args_tested() > arg_number);
+  ASSERT(ic_data.NumArgsTested() > arg_number);
   const intptr_t num_checks = ic_data.NumberOfChecks();
   if (num_checks == 0) return false;
   for (intptr_t i = 0; i < num_checks; i++) {
@@ -1585,8 +1585,8 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Set deopt_id if we can optimistically assume that the result is Smi.
     // Assume mixed Mint/Smi if this instruction caused deoptimization once.
-    deopt_id = (ic_data.deopt_reason() == kDeoptUnknown) ?
-        call->deopt_id() : Isolate::kNoDeoptId;
+    deopt_id = ic_data.HasDeoptReasons() ?
+        Isolate::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -1767,7 +1767,7 @@ static bool SmiFitsInDouble() { return kSmiBits < 53; }
 bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                                   Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.num_args_tested() == 2);
+  ASSERT(ic_data.NumArgsTested() == 2);
 
   ASSERT(call->ArgumentCount() == 2);
   Definition* left = call->ArgumentAt(0);
@@ -1871,7 +1871,7 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                                     Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.num_args_tested() == 2);
+  ASSERT(ic_data.NumArgsTested() == 2);
 
   ASSERT(call->ArgumentCount() == 2);
   Definition* left = call->ArgumentAt(0);
@@ -1936,14 +1936,14 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
+        operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
             ? kMintCid
             : kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.deopt_reason() == kDeoptBinaryMintOp) return false;
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) return false;
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -1962,7 +1962,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Don't generate smi code if the IC data is marked because of an
         // overflow.
         // TODO(fschneider): Add unboxed mint multiplication.
-        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) return false;
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)) return false;
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -2005,10 +2005,10 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
           return false;
         }
-        operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
+        operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
             ? kMintCid
             : kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
@@ -2016,7 +2016,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -2028,7 +2028,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kMOD:
     case Token::kTRUNCDIV:
       if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)) {
           return false;
         }
         operands_type = kSmiCid;
@@ -2831,7 +2831,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         const ICData& ic_data = *call->ic_data();
         Definition* input = call->ArgumentAt(0);
         Definition* d2i_instr = NULL;
-        if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptDoubleToSmi)) {
           // Do not repeatedly deoptimize because result didn't fit into Smi.
           d2i_instr = new DoubleToIntegerInstr(new Value(input), call);
         } else {
@@ -2939,12 +2939,12 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
     ASSERT(call->ArgumentCount() == 3);
-    ASSERT(ic_data.num_args_tested() == 2);
+    ASSERT(ic_data.NumArgsTested() == 2);
     Definition* value = call->ArgumentAt(0);
     Definition* count = call->ArgumentAt(1);
     Definition* int32_mask = call->ArgumentAt(2);
     if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-      if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+      if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
         return false;
       }
       // We cannot overflow. The input value must be a Smi
@@ -2981,7 +2981,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     if (HasTwoMintOrSmi(ic_data) &&
         HasOnlyOneSmi(ICData::Handle(ic_data.AsUnaryClassChecksForArgNr(1)))) {
       if (!FlowGraphCompiler::SupportsUnboxedMints() ||
-          (ic_data.deopt_reason() == kDeoptShiftMintOp)) {
+          ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
         return false;
       }
       ShiftMintOpInstr* left_shift =
@@ -3407,8 +3407,8 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Set deopt_id if we can optimistically assume that the result is Smi.
     // Assume mixed Mint/Smi if this instruction caused deoptimization once.
-    deopt_id = (ic_data.deopt_reason() == kDeoptUnknown) ?
-        call->deopt_id() : Isolate::kNoDeoptId;
+    deopt_id = ic_data.HasDeoptReasons() ?
+        Isolate::kNoDeoptId : call->deopt_id();
   }
 
   *last = new LoadIndexedInstr(new Value(array),
@@ -3489,7 +3489,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
       // We don't have ICData for the value stored, so we optimistically assume
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
-      if (i_call->ic_data()->deopt_reason() == kDeoptUnknown) {
+      if (!i_call->ic_data()->HasDeoptReasons()) {
         value_check = ICData::New(flow_graph_->parsed_function().function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
@@ -3684,7 +3684,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
   results->Clear();
-  ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
+  ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
   }
@@ -4228,7 +4228,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
-      (unary_ic_data.num_args_tested() == 1));
+      (unary_ic_data.NumArgsTested() == 1));
   if (FLAG_enable_type_checks) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.

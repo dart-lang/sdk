@@ -2751,9 +2751,9 @@ TEST_CASE(ICData) {
       Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested);
-  EXPECT_EQ(1, o1.num_args_tested());
+  EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
-  EXPECT_EQ(function.raw(), o1.function());
+  EXPECT_EQ(function.raw(), o1.owner());
   EXPECT_EQ(0, o1.NumberOfChecks());
   EXPECT_EQ(target_name.raw(), o1.target_name());
   EXPECT_EQ(args_descriptor.raw(), o1.arguments_descriptor());
@@ -2783,9 +2783,9 @@ TEST_CASE(ICData) {
 
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);
-  EXPECT_EQ(2, o2.num_args_tested());
+  EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
-  EXPECT_EQ(function.raw(), o2.function());
+  EXPECT_EQ(function.raw(), o2.owner());
   EXPECT_EQ(0, o2.NumberOfChecks());
   GrowableArray<intptr_t> classes;
   classes.Add(kSmiCid);

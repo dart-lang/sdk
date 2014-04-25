@@ -47,45 +47,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterialize);
 DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
 
-#define DEOPT_REASONS(V)                                                       \
-  V(Unknown)                                                                   \
-  V(InstanceGetter)                                                            \
-  V(PolymorphicInstanceCallTestFail)                                           \
-  V(InstanceCallNoICData)                                                      \
-  V(IntegerToDouble)                                                           \
-  V(BinarySmiOp)                                                               \
-  V(BinaryMintOp)                                                              \
-  V(UnaryMintOp)                                                               \
-  V(ShiftMintOp)                                                               \
-  V(BinaryDoubleOp)                                                            \
-  V(InstanceSetter)                                                            \
-  V(Equality)                                                                  \
-  V(RelationalOp)                                                              \
-  V(EqualityClassCheck)                                                        \
-  V(NoTypeFeedback)                                                            \
-  V(UnaryOp)                                                                   \
-  V(UnboxInteger)                                                              \
-  V(CheckClass)                                                                \
-  V(HoistedCheckClass)                                                         \
-  V(CheckSmi)                                                                  \
-  V(CheckArrayBound)                                                           \
-  V(AtCall)                                                                    \
-  V(DoubleToSmi)                                                               \
-  V(Int32Load)                                                                 \
-  V(Uint32Load)                                                                \
-  V(GuardField)                                                                \
-  V(TestCids)                                                                  \
-  V(NumReasons)                                                                \
-
-enum DeoptReasonId {
-#define DEFINE_ENUM_LIST(name) kDeopt##name,
-DEOPT_REASONS(DEFINE_ENUM_LIST)
-#undef DEFINE_ENUM_LIST
-};
-
-
-const char* DeoptReasonToText(intptr_t deopt_id);
-
+const char* DeoptReasonToCString(ICData::ICData::DeoptReasonId deopt_reason);
 
 void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeAll();

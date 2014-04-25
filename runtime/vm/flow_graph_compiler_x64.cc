@@ -150,7 +150,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
-  ASSERT(reason() != kDeoptAtCall);
+  ASSERT(reason() != ICData::kDeoptAtCall);
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
@@ -1234,9 +1234,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                   num_args_checked));  // No arguments checked.
   ic_data.AddTarget(target_function);
   uword label_address = 0;
-  if (ic_data.num_args_tested() == 0) {
+  if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.num_args_tested() == 2) {
+  } else if (ic_data.NumArgsTested() == 2) {
     label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
   } else {
     UNIMPLEMENTED();

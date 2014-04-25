@@ -19,13 +19,14 @@ class DescriptorList : public ZoneAllocated {
     intptr_t pc_offset;        // PC offset value of the descriptor.
     PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
     intptr_t deopt_id;         // Deoptimization id.
-    intptr_t data;             // Token position or deopt rason.
+    intptr_t data;             // Token position or deopt reason.
     intptr_t try_index;        // Try block index of PC or deopt array index.
     void SetTokenPos(intptr_t value) { data = value; }
     intptr_t TokenPos() const { return data; }
-    void SetDeoptReason(DeoptReasonId value) { data = value; }
-    DeoptReasonId DeoptReason() const {
-      return static_cast<DeoptReasonId>(data);
+    void SetDeoptReason(ICData::DeoptReasonId value) { data = value; }
+    ICData::DeoptReasonId DeoptReason() const {
+      ASSERT((0 <= data) && (data < ICData::ICData::kDeoptNumReasons));
+      return static_cast<ICData::DeoptReasonId>(data);
     }
   };
 
@@ -49,7 +50,7 @@ class DescriptorList : public ZoneAllocated {
   intptr_t TokenPos(intptr_t index) const {
     return list_[index].TokenPos();
   }
-  DeoptReasonId DeoptReason(intptr_t index) const {
+  ICData::DeoptReasonId DeoptReason(intptr_t index) const {
     return list_[index].DeoptReason();
   }
   intptr_t TryIndex(intptr_t index) const {

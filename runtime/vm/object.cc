@@ -10601,6 +10601,526 @@ void DeoptInfo::SetAt(intptr_t index,
 }
 
 
+const char* ICData::ToCString() const {
+  const char* kFormat = "ICData target:'%s' num-args: %" Pd
+                        " num-checks: %" Pd "";
+  const String& name = String::Handle(target_name());
+  const intptr_t num_args = NumArgsTested();
+  const intptr_t num_checks = NumberOfChecks();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
+      num_args, num_checks) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
+  return chars;
+}
+
+
+void ICData::set_owner(const Function& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, value.raw());
+}
+
+
+void ICData::set_target_name(const String& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void ICData::set_arguments_descriptor(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+void ICData::set_deopt_id(intptr_t value) const {
+  ASSERT(value <= kMaxInt32);
+  raw_ptr()->deopt_id_ = value;
+}
+
+
+void ICData::set_ic_data(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->ic_data_, value.raw());
+}
+
+
+intptr_t ICData::NumArgsTested() const {
+  return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetNumArgsTested(intptr_t value) const {
+  ASSERT(Utils::IsUint(2, value));
+  raw_ptr()->state_bits_ =
+      NumArgsTestedBits::update(value, raw_ptr()->state_bits_);
+}
+
+
+uint32_t ICData::DeoptReasons() const {
+  return DeoptReasonBits::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetDeoptReasons(uint32_t reasons) const {
+  raw_ptr()->state_bits_ =
+      DeoptReasonBits::update(reasons, raw_ptr()->state_bits_);
+}
+
+
+bool ICData::HasDeoptReason(DeoptReasonId reason) const {
+  return (DeoptReasons() & (1 << reason)) != 0;
+}
+
+
+void ICData::AddDeoptReason(DeoptReasonId reason) const {
+  SetDeoptReasons(DeoptReasons() | (1 << reason));
+}
+
+
+bool ICData::IssuedJSWarning() const {
+  return IssuedJSWarningBit::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetIssuedJSWarning() const {
+  raw_ptr()->state_bits_ =
+      IssuedJSWarningBit::update(true, raw_ptr()->state_bits_);
+}
+
+
+bool ICData::IsClosureCall() const {
+  return IsClosureCallBit::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetIsClosureCall() const {
+  raw_ptr()->state_bits_ =
+      IsClosureCallBit::update(true, raw_ptr()->state_bits_);
+}
+
+
+void ICData::set_state_bits(uint32_t bits) const {
+  raw_ptr()->state_bits_ = bits;
+}
+
+
+intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
+  return num_args + 1 /* target function*/ + 1 /* frequency */;
+}
+
+
+intptr_t ICData::TestEntryLength() const {
+  return TestEntryLengthFor(NumArgsTested());
+}
+
+
+intptr_t ICData::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
+}
+
+
+void ICData::WriteSentinel(const Array& data) const {
+  ASSERT(!data.IsNull());
+  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
+    data.SetAt(data.Length() - i, smi_illegal_cid());
+  }
+}
+
+
+#if defined(DEBUG)
+// Used in asserts to verify that a check is not added twice.
+bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    GrowableArray<intptr_t> class_ids;
+    Function& target = Function::Handle();
+    GetCheckAt(i, &class_ids, &target);
+    bool matches = true;
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (class_ids[k] != cids[k]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      return true;
+    }
+  }
+  return false;
+}
+#endif  // DEBUG
+
+
+// Used for unoptimized static calls when no class-ids are checked.
+void ICData::AddTarget(const Function& target) const {
+  ASSERT(!target.IsNull());
+  if (NumArgsTested() > 0) {
+    // Create a fake cid entry, so that we can store the target.
+    GrowableArray<intptr_t> class_ids(NumArgsTested());
+    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+      class_ids.Add(kObjectCid);
+    }
+    AddCheck(class_ids, target);
+    return;
+  }
+  ASSERT(NumArgsTested() >= 0);
+  // Can add only once.
+  const intptr_t old_num = NumberOfChecks();
+  ASSERT(old_num == 0);
+  Array& data = Array::Handle(ic_data());
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos++, target);
+  const Smi& value = Smi::Handle(Smi::New(0));
+  data.SetAt(data_pos, value);
+}
+
+
+void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
+                      const Function& target) const {
+  ASSERT(!target.IsNull());
+  DEBUG_ASSERT(!HasCheck(class_ids));
+  ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
+  ASSERT(class_ids.length() == NumArgsTested());
+  const intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  // ICData of static calls with NumArgsTested() > 0 have initially a
+  // dummy set of cids entered (see ICData::AddTarget). That entry is
+  // overwritten by first real type feedback data.
+  if (old_num == 1) {
+    bool has_dummy_entry = true;
+    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
+        has_dummy_entry = false;
+        break;
+      }
+    }
+    if (has_dummy_entry) {
+      ASSERT(target.raw() == data.At(NumArgsTested()));
+      // Replace dummy entry.
+      Smi& value = Smi::Handle();
+      for (intptr_t i = 0; i < NumArgsTested(); i++) {
+        ASSERT(class_ids[i] != kIllegalCid);
+        value = Smi::New(class_ids[i]);
+        data.SetAt(i, value);
+      }
+      return;
+    }
+  }
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  Smi& value = Smi::Handle();
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    // kIllegalCid is used as terminating value, do not add it.
+    ASSERT(class_ids[i] != kIllegalCid);
+    value = Smi::New(class_ids[i]);
+    data.SetAt(data_pos++, value);
+  }
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos++, target);
+  value = Smi::New(1);
+  data.SetAt(data_pos, value);
+}
+
+
+void ICData::AddReceiverCheck(intptr_t receiver_class_id,
+                              const Function& target,
+                              intptr_t count) const {
+#if defined(DEBUG)
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  ASSERT(!HasCheck(class_ids));
+#endif  // DEBUG
+  ASSERT(!target.IsNull());
+  ASSERT(NumArgsTested() == 1);  // Otherwise use 'AddCheck'.
+  ASSERT(receiver_class_id != kIllegalCid);
+
+  const intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
+    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
+    // Move class occupying position 0 to the data_pos.
+    for (intptr_t i = 0; i < TestEntryLength(); i++) {
+      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
+    }
+    // Insert kSmiCid in position 0.
+    data_pos = 0;
+  }
+  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  data.SetAt(data_pos + 1, target);
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+}
+
+
+void ICData::GetCheckAt(intptr_t index,
+                        GrowableArray<intptr_t>* class_ids,
+                        Function* target) const {
+  ASSERT(index < NumberOfChecks());
+  ASSERT(class_ids != NULL);
+  ASSERT(target != NULL);
+  class_ids->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+  }
+  (*target) ^= data.At(data_pos++);
+}
+
+
+void ICData::GetOneClassCheckAt(intptr_t index,
+                                intptr_t* class_id,
+                                Function* target) const {
+  ASSERT(class_id != NULL);
+  ASSERT(target != NULL);
+  ASSERT(NumArgsTested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
+  *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetCidAt(intptr_t index) const {
+  ASSERT(NumArgsTested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  GetCheckAt(index, &class_ids, &target);
+  return class_ids[arg_nr];
+}
+
+
+intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  ASSERT(index < NumberOfChecks());
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+RawFunction* ICData::GetTargetAt(intptr_t index) const {
+  const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
+  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
+
+  NoGCScope no_gc;
+  RawArray* raw_data = ic_data();
+  return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
+}
+
+
+void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
+}
+
+
+void ICData::SetCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(NumArgsTested());
+  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
+}
+
+
+intptr_t ICData::GetCountAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(NumArgsTested());
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+intptr_t ICData::AggregateCount() const {
+  if (IsNull()) return 0;
+  const intptr_t len = NumberOfChecks();
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < len; i++) {
+    count += GetCountAt(i);
+  }
+  return count;
+}
+
+
+RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (GetReceiverClassIdAt(i) == class_id) {
+      return GetTargetAt(i);
+    }
+  }
+  return Function::null();
+}
+
+
+RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
+  ASSERT(!IsNull());
+  ASSERT(NumArgsTested() > arg_nr);
+  if ((arg_nr == 0) && (NumArgsTested() == 1)) {
+    // Frequent case.
+    return raw();
+  }
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(owner()),
+      String::Handle(target_name()),
+      Array::Handle(arguments_descriptor()),
+      deopt_id(),
+      kNumArgsTested));
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t class_id = GetClassIdAt(i, arg_nr);
+    const intptr_t count = GetCountAt(i);
+    intptr_t duplicate_class_id = -1;
+    const intptr_t result_len = result.NumberOfChecks();
+    for (intptr_t k = 0; k < result_len; k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
+      }
+    }
+    if (duplicate_class_id >= 0) {
+      // This check is valid only when checking the receiver.
+      ASSERT((arg_nr != 0) ||
+             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
+      result.IncrementCountAt(duplicate_class_id, count);
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(GetTargetAt(i)),
+                              count);
+    }
+  }
+  // Copy deoptimization reasons.
+  result.SetDeoptReasons(DeoptReasons());
+
+  return result.raw();
+}
+
+
+bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    if (cls.id() != owner_cid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::AllReceiversAreNumbers() const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    const intptr_t cid = cls.id();
+    if ((cid != kSmiCid) &&
+        (cid != kMintCid) &&
+        (cid != kBigintCid) &&
+        (cid != kDoubleCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::HasReceiverClassId(intptr_t class_id) const {
+  ASSERT(NumArgsTested() > 0);
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t test_class_id = GetReceiverClassIdAt(i);
+    if (test_class_id == class_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
+bool ICData::HasOneTarget() const {
+  ASSERT(NumberOfChecks() > 0);
+  const Function& first_target = Function::Handle(GetTargetAt(0));
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 1; i < len; i++) {
+    if (GetTargetAt(i) != first_target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+RawICData* ICData::New(const Function& owner,
+                       const String& target_name,
+                       const Array& arguments_descriptor,
+                       intptr_t deopt_id,
+                       intptr_t num_args_tested) {
+  ASSERT(!owner.IsNull());
+  ASSERT(!target_name.IsNull());
+  ASSERT(!arguments_descriptor.IsNull());
+  ASSERT(Object::icdata_class() != Class::null());
+  ASSERT(num_args_tested >= 0);
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(ICData::kClassId,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_owner(owner);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
+  result.set_deopt_id(deopt_id);
+  result.set_state_bits(0);
+  result.SetNumArgsTested(num_args_tested);
+  // Number of array elements in one test entry.
+  intptr_t len = result.TestEntryLength();
+  // IC data array must be null terminated (sentinel entry).
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  result.set_ic_data(ic_data);
+  result.WriteSentinel(ic_data);
+  return result.raw();
+}
+
+
+void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Object::PrintToJSONStream(stream, ref);
+}
+
+
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
@@ -10708,7 +11228,8 @@ bool Code::HasBreakpoint() const {
 }
 
 
-RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
+RawDeoptInfo* Code::GetDeoptInfoAtPc(
+    uword pc, ICData::DeoptReasonId* deopt_reason) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
@@ -10723,11 +11244,13 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
     DeoptTable::GetEntry(table, i, &offset, &info, &reason);
     if (pc == (code_entry + offset.Value())) {
       ASSERT(!info.IsNull());
-      *deopt_reason = reason.Value();
+      ASSERT((0 <= reason.Value()) &&
+             (reason.Value() < ICData::kDeoptNumReasons));
+      *deopt_reason = static_cast<ICData::DeoptReasonId>(reason.Value());
       return info.raw();
     }
   }
-  *deopt_reason = kDeoptUnknown;
+  *deopt_reason = ICData::kDeoptUnknown;
   return DeoptInfo::null();
 }
 
@@ -11409,480 +11932,6 @@ const char* ContextScope::ToCString() const {
 
 
 void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
-}
-
-
-const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-args: %" Pd
-                        " num-checks: %" Pd "";
-  const String& name = String::Handle(target_name());
-  const intptr_t num_args = num_args_tested();
-  const intptr_t num_checks = NumberOfChecks();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
-      num_args, num_checks) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
-  return chars;
-}
-
-
-void ICData::set_function(const Function& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->function_, value.raw());
-}
-
-
-void ICData::set_target_name(const String& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-
-void ICData::set_arguments_descriptor(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
-}
-
-void ICData::set_deopt_id(intptr_t value) const {
-  raw_ptr()->deopt_id_ = value;
-}
-
-
-void ICData::set_num_args_tested(intptr_t value) const {
-  raw_ptr()->num_args_tested_ = value;
-}
-
-
-void ICData::set_ic_data(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->ic_data_, value.raw());
-}
-
-
-void ICData::set_deopt_reason(intptr_t deopt_reason) const {
-  raw_ptr()->deopt_reason_ = deopt_reason;
-}
-
-void ICData::set_is_closure_call(bool value) const {
-  raw_ptr()->is_closure_call_ = value ? 1 : 0;
-}
-
-
-intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
-  return num_args + 1 /* target function*/ + 1 /* frequency */;
-}
-
-
-intptr_t ICData::TestEntryLength() const {
-  return TestEntryLengthFor(num_args_tested());
-}
-
-
-intptr_t ICData::NumberOfChecks() const {
-  // Do not count the sentinel;
-  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
-}
-
-
-void ICData::WriteSentinel(const Array& data) const {
-  ASSERT(!data.IsNull());
-  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
-    data.SetAt(data.Length() - i, smi_illegal_cid());
-  }
-}
-
-
-#if defined(DEBUG)
-// Used in asserts to verify that a check is not added twice.
-bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    GetCheckAt(i, &class_ids, &target);
-    bool matches = true;
-    for (intptr_t k = 0; k < class_ids.length(); k++) {
-      if (class_ids[k] != cids[k]) {
-        matches = false;
-        break;
-      }
-    }
-    if (matches) {
-      return true;
-    }
-  }
-  return false;
-}
-#endif  // DEBUG
-
-
-// Used for unoptimized static calls when no class-ids are checked.
-void ICData::AddTarget(const Function& target) const {
-  ASSERT(!target.IsNull());
-  if (num_args_tested() > 0) {
-    // Create a fake cid entry, so that we can store the target.
-    GrowableArray<intptr_t> class_ids(num_args_tested());
-    for (intptr_t i = 0; i < num_args_tested(); i++) {
-      class_ids.Add(kObjectCid);
-    }
-    AddCheck(class_ids, target);
-    return;
-  }
-  ASSERT(num_args_tested() >= 0);
-  // Can add only once.
-  const intptr_t old_num = NumberOfChecks();
-  ASSERT(old_num == 0);
-  Array& data = Array::Handle(ic_data());
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
-  const Smi& value = Smi::Handle(Smi::New(0));
-  data.SetAt(data_pos, value);
-}
-
-
-void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
-                      const Function& target) const {
-  ASSERT(!target.IsNull());
-  DEBUG_ASSERT(!HasCheck(class_ids));
-  ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
-  ASSERT(class_ids.length() == num_args_tested());
-  const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  // ICData of static calls with num_args_tested() > 0 have initially a
-  // dummy set of cids entered (see ICData::AddTarget). That entry is
-  // overwritten by first real type feedback data.
-  if (old_num == 1) {
-    bool has_dummy_entry = true;
-    for (intptr_t i = 0; i < num_args_tested(); i++) {
-      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
-        has_dummy_entry = false;
-        break;
-      }
-    }
-    if (has_dummy_entry) {
-      ASSERT(target.raw() == data.At(num_args_tested()));
-      // Replace dummy entry.
-      Smi& value = Smi::Handle();
-      for (intptr_t i = 0; i < num_args_tested(); i++) {
-        ASSERT(class_ids[i] != kIllegalCid);
-        value = Smi::New(class_ids[i]);
-        data.SetAt(i, value);
-      }
-      return;
-    }
-  }
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  Smi& value = Smi::Handle();
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    // kIllegalCid is used as terminating value, do not add it.
-    ASSERT(class_ids[i] != kIllegalCid);
-    value = Smi::New(class_ids[i]);
-    data.SetAt(data_pos++, value);
-  }
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
-  value = Smi::New(1);
-  data.SetAt(data_pos, value);
-}
-
-
-void ICData::AddReceiverCheck(intptr_t receiver_class_id,
-                              const Function& target,
-                              intptr_t count) const {
-#if defined(DEBUG)
-  GrowableArray<intptr_t> class_ids(1);
-  class_ids.Add(receiver_class_id);
-  ASSERT(!HasCheck(class_ids));
-#endif  // DEBUG
-  ASSERT(!target.IsNull());
-  ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
-  ASSERT(receiver_class_id != kIllegalCid);
-
-  const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
-    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
-    // Move class occupying position 0 to the data_pos.
-    for (intptr_t i = 0; i < TestEntryLength(); i++) {
-      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
-    }
-    // Insert kSmiCid in position 0.
-    data_pos = 0;
-  }
-  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-  data.SetAt(data_pos + 1, target);
-  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
-}
-
-
-void ICData::GetCheckAt(intptr_t index,
-                        GrowableArray<intptr_t>* class_ids,
-                        Function* target) const {
-  ASSERT(index < NumberOfChecks());
-  ASSERT(class_ids != NULL);
-  ASSERT(target != NULL);
-  class_ids->Clear();
-  const Array& data = Array::Handle(ic_data());
-  intptr_t data_pos = index * TestEntryLength();
-  for (intptr_t i = 0; i < num_args_tested(); i++) {
-    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
-  }
-  (*target) ^= data.At(data_pos++);
-}
-
-
-void ICData::GetOneClassCheckAt(intptr_t index,
-                                intptr_t* class_id,
-                                Function* target) const {
-  ASSERT(class_id != NULL);
-  ASSERT(target != NULL);
-  ASSERT(num_args_tested() == 1);
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
-  *target ^= data.At(data_pos + 1);
-}
-
-
-intptr_t ICData::GetCidAt(intptr_t index) const {
-  ASSERT(num_args_tested() == 1);
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
-  GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  GetCheckAt(index, &class_ids, &target);
-  return class_ids[arg_nr];
-}
-
-
-intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
-  ASSERT(index < NumberOfChecks());
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-RawFunction* ICData::GetTargetAt(intptr_t index) const {
-  const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
-  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
-
-  NoGCScope no_gc;
-  RawArray* raw_data = ic_data();
-  return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
-}
-
-
-void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
-  ASSERT(0 <= value);
-  ASSERT(value <= Smi::kMaxValue);
-  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
-}
-
-
-void ICData::SetCountAt(intptr_t index, intptr_t value) const {
-  ASSERT(0 <= value);
-  ASSERT(value <= Smi::kMaxValue);
-
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength() +
-      CountIndexFor(num_args_tested());
-  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
-}
-
-
-intptr_t ICData::GetCountAt(intptr_t index) const {
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength() +
-      CountIndexFor(num_args_tested());
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-intptr_t ICData::AggregateCount() const {
-  if (IsNull()) return 0;
-  const intptr_t len = NumberOfChecks();
-  intptr_t count = 0;
-  for (intptr_t i = 0; i < len; i++) {
-    count += GetCountAt(i);
-  }
-  return count;
-}
-
-
-RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (GetReceiverClassIdAt(i) == class_id) {
-      return GetTargetAt(i);
-    }
-  }
-  return Function::null();
-}
-
-
-RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
-  ASSERT(!IsNull());
-  ASSERT(num_args_tested() > arg_nr);
-  if ((arg_nr == 0) && (num_args_tested() == 1)) {
-    // Frequent case.
-    return raw();
-  }
-  const intptr_t kNumArgsTested = 1;
-  ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(function()),
-      String::Handle(target_name()),
-      Array::Handle(arguments_descriptor()),
-      deopt_id(),
-      kNumArgsTested));
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t class_id = GetClassIdAt(i, arg_nr);
-    const intptr_t count = GetCountAt(i);
-    intptr_t duplicate_class_id = -1;
-    const intptr_t result_len = result.NumberOfChecks();
-    for (intptr_t k = 0; k < result_len; k++) {
-      if (class_id == result.GetReceiverClassIdAt(k)) {
-        duplicate_class_id = k;
-        break;
-      }
-    }
-    if (duplicate_class_id >= 0) {
-      // This check is valid only when checking the receiver.
-      ASSERT((arg_nr != 0) ||
-             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
-      result.IncrementCountAt(duplicate_class_id, count);
-    } else {
-      // This will make sure that Smi is first if it exists.
-      result.AddReceiverCheck(class_id,
-                              Function::Handle(GetTargetAt(i)),
-                              count);
-    }
-  }
-  // Copy deoptimization reason.
-  result.set_deopt_reason(deopt_reason());
-
-  return result.raw();
-}
-
-
-bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    if (cls.id() != owner_cid) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool ICData::AllReceiversAreNumbers() const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    const intptr_t cid = cls.id();
-    if ((cid != kSmiCid) &&
-        (cid != kMintCid) &&
-        (cid != kBigintCid) &&
-        (cid != kDoubleCid)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool ICData::HasReceiverClassId(intptr_t class_id) const {
-  ASSERT(num_args_tested() > 0);
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-bool ICData::HasOneTarget() const {
-  ASSERT(NumberOfChecks() > 0);
-  const Function& first_target = Function::Handle(GetTargetAt(0));
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 1; i < len; i++) {
-    if (GetTargetAt(i) != first_target.raw()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-RawICData* ICData::New(const Function& caller_function,
-                       const String& target_name,
-                       const Array& arguments_descriptor,
-                       intptr_t deopt_id,
-                       intptr_t num_args_tested) {
-  ASSERT(!caller_function.IsNull());
-  ASSERT(!target_name.IsNull());
-  ASSERT(!arguments_descriptor.IsNull());
-  ASSERT(Object::icdata_class() != Class::null());
-  ASSERT(num_args_tested >= 0);
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(ICData::kClassId,
-                                      ICData::InstanceSize(),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  result.set_function(caller_function);
-  result.set_target_name(target_name);
-  result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
-  result.set_num_args_tested(num_args_tested);
-  result.set_deopt_reason(kDeoptUnknown);
-  result.set_is_closure_call(false);
-  // Number of array elements in one test entry.
-  intptr_t len = result.TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  result.set_ic_data(ic_data);
-  result.WriteSentinel(ic_data);
-  return result.raw();
-}
-
-
-void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
   Object::PrintToJSONStream(stream, ref);
 }
 

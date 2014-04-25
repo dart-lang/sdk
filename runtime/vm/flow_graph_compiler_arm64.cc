@@ -692,9 +692,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                   num_args_checked));  // No arguments checked.
   ic_data.AddTarget(target_function);
   uword label_address = 0;
-  if (ic_data.num_args_tested() == 0) {
+  if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.num_args_tested() == 2) {
+  } else if (ic_data.NumArgsTested() == 2) {
     label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
   } else {
     UNIMPLEMENTED();

@@ -1213,7 +1213,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = RBX;
   Register func_reg = temp_reg;
   ASSERT(ic_reg != func_reg);
-  __ movq(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
@@ -1235,9 +1235,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(RCX, FieldAddress(RBX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andq(RCX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpq(RCX, Immediate(num_args));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect stub for IC data");
@@ -1460,9 +1462,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == 0.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(RCX, FieldAddress(RBX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andq(RCX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpq(RCX, Immediate(0));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect IC data for unoptimized static call");

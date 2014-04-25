@@ -54,7 +54,7 @@ ASSEMBLER_TEST_RUN(IcDataAccess, test) {
   CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data);
   EXPECT_STREQ("targetFunction",
       String::Handle(ic_data.target_name()).ToCString());
-  EXPECT_EQ(1, ic_data.num_args_tested());
+  EXPECT_EQ(1, ic_data.NumArgsTested());
   EXPECT_EQ(0, ic_data.NumberOfChecks());
 }
 

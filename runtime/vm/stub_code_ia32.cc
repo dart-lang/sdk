@@ -1273,7 +1273,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = ECX;
   Register func_reg = temp_reg;
   ASSERT(ic_reg != func_reg);
-  __ movl(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
@@ -1295,9 +1295,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andl(EBX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpl(EBX, Immediate(num_args));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect stub for IC data");
@@ -1526,9 +1528,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andl(EBX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpl(EBX, Immediate(0));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect IC data for unoptimized static call");

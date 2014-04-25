@@ -745,7 +745,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = R5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == R6);
-  __ LoadFieldFromOffset(func_reg, ic_reg, ICData::function_offset());
+  __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset());
   __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset());
   __ AddImmediate(R7, R7, 1, PP);
   __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset());
@@ -769,9 +769,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ LoadFieldFromOffset(R6, R5, ICData::num_args_tested_offset());
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
+                      kUnsignedWord);
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(R6, R6, ICData::NumArgsTestedMask());
     __ CompareImmediate(R6, num_args, PP);
     __ b(&ok, EQ);
     __ Stop("Incorrect stub for IC data");
@@ -1010,9 +1013,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
-    // 'num_args_tested' is stored as an untagged int.
-    __ LoadFieldFromOffset(R6, R5, ICData::num_args_tested_offset());
+    // Check that the IC data array has NumArgsTested() == 0.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
+                      kUnsignedWord);
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(R6, R6, ICData::NumArgsTestedMask());
     __ CompareImmediate(R6, 0, PP);
     __ b(&ok, EQ);
     __ Stop("Incorrect IC data for unoptimized static call");

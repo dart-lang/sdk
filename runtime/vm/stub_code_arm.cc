@@ -1224,7 +1224,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = R5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == R6);
-  __ ldr(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ ldr(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
   __ add(R7, R7, ShifterOperand(1));
   __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1248,9 +1248,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ ldr(R6, FieldAddress(R5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ ldr(R6, FieldAddress(R5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ and_(R6, R6, ShifterOperand(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, num_args);
     __ b(&ok, EQ);
     __ Stop("Incorrect stub for IC data");
@@ -1467,9 +1469,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
-    // 'num_args_tested' is stored as an untagged int.
-    __ ldr(R6, FieldAddress(R5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == 0.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ ldr(R6, FieldAddress(R5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ and_(R6, R6, ShifterOperand(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, 0);
     __ b(&ok, EQ);
     __ Stop("Incorrect IC data for unoptimized static call");

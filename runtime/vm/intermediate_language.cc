@@ -91,7 +91,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
   ASSERT(unary_checks_.NumberOfChecks() > 0);
-  ASSERT(unary_checks_.num_args_tested() == 1);
+  ASSERT(unary_checks_.NumArgsTested() == 1);
   SetInputAt(0, value);
   deopt_id_ = deopt_id;
   // Otherwise use CheckSmiInstr.

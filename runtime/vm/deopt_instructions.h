@@ -89,7 +89,7 @@ class DeoptContext {
 
   RawCode* code() const { return code_; }
 
-  DeoptReasonId deopt_reason() const { return deopt_reason_; }
+  ICData::DeoptReasonId deopt_reason() const { return deopt_reason_; }
 
   RawDeoptInfo* deopt_info() const { return deopt_info_; }
 
@@ -191,7 +191,7 @@ class DeoptContext {
   intptr_t* cpu_registers_;
   fpu_register_t* fpu_registers_;
   intptr_t num_args_;
-  DeoptReasonId deopt_reason_;
+  ICData::DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
   Isolate* isolate_;
 

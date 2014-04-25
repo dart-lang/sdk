@@ -1021,19 +1021,18 @@ class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_);
+    return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
-  RawFunction* function_;      // Parent/calling function of this IC.
+  RawFunction* owner_;         // Parent/calling function of this IC.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   RawArray* ic_data_;          // Contains class-ids, target and count.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  intptr_t deopt_id_;          // Deoptimization id corresponding to this IC.
-  intptr_t num_args_tested_;   // Number of arguments tested in IC.
-  uint8_t deopt_reason_;       // Last deoptimization reason.
-  uint8_t is_closure_call_;    // 0 or 1.
+  int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
+  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
+                         // is closure call, JS warning issued.
 };
 
 
