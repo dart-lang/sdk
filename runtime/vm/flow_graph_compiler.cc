@@ -549,11 +549,18 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 }
 
 
-// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
-// FlowGraphCompiler::SaveLiveRegisters.
+// This function must be kept in sync with:
+//
+//     FlowGraphCompiler::RecordSafepoint
+//     FlowGraphCompiler::SaveLiveRegisters
+//     MaterializeObjectInstr::RemapRegisters
+//
 Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     Instruction* instruction) {
-  if (instruction->env() == NULL) return NULL;
+  if (instruction->env() == NULL) {
+    ASSERT(!is_optimizing());
+    return NULL;
+  }
 
   Environment* env = instruction->env()->DeepCopy();
   // 1. Iterate the registers in the order they will be spilled to compute
@@ -611,9 +618,16 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
         default:
           UNREACHABLE();
       }
+    } else if (loc.IsInvalid()) {
+      Definition* def =
+          it.CurrentValue()->definition();
+      ASSERT(def != NULL);
+      if (def->IsMaterializeObject()) {
+        def->AsMaterializeObject()->RemapRegisters(fpu_reg_slots,
+                                                   cpu_reg_slots);
+      }
     }
   }
-
   return env;
 }
 

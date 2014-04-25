@@ -1057,4 +1057,11 @@ void Environment::PrintTo(BufferFormatter* f) const {
   if (outer_ != NULL) outer_->PrintTo(f);
 }
 
+const char* Environment::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
 }  // namespace dart

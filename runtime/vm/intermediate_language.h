@@ -4200,6 +4200,9 @@ class MaterializeObjectInstr : public Definition {
 
   virtual bool MayThrow() const { return false; }
 
+  void RemapRegisters(intptr_t* fpu_reg_slots,
+                      intptr_t* cpu_reg_slots);
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*values_)[i] = value;
@@ -7720,6 +7723,7 @@ class Environment : public ZoneAllocated {
   void DeepCopyToOuter(Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
+  const char* ToCString() const;
 
  private:
   friend class ShallowIterator;

@@ -2040,6 +2040,43 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// This function should be kept in sync with
+// FlowGraphCompiler::SlowPathEnvironmentFor().
+void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
+                                            intptr_t* cpu_reg_slots) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    Location loc = LocationAt(i);
+    if (loc.IsRegister()) {
+      intptr_t index = cpu_reg_slots[loc.reg()];
+      ASSERT(index >= 0);
+      locations_[i] = Location::StackSlot(index);
+    } else if (loc.IsFpuRegister()) {
+      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
+      ASSERT(index >= 0);
+      Value* value = InputAt(i);
+      switch (value->definition()->representation()) {
+        case kUnboxedDouble:
+        case kUnboxedMint:
+          locations_[i] = Location::DoubleStackSlot(index);
+          break;
+        case kUnboxedFloat32x4:
+        case kUnboxedInt32x4:
+        case kUnboxedFloat64x2:
+          locations_[i] = Location::QuadStackSlot(index);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    } else if (loc.IsInvalid()) {
+      // We currently only perform one iteration of allocation
+      // sinking, so we do not expect to find materialized objects
+      // here.
+      ASSERT(!InputAt(i)->definition()->IsMaterializeObject());
+    }
+  }
+}
+
+
 LocationSummary* StoreContextInstr::MakeLocationSummary(bool optimizing) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

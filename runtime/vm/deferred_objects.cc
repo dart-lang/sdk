@@ -127,16 +127,20 @@ void DeferredObject::Materialize() {
     value = GetValue(i);
     if (!field.IsNull()) {
       obj.SetField(field, value);
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("    %s <- %s\n",
+                     String::Handle(field.name()).ToCString(),
+                     value.ToCString());
+      }
     } else {
       ASSERT(cls.IsSignatureClass() ||
              (offset.Value() == cls.type_arguments_field_offset()));
       obj.SetFieldAtOffset(offset.Value(), value);
-    }
-
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("    %s <- %s\n",
-                   String::Handle(field.name()).ToCString(),
-                   value.ToCString());
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
+                     offset.Value(),
+                     value.ToCString());
+      }
     }
   }
 

@@ -352,6 +352,7 @@ class Location : public ValueObject {
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
   void Print() const;
+  const char* ToCString() const;
 
   // Compare two locations.
   bool Equals(Location other) const {

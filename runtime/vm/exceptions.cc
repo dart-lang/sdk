@@ -285,6 +285,7 @@ static void JumpToExceptionHandler(uword program_counter,
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
   isolate->set_vm_tag(VMTag::kScriptTagId);
+  isolate->set_top_context(Context::null());
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
                                 raw_exception, raw_stacktrace);
 #else
@@ -308,6 +309,7 @@ static void JumpToExceptionHandler(uword program_counter,
   __asan_unpoison_memory_region(reinterpret_cast<void*>(current_sp),
                                 stack_pointer - current_sp);
   isolate->set_vm_tag(VMTag::kScriptTagId);
+  isolate->set_top_context(Context::null());
   func(program_counter, stack_pointer, frame_pointer,
        raw_exception, raw_stacktrace);
 #endif
