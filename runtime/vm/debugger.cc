@@ -1184,11 +1184,22 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             uword pc,
                                             StackFrame* frame,
-                                            const Code& code,
+                                            const Code& code_param,
                                             const Array& deopt_frame,
                                             intptr_t deopt_frame_offset,
                                             ActivationFrame* callee_activation,
                                             const Context& entry_ctx) {
+  // TODO(turnidge): Remove the workaround below once...
+  //    https://code.google.com/p/dart/issues/detail?id=18384
+  // ...is fixed.
+  Code& code = Code::Handle(isolate);
+  code = code_param.raw();
+  if (!code.ContainsInstructionAt(pc)) {
+    code = Code::LookupCode(pc);
+    ASSERT(!code.IsNull());
+    ASSERT(code.ContainsInstructionAt(pc));
+  }
+
   // We provide either a callee activation or an entry context.  Not both.
   ASSERT(((callee_activation != NULL) && entry_ctx.IsNull()) ||
          ((callee_activation == NULL) && !entry_ctx.IsNull()));
@@ -1203,7 +1214,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   bool is_closure_call = false;
   const PcDescriptors& pc_desc =
       PcDescriptors::Handle(code.pc_descriptors());
-  ASSERT(code.ContainsInstructionAt(pc));
+
   for (int i = 0; i < pc_desc.Length(); i++) {
     if (pc_desc.PC(i) == pc &&
         pc_desc.DescriptorKind(i) == PcDescriptors::kClosureCall) {
