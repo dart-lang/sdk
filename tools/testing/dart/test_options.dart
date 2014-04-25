@@ -404,6 +404,13 @@ Note: currently only implemented for dart2js.''',
               'Extra options to send to the vm when running',
               ['--vm-options'],
               [],
+              null),
+          new _TestOptionSpecification(
+              'exclude_suite',
+              'Exclude suites from default selector, only works when no'
+              ' selector has been specified on the command line',
+              ['--exclude-suite'],
+              defaultTestSelectors,
               null),];
   }
 
@@ -676,7 +683,17 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        selectors = defaultTestSelectors;
+        selectors = new List.from(defaultTestSelectors);
+        var exclude_suites = configuration['exclude_suite'] != null ?
+              configuration['exclude_suite'].split(',') : [];
+        for (var exclude in exclude_suites) {
+          if (selectors.contains(exclude)) {
+            selectors.remove(exclude);
+          } else {
+            print("Error: default selectors does not contain $exclude");
+            exit(1);
+          }
+        }
       }
       Map<String, RegExp> selectorMap = new Map<String, RegExp>();
       for (var i = 0; i < selectors.length; i++) {
