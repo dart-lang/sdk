@@ -14,97 +14,324 @@ import 'ast.dart' show AstNode;
 import 'element.dart' show Element;
 
 /**
- * The enumeration `PubSuggestionCode` defines the suggestions used for reporting deviations
- * from pub best practices. The convention for this class is for the name of the bad practice to
- * indicate the problem that caused the suggestion to be generated and for the message to explain
- * what is wrong and, when appropriate, how the situation can be corrected.
+ * Instances of the class `AnalysisError` represent an error discovered during the analysis of
+ * some Dart code.
+ *
+ * @see AnalysisErrorListener
  */
-class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
+class AnalysisError {
   /**
-   * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
-   * outside that directory hierarchy. For example, a source file in the "lib" directory should not
-   * contain a directive such as `import '../web/some.dart'` which references a file outside
-   * the lib directory.
+   * An empty array of errors used when no errors are expected.
    */
-  static const PubSuggestionCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const PubSuggestionCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 0, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
+  static List<AnalysisError> NO_ERRORS = new List<AnalysisError>(0);
 
   /**
-   * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
-   * into that directory hierarchy. For example, a source file in the "web" directory should not
-   * contain a directive such as `import '../lib/some.dart'` which references a file inside
-   * the lib directory.
+   * A [Comparator] that sorts by the name of the file that the [AnalysisError] was
+   * found.
    */
-  static const PubSuggestionCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const PubSuggestionCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 1, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
+  static Comparator<AnalysisError> FILE_COMPARATOR = (AnalysisError o1, AnalysisError o2) => o1.source.shortName.compareTo(o2.source.shortName);
 
   /**
-   * It is a bad practice for a package import to reference anything outside the given package, or
-   * more generally, it is bad practice for a package import to contain a "..". For example, a
-   * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
+   * A [Comparator] that sorts error codes first by their severity (errors first, warnings
+   * second), and then by the the error code type.
    */
-  static const PubSuggestionCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const PubSuggestionCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 2, "A package import should not contain '..'");
-
-  static const List<PubSuggestionCode> values = const [
-      FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
-      FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-      PACKAGE_IMPORT_CONTAINS_DOT_DOT];
+  static Comparator<AnalysisError> ERROR_CODE_COMPARATOR = (AnalysisError o1, AnalysisError o2) {
+    ErrorCode errorCode1 = o1.errorCode;
+    ErrorCode errorCode2 = o2.errorCode;
+    ErrorSeverity errorSeverity1 = errorCode1.errorSeverity;
+    ErrorSeverity errorSeverity2 = errorCode2.errorSeverity;
+    ErrorType errorType1 = errorCode1.type;
+    ErrorType errorType2 = errorCode2.type;
+    if (errorSeverity1 == errorSeverity2) {
+      return errorType1.compareTo(errorType2);
+    } else {
+      return errorSeverity2.compareTo(errorSeverity1);
+    }
+  };
 
   /**
-   * The template used to create the message to be displayed for this error.
+   * The error code associated with the error.
    */
-  final String message;
+  final ErrorCode errorCode;
 
   /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
+   * The localized error message.
    */
-  final String correction;
+  String _message;
 
   /**
-   * Initialize a newly created error code to have the given message.
+   * The correction to be displayed for this error, or `null` if there is no correction
+   * information for this error.
+   */
+  String _correction;
+
+  /**
+   * The source in which the error occurred, or `null` if unknown.
+   */
+  Source source;
+
+  /**
+   * The character offset from the beginning of the source (zero based) where the error occurred.
+   */
+  int _offset = 0;
+
+  /**
+   * The number of characters from the offset to the end of the source which encompasses the
+   * compilation error.
+   */
+  int _length = 0;
+
+  /**
+   * A flag indicating whether this error can be shown to be a non-issue because of the result of
+   * type propagation.
+   */
+  bool isStaticOnly = false;
+
+  /**
+   * Initialize a newly created analysis error for the specified source. The error has no location
+   * information.
    *
-   * @param message the message template used to create the message to be displayed for the error
+   * @param source the source for which the exception occurred
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
    */
-  const PubSuggestionCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+  AnalysisError.con1(this.source, this.errorCode, List<Object> arguments) {
+    this._message = JavaString.format(errorCode.message, arguments);
+  }
 
   /**
-   * Initialize a newly created error code to have the given message and correction.
+   * Initialize a newly created analysis error for the specified source at the given location.
    *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
+   * @param source the source for which the exception occurred
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
    */
-  const PubSuggestionCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+  AnalysisError.con2(this.source, int offset, int length, this.errorCode, List<Object> arguments) {
+    this._offset = offset;
+    this._length = length;
+    this._message = JavaString.format(errorCode.message, arguments);
+    String correctionTemplate = errorCode.correction;
+    if (correctionTemplate != null) {
+      this._correction = JavaString.format(correctionTemplate, arguments);
+    }
+  }
 
   @override
-  ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
+  bool operator ==(Object obj) {
+    if (identical(obj, this)) {
+      return true;
+    }
+    // prepare other AnalysisError
+    if (obj is! AnalysisError) {
+      return false;
+    }
+    AnalysisError other = obj as AnalysisError;
+    // Quick checks.
+    if (!identical(errorCode, other.errorCode)) {
+      return false;
+    }
+    if (_offset != other._offset || _length != other._length) {
+      return false;
+    }
+    if (isStaticOnly != other.isStaticOnly) {
+      return false;
+    }
+    // Deep checks.
+    if (_message != other._message) {
+      return false;
+    }
+    if (source != other.source) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
+  /**
+   * Return the correction to be displayed for this error, or `null` if there is no correction
+   * information for this error. The correction should indicate how the user can fix the error.
+   *
+   * @return the template used to create the correction to be displayed for this error
+   */
+  String get correction => _correction;
+
+  /**
+   * Return the number of characters from the offset to the end of the source which encompasses the
+   * compilation error.
+   *
+   * @return the length of the error location
+   */
+  int get length => _length;
+
+  /**
+   * Return the message to be displayed for this error. The message should indicate what is wrong
+   * and why it is wrong.
+   *
+   * @return the message to be displayed for this error
+   */
+  String get message => _message;
+
+  /**
+   * Return the character offset from the beginning of the source (zero based) where the error
+   * occurred.
+   *
+   * @return the offset to the start of the error location
+   */
+  int get offset => _offset;
+
+  /**
+   * Return the value of the given property, or `null` if the given property is not defined
+   * for this error.
+   *
+   * @param property the property whose value is to be returned
+   * @return the value of the given property
+   */
+  Object getProperty(ErrorProperty property) => null;
 
   @override
-  ErrorType get type => ErrorType.PUB_SUGGESTION;
+  int get hashCode {
+    int hashCode = _offset;
+    hashCode ^= (_message != null) ? _message.hashCode : 0;
+    hashCode ^= (source != null) ? source.hashCode : 0;
+    return hashCode;
+  }
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append((source != null) ? source.fullName : "<unknown source>");
+    builder.append("(");
+    builder.append(_offset);
+    builder.append("..");
+    builder.append(_offset + _length - 1);
+    builder.append("): ");
+    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
+    builder.append(_message);
+    return builder.toString();
+  }
 }
 
 /**
- * The enumeration `HtmlWarningCode` defines the error codes used for warnings in HTML files.
- * The convention for this class is for the name of the error code to indicate the problem that
- * caused the error to be generated and for the error message to explain what is wrong and, when
- * appropriate, how the problem can be corrected.
+ * The interface `AnalysisErrorListener` defines the behavior of objects that listen for
+ * [AnalysisError] being produced by the analysis engine.
  */
-class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
+abstract class AnalysisErrorListener {
   /**
-   * An error code indicating that the value of the 'src' attribute of a Dart script tag is not a
-   * valid URI.
-   *
-   * @param uri the URI that is invalid
+   * An error listener that ignores errors that are reported to it.
    */
-  static const HtmlWarningCode INVALID_URI = const HtmlWarningCode.con1('INVALID_URI', 0, "Invalid URI syntax: '%s'");
+  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_NULL_LISTENER();
 
   /**
-   * An error code indicating that the value of the 'src' attribute of a Dart script tag references
-   * a file that does not exist.
+   * This method is invoked when an error has been found by the analysis engine.
    *
-   * @param uri the URI pointing to a non-existent file
+   * @param error the error that was just found (not `null`)
    */
-  static const HtmlWarningCode URI_DOES_NOT_EXIST = const HtmlWarningCode.con1('URI_DOES_NOT_EXIST', 1, "Target of URI does not exist: '%s'");
+  void onError(AnalysisError error);
+}
 
-  static const List<HtmlWarningCode> values = const [INVALID_URI, URI_DOES_NOT_EXIST];
+class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
+  @override
+  void onError(AnalysisError event) {
+  }
+}
+
+/**
+ * Instances of the class `AnalysisErrorWithProperties`
+ */
+class AnalysisErrorWithProperties extends AnalysisError {
+  /**
+   * The properties associated with this error.
+   */
+  Map<ErrorProperty, Object> _propertyMap = new Map<ErrorProperty, Object>();
+
+  /**
+   * Initialize a newly created analysis error for the specified source. The error has no location
+   * information.
+   *
+   * @param source the source for which the exception occurred
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
+   */
+  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode, List<Object> arguments) : super.con1(source, errorCode, arguments);
+
+  /**
+   * Initialize a newly created analysis error for the specified source at the given location.
+   *
+   * @param source the source for which the exception occurred
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
+   */
+  AnalysisErrorWithProperties.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) : super.con2(source, offset, length, errorCode, arguments);
+
+  @override
+  Object getProperty(ErrorProperty property) => _propertyMap[property];
+
+  /**
+   * Set the value of the given property to the given value. Using a value of `null` will
+   * effectively remove the property from this error.
+   *
+   * @param property the property whose value is to be returned
+   * @param value the new value of the given property
+   */
+  void setProperty(ErrorProperty property, Object value) {
+    _propertyMap[property] = value;
+  }
+}
+
+/**
+ * The enumeration `AngularCode` defines Angular specific problems.
+ */
+class AngularCode extends Enum<AngularCode> implements ErrorCode {
+  static const AngularCode CANNOT_PARSE_SELECTOR = const AngularCode('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
+
+  static const AngularCode INVALID_FORMATTER_NAME = const AngularCode('INVALID_FORMATTER_NAME', 1, "Formatter name must be a simple identifier");
+
+  static const AngularCode INVALID_PROPERTY_KIND = const AngularCode('INVALID_PROPERTY_KIND', 2, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
+
+  static const AngularCode INVALID_PROPERTY_FIELD = const AngularCode('INVALID_PROPERTY_FIELD', 3, "Unknown property field '%s'");
+
+  static const AngularCode INVALID_PROPERTY_MAP = const AngularCode('INVALID_PROPERTY_MAP', 4, "Argument 'map' must be a constant map literal");
+
+  static const AngularCode INVALID_PROPERTY_NAME = const AngularCode('INVALID_PROPERTY_NAME', 5, "Property name must be a string literal");
+
+  static const AngularCode INVALID_PROPERTY_SPEC = const AngularCode('INVALID_PROPERTY_SPEC', 6, "Property binding specification must be a string literal");
+
+  static const AngularCode INVALID_REPEAT_SYNTAX = const AngularCode('INVALID_REPEAT_SYNTAX', 7, "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
+
+  static const AngularCode INVALID_REPEAT_ITEM_SYNTAX = const AngularCode('INVALID_REPEAT_ITEM_SYNTAX', 8, "Item must by identifier or in '(_key_, _value_)' pair.");
+
+  static const AngularCode INVALID_URI = const AngularCode('INVALID_URI', 9, "Invalid URI syntax: '%s'");
+
+  static const AngularCode MISSING_FORMATTER_COLON = const AngularCode('MISSING_FORMATTER_COLON', 10, "Missing ':' before formatter argument");
+
+  static const AngularCode MISSING_NAME = const AngularCode('MISSING_NAME', 11, "Argument 'name' must be provided");
+
+  static const AngularCode MISSING_PUBLISH_AS = const AngularCode('MISSING_PUBLISH_AS', 12, "Argument 'publishAs' must be provided");
+
+  static const AngularCode MISSING_SELECTOR = const AngularCode('MISSING_SELECTOR', 13, "Argument 'selector' must be provided");
+
+  static const AngularCode URI_DOES_NOT_EXIST = const AngularCode('URI_DOES_NOT_EXIST', 14, "Target of URI does not exist: '%s'");
+
+  static const List<AngularCode> values = const [
+      CANNOT_PARSE_SELECTOR,
+      INVALID_FORMATTER_NAME,
+      INVALID_PROPERTY_KIND,
+      INVALID_PROPERTY_FIELD,
+      INVALID_PROPERTY_MAP,
+      INVALID_PROPERTY_NAME,
+      INVALID_PROPERTY_SPEC,
+      INVALID_REPEAT_SYNTAX,
+      INVALID_REPEAT_ITEM_SYNTAX,
+      INVALID_URI,
+      MISSING_FORMATTER_COLON,
+      MISSING_NAME,
+      MISSING_PUBLISH_AS,
+      MISSING_SELECTOR,
+      URI_DOES_NOT_EXIST];
 
   /**
    * The template used to create the message to be displayed for this error.
@@ -112,31 +339,43 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
   final String message;
 
   /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
-
-  /**
    * Initialize a newly created error code to have the given message.
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  const HtmlWarningCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+  const AngularCode(String name, int ordinal, this.message) : super(name, ordinal);
+
+  @override
+  String get correction => null;
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.ANGULAR;
+}
+
+/**
+ * Instances of the class `BooleanErrorListener` implement a listener that keeps track of
+ * whether an error has been reported to it.
+ */
+class BooleanErrorListener implements AnalysisErrorListener {
+  /**
+   * A flag indicating whether an error has been reported to this listener.
+   */
+  bool _errorReported = false;
 
   /**
-   * Initialize a newly created error code to have the given message and correction.
+   * Return `true` if an error has been reported to this listener.
    *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
+   * @return `true` if an error has been reported to this listener
    */
-  const HtmlWarningCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+  bool get errorReported => _errorReported;
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
-
-  @override
-  ErrorType get type => ErrorType.STATIC_WARNING;
+  void onError(AnalysisError error) {
+    _errorReported = true;
+  }
 }
 
 /**
@@ -1525,44 +1764,60 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
 }
 
 /**
- * The enumeration `TodoCode` defines the single TODO `ErrorCode`.
+ * The interface `ErrorCode` defines the behavior common to objects representing error codes
+ * associated with [AnalysisError].
+ *
+ * Generally, we want to provide messages that consist of three sentences: 1. what is wrong, 2. why
+ * is it wrong, and 3. how do I fix it. However, we combine the first two in the result of
+ * [getMessage] and the last in the result of [getCorrection].
  */
-class TodoCode extends Enum<TodoCode> implements ErrorCode {
+abstract class ErrorCode {
   /**
-   * The single enum of TodoCode.
+   * Return the template used to create the correction to be displayed for this error, or
+   * `null` if there is no correction information for this error. The correction should
+   * indicate how the user can fix the error.
+   *
+   * @return the template used to create the correction to be displayed for this error
    */
-  static const TodoCode TODO = const TodoCode('TODO', 0);
-
-  static const List<TodoCode> values = const [TODO];
+  String get correction;
 
   /**
-   * This matches the two common Dart task styles
+   * Return the severity of this error.
    *
-   * * TODO:
-   * * TODO(username):
-   *
-   * As well as
-   * * TODO
-   *
-   * But not
-   * * todo
-   * * TODOS
+   * @return the severity of this error
    */
-  static RegExp TODO_REGEX = new RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
+  ErrorSeverity get errorSeverity;
 
-  const TodoCode(String name, int ordinal) : super(name, ordinal);
+  /**
+   * Return the template used to create the message to be displayed for this error. The message
+   * should indicate what is wrong and why it is wrong.
+   *
+   * @return the template used to create the message to be displayed for this error
+   */
+  String get message;
 
-  @override
-  String get correction => null;
+  /**
+   * Return the type of the error.
+   *
+   * @return the type of the error
+   */
+  ErrorType get type;
+}
 
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+/**
+ * The enumeration `ErrorProperty` defines the properties that can be associated with an
+ * [AnalysisError].
+ */
+class ErrorProperty extends Enum<ErrorProperty> {
+  /**
+   * A property whose value is an array of [ExecutableElement] that should
+   * be but are not implemented by a concrete class.
+   */
+  static const ErrorProperty UNIMPLEMENTED_METHODS = const ErrorProperty('UNIMPLEMENTED_METHODS', 0);
 
-  @override
-  String get message => "%s";
+  static const List<ErrorProperty> values = const [UNIMPLEMENTED_METHODS];
 
-  @override
-  ErrorType get type => ErrorType.TODO;
+  const ErrorProperty(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -1675,297 +1930,59 @@ class ErrorReporter {
 }
 
 /**
- * The enumeration `PolymerCode` defines Polymer specific problems.
+ * Instances of the enumeration `ErrorSeverity` represent the severity of an [ErrorCode]
+ * .
  */
-class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
-  static const PolymerCode ATTRIBUTE_FIELD_NOT_PUBLISHED = const PolymerCode('ATTRIBUTE_FIELD_NOT_PUBLISHED', 0, "Field '%s' in '%s' must be @published");
-
-  static const PolymerCode DUPLICATE_ATTRIBUTE_DEFINITION = const PolymerCode('DUPLICATE_ATTRIBUTE_DEFINITION', 1, "The attribute '%s' is already defined");
-
-  static const PolymerCode EMPTY_ATTRIBUTES = const PolymerCode('EMPTY_ATTRIBUTES', 2, "Empty 'attributes' attribute is useless");
-
-  static const PolymerCode INVALID_ATTRIBUTE_NAME = const PolymerCode('INVALID_ATTRIBUTE_NAME', 3, "'%s' is not a valid name for a custom element attribute");
-
-  static const PolymerCode INVALID_TAG_NAME = const PolymerCode('INVALID_TAG_NAME', 4, "'%s' is not a valid name for a custom element");
-
-  static const PolymerCode MISSING_TAG_NAME = const PolymerCode('MISSING_TAG_NAME', 5, "Missing tag name of the custom element. Please include an attribute like name='your-tag-name'");
-
-  static const PolymerCode UNDEFINED_ATTRIBUTE_FIELD = const PolymerCode('UNDEFINED_ATTRIBUTE_FIELD', 6, "There is no such field '%s' in '%s'");
-
-  static const List<PolymerCode> values = const [
-      ATTRIBUTE_FIELD_NOT_PUBLISHED,
-      DUPLICATE_ATTRIBUTE_DEFINITION,
-      EMPTY_ATTRIBUTES,
-      INVALID_ATTRIBUTE_NAME,
-      INVALID_TAG_NAME,
-      MISSING_TAG_NAME,
-      UNDEFINED_ATTRIBUTE_FIELD];
-
+class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
-   * The template used to create the message to be displayed for this error.
+   * The severity representing a non-error. This is never used for any error code, but is useful for
+   * clients.
    */
-  final String message;
+  static const ErrorSeverity NONE = const ErrorSeverity('NONE', 0, " ", "none");
 
   /**
-   * Initialize a newly created error code to have the given message.
+   * The severity representing an informational level analysis issue.
+   */
+  static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
+
+  /**
+   * The severity representing a warning. Warnings can become errors if the `-Werror` command
+   * line flag is specified.
+   */
+  static const ErrorSeverity WARNING = const ErrorSeverity('WARNING', 2, "W", "warning");
+
+  /**
+   * The severity representing an error.
+   */
+  static const ErrorSeverity ERROR = const ErrorSeverity('ERROR', 3, "E", "error");
+
+  static const List<ErrorSeverity> values = const [NONE, INFO, WARNING, ERROR];
+
+  /**
+   * The name of the severity used when producing machine output.
+   */
+  final String machineCode;
+
+  /**
+   * The name of the severity used when producing readable output.
+   */
+  final String displayName;
+
+  /**
+   * Initialize a newly created severity with the given names.
    *
-   * @param message the message template used to create the message to be displayed for the error
+   * @param machineCode the name of the severity used when producing machine output
+   * @param displayName the name of the severity used when producing readable output
    */
-  const PolymerCode(String name, int ordinal, this.message) : super(name, ordinal);
-
-  @override
-  String get correction => null;
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.POLYMER;
-}
-
-/**
- * Instances of the class `AnalysisError` represent an error discovered during the analysis of
- * some Dart code.
- *
- * @see AnalysisErrorListener
- */
-class AnalysisError {
-  /**
-   * An empty array of errors used when no errors are expected.
-   */
-  static List<AnalysisError> NO_ERRORS = new List<AnalysisError>(0);
+  const ErrorSeverity(String name, int ordinal, this.machineCode, this.displayName) : super(name, ordinal);
 
   /**
-   * A [Comparator] that sorts by the name of the file that the [AnalysisError] was
-   * found.
-   */
-  static Comparator<AnalysisError> FILE_COMPARATOR = (AnalysisError o1, AnalysisError o2) => o1.source.shortName.compareTo(o2.source.shortName);
-
-  /**
-   * A [Comparator] that sorts error codes first by their severity (errors first, warnings
-   * second), and then by the the error code type.
-   */
-  static Comparator<AnalysisError> ERROR_CODE_COMPARATOR = (AnalysisError o1, AnalysisError o2) {
-    ErrorCode errorCode1 = o1.errorCode;
-    ErrorCode errorCode2 = o2.errorCode;
-    ErrorSeverity errorSeverity1 = errorCode1.errorSeverity;
-    ErrorSeverity errorSeverity2 = errorCode2.errorSeverity;
-    ErrorType errorType1 = errorCode1.type;
-    ErrorType errorType2 = errorCode2.type;
-    if (errorSeverity1 == errorSeverity2) {
-      return errorType1.compareTo(errorType2);
-    } else {
-      return errorSeverity2.compareTo(errorSeverity1);
-    }
-  };
-
-  /**
-   * The error code associated with the error.
-   */
-  final ErrorCode errorCode;
-
-  /**
-   * The localized error message.
-   */
-  String _message;
-
-  /**
-   * The correction to be displayed for this error, or `null` if there is no correction
-   * information for this error.
-   */
-  String _correction;
-
-  /**
-   * The source in which the error occurred, or `null` if unknown.
-   */
-  Source source;
-
-  /**
-   * The character offset from the beginning of the source (zero based) where the error occurred.
-   */
-  int _offset = 0;
-
-  /**
-   * The number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
-   */
-  int _length = 0;
-
-  /**
-   * A flag indicating whether this error can be shown to be a non-issue because of the result of
-   * type propagation.
-   */
-  bool isStaticOnly = false;
-
-  /**
-   * Initialize a newly created analysis error for the specified source. The error has no location
-   * information.
+   * Return the severity constant that represents the greatest severity.
    *
-   * @param source the source for which the exception occurred
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
+   * @param severity the severity being compared against
+   * @return the most sever of this or the given severity
    */
-  AnalysisError.con1(this.source, this.errorCode, List<Object> arguments) {
-    this._message = JavaString.format(errorCode.message, arguments);
-  }
-
-  /**
-   * Initialize a newly created analysis error for the specified source at the given location.
-   *
-   * @param source the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  AnalysisError.con2(this.source, int offset, int length, this.errorCode, List<Object> arguments) {
-    this._offset = offset;
-    this._length = length;
-    this._message = JavaString.format(errorCode.message, arguments);
-    String correctionTemplate = errorCode.correction;
-    if (correctionTemplate != null) {
-      this._correction = JavaString.format(correctionTemplate, arguments);
-    }
-  }
-
-  @override
-  bool operator ==(Object obj) {
-    if (identical(obj, this)) {
-      return true;
-    }
-    // prepare other AnalysisError
-    if (obj is! AnalysisError) {
-      return false;
-    }
-    AnalysisError other = obj as AnalysisError;
-    // Quick checks.
-    if (!identical(errorCode, other.errorCode)) {
-      return false;
-    }
-    if (_offset != other._offset || _length != other._length) {
-      return false;
-    }
-    if (isStaticOnly != other.isStaticOnly) {
-      return false;
-    }
-    // Deep checks.
-    if (_message != other._message) {
-      return false;
-    }
-    if (source != other.source) {
-      return false;
-    }
-    // OK
-    return true;
-  }
-
-  /**
-   * Return the correction to be displayed for this error, or `null` if there is no correction
-   * information for this error. The correction should indicate how the user can fix the error.
-   *
-   * @return the template used to create the correction to be displayed for this error
-   */
-  String get correction => _correction;
-
-  /**
-   * Return the number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
-   *
-   * @return the length of the error location
-   */
-  int get length => _length;
-
-  /**
-   * Return the message to be displayed for this error. The message should indicate what is wrong
-   * and why it is wrong.
-   *
-   * @return the message to be displayed for this error
-   */
-  String get message => _message;
-
-  /**
-   * Return the character offset from the beginning of the source (zero based) where the error
-   * occurred.
-   *
-   * @return the offset to the start of the error location
-   */
-  int get offset => _offset;
-
-  /**
-   * Return the value of the given property, or `null` if the given property is not defined
-   * for this error.
-   *
-   * @param property the property whose value is to be returned
-   * @return the value of the given property
-   */
-  Object getProperty(ErrorProperty property) => null;
-
-  @override
-  int get hashCode {
-    int hashCode = _offset;
-    hashCode ^= (_message != null) ? _message.hashCode : 0;
-    hashCode ^= (source != null) ? source.hashCode : 0;
-    return hashCode;
-  }
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append((source != null) ? source.fullName : "<unknown source>");
-    builder.append("(");
-    builder.append(_offset);
-    builder.append("..");
-    builder.append(_offset + _length - 1);
-    builder.append("): ");
-    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
-    builder.append(_message);
-    return builder.toString();
-  }
-}
-
-/**
- * Instances of the class `AnalysisErrorWithProperties`
- */
-class AnalysisErrorWithProperties extends AnalysisError {
-  /**
-   * The properties associated with this error.
-   */
-  Map<ErrorProperty, Object> _propertyMap = new Map<ErrorProperty, Object>();
-
-  /**
-   * Initialize a newly created analysis error for the specified source. The error has no location
-   * information.
-   *
-   * @param source the source for which the exception occurred
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode, List<Object> arguments) : super.con1(source, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified source at the given location.
-   *
-   * @param source the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  AnalysisErrorWithProperties.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) : super.con2(source, offset, length, errorCode, arguments);
-
-  @override
-  Object getProperty(ErrorProperty property) => _propertyMap[property];
-
-  /**
-   * Set the value of the given property to the given value. Using a value of `null` will
-   * effectively remove the property from this error.
-   *
-   * @param property the property whose value is to be returned
-   * @param value the new value of the given property
-   */
-  void setProperty(ErrorProperty property, Object value) {
-    _propertyMap[property] = value;
-  }
+  ErrorSeverity max(ErrorSeverity severity) => this.ordinal >= severity.ordinal ? this : severity;
 }
 
 /**
@@ -2049,124 +2066,438 @@ class ErrorType extends Enum<ErrorType> {
 }
 
 /**
- * The interface `ErrorCode` defines the behavior common to objects representing error codes
- * associated with [AnalysisError].
- *
- * Generally, we want to provide messages that consist of three sentences: 1. what is wrong, 2. why
- * is it wrong, and 3. how do I fix it. However, we combine the first two in the result of
- * [getMessage] and the last in the result of [getCorrection].
+ * The enumeration `HintCode` defines the hints and coding recommendations for best practices
+ * which are not mentioned in the Dart Language Specification.
  */
-abstract class ErrorCode {
+class HintCode extends Enum<HintCode> implements ErrorCode {
   /**
-   * Return the template used to create the correction to be displayed for this error, or
-   * `null` if there is no correction information for this error. The correction should
-   * indicate how the user can fix the error.
+   * This hint is generated anywhere where the
+   * [StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated, if we used
+   * propagated information for the warnings.
    *
-   * @return the template used to create the correction to be displayed for this error
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
-  String get correction;
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode.con1('ARGUMENT_TYPE_NOT_ASSIGNABLE', 0, "The argument type '%s' cannot be assigned to the parameter type '%s'");
 
   /**
-   * Return the severity of this error.
+   * Dead code is code that is never reached, this can happen for instance if a statement follows a
+   * return statement.
+   */
+  static const HintCode DEAD_CODE = const HintCode.con1('DEAD_CODE', 1, "Dead code");
+
+  /**
+   * Dead code is code that is never reached. This case covers cases where the user has catch
+   * clauses after `catch (e)` or `on Object catch (e)`.
+   */
+  static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = const HintCode.con1('DEAD_CODE_CATCH_FOLLOWING_CATCH', 2, "Dead code, catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached");
+
+  /**
+   * Dead code is code that is never reached. This case covers cases where the user has an on-catch
+   * clause such as `on A catch (e)`, where a supertype of `A` was already caught.
    *
-   * @return the severity of this error
+   * @param subtypeName name of the subtype
+   * @param supertypeName name of the supertype
    */
-  ErrorSeverity get errorSeverity;
+  static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = const HintCode.con1('DEAD_CODE_ON_CATCH_SUBTYPE', 3, "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
 
   /**
-   * Return the template used to create the message to be displayed for this error. The message
-   * should indicate what is wrong and why it is wrong.
+   * Deprecated members should not be invoked or used.
    *
-   * @return the template used to create the message to be displayed for this error
+   * @param memberName the name of the member
    */
-  String get message;
+  static const HintCode DEPRECATED_MEMBER_USE = const HintCode.con1('DEPRECATED_MEMBER_USE', 4, "'%s' is deprecated");
 
   /**
-   * Return the type of the error.
+   * Duplicate imports.
+   */
+  static const HintCode DUPLICATE_IMPORT = const HintCode.con1('DUPLICATE_IMPORT', 5, "Duplicate import");
+
+  /**
+   * Hint to use the ~/ operator.
+   */
+  static const HintCode DIVISION_OPTIMIZATION = const HintCode.con1('DIVISION_OPTIMIZATION', 6, "The operator x ~/ y is more efficient than (x / y).toInt()");
+
+  /**
+   * Hint for the `x is double` type checks.
+   */
+  static const HintCode IS_DOUBLE = const HintCode.con1('IS_DOUBLE', 7, "When compiled to JS, this test might return true when the left hand side is an int");
+
+  /**
+   * Hint for the `x is int` type checks.
+   */
+  static const HintCode IS_INT = const HintCode.con1('IS_INT', 8, "When compiled to JS, this test might return true when the left hand side is a double");
+
+  /**
+   * Hint for the `x is! double` type checks.
+   */
+  static const HintCode IS_NOT_DOUBLE = const HintCode.con1('IS_NOT_DOUBLE', 9, "When compiled to JS, this test might return false when the left hand side is an int");
+
+  /**
+   * Hint for the `x is! int` type checks.
+   */
+  static const HintCode IS_NOT_INT = const HintCode.con1('IS_NOT_INT', 10, "When compiled to JS, this test might return false when the left hand side is a double");
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#INVALID_ASSIGNMENT]
+   * would have been generated, if we used propagated information for the warnings.
    *
-   * @return the type of the error
+   * @param rhsTypeName the name of the right hand side type
+   * @param lhsTypeName the name of the left hand side type
+   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
    */
-  ErrorType get type;
-}
-
-/**
- * Instances of the enumeration `ErrorSeverity` represent the severity of an [ErrorCode]
- * .
- */
-class ErrorSeverity extends Enum<ErrorSeverity> {
-  /**
-   * The severity representing a non-error. This is never used for any error code, but is useful for
-   * clients.
-   */
-  static const ErrorSeverity NONE = const ErrorSeverity('NONE', 0, " ", "none");
+  static const HintCode INVALID_ASSIGNMENT = const HintCode.con1('INVALID_ASSIGNMENT', 11, "A value of type '%s' cannot be assigned to a variable of type '%s'");
 
   /**
-   * The severity representing an informational level analysis issue.
-   */
-  static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
-
-  /**
-   * The severity representing a warning. Warnings can become errors if the `-Werror` command
-   * line flag is specified.
-   */
-  static const ErrorSeverity WARNING = const ErrorSeverity('WARNING', 2, "W", "warning");
-
-  /**
-   * The severity representing an error.
-   */
-  static const ErrorSeverity ERROR = const ErrorSeverity('ERROR', 3, "E", "error");
-
-  static const List<ErrorSeverity> values = const [NONE, INFO, WARNING, ERROR];
-
-  /**
-   * The name of the severity used when producing machine output.
-   */
-  final String machineCode;
-
-  /**
-   * The name of the severity used when producing readable output.
-   */
-  final String displayName;
-
-  /**
-   * Initialize a newly created severity with the given names.
+   * Generate a hint for methods or functions that have a return type, but do not have a non-void
+   * return statement on all branches. At the end of methods or functions with no return, Dart
+   * implicitly returns `null`, avoiding these implicit returns is considered a best practice.
    *
-   * @param machineCode the name of the severity used when producing machine output
-   * @param displayName the name of the severity used when producing readable output
+   * @param returnType the name of the declared return type
    */
-  const ErrorSeverity(String name, int ordinal, this.machineCode, this.displayName) : super(name, ordinal);
+  static const HintCode MISSING_RETURN = const HintCode.con2('MISSING_RETURN', 12, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
 
   /**
-   * Return the severity constant that represents the greatest severity.
+   * A getter with the override annotation does not override an existing getter.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 13, "Getter does not override an inherited getter");
+
+  /**
+   * A method with the override annotation does not override an existing method.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 14, "Method does not override an inherited method");
+
+  /**
+   * A setter with the override annotation does not override an existing setter.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 15, "Setter does not override an inherited setter");
+
+  /**
+   * Hint for classes that override equals, but not hashCode.
    *
-   * @param severity the severity being compared against
-   * @return the most sever of this or the given severity
+   * @param className the name of the current class
    */
-  ErrorSeverity max(ErrorSeverity severity) => this.ordinal >= severity.ordinal ? this : severity;
-}
-
-/**
- * The interface `AnalysisErrorListener` defines the behavior of objects that listen for
- * [AnalysisError] being produced by the analysis engine.
- */
-abstract class AnalysisErrorListener {
-  /**
-   * An error listener that ignores errors that are reported to it.
-   */
-  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_NULL_LISTENER();
+  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 16, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
-   * This method is invoked when an error has been found by the analysis engine.
+   * Type checks of the type `x is! Null` should be done with `x != null`.
+   */
+  static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 17, "Tests for non-null should be done with '!= null'");
+
+  /**
+   * Type checks of the type `x is Null` should be done with `x == null`.
+   */
+  static const HintCode TYPE_CHECK_IS_NULL = const HintCode.con1('TYPE_CHECK_IS_NULL', 18, "Tests for null should be done with '== null'");
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
+   * [StaticWarningCode#UNDEFINED_GETTER] would have been generated, if we used propagated
+   * information for the warnings.
    *
-   * @param error the error that was just found (not `null`)
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_GETTER
+   * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  void onError(AnalysisError error);
-}
+  static const HintCode UNDEFINED_GETTER = const HintCode.con1('UNDEFINED_GETTER', 19, "There is no such getter '%s' in '%s'");
 
-class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
+   * have been generated, if we used propagated information for the warnings.
+   *
+   * @param methodName the name of the method that is undefined
+   * @param typeName the resolved type name that the method lookup is happening on
+   * @see StaticTypeWarningCode#UNDEFINED_METHOD
+   */
+  static const HintCode UNDEFINED_METHOD = const HintCode.con1('UNDEFINED_METHOD', 20, "The method '%s' is not defined for the class '%s'");
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
+   * would have been generated, if we used propagated information for the warnings.
+   *
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
+   */
+  static const HintCode UNDEFINED_OPERATOR = const HintCode.con1('UNDEFINED_OPERATOR', 21, "There is no such operator '%s' in '%s'");
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
+   * [StaticWarningCode#UNDEFINED_SETTER] would have been generated, if we used propagated
+   * information for the warnings.
+   *
+   * @param setterName the name of the setter
+   * @param enclosingType the name of the enclosing type where the setter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_SETTER
+   * @see StaticWarningCode#UNDEFINED_SETTER
+   */
+  static const HintCode UNDEFINED_SETTER = const HintCode.con1('UNDEFINED_SETTER', 22, "There is no such setter '%s' in '%s'");
+
+  /**
+   * Unnecessary cast.
+   */
+  static const HintCode UNNECESSARY_CAST = const HintCode.con1('UNNECESSARY_CAST', 23, "Unnecessary cast");
+
+  /**
+   * Unnecessary type checks, the result is always true.
+   */
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 24, "Unnecessary type check, the result is always false");
+
+  /**
+   * Unnecessary type checks, the result is always false.
+   */
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 25, "Unnecessary type check, the result is always true");
+
+  /**
+   * Unused imports are imports which are never not used.
+   */
+  static const HintCode UNUSED_IMPORT = const HintCode.con1('UNUSED_IMPORT', 26, "Unused import");
+
+  /**
+   * Hint for cases where the source expects a method or function to return a non-void result, but
+   * the method or function signature returns void.
+   *
+   * @param name the name of the method or function that returns void
+   */
+  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 27, "The result of '%s' is being used, even though it is declared to be 'void'");
+
+  static const List<HintCode> values = const [
+      ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      DEAD_CODE,
+      DEAD_CODE_CATCH_FOLLOWING_CATCH,
+      DEAD_CODE_ON_CATCH_SUBTYPE,
+      DEPRECATED_MEMBER_USE,
+      DUPLICATE_IMPORT,
+      DIVISION_OPTIMIZATION,
+      IS_DOUBLE,
+      IS_INT,
+      IS_NOT_DOUBLE,
+      IS_NOT_INT,
+      INVALID_ASSIGNMENT,
+      MISSING_RETURN,
+      OVERRIDE_ON_NON_OVERRIDING_GETTER,
+      OVERRIDE_ON_NON_OVERRIDING_METHOD,
+      OVERRIDE_ON_NON_OVERRIDING_SETTER,
+      OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
+      TYPE_CHECK_IS_NOT_NULL,
+      TYPE_CHECK_IS_NULL,
+      UNDEFINED_GETTER,
+      UNDEFINED_METHOD,
+      UNDEFINED_OPERATOR,
+      UNDEFINED_SETTER,
+      UNNECESSARY_CAST,
+      UNNECESSARY_TYPE_CHECK_FALSE,
+      UNNECESSARY_TYPE_CHECK_TRUE,
+      UNUSED_IMPORT,
+      USE_OF_VOID_RESULT];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  final String correction;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for the error
+   */
+  const HintCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  const HintCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+
   @override
-  void onError(AnalysisError event) {
-  }
+  ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
+
+  @override
+  ErrorType get type => ErrorType.HINT;
+}
+
+/**
+ * The enumeration `HtmlWarningCode` defines the error codes used for warnings in HTML files.
+ * The convention for this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what is wrong and, when
+ * appropriate, how the problem can be corrected.
+ */
+class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
+  /**
+   * An error code indicating that the value of the 'src' attribute of a Dart script tag is not a
+   * valid URI.
+   *
+   * @param uri the URI that is invalid
+   */
+  static const HtmlWarningCode INVALID_URI = const HtmlWarningCode.con1('INVALID_URI', 0, "Invalid URI syntax: '%s'");
+
+  /**
+   * An error code indicating that the value of the 'src' attribute of a Dart script tag references
+   * a file that does not exist.
+   *
+   * @param uri the URI pointing to a non-existent file
+   */
+  static const HtmlWarningCode URI_DOES_NOT_EXIST = const HtmlWarningCode.con1('URI_DOES_NOT_EXIST', 1, "Target of URI does not exist: '%s'");
+
+  static const List<HtmlWarningCode> values = const [INVALID_URI, URI_DOES_NOT_EXIST];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  final String correction;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for the error
+   */
+  const HtmlWarningCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  const HtmlWarningCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+
+  @override
+  ErrorType get type => ErrorType.STATIC_WARNING;
+}
+
+/**
+ * The enumeration `PolymerCode` defines Polymer specific problems.
+ */
+class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
+  static const PolymerCode ATTRIBUTE_FIELD_NOT_PUBLISHED = const PolymerCode('ATTRIBUTE_FIELD_NOT_PUBLISHED', 0, "Field '%s' in '%s' must be @published");
+
+  static const PolymerCode DUPLICATE_ATTRIBUTE_DEFINITION = const PolymerCode('DUPLICATE_ATTRIBUTE_DEFINITION', 1, "The attribute '%s' is already defined");
+
+  static const PolymerCode EMPTY_ATTRIBUTES = const PolymerCode('EMPTY_ATTRIBUTES', 2, "Empty 'attributes' attribute is useless");
+
+  static const PolymerCode INVALID_ATTRIBUTE_NAME = const PolymerCode('INVALID_ATTRIBUTE_NAME', 3, "'%s' is not a valid name for a custom element attribute");
+
+  static const PolymerCode INVALID_TAG_NAME = const PolymerCode('INVALID_TAG_NAME', 4, "'%s' is not a valid name for a custom element");
+
+  static const PolymerCode MISSING_TAG_NAME = const PolymerCode('MISSING_TAG_NAME', 5, "Missing tag name of the custom element. Please include an attribute like name='your-tag-name'");
+
+  static const PolymerCode UNDEFINED_ATTRIBUTE_FIELD = const PolymerCode('UNDEFINED_ATTRIBUTE_FIELD', 6, "There is no such field '%s' in '%s'");
+
+  static const List<PolymerCode> values = const [
+      ATTRIBUTE_FIELD_NOT_PUBLISHED,
+      DUPLICATE_ATTRIBUTE_DEFINITION,
+      EMPTY_ATTRIBUTES,
+      INVALID_ATTRIBUTE_NAME,
+      INVALID_TAG_NAME,
+      MISSING_TAG_NAME,
+      UNDEFINED_ATTRIBUTE_FIELD];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for the error
+   */
+  const PolymerCode(String name, int ordinal, this.message) : super(name, ordinal);
+
+  @override
+  String get correction => null;
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.POLYMER;
+}
+
+/**
+ * The enumeration `PubSuggestionCode` defines the suggestions used for reporting deviations
+ * from pub best practices. The convention for this class is for the name of the bad practice to
+ * indicate the problem that caused the suggestion to be generated and for the message to explain
+ * what is wrong and, when appropriate, how the situation can be corrected.
+ */
+class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
+  /**
+   * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
+   * outside that directory hierarchy. For example, a source file in the "lib" directory should not
+   * contain a directive such as `import '../web/some.dart'` which references a file outside
+   * the lib directory.
+   */
+  static const PubSuggestionCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const PubSuggestionCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 0, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
+
+  /**
+   * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
+   * into that directory hierarchy. For example, a source file in the "web" directory should not
+   * contain a directive such as `import '../lib/some.dart'` which references a file inside
+   * the lib directory.
+   */
+  static const PubSuggestionCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const PubSuggestionCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 1, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
+
+  /**
+   * It is a bad practice for a package import to reference anything outside the given package, or
+   * more generally, it is bad practice for a package import to contain a "..". For example, a
+   * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
+   */
+  static const PubSuggestionCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const PubSuggestionCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 2, "A package import should not contain '..'");
+
+  static const List<PubSuggestionCode> values = const [
+      FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
+      FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
+      PACKAGE_IMPORT_CONTAINS_DOT_DOT];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  final String correction;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for the error
+   */
+  const PubSuggestionCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  const PubSuggestionCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
+
+  @override
+  ErrorType get type => ErrorType.PUB_SUGGESTION;
 }
 
 /**
@@ -2505,362 +2836,6 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
 
   @override
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
-}
-
-/**
- * The enumeration `AngularCode` defines Angular specific problems.
- */
-class AngularCode extends Enum<AngularCode> implements ErrorCode {
-  static const AngularCode CANNOT_PARSE_SELECTOR = const AngularCode('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
-
-  static const AngularCode INVALID_FORMATTER_NAME = const AngularCode('INVALID_FORMATTER_NAME', 1, "Formatter name must be a simple identifier");
-
-  static const AngularCode INVALID_PROPERTY_KIND = const AngularCode('INVALID_PROPERTY_KIND', 2, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
-
-  static const AngularCode INVALID_PROPERTY_FIELD = const AngularCode('INVALID_PROPERTY_FIELD', 3, "Unknown property field '%s'");
-
-  static const AngularCode INVALID_PROPERTY_MAP = const AngularCode('INVALID_PROPERTY_MAP', 4, "Argument 'map' must be a constant map literal");
-
-  static const AngularCode INVALID_PROPERTY_NAME = const AngularCode('INVALID_PROPERTY_NAME', 5, "Property name must be a string literal");
-
-  static const AngularCode INVALID_PROPERTY_SPEC = const AngularCode('INVALID_PROPERTY_SPEC', 6, "Property binding specification must be a string literal");
-
-  static const AngularCode INVALID_REPEAT_SYNTAX = const AngularCode('INVALID_REPEAT_SYNTAX', 7, "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
-
-  static const AngularCode INVALID_REPEAT_ITEM_SYNTAX = const AngularCode('INVALID_REPEAT_ITEM_SYNTAX', 8, "Item must by identifier or in '(_key_, _value_)' pair.");
-
-  static const AngularCode INVALID_URI = const AngularCode('INVALID_URI', 9, "Invalid URI syntax: '%s'");
-
-  static const AngularCode MISSING_FORMATTER_COLON = const AngularCode('MISSING_FORMATTER_COLON', 10, "Missing ':' before formatter argument");
-
-  static const AngularCode MISSING_NAME = const AngularCode('MISSING_NAME', 11, "Argument 'name' must be provided");
-
-  static const AngularCode MISSING_PUBLISH_AS = const AngularCode('MISSING_PUBLISH_AS', 12, "Argument 'publishAs' must be provided");
-
-  static const AngularCode MISSING_SELECTOR = const AngularCode('MISSING_SELECTOR', 13, "Argument 'selector' must be provided");
-
-  static const AngularCode URI_DOES_NOT_EXIST = const AngularCode('URI_DOES_NOT_EXIST', 14, "Target of URI does not exist: '%s'");
-
-  static const List<AngularCode> values = const [
-      CANNOT_PARSE_SELECTOR,
-      INVALID_FORMATTER_NAME,
-      INVALID_PROPERTY_KIND,
-      INVALID_PROPERTY_FIELD,
-      INVALID_PROPERTY_MAP,
-      INVALID_PROPERTY_NAME,
-      INVALID_PROPERTY_SPEC,
-      INVALID_REPEAT_SYNTAX,
-      INVALID_REPEAT_ITEM_SYNTAX,
-      INVALID_URI,
-      MISSING_FORMATTER_COLON,
-      MISSING_NAME,
-      MISSING_PUBLISH_AS,
-      MISSING_SELECTOR,
-      URI_DOES_NOT_EXIST];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for the error
-   */
-  const AngularCode(String name, int ordinal, this.message) : super(name, ordinal);
-
-  @override
-  String get correction => null;
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.ANGULAR;
-}
-
-/**
- * The enumeration `HintCode` defines the hints and coding recommendations for best practices
- * which are not mentioned in the Dart Language Specification.
- */
-class HintCode extends Enum<HintCode> implements ErrorCode {
-  /**
-   * This hint is generated anywhere where the
-   * [StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated, if we used
-   * propagated information for the warnings.
-   *
-   * @param actualType the name of the actual argument type
-   * @param expectedType the name of the expected type
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   */
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode.con1('ARGUMENT_TYPE_NOT_ASSIGNABLE', 0, "The argument type '%s' cannot be assigned to the parameter type '%s'");
-
-  /**
-   * Dead code is code that is never reached, this can happen for instance if a statement follows a
-   * return statement.
-   */
-  static const HintCode DEAD_CODE = const HintCode.con1('DEAD_CODE', 1, "Dead code");
-
-  /**
-   * Dead code is code that is never reached. This case covers cases where the user has catch
-   * clauses after `catch (e)` or `on Object catch (e)`.
-   */
-  static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = const HintCode.con1('DEAD_CODE_CATCH_FOLLOWING_CATCH', 2, "Dead code, catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached");
-
-  /**
-   * Dead code is code that is never reached. This case covers cases where the user has an on-catch
-   * clause such as `on A catch (e)`, where a supertype of `A` was already caught.
-   *
-   * @param subtypeName name of the subtype
-   * @param supertypeName name of the supertype
-   */
-  static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = const HintCode.con1('DEAD_CODE_ON_CATCH_SUBTYPE', 3, "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
-
-  /**
-   * Deprecated members should not be invoked or used.
-   *
-   * @param memberName the name of the member
-   */
-  static const HintCode DEPRECATED_MEMBER_USE = const HintCode.con1('DEPRECATED_MEMBER_USE', 4, "'%s' is deprecated");
-
-  /**
-   * Duplicate imports.
-   */
-  static const HintCode DUPLICATE_IMPORT = const HintCode.con1('DUPLICATE_IMPORT', 5, "Duplicate import");
-
-  /**
-   * Hint to use the ~/ operator.
-   */
-  static const HintCode DIVISION_OPTIMIZATION = const HintCode.con1('DIVISION_OPTIMIZATION', 6, "The operator x ~/ y is more efficient than (x / y).toInt()");
-
-  /**
-   * Hint for the `x is double` type checks.
-   */
-  static const HintCode IS_DOUBLE = const HintCode.con1('IS_DOUBLE', 7, "When compiled to JS, this test might return true when the left hand side is an int");
-
-  /**
-   * Hint for the `x is int` type checks.
-   */
-  static const HintCode IS_INT = const HintCode.con1('IS_INT', 8, "When compiled to JS, this test might return true when the left hand side is a double");
-
-  /**
-   * Hint for the `x is! double` type checks.
-   */
-  static const HintCode IS_NOT_DOUBLE = const HintCode.con1('IS_NOT_DOUBLE', 9, "When compiled to JS, this test might return false when the left hand side is an int");
-
-  /**
-   * Hint for the `x is! int` type checks.
-   */
-  static const HintCode IS_NOT_INT = const HintCode.con1('IS_NOT_INT', 10, "When compiled to JS, this test might return false when the left hand side is a double");
-
-  /**
-   * This hint is generated anywhere where the [StaticTypeWarningCode#INVALID_ASSIGNMENT]
-   * would have been generated, if we used propagated information for the warnings.
-   *
-   * @param rhsTypeName the name of the right hand side type
-   * @param lhsTypeName the name of the left hand side type
-   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
-   */
-  static const HintCode INVALID_ASSIGNMENT = const HintCode.con1('INVALID_ASSIGNMENT', 11, "A value of type '%s' cannot be assigned to a variable of type '%s'");
-
-  /**
-   * Generate a hint for methods or functions that have a return type, but do not have a non-void
-   * return statement on all branches. At the end of methods or functions with no return, Dart
-   * implicitly returns `null`, avoiding these implicit returns is considered a best practice.
-   *
-   * @param returnType the name of the declared return type
-   */
-  static const HintCode MISSING_RETURN = const HintCode.con2('MISSING_RETURN', 12, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
-
-  /**
-   * A getter with the override annotation does not override an existing getter.
-   */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 13, "Getter does not override an inherited getter");
-
-  /**
-   * A method with the override annotation does not override an existing method.
-   */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 14, "Method does not override an inherited method");
-
-  /**
-   * A setter with the override annotation does not override an existing setter.
-   */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 15, "Setter does not override an inherited setter");
-
-  /**
-   * Hint for classes that override equals, but not hashCode.
-   *
-   * @param className the name of the current class
-   */
-  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 16, "The class '%s' overrides 'operator==', but not 'get hashCode'");
-
-  /**
-   * Type checks of the type `x is! Null` should be done with `x != null`.
-   */
-  static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 17, "Tests for non-null should be done with '!= null'");
-
-  /**
-   * Type checks of the type `x is Null` should be done with `x == null`.
-   */
-  static const HintCode TYPE_CHECK_IS_NULL = const HintCode.con1('TYPE_CHECK_IS_NULL', 18, "Tests for null should be done with '== null'");
-
-  /**
-   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
-   * [StaticWarningCode#UNDEFINED_GETTER] would have been generated, if we used propagated
-   * information for the warnings.
-   *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is being looked for
-   * @see StaticTypeWarningCode#UNDEFINED_GETTER
-   * @see StaticWarningCode#UNDEFINED_GETTER
-   */
-  static const HintCode UNDEFINED_GETTER = const HintCode.con1('UNDEFINED_GETTER', 19, "There is no such getter '%s' in '%s'");
-
-  /**
-   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
-   * have been generated, if we used propagated information for the warnings.
-   *
-   * @param methodName the name of the method that is undefined
-   * @param typeName the resolved type name that the method lookup is happening on
-   * @see StaticTypeWarningCode#UNDEFINED_METHOD
-   */
-  static const HintCode UNDEFINED_METHOD = const HintCode.con1('UNDEFINED_METHOD', 20, "The method '%s' is not defined for the class '%s'");
-
-  /**
-   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
-   * would have been generated, if we used propagated information for the warnings.
-   *
-   * @param operator the name of the operator
-   * @param enclosingType the name of the enclosing type where the operator is being looked for
-   * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
-   */
-  static const HintCode UNDEFINED_OPERATOR = const HintCode.con1('UNDEFINED_OPERATOR', 21, "There is no such operator '%s' in '%s'");
-
-  /**
-   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
-   * [StaticWarningCode#UNDEFINED_SETTER] would have been generated, if we used propagated
-   * information for the warnings.
-   *
-   * @param setterName the name of the setter
-   * @param enclosingType the name of the enclosing type where the setter is being looked for
-   * @see StaticTypeWarningCode#UNDEFINED_SETTER
-   * @see StaticWarningCode#UNDEFINED_SETTER
-   */
-  static const HintCode UNDEFINED_SETTER = const HintCode.con1('UNDEFINED_SETTER', 22, "There is no such setter '%s' in '%s'");
-
-  /**
-   * Unnecessary cast.
-   */
-  static const HintCode UNNECESSARY_CAST = const HintCode.con1('UNNECESSARY_CAST', 23, "Unnecessary cast");
-
-  /**
-   * Unnecessary type checks, the result is always true.
-   */
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 24, "Unnecessary type check, the result is always false");
-
-  /**
-   * Unnecessary type checks, the result is always false.
-   */
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 25, "Unnecessary type check, the result is always true");
-
-  /**
-   * Unused imports are imports which are never not used.
-   */
-  static const HintCode UNUSED_IMPORT = const HintCode.con1('UNUSED_IMPORT', 26, "Unused import");
-
-  /**
-   * Hint for cases where the source expects a method or function to return a non-void result, but
-   * the method or function signature returns void.
-   *
-   * @param name the name of the method or function that returns void
-   */
-  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 27, "The result of '%s' is being used, even though it is declared to be 'void'");
-
-  static const List<HintCode> values = const [
-      ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      DEAD_CODE,
-      DEAD_CODE_CATCH_FOLLOWING_CATCH,
-      DEAD_CODE_ON_CATCH_SUBTYPE,
-      DEPRECATED_MEMBER_USE,
-      DUPLICATE_IMPORT,
-      DIVISION_OPTIMIZATION,
-      IS_DOUBLE,
-      IS_INT,
-      IS_NOT_DOUBLE,
-      IS_NOT_INT,
-      INVALID_ASSIGNMENT,
-      MISSING_RETURN,
-      OVERRIDE_ON_NON_OVERRIDING_GETTER,
-      OVERRIDE_ON_NON_OVERRIDING_METHOD,
-      OVERRIDE_ON_NON_OVERRIDING_SETTER,
-      OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
-      TYPE_CHECK_IS_NOT_NULL,
-      TYPE_CHECK_IS_NULL,
-      UNDEFINED_GETTER,
-      UNDEFINED_METHOD,
-      UNDEFINED_OPERATOR,
-      UNDEFINED_SETTER,
-      UNNECESSARY_CAST,
-      UNNECESSARY_TYPE_CHECK_FALSE,
-      UNNECESSARY_TYPE_CHECK_TRUE,
-      UNUSED_IMPORT,
-      USE_OF_VOID_RESULT];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for the error
-   */
-  const HintCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given message and correction.
-   *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const HintCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
-
-  @override
-  ErrorType get type => ErrorType.HINT;
-}
-
-/**
- * Instances of the class `BooleanErrorListener` implement a listener that keeps track of
- * whether an error has been reported to it.
- */
-class BooleanErrorListener implements AnalysisErrorListener {
-  /**
-   * A flag indicating whether an error has been reported to this listener.
-   */
-  bool _errorReported = false;
-
-  /**
-   * Return `true` if an error has been reported to this listener.
-   *
-   * @return `true` if an error has been reported to this listener
-   */
-  bool get errorReported => _errorReported;
-
-  @override
-  void onError(AnalysisError error) {
-    _errorReported = true;
-  }
 }
 
 /**
@@ -3774,17 +3749,42 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
 }
 
 /**
- * The enumeration `ErrorProperty` defines the properties that can be associated with an
- * [AnalysisError].
+ * The enumeration `TodoCode` defines the single TODO `ErrorCode`.
  */
-class ErrorProperty extends Enum<ErrorProperty> {
+class TodoCode extends Enum<TodoCode> implements ErrorCode {
   /**
-   * A property whose value is an array of [ExecutableElement] that should
-   * be but are not implemented by a concrete class.
+   * The single enum of TodoCode.
    */
-  static const ErrorProperty UNIMPLEMENTED_METHODS = const ErrorProperty('UNIMPLEMENTED_METHODS', 0);
+  static const TodoCode TODO = const TodoCode('TODO', 0);
 
-  static const List<ErrorProperty> values = const [UNIMPLEMENTED_METHODS];
+  static const List<TodoCode> values = const [TODO];
 
-  const ErrorProperty(String name, int ordinal) : super(name, ordinal);
+  /**
+   * This matches the two common Dart task styles
+   *
+   * * TODO:
+   * * TODO(username):
+   *
+   * As well as
+   * * TODO
+   *
+   * But not
+   * * todo
+   * * TODOS
+   */
+  static RegExp TODO_REGEX = new RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
+
+  const TodoCode(String name, int ordinal) : super(name, ordinal);
+
+  @override
+  String get correction => null;
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  String get message => "%s";
+
+  @override
+  ErrorType get type => ErrorType.TODO;
 }

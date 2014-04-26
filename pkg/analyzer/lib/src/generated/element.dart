@@ -21,6 +21,794 @@ import 'constant.dart' show EvaluationResultImpl;
 import 'utilities_dart.dart';
 
 /**
+ * Information about Angular application.
+ */
+class AngularApplication {
+  final Source entryPoint;
+
+  final Set<Source> _librarySources;
+
+  final List<AngularElement> elements;
+
+  final List<Source> elementSources;
+
+  AngularApplication(this.entryPoint, this._librarySources, this.elements, this.elementSources);
+
+  /**
+   * Checks if this application depends on the library with the given [Source].
+   */
+  bool dependsOn(Source librarySource) => _librarySources.contains(librarySource);
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular component described by
+ * <code>Component</code> annotation.
+ */
+abstract class AngularComponentElement implements AngularHasSelectorElement, AngularHasTemplateElement {
+  /**
+   * Return an array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> get properties;
+
+  /**
+   * Return an array containing all of the scope properties set in the implementation of this
+   * component.
+   */
+  List<AngularScopePropertyElement> get scopeProperties;
+
+  /**
+   * Returns the CSS file URI.
+   */
+  String get styleUri;
+
+  /**
+   * Return the offset of the [getStyleUri] in the [getSource].
+   *
+   * @return the offset of the style URI
+   */
+  int get styleUriOffset;
+}
+
+/**
+ * Implementation of `AngularComponentElement`.
+ */
+class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
+  /**
+   * The offset of the defining <code>Component</code> annotation.
+   */
+  final int _annotationOffset;
+
+  /**
+   * The array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * The array containing all of the scope properties set by this component.
+   */
+  List<AngularScopePropertyElement> _scopeProperties = AngularScopePropertyElement.EMPTY_ARRAY;
+
+  /**
+   * The the CSS file URI.
+   */
+  String styleUri;
+
+  /**
+   * The offset of the [styleUri] in the [getSource].
+   */
+  int styleUriOffset = 0;
+
+  /**
+   * The HTML template URI.
+   */
+  String templateUri;
+
+  /**
+   * The HTML template source.
+   */
+  Source templateSource;
+
+  /**
+   * The offset of the [templateUri] in the [getSource].
+   */
+  int templateUriOffset = 0;
+
+  /**
+   * Initialize a newly created Angular component to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularComponentElementImpl(String name, int nameOffset, this._annotationOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
+
+  @override
+  List<AngularPropertyElement> get properties => _properties;
+
+  @override
+  List<AngularScopePropertyElement> get scopeProperties => _scopeProperties;
+
+  /**
+   * Set an array containing all of the properties declared by this component.
+   *
+   * @param properties the properties to set
+   */
+  void set properties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      encloseElement(property as AngularPropertyElementImpl);
+    }
+    this._properties = properties;
+  }
+
+  /**
+   * Set an array containing all of the scope properties declared by this component.
+   *
+   * @param properties the properties to set
+   */
+  void set scopeProperties(List<AngularScopePropertyElement> properties) {
+    for (AngularScopePropertyElement property in properties) {
+      encloseElement(property as AngularScopePropertyElementImpl);
+    }
+    this._scopeProperties = properties;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_properties, visitor);
+    safelyVisitChildren(_scopeProperties, visitor);
+    super.visitChildren(visitor);
+  }
+
+  @override
+  String get identifier => "AngularComponent@${_annotationOffset}";
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular controller described by
+ * <code>Controller</code> annotation.
+ */
+abstract class AngularControllerElement implements AngularHasSelectorElement {
+}
+
+/**
+ * Implementation of `AngularControllerElement`.
+ */
+class AngularControllerElementImpl extends AngularHasSelectorElementImpl implements AngularControllerElement {
+  /**
+   * Initialize a newly created Angular controller to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularControllerElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
+}
+
+/**
+ * The interface `AngularDirectiveElement` defines the Angular controller described by
+ * <code>Decorator</code> annotation.
+ */
+abstract class AngularDecoratorElement implements AngularHasSelectorElement {
+  /**
+   * Return an array containing all of the properties declared by this directive.
+   */
+  List<AngularPropertyElement> get properties;
+
+  /**
+   * Checks if this directive is implemented by the class with given name.
+   */
+  bool isClass(String name);
+}
+
+/**
+ * Implementation of `AngularDirectiveElement`.
+ */
+class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implements AngularDecoratorElement {
+  /**
+   * The offset of the annotation that defines this directive.
+   */
+  final int _offset;
+
+  /**
+   * The array containing all of the properties declared by this directive.
+   */
+  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created Angular directive to have the given name.
+   *
+   * @param offset the offset of the annotation that defines this directive
+   */
+  AngularDecoratorElementImpl(this._offset) : super(null, -1);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
+
+  @override
+  String get displayName => selector.displayName;
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_DIRECTIVE;
+
+  @override
+  List<AngularPropertyElement> get properties => _properties;
+
+  @override
+  bool isClass(String name) {
+    Element enclosing = enclosingElement;
+    return enclosing is ClassElement && enclosing.name == name;
+  }
+
+  /**
+   * Set an array containing all of the properties declared by this directive.
+   *
+   * @param properties the properties to set
+   */
+  void set properties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      encloseElement(property as AngularPropertyElementImpl);
+    }
+    this._properties = properties;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_properties, visitor);
+    super.visitChildren(visitor);
+  }
+
+  @override
+  String get identifier => "Decorator@${_offset}";
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular specific element.
+ */
+abstract class AngularElement implements ToolkitObjectElement {
+  /**
+   * An empty array of Angular elements.
+   */
+  static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
+
+  /**
+   * Returns the [AngularApplication] this element is used in.
+   *
+   * @return the [AngularApplication] this element is used in
+   */
+  AngularApplication get application;
+}
+
+/**
+ * Implementation of `AngularElement`.
+ */
+abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
+  /**
+   * The [AngularApplication] this element is used in.
+   */
+  AngularApplication _application;
+
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  AngularApplication get application => _application;
+
+  /**
+   * Set the [AngularApplication] this element is used in.
+   */
+  void set application(AngularApplication application) {
+    this._application = application;
+  }
+}
+
+/**
+ * The interface `AngularFormatterElement` defines the Angular formatter described by
+ * <code>Formatter</code> annotation.
+ */
+abstract class AngularFormatterElement implements AngularElement {
+}
+
+/**
+ * Implementation of `AngularFormatterElement`.
+ */
+class AngularFormatterElementImpl extends AngularElementImpl implements AngularFormatterElement {
+  /**
+   * Initialize a newly created Angular formatter to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularFormatterElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularFormatterElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_FORMATTER;
+}
+
+/**
+ * [AngularSelectorElement] based on presence of attribute.
+ */
+abstract class AngularHasAttributeSelectorElement implements AngularSelectorElement {
+}
+
+/**
+ * [AngularSelectorElement] based on presence of a class.
+ */
+abstract class AngularHasClassSelectorElement implements AngularSelectorElement {
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on presence of a class.
+ */
+class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasClassSelectorElement {
+  AngularHasClassSelectorElementImpl(String name, int offset) : super(name, offset);
+
+  @override
+  bool apply(XmlTagNode node) {
+    XmlAttributeNode attribute = node.getAttribute("class");
+    if (attribute != null) {
+      String text = attribute.text;
+      if (text != null) {
+        String name = this.name;
+        for (String className in StringUtils.split(text)) {
+          if (className == name) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(".");
+    builder.append(name);
+  }
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular element which is applied conditionally using some [AngularSelectorElement].
+ */
+abstract class AngularHasSelectorElement implements AngularElement {
+  /**
+   * Returns the selector specified for this element.
+   *
+   * @return the [AngularSelectorElement] specified for this element
+   */
+  AngularSelectorElement get selector;
+}
+
+/**
+ * Implementation of `AngularSelectorElement`.
+ */
+abstract class AngularHasSelectorElementImpl extends AngularElementImpl implements AngularHasSelectorElement {
+  /**
+   * The selector of this element.
+   */
+  AngularSelectorElement _selector;
+
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularHasSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  AngularSelectorElement get selector => _selector;
+
+  /**
+   * Set the selector of this selector-based element.
+   *
+   * @param selector the selector to set
+   */
+  void set selector(AngularSelectorElement selector) {
+    encloseElement(selector as AngularSelectorElementImpl);
+    this._selector = selector;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChild(_selector, visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/**
+ * The interface `AngularHasTemplateElement` defines common behavior for
+ * [AngularElement] that have template URI / [Source].
+ */
+abstract class AngularHasTemplateElement implements AngularElement {
+  /**
+   * Returns the HTML template [Source], `null` if not resolved.
+   */
+  Source get templateSource;
+
+  /**
+   * Returns the HTML template URI.
+   */
+  String get templateUri;
+
+  /**
+   * Return the offset of the [getTemplateUri] in the [getSource].
+   *
+   * @return the offset of the template URI
+   */
+  int get templateUriOffset;
+}
+
+/**
+ * The interface `AngularPropertyElement` defines a single property in
+ * [AngularComponentElement].
+ */
+abstract class AngularPropertyElement implements AngularElement {
+  /**
+   * An empty array of property elements.
+   */
+  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the field this property is mapped to.
+   *
+   * @return the field this property is mapped to.
+   */
+  FieldElement get field;
+
+  /**
+   * Return the offset of the field name of this property in the property map, or `-1` if
+   * property was created using annotation on [FieldElement].
+   *
+   * @return the offset of the field name of this property
+   */
+  int get fieldNameOffset;
+
+  /**
+   * Returns the kind of this property.
+   *
+   * @return the kind of this property
+   */
+  AngularPropertyKind get propertyKind;
+}
+
+/**
+ * Implementation of `AngularPropertyElement`.
+ */
+class AngularPropertyElementImpl extends AngularElementImpl implements AngularPropertyElement {
+  /**
+   * The [FieldElement] to which this property is bound.
+   */
+  FieldElement field;
+
+  /**
+   * The offset of the field name in the property map.
+   */
+  int fieldNameOffset = -1;
+
+  AngularPropertyKind propertyKind;
+
+  /**
+   * Initialize a newly created Angular property to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularPropertyElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
+}
+
+/**
+ * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
+ */
+class AngularPropertyKind extends Enum<AngularPropertyKind> {
+  /**
+   * `@` - Map the DOM attribute string. The attribute string will be taken literally or
+   * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
+   * watches)
+   */
+  static const AngularPropertyKind ATTR = const AngularPropertyKind('ATTR', 0);
+
+  /**
+   * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
+   * This allows the component to control the invocation of the closure. This is useful for passing
+   * expressions into controllers which act like callbacks. (cost: 0 watches)
+   */
+  static const AngularPropertyKind CALLBACK = const AngularPropertyKind('CALLBACK', 1);
+
+  /**
+   * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
+   * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
+   */
+  static const AngularPropertyKind ONE_WAY = const AngularPropertyKind('ONE_WAY', 2);
+
+  /**
+   * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
+   * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
+   * then 0 watches)
+   */
+  static const AngularPropertyKind ONE_WAY_ONE_TIME = const AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
+
+  /**
+   * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
+   * as component scope to keep the source and destination in sync. (cost: 2 watches)
+   */
+  static const AngularPropertyKind TWO_WAY = const AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
+
+  static const List<AngularPropertyKind> values = const [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
+
+  /**
+   * Returns `true` if property of this kind calls field getter.
+   */
+  bool callsGetter() => false;
+
+  /**
+   * Returns `true` if property of this kind calls field setter.
+   */
+  bool callsSetter() => true;
+
+  const AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
+}
+
+class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
+  const AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
+
+  @override
+  bool callsGetter() => true;
+}
+
+/**
+ * The interface `AngularScopeVariableElement` defines the Angular <code>Scope</code>
+ * property. They are created for every <code>scope['property'] = value;</code> code snippet.
+ */
+abstract class AngularScopePropertyElement implements AngularElement {
+  /**
+   * An empty array of scope property elements.
+   */
+  static final List<AngularScopePropertyElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
+   *
+   * @return the type of this property.
+   */
+  DartType get type;
+}
+
+/**
+ * Implementation of `AngularScopePropertyElement`.
+ */
+class AngularScopePropertyElementImpl extends AngularElementImpl implements AngularScopePropertyElement {
+  /**
+   * The type of the property
+   */
+  final DartType type;
+
+  /**
+   * Initialize a newly created Angular scope property to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_SCOPE_PROPERTY;
+}
+
+/**
+ * [AngularSelectorElement] is used to decide when Angular object should be applied.
+ *
+ * This class is an [Element] to support renaming component tag names, which are identifiers
+ * in selectors.
+ */
+abstract class AngularSelectorElement implements AngularElement {
+  /**
+   * Checks if the given [XmlTagNode] matches this selector.
+   *
+   * @param node the [XmlTagNode] to check
+   * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
+   */
+  bool apply(XmlTagNode node);
+}
+
+/**
+ * Implementation of `AngularFormatterElement`.
+ */
+abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
+  /**
+   * Initialize a newly created Angular selector to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularSelectorElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_SELECTOR;
+}
+
+/**
+ * [AngularSelectorElement] based on tag name.
+ */
+abstract class AngularTagSelectorElement implements AngularSelectorElement {
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on tag name.
+ */
+class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implements AngularTagSelectorElement {
+  AngularTagSelectorElementImpl(String name, int offset) : super(name, offset);
+
+  @override
+  bool apply(XmlTagNode node) {
+    String tagName = name;
+    return node.tag == tagName;
+  }
+
+  @override
+  AngularApplication get application => (enclosingElement as AngularElementImpl).application;
+}
+
+/**
+ * The interface `AngularViewElement` defines the Angular view defined using invocation like
+ * <code>view('views/create.html')</code>.
+ */
+abstract class AngularViewElement implements AngularHasTemplateElement {
+  /**
+   * An empty array of view elements.
+   */
+  static final List<AngularViewElement> EMPTY_ARRAY = new List<AngularViewElement>(0);
+}
+
+/**
+ * Implementation of `AngularViewElement`.
+ */
+class AngularViewElementImpl extends AngularElementImpl implements AngularViewElement {
+  /**
+   * The HTML template URI.
+   */
+  final String templateUri;
+
+  /**
+   * The offset of the [templateUri] in the [getSource].
+   */
+  final int templateUriOffset;
+
+  /**
+   * The HTML template source.
+   */
+  Source templateSource;
+
+  /**
+   * Initialize a newly created Angular view.
+   */
+  AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.ANGULAR_VIEW;
+
+  @override
+  String get identifier => "AngularView@${templateUriOffset}";
+}
+
+/**
+ * For AST nodes that could be in both the getter and setter contexts ([IndexExpression]s and
+ * [SimpleIdentifier]s), the additional resolved elements are stored in the AST node, in an
+ * [AuxiliaryElements]. Since resolved elements are either statically resolved or resolved
+ * using propagated type information, this class is a wrapper for a pair of
+ * [ExecutableElement]s, not just a single [ExecutableElement].
+ */
+class AuxiliaryElements {
+  /**
+   * The element based on propagated type information, or `null` if the AST structure has not
+   * been resolved or if this identifier could not be resolved.
+   */
+  final ExecutableElement propagatedElement;
+
+  /**
+   * The element associated with this identifier based on static type information, or `null`
+   * if the AST structure has not been resolved or if this identifier could not be resolved.
+   */
+  final ExecutableElement staticElement;
+
+  /**
+   * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
+   *
+   * @param staticElement the static element
+   * @param propagatedElement the propagated element
+   */
+  AuxiliaryElements(this.staticElement, this.propagatedElement);
+}
+
+/**
+ * The unique instance of the class `BottomTypeImpl` implements the type `bottom`.
+ */
+class BottomTypeImpl extends TypeImpl {
+  /**
+   * The unique instance of this class.
+   */
+  static BottomTypeImpl _INSTANCE = new BottomTypeImpl();
+
+  /**
+   * Return the unique instance of this class.
+   *
+   * @return the unique instance of this class
+   */
+  static BottomTypeImpl get instance => _INSTANCE;
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  BottomTypeImpl() : super(null, "<bottom>");
+
+  @override
+  bool operator ==(Object object) => identical(object, this);
+
+  @override
+  int get hashCode => 0;
+
+  @override
+  bool get isBottom => true;
+
+  @override
+  bool isSupertypeOf(DartType type) => false;
+
+  @override
+  BottomTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
+
+  @override
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
+  @override
+  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+
+  @override
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+}
+
+/**
  * The interface `ClassElement` defines the behavior of elements that represent a class.
  */
 abstract class ClassElement implements Element {
@@ -311,2459 +1099,6 @@ abstract class ClassElement implements Element {
    *         library
    */
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
-}
-
-/**
- * The interface `ClassMemberElement` defines the behavior of elements that are contained
- * within a [ClassElement].
- */
-abstract class ClassMemberElement implements Element {
-  /**
-   * Return the type in which this member is defined.
-   *
-   * @return the type in which this member is defined
-   */
-  @override
-  ClassElement get enclosingElement;
-
-  /**
-   * Return `true` if this element is a static element. A static element is an element that is
-   * not associated with a particular instance, but rather with an entire library or class.
-   *
-   * @return `true` if this executable element is a static element
-   */
-  bool get isStatic;
-}
-
-/**
- * The interface `CompilationUnitElement` defines the behavior of elements representing a
- * compilation unit.
- */
-abstract class CompilationUnitElement implements Element, UriReferencedElement {
-  /**
-   * Return an array containing all of the top-level accessors (getters and setters) contained in
-   * this compilation unit.
-   *
-   * @return the top-level accessors contained in this compilation unit
-   */
-  List<PropertyAccessorElement> get accessors;
-
-  /**
-   * Return an array containing all of the Angular views defined in this compilation unit. The array
-   * will be empty if the element does not have any Angular views or if the compilation unit has not
-   * yet had toolkit references resolved.
-   *
-   * @return the Angular views defined in this compilation unit.
-   */
-  List<AngularViewElement> get angularViews;
-
-  /**
-   * Return the library in which this compilation unit is defined.
-   *
-   * @return the library in which this compilation unit is defined
-   */
-  @override
-  LibraryElement get enclosingElement;
-
-  /**
-   * Return an array containing all of the top-level functions contained in this compilation unit.
-   *
-   * @return the top-level functions contained in this compilation unit
-   */
-  List<FunctionElement> get functions;
-
-  /**
-   * Return an array containing all of the function type aliases contained in this compilation unit.
-   *
-   * @return the function type aliases contained in this compilation unit
-   */
-  List<FunctionTypeAliasElement> get functionTypeAliases;
-
-  /**
-   * Return the resolved [CompilationUnit] node that declares this element.
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [CompilationUnit], not `null`.
-   */
-  @override
-  CompilationUnit get node;
-
-  /**
-   * Return an array containing all of the top-level variables contained in this compilation unit.
-   *
-   * @return the top-level variables contained in this compilation unit
-   */
-  List<TopLevelVariableElement> get topLevelVariables;
-
-  /**
-   * Return the class defined in this compilation unit that has the given name, or `null` if
-   * this compilation unit does not define a class with the given name.
-   *
-   * @param className the name of the class to be returned
-   * @return the class with the given name that is defined in this compilation unit
-   */
-  ClassElement getType(String className);
-
-  /**
-   * Return an array containing all of the classes contained in this compilation unit.
-   *
-   * @return the classes contained in this compilation unit
-   */
-  List<ClassElement> get types;
-
-  /**
-   * Return `true` if this compilation unit defines a top-level function named
-   * `loadLibrary`.
-   *
-   * @return `true` if this compilation unit defines a top-level function named
-   *         `loadLibrary`
-   */
-  bool get hasLoadLibraryFunction;
-}
-
-/**
- * The interface `ConstructorElement` defines the behavior of elements representing a
- * constructor or a factory method defined within a type.
- */
-abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
-  /**
-   * Return the resolved [ConstructorDeclaration] node that declares this
-   * [ConstructorElement] .
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [ConstructorDeclaration], not `null`.
-   */
-  @override
-  ConstructorDeclaration get node;
-
-  /**
-   * Return the constructor to which this constructor is redirecting, or `null` if this constructor
-   * does not redirect to another constructor or if the library containing this constructor has
-   * not yet been resolved.
-   *
-   * @return the constructor to which this constructor is redirecting
-   */
-  ConstructorElement get redirectedConstructor;
-
-  /**
-   * Return `true` if this constructor is a const constructor.
-   *
-   * @return `true` if this constructor is a const constructor
-   */
-  bool get isConst;
-
-  /**
-   * Return `true` if this constructor can be used as a default constructor - unnamed and has
-   * no required parameters.
-   *
-   * @return `true` if this constructor can be used as a default constructor.
-   */
-  bool get isDefaultConstructor;
-
-  /**
-   * Return `true` if this constructor represents a factory constructor.
-   *
-   * @return `true` if this constructor represents a factory constructor
-   */
-  bool get isFactory;
-}
-
-/**
- * The interface `Element` defines the behavior common to all of the elements in the element
- * model. Generally speaking, the element model is a semantic model of the program that represents
- * things that are declared with a name and hence can be referenced elsewhere in the code.
- *
- * There are two exceptions to the general case. First, there are elements in the element model that
- * are created for the convenience of various kinds of analysis but that do not have any
- * corresponding declaration within the source code. Such elements are marked as being
- * <i>synthetic</i>. Examples of synthetic elements include
- * * default constructors in classes that do not define any explicit constructors,
- * * getters and setters that are induced by explicit field declarations,
- * * fields that are induced by explicit declarations of getters and setters, and
- * * functions representing the initialization expression for a variable.
- *
- * Second, there are elements in the element model that do not have a name. These correspond to
- * unnamed functions and exist in order to more accurately represent the semantic structure of the
- * program.
- */
-abstract class Element {
-  /**
-   * An Unicode right arrow.
-   */
-  static final String RIGHT_ARROW = " \u2192 ";
-
-  /**
-   * A comparator that can be used to sort elements by their name offset. Elements with a smaller
-   * offset will be sorted to be before elements with a larger name offset.
-   */
-  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
-
-  /**
-   * Use the given visitor to visit this element.
-   *
-   * @param visitor the visitor that will visit this element
-   * @return the value returned by the visitor as a result of visiting this element
-   */
-  accept(ElementVisitor visitor);
-
-  /**
-   * Return the documentation comment for this element as it appears in the original source
-   * (complete with the beginning and ending delimiters), or `null` if this element does not
-   * have a documentation comment associated with it. This can be a long-running operation if the
-   * information needed to access the comment is not cached.
-   *
-   * @return this element's documentation comment
-   * @throws AnalysisException if the documentation comment could not be determined because the
-   *           analysis could not be performed
-   */
-  String computeDocumentationComment();
-
-  /**
-   * Return the element of the given class that most immediately encloses this element, or
-   * `null` if there is no enclosing element of the given class.
-   *
-   * @param elementClass the class of the element to be returned
-   * @return the element that encloses this element
-   */
-  Element getAncestor(Predicate<Element> predicate);
-
-  /**
-   * Return the analysis context in which this element is defined.
-   *
-   * @return the analysis context in which this element is defined
-   */
-  AnalysisContext get context;
-
-  /**
-   * Return the display name of this element, or `null` if this element does not have a name.
-   *
-   * In most cases the name and the display name are the same. Differences though are cases such as
-   * setters where the name of some setter `set f(x)` is `f=`, instead of `f`.
-   *
-   * @return the display name of this element
-   */
-  String get displayName;
-
-  /**
-   * Return the element that either physically or logically encloses this element. This will be
-   * `null` if this element is a library because libraries are the top-level elements in the
-   * model.
-   *
-   * @return the element that encloses this element
-   */
-  Element get enclosingElement;
-
-  /**
-   * Return the kind of element that this is.
-   *
-   * @return the kind of this element
-   */
-  ElementKind get kind;
-
-  /**
-   * Return the library that contains this element. This will be the element itself if it is a
-   * library element. This will be `null` if this element is an HTML file because HTML files
-   * are not contained in libraries.
-   *
-   * @return the library that contains this element
-   */
-  LibraryElement get library;
-
-  /**
-   * Return an object representing the location of this element in the element model. The object can
-   * be used to locate this element at a later time.
-   *
-   * @return the location of this element in the element model
-   */
-  ElementLocation get location;
-
-  /**
-   * Return an array containing all of the metadata associated with this element. The array will be
-   * empty if the element does not have any metadata or if the library containing this element has
-   * not yet been resolved.
-   *
-   * @return the metadata associated with this element
-   */
-  List<ElementAnnotation> get metadata;
-
-  /**
-   * Return the name of this element, or `null` if this element does not have a name.
-   *
-   * @return the name of this element
-   */
-  String get name;
-
-  /**
-   * Return the offset of the name of this element in the file that contains the declaration of this
-   * element, or `-1` if this element is synthetic, does not have a name, or otherwise does
-   * not have an offset.
-   *
-   * @return the offset of the name of this element
-   */
-  int get nameOffset;
-
-  /**
-   * Return the resolved [AstNode] node that declares this [Element].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   *
-   * @return the resolved [AstNode], maybe `null` if [Element] is synthetic or
-   *         isn't contained in a compilation unit, such as a [LibraryElement].
-   */
-  AstNode get node;
-
-  /**
-   * Return the source that contains this element, or `null` if this element is not contained
-   * in a source.
-   *
-   * @return the source that contains this element
-   */
-  Source get source;
-
-  /**
-   * Return the resolved [CompilationUnit] that declares this [Element].
-   *
-   * This method is expensive, because resolved AST might have been already evicted from cache, so
-   * parsing and resolving will be performed.
-   *
-   * @return the resolved [CompilationUnit], maybe `null` if synthetic [Element].
-   */
-  CompilationUnit get unit;
-
-  /**
-   * Return `true` if this element, assuming that it is within scope, is accessible to code in
-   * the given library. This is defined by the Dart Language Specification in section 3.2:
-   * <blockquote> A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is declared
-   * in <i>L</i> or if <i>m</i> is public. </blockquote>
-   *
-   * @param library the library in which a possible reference to this element would occur
-   * @return `true` if this element is accessible to code in the given library
-   */
-  bool isAccessibleIn(LibraryElement library);
-
-  /**
-   * Return `true` if this element has an annotation of the form '@deprecated' or
-   * '@Deprecated('..')'.
-   *
-   * @return `true` if this element is deprecated
-   */
-  bool get isDeprecated;
-
-  /**
-   * Return `true` if this element has an annotation of the form '@override'.
-   *
-   * @return `true` if this element is overridden
-   */
-  bool get isOverride;
-
-  /**
-   * Return `true` if this element is private. Private elements are visible only within the
-   * library in which they are declared.
-   *
-   * @return `true` if this element is private
-   */
-  bool get isPrivate;
-
-  /**
-   * Return `true` if this element is public. Public elements are visible within any library
-   * that imports the library in which they are declared.
-   *
-   * @return `true` if this element is public
-   */
-  bool get isPublic;
-
-  /**
-   * Return `true` if this element is synthetic. A synthetic element is an element that is not
-   * represented in the source code explicitly, but is implied by the source code, such as the
-   * default constructor for a class that does not explicitly define any constructors.
-   *
-   * @return `true` if this element is synthetic
-   */
-  bool get isSynthetic;
-
-  /**
-   * Use the given visitor to visit all of the children of this element. There is no guarantee of
-   * the order in which the children will be visited.
-   *
-   * @param visitor the visitor that will be used to visit the children of this element
-   */
-  void visitChildren(ElementVisitor visitor);
-}
-
-/**
- * The interface `ElementAnnotation` defines the behavior of objects representing a single
- * annotation associated with an element.
- */
-abstract class ElementAnnotation {
-  /**
-   * Return the element representing the field, variable, or const constructor being used as an
-   * annotation.
-   *
-   * @return the field, variable, or constructor being used as an annotation
-   */
-  Element get element;
-
-  /**
-   * Return `true` if this annotation marks the associated element as being deprecated.
-   *
-   * @return `true` if this annotation marks the associated element as being deprecated
-   */
-  bool get isDeprecated;
-
-  /**
-   * Return `true` if this annotation marks the associated method as being expected to
-   * override an inherited method.
-   *
-   * @return `true` if this annotation marks the associated method as overriding another
-   *         method
-   */
-  bool get isOverride;
-
-  /**
-   * Return `true` if this annotation marks the associated class as implementing a proxy
-   * object.
-   *
-   * @return `true` if this annotation marks the associated class as implementing a proxy
-   *         object
-   */
-  bool get isProxy;
-}
-
-/**
- * The enumeration `ElementKind` defines the various kinds of elements in the element model.
- */
-class ElementKind extends Enum<ElementKind> {
-  static const ElementKind ANGULAR_FORMATTER = const ElementKind('ANGULAR_FORMATTER', 0, "Angular formatter");
-
-  static const ElementKind ANGULAR_COMPONENT = const ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
-
-  static const ElementKind ANGULAR_CONTROLLER = const ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
-
-  static const ElementKind ANGULAR_DIRECTIVE = const ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
-
-  static const ElementKind ANGULAR_PROPERTY = const ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
-
-  static const ElementKind ANGULAR_SCOPE_PROPERTY = const ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
-
-  static const ElementKind ANGULAR_SELECTOR = const ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
-
-  static const ElementKind ANGULAR_VIEW = const ElementKind('ANGULAR_VIEW', 7, "Angular view");
-
-  static const ElementKind CLASS = const ElementKind('CLASS', 8, "class");
-
-  static const ElementKind COMPILATION_UNIT = const ElementKind('COMPILATION_UNIT', 9, "compilation unit");
-
-  static const ElementKind CONSTRUCTOR = const ElementKind('CONSTRUCTOR', 10, "constructor");
-
-  static const ElementKind DYNAMIC = const ElementKind('DYNAMIC', 11, "<dynamic>");
-
-  static const ElementKind EMBEDDED_HTML_SCRIPT = const ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
-
-  static const ElementKind ERROR = const ElementKind('ERROR', 13, "<error>");
-
-  static const ElementKind EXPORT = const ElementKind('EXPORT', 14, "export directive");
-
-  static const ElementKind EXTERNAL_HTML_SCRIPT = const ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
-
-  static const ElementKind FIELD = const ElementKind('FIELD', 16, "field");
-
-  static const ElementKind FUNCTION = const ElementKind('FUNCTION', 17, "function");
-
-  static const ElementKind GETTER = const ElementKind('GETTER', 18, "getter");
-
-  static const ElementKind HTML = const ElementKind('HTML', 19, "html");
-
-  static const ElementKind IMPORT = const ElementKind('IMPORT', 20, "import directive");
-
-  static const ElementKind LABEL = const ElementKind('LABEL', 21, "label");
-
-  static const ElementKind LIBRARY = const ElementKind('LIBRARY', 22, "library");
-
-  static const ElementKind LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE', 23, "local variable");
-
-  static const ElementKind METHOD = const ElementKind('METHOD', 24, "method");
-
-  static const ElementKind NAME = const ElementKind('NAME', 25, "<name>");
-
-  static const ElementKind PARAMETER = const ElementKind('PARAMETER', 26, "parameter");
-
-  static const ElementKind POLYMER_ATTRIBUTE = const ElementKind('POLYMER_ATTRIBUTE', 27, "Polymer attribute");
-
-  static const ElementKind POLYMER_TAG_DART = const ElementKind('POLYMER_TAG_DART', 28, "Polymer Dart tag");
-
-  static const ElementKind POLYMER_TAG_HTML = const ElementKind('POLYMER_TAG_HTML', 29, "Polymer HTML tag");
-
-  static const ElementKind PREFIX = const ElementKind('PREFIX', 30, "import prefix");
-
-  static const ElementKind SETTER = const ElementKind('SETTER', 31, "setter");
-
-  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 32, "top level variable");
-
-  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 33, "function type alias");
-
-  static const ElementKind TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER', 34, "type parameter");
-
-  static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 35, "<universe>");
-
-  static const List<ElementKind> values = const [
-      ANGULAR_FORMATTER,
-      ANGULAR_COMPONENT,
-      ANGULAR_CONTROLLER,
-      ANGULAR_DIRECTIVE,
-      ANGULAR_PROPERTY,
-      ANGULAR_SCOPE_PROPERTY,
-      ANGULAR_SELECTOR,
-      ANGULAR_VIEW,
-      CLASS,
-      COMPILATION_UNIT,
-      CONSTRUCTOR,
-      DYNAMIC,
-      EMBEDDED_HTML_SCRIPT,
-      ERROR,
-      EXPORT,
-      EXTERNAL_HTML_SCRIPT,
-      FIELD,
-      FUNCTION,
-      GETTER,
-      HTML,
-      IMPORT,
-      LABEL,
-      LIBRARY,
-      LOCAL_VARIABLE,
-      METHOD,
-      NAME,
-      PARAMETER,
-      POLYMER_ATTRIBUTE,
-      POLYMER_TAG_DART,
-      POLYMER_TAG_HTML,
-      PREFIX,
-      SETTER,
-      TOP_LEVEL_VARIABLE,
-      FUNCTION_TYPE_ALIAS,
-      TYPE_PARAMETER,
-      UNIVERSE];
-
-  /**
-   * Return the kind of the given element, or [ERROR] if the element is `null`. This is
-   * a utility method that can reduce the need for null checks in other places.
-   *
-   * @param element the element whose kind is to be returned
-   * @return the kind of the given element
-   */
-  static ElementKind of(Element element) {
-    if (element == null) {
-      return ERROR;
-    }
-    return element.kind;
-  }
-
-  /**
-   * The name displayed in the UI for this kind of element.
-   */
-  final String displayName;
-
-  /**
-   * Initialize a newly created element kind to have the given display name.
-   *
-   * @param displayName the name displayed in the UI for this kind of element
-   */
-  const ElementKind(String name, int ordinal, this.displayName) : super(name, ordinal);
-}
-
-/**
- * The interface `ElementLocation` defines the behavior of objects that represent the location
- * of an element within the element model.
- */
-abstract class ElementLocation {
-  /**
-   * Return an encoded representation of this location that can be used to create a location that is
-   * equal to this location.
-   *
-   * @return an encoded representation of this location
-   */
-  String get encoding;
-}
-
-/**
- * The interface `ElementVisitor` defines the behavior of objects that can be used to visit an
- * element structure.
- */
-abstract class ElementVisitor<R> {
-  R visitAngularComponentElement(AngularComponentElement element);
-
-  R visitAngularControllerElement(AngularControllerElement element);
-
-  R visitAngularDirectiveElement(AngularDecoratorElement element);
-
-  R visitAngularFormatterElement(AngularFormatterElement element);
-
-  R visitAngularPropertyElement(AngularPropertyElement element);
-
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element);
-
-  R visitAngularSelectorElement(AngularSelectorElement element);
-
-  R visitAngularViewElement(AngularViewElement element);
-
-  R visitClassElement(ClassElement element);
-
-  R visitCompilationUnitElement(CompilationUnitElement element);
-
-  R visitConstructorElement(ConstructorElement element);
-
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
-
-  R visitExportElement(ExportElement element);
-
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
-
-  R visitFieldElement(FieldElement element);
-
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element);
-
-  R visitFunctionElement(FunctionElement element);
-
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
-
-  R visitHtmlElement(HtmlElement element);
-
-  R visitImportElement(ImportElement element);
-
-  R visitLabelElement(LabelElement element);
-
-  R visitLibraryElement(LibraryElement element);
-
-  R visitLocalVariableElement(LocalVariableElement element);
-
-  R visitMethodElement(MethodElement element);
-
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element);
-
-  R visitParameterElement(ParameterElement element);
-
-  R visitPolymerAttributeElement(PolymerAttributeElement element);
-
-  R visitPolymerTagDartElement(PolymerTagDartElement element);
-
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
-
-  R visitPrefixElement(PrefixElement element);
-
-  R visitPropertyAccessorElement(PropertyAccessorElement element);
-
-  R visitTopLevelVariableElement(TopLevelVariableElement element);
-
-  R visitTypeParameterElement(TypeParameterElement element);
-}
-
-/**
- * The interface `EmbeddedHtmlScriptElement` defines the behavior of elements representing a
- * script tag in an HTML file having content that defines a Dart library.
- */
-abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the library element defined by the content of the script tag.
-   *
-   * @return the library element (not `null`)
-   */
-  LibraryElement get scriptLibrary;
-}
-
-/**
- * The interface `ExecutableElement` defines the behavior of elements representing an
- * executable object, including functions, methods, constructors, getters, and setters.
- */
-abstract class ExecutableElement implements Element {
-  /**
-   * Return an array containing all of the functions defined within this executable element.
-   *
-   * @return the functions defined within this executable element
-   */
-  List<FunctionElement> get functions;
-
-  /**
-   * Return an array containing all of the labels defined within this executable element.
-   *
-   * @return the labels defined within this executable element
-   */
-  List<LabelElement> get labels;
-
-  /**
-   * Return an array containing all of the local variables defined within this executable element.
-   *
-   * @return the local variables defined within this executable element
-   */
-  List<LocalVariableElement> get localVariables;
-
-  /**
-   * Return an array containing all of the parameters defined by this executable element.
-   *
-   * @return the parameters defined by this executable element
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this executable element.
-   *
-   * @return the return type defined by this executable element
-   */
-  DartType get returnType;
-
-  /**
-   * Return the type of function defined by this executable element.
-   *
-   * @return the type of function defined by this executable element
-   */
-  FunctionType get type;
-
-  /**
-   * Return `true` if this executable element is an operator. The test may be based on the
-   * name of the executable element, in which case the result will be correct when the name is
-   * legal.
-   *
-   * @return `true` if this executable element is an operator
-   */
-  bool get isOperator;
-
-  /**
-   * Return `true` if this element is a static element. A static element is an element that is
-   * not associated with a particular instance, but rather with an entire library or class.
-   *
-   * @return `true` if this executable element is a static element
-   */
-  bool get isStatic;
-}
-
-/**
- * The interface `ExportElement` defines the behavior of objects representing information
- * about a single export directive within a library.
- */
-abstract class ExportElement implements Element, UriReferencedElement {
-  /**
-   * An empty array of export elements.
-   */
-  static final List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
-
-  /**
-   * Return an array containing the combinators that were specified as part of the export directive
-   * in the order in which they were specified.
-   *
-   * @return the combinators specified in the export directive
-   */
-  List<NamespaceCombinator> get combinators;
-
-  /**
-   * Return the library that is exported from this library by this export directive.
-   *
-   * @return the library that is exported from this library
-   */
-  LibraryElement get exportedLibrary;
-}
-
-/**
- * The interface `ExternalHtmlScriptElement` defines the behavior of elements representing a
- * script tag in an HTML file having a `source` attribute that references a Dart library
- * source file.
- */
-abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the source referenced by this element, or `null` if this element does not
-   * reference a Dart library source file.
-   *
-   * @return the source for the external Dart library
-   */
-  Source get scriptSource;
-}
-
-/**
- * The interface `FieldElement` defines the behavior of elements representing a field defined
- * within a type.
- */
-abstract class FieldElement implements ClassMemberElement, PropertyInducingElement {
-}
-
-/**
- * The interface `FieldFormalParameterElement` defines the behavior of elements representing a
- * field formal parameter defined within a constructor element.
- */
-abstract class FieldFormalParameterElement implements ParameterElement {
-  /**
-   * Return the field element associated with this field formal parameter, or `null` if the
-   * parameter references a field that doesn't exist.
-   *
-   * @return the field element associated with this field formal parameter
-   */
-  FieldElement get field;
-}
-
-/**
- * The interface `FunctionElement` defines the behavior of elements representing a function.
- */
-abstract class FunctionElement implements ExecutableElement, LocalElement {
-  /**
-   * The name of the synthetic function defined for libraries that are deferred.
-   */
-  static final String LOAD_LIBRARY_NAME = "loadLibrary";
-
-  /**
-   * Return the resolved [FunctionDeclaration] node that declares this [FunctionElement]
-   * .
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [FunctionDeclaration], not `null`.
-   */
-  @override
-  FunctionDeclaration get node;
-}
-
-/**
- * The interface `FunctionTypeAliasElement` defines the behavior of elements representing a
- * function type alias (`typedef`).
- */
-abstract class FunctionTypeAliasElement implements Element {
-  /**
-   * Return the compilation unit in which this type alias is defined.
-   *
-   * @return the compilation unit in which this type alias is defined
-   */
-  @override
-  CompilationUnitElement get enclosingElement;
-
-  /**
-   * Return the resolved [FunctionTypeAlias] node that declares this
-   * [FunctionTypeAliasElement] .
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [FunctionTypeAlias], not `null`.
-   */
-  @override
-  FunctionTypeAlias get node;
-
-  /**
-   * Return an array containing all of the parameters defined by this type alias.
-   *
-   * @return the parameters defined by this type alias
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this type alias.
-   *
-   * @return the return type defined by this type alias
-   */
-  DartType get returnType;
-
-  /**
-   * Return the type of function defined by this type alias.
-   *
-   * @return the type of function defined by this type alias
-   */
-  FunctionType get type;
-
-  /**
-   * Return an array containing all of the type parameters defined for this type.
-   *
-   * @return the type parameters defined for this type
-   */
-  List<TypeParameterElement> get typeParameters;
-}
-
-/**
- * The interface `HideElementCombinator` defines the behavior of combinators that cause some
- * of the names in a namespace to be hidden when being imported.
- */
-abstract class HideElementCombinator implements NamespaceCombinator {
-  /**
-   * Return an array containing the names that are not to be made visible in the importing library
-   * even if they are defined in the imported library.
-   *
-   * @return the names from the imported library that are hidden from the importing library
-   */
-  List<String> get hiddenNames;
-}
-
-/**
- * The interface `HtmlElement` defines the behavior of elements representing an HTML file.
- */
-abstract class HtmlElement implements Element {
-  /**
-   * Return the [CompilationUnitElement] associated with this Angular HTML file, maybe
-   * `null` if not an Angular file.
-   */
-  CompilationUnitElement get angularCompilationUnit;
-
-  /**
-   * Return an array containing all of the [PolymerTagHtmlElement]s defined in the HTML file.
-   *
-   * @return the [PolymerTagHtmlElement]s elements in the HTML file (not `null`,
-   *         contains no `null`s)
-   */
-  List<PolymerTagHtmlElement> get polymerTags;
-
-  /**
-   * Return an array containing all of the script elements contained in the HTML file. This includes
-   * scripts with libraries that are defined by the content of a script tag as well as libraries
-   * that are referenced in the {@core source} attribute of a script tag.
-   *
-   * @return the script elements in the HTML file (not `null`, contains no `null`s)
-   */
-  List<HtmlScriptElement> get scripts;
-}
-
-/**
- * The interface `HtmlScriptElement` defines the behavior of elements representing a script
- * tag in an HTML file.
- *
- * @see EmbeddedHtmlScriptElement
- * @see ExternalHtmlScriptElement
- */
-abstract class HtmlScriptElement implements Element {
-}
-
-/**
- * The interface `ImportElement` defines the behavior of objects representing information
- * about a single import directive within a library.
- */
-abstract class ImportElement implements Element, UriReferencedElement {
-  /**
-   * An empty array of import elements.
-   */
-  static final List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
-
-  /**
-   * Return an array containing the combinators that were specified as part of the import directive
-   * in the order in which they were specified.
-   *
-   * @return the combinators specified in the import directive
-   */
-  List<NamespaceCombinator> get combinators;
-
-  /**
-   * Return the library that is imported into this library by this import directive.
-   *
-   * @return the library that is imported into this library
-   */
-  LibraryElement get importedLibrary;
-
-  /**
-   * Return the prefix that was specified as part of the import directive, or `null` if there
-   * was no prefix specified.
-   *
-   * @return the prefix that was specified as part of the import directive
-   */
-  PrefixElement get prefix;
-
-  /**
-   * Return the offset of the prefix of this import in the file that contains this import directive,
-   * or `-1` if this import is synthetic, does not have a prefix, or otherwise does not have
-   * an offset.
-   *
-   * @return the offset of the prefix of this import
-   */
-  int get prefixOffset;
-
-  /**
-   * Return `true` if this import is for a deferred library.
-   *
-   * @return `true` if this import is for a deferred library
-   */
-  bool get isDeferred;
-}
-
-/**
- * The interface `LabelElement` defines the behavior of elements representing a label
- * associated with a statement.
- */
-abstract class LabelElement implements Element {
-  /**
-   * Return the executable element in which this label is defined.
-   *
-   * @return the executable element in which this label is defined
-   */
-  @override
-  ExecutableElement get enclosingElement;
-}
-
-/**
- * The interface `LibraryElement` defines the behavior of elements representing a library.
- */
-abstract class LibraryElement implements Element {
-  /**
-   * Return the compilation unit that defines this library.
-   *
-   * @return the compilation unit that defines this library
-   */
-  CompilationUnitElement get definingCompilationUnit;
-
-  /**
-   * Return the entry point for this library, or `null` if this library does not have an entry
-   * point. The entry point is defined to be a zero argument top-level function whose name is
-   * `main`.
-   *
-   * @return the entry point for this library
-   */
-  FunctionElement get entryPoint;
-
-  /**
-   * Return an array containing all of the libraries that are exported from this library.
-   *
-   * @return an array containing all of the libraries that are exported from this library
-   */
-  List<LibraryElement> get exportedLibraries;
-
-  /**
-   * Return an array containing all of the exports defined in this library.
-   *
-   * @return the exports defined in this library
-   */
-  List<ExportElement> get exports;
-
-  /**
-   * Return an array containing all of the libraries that are imported into this library. This
-   * includes all of the libraries that are imported using a prefix (also available through the
-   * prefixes returned by [getPrefixes]) and those that are imported without a prefix.
-   *
-   * @return an array containing all of the libraries that are imported into this library
-   */
-  List<LibraryElement> get importedLibraries;
-
-  /**
-   * Return an array containing all of the imports defined in this library.
-   *
-   * @return the imports defined in this library
-   */
-  List<ImportElement> get imports;
-
-  /**
-   * Return an array containing all of the imports that share the given prefix, or an empty array if
-   * there are no such imports.
-   *
-   * @param prefixElement the prefix element shared by the returned imports
-   */
-  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement);
-
-  /**
-   * Return the element representing the synthetic function `loadLibrary` that is implicitly
-   * defined for this library if the library is imported using a deferred import.
-   */
-  FunctionElement get loadLibraryFunction;
-
-  /**
-   * Return an array containing all of the compilation units that are included in this library using
-   * a `part` directive. This does not include the defining compilation unit that contains the
-   * `part` directives.
-   *
-   * @return the compilation units that are included in this library
-   */
-  List<CompilationUnitElement> get parts;
-
-  /**
-   * Return an array containing elements for each of the prefixes used to `import` libraries
-   * into this library. Each prefix can be used in more than one `import` directive.
-   *
-   * @return the prefixes used to `import` libraries into this library
-   */
-  List<PrefixElement> get prefixes;
-
-  /**
-   * Return the class defined in this library that has the given name, or `null` if this
-   * library does not define a class with the given name.
-   *
-   * @param className the name of the class to be returned
-   * @return the class with the given name that is defined in this library
-   */
-  ClassElement getType(String className);
-
-  /**
-   * Return an array containing all of the compilation units this library consists of. This includes
-   * the defining compilation unit and units included using the `part` directive.
-   *
-   * @return the compilation units this library consists of
-   */
-  List<CompilationUnitElement> get units;
-
-  /**
-   * Return an array containing all directly and indirectly imported libraries.
-   *
-   * @return all directly and indirectly imported libraries
-   */
-  List<LibraryElement> get visibleLibraries;
-
-  /**
-   * Return `true` if the defining compilation unit of this library contains at least one
-   * import directive whose URI uses the "dart-ext" scheme.
-   */
-  bool get hasExtUri;
-
-  /**
-   * Return `true` if this library defines a top-level function named `loadLibrary`.
-   *
-   * @return `true` if this library defines a top-level function named `loadLibrary`
-   */
-  bool get hasLoadLibraryFunction;
-
-  /**
-   * Return `true` if this library is created for Angular analysis. If this library has not
-   * yet had toolkit references resolved, then `false` will be returned.
-   *
-   * @return `true` if this library is created for Angular analysis
-   */
-  bool get isAngularHtml;
-
-  /**
-   * Return `true` if this library is an application that can be run in the browser.
-   *
-   * @return `true` if this library is an application that can be run in the browser
-   */
-  bool get isBrowserApplication;
-
-  /**
-   * Return `true` if this library is the dart:core library.
-   *
-   * @return `true` if this library is the dart:core library
-   */
-  bool get isDartCore;
-
-  /**
-   * Return `true` if this library is the dart:core library.
-   *
-   * @return `true` if this library is the dart:core library
-   */
-  bool get isInSdk;
-
-  /**
-   * Return `true` if this library is up to date with respect to the given time stamp. If any
-   * transitively referenced Source is newer than the time stamp, this method returns false.
-   *
-   * @param timeStamp the time stamp to compare against
-   * @return `true` if this library is up to date with respect to the given time stamp
-   */
-  bool isUpToDate(int timeStamp);
-}
-
-/**
- * The interface `LocalElement` defines the behavior of elements that can be (but are not
- * required to be) defined within a method or function (an [ExecutableElement]).
- */
-abstract class LocalElement implements Element {
-  /**
-   * Return a source range that covers the approximate portion of the source in which the name of
-   * this element is visible, or `null` if there is no single range of characters within which
-   * the element name is visible.
-   * * For a local variable, this includes everything from the end of the variable's initializer
-   * to the end of the block that encloses the variable declaration.
-   * * For a parameter, this includes the body of the method or function that declares the
-   * parameter.
-   * * For a local function, this includes everything from the beginning of the function's body to
-   * the end of the block that encloses the function declaration.
-   * * For top-level functions, `null` will be returned because they are potentially visible
-   * in multiple sources.
-   *
-   * @return the range of characters in which the name of this element is visible
-   */
-  SourceRange get visibleRange;
-}
-
-/**
- * The interface `LocalVariableElement` defines the behavior common to elements that represent
- * a local variable.
- */
-abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /**
-   * Return an array containing all of the toolkit specific objects attached to this variable.
-   *
-   * @return the toolkit objects attached to this variable
-   */
-  List<ToolkitObjectElement> get toolkitObjects;
-}
-
-/**
- * The interface `MethodElement` defines the behavior of elements that represent a method
- * defined within a type.
- */
-abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  /**
-   * Return the resolved [MethodDeclaration] node that declares this [MethodElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [MethodDeclaration], not `null`.
-   */
-  @override
-  MethodDeclaration get node;
-
-  /**
-   * Return `true` if this method is abstract. Methods are abstract if they are not external
-   * and have no body.
-   *
-   * @return `true` if this method is abstract
-   */
-  bool get isAbstract;
-}
-
-/**
- * The interface `MultiplyDefinedElement` defines the behavior of pseudo-elements that
- * represent multiple elements defined within a single scope that have the same name. This situation
- * is not allowed by the language, so objects implementing this interface always represent an error.
- * As a result, most of the normal operations on elements do not make sense and will return useless
- * results.
- */
-abstract class MultiplyDefinedElement implements Element {
-  /**
-   * Return an array containing all of the elements that were defined within the scope to have the
-   * same name.
-   *
-   * @return the elements that were defined with the same name
-   */
-  List<Element> get conflictingElements;
-
-  /**
-   * Return the type of this element as the dynamic type.
-   *
-   * @return the type of this element as the dynamic type
-   */
-  DartType get type;
-}
-
-/**
- * The interface [MultiplyInheritedExecutableElement] defines all of the behavior of an
- * [ExecutableElement], with the additional information of an array of
- * [ExecutableElement]s from which this element was composed.
- */
-abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
-  /**
-   * Return an array containing all of the executable elements defined within this executable
-   * element.
-   *
-   * @return the elements defined within this executable element
-   */
-  List<ExecutableElement> get inheritedElements;
-}
-
-/**
- * The interface `NamespaceCombinator` defines the behavior common to objects that control how
- * namespaces are combined.
- */
-abstract class NamespaceCombinator {
-  /**
-   * An empty array of namespace combinators.
-   */
-  static final List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
-}
-
-/**
- * The interface `ParameterElement` defines the behavior of elements representing a parameter
- * defined within an executable element.
- */
-abstract class ParameterElement implements LocalElement, VariableElement {
-  /**
-   * Return a source range that covers the portion of the source in which the default value for this
-   * parameter is specified, or `null` if there is no default value.
-   *
-   * @return the range of characters in which the default value of this parameter is specified
-   */
-  SourceRange get defaultValueRange;
-
-  /**
-   * Return the kind of this parameter.
-   *
-   * @return the kind of this parameter
-   */
-  ParameterKind get parameterKind;
-
-  /**
-   * Return an array containing all of the parameters defined by this parameter. A parameter will
-   * only define other parameters if it is a function typed parameter.
-   *
-   * @return the parameters defined by this parameter element
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return `true` if this parameter is an initializing formal parameter.
-   *
-   * @return `true` if this parameter is an initializing formal parameter
-   */
-  bool get isInitializingFormal;
-}
-
-/**
- * The interface `PrefixElement` defines the behavior common to elements that represent a
- * prefix used to import one or more libraries into another library.
- */
-abstract class PrefixElement implements Element {
-  /**
-   * Return the library into which other libraries are imported using this prefix.
-   *
-   * @return the library into which other libraries are imported using this prefix
-   */
-  @override
-  LibraryElement get enclosingElement;
-
-  /**
-   * Return an array containing all of the libraries that are imported using this prefix.
-   *
-   * @return the libraries that are imported using this prefix
-   */
-  List<LibraryElement> get importedLibraries;
-}
-
-/**
- * The interface `PropertyAccessorElement` defines the behavior of elements representing a
- * getter or a setter. Note that explicitly defined property accessors implicitly define a synthetic
- * field. Symmetrically, synthetic accessors are implicitly created for explicitly defined fields.
- * The following rules apply:
- * * Every explicit field is represented by a non-synthetic [FieldElement].
- * * Every explicit field induces a getter and possibly a setter, both of which are represented by
- * synthetic [PropertyAccessorElement]s.
- * * Every explicit getter or setter is represented by a non-synthetic
- * [PropertyAccessorElement].
- * * Every explicit getter or setter (or pair thereof if they have the same name) induces a field
- * that is represented by a synthetic [FieldElement].
- */
-abstract class PropertyAccessorElement implements ExecutableElement {
-  /**
-   * Return the accessor representing the getter that corresponds to (has the same name as) this
-   * setter, or `null` if this accessor is not a setter or if there is no corresponding
-   * getter.
-   *
-   * @return the getter that corresponds to this setter
-   */
-  PropertyAccessorElement get correspondingGetter;
-
-  /**
-   * Return the accessor representing the setter that corresponds to (has the same name as) this
-   * getter, or `null` if this accessor is not a getter or if there is no corresponding
-   * setter.
-   *
-   * @return the setter that corresponds to this getter
-   */
-  PropertyAccessorElement get correspondingSetter;
-
-  /**
-   * Return the field or top-level variable associated with this accessor. If this accessor was
-   * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
-   *
-   * @return the variable associated with this accessor
-   */
-  PropertyInducingElement get variable;
-
-  /**
-   * Return `true` if this accessor is abstract. Accessors are abstract if they are not
-   * external and have no body.
-   *
-   * @return `true` if this accessor is abstract
-   */
-  bool get isAbstract;
-
-  /**
-   * Return `true` if this accessor represents a getter.
-   *
-   * @return `true` if this accessor represents a getter
-   */
-  bool get isGetter;
-
-  /**
-   * Return `true` if this accessor represents a setter.
-   *
-   * @return `true` if this accessor represents a setter
-   */
-  bool get isSetter;
-}
-
-/**
- * The interface `PropertyInducingElement` defines the behavior of elements representing a
- * variable that has an associated getter and possibly a setter. Note that explicitly defined
- * variables implicitly define a synthetic getter and that non-`final` explicitly defined
- * variables implicitly define a synthetic setter. Symmetrically, synthetic fields are implicitly
- * created for explicitly defined getters and setters. The following rules apply:
- * * Every explicit variable is represented by a non-synthetic [PropertyInducingElement].
- * * Every explicit variable induces a getter and possibly a setter, both of which are represented
- * by synthetic [PropertyAccessorElement]s.
- * * Every explicit getter or setter is represented by a non-synthetic
- * [PropertyAccessorElement].
- * * Every explicit getter or setter (or pair thereof if they have the same name) induces a
- * variable that is represented by a synthetic [PropertyInducingElement].
- */
-abstract class PropertyInducingElement implements VariableElement {
-  /**
-   * Return the getter associated with this variable. If this variable was explicitly defined (is
-   * not synthetic) then the getter associated with it will be synthetic.
-   *
-   * @return the getter associated with this variable
-   */
-  PropertyAccessorElement get getter;
-
-  /**
-   * Return the setter associated with this variable, or `null` if the variable is effectively
-   * `final` and therefore does not have a setter associated with it. (This can happen either
-   * because the variable is explicitly defined as being `final` or because the variable is
-   * induced by an explicit getter that does not have a corresponding setter.) If this variable was
-   * explicitly defined (is not synthetic) then the setter associated with it will be synthetic.
-   *
-   * @return the setter associated with this variable
-   */
-  PropertyAccessorElement get setter;
-
-  /**
-   * Return `true` if this element is a static element. A static element is an element that is
-   * not associated with a particular instance, but rather with an entire library or class.
-   *
-   * @return `true` if this executable element is a static element
-   */
-  bool get isStatic;
-}
-
-/**
- * The interface `ShowElementCombinator` defines the behavior of combinators that cause some
- * of the names in a namespace to be visible (and the rest hidden) when being imported.
- */
-abstract class ShowElementCombinator implements NamespaceCombinator {
-  /**
-   * Return the offset of the character immediately following the last character of this node.
-   *
-   * @return the offset of the character just past this node
-   */
-  int get end;
-
-  /**
-   * Return the offset of the 'show' keyword of this element.
-   *
-   * @return the offset of the 'show' keyword of this element
-   */
-  int get offset;
-
-  /**
-   * Return an array containing the names that are to be made visible in the importing library if
-   * they are defined in the imported library.
-   *
-   * @return the names from the imported library that are visible in the importing library
-   */
-  List<String> get shownNames;
-}
-
-/**
- * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
- * toolkit specific object, such as Angular controller or component. These elements are not based on
- * the Dart syntax, but on some semantic agreement, such as a special annotation.
- */
-abstract class ToolkitObjectElement implements Element {
-  /**
-   * An empty array of toolkit object elements.
-   */
-  static final List<ToolkitObjectElement> EMPTY_ARRAY = new List<ToolkitObjectElement>(0);
-}
-
-/**
- * The interface `TopLevelVariableElement` defines the behavior of elements representing a
- * top-level variable.
- */
-abstract class TopLevelVariableElement implements PropertyInducingElement {
-}
-
-/**
- * The interface `TypeParameterElement` defines the behavior of elements representing a type
- * parameter.
- */
-abstract class TypeParameterElement implements Element {
-  /**
-   * Return the type representing the bound associated with this parameter, or `null` if this
-   * parameter does not have an explicit bound.
-   *
-   * @return the type representing the bound associated with this parameter
-   */
-  DartType get bound;
-
-  /**
-   * Return the type defined by this type parameter.
-   *
-   * @return the type defined by this type parameter
-   */
-  TypeParameterType get type;
-}
-
-/**
- * The interface `UndefinedElement` defines the behavior of pseudo-elements that represent
- * names that are undefined. This situation is not allowed by the language, so objects implementing
- * this interface always represent an error. As a result, most of the normal operations on elements
- * do not make sense and will return useless results.
- */
-abstract class UndefinedElement implements Element {
-}
-
-/**
- * The interface `UriReferencedElement` defines the behavior of objects included into a
- * library using some URI.
- */
-abstract class UriReferencedElement implements Element {
-  /**
-   * Return the offset of the character immediately following the last character of this node's URI,
-   * or `-1` for synthetic import.
-   *
-   * @return the offset of the character just past the node's URI
-   */
-  int get uriEnd;
-
-  /**
-   * Return the offset of the URI in the file, or `-1` if this element is synthetic.
-   *
-   * @return the offset of the URI
-   */
-  int get uriOffset;
-
-  /**
-   * Return the URI that is used to include this element into the enclosing library, or `null`
-   * if this is the defining compilation unit of a library.
-   *
-   * @return the URI that is used to include this element into the enclosing library
-   */
-  String get uri;
-}
-
-/**
- * The interface `VariableElement` defines the behavior common to elements that represent a
- * variable.
- */
-abstract class VariableElement implements Element {
-  /**
-   * Return a synthetic function representing this variable's initializer, or `null` if this
-   * variable does not have an initializer. The function will have no parameters. The return type of
-   * the function will be the compile-time type of the initialization expression.
-   *
-   * @return a synthetic function representing this variable's initializer
-   */
-  FunctionElement get initializer;
-
-  /**
-   * Return the resolved [VariableDeclaration] node that declares this [VariableElement]
-   * .
-   *
-   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
-   * resolving will be performed.
-   *
-   * @return the resolved [VariableDeclaration], not `null`.
-   */
-  @override
-  VariableDeclaration get node;
-
-  /**
-   * Return the declared type of this variable, or `null` if the variable did not have a
-   * declared type (such as if it was declared using the keyword 'var').
-   *
-   * @return the declared type of this variable
-   */
-  DartType get type;
-
-  /**
-   * Return `true` if this variable was declared with the 'const' modifier.
-   *
-   * @return `true` if this variable was declared with the 'const' modifier
-   */
-  bool get isConst;
-
-  /**
-   * Return `true` if this variable was declared with the 'final' modifier. Variables that are
-   * declared with the 'const' modifier will return `false` even though they are implicitly
-   * final.
-   *
-   * @return `true` if this variable was declared with the 'final' modifier
-   */
-  bool get isFinal;
-}
-
-/**
- * The interface `AngularControllerElement` defines the Angular component described by
- * <code>Component</code> annotation.
- */
-abstract class AngularComponentElement implements AngularHasSelectorElement, AngularHasTemplateElement {
-  /**
-   * Return an array containing all of the properties declared by this component.
-   */
-  List<AngularPropertyElement> get properties;
-
-  /**
-   * Return an array containing all of the scope properties set in the implementation of this
-   * component.
-   */
-  List<AngularScopePropertyElement> get scopeProperties;
-
-  /**
-   * Returns the CSS file URI.
-   */
-  String get styleUri;
-
-  /**
-   * Return the offset of the [getStyleUri] in the [getSource].
-   *
-   * @return the offset of the style URI
-   */
-  int get styleUriOffset;
-}
-
-/**
- * The interface `AngularControllerElement` defines the Angular controller described by
- * <code>Controller</code> annotation.
- */
-abstract class AngularControllerElement implements AngularHasSelectorElement {
-}
-
-/**
- * The interface `AngularDirectiveElement` defines the Angular controller described by
- * <code>Decorator</code> annotation.
- */
-abstract class AngularDecoratorElement implements AngularHasSelectorElement {
-  /**
-   * Return an array containing all of the properties declared by this directive.
-   */
-  List<AngularPropertyElement> get properties;
-
-  /**
-   * Checks if this directive is implemented by the class with given name.
-   */
-  bool isClass(String name);
-}
-
-/**
- * The interface `AngularElement` defines the behavior of objects representing information
- * about an Angular specific element.
- */
-abstract class AngularElement implements ToolkitObjectElement {
-  /**
-   * An empty array of Angular elements.
-   */
-  static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
-
-  /**
-   * Returns the [AngularApplication] this element is used in.
-   *
-   * @return the [AngularApplication] this element is used in
-   */
-  AngularApplication get application;
-}
-
-/**
- * The interface `AngularFormatterElement` defines the Angular formatter described by
- * <code>Formatter</code> annotation.
- */
-abstract class AngularFormatterElement implements AngularElement {
-}
-
-/**
- * [AngularSelectorElement] based on presence of attribute.
- */
-abstract class AngularHasAttributeSelectorElement implements AngularSelectorElement {
-}
-
-/**
- * [AngularSelectorElement] based on presence of a class.
- */
-abstract class AngularHasClassSelectorElement implements AngularSelectorElement {
-}
-
-/**
- * The interface `AngularElement` defines the behavior of objects representing information
- * about an Angular element which is applied conditionally using some [AngularSelectorElement].
- */
-abstract class AngularHasSelectorElement implements AngularElement {
-  /**
-   * Returns the selector specified for this element.
-   *
-   * @return the [AngularSelectorElement] specified for this element
-   */
-  AngularSelectorElement get selector;
-}
-
-/**
- * The interface `AngularHasTemplateElement` defines common behavior for
- * [AngularElement] that have template URI / [Source].
- */
-abstract class AngularHasTemplateElement implements AngularElement {
-  /**
-   * Returns the HTML template [Source], `null` if not resolved.
-   */
-  Source get templateSource;
-
-  /**
-   * Returns the HTML template URI.
-   */
-  String get templateUri;
-
-  /**
-   * Return the offset of the [getTemplateUri] in the [getSource].
-   *
-   * @return the offset of the template URI
-   */
-  int get templateUriOffset;
-}
-
-/**
- * The interface `AngularPropertyElement` defines a single property in
- * [AngularComponentElement].
- */
-abstract class AngularPropertyElement implements AngularElement {
-  /**
-   * An empty array of property elements.
-   */
-  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
-
-  /**
-   * Returns the field this property is mapped to.
-   *
-   * @return the field this property is mapped to.
-   */
-  FieldElement get field;
-
-  /**
-   * Return the offset of the field name of this property in the property map, or `-1` if
-   * property was created using annotation on [FieldElement].
-   *
-   * @return the offset of the field name of this property
-   */
-  int get fieldNameOffset;
-
-  /**
-   * Returns the kind of this property.
-   *
-   * @return the kind of this property
-   */
-  AngularPropertyKind get propertyKind;
-}
-
-/**
- * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
- */
-class AngularPropertyKind extends Enum<AngularPropertyKind> {
-  /**
-   * `@` - Map the DOM attribute string. The attribute string will be taken literally or
-   * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
-   * watches)
-   */
-  static const AngularPropertyKind ATTR = const AngularPropertyKind('ATTR', 0);
-
-  /**
-   * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
-   * This allows the component to control the invocation of the closure. This is useful for passing
-   * expressions into controllers which act like callbacks. (cost: 0 watches)
-   */
-  static const AngularPropertyKind CALLBACK = const AngularPropertyKind('CALLBACK', 1);
-
-  /**
-   * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
-   * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
-   */
-  static const AngularPropertyKind ONE_WAY = const AngularPropertyKind('ONE_WAY', 2);
-
-  /**
-   * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
-   * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
-   * then 0 watches)
-   */
-  static const AngularPropertyKind ONE_WAY_ONE_TIME = const AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
-
-  /**
-   * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
-   * as component scope to keep the source and destination in sync. (cost: 2 watches)
-   */
-  static const AngularPropertyKind TWO_WAY = const AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
-
-  static const List<AngularPropertyKind> values = const [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
-
-  /**
-   * Returns `true` if property of this kind calls field getter.
-   */
-  bool callsGetter() => false;
-
-  /**
-   * Returns `true` if property of this kind calls field setter.
-   */
-  bool callsSetter() => true;
-
-  const AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
-}
-
-class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
-  const AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
-
-  @override
-  bool callsGetter() => true;
-}
-
-/**
- * The interface `AngularScopeVariableElement` defines the Angular <code>Scope</code>
- * property. They are created for every <code>scope['property'] = value;</code> code snippet.
- */
-abstract class AngularScopePropertyElement implements AngularElement {
-  /**
-   * An empty array of scope property elements.
-   */
-  static final List<AngularScopePropertyElement> EMPTY_ARRAY = [];
-
-  /**
-   * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
-   *
-   * @return the type of this property.
-   */
-  DartType get type;
-}
-
-/**
- * [AngularSelectorElement] is used to decide when Angular object should be applied.
- *
- * This class is an [Element] to support renaming component tag names, which are identifiers
- * in selectors.
- */
-abstract class AngularSelectorElement implements AngularElement {
-  /**
-   * Checks if the given [XmlTagNode] matches this selector.
-   *
-   * @param node the [XmlTagNode] to check
-   * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
-   */
-  bool apply(XmlTagNode node);
-}
-
-/**
- * [AngularSelectorElement] based on tag name.
- */
-abstract class AngularTagSelectorElement implements AngularSelectorElement {
-}
-
-/**
- * The interface `AngularViewElement` defines the Angular view defined using invocation like
- * <code>view('views/create.html')</code>.
- */
-abstract class AngularViewElement implements AngularHasTemplateElement {
-  /**
-   * An empty array of view elements.
-   */
-  static final List<AngularViewElement> EMPTY_ARRAY = new List<AngularViewElement>(0);
-}
-
-/**
- * The interface `PolymerAttributeElement` defines an attribute in
- * [PolymerTagHtmlElement].
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerAttributeElement implements PolymerElement {
-  /**
-   * An empty array of Polymer custom tag attributes.
-   */
-  static final List<PolymerAttributeElement> EMPTY_ARRAY = new List<PolymerAttributeElement>(0);
-
-  /**
-   * Return the [FieldElement] associated with this attribute. Maybe `null` if
-   * [PolymerTagDartElement] does not have a field associated with it.
-   */
-  FieldElement get field;
-}
-
-/**
- * The interface `PolymerElement` defines the behavior of objects representing information
- * about a Polymer specific element.
- */
-abstract class PolymerElement implements ToolkitObjectElement {
-  /**
-   * An empty array of Polymer elements.
-   */
-  static final List<PolymerElement> EMPTY_ARRAY = new List<PolymerElement>(0);
-}
-
-/**
- * The interface `PolymerTagDartElement` defines a Polymer custom tag in Dart.
- *
- * <pre>
- * @CustomTag('my-example')
- * </pre>
- */
-abstract class PolymerTagDartElement implements PolymerElement {
-  /**
-   * Return the [ClassElement] that is associated with this Polymer custom tag. Not
-   * `null`, because [PolymerTagDartElement]s are created for [ClassElement]s
-   * marked with the `@CustomTag` annotation.
-   */
-  ClassElement get classElement;
-
-  /**
-   * Return the [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement get htmlElement;
-}
-
-/**
- * The interface `PolymerTagHtmlElement` defines a Polymer custom tag in HTML.
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerTagHtmlElement implements PolymerElement {
-  /**
-   * An empty array of [PolymerTagHtmlElement]s.
-   */
-  static final List<PolymerTagHtmlElement> EMPTY_ARRAY = new List<PolymerTagHtmlElement>(0);
-
-  /**
-   * Return an array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> get attributes;
-
-  /**
-   * Return the [PolymerTagDartElement] part on this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement get dartElement;
-}
-
-/**
- * Instances of the class `GeneralizingElementVisitor` implement an element visitor that will
- * recursively visit all of the elements in an element model (like instances of the class
- * [RecursiveElementVisitor]). In addition, when an element of a specific type is visited not
- * only will the visit method for that specific type of element be invoked, but additional methods
- * for the supertypes of that element will also be invoked. For example, using an instance of this
- * class to visit a [MethodElement] will cause the method
- * [visitMethodElement] to be invoked but will also cause the methods
- * [visitExecutableElement] and [visitElement] to be
- * subsequently invoked. This allows visitors to be written that visit all executable elements
- * without needing to override the visit method for each of the specific subclasses of
- * [ExecutableElement].
- *
- * Note, however, that unlike many visitors, element visitors visit objects based on the interfaces
- * implemented by those elements. Because interfaces form a graph structure rather than a tree
- * structure the way classes do, and because it is generally undesirable for an object to be visited
- * more than once, this class flattens the interface graph into a pseudo-tree. In particular, this
- * class treats elements as if the element types were structured in the following way:
- *
- *
- * <pre>
- * Element
- *   ClassElement
- *   CompilationUnitElement
- *   ExecutableElement
- *      ConstructorElement
- *      LocalElement
- *         FunctionElement
- *      MethodElement
- *      PropertyAccessorElement
- *   ExportElement
- *   HtmlElement
- *   ImportElement
- *   LabelElement
- *   LibraryElement
- *   MultiplyDefinedElement
- *   PrefixElement
- *   TypeAliasElement
- *   TypeParameterElement
- *   UndefinedElement
- *   VariableElement
- *      PropertyInducingElement
- *         FieldElement
- *         TopLevelVariableElement
- *      LocalElement
- *         LocalVariableElement
- *         ParameterElement
- *            FieldFormalParameterElement
- * </pre>
- *
- * Subclasses that override a visit method must either invoke the overridden visit method or
- * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
- * for superclasses of the element to not be invoked and will cause the children of the visited node
- * to not be visited.
- */
-class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
-  @override
-  R visitAngularComponentElement(AngularComponentElement element) => visitAngularHasSelectorElement(element);
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) => visitAngularHasSelectorElement(element);
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) => visitAngularHasSelectorElement(element);
-
-  R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) => visitAngularElement(element);
-
-  R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => visitAngularElement(element);
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) => visitAngularElement(element);
-
-  @override
-  R visitClassElement(ClassElement element) => visitElement(element);
-
-  @override
-  R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
-
-  @override
-  R visitConstructorElement(ConstructorElement element) => visitExecutableElement(element);
-
-  R visitElement(Element element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => visitHtmlScriptElement(element);
-
-  R visitExecutableElement(ExecutableElement element) => visitElement(element);
-
-  @override
-  R visitExportElement(ExportElement element) => visitElement(element);
-
-  @override
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => visitHtmlScriptElement(element);
-
-  @override
-  R visitFieldElement(FieldElement element) => visitPropertyInducingElement(element);
-
-  @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) => visitParameterElement(element);
-
-  @override
-  R visitFunctionElement(FunctionElement element) => visitLocalElement(element);
-
-  @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => visitElement(element);
-
-  @override
-  R visitHtmlElement(HtmlElement element) => visitElement(element);
-
-  R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
-
-  @override
-  R visitImportElement(ImportElement element) => visitElement(element);
-
-  @override
-  R visitLabelElement(LabelElement element) => visitElement(element);
-
-  @override
-  R visitLibraryElement(LibraryElement element) => visitElement(element);
-
-  R visitLocalElement(LocalElement element) {
-    if (element is LocalVariableElement) {
-      return visitVariableElement(element);
-    } else if (element is ParameterElement) {
-      return visitVariableElement(element);
-    } else if (element is FunctionElement) {
-      return visitExecutableElement(element);
-    }
-    return null;
-  }
-
-  @override
-  R visitLocalVariableElement(LocalVariableElement element) => visitLocalElement(element);
-
-  @override
-  R visitMethodElement(MethodElement element) => visitExecutableElement(element);
-
-  @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => visitElement(element);
-
-  @override
-  R visitParameterElement(ParameterElement element) => visitLocalElement(element);
-
-  @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) => visitPolymerElement(element);
-
-  R visitPolymerElement(PolymerElement element) => visitToolkitObjectElement(element);
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) => visitPolymerElement(element);
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => visitPolymerElement(element);
-
-  @override
-  R visitPrefixElement(PrefixElement element) => visitElement(element);
-
-  @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
-
-  R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
-
-  R visitToolkitObjectElement(ToolkitObjectElement element) => visitElement(element);
-
-  @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
-
-  @override
-  R visitTypeParameterElement(TypeParameterElement element) => visitElement(element);
-
-  R visitVariableElement(VariableElement element) => visitElement(element);
-}
-
-/**
- * Instances of the class `RecursiveElementVisitor` implement an element visitor that will
- * recursively visit all of the element in an element model. For example, using an instance of this
- * class to visit a [CompilationUnitElement] will also cause all of the types in the
- * compilation unit to be visited.
- *
- * Subclasses that override a visit method must either invoke the overridden visit method or must
- * explicitly ask the visited element to visit its children. Failure to do so will cause the
- * children of the visited element to not be visited.
- */
-class RecursiveElementVisitor<R> implements ElementVisitor<R> {
-  @override
-  R visitAngularComponentElement(AngularComponentElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitClassElement(ClassElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitConstructorElement(ConstructorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitExportElement(ExportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitFieldElement(FieldElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitFunctionElement(FunctionElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitHtmlElement(HtmlElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitImportElement(ImportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitLabelElement(LabelElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitLibraryElement(LibraryElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitLocalVariableElement(LocalVariableElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitMethodElement(MethodElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitParameterElement(ParameterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPrefixElement(PrefixElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitTypeParameterElement(TypeParameterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-}
-
-/**
- * Instances of the class `SimpleElementVisitor` implement an element visitor that will do
- * nothing when visiting an element. It is intended to be a superclass for classes that use the
- * visitor pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a
- * whole structure) and that only need to visit a small number of element types.
- */
-class SimpleElementVisitor<R> implements ElementVisitor<R> {
-  @override
-  R visitAngularComponentElement(AngularComponentElement element) => null;
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) => null;
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) => null;
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) => null;
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) => null;
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => null;
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) => null;
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) => null;
-
-  @override
-  R visitClassElement(ClassElement element) => null;
-
-  @override
-  R visitCompilationUnitElement(CompilationUnitElement element) => null;
-
-  @override
-  R visitConstructorElement(ConstructorElement element) => null;
-
-  @override
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
-
-  @override
-  R visitExportElement(ExportElement element) => null;
-
-  @override
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
-
-  @override
-  R visitFieldElement(FieldElement element) => null;
-
-  @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) => null;
-
-  @override
-  R visitFunctionElement(FunctionElement element) => null;
-
-  @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
-
-  @override
-  R visitHtmlElement(HtmlElement element) => null;
-
-  @override
-  R visitImportElement(ImportElement element) => null;
-
-  @override
-  R visitLabelElement(LabelElement element) => null;
-
-  @override
-  R visitLibraryElement(LibraryElement element) => null;
-
-  @override
-  R visitLocalVariableElement(LocalVariableElement element) => null;
-
-  @override
-  R visitMethodElement(MethodElement element) => null;
-
-  @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
-
-  @override
-  R visitParameterElement(ParameterElement element) => null;
-
-  @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) => null;
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) => null;
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => null;
-
-  @override
-  R visitPrefixElement(PrefixElement element) => null;
-
-  @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
-
-  @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
-
-  @override
-  R visitTypeParameterElement(TypeParameterElement element) => null;
-}
-
-/**
- * For AST nodes that could be in both the getter and setter contexts ([IndexExpression]s and
- * [SimpleIdentifier]s), the additional resolved elements are stored in the AST node, in an
- * [AuxiliaryElements]. Since resolved elements are either statically resolved or resolved
- * using propagated type information, this class is a wrapper for a pair of
- * [ExecutableElement]s, not just a single [ExecutableElement].
- */
-class AuxiliaryElements {
-  /**
-   * The element based on propagated type information, or `null` if the AST structure has not
-   * been resolved or if this identifier could not be resolved.
-   */
-  final ExecutableElement propagatedElement;
-
-  /**
-   * The element associated with this identifier based on static type information, or `null`
-   * if the AST structure has not been resolved or if this identifier could not be resolved.
-   */
-  final ExecutableElement staticElement;
-
-  /**
-   * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
-   *
-   * @param staticElement the static element
-   * @param propagatedElement the propagated element
-   */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
 }
 
 /**
@@ -3319,6 +1654,116 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 }
 
 /**
+ * The interface `ClassMemberElement` defines the behavior of elements that are contained
+ * within a [ClassElement].
+ */
+abstract class ClassMemberElement implements Element {
+  /**
+   * Return the type in which this member is defined.
+   *
+   * @return the type in which this member is defined
+   */
+  @override
+  ClassElement get enclosingElement;
+
+  /**
+   * Return `true` if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   *
+   * @return `true` if this executable element is a static element
+   */
+  bool get isStatic;
+}
+
+/**
+ * The interface `CompilationUnitElement` defines the behavior of elements representing a
+ * compilation unit.
+ */
+abstract class CompilationUnitElement implements Element, UriReferencedElement {
+  /**
+   * Return an array containing all of the top-level accessors (getters and setters) contained in
+   * this compilation unit.
+   *
+   * @return the top-level accessors contained in this compilation unit
+   */
+  List<PropertyAccessorElement> get accessors;
+
+  /**
+   * Return an array containing all of the Angular views defined in this compilation unit. The array
+   * will be empty if the element does not have any Angular views or if the compilation unit has not
+   * yet had toolkit references resolved.
+   *
+   * @return the Angular views defined in this compilation unit.
+   */
+  List<AngularViewElement> get angularViews;
+
+  /**
+   * Return the library in which this compilation unit is defined.
+   *
+   * @return the library in which this compilation unit is defined
+   */
+  @override
+  LibraryElement get enclosingElement;
+
+  /**
+   * Return an array containing all of the top-level functions contained in this compilation unit.
+   *
+   * @return the top-level functions contained in this compilation unit
+   */
+  List<FunctionElement> get functions;
+
+  /**
+   * Return an array containing all of the function type aliases contained in this compilation unit.
+   *
+   * @return the function type aliases contained in this compilation unit
+   */
+  List<FunctionTypeAliasElement> get functionTypeAliases;
+
+  /**
+   * Return the resolved [CompilationUnit] node that declares this element.
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], not `null`.
+   */
+  @override
+  CompilationUnit get node;
+
+  /**
+   * Return an array containing all of the top-level variables contained in this compilation unit.
+   *
+   * @return the top-level variables contained in this compilation unit
+   */
+  List<TopLevelVariableElement> get topLevelVariables;
+
+  /**
+   * Return the class defined in this compilation unit that has the given name, or `null` if
+   * this compilation unit does not define a class with the given name.
+   *
+   * @param className the name of the class to be returned
+   * @return the class with the given name that is defined in this compilation unit
+   */
+  ClassElement getType(String className);
+
+  /**
+   * Return an array containing all of the classes contained in this compilation unit.
+   *
+   * @return the classes contained in this compilation unit
+   */
+  List<ClassElement> get types;
+
+  /**
+   * Return `true` if this compilation unit defines a top-level function named
+   * `loadLibrary`.
+   *
+   * @return `true` if this compilation unit defines a top-level function named
+   *         `loadLibrary`
+   */
+  bool get hasLoadLibraryFunction;
+}
+
+/**
  * Instances of the class `CompilationUnitElementImpl` implement a
  * [CompilationUnitElement].
  */
@@ -3666,6 +2111,55 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
 }
 
 /**
+ * The interface `ConstructorElement` defines the behavior of elements representing a
+ * constructor or a factory method defined within a type.
+ */
+abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [ConstructorDeclaration] node that declares this
+   * [ConstructorElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ConstructorDeclaration], not `null`.
+   */
+  @override
+  ConstructorDeclaration get node;
+
+  /**
+   * Return the constructor to which this constructor is redirecting, or `null` if this constructor
+   * does not redirect to another constructor or if the library containing this constructor has
+   * not yet been resolved.
+   *
+   * @return the constructor to which this constructor is redirecting
+   */
+  ConstructorElement get redirectedConstructor;
+
+  /**
+   * Return `true` if this constructor is a const constructor.
+   *
+   * @return `true` if this constructor is a const constructor
+   */
+  bool get isConst;
+
+  /**
+   * Return `true` if this constructor can be used as a default constructor - unnamed and has
+   * no required parameters.
+   *
+   * @return `true` if this constructor can be used as a default constructor.
+   */
+  bool get isDefaultConstructor;
+
+  /**
+   * Return `true` if this constructor represents a factory constructor.
+   *
+   * @return `true` if this constructor represents a factory constructor
+   */
+  bool get isFactory;
+}
+
+/**
  * Instances of the class `ConstructorElementImpl` implement a `ConstructorElement`.
  */
 class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
@@ -3764,6 +2258,233 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
 }
 
 /**
+ * Instances of the class `ConstructorMember` represent a constructor element defined in a
+ * parameterized type where the values of the type parameters are known.
+ */
+class ConstructorMember extends ExecutableMember implements ConstructorElement {
+  /**
+   * If the given constructor's type is different when any type parameters from the defining type's
+   * declaration are replaced with the actual type arguments from the defining type, create a
+   * constructor member representing the given constructor. Return the member that was created, or
+   * the base constructor if no member was created.
+   *
+   * @param baseConstructor the base constructor for which a member might be created
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return the constructor element that will return the correctly substituted types
+   */
+  static ConstructorElement from(ConstructorElement baseConstructor, InterfaceType definingType) {
+    if (baseConstructor == null || definingType.typeArguments.length == 0) {
+      return baseConstructor;
+    }
+    FunctionType baseType = baseConstructor.type;
+    if (baseType == null) {
+      // TODO(brianwilkerson) We need to understand when this can happen.
+      return baseConstructor;
+    }
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes = definingType.element.type.typeArguments;
+    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return baseConstructor;
+    }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
+    return new ConstructorMember(baseConstructor, definingType);
+  }
+
+  /**
+   * Initialize a newly created element to represent a constructor of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
+
+  @override
+  ConstructorElement get baseElement => super.baseElement as ConstructorElement;
+
+  @override
+  ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  ConstructorDeclaration get node => baseElement.node;
+
+  @override
+  ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
+
+  @override
+  bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
+
+  @override
+  bool get isFactory => baseElement.isFactory;
+
+  @override
+  String toString() {
+    ConstructorElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append(baseElement.enclosingElement.displayName);
+    String name = displayName;
+    if (name != null && !name.isEmpty) {
+      builder.append(".");
+      builder.append(name);
+    }
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(parameters[i]).toString();
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(Element.RIGHT_ARROW);
+      builder.append(type.returnType);
+    }
+    return builder.toString();
+  }
+
+  @override
+  InterfaceType get definingType => super.definingType as InterfaceType;
+}
+
+/**
+ * The interface `Type` defines the behavior of objects representing the declared type of
+ * elements in the element model.
+ */
+abstract class DartType {
+  /**
+   * Return the name of this type as it should appear when presented to users in contexts such as
+   * error messages.
+   *
+   * @return the name of this type
+   */
+  String get displayName;
+
+  /**
+   * Return the element representing the declaration of this type, or `null` if the type has
+   * not, or cannot, be associated with an element. The former case will occur if the element model
+   * is not yet complete; the latter case will occur if this object represents an undefined type.
+   *
+   * @return the element representing the declaration of this type
+   */
+  Element get element;
+
+  /**
+   * Return the least upper bound of this type and the given type, or `null` if there is no
+   * least upper bound.
+   *
+   * @param type the other type used to compute the least upper bound
+   * @return the least upper bound of this type and the given type
+   */
+  DartType getLeastUpperBound(DartType type);
+
+  /**
+   * Return the name of this type, or `null` if the type does not have a name, such as when
+   * the type represents the type of an unnamed function.
+   *
+   * @return the name of this type
+   */
+  String get name;
+
+  /**
+   * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
+   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
+   * or <i>S</i> <: <i>T</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is assignable to the given type
+   */
+  bool isAssignableTo(DartType type);
+
+  /**
+   * Return `true` if this type represents the bottom type.
+   *
+   * @return `true` if this type represents the bottom type
+   */
+  bool get isBottom;
+
+  /**
+   * Return `true` if this type represents the type 'Function' defined in the dart:core
+   * library.
+   *
+   * @return `true` if this type represents the type 'Function' defined in the dart:core
+   *         library
+   */
+  bool get isDartCoreFunction;
+
+  /**
+   * Return `true` if this type represents the type 'dynamic'.
+   *
+   * @return `true` if this type represents the type 'dynamic'
+   */
+  bool get isDynamic;
+
+  /**
+   * Return `true` if this type is more specific than the given type.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is more specific than the given type
+   */
+  bool isMoreSpecificThan(DartType type);
+
+  /**
+   * Return `true` if this type represents the type 'Object'.
+   *
+   * @return `true` if this type represents the type 'Object'
+   */
+  bool get isObject;
+
+  /**
+   * Return `true` if this type is a subtype of the given type.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is a subtype of the given type
+   */
+  bool isSubtypeOf(DartType type);
+
+  /**
+   * Return `true` if this type is a supertype of the given type. A type <i>S</i> is a
+   * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is a supertype of the given type
+   */
+  bool isSupertypeOf(DartType type);
+
+  /**
+   * Return `true` if this type represents the type 'void'.
+   *
+   * @return `true` if this type represents the type 'void'
+   */
+  bool get isVoid;
+
+  /**
+   * Return the type resulting from substituting the given arguments for the given parameters in
+   * this type. The specification defines this operation in section 2: <blockquote> The notation
+   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
+   * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
+   * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
+   * not create a copy of this type if no substitutions were required, but will return this type
+   * directly.
+   *
+   * @param argumentTypes the actual type arguments being substituted for the parameters
+   * @param parameterTypes the parameters to be replaced
+   * @return the result of performing the substitution
+   */
+  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
+}
+
+/**
  * Instances of the class `DefaultFieldFormalParameterElementImpl` implement a
  * `FieldFormalParameterElementImpl` for parameters that have an initializer.
  */
@@ -3846,6 +2567,333 @@ class DynamicElementImpl extends ElementImpl {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
+}
+
+/**
+ * The unique instance of the class `DynamicTypeImpl` implements the type `dynamic`.
+ */
+class DynamicTypeImpl extends TypeImpl {
+  /**
+   * The unique instance of this class.
+   */
+  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
+
+  /**
+   * Return the unique instance of this class.
+   *
+   * @return the unique instance of this class
+   */
+  static DynamicTypeImpl get instance => _INSTANCE;
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  DynamicTypeImpl() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
+    (element as DynamicElementImpl).type = this;
+  }
+
+  @override
+  bool operator ==(Object object) => identical(object, this);
+
+  @override
+  int get hashCode => 1;
+
+  @override
+  bool get isDynamic => true;
+
+  @override
+  bool isSupertypeOf(DartType type) => true;
+
+  @override
+  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i] == this) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
+  }
+
+  @override
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
+  @override
+  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is S
+    if (identical(this, type)) {
+      return true;
+    }
+    // else
+    return withDynamic;
+  }
+
+  @override
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+}
+
+/**
+ * The interface `Element` defines the behavior common to all of the elements in the element
+ * model. Generally speaking, the element model is a semantic model of the program that represents
+ * things that are declared with a name and hence can be referenced elsewhere in the code.
+ *
+ * There are two exceptions to the general case. First, there are elements in the element model that
+ * are created for the convenience of various kinds of analysis but that do not have any
+ * corresponding declaration within the source code. Such elements are marked as being
+ * <i>synthetic</i>. Examples of synthetic elements include
+ * * default constructors in classes that do not define any explicit constructors,
+ * * getters and setters that are induced by explicit field declarations,
+ * * fields that are induced by explicit declarations of getters and setters, and
+ * * functions representing the initialization expression for a variable.
+ *
+ * Second, there are elements in the element model that do not have a name. These correspond to
+ * unnamed functions and exist in order to more accurately represent the semantic structure of the
+ * program.
+ */
+abstract class Element {
+  /**
+   * An Unicode right arrow.
+   */
+  static final String RIGHT_ARROW = " \u2192 ";
+
+  /**
+   * A comparator that can be used to sort elements by their name offset. Elements with a smaller
+   * offset will be sorted to be before elements with a larger name offset.
+   */
+  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
+
+  /**
+   * Use the given visitor to visit this element.
+   *
+   * @param visitor the visitor that will visit this element
+   * @return the value returned by the visitor as a result of visiting this element
+   */
+  accept(ElementVisitor visitor);
+
+  /**
+   * Return the documentation comment for this element as it appears in the original source
+   * (complete with the beginning and ending delimiters), or `null` if this element does not
+   * have a documentation comment associated with it. This can be a long-running operation if the
+   * information needed to access the comment is not cached.
+   *
+   * @return this element's documentation comment
+   * @throws AnalysisException if the documentation comment could not be determined because the
+   *           analysis could not be performed
+   */
+  String computeDocumentationComment();
+
+  /**
+   * Return the element of the given class that most immediately encloses this element, or
+   * `null` if there is no enclosing element of the given class.
+   *
+   * @param elementClass the class of the element to be returned
+   * @return the element that encloses this element
+   */
+  Element getAncestor(Predicate<Element> predicate);
+
+  /**
+   * Return the analysis context in which this element is defined.
+   *
+   * @return the analysis context in which this element is defined
+   */
+  AnalysisContext get context;
+
+  /**
+   * Return the display name of this element, or `null` if this element does not have a name.
+   *
+   * In most cases the name and the display name are the same. Differences though are cases such as
+   * setters where the name of some setter `set f(x)` is `f=`, instead of `f`.
+   *
+   * @return the display name of this element
+   */
+  String get displayName;
+
+  /**
+   * Return the element that either physically or logically encloses this element. This will be
+   * `null` if this element is a library because libraries are the top-level elements in the
+   * model.
+   *
+   * @return the element that encloses this element
+   */
+  Element get enclosingElement;
+
+  /**
+   * Return the kind of element that this is.
+   *
+   * @return the kind of this element
+   */
+  ElementKind get kind;
+
+  /**
+   * Return the library that contains this element. This will be the element itself if it is a
+   * library element. This will be `null` if this element is an HTML file because HTML files
+   * are not contained in libraries.
+   *
+   * @return the library that contains this element
+   */
+  LibraryElement get library;
+
+  /**
+   * Return an object representing the location of this element in the element model. The object can
+   * be used to locate this element at a later time.
+   *
+   * @return the location of this element in the element model
+   */
+  ElementLocation get location;
+
+  /**
+   * Return an array containing all of the metadata associated with this element. The array will be
+   * empty if the element does not have any metadata or if the library containing this element has
+   * not yet been resolved.
+   *
+   * @return the metadata associated with this element
+   */
+  List<ElementAnnotation> get metadata;
+
+  /**
+   * Return the name of this element, or `null` if this element does not have a name.
+   *
+   * @return the name of this element
+   */
+  String get name;
+
+  /**
+   * Return the offset of the name of this element in the file that contains the declaration of this
+   * element, or `-1` if this element is synthetic, does not have a name, or otherwise does
+   * not have an offset.
+   *
+   * @return the offset of the name of this element
+   */
+  int get nameOffset;
+
+  /**
+   * Return the resolved [AstNode] node that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   *
+   * @return the resolved [AstNode], maybe `null` if [Element] is synthetic or
+   *         isn't contained in a compilation unit, such as a [LibraryElement].
+   */
+  AstNode get node;
+
+  /**
+   * Return the source that contains this element, or `null` if this element is not contained
+   * in a source.
+   *
+   * @return the source that contains this element
+   */
+  Source get source;
+
+  /**
+   * Return the resolved [CompilationUnit] that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might have been already evicted from cache, so
+   * parsing and resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], maybe `null` if synthetic [Element].
+   */
+  CompilationUnit get unit;
+
+  /**
+   * Return `true` if this element, assuming that it is within scope, is accessible to code in
+   * the given library. This is defined by the Dart Language Specification in section 3.2:
+   * <blockquote> A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is declared
+   * in <i>L</i> or if <i>m</i> is public. </blockquote>
+   *
+   * @param library the library in which a possible reference to this element would occur
+   * @return `true` if this element is accessible to code in the given library
+   */
+  bool isAccessibleIn(LibraryElement library);
+
+  /**
+   * Return `true` if this element has an annotation of the form '@deprecated' or
+   * '@Deprecated('..')'.
+   *
+   * @return `true` if this element is deprecated
+   */
+  bool get isDeprecated;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@override'.
+   *
+   * @return `true` if this element is overridden
+   */
+  bool get isOverride;
+
+  /**
+   * Return `true` if this element is private. Private elements are visible only within the
+   * library in which they are declared.
+   *
+   * @return `true` if this element is private
+   */
+  bool get isPrivate;
+
+  /**
+   * Return `true` if this element is public. Public elements are visible within any library
+   * that imports the library in which they are declared.
+   *
+   * @return `true` if this element is public
+   */
+  bool get isPublic;
+
+  /**
+   * Return `true` if this element is synthetic. A synthetic element is an element that is not
+   * represented in the source code explicitly, but is implied by the source code, such as the
+   * default constructor for a class that does not explicitly define any constructors.
+   *
+   * @return `true` if this element is synthetic
+   */
+  bool get isSynthetic;
+
+  /**
+   * Use the given visitor to visit all of the children of this element. There is no guarantee of
+   * the order in which the children will be visited.
+   *
+   * @param visitor the visitor that will be used to visit the children of this element
+   */
+  void visitChildren(ElementVisitor visitor);
+}
+
+/**
+ * The interface `ElementAnnotation` defines the behavior of objects representing a single
+ * annotation associated with an element.
+ */
+abstract class ElementAnnotation {
+  /**
+   * Return the element representing the field, variable, or const constructor being used as an
+   * annotation.
+   *
+   * @return the field, variable, or constructor being used as an annotation
+   */
+  Element get element;
+
+  /**
+   * Return `true` if this annotation marks the associated element as being deprecated.
+   *
+   * @return `true` if this annotation marks the associated element as being deprecated
+   */
+  bool get isDeprecated;
+
+  /**
+   * Return `true` if this annotation marks the associated method as being expected to
+   * override an inherited method.
+   *
+   * @return `true` if this annotation marks the associated method as overriding another
+   *         method
+   */
+  bool get isOverride;
+
+  /**
+   * Return `true` if this annotation marks the associated class as implementing a proxy
+   * object.
+   *
+   * @return `true` if this annotation marks the associated class as implementing a proxy
+   *         object
+   */
+  bool get isProxy;
 }
 
 /**
@@ -4252,6 +3300,161 @@ abstract class ElementImpl implements Element {
 }
 
 /**
+ * The enumeration `ElementKind` defines the various kinds of elements in the element model.
+ */
+class ElementKind extends Enum<ElementKind> {
+  static const ElementKind ANGULAR_FORMATTER = const ElementKind('ANGULAR_FORMATTER', 0, "Angular formatter");
+
+  static const ElementKind ANGULAR_COMPONENT = const ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
+
+  static const ElementKind ANGULAR_CONTROLLER = const ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
+
+  static const ElementKind ANGULAR_DIRECTIVE = const ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
+
+  static const ElementKind ANGULAR_PROPERTY = const ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
+
+  static const ElementKind ANGULAR_SCOPE_PROPERTY = const ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
+
+  static const ElementKind ANGULAR_SELECTOR = const ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
+
+  static const ElementKind ANGULAR_VIEW = const ElementKind('ANGULAR_VIEW', 7, "Angular view");
+
+  static const ElementKind CLASS = const ElementKind('CLASS', 8, "class");
+
+  static const ElementKind COMPILATION_UNIT = const ElementKind('COMPILATION_UNIT', 9, "compilation unit");
+
+  static const ElementKind CONSTRUCTOR = const ElementKind('CONSTRUCTOR', 10, "constructor");
+
+  static const ElementKind DYNAMIC = const ElementKind('DYNAMIC', 11, "<dynamic>");
+
+  static const ElementKind EMBEDDED_HTML_SCRIPT = const ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
+
+  static const ElementKind ERROR = const ElementKind('ERROR', 13, "<error>");
+
+  static const ElementKind EXPORT = const ElementKind('EXPORT', 14, "export directive");
+
+  static const ElementKind EXTERNAL_HTML_SCRIPT = const ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
+
+  static const ElementKind FIELD = const ElementKind('FIELD', 16, "field");
+
+  static const ElementKind FUNCTION = const ElementKind('FUNCTION', 17, "function");
+
+  static const ElementKind GETTER = const ElementKind('GETTER', 18, "getter");
+
+  static const ElementKind HTML = const ElementKind('HTML', 19, "html");
+
+  static const ElementKind IMPORT = const ElementKind('IMPORT', 20, "import directive");
+
+  static const ElementKind LABEL = const ElementKind('LABEL', 21, "label");
+
+  static const ElementKind LIBRARY = const ElementKind('LIBRARY', 22, "library");
+
+  static const ElementKind LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE', 23, "local variable");
+
+  static const ElementKind METHOD = const ElementKind('METHOD', 24, "method");
+
+  static const ElementKind NAME = const ElementKind('NAME', 25, "<name>");
+
+  static const ElementKind PARAMETER = const ElementKind('PARAMETER', 26, "parameter");
+
+  static const ElementKind POLYMER_ATTRIBUTE = const ElementKind('POLYMER_ATTRIBUTE', 27, "Polymer attribute");
+
+  static const ElementKind POLYMER_TAG_DART = const ElementKind('POLYMER_TAG_DART', 28, "Polymer Dart tag");
+
+  static const ElementKind POLYMER_TAG_HTML = const ElementKind('POLYMER_TAG_HTML', 29, "Polymer HTML tag");
+
+  static const ElementKind PREFIX = const ElementKind('PREFIX', 30, "import prefix");
+
+  static const ElementKind SETTER = const ElementKind('SETTER', 31, "setter");
+
+  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 32, "top level variable");
+
+  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 33, "function type alias");
+
+  static const ElementKind TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER', 34, "type parameter");
+
+  static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 35, "<universe>");
+
+  static const List<ElementKind> values = const [
+      ANGULAR_FORMATTER,
+      ANGULAR_COMPONENT,
+      ANGULAR_CONTROLLER,
+      ANGULAR_DIRECTIVE,
+      ANGULAR_PROPERTY,
+      ANGULAR_SCOPE_PROPERTY,
+      ANGULAR_SELECTOR,
+      ANGULAR_VIEW,
+      CLASS,
+      COMPILATION_UNIT,
+      CONSTRUCTOR,
+      DYNAMIC,
+      EMBEDDED_HTML_SCRIPT,
+      ERROR,
+      EXPORT,
+      EXTERNAL_HTML_SCRIPT,
+      FIELD,
+      FUNCTION,
+      GETTER,
+      HTML,
+      IMPORT,
+      LABEL,
+      LIBRARY,
+      LOCAL_VARIABLE,
+      METHOD,
+      NAME,
+      PARAMETER,
+      POLYMER_ATTRIBUTE,
+      POLYMER_TAG_DART,
+      POLYMER_TAG_HTML,
+      PREFIX,
+      SETTER,
+      TOP_LEVEL_VARIABLE,
+      FUNCTION_TYPE_ALIAS,
+      TYPE_PARAMETER,
+      UNIVERSE];
+
+  /**
+   * Return the kind of the given element, or [ERROR] if the element is `null`. This is
+   * a utility method that can reduce the need for null checks in other places.
+   *
+   * @param element the element whose kind is to be returned
+   * @return the kind of the given element
+   */
+  static ElementKind of(Element element) {
+    if (element == null) {
+      return ERROR;
+    }
+    return element.kind;
+  }
+
+  /**
+   * The name displayed in the UI for this kind of element.
+   */
+  final String displayName;
+
+  /**
+   * Initialize a newly created element kind to have the given display name.
+   *
+   * @param displayName the name displayed in the UI for this kind of element
+   */
+  const ElementKind(String name, int ordinal, this.displayName) : super(name, ordinal);
+}
+
+/**
+ * The interface `ElementLocation` defines the behavior of objects that represent the location
+ * of an element within the element model.
+ */
+abstract class ElementLocation {
+  /**
+   * Return an encoded representation of this location that can be used to create a location that is
+   * equal to this location.
+   *
+   * @return an encoded representation of this location
+   */
+  String get encoding;
+}
+
+/**
  * Instances of the class `ElementLocationImpl` implement an [ElementLocation].
  */
 class ElementLocationImpl implements ElementLocation {
@@ -4500,6 +3703,91 @@ class ElementPair {
 }
 
 /**
+ * The interface `ElementVisitor` defines the behavior of objects that can be used to visit an
+ * element structure.
+ */
+abstract class ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element);
+
+  R visitAngularControllerElement(AngularControllerElement element);
+
+  R visitAngularDirectiveElement(AngularDecoratorElement element);
+
+  R visitAngularFormatterElement(AngularFormatterElement element);
+
+  R visitAngularPropertyElement(AngularPropertyElement element);
+
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element);
+
+  R visitAngularSelectorElement(AngularSelectorElement element);
+
+  R visitAngularViewElement(AngularViewElement element);
+
+  R visitClassElement(ClassElement element);
+
+  R visitCompilationUnitElement(CompilationUnitElement element);
+
+  R visitConstructorElement(ConstructorElement element);
+
+  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
+
+  R visitExportElement(ExportElement element);
+
+  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
+
+  R visitFieldElement(FieldElement element);
+
+  R visitFieldFormalParameterElement(FieldFormalParameterElement element);
+
+  R visitFunctionElement(FunctionElement element);
+
+  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
+
+  R visitHtmlElement(HtmlElement element);
+
+  R visitImportElement(ImportElement element);
+
+  R visitLabelElement(LabelElement element);
+
+  R visitLibraryElement(LibraryElement element);
+
+  R visitLocalVariableElement(LocalVariableElement element);
+
+  R visitMethodElement(MethodElement element);
+
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element);
+
+  R visitParameterElement(ParameterElement element);
+
+  R visitPolymerAttributeElement(PolymerAttributeElement element);
+
+  R visitPolymerTagDartElement(PolymerTagDartElement element);
+
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
+
+  R visitPrefixElement(PrefixElement element);
+
+  R visitPropertyAccessorElement(PropertyAccessorElement element);
+
+  R visitTopLevelVariableElement(TopLevelVariableElement element);
+
+  R visitTypeParameterElement(TypeParameterElement element);
+}
+
+/**
+ * The interface `EmbeddedHtmlScriptElement` defines the behavior of elements representing a
+ * script tag in an HTML file having content that defines a Dart library.
+ */
+abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
+  /**
+   * Return the library element defined by the content of the script tag.
+   *
+   * @return the library element (not `null`)
+   */
+  LibraryElement get scriptLibrary;
+}
+
+/**
  * Instances of the class `EmbeddedHtmlScriptElementImpl` implement an
  * [EmbeddedHtmlScriptElement].
  */
@@ -4539,6 +3827,71 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChild(_scriptLibrary, visitor);
   }
+}
+
+/**
+ * The interface `ExecutableElement` defines the behavior of elements representing an
+ * executable object, including functions, methods, constructors, getters, and setters.
+ */
+abstract class ExecutableElement implements Element {
+  /**
+   * Return an array containing all of the functions defined within this executable element.
+   *
+   * @return the functions defined within this executable element
+   */
+  List<FunctionElement> get functions;
+
+  /**
+   * Return an array containing all of the labels defined within this executable element.
+   *
+   * @return the labels defined within this executable element
+   */
+  List<LabelElement> get labels;
+
+  /**
+   * Return an array containing all of the local variables defined within this executable element.
+   *
+   * @return the local variables defined within this executable element
+   */
+  List<LocalVariableElement> get localVariables;
+
+  /**
+   * Return an array containing all of the parameters defined by this executable element.
+   *
+   * @return the parameters defined by this executable element
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return the return type defined by this executable element.
+   *
+   * @return the return type defined by this executable element
+   */
+  DartType get returnType;
+
+  /**
+   * Return the type of function defined by this executable element.
+   *
+   * @return the type of function defined by this executable element
+   */
+  FunctionType get type;
+
+  /**
+   * Return `true` if this executable element is an operator. The test may be based on the
+   * name of the executable element, in which case the result will be correct when the name is
+   * legal.
+   *
+   * @return `true` if this executable element is an operator
+   */
+  bool get isOperator;
+
+  /**
+   * Return `true` if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   *
+   * @return `true` if this executable element is a static element
+   */
+  bool get isStatic;
 }
 
 /**
@@ -4737,6 +4090,107 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
 }
 
 /**
+ * The abstract class `ExecutableMember` defines the behavior common to members that represent
+ * an executable element defined in a parameterized type where the values of the type parameters are
+ * known.
+ */
+abstract class ExecutableMember extends Member implements ExecutableElement {
+  /**
+   * Initialize a newly created element to represent an executable element of the given
+   * parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
+
+  @override
+  ExecutableElement get baseElement => super.baseElement as ExecutableElement;
+
+  @override
+  List<FunctionElement> get functions {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
+    throw new UnsupportedOperationException();
+  }
+
+  @override
+  List<LabelElement> get labels => baseElement.labels;
+
+  @override
+  List<LocalVariableElement> get localVariables {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
+    throw new UnsupportedOperationException();
+  }
+
+  @override
+  List<ParameterElement> get parameters {
+    List<ParameterElement> baseParameters = baseElement.parameters;
+    int parameterCount = baseParameters.length;
+    if (parameterCount == 0) {
+      return baseParameters;
+    }
+    List<ParameterElement> parameterizedParameters = new List<ParameterElement>(parameterCount);
+    for (int i = 0; i < parameterCount; i++) {
+      parameterizedParameters[i] = ParameterMember.from(baseParameters[i], definingType);
+    }
+    return parameterizedParameters;
+  }
+
+  @override
+  DartType get returnType => substituteFor(baseElement.returnType);
+
+  @override
+  FunctionType get type => substituteFor(baseElement.type);
+
+  @override
+  bool get isOperator => baseElement.isOperator;
+
+  @override
+  bool get isStatic => baseElement.isStatic;
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
+    super.visitChildren(visitor);
+    safelyVisitChildren(baseElement.functions, visitor);
+    safelyVisitChildren(labels, visitor);
+    safelyVisitChildren(baseElement.localVariables, visitor);
+    safelyVisitChildren(parameters, visitor);
+  }
+}
+
+/**
+ * The interface `ExportElement` defines the behavior of objects representing information
+ * about a single export directive within a library.
+ */
+abstract class ExportElement implements Element, UriReferencedElement {
+  /**
+   * An empty array of export elements.
+   */
+  static final List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
+
+  /**
+   * Return an array containing the combinators that were specified as part of the export directive
+   * in the order in which they were specified.
+   *
+   * @return the combinators specified in the export directive
+   */
+  List<NamespaceCombinator> get combinators;
+
+  /**
+   * Return the library that is exported from this library by this export directive.
+   *
+   * @return the library that is exported from this library
+   */
+  LibraryElement get exportedLibrary;
+}
+
+/**
  * Instances of the class `ExportElementImpl` implement an [ExportElement].
  */
 class ExportElementImpl extends UriReferencedElementImpl implements ExportElement {
@@ -4773,6 +4227,21 @@ class ExportElementImpl extends UriReferencedElementImpl implements ExportElemen
 }
 
 /**
+ * The interface `ExternalHtmlScriptElement` defines the behavior of elements representing a
+ * script tag in an HTML file having a `source` attribute that references a Dart library
+ * source file.
+ */
+abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
+  /**
+   * Return the source referenced by this element, or `null` if this element does not
+   * reference a Dart library source file.
+   *
+   * @return the source for the external Dart library
+   */
+  Source get scriptSource;
+}
+
+/**
  * Instances of the class `ExternalHtmlScriptElementImpl` implement an
  * [ExternalHtmlScriptElement].
  */
@@ -4794,6 +4263,13 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements Ext
 
   @override
   ElementKind get kind => ElementKind.EXTERNAL_HTML_SCRIPT;
+}
+
+/**
+ * The interface `FieldElement` defines the behavior of elements representing a field defined
+ * within a type.
+ */
+abstract class FieldElement implements ClassMemberElement, PropertyInducingElement {
 }
 
 /**
@@ -4842,6 +4318,20 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
 }
 
 /**
+ * The interface `FieldFormalParameterElement` defines the behavior of elements representing a
+ * field formal parameter defined within a constructor element.
+ */
+abstract class FieldFormalParameterElement implements ParameterElement {
+  /**
+   * Return the field element associated with this field formal parameter, or `null` if the
+   * parameter references a field that doesn't exist.
+   *
+   * @return the field element associated with this field formal parameter
+   */
+  FieldElement get field;
+}
+
+/**
  * Instances of the class `FieldFormalParameterElementImpl` extend
  * [ParameterElementImpl] to provide the additional information of the [FieldElement]
  * associated with the parameter.
@@ -4864,6 +4354,113 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
 
   @override
   bool get isInitializingFormal => true;
+}
+
+/**
+ * Instances of the class `FieldFormalParameterMember` represent a parameter element defined
+ * in a parameterized type where the values of the type parameters are known.
+ */
+class FieldFormalParameterMember extends ParameterMember implements FieldFormalParameterElement {
+  /**
+   * Initialize a newly created element to represent a parameter of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  FieldFormalParameterMember(FieldFormalParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
+
+  @override
+  FieldElement get field => (baseElement as FieldFormalParameterElement).field;
+}
+
+/**
+ * Instances of the class `FieldMember` represent a field element defined in a parameterized
+ * type where the values of the type parameters are known.
+ */
+class FieldMember extends VariableMember implements FieldElement {
+  /**
+   * If the given field's type is different when any type parameters from the defining type's
+   * declaration are replaced with the actual type arguments from the defining type, create a field
+   * member representing the given field. Return the member that was created, or the base field if
+   * no member was created.
+   *
+   * @param baseField the base field for which a member might be created
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return the field element that will return the correctly substituted types
+   */
+  static FieldElement from(FieldElement baseField, InterfaceType definingType) {
+    if (baseField == null || definingType.typeArguments.length == 0) {
+      return baseField;
+    }
+    DartType baseType = baseField.type;
+    if (baseType == null) {
+      return baseField;
+    }
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes = definingType.element.type.typeArguments;
+    DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return baseField;
+    }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
+    return new FieldMember(baseField, definingType);
+  }
+
+  /**
+   * Initialize a newly created element to represent a field of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  FieldMember(FieldElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  @override
+  FieldElement get baseElement => super.baseElement as FieldElement;
+
+  @override
+  ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  PropertyAccessorElement get getter => PropertyAccessorMember.from(baseElement.getter, definingType);
+
+  @override
+  PropertyAccessorElement get setter => PropertyAccessorMember.from(baseElement.setter, definingType);
+
+  @override
+  bool get isStatic => baseElement.isStatic;
+
+  @override
+  InterfaceType get definingType => super.definingType as InterfaceType;
+}
+
+/**
+ * The interface `FunctionElement` defines the behavior of elements representing a function.
+ */
+abstract class FunctionElement implements ExecutableElement, LocalElement {
+  /**
+   * The name of the synthetic function defined for libraries that are deferred.
+   */
+  static final String LOAD_LIBRARY_NAME = "loadLibrary";
+
+  /**
+   * Return the resolved [FunctionDeclaration] node that declares this [FunctionElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionDeclaration], not `null`.
+   */
+  @override
+  FunctionDeclaration get node;
 }
 
 /**
@@ -4955,6 +4552,186 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   @override
   String get identifier => "${name}@${nameOffset}";
+}
+
+/**
+ * The interface `FunctionType` defines the behavior common to objects representing the type
+ * of a function, method, constructor, getter, or setter. Function types come in three variations:
+ * <ol>
+ * * The types of functions that only have required parameters. These have the general form
+ * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i>.
+ * * The types of functions with optional positional parameters. These have the general form
+ * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;, T<sub>n+k</sub>]) &rarr;
+ * T</i>.
+ * * The types of functions with named parameters. These have the general form <i>(T<sub>1</sub>,
+ * &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk}) &rarr; T</i>.
+ * </ol>
+ */
+abstract class FunctionType implements ParameterizedType {
+  /**
+   * Return a map from the names of named parameters to the types of the named parameters of this
+   * type of function. The entries in the map will be iterated in the same order as the order in
+   * which the named parameters were defined. If there were no named parameters declared then the
+   * map will be empty.
+   *
+   * @return a map from the name to the types of the named parameters of this type of function
+   */
+  Map<String, DartType> get namedParameterTypes;
+
+  /**
+   * Return an array containing the types of the normal parameters of this type of function. The
+   * parameter types are in the same order as they appear in the declaration of the function.
+   *
+   * @return the types of the normal parameters of this type of function
+   */
+  List<DartType> get normalParameterTypes;
+
+  /**
+   * Return a map from the names of optional (positional) parameters to the types of the optional
+   * parameters of this type of function. The entries in the map will be iterated in the same order
+   * as the order in which the optional parameters were defined. If there were no optional
+   * parameters declared then the map will be empty.
+   *
+   * @return a map from the name to the types of the optional parameters of this type of function
+   */
+  List<DartType> get optionalParameterTypes;
+
+  /**
+   * Return an array containing the parameters elements of this type of function. The parameter
+   * types are in the same order as they appear in the declaration of the function.
+   *
+   * @return the parameters elements of this type of function
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return the type of object returned by this type of function.
+   *
+   * @return the type of object returned by this type of function
+   */
+  DartType get returnType;
+
+  /**
+   * Return `true` if this type is a subtype of the given type.
+   *
+   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i> is a subtype of the
+   * function type <i>(S<sub>1</sub>, &hellip;, S<sub>n</sub>) &rarr; S</i>, if all of the following
+   * conditions are met:
+   * * Either
+   * * <i>S</i> is void, or
+   * * <i>T &hArr; S</i>.
+   *
+   * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
+   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;,
+   * T<sub>n+k</sub>]) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
+   * S<sub>n</sub>, [S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>]) &rarr; S</i>, if all of the
+   * following conditions are met:
+   * * Either
+   * * <i>S</i> is void, or
+   * * <i>T &hArr; S</i>.
+   *
+   * * <i>k</i> >= <i>m</i> and for all <i>i</i>, 1 <= <i>i</i> <= <i>n+m</i>, <i>T<sub>i</sub>
+   * &hArr; S<sub>i</sub></i>.
+   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;,
+   * T<sub>xk</sub> xk}) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
+   * S<sub>n</sub>, {S<sub>y1</sub> y1, &hellip;, S<sub>ym</sub> ym}) &rarr; S</i>, if all of the
+   * following conditions are met:
+   * * Either
+   * * <i>S</i> is void,
+   * * or <i>T &hArr; S</i>.
+   *
+   * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
+   * * <i>k</i> >= <i>m</i> and <i>y<sub>i</sub></i> in <i>{x<sub>1</sub>, &hellip;,
+   * x<sub>k</sub>}</i>, 1 <= <i>i</i> <= <i>m</i>.
+   * * For all <i>y<sub>i</sub></i> in <i>{y<sub>1</sub>, &hellip;, y<sub>m</sub>}</i>,
+   * <i>y<sub>i</sub> = x<sub>j</sub> => Tj &hArr; Si</i>.
+   * In addition, the following subtype rules apply:
+   *
+   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, []) &rarr; T <: (T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>) &rarr; T.</i><br>
+   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>, {}) &rarr; T.</i><br>
+   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {}) &rarr; T <: (T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>) &rarr; T.</i><br>
+   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>, []) &rarr; T.</i>
+   *
+   * All functions implement the class `Function`. However not all function types are a
+   * subtype of `Function`. If an interface type <i>I</i> includes a method named
+   * `call()`, and the type of `call()` is the function type <i>F</i>, then <i>I</i> is
+   * considered to be a subtype of <i>F</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is a subtype of the given type
+   */
+  @override
+  bool isSubtypeOf(DartType type);
+
+  /**
+   * Return the type resulting from substituting the given arguments for this type's parameters.
+   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
+   *
+   * @param argumentTypes the actual type arguments being substituted for the type parameters
+   * @return the result of performing the substitution
+   */
+  FunctionType substitute3(List<DartType> argumentTypes);
+
+  @override
+  FunctionType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
+}
+
+/**
+ * The interface `FunctionTypeAliasElement` defines the behavior of elements representing a
+ * function type alias (`typedef`).
+ */
+abstract class FunctionTypeAliasElement implements Element {
+  /**
+   * Return the compilation unit in which this type alias is defined.
+   *
+   * @return the compilation unit in which this type alias is defined
+   */
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  /**
+   * Return the resolved [FunctionTypeAlias] node that declares this
+   * [FunctionTypeAliasElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionTypeAlias], not `null`.
+   */
+  @override
+  FunctionTypeAlias get node;
+
+  /**
+   * Return an array containing all of the parameters defined by this type alias.
+   *
+   * @return the parameters defined by this type alias
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return the return type defined by this type alias.
+   *
+   * @return the return type defined by this type alias
+   */
+  DartType get returnType;
+
+  /**
+   * Return the type of function defined by this type alias.
+   *
+   * @return the type of function defined by this type alias
+   */
+  FunctionType get type;
+
+  /**
+   * Return an array containing all of the type parameters defined for this type.
+   *
+   * @return the type parameters defined for this type
+   */
+  List<TypeParameterElement> get typeParameters;
 }
 
 /**
@@ -5111,3462 +4888,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
       builder.append(type.returnType);
     }
   }
-}
-
-/**
- * Instances of the class `HideElementCombinatorImpl` implement a
- * [HideElementCombinator].
- */
-class HideElementCombinatorImpl implements HideElementCombinator {
-  /**
-   * The names that are not to be made visible in the importing library even if they are defined in
-   * the imported library.
-   */
-  List<String> hiddenNames = StringUtilities.EMPTY_ARRAY;
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("show ");
-    int count = hiddenNames.length;
-    for (int i = 0; i < count; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(hiddenNames[i]);
-    }
-    return builder.toString();
-  }
-}
-
-/**
- * Instances of the class `HtmlElementImpl` implement an [HtmlElement].
- */
-class HtmlElementImpl extends ElementImpl implements HtmlElement {
-  /**
-   * An empty array of HTML file elements.
-   */
-  static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>(0);
-
-  /**
-   * The analysis context in which this library is defined.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The scripts contained in or referenced from script tags in the HTML file.
-   */
-  List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  List<PolymerTagHtmlElement> _polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-
-  /**
-   * The source that corresponds to this HTML file.
-   */
-  Source source;
-
-  /**
-   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
-   * not resolved.
-   */
-  CompilationUnitElement angularCompilationUnit;
-
-  /**
-   * Initialize a newly created HTML element to have the given name.
-   *
-   * @param context the analysis context in which the HTML file is defined
-   * @param name the name of this element
-   */
-  HtmlElementImpl(this.context, String name) : super(name, -1);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    if (object == null) {
-      return false;
-    }
-    return runtimeType == object.runtimeType && source == (object as HtmlElementImpl).source;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.HTML;
-
-  @override
-  List<PolymerTagHtmlElement> get polymerTags => _polymerTags;
-
-  @override
-  List<HtmlScriptElement> get scripts => _scripts;
-
-  @override
-  int get hashCode => source.hashCode;
-
-  /**
-   * Set the [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  void set polymerTags(List<PolymerTagHtmlElement> polymerTags) {
-    if (polymerTags.length == 0) {
-      this._polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-      return;
-    }
-    for (PolymerTagHtmlElement tag in polymerTags) {
-      (tag as PolymerTagHtmlElementImpl).enclosingElement = this;
-    }
-    this._polymerTags = polymerTags;
-  }
-
-  /**
-   * Set the scripts contained in the HTML file to the given scripts.
-   *
-   * @param scripts the scripts
-   */
-  void set scripts(List<HtmlScriptElement> scripts) {
-    if (scripts.length == 0) {
-      this._scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
-      return;
-    }
-    for (HtmlScriptElement script in scripts) {
-      (script as HtmlScriptElementImpl).enclosingElement = this;
-    }
-    this._scripts = scripts;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(_scripts, visitor);
-    safelyVisitChildren(_polymerTags, visitor);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    if (source == null) {
-      builder.append("{HTML file}");
-    } else {
-      builder.append(source.fullName);
-    }
-  }
-}
-
-/**
- * Instances of the class `HtmlScriptElementImpl` implement an [HtmlScriptElement].
- */
-abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
-  /**
-   * An empty array of HTML script elements.
-   */
-  static List<HtmlScriptElement> EMPTY_ARRAY = new List<HtmlScriptElement>(0);
-
-  /**
-   * Initialize a newly created script element to have the specified tag name and offset.
-   *
-   * @param node the XML node from which this element is derived (not `null`)
-   */
-  HtmlScriptElementImpl(XmlTagNode node) : super(node.tag, node.tagToken.offset);
-}
-
-/**
- * Instances of the class `ImportElementImpl` implement an [ImportElement].
- */
-class ImportElementImpl extends UriReferencedElementImpl implements ImportElement {
-  /**
-   * The offset of the prefix of this import in the file that contains the this import directive, or
-   * `-1` if this import is synthetic.
-   */
-  int prefixOffset = 0;
-
-  /**
-   * The library that is imported into this library by this import directive.
-   */
-  LibraryElement importedLibrary;
-
-  /**
-   * The combinators that were specified as part of the import directive in the order in which they
-   * were specified.
-   */
-  List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY;
-
-  /**
-   * The prefix that was specified as part of the import directive, or `null` if there was no
-   * prefix specified.
-   */
-  PrefixElement prefix;
-
-  /**
-   * Initialize a newly created import element.
-   *
-   * @param offset the directive offset, may be `-1` if synthetic.
-   */
-  ImportElementImpl(int offset) : super(null, offset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitImportElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.IMPORT;
-
-  @override
-  bool get isDeferred => hasModifier(Modifier.DEFERRED);
-
-  /**
-   * Set whether this import is for a deferred library to correspond to the given value.
-   *
-   * @param isDeferred `true` if this import is for a deferred library
-   */
-  void set deferred(bool isDeferred) {
-    setModifier(Modifier.DEFERRED, isDeferred);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChild(prefix, visitor);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(builder);
-  }
-
-  @override
-  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
-}
-
-/**
- * Instances of the class `LabelElementImpl` implement a `LabelElement`.
- */
-class LabelElementImpl extends ElementImpl implements LabelElement {
-  /**
-   * A flag indicating whether this label is associated with a `switch` statement.
-   */
-  final bool _onSwitchStatement;
-
-  /**
-   * A flag indicating whether this label is associated with a `switch` member (`case`
-   * or `default`).
-   */
-  final bool _onSwitchMember;
-
-  /**
-   * An empty array of label elements.
-   */
-  static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>(0);
-
-  /**
-   * Initialize a newly created label element to have the given name.
-   *
-   * @param name the name of this element
-   * @param onSwitchStatement `true` if this label is associated with a `switch`
-   *          statement
-   * @param onSwitchMember `true` if this label is associated with a `switch` member
-   */
-  LabelElementImpl(Identifier name, this._onSwitchStatement, this._onSwitchMember) : super.forNode(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
-
-  @override
-  ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
-
-  @override
-  ElementKind get kind => ElementKind.LABEL;
-
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   *
-   * @return `true` if this label is associated with a `switch` member
-   */
-  bool get isOnSwitchMember => _onSwitchMember;
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   *
-   * @return `true` if this label is associated with a `switch` statement
-   */
-  bool get isOnSwitchStatement => _onSwitchStatement;
-}
-
-/**
- * Instances of the class `LibraryElementImpl` implement a `LibraryElement`.
- */
-class LibraryElementImpl extends ElementImpl implements LibraryElement {
-  /**
-   * An empty array of library elements.
-   */
-  static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>(0);
-
-  /**
-   * Determine if the given library is up to date with respect to the given time stamp.
-   *
-   * @param library the library to process
-   * @param timeStamp the time stamp to check against
-   * @param visitedLibraries the set of visited libraries
-   */
-  static bool _safeIsUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
-    if (!visitedLibraries.contains(library)) {
-      visitedLibraries.add(library);
-      AnalysisContext context = library.context;
-      // Check the defining compilation unit.
-      if (timeStamp < context.getModificationStamp(library.definingCompilationUnit.source)) {
-        return false;
-      }
-      // Check the parted compilation units.
-      for (CompilationUnitElement element in library.parts) {
-        if (timeStamp < context.getModificationStamp(element.source)) {
-          return false;
-        }
-      }
-      // Check the imported libraries.
-      for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!_safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-      // Check the exported libraries.
-      for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!_safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  /**
-   * The analysis context in which this library is defined.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The compilation unit that defines this library.
-   */
-  CompilationUnitElement _definingCompilationUnit;
-
-  /**
-   * The entry point for this library, or `null` if this library does not have an entry point.
-   */
-  FunctionElement entryPoint;
-
-  /**
-   * An array containing specifications of all of the imports defined in this library.
-   */
-  List<ImportElement> _imports = ImportElement.EMPTY_ARRAY;
-
-  /**
-   * An array containing specifications of all of the exports defined in this library.
-   */
-  List<ExportElement> _exports = ExportElement.EMPTY_ARRAY;
-
-  /**
-   * An array containing all of the compilation units that are included in this library using a
-   * `part` directive.
-   */
-  List<CompilationUnitElement> _parts = CompilationUnitElementImpl.EMPTY_ARRAY;
-
-  /**
-   * Is `true` if this library is created for Angular analysis.
-   */
-  bool _isAngularHtml = false;
-
-  /**
-   * The element representing the synthetic function `loadLibrary` that is defined for this
-   * library, or `null` if the element has not yet been created.
-   */
-  FunctionElement _loadLibraryFunction;
-
-  /**
-   * Initialize a newly created library element to have the given name.
-   *
-   * @param context the analysis context in which the library is defined
-   * @param name the name of this element
-   */
-  LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
-
-  @override
-  bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && _definingCompilationUnit == (object as LibraryElementImpl).definingCompilationUnit;
-
-  @override
-  ElementImpl getChild(String identifier) {
-    if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier == identifier) {
-      return _definingCompilationUnit as CompilationUnitElementImpl;
-    }
-    for (CompilationUnitElement part in _parts) {
-      if ((part as CompilationUnitElementImpl).identifier == identifier) {
-        return part as CompilationUnitElementImpl;
-      }
-    }
-    for (ImportElement importElement in _imports) {
-      if ((importElement as ImportElementImpl).identifier == identifier) {
-        return importElement as ImportElementImpl;
-      }
-    }
-    for (ExportElement exportElement in _exports) {
-      if ((exportElement as ExportElementImpl).identifier == identifier) {
-        return exportElement as ExportElementImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
-  CompilationUnitElement get definingCompilationUnit => _definingCompilationUnit;
-
-  @override
-  List<LibraryElement> get exportedLibraries {
-    Set<LibraryElement> libraries = new Set<LibraryElement>();
-    for (ExportElement element in _exports) {
-      LibraryElement library = element.exportedLibrary;
-      if (library != null) {
-        libraries.add(library);
-      }
-    }
-    return new List.from(libraries);
-  }
-
-  @override
-  List<ExportElement> get exports => _exports;
-
-  @override
-  List<LibraryElement> get importedLibraries {
-    Set<LibraryElement> libraries = new Set<LibraryElement>();
-    for (ImportElement element in _imports) {
-      LibraryElement library = element.importedLibrary;
-      if (library != null) {
-        libraries.add(library);
-      }
-    }
-    return new List.from(libraries);
-  }
-
-  @override
-  List<ImportElement> get imports => _imports;
-
-  @override
-  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
-    int count = _imports.length;
-    List<ImportElement> importList = new List<ImportElement>();
-    for (int i = 0; i < count; i++) {
-      if (identical(_imports[i].prefix, prefixElement)) {
-        importList.add(_imports[i]);
-      }
-    }
-    return new List.from(importList);
-  }
-
-  @override
-  ElementKind get kind => ElementKind.LIBRARY;
-
-  @override
-  LibraryElement get library => this;
-
-  @override
-  FunctionElement get loadLibraryFunction {
-    if (_loadLibraryFunction == null) {
-      FunctionElementImpl function = new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-      function.synthetic = true;
-      function.enclosingElement = this;
-      function.returnType = loadLibraryReturnType;
-      function.type = new FunctionTypeImpl.con1(function);
-      _loadLibraryFunction = function;
-    }
-    return _loadLibraryFunction;
-  }
-
-  @override
-  List<CompilationUnitElement> get parts => _parts;
-
-  @override
-  List<PrefixElement> get prefixes {
-    Set<PrefixElement> prefixes = new Set<PrefixElement>();
-    for (ImportElement element in _imports) {
-      PrefixElement prefix = element.prefix;
-      if (prefix != null) {
-        prefixes.add(prefix);
-      }
-    }
-    return new List.from(prefixes);
-  }
-
-  @override
-  Source get source {
-    if (_definingCompilationUnit == null) {
-      return null;
-    }
-    return _definingCompilationUnit.source;
-  }
-
-  @override
-  ClassElement getType(String className) {
-    ClassElement type = _definingCompilationUnit.getType(className);
-    if (type != null) {
-      return type;
-    }
-    for (CompilationUnitElement part in _parts) {
-      type = part.getType(className);
-      if (type != null) {
-        return type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = new List<CompilationUnitElement>(1 + _parts.length);
-    units[0] = _definingCompilationUnit;
-    JavaSystem.arraycopy(_parts, 0, units, 1, _parts.length);
-    return units;
-  }
-
-  @override
-  List<LibraryElement> get visibleLibraries {
-    Set<LibraryElement> visibleLibraries = new Set();
-    _addVisibleLibraries(visibleLibraries, false);
-    return new List.from(visibleLibraries);
-  }
-
-  @override
-  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
-
-  @override
-  int get hashCode => _definingCompilationUnit.hashCode;
-
-  @override
-  bool get hasLoadLibraryFunction {
-    if (_definingCompilationUnit.hasLoadLibraryFunction) {
-      return true;
-    }
-    for (int i = 0; i < _parts.length; i++) {
-      if (_parts[i].hasLoadLibraryFunction) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get isAngularHtml => _isAngularHtml;
-
-  @override
-  bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
-
-  @override
-  bool get isDartCore => name == "dart.core";
-
-  @override
-  bool get isInSdk => StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
-
-  @override
-  bool isUpToDate(int timeStamp) {
-    Set<LibraryElement> visitedLibraries = new Set();
-    return _safeIsUpToDate(this, timeStamp, visitedLibraries);
-  }
-
-  /**
-   * Specifies if this library is created for Angular analysis.
-   */
-  void set angularHtml(bool isAngularHtml) {
-    this._isAngularHtml = isAngularHtml;
-  }
-
-  /**
-   * Set the compilation unit that defines this library to the given compilation unit.
-   *
-   * @param definingCompilationUnit the compilation unit that defines this library
-   */
-  void set definingCompilationUnit(CompilationUnitElement definingCompilationUnit) {
-    (definingCompilationUnit as CompilationUnitElementImpl).enclosingElement = this;
-    this._definingCompilationUnit = definingCompilationUnit;
-  }
-
-  /**
-   * Set the specifications of all of the exports defined in this library to the given array.
-   *
-   * @param exports the specifications of all of the exports defined in this library
-   */
-  void set exports(List<ExportElement> exports) {
-    for (ExportElement exportElement in exports) {
-      (exportElement as ExportElementImpl).enclosingElement = this;
-    }
-    this._exports = exports;
-  }
-
-  /**
-   * Set whether this library has an import of a "dart-ext" URI to the given value.
-   *
-   * @param hasExtUri `true` if this library has an import of a "dart-ext" URI
-   */
-  void set hasExtUri(bool hasExtUri) {
-    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
-  }
-
-  /**
-   * Set the specifications of all of the imports defined in this library to the given array.
-   *
-   * @param imports the specifications of all of the imports defined in this library
-   */
-  void set imports(List<ImportElement> imports) {
-    for (ImportElement importElement in imports) {
-      (importElement as ImportElementImpl).enclosingElement = this;
-      PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
-      if (prefix != null) {
-        prefix.enclosingElement = this;
-      }
-    }
-    this._imports = imports;
-  }
-
-  /**
-   * Set the compilation units that are included in this library using a `part` directive.
-   *
-   * @param parts the compilation units that are included in this library using a `part`
-   *          directive
-   */
-  void set parts(List<CompilationUnitElement> parts) {
-    for (CompilationUnitElement compilationUnit in parts) {
-      (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
-    }
-    this._parts = parts;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChild(_definingCompilationUnit, visitor);
-    safelyVisitChildren(_exports, visitor);
-    safelyVisitChildren(_imports, visitor);
-    safelyVisitChildren(_parts, visitor);
-  }
-
-  @override
-  String get identifier => _definingCompilationUnit.source.encoding;
-
-  /**
-   * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
-   */
-  void _addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
-    // maybe already processed
-    if (!visibleLibraries.add(this)) {
-      return;
-    }
-    // add imported libraries
-    for (ImportElement importElement in _imports) {
-      LibraryElement importedLibrary = importElement.importedLibrary;
-      if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
-      }
-    }
-    // add exported libraries
-    if (includeExports) {
-      for (ExportElement exportElement in _exports) {
-        LibraryElement exportedLibrary = exportElement.exportedLibrary;
-        if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
-        }
-      }
-    }
-  }
-
-  /**
-   * Return the object representing the type "Future" from the dart:async library, or the type
-   * "void" if the type "Future" cannot be accessed.
-   *
-   * @return the type "Future" from the dart:async library
-   */
-  DartType get loadLibraryReturnType {
-    try {
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      if (asyncSource == null) {
-        AnalysisEngine.instance.logger.logError("Could not create a source for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
-      if (asyncElement == null) {
-        AnalysisEngine.instance.logger.logError("Could not build the element model for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      ClassElement futureElement = asyncElement.getType("Future");
-      if (futureElement == null) {
-        AnalysisEngine.instance.logger.logError("Could not find type Future in dart:async");
-        return VoidTypeImpl.instance;
-      }
-      InterfaceType futureType = futureElement.type;
-      return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
-    } on AnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", exception);
-      return VoidTypeImpl.instance;
-    }
-  }
-
-  /**
-   * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
-   *
-   * @return `true` if the receiver directly or indirectly imports the dart:html libraries
-   */
-  bool get isOrImportsBrowserLibrary {
-    List<LibraryElement> visited = new List<LibraryElement>();
-    Source htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
-    visited.add(this);
-    for (int index = 0; index < visited.length; index++) {
-      LibraryElement library = visited[index];
-      Source source = library.definingCompilationUnit.source;
-      if (source == htmlLibSource) {
-        return true;
-      }
-      for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!visited.contains(importedLibrary)) {
-          visited.add(importedLibrary);
-        }
-      }
-      for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!visited.contains(exportedLibrary)) {
-          visited.add(exportedLibrary);
-        }
-      }
-    }
-    return false;
-  }
-}
-
-/**
- * Instances of the class `LocalVariableElementImpl` implement a `LocalVariableElement`.
- */
-class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in its scope.
-   */
-  bool _potentiallyMutatedInScope = false;
-
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in closure.
-   */
-  bool _potentiallyMutatedInClosure = false;
-
-  /**
-   * The offset to the beginning of the visible range for this element.
-   */
-  int _visibleRangeOffset = 0;
-
-  /**
-   * The length of the visible range for this element, or `-1` if this element does not have a
-   * visible range.
-   */
-  int _visibleRangeLength = -1;
-
-  /**
-   * An empty array of field elements.
-   */
-  static List<LocalVariableElement> EMPTY_ARRAY = new List<LocalVariableElement>(0);
-
-  /**
-   * Initialize a newly created local variable element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  LocalVariableElementImpl(Identifier name) : super.forNode(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  List<ToolkitObjectElement> get toolkitObjects {
-    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return ToolkitObjectElement.EMPTY_ARRAY;
-    }
-    return unit._getToolkitObjects(this);
-  }
-
-  @override
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
-
-  @override
-  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
-
-  @override
-  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    _potentiallyMutatedInClosure = true;
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    _potentiallyMutatedInScope = true;
-  }
-
-  /**
-   * Set the toolkit specific information objects attached to this variable.
-   *
-   * @param toolkitObjects the toolkit objects attached to this variable
-   */
-  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
-    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return;
-    }
-    unit._setToolkitObjects(this, toolkitObjects);
-  }
-
-  /**
-   * Set the visible range for this element to the range starting at the given offset with the given
-   * length.
-   *
-   * @param offset the offset to the beginning of the visible range for this element
-   * @param length the length of the visible range for this element, or `-1` if this element
-   *          does not have a visible range
-   */
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
-  }
-
-  @override
-  String get identifier => "${super.identifier}@${nameOffset}";
-}
-
-/**
- * Instances of the class `MethodElementImpl` implement a `MethodElement`.
- */
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
-  /**
-   * An empty array of method elements.
-   */
-  static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>(0);
-
-  /**
-   * Initialize a newly created method element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  MethodElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created method element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  MethodElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
-
-  @override
-  String get displayName {
-    String displayName = super.displayName;
-    if ("unary-" == displayName) {
-      return "-";
-    }
-    return displayName;
-  }
-
-  @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
-
-  @override
-  ElementKind get kind => ElementKind.METHOD;
-
-  @override
-  String get name {
-    String name = super.name;
-    if (isOperator && name == "-") {
-      if (parameters.length == 0) {
-        return "unary-";
-      }
-    }
-    return super.name;
-  }
-
-  @override
-  MethodDeclaration get node => getNodeMatching((node) => node is MethodDeclaration);
-
-  @override
-  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
-
-  @override
-  bool get isOperator {
-    String name = displayName;
-    if (name.isEmpty) {
-      return false;
-    }
-    int first = name.codeUnitAt(0);
-    return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
-  }
-
-  @override
-  bool get isStatic => hasModifier(Modifier.STATIC);
-
-  /**
-   * Set whether this method is abstract to correspond to the given value.
-   *
-   * @param isAbstract `true` if the method is abstract
-   */
-  void set abstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  /**
-   * Set whether this method is static to correspond to the given value.
-   *
-   * @param isStatic `true` if the method is static
-   */
-  void set static(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(enclosingElement.displayName);
-    builder.append(".");
-    builder.append(displayName);
-    super.appendTo(builder);
-  }
-}
-
-/**
- * The enumeration `Modifier` defines constants for all of the modifiers defined by the Dart
- * language and for a few additional flags that are useful.
- */
-class Modifier extends Enum<Modifier> {
-  /**
-   * Indicates that the modifier 'abstract' was applied to the element.
-   */
-  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
-
-  /**
-   * Indicates that the modifier 'const' was applied to the element.
-   */
-  static const Modifier CONST = const Modifier('CONST', 1);
-
-  /**
-   * Indicates that the import element represents a deferred library.
-   */
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 2);
-
-  /**
-   * Indicates that the modifier 'factory' was applied to the element.
-   */
-  static const Modifier FACTORY = const Modifier('FACTORY', 3);
-
-  /**
-   * Indicates that the modifier 'final' was applied to the element.
-   */
-  static const Modifier FINAL = const Modifier('FINAL', 4);
-
-  /**
-   * Indicates that the pseudo-modifier 'get' was applied to the element.
-   */
-  static const Modifier GETTER = const Modifier('GETTER', 5);
-
-  /**
-   * A flag used for libraries indicating that the defining compilation unit contains at least one
-   * import directive whose URI uses the "dart-ext" scheme.
-   */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 6);
-
-  static const Modifier MIXIN = const Modifier('MIXIN', 7);
-
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 8);
-
-  /**
-   * Indicates that the pseudo-modifier 'set' was applied to the element.
-   */
-  static const Modifier SETTER = const Modifier('SETTER', 9);
-
-  /**
-   * Indicates that the modifier 'static' was applied to the element.
-   */
-  static const Modifier STATIC = const Modifier('STATIC', 10);
-
-  /**
-   * Indicates that the element does not appear in the source code but was implicitly created. For
-   * example, if a class does not define any constructors, an implicit zero-argument constructor
-   * will be created and it will be marked as being synthetic.
-   */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 11);
-
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 12);
-
-  static const List<Modifier> values = const [
-      ABSTRACT,
-      CONST,
-      DEFERRED,
-      FACTORY,
-      FINAL,
-      GETTER,
-      HAS_EXT_URI,
-      MIXIN,
-      REFERENCES_SUPER,
-      SETTER,
-      STATIC,
-      SYNTHETIC,
-      TYPEDEF];
-
-  const Modifier(String name, int ordinal) : super(name, ordinal);
-}
-
-/**
- * Instances of the class `MultiplyDefinedElementImpl` represent a collection of elements that
- * have the same name within the same scope.
- */
-class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
-  /**
-   * Return an element that represents the given conflicting elements.
-   *
-   * @param context the analysis context in which the multiply defined elements are defined
-   * @param firstElement the first element that conflicts
-   * @param secondElement the second element that conflicts
-   */
-  static Element fromElements(AnalysisContext context, Element firstElement, Element secondElement) {
-    List<Element> conflictingElements = _computeConflictingElements(firstElement, secondElement);
-    int length = conflictingElements.length;
-    if (length == 0) {
-      return null;
-    } else if (length == 1) {
-      return conflictingElements[0];
-    }
-    return new MultiplyDefinedElementImpl(context, conflictingElements);
-  }
-
-  /**
-   * Add the given element to the list of elements. If the element is a multiply-defined element,
-   * add all of the conflicting elements that it represents.
-   *
-   * @param elements the list to which the element(s) are to be added
-   * @param element the element(s) to be added
-   */
-  static void _add(Set<Element> elements, Element element) {
-    if (element is MultiplyDefinedElementImpl) {
-      for (Element conflictingElement in element.conflictingElements) {
-        elements.add(conflictingElement);
-      }
-    } else {
-      elements.add(element);
-    }
-  }
-
-  /**
-   * Use the given elements to construct an array of conflicting elements. If either of the given
-   * elements are multiply-defined elements then the conflicting elements they represent will be
-   * included in the array. Otherwise, the element itself will be included.
-   *
-   * @param firstElement the first element to be included
-   * @param secondElement the second element to be included
-   * @return an array containing all of the conflicting elements
-   */
-  static List<Element> _computeConflictingElements(Element firstElement, Element secondElement) {
-    Set<Element> elements = new Set<Element>();
-    _add(elements, firstElement);
-    _add(elements, secondElement);
-    return new List.from(elements);
-  }
-
-  /**
-   * The analysis context in which the multiply defined elements are defined.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The name of the conflicting elements.
-   */
-  String _name;
-
-  /**
-   * A list containing all of the elements that conflict.
-   */
-  final List<Element> conflictingElements;
-
-  /**
-   * Initialize a newly created element to represent a list of conflicting elements.
-   *
-   * @param context the analysis context in which the multiply defined elements are defined
-   * @param conflictingElements the elements that conflict
-   */
-  MultiplyDefinedElementImpl(this.context, this.conflictingElements) {
-    _name = conflictingElements[0].name;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
-
-  @override
-  String computeDocumentationComment() => null;
-
-  @override
-  Element getAncestor(Predicate<Element> predicate) => null;
-
-  @override
-  String get displayName => _name;
-
-  @override
-  Element get enclosingElement => null;
-
-  @override
-  ElementKind get kind => ElementKind.ERROR;
-
-  @override
-  LibraryElement get library => null;
-
-  @override
-  ElementLocation get location => null;
-
-  @override
-  List<ElementAnnotation> get metadata => ElementAnnotationImpl.EMPTY_ARRAY;
-
-  @override
-  String get name => _name;
-
-  @override
-  int get nameOffset => -1;
-
-  @override
-  AstNode get node => null;
-
-  @override
-  Source get source => null;
-
-  @override
-  DartType get type => DynamicTypeImpl.instance;
-
-  @override
-  CompilationUnit get unit => null;
-
-  @override
-  bool isAccessibleIn(LibraryElement library) {
-    for (Element element in conflictingElements) {
-      if (element.isAccessibleIn(library)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get isDeprecated => false;
-
-  @override
-  bool get isOverride => false;
-
-  @override
-  bool get isPrivate {
-    String name = displayName;
-    if (name == null) {
-      return false;
-    }
-    return Identifier.isPrivateName(name);
-  }
-
-  @override
-  bool get isPublic => !isPrivate;
-
-  @override
-  bool get isSynthetic => true;
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[");
-    int count = conflictingElements.length;
-    for (int i = 0; i < count; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      (conflictingElements[i] as ElementImpl).appendTo(builder);
-    }
-    builder.append("]");
-    return builder.toString();
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-  }
-}
-
-/**
- * The interface [MultiplyInheritedMethodElementImpl] defines all of the behavior of an
- * [MethodElementImpl], with the additional information of an array of
- * [ExecutableElement]s from which this element was composed.
- */
-class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements MultiplyInheritedExecutableElement {
-  /**
-   * An array the array of executable elements that were used to compose this element.
-   */
-  List<ExecutableElement> _elements = MethodElementImpl.EMPTY_ARRAY;
-
-  MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
-    synthetic = true;
-  }
-
-  @override
-  List<ExecutableElement> get inheritedElements => _elements;
-
-  void set inheritedElements(List<ExecutableElement> elements) {
-    this._elements = elements;
-  }
-}
-
-/**
- * The interface [MultiplyInheritedPropertyAccessorElementImpl] defines all of the behavior of
- * an [PropertyAccessorElementImpl], with the additional information of an array of
- * [ExecutableElement]s from which this element was composed.
- */
-class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorElementImpl implements MultiplyInheritedExecutableElement {
-  /**
-   * An array the array of executable elements that were used to compose this element.
-   */
-  List<ExecutableElement> _elements = PropertyAccessorElementImpl.EMPTY_ARRAY;
-
-  MultiplyInheritedPropertyAccessorElementImpl(Identifier name) : super.forNode(name) {
-    synthetic = true;
-  }
-
-  @override
-  List<ExecutableElement> get inheritedElements => _elements;
-
-  void set inheritedElements(List<ExecutableElement> elements) {
-    this._elements = elements;
-  }
-}
-
-/**
- * Instances of the class `ParameterElementImpl` implement a `ParameterElement`.
- */
-class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in its scope.
-   */
-  bool _potentiallyMutatedInScope = false;
-
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in closure.
-   */
-  bool _potentiallyMutatedInClosure = false;
-
-  /**
-   * An array containing all of the parameters defined by this parameter element. There will only be
-   * parameters if this parameter is a function typed parameter.
-   */
-  List<ParameterElement> _parameters = ParameterElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The kind of this parameter.
-   */
-  ParameterKind parameterKind;
-
-  /**
-   * The offset to the beginning of the default value range for this element.
-   */
-  int _defaultValueRangeOffset = 0;
-
-  /**
-   * The length of the default value range for this element, or `-1` if this element does not
-   * have a default value.
-   */
-  int _defaultValueRangeLength = -1;
-
-  /**
-   * The offset to the beginning of the visible range for this element.
-   */
-  int _visibleRangeOffset = 0;
-
-  /**
-   * The length of the visible range for this element, or `-1` if this element does not have a
-   * visible range.
-   */
-  int _visibleRangeLength = -1;
-
-  /**
-   * An empty array of field elements.
-   */
-  static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
-
-  /**
-   * Initialize a newly created parameter element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  ParameterElementImpl.con1(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created parameter element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  ParameterElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
-
-  @override
-  SourceRange get defaultValueRange {
-    if (_defaultValueRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_defaultValueRangeOffset, _defaultValueRangeLength);
-  }
-
-  @override
-  ElementKind get kind => ElementKind.PARAMETER;
-
-  @override
-  List<ParameterElement> get parameters => _parameters;
-
-  @override
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
-
-  @override
-  bool get isInitializingFormal => false;
-
-  @override
-  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
-
-  @override
-  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    _potentiallyMutatedInClosure = true;
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    _potentiallyMutatedInScope = true;
-  }
-
-  /**
-   * Set the range of the default value for this parameter to the range starting at the given offset
-   * with the given length.
-   *
-   * @param offset the offset to the beginning of the default value range for this element
-   * @param length the length of the default value range for this element, or `-1` if this
-   *          element does not have a default value
-   */
-  void setDefaultValueRange(int offset, int length) {
-    _defaultValueRangeOffset = offset;
-    _defaultValueRangeLength = length;
-  }
-
-  /**
-   * Set the parameters defined by this executable element to the given parameters.
-   *
-   * @param parameters the parameters defined by this executable element
-   */
-  void set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
-    }
-    this._parameters = parameters;
-  }
-
-  /**
-   * Set the visible range for this element to the range starting at the given offset with the given
-   * length.
-   *
-   * @param offset the offset to the beginning of the visible range for this element
-   * @param length the length of the visible range for this element, or `-1` if this element
-   *          does not have a visible range
-   */
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(_parameters, visitor);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    String left = "";
-    String right = "";
-    while (true) {
-      if (parameterKind == ParameterKind.NAMED) {
-        left = "{";
-        right = "}";
-      } else if (parameterKind == ParameterKind.POSITIONAL) {
-        left = "[";
-        right = "]";
-      } else if (parameterKind == ParameterKind.REQUIRED) {
-      }
-      break;
-    }
-    builder.append(left);
-    appendToWithoutDelimiters(builder);
-    builder.append(right);
-  }
-
-  /**
-   * Append the type and name of this parameter to the given builder.
-   *
-   * @param builder the builder to which the type and name are to be appended
-   */
-  void appendToWithoutDelimiters(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
-  }
-}
-
-/**
- * Instances of the class `PrefixElementImpl` implement a `PrefixElement`.
- */
-class PrefixElementImpl extends ElementImpl implements PrefixElement {
-  /**
-   * An array containing all of the libraries that are imported using this prefix.
-   */
-  List<LibraryElement> _importedLibraries = LibraryElementImpl.EMPTY_ARRAY;
-
-  /**
-   * An empty array of prefix elements.
-   */
-  static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>(0);
-
-  /**
-   * Initialize a newly created prefix element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  PrefixElementImpl(Identifier name) : super.forNode(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
-
-  @override
-  LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
-
-  @override
-  List<LibraryElement> get importedLibraries => _importedLibraries;
-
-  @override
-  ElementKind get kind => ElementKind.PREFIX;
-
-  /**
-   * Set the libraries that are imported using this prefix to the given libraries.
-   *
-   * @param importedLibraries the libraries that are imported using this prefix
-   */
-  void set importedLibraries(List<LibraryElement> importedLibraries) {
-    for (LibraryElement library in importedLibraries) {
-      (library as LibraryElementImpl).enclosingElement = this;
-    }
-    this._importedLibraries = importedLibraries;
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("as ");
-    super.appendTo(builder);
-  }
-
-  @override
-  String get identifier => "_${super.identifier}";
-}
-
-/**
- * Instances of the class `PropertyAccessorElementImpl` implement a
- * `PropertyAccessorElement`.
- */
-class PropertyAccessorElementImpl extends ExecutableElementImpl implements PropertyAccessorElement {
-  /**
-   * The variable associated with this accessor.
-   */
-  PropertyInducingElement variable;
-
-  /**
-   * An empty array of property accessor elements.
-   */
-  static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
-
-  /**
-   * Initialize a newly created property accessor element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created synthetic property accessor element to be associated with the given
-   * variable.
-   *
-   * @param variable the variable with which this access is associated
-   */
-  PropertyAccessorElementImpl(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
-    this.variable = variable;
-    synthetic = true;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
-
-  @override
-  bool operator ==(Object object) => super == object && isGetter == (object as PropertyAccessorElement).isGetter;
-
-  @override
-  PropertyAccessorElement get correspondingGetter {
-    if (isGetter || variable == null) {
-      return null;
-    }
-    return variable.getter;
-  }
-
-  @override
-  PropertyAccessorElement get correspondingSetter {
-    if (isSetter || variable == null) {
-      return null;
-    }
-    return variable.setter;
-  }
-
-  @override
-  ElementKind get kind {
-    if (isGetter) {
-      return ElementKind.GETTER;
-    }
-    return ElementKind.SETTER;
-  }
-
-  @override
-  String get name {
-    if (isSetter) {
-      return "${super.name}=";
-    }
-    return super.name;
-  }
-
-  @override
-  AstNode get node {
-    if (isSynthetic) {
-      return null;
-    }
-    if (enclosingElement is ClassElement) {
-      return getNodeMatching((node) => node is MethodDeclaration);
-    }
-    if (enclosingElement is CompilationUnitElement) {
-      return getNodeMatching((node) => node is FunctionDeclaration);
-    }
-    return null;
-  }
-
-  @override
-  int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
-
-  @override
-  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
-
-  @override
-  bool get isGetter => hasModifier(Modifier.GETTER);
-
-  @override
-  bool get isSetter => hasModifier(Modifier.SETTER);
-
-  @override
-  bool get isStatic => hasModifier(Modifier.STATIC);
-
-  /**
-   * Set whether this accessor is abstract to correspond to the given value.
-   *
-   * @param isAbstract `true` if the accessor is abstract
-   */
-  void set abstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  /**
-   * Set whether this accessor is a getter to correspond to the given value.
-   *
-   * @param isGetter `true` if the accessor is a getter
-   */
-  void set getter(bool isGetter) {
-    setModifier(Modifier.GETTER, isGetter);
-  }
-
-  /**
-   * Set whether this accessor is a setter to correspond to the given value.
-   *
-   * @param isSetter `true` if the accessor is a setter
-   */
-  void set setter(bool isSetter) {
-    setModifier(Modifier.SETTER, isSetter);
-  }
-
-  /**
-   * Set whether this accessor is static to correspond to the given value.
-   *
-   * @param isStatic `true` if the accessor is static
-   */
-  void set static(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(isGetter ? "get " : "set ");
-    builder.append(variable.displayName);
-    super.appendTo(builder);
-  }
-}
-
-/**
- * Instances of the class `PropertyInducingElementImpl` implement a
- * `PropertyInducingElement`.
- */
-abstract class PropertyInducingElementImpl extends VariableElementImpl implements PropertyInducingElement {
-  /**
-   * The getter associated with this element.
-   */
-  PropertyAccessorElement getter;
-
-  /**
-   * The setter associated with this element, or `null` if the element is effectively
-   * `final` and therefore does not have a setter associated with it.
-   */
-  PropertyAccessorElement setter;
-
-  /**
-   * An empty array of elements.
-   */
-  static List<PropertyInducingElement> EMPTY_ARRAY = new List<PropertyInducingElement>(0);
-
-  /**
-   * Initialize a newly created element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  PropertyInducingElementImpl.con1(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created synthetic element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  PropertyInducingElementImpl.con2(String name) : super(name, -1) {
-    synthetic = true;
-  }
-}
-
-/**
- * Instances of the class `ShowElementCombinatorImpl` implement a
- * [ShowElementCombinator].
- */
-class ShowElementCombinatorImpl implements ShowElementCombinator {
-  /**
-   * The names that are to be made visible in the importing library if they are defined in the
-   * imported library.
-   */
-  List<String> shownNames = StringUtilities.EMPTY_ARRAY;
-
-  /**
-   * The offset of the character immediately following the last character of this node.
-   */
-  int end = -1;
-
-  /**
-   * The offset of the 'show' keyword of this element.
-   */
-  int offset = 0;
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("show ");
-    int count = shownNames.length;
-    for (int i = 0; i < count; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(shownNames[i]);
-    }
-    return builder.toString();
-  }
-}
-
-/**
- * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
- */
-abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitObjectElement {
-  /**
-   * Initialize a newly created toolkit object element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  ToolkitObjectElementImpl(String name, int nameOffset) : super(name, nameOffset);
-}
-
-/**
- * Instances of the class `TopLevelVariableElementImpl` implement a
- * `TopLevelVariableElement`.
- */
-class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
-  /**
-   * An empty array of top-level variable elements.
-   */
-  static List<TopLevelVariableElement> EMPTY_ARRAY = new List<TopLevelVariableElement>(0);
-
-  /**
-   * Initialize a newly created top-level variable element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name);
-
-  /**
-   * Initialize a newly created synthetic top-level variable element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  TopLevelVariableElementImpl.con2(String name) : super.con2(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
-
-  @override
-  bool get isStatic => true;
-}
-
-/**
- * Instances of the class `TypeParameterElementImpl` implement a [TypeParameterElement].
- */
-class TypeParameterElementImpl extends ElementImpl implements TypeParameterElement {
-  /**
-   * The type defined by this type parameter.
-   */
-  TypeParameterType type;
-
-  /**
-   * The type representing the bound associated with this parameter, or `null` if this
-   * parameter does not have an explicit bound.
-   */
-  DartType bound;
-
-  /**
-   * An empty array of type parameter elements.
-   */
-  static List<TypeParameterElement> EMPTY_ARRAY = new List<TypeParameterElement>(0);
-
-  /**
-   * Initialize a newly created type parameter element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  TypeParameterElementImpl(Identifier name) : super.forNode(name);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.TYPE_PARAMETER;
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(displayName);
-    if (bound != null) {
-      builder.append(" extends ");
-      builder.append(bound);
-    }
-  }
-}
-
-/**
- * Instances of the class `UriReferencedElementImpl` implement an [UriReferencedElement]
- * .
- */
-abstract class UriReferencedElementImpl extends ElementImpl implements UriReferencedElement {
-  /**
-   * The offset of the URI in the file, may be `-1` if synthetic.
-   */
-  int uriOffset = -1;
-
-  /**
-   * The offset of the character immediately following the last character of this node's URI, may be
-   * `-1` if synthetic.
-   */
-  int uriEnd = -1;
-
-  /**
-   * The URI that is specified by this directive.
-   */
-  String uri;
-
-  /**
-   * Initialize a newly created import element.
-   *
-   * @param name the name of this element
-   * @param offset the directive offset, may be `-1` if synthetic.
-   */
-  UriReferencedElementImpl(String name, int offset) : super(name, offset);
-}
-
-/**
- * Instances of the class `VariableElementImpl` implement a `VariableElement`.
- */
-abstract class VariableElementImpl extends ElementImpl implements VariableElement {
-  /**
-   * The declared type of this variable.
-   */
-  DartType type;
-
-  /**
-   * A synthetic function representing this variable's initializer, or `null` if this variable
-   * does not have an initializer.
-   */
-  FunctionElement _initializer;
-
-  /**
-   * An empty array of variable elements.
-   */
-  static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
-
-  /**
-   * Initialize a newly created variable element to have the given name.
-   *
-   * @param name the name of this element
-   */
-  VariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created variable element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  VariableElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  /**
-   * Return the result of evaluating this variable's initializer as a compile-time constant
-   * expression, or `null` if this variable is not a 'const' variable, if it does not have an
-   * initializer, or if the compilation unit containing the variable has not been resolved.
-   *
-   * @return the result of evaluating this variable's initializer
-   */
-  EvaluationResultImpl get evaluationResult => null;
-
-  @override
-  FunctionElement get initializer => _initializer;
-
-  @override
-  VariableDeclaration get node => getNodeMatching((node) => node is VariableDeclaration);
-
-  @override
-  bool get isConst => hasModifier(Modifier.CONST);
-
-  @override
-  bool get isFinal => hasModifier(Modifier.FINAL);
-
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in a closure. This
-   * information is only available for local variables (including parameters) and only after the
-   * compilation unit containing the variable has been resolved.
-   *
-   * @return `true` if this variable is potentially mutated somewhere in closure
-   */
-  bool get isPotentiallyMutatedInClosure => false;
-
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in its scope. This
-   * information is only available for local variables (including parameters) and only after the
-   * compilation unit containing the variable has been resolved.
-   *
-   * @return `true` if this variable is potentially mutated somewhere in its scope
-   */
-  bool get isPotentiallyMutatedInScope => false;
-
-  /**
-   * Set whether this variable is const to correspond to the given value.
-   *
-   * @param isConst `true` if the variable is const
-   */
-  void set const3(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
-  /**
-   * Set the result of evaluating this variable's initializer as a compile-time constant expression
-   * to the given result.
-   *
-   * @param result the result of evaluating this variable's initializer
-   */
-  void set evaluationResult(EvaluationResultImpl result) {
-    throw new IllegalStateException("Invalid attempt to set a compile-time constant result");
-  }
-
-  /**
-   * Set whether this variable is final to correspond to the given value.
-   *
-   * @param isFinal `true` if the variable is final
-   */
-  void set final2(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  /**
-   * Set the function representing this variable's initializer to the given function.
-   *
-   * @param initializer the function representing this variable's initializer
-   */
-  void set initializer(FunctionElement initializer) {
-    if (initializer != null) {
-      (initializer as FunctionElementImpl).enclosingElement = this;
-    }
-    this._initializer = initializer;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChild(_initializer, visitor);
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
-  }
-}
-
-/**
- * Information about Angular application.
- */
-class AngularApplication {
-  final Source entryPoint;
-
-  final Set<Source> _librarySources;
-
-  final List<AngularElement> elements;
-
-  final List<Source> elementSources;
-
-  AngularApplication(this.entryPoint, this._librarySources, this.elements, this.elementSources);
-
-  /**
-   * Checks if this application depends on the library with the given [Source].
-   */
-  bool dependsOn(Source librarySource) => _librarySources.contains(librarySource);
-}
-
-/**
- * Implementation of `AngularComponentElement`.
- */
-class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
-  /**
-   * The offset of the defining <code>Component</code> annotation.
-   */
-  final int _annotationOffset;
-
-  /**
-   * The array containing all of the properties declared by this component.
-   */
-  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
-
-  /**
-   * The array containing all of the scope properties set by this component.
-   */
-  List<AngularScopePropertyElement> _scopeProperties = AngularScopePropertyElement.EMPTY_ARRAY;
-
-  /**
-   * The the CSS file URI.
-   */
-  String styleUri;
-
-  /**
-   * The offset of the [styleUri] in the [getSource].
-   */
-  int styleUriOffset = 0;
-
-  /**
-   * The HTML template URI.
-   */
-  String templateUri;
-
-  /**
-   * The HTML template source.
-   */
-  Source templateSource;
-
-  /**
-   * The offset of the [templateUri] in the [getSource].
-   */
-  int templateUriOffset = 0;
-
-  /**
-   * Initialize a newly created Angular component to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularComponentElementImpl(String name, int nameOffset, this._annotationOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
-
-  @override
-  List<AngularPropertyElement> get properties => _properties;
-
-  @override
-  List<AngularScopePropertyElement> get scopeProperties => _scopeProperties;
-
-  /**
-   * Set an array containing all of the properties declared by this component.
-   *
-   * @param properties the properties to set
-   */
-  void set properties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      encloseElement(property as AngularPropertyElementImpl);
-    }
-    this._properties = properties;
-  }
-
-  /**
-   * Set an array containing all of the scope properties declared by this component.
-   *
-   * @param properties the properties to set
-   */
-  void set scopeProperties(List<AngularScopePropertyElement> properties) {
-    for (AngularScopePropertyElement property in properties) {
-      encloseElement(property as AngularScopePropertyElementImpl);
-    }
-    this._scopeProperties = properties;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_properties, visitor);
-    safelyVisitChildren(_scopeProperties, visitor);
-    super.visitChildren(visitor);
-  }
-
-  @override
-  String get identifier => "AngularComponent@${_annotationOffset}";
-}
-
-/**
- * Implementation of `AngularControllerElement`.
- */
-class AngularControllerElementImpl extends AngularHasSelectorElementImpl implements AngularControllerElement {
-  /**
-   * Initialize a newly created Angular controller to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularControllerElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
-}
-
-/**
- * Implementation of `AngularDirectiveElement`.
- */
-class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implements AngularDecoratorElement {
-  /**
-   * The offset of the annotation that defines this directive.
-   */
-  final int _offset;
-
-  /**
-   * The array containing all of the properties declared by this directive.
-   */
-  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created Angular directive to have the given name.
-   *
-   * @param offset the offset of the annotation that defines this directive
-   */
-  AngularDecoratorElementImpl(this._offset) : super(null, -1);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
-
-  @override
-  String get displayName => selector.displayName;
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_DIRECTIVE;
-
-  @override
-  List<AngularPropertyElement> get properties => _properties;
-
-  @override
-  bool isClass(String name) {
-    Element enclosing = enclosingElement;
-    return enclosing is ClassElement && enclosing.name == name;
-  }
-
-  /**
-   * Set an array containing all of the properties declared by this directive.
-   *
-   * @param properties the properties to set
-   */
-  void set properties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      encloseElement(property as AngularPropertyElementImpl);
-    }
-    this._properties = properties;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_properties, visitor);
-    super.visitChildren(visitor);
-  }
-
-  @override
-  String get identifier => "Decorator@${_offset}";
-}
-
-/**
- * Implementation of `AngularElement`.
- */
-abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
-  /**
-   * The [AngularApplication] this element is used in.
-   */
-  AngularApplication _application;
-
-  /**
-   * Initialize a newly created Angular element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  AngularApplication get application => _application;
-
-  /**
-   * Set the [AngularApplication] this element is used in.
-   */
-  void set application(AngularApplication application) {
-    this._application = application;
-  }
-}
-
-/**
- * Implementation of `AngularFormatterElement`.
- */
-class AngularFormatterElementImpl extends AngularElementImpl implements AngularFormatterElement {
-  /**
-   * Initialize a newly created Angular formatter to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularFormatterElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularFormatterElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_FORMATTER;
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on presence of a class.
- */
-class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasClassSelectorElement {
-  AngularHasClassSelectorElementImpl(String name, int offset) : super(name, offset);
-
-  @override
-  bool apply(XmlTagNode node) {
-    XmlAttributeNode attribute = node.getAttribute("class");
-    if (attribute != null) {
-      String text = attribute.text;
-      if (text != null) {
-        String name = this.name;
-        for (String className in StringUtils.split(text)) {
-          if (className == name) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(".");
-    builder.append(name);
-  }
-}
-
-/**
- * Implementation of `AngularSelectorElement`.
- */
-abstract class AngularHasSelectorElementImpl extends AngularElementImpl implements AngularHasSelectorElement {
-  /**
-   * The selector of this element.
-   */
-  AngularSelectorElement _selector;
-
-  /**
-   * Initialize a newly created Angular element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularHasSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  AngularSelectorElement get selector => _selector;
-
-  /**
-   * Set the selector of this selector-based element.
-   *
-   * @param selector the selector to set
-   */
-  void set selector(AngularSelectorElement selector) {
-    encloseElement(selector as AngularSelectorElementImpl);
-    this._selector = selector;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChild(_selector, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
- * Implementation of `AngularPropertyElement`.
- */
-class AngularPropertyElementImpl extends AngularElementImpl implements AngularPropertyElement {
-  /**
-   * The [FieldElement] to which this property is bound.
-   */
-  FieldElement field;
-
-  /**
-   * The offset of the field name in the property map.
-   */
-  int fieldNameOffset = -1;
-
-  AngularPropertyKind propertyKind;
-
-  /**
-   * Initialize a newly created Angular property to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularPropertyElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
-}
-
-/**
- * Implementation of `AngularScopePropertyElement`.
- */
-class AngularScopePropertyElementImpl extends AngularElementImpl implements AngularScopePropertyElement {
-  /**
-   * The type of the property
-   */
-  final DartType type;
-
-  /**
-   * Initialize a newly created Angular scope property to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_SCOPE_PROPERTY;
-}
-
-/**
- * Implementation of `AngularFormatterElement`.
- */
-abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
-  /**
-   * Initialize a newly created Angular selector to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularSelectorElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_SELECTOR;
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on tag name.
- */
-class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implements AngularTagSelectorElement {
-  AngularTagSelectorElementImpl(String name, int offset) : super(name, offset);
-
-  @override
-  bool apply(XmlTagNode node) {
-    String tagName = name;
-    return node.tag == tagName;
-  }
-
-  @override
-  AngularApplication get application => (enclosingElement as AngularElementImpl).application;
-}
-
-/**
- * Implementation of `AngularViewElement`.
- */
-class AngularViewElementImpl extends AngularElementImpl implements AngularViewElement {
-  /**
-   * The HTML template URI.
-   */
-  final String templateUri;
-
-  /**
-   * The offset of the [templateUri] in the [getSource].
-   */
-  final int templateUriOffset;
-
-  /**
-   * The HTML template source.
-   */
-  Source templateSource;
-
-  /**
-   * Initialize a newly created Angular view.
-   */
-  AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_VIEW;
-
-  @override
-  String get identifier => "AngularView@${templateUriOffset}";
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on presence of attribute.
- */
-class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasAttributeSelectorElement {
-  HasAttributeSelectorElementImpl(String attributeName, int offset) : super(attributeName, offset);
-
-  @override
-  bool apply(XmlTagNode node) {
-    String attributeName = name;
-    return node.getAttribute(attributeName) != null;
-  }
-
-  @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("[");
-    builder.append(name);
-    builder.append("]");
-  }
-}
-
-/**
- * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
- */
-class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  final String tagName;
-
-  final String attributeName;
-
-  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
-
-  @override
-  bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
-}
-
-/**
- * Instances of the class `ConstructorMember` represent a constructor element defined in a
- * parameterized type where the values of the type parameters are known.
- */
-class ConstructorMember extends ExecutableMember implements ConstructorElement {
-  /**
-   * If the given constructor's type is different when any type parameters from the defining type's
-   * declaration are replaced with the actual type arguments from the defining type, create a
-   * constructor member representing the given constructor. Return the member that was created, or
-   * the base constructor if no member was created.
-   *
-   * @param baseConstructor the base constructor for which a member might be created
-   * @param definingType the type defining the parameters and arguments to be used in the
-   *          substitution
-   * @return the constructor element that will return the correctly substituted types
-   */
-  static ConstructorElement from(ConstructorElement baseConstructor, InterfaceType definingType) {
-    if (baseConstructor == null || definingType.typeArguments.length == 0) {
-      return baseConstructor;
-    }
-    FunctionType baseType = baseConstructor.type;
-    if (baseType == null) {
-      // TODO(brianwilkerson) We need to understand when this can happen.
-      return baseConstructor;
-    }
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return baseConstructor;
-    }
-    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
-    // memory but speed up some operations. We need to see how often the type is being re-computed.
-    return new ConstructorMember(baseConstructor, definingType);
-  }
-
-  /**
-   * Initialize a newly created element to represent a constructor of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
-
-  @override
-  ConstructorElement get baseElement => super.baseElement as ConstructorElement;
-
-  @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  ConstructorDeclaration get node => baseElement.node;
-
-  @override
-  ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
-
-  @override
-  bool get isConst => baseElement.isConst;
-
-  @override
-  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
-
-  @override
-  bool get isFactory => baseElement.isFactory;
-
-  @override
-  String toString() {
-    ConstructorElement baseElement = this.baseElement;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement.enclosingElement.displayName);
-    String name = displayName;
-    if (name != null && !name.isEmpty) {
-      builder.append(".");
-      builder.append(name);
-    }
-    builder.append("(");
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(parameters[i]).toString();
-    }
-    builder.append(")");
-    if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
-    }
-    return builder.toString();
-  }
-
-  @override
-  InterfaceType get definingType => super.definingType as InterfaceType;
-}
-
-/**
- * The abstract class `ExecutableMember` defines the behavior common to members that represent
- * an executable element defined in a parameterized type where the values of the type parameters are
- * known.
- */
-abstract class ExecutableMember extends Member implements ExecutableElement {
-  /**
-   * Initialize a newly created element to represent an executable element of the given
-   * parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
-
-  @override
-  ExecutableElement get baseElement => super.baseElement as ExecutableElement;
-
-  @override
-  List<FunctionElement> get functions {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-  }
-
-  @override
-  List<LabelElement> get labels => baseElement.labels;
-
-  @override
-  List<LocalVariableElement> get localVariables {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-  }
-
-  @override
-  List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
-    }
-    List<ParameterElement> parameterizedParameters = new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] = ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
-  }
-
-  @override
-  DartType get returnType => substituteFor(baseElement.returnType);
-
-  @override
-  FunctionType get type => substituteFor(baseElement.type);
-
-  @override
-  bool get isOperator => baseElement.isOperator;
-
-  @override
-  bool get isStatic => baseElement.isStatic;
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
-    // safely invoke them.
-    super.visitChildren(visitor);
-    safelyVisitChildren(baseElement.functions, visitor);
-    safelyVisitChildren(labels, visitor);
-    safelyVisitChildren(baseElement.localVariables, visitor);
-    safelyVisitChildren(parameters, visitor);
-  }
-}
-
-/**
- * Instances of the class `FieldFormalParameterMember` represent a parameter element defined
- * in a parameterized type where the values of the type parameters are known.
- */
-class FieldFormalParameterMember extends ParameterMember implements FieldFormalParameterElement {
-  /**
-   * Initialize a newly created element to represent a parameter of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  FieldFormalParameterMember(FieldFormalParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
-
-  @override
-  FieldElement get field => (baseElement as FieldFormalParameterElement).field;
-}
-
-/**
- * Instances of the class `FieldMember` represent a field element defined in a parameterized
- * type where the values of the type parameters are known.
- */
-class FieldMember extends VariableMember implements FieldElement {
-  /**
-   * If the given field's type is different when any type parameters from the defining type's
-   * declaration are replaced with the actual type arguments from the defining type, create a field
-   * member representing the given field. Return the member that was created, or the base field if
-   * no member was created.
-   *
-   * @param baseField the base field for which a member might be created
-   * @param definingType the type defining the parameters and arguments to be used in the
-   *          substitution
-   * @return the field element that will return the correctly substituted types
-   */
-  static FieldElement from(FieldElement baseField, InterfaceType definingType) {
-    if (baseField == null || definingType.typeArguments.length == 0) {
-      return baseField;
-    }
-    DartType baseType = baseField.type;
-    if (baseType == null) {
-      return baseField;
-    }
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return baseField;
-    }
-    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
-    // memory but speed up some operations. We need to see how often the type is being re-computed.
-    return new FieldMember(baseField, definingType);
-  }
-
-  /**
-   * Initialize a newly created element to represent a field of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  FieldMember(FieldElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
-
-  @override
-  FieldElement get baseElement => super.baseElement as FieldElement;
-
-  @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  PropertyAccessorElement get getter => PropertyAccessorMember.from(baseElement.getter, definingType);
-
-  @override
-  PropertyAccessorElement get setter => PropertyAccessorMember.from(baseElement.setter, definingType);
-
-  @override
-  bool get isStatic => baseElement.isStatic;
-
-  @override
-  InterfaceType get definingType => super.definingType as InterfaceType;
-}
-
-/**
- * The abstract class `Member` defines the behavior common to elements that represent members
- * of parameterized types.
- */
-abstract class Member implements Element {
-  /**
-   * The element on which the parameterized element was created.
-   */
-  final Element _baseElement;
-
-  /**
-   * The type in which the element is defined.
-   */
-  final ParameterizedType _definingType;
-
-  /**
-   * Initialize a newly created element to represent the member of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  Member(this._baseElement, this._definingType);
-
-  @override
-  String computeDocumentationComment() => _baseElement.computeDocumentationComment();
-
-  @override
-  Element getAncestor(Predicate<Element> predicate) => baseElement.getAncestor(predicate);
-
-  /**
-   * Return the element on which the parameterized element was created.
-   *
-   * @return the element on which the parameterized element was created
-   */
-  Element get baseElement => _baseElement;
-
-  @override
-  AnalysisContext get context => _baseElement.context;
-
-  @override
-  String get displayName => _baseElement.displayName;
-
-  @override
-  ElementKind get kind => _baseElement.kind;
-
-  @override
-  LibraryElement get library => _baseElement.library;
-
-  @override
-  ElementLocation get location => _baseElement.location;
-
-  @override
-  List<ElementAnnotation> get metadata => _baseElement.metadata;
-
-  @override
-  String get name => _baseElement.name;
-
-  @override
-  int get nameOffset => _baseElement.nameOffset;
-
-  @override
-  AstNode get node => _baseElement.node;
-
-  @override
-  Source get source => _baseElement.source;
-
-  @override
-  CompilationUnit get unit => _baseElement.unit;
-
-  @override
-  bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
-
-  @override
-  bool get isDeprecated => _baseElement.isDeprecated;
-
-  @override
-  bool get isOverride => _baseElement.isOverride;
-
-  @override
-  bool get isPrivate => _baseElement.isPrivate;
-
-  @override
-  bool get isPublic => _baseElement.isPublic;
-
-  @override
-  bool get isSynthetic => _baseElement.isSynthetic;
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-  }
-
-  /**
-   * Return the type in which the element is defined.
-   *
-   * @return the type in which the element is defined
-   */
-  ParameterizedType get definingType => _definingType;
-
-  /**
-   * If the given child is not `null`, use the given visitor to visit it.
-   *
-   * @param child the child to be visited
-   * @param visitor the visitor to be used to visit the child
-   */
-  void safelyVisitChild(Element child, ElementVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
-
-  /**
-   * Use the given visitor to visit all of the children in the given array.
-   *
-   * @param children the children to be visited
-   * @param visitor the visitor being used to visit the children
-   */
-  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
-    if (children != null) {
-      for (Element child in children) {
-        child.accept(visitor);
-      }
-    }
-  }
-
-  /**
-   * Return the type that results from replacing the type parameters in the given type with the type
-   * arguments.
-   *
-   * @param type the type to be transformed
-   * @return the result of transforming the type
-   */
-  DartType substituteFor(DartType type) {
-    List<DartType> argumentTypes = _definingType.typeArguments;
-    List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
-    return type.substitute2(argumentTypes, parameterTypes);
-  }
-
-  /**
-   * Return the array of types that results from replacing the type parameters in the given types
-   * with the type arguments.
-   *
-   * @param types the types to be transformed
-   * @return the result of transforming the types
-   */
-  List<InterfaceType> substituteFor2(List<InterfaceType> types) {
-    int count = types.length;
-    List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      substitutedTypes[i] = substituteFor(types[i]);
-    }
-    return substitutedTypes;
-  }
-}
-
-/**
- * Instances of the class `MethodMember` represent a method element defined in a parameterized
- * type where the values of the type parameters are known.
- */
-class MethodMember extends ExecutableMember implements MethodElement {
-  /**
-   * If the given method's type is different when any type parameters from the defining type's
-   * declaration are replaced with the actual type arguments from the defining type, create a method
-   * member representing the given method. Return the member that was created, or the base method if
-   * no member was created.
-   *
-   * @param baseMethod the base method for which a member might be created
-   * @param definingType the type defining the parameters and arguments to be used in the
-   *          substitution
-   * @return the method element that will return the correctly substituted types
-   */
-  static MethodElement from(MethodElement baseMethod, InterfaceType definingType) {
-    if (baseMethod == null || definingType.typeArguments.length == 0) {
-      return baseMethod;
-    }
-    FunctionType baseType = baseMethod.type;
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return baseMethod;
-    }
-    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
-    // memory but speed up some operations. We need to see how often the type is being re-computed.
-    return new MethodMember(baseMethod, definingType);
-  }
-
-  /**
-   * Initialize a newly created element to represent a method of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  MethodMember(MethodElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
-
-  @override
-  MethodElement get baseElement => super.baseElement as MethodElement;
-
-  @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  MethodDeclaration get node => baseElement.node;
-
-  @override
-  bool get isAbstract => baseElement.isAbstract;
-
-  @override
-  String toString() {
-    MethodElement baseElement = this.baseElement;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement.enclosingElement.displayName);
-    builder.append(".");
-    builder.append(baseElement.displayName);
-    builder.append("(");
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(parameters[i]).toString();
-    }
-    builder.append(")");
-    if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
-    }
-    return builder.toString();
-  }
-}
-
-/**
- * Instances of the class `ParameterMember` represent a parameter element defined in a
- * parameterized type where the values of the type parameters are known.
- */
-class ParameterMember extends VariableMember implements ParameterElement {
-  /**
-   * If the given parameter's type is different when any type parameters from the defining type's
-   * declaration are replaced with the actual type arguments from the defining type, create a
-   * parameter member representing the given parameter. Return the member that was created, or the
-   * base parameter if no member was created.
-   *
-   * @param baseParameter the base parameter for which a member might be created
-   * @param definingType the type defining the parameters and arguments to be used in the
-   *          substitution
-   * @return the parameter element that will return the correctly substituted types
-   */
-  static ParameterElement from(ParameterElement baseParameter, ParameterizedType definingType) {
-    if (baseParameter == null || definingType.typeArguments.length == 0) {
-      return baseParameter;
-    }
-    // Check if parameter type depends on defining type type arguments.
-    // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
-    bool isFieldFormal = baseParameter is FieldFormalParameterElement;
-    if (!isFieldFormal) {
-      DartType baseType = baseParameter.type;
-      List<DartType> argumentTypes = definingType.typeArguments;
-      List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
-      DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-      if (baseType == substitutedType) {
-        return baseParameter;
-      }
-    }
-    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
-    // memory but speed up some operations. We need to see how often the type is being re-computed.
-    if (isFieldFormal) {
-      return new FieldFormalParameterMember(baseParameter as FieldFormalParameterElement, definingType);
-    }
-    return new ParameterMember(baseParameter, definingType);
-  }
-
-  /**
-   * Initialize a newly created element to represent a parameter of the given parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  ParameterMember(ParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
-
-  @override
-  Element getAncestor(Predicate<Element> predicate) {
-    Element element = baseElement.getAncestor(predicate);
-    ParameterizedType definingType = this.definingType;
-    if (definingType is InterfaceType) {
-      InterfaceType definingInterfaceType = definingType;
-      if (element is ConstructorElement) {
-        return ConstructorMember.from(element, definingInterfaceType);
-      } else if (element is MethodElement) {
-        return MethodMember.from(element, definingInterfaceType);
-      } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from(element, definingInterfaceType);
-      }
-    }
-    return element;
-  }
-
-  @override
-  ParameterElement get baseElement => super.baseElement as ParameterElement;
-
-  @override
-  SourceRange get defaultValueRange => baseElement.defaultValueRange;
-
-  @override
-  Element get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  ParameterKind get parameterKind => baseElement.parameterKind;
-
-  @override
-  List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
-    }
-    List<ParameterElement> parameterizedParameters = new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] = ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
-  }
-
-  @override
-  SourceRange get visibleRange => baseElement.visibleRange;
-
-  @override
-  bool get isInitializingFormal => baseElement.isInitializingFormal;
-
-  @override
-  String toString() {
-    ParameterElement baseElement = this.baseElement;
-    String left = "";
-    String right = "";
-    while (true) {
-      if (baseElement.parameterKind == ParameterKind.NAMED) {
-        left = "{";
-        right = "}";
-      } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
-        left = "[";
-        right = "]";
-      } else if (baseElement.parameterKind == ParameterKind.REQUIRED) {
-      }
-      break;
-    }
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(left);
-    builder.append(type);
-    builder.append(" ");
-    builder.append(baseElement.displayName);
-    builder.append(right);
-    return builder.toString();
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
-  }
-}
-
-/**
- * Instances of the class `PropertyAccessorMember` represent a property accessor element
- * defined in a parameterized type where the values of the type parameters are known.
- */
-class PropertyAccessorMember extends ExecutableMember implements PropertyAccessorElement {
-  /**
-   * If the given property accessor's type is different when any type parameters from the defining
-   * type's declaration are replaced with the actual type arguments from the defining type, create a
-   * property accessor member representing the given property accessor. Return the member that was
-   * created, or the base accessor if no member was created.
-   *
-   * @param baseAccessor the base property accessor for which a member might be created
-   * @param definingType the type defining the parameters and arguments to be used in the
-   *          substitution
-   * @return the property accessor element that will return the correctly substituted types
-   */
-  static PropertyAccessorElement from(PropertyAccessorElement baseAccessor, InterfaceType definingType) {
-    if (baseAccessor == null || definingType.typeArguments.length == 0) {
-      return baseAccessor;
-    }
-    FunctionType baseType = baseAccessor.type;
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return baseAccessor;
-    }
-    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
-    // memory but speed up some operations. We need to see how often the type is being re-computed.
-    return new PropertyAccessorMember(baseAccessor, definingType);
-  }
-
-  /**
-   * Initialize a newly created element to represent a property accessor of the given parameterized
-   * type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  PropertyAccessorMember(PropertyAccessorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
-
-  @override
-  PropertyAccessorElement get baseElement => super.baseElement as PropertyAccessorElement;
-
-  @override
-  PropertyAccessorElement get correspondingGetter => from(baseElement.correspondingGetter, definingType);
-
-  @override
-  PropertyAccessorElement get correspondingSetter => from(baseElement.correspondingSetter, definingType);
-
-  @override
-  Element get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  PropertyInducingElement get variable {
-    PropertyInducingElement variable = baseElement.variable;
-    if (variable is FieldElement) {
-      return FieldMember.from(variable, definingType);
-    }
-    return variable;
-  }
-
-  @override
-  bool get isAbstract => baseElement.isAbstract;
-
-  @override
-  bool get isGetter => baseElement.isGetter;
-
-  @override
-  bool get isSetter => baseElement.isSetter;
-
-  @override
-  String toString() {
-    PropertyAccessorElement baseElement = this.baseElement;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    if (isGetter) {
-      builder.append("get ");
-    } else {
-      builder.append("set ");
-    }
-    builder.append(baseElement.enclosingElement.displayName);
-    builder.append(".");
-    builder.append(baseElement.displayName);
-    builder.append("(");
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(parameters[i]).toString();
-    }
-    builder.append(")");
-    if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
-    }
-    return builder.toString();
-  }
-
-  @override
-  InterfaceType get definingType => super.definingType as InterfaceType;
-}
-
-/**
- * The abstract class `VariableMember` defines the behavior common to members that represent a
- * variable element defined in a parameterized type where the values of the type parameters are
- * known.
- */
-abstract class VariableMember extends Member implements VariableElement {
-  /**
-   * Initialize a newly created element to represent an executable element of the given
-   * parameterized type.
-   *
-   * @param baseElement the element on which the parameterized element was created
-   * @param definingType the type in which the element is defined
-   */
-  VariableMember(VariableElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
-
-  @override
-  VariableElement get baseElement => super.baseElement as VariableElement;
-
-  @override
-  FunctionElement get initializer {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-  }
-
-  @override
-  VariableDeclaration get node => baseElement.node;
-
-  @override
-  DartType get type => substituteFor(baseElement.type);
-
-  @override
-  bool get isConst => baseElement.isConst;
-
-  @override
-  bool get isFinal => baseElement.isFinal;
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
-    // safely invoke them.
-    super.visitChildren(visitor);
-    safelyVisitChild(baseElement.initializer, visitor);
-  }
-}
-
-/**
- * Implementation of `PolymerAttributeElement`.
- */
-class PolymerAttributeElementImpl extends PolymerElementImpl implements PolymerAttributeElement {
-  /**
-   * The [FieldElement] associated with this attribute.
-   */
-  FieldElement field;
-
-  /**
-   * Initialize a newly created Polymer attribute to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerAttributeElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerAttributeElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_ATTRIBUTE;
-}
-
-/**
- * Implementation of `PolymerElement`.
- */
-abstract class PolymerElementImpl extends ToolkitObjectElementImpl implements PolymerElement {
-  /**
-   * Initialize a newly created Polymer element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerElementImpl(String name, int nameOffset) : super(name, nameOffset);
-}
-
-/**
- * Implementation of `PolymerTagDartElement`.
- */
-class PolymerTagDartElementImpl extends PolymerElementImpl implements PolymerTagDartElement {
-  /**
-   * The [ClassElement] that is associated with this Polymer custom tag.
-   */
-  final ClassElement classElement;
-
-  /**
-   * The [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement htmlElement;
-
-  /**
-   * Initialize a newly created Dart part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagDartElementImpl(String name, int nameOffset, this.classElement) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagDartElement(this);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_DART;
-}
-
-/**
- * Implementation of `PolymerTagHtmlElement`.
- */
-class PolymerTagHtmlElementImpl extends PolymerElementImpl implements PolymerTagHtmlElement {
-  /**
-   * The [PolymerTagDartElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement dartElement;
-
-  /**
-   * The array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> _attributes = PolymerAttributeElement.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created HTML part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagHtmlElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagHtmlElement(this);
-
-  @override
-  List<PolymerAttributeElement> get attributes => _attributes;
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_HTML;
-
-  /**
-   * Set an array containing all of the attributes declared by this tag.
-   *
-   * @param attributes the properties to set
-   */
-  void set attributes(List<PolymerAttributeElement> attributes) {
-    for (PolymerAttributeElement property in attributes) {
-      encloseElement(property as PolymerAttributeElementImpl);
-    }
-    this._attributes = attributes;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_attributes, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
- * The unique instance of the class `BottomTypeImpl` implements the type `bottom`.
- */
-class BottomTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class.
-   */
-  static BottomTypeImpl _INSTANCE = new BottomTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static BottomTypeImpl get instance => _INSTANCE;
-
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  BottomTypeImpl() : super(null, "<bottom>");
-
-  @override
-  bool operator ==(Object object) => identical(object, this);
-
-  @override
-  int get hashCode => 0;
-
-  @override
-  bool get isBottom => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => false;
-
-  @override
-  BottomTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
-
-  @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
-
-  @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
-
-  @override
-  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
-}
-
-/**
- * The unique instance of the class `DynamicTypeImpl` implements the type `dynamic`.
- */
-class DynamicTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class.
-   */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static DynamicTypeImpl get instance => _INSTANCE;
-
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  DynamicTypeImpl() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
-    (element as DynamicElementImpl).type = this;
-  }
-
-  @override
-  bool operator ==(Object object) => identical(object, this);
-
-  @override
-  int get hashCode => 1;
-
-  @override
-  bool get isDynamic => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => true;
-
-  @override
-  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
-
-  @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // T is S
-    if (identical(this, type)) {
-      return true;
-    }
-    // else
-    return withDynamic;
-  }
-
-  @override
-  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
 /**
@@ -9137,6 +5458,834 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return (element as FunctionTypeAliasElement).returnType;
     }
   }
+}
+
+/**
+ * Instances of the class `GeneralizingElementVisitor` implement an element visitor that will
+ * recursively visit all of the elements in an element model (like instances of the class
+ * [RecursiveElementVisitor]). In addition, when an element of a specific type is visited not
+ * only will the visit method for that specific type of element be invoked, but additional methods
+ * for the supertypes of that element will also be invoked. For example, using an instance of this
+ * class to visit a [MethodElement] will cause the method
+ * [visitMethodElement] to be invoked but will also cause the methods
+ * [visitExecutableElement] and [visitElement] to be
+ * subsequently invoked. This allows visitors to be written that visit all executable elements
+ * without needing to override the visit method for each of the specific subclasses of
+ * [ExecutableElement].
+ *
+ * Note, however, that unlike many visitors, element visitors visit objects based on the interfaces
+ * implemented by those elements. Because interfaces form a graph structure rather than a tree
+ * structure the way classes do, and because it is generally undesirable for an object to be visited
+ * more than once, this class flattens the interface graph into a pseudo-tree. In particular, this
+ * class treats elements as if the element types were structured in the following way:
+ *
+ *
+ * <pre>
+ * Element
+ *   ClassElement
+ *   CompilationUnitElement
+ *   ExecutableElement
+ *      ConstructorElement
+ *      LocalElement
+ *         FunctionElement
+ *      MethodElement
+ *      PropertyAccessorElement
+ *   ExportElement
+ *   HtmlElement
+ *   ImportElement
+ *   LabelElement
+ *   LibraryElement
+ *   MultiplyDefinedElement
+ *   PrefixElement
+ *   TypeAliasElement
+ *   TypeParameterElement
+ *   UndefinedElement
+ *   VariableElement
+ *      PropertyInducingElement
+ *         FieldElement
+ *         TopLevelVariableElement
+ *      LocalElement
+ *         LocalVariableElement
+ *         ParameterElement
+ *            FieldFormalParameterElement
+ * </pre>
+ *
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
+ * for superclasses of the element to not be invoked and will cause the children of the visited node
+ * to not be visited.
+ */
+class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  @override
+  R visitAngularComponentElement(AngularComponentElement element) => visitAngularHasSelectorElement(element);
+
+  @override
+  R visitAngularControllerElement(AngularControllerElement element) => visitAngularHasSelectorElement(element);
+
+  @override
+  R visitAngularDirectiveElement(AngularDecoratorElement element) => visitAngularHasSelectorElement(element);
+
+  R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
+
+  @override
+  R visitAngularFormatterElement(AngularFormatterElement element) => visitAngularElement(element);
+
+  R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
+
+  @override
+  R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
+
+  @override
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => visitAngularElement(element);
+
+  @override
+  R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
+
+  @override
+  R visitAngularViewElement(AngularViewElement element) => visitAngularElement(element);
+
+  @override
+  R visitClassElement(ClassElement element) => visitElement(element);
+
+  @override
+  R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
+
+  @override
+  R visitConstructorElement(ConstructorElement element) => visitExecutableElement(element);
+
+  R visitElement(Element element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => visitHtmlScriptElement(element);
+
+  R visitExecutableElement(ExecutableElement element) => visitElement(element);
+
+  @override
+  R visitExportElement(ExportElement element) => visitElement(element);
+
+  @override
+  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => visitHtmlScriptElement(element);
+
+  @override
+  R visitFieldElement(FieldElement element) => visitPropertyInducingElement(element);
+
+  @override
+  R visitFieldFormalParameterElement(FieldFormalParameterElement element) => visitParameterElement(element);
+
+  @override
+  R visitFunctionElement(FunctionElement element) => visitLocalElement(element);
+
+  @override
+  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => visitElement(element);
+
+  @override
+  R visitHtmlElement(HtmlElement element) => visitElement(element);
+
+  R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
+
+  @override
+  R visitImportElement(ImportElement element) => visitElement(element);
+
+  @override
+  R visitLabelElement(LabelElement element) => visitElement(element);
+
+  @override
+  R visitLibraryElement(LibraryElement element) => visitElement(element);
+
+  R visitLocalElement(LocalElement element) {
+    if (element is LocalVariableElement) {
+      return visitVariableElement(element);
+    } else if (element is ParameterElement) {
+      return visitVariableElement(element);
+    } else if (element is FunctionElement) {
+      return visitExecutableElement(element);
+    }
+    return null;
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) => visitLocalElement(element);
+
+  @override
+  R visitMethodElement(MethodElement element) => visitExecutableElement(element);
+
+  @override
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => visitElement(element);
+
+  @override
+  R visitParameterElement(ParameterElement element) => visitLocalElement(element);
+
+  @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) => visitPolymerElement(element);
+
+  R visitPolymerElement(PolymerElement element) => visitToolkitObjectElement(element);
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) => visitPolymerElement(element);
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => visitPolymerElement(element);
+
+  @override
+  R visitPrefixElement(PrefixElement element) => visitElement(element);
+
+  @override
+  R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
+
+  R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
+
+  R visitToolkitObjectElement(ToolkitObjectElement element) => visitElement(element);
+
+  @override
+  R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
+
+  @override
+  R visitTypeParameterElement(TypeParameterElement element) => visitElement(element);
+
+  R visitVariableElement(VariableElement element) => visitElement(element);
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on presence of attribute.
+ */
+class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasAttributeSelectorElement {
+  HasAttributeSelectorElementImpl(String attributeName, int offset) : super(attributeName, offset);
+
+  @override
+  bool apply(XmlTagNode node) {
+    String attributeName = name;
+    return node.getAttribute(attributeName) != null;
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("[");
+    builder.append(name);
+    builder.append("]");
+  }
+}
+
+/**
+ * The interface `HideElementCombinator` defines the behavior of combinators that cause some
+ * of the names in a namespace to be hidden when being imported.
+ */
+abstract class HideElementCombinator implements NamespaceCombinator {
+  /**
+   * Return an array containing the names that are not to be made visible in the importing library
+   * even if they are defined in the imported library.
+   *
+   * @return the names from the imported library that are hidden from the importing library
+   */
+  List<String> get hiddenNames;
+}
+
+/**
+ * Instances of the class `HideElementCombinatorImpl` implement a
+ * [HideElementCombinator].
+ */
+class HideElementCombinatorImpl implements HideElementCombinator {
+  /**
+   * The names that are not to be made visible in the importing library even if they are defined in
+   * the imported library.
+   */
+  List<String> hiddenNames = StringUtilities.EMPTY_ARRAY;
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("show ");
+    int count = hiddenNames.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(hiddenNames[i]);
+    }
+    return builder.toString();
+  }
+}
+
+/**
+ * The interface `HtmlElement` defines the behavior of elements representing an HTML file.
+ */
+abstract class HtmlElement implements Element {
+  /**
+   * Return the [CompilationUnitElement] associated with this Angular HTML file, maybe
+   * `null` if not an Angular file.
+   */
+  CompilationUnitElement get angularCompilationUnit;
+
+  /**
+   * Return an array containing all of the [PolymerTagHtmlElement]s defined in the HTML file.
+   *
+   * @return the [PolymerTagHtmlElement]s elements in the HTML file (not `null`,
+   *         contains no `null`s)
+   */
+  List<PolymerTagHtmlElement> get polymerTags;
+
+  /**
+   * Return an array containing all of the script elements contained in the HTML file. This includes
+   * scripts with libraries that are defined by the content of a script tag as well as libraries
+   * that are referenced in the {@core source} attribute of a script tag.
+   *
+   * @return the script elements in the HTML file (not `null`, contains no `null`s)
+   */
+  List<HtmlScriptElement> get scripts;
+}
+
+/**
+ * Instances of the class `HtmlElementImpl` implement an [HtmlElement].
+ */
+class HtmlElementImpl extends ElementImpl implements HtmlElement {
+  /**
+   * An empty array of HTML file elements.
+   */
+  static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>(0);
+
+  /**
+   * The analysis context in which this library is defined.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The scripts contained in or referenced from script tags in the HTML file.
+   */
+  List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+
+  /**
+   * The [PolymerTagHtmlElement]s defined in the HTML file.
+   */
+  List<PolymerTagHtmlElement> _polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
+
+  /**
+   * The source that corresponds to this HTML file.
+   */
+  Source source;
+
+  /**
+   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
+   * not resolved.
+   */
+  CompilationUnitElement angularCompilationUnit;
+
+  /**
+   * Initialize a newly created HTML element to have the given name.
+   *
+   * @param context the analysis context in which the HTML file is defined
+   * @param name the name of this element
+   */
+  HtmlElementImpl(this.context, String name) : super(name, -1);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
+
+  @override
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    if (object == null) {
+      return false;
+    }
+    return runtimeType == object.runtimeType && source == (object as HtmlElementImpl).source;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.HTML;
+
+  @override
+  List<PolymerTagHtmlElement> get polymerTags => _polymerTags;
+
+  @override
+  List<HtmlScriptElement> get scripts => _scripts;
+
+  @override
+  int get hashCode => source.hashCode;
+
+  /**
+   * Set the [PolymerTagHtmlElement]s defined in the HTML file.
+   */
+  void set polymerTags(List<PolymerTagHtmlElement> polymerTags) {
+    if (polymerTags.length == 0) {
+      this._polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
+      return;
+    }
+    for (PolymerTagHtmlElement tag in polymerTags) {
+      (tag as PolymerTagHtmlElementImpl).enclosingElement = this;
+    }
+    this._polymerTags = polymerTags;
+  }
+
+  /**
+   * Set the scripts contained in the HTML file to the given scripts.
+   *
+   * @param scripts the scripts
+   */
+  void set scripts(List<HtmlScriptElement> scripts) {
+    if (scripts.length == 0) {
+      this._scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+      return;
+    }
+    for (HtmlScriptElement script in scripts) {
+      (script as HtmlScriptElementImpl).enclosingElement = this;
+    }
+    this._scripts = scripts;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_scripts, visitor);
+    safelyVisitChildren(_polymerTags, visitor);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    if (source == null) {
+      builder.append("{HTML file}");
+    } else {
+      builder.append(source.fullName);
+    }
+  }
+}
+
+/**
+ * The interface `HtmlScriptElement` defines the behavior of elements representing a script
+ * tag in an HTML file.
+ *
+ * @see EmbeddedHtmlScriptElement
+ * @see ExternalHtmlScriptElement
+ */
+abstract class HtmlScriptElement implements Element {
+}
+
+/**
+ * Instances of the class `HtmlScriptElementImpl` implement an [HtmlScriptElement].
+ */
+abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
+  /**
+   * An empty array of HTML script elements.
+   */
+  static List<HtmlScriptElement> EMPTY_ARRAY = new List<HtmlScriptElement>(0);
+
+  /**
+   * Initialize a newly created script element to have the specified tag name and offset.
+   *
+   * @param node the XML node from which this element is derived (not `null`)
+   */
+  HtmlScriptElementImpl(XmlTagNode node) : super(node.tag, node.tagToken.offset);
+}
+
+/**
+ * The interface `ImportElement` defines the behavior of objects representing information
+ * about a single import directive within a library.
+ */
+abstract class ImportElement implements Element, UriReferencedElement {
+  /**
+   * An empty array of import elements.
+   */
+  static final List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
+
+  /**
+   * Return an array containing the combinators that were specified as part of the import directive
+   * in the order in which they were specified.
+   *
+   * @return the combinators specified in the import directive
+   */
+  List<NamespaceCombinator> get combinators;
+
+  /**
+   * Return the library that is imported into this library by this import directive.
+   *
+   * @return the library that is imported into this library
+   */
+  LibraryElement get importedLibrary;
+
+  /**
+   * Return the prefix that was specified as part of the import directive, or `null` if there
+   * was no prefix specified.
+   *
+   * @return the prefix that was specified as part of the import directive
+   */
+  PrefixElement get prefix;
+
+  /**
+   * Return the offset of the prefix of this import in the file that contains this import directive,
+   * or `-1` if this import is synthetic, does not have a prefix, or otherwise does not have
+   * an offset.
+   *
+   * @return the offset of the prefix of this import
+   */
+  int get prefixOffset;
+
+  /**
+   * Return `true` if this import is for a deferred library.
+   *
+   * @return `true` if this import is for a deferred library
+   */
+  bool get isDeferred;
+}
+
+/**
+ * Instances of the class `ImportElementImpl` implement an [ImportElement].
+ */
+class ImportElementImpl extends UriReferencedElementImpl implements ImportElement {
+  /**
+   * The offset of the prefix of this import in the file that contains the this import directive, or
+   * `-1` if this import is synthetic.
+   */
+  int prefixOffset = 0;
+
+  /**
+   * The library that is imported into this library by this import directive.
+   */
+  LibraryElement importedLibrary;
+
+  /**
+   * The combinators that were specified as part of the import directive in the order in which they
+   * were specified.
+   */
+  List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY;
+
+  /**
+   * The prefix that was specified as part of the import directive, or `null` if there was no
+   * prefix specified.
+   */
+  PrefixElement prefix;
+
+  /**
+   * Initialize a newly created import element.
+   *
+   * @param offset the directive offset, may be `-1` if synthetic.
+   */
+  ImportElementImpl(int offset) : super(null, offset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitImportElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  bool get isDeferred => hasModifier(Modifier.DEFERRED);
+
+  /**
+   * Set whether this import is for a deferred library to correspond to the given value.
+   *
+   * @param isDeferred `true` if this import is for a deferred library
+   */
+  void set deferred(bool isDeferred) {
+    setModifier(Modifier.DEFERRED, isDeferred);
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(prefix, visitor);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("import ");
+    (importedLibrary as LibraryElementImpl).appendTo(builder);
+  }
+
+  @override
+  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
+}
+
+/**
+ * The interface `InterfaceType` defines the behavior common to objects representing the type
+ * introduced by either a class or an interface, or a reference to such a type.
+ */
+abstract class InterfaceType implements ParameterizedType {
+  /**
+   * Return an array containing all of the accessors (getters and setters) declared in this type.
+   *
+   * @return the accessors declared in this type
+   */
+  List<PropertyAccessorElement> get accessors;
+
+  @override
+  ClassElement get element;
+
+  /**
+   * Return the element representing the getter with the given name that is declared in this class,
+   * or `null` if this class does not declare a getter with the given name.
+   *
+   * @param getterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  PropertyAccessorElement getGetter(String getterName);
+
+  /**
+   * Return an array containing all of the interfaces that are implemented by this interface. Note
+   * that this is <b>not</b>, in general, equivalent to getting the interfaces from this type's
+   * element because the types returned by this method will have had their type parameters replaced.
+   *
+   * @return the interfaces that are implemented by this type
+   */
+  List<InterfaceType> get interfaces;
+
+  /**
+   * Return the least upper bound of this type and the given type, or `null` if there is no
+   * least upper bound.
+   *
+   * Given two interfaces <i>I</i> and <i>J</i>, let <i>S<sub>I</sub></i> be the set of
+   * superinterfaces of <i>I<i>, let <i>S<sub>J</sub></i> be the set of superinterfaces of <i>J</i>
+   * and let <i>S = (I &cup; S<sub>I</sub>) &cap; (J &cup; S<sub>J</sub>)</i>. Furthermore, we
+   * define <i>S<sub>n</sub> = {T | T &isin; S &and; depth(T) = n}</i> for any finite <i>n</i>,
+   * where <i>depth(T)</i> is the number of steps in the longest inheritance path from <i>T</i> to
+   * <i>Object</i>. Let <i>q</i> be the largest number such that <i>S<sub>q</sub></i> has
+   * cardinality one. The least upper bound of <i>I</i> and <i>J</i> is the sole element of
+   * <i>S<sub>q</sub></i>.
+   *
+   * @param type the other type used to compute the least upper bound
+   * @return the least upper bound of this type and the given type
+   */
+  @override
+  DartType getLeastUpperBound(DartType type);
+
+  /**
+   * Return the element representing the method with the given name that is declared in this class,
+   * or `null` if this class does not declare a method with the given name.
+   *
+   * @param methodName the name of the method to be returned
+   * @return the method declared in this class with the given name
+   */
+  MethodElement getMethod(String methodName);
+
+  /**
+   * Return an array containing all of the methods declared in this type.
+   *
+   * @return the methods declared in this type
+   */
+  List<MethodElement> get methods;
+
+  /**
+   * Return an array containing all of the mixins that are applied to the class being extended in
+   * order to derive the superclass of this class. Note that this is <b>not</b>, in general,
+   * equivalent to getting the mixins from this type's element because the types returned by this
+   * method will have had their type parameters replaced.
+   *
+   * @return the mixins that are applied to derive the superclass of this class
+   */
+  List<InterfaceType> get mixins;
+
+  /**
+   * Return the element representing the setter with the given name that is declared in this class,
+   * or `null` if this class does not declare a setter with the given name.
+   *
+   * @param setterName the name of the setter to be returned
+   * @return the setter declared in this class with the given name
+   */
+  PropertyAccessorElement getSetter(String setterName);
+
+  /**
+   * Return the type representing the superclass of this type, or null if this type represents the
+   * class 'Object'. Note that this is <b>not</b>, in general, equivalent to getting the superclass
+   * from this type's element because the type returned by this method will have had it's type
+   * parameters replaced.
+   *
+   * @return the superclass of this type
+   */
+  InterfaceType get superclass;
+
+  /**
+   * Return `true` if this type is a direct supertype of the given type. The implicit
+   * interface of class <i>I</i> is a direct supertype of the implicit interface of class <i>J</i>
+   * iff:
+   * * <i>I</i> is Object, and <i>J</i> has no extends clause.
+   * * <i>I</i> is listed in the extends clause of <i>J</i>.
+   * * <i>I</i> is listed in the implements clause of <i>J</i>.
+   * * <i>I</i> is listed in the with clause of <i>J</i>.
+   * * <i>J</i> is a mixin application of the mixin of <i>I</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is a direct supertype of the given type
+   */
+  bool isDirectSupertypeOf(InterfaceType type);
+
+  /**
+   * Return `true` if this type is more specific than the given type. An interface type
+   * <i>T</i> is more specific than an interface type <i>S</i>, written <i>T &laquo; S</i>, if one
+   * of the following conditions is met:
+   * * Reflexivity: <i>T</i> is <i>S</i>.
+   * * <i>T</i> is bottom.
+   * * <i>S</i> is dynamic.
+   * * Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
+   * * <i>T</i> is a type parameter and <i>S</i> is the upper bound of <i>T</i>.
+   * * Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
+   * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
+   * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.
+   * * Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is more specific than the given type
+   */
+  @override
+  bool isMoreSpecificThan(DartType type);
+
+  /**
+   * Return `true` if this type is a subtype of the given type. An interface type <i>T</i> is
+   * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
+   * <i>[bottom/dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
+   * interface type <i>I</i> includes a method named <i>call()</i>, and the type of <i>call()</i> is
+   * the function type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is a subtype of the given type
+   */
+  @override
+  bool isSubtypeOf(DartType type);
+
+  /**
+   * Return the element representing the constructor that results from looking up the given
+   * constructor in this class with respect to the given library, or `null` if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.11.1: <blockquote>If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
+   * the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor <i>T<i>. Otherwise, if
+   * <i>q</i> is not defined or not accessible, a NoSuchMethodException is thrown. </blockquote>
+   *
+   * @param constructorName the name of the constructor being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given constructor in this class with respect to the given
+   *         library
+   */
+  ConstructorElement lookUpConstructor(String constructorName, LibraryElement library);
+
+  /**
+   * Return the element representing the getter that results from looking up the given getter in
+   * this class with respect to the given library, or `null` if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
+   * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param getterName the name of the getter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given getter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
+
+  /**
+   * Return the element representing the getter that results from looking up the given getter in the
+   * superclass of this class with respect to the given library, or `null` if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class
+   * <i>C</i> with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param getterName the name of the getter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given getter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library);
+
+  /**
+   * Return the element representing the method that results from looking up the given method in
+   * this class with respect to the given library, or `null` if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
+   * <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect to library
+   * <i>L</i> is:
+   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in this class with respect to the given
+   *         library
+   */
+  MethodElement lookUpMethod(String methodName, LibraryElement library);
+
+  /**
+   * Return the element representing the method that results from looking up the given method in the
+   * superclass of this class with respect to the given library, or `null` if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
+   * to library <i>L</i> is:
+   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in this class with respect to the given
+   *         library
+   */
+  MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library);
+
+  /**
+   * Return the element representing the setter that results from looking up the given setter in
+   * this class with respect to the given library, or `null` if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.16:
+   * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param setterName the name of the setter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given setter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
+
+  /**
+   * Return the element representing the setter that results from looking up the given setter in the
+   * superclass of this class with respect to the given library, or `null` if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.16: <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class
+   * <i>C</i> with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param setterName the name of the setter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given setter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
+
+  /**
+   * Return the type resulting from substituting the given arguments for this type's parameters.
+   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
+   *
+   * @param argumentTypes the actual type arguments being substituted for the type parameters
+   * @return the result of performing the substitution
+   */
+  InterfaceType substitute4(List<DartType> argumentTypes);
+
+  @override
+  InterfaceType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
 /**
@@ -9884,6 +7033,3066 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 /**
+ * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
+ */
+class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+  final String tagName;
+
+  final String attributeName;
+
+  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
+
+  @override
+  bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
+}
+
+/**
+ * The interface `LabelElement` defines the behavior of elements representing a label
+ * associated with a statement.
+ */
+abstract class LabelElement implements Element {
+  /**
+   * Return the executable element in which this label is defined.
+   *
+   * @return the executable element in which this label is defined
+   */
+  @override
+  ExecutableElement get enclosingElement;
+}
+
+/**
+ * Instances of the class `LabelElementImpl` implement a `LabelElement`.
+ */
+class LabelElementImpl extends ElementImpl implements LabelElement {
+  /**
+   * A flag indicating whether this label is associated with a `switch` statement.
+   */
+  final bool _onSwitchStatement;
+
+  /**
+   * A flag indicating whether this label is associated with a `switch` member (`case`
+   * or `default`).
+   */
+  final bool _onSwitchMember;
+
+  /**
+   * An empty array of label elements.
+   */
+  static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>(0);
+
+  /**
+   * Initialize a newly created label element to have the given name.
+   *
+   * @param name the name of this element
+   * @param onSwitchStatement `true` if this label is associated with a `switch`
+   *          statement
+   * @param onSwitchMember `true` if this label is associated with a `switch` member
+   */
+  LabelElementImpl(Identifier name, this._onSwitchStatement, this._onSwitchMember) : super.forNode(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+
+  @override
+  ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
+
+  @override
+  ElementKind get kind => ElementKind.LABEL;
+
+  /**
+   * Return `true` if this label is associated with a `switch` member (`case` or
+   * `default`).
+   *
+   * @return `true` if this label is associated with a `switch` member
+   */
+  bool get isOnSwitchMember => _onSwitchMember;
+
+  /**
+   * Return `true` if this label is associated with a `switch` statement.
+   *
+   * @return `true` if this label is associated with a `switch` statement
+   */
+  bool get isOnSwitchStatement => _onSwitchStatement;
+}
+
+/**
+ * The interface `LibraryElement` defines the behavior of elements representing a library.
+ */
+abstract class LibraryElement implements Element {
+  /**
+   * Return the compilation unit that defines this library.
+   *
+   * @return the compilation unit that defines this library
+   */
+  CompilationUnitElement get definingCompilationUnit;
+
+  /**
+   * Return the entry point for this library, or `null` if this library does not have an entry
+   * point. The entry point is defined to be a zero argument top-level function whose name is
+   * `main`.
+   *
+   * @return the entry point for this library
+   */
+  FunctionElement get entryPoint;
+
+  /**
+   * Return an array containing all of the libraries that are exported from this library.
+   *
+   * @return an array containing all of the libraries that are exported from this library
+   */
+  List<LibraryElement> get exportedLibraries;
+
+  /**
+   * Return an array containing all of the exports defined in this library.
+   *
+   * @return the exports defined in this library
+   */
+  List<ExportElement> get exports;
+
+  /**
+   * Return an array containing all of the libraries that are imported into this library. This
+   * includes all of the libraries that are imported using a prefix (also available through the
+   * prefixes returned by [getPrefixes]) and those that are imported without a prefix.
+   *
+   * @return an array containing all of the libraries that are imported into this library
+   */
+  List<LibraryElement> get importedLibraries;
+
+  /**
+   * Return an array containing all of the imports defined in this library.
+   *
+   * @return the imports defined in this library
+   */
+  List<ImportElement> get imports;
+
+  /**
+   * Return an array containing all of the imports that share the given prefix, or an empty array if
+   * there are no such imports.
+   *
+   * @param prefixElement the prefix element shared by the returned imports
+   */
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement);
+
+  /**
+   * Return the element representing the synthetic function `loadLibrary` that is implicitly
+   * defined for this library if the library is imported using a deferred import.
+   */
+  FunctionElement get loadLibraryFunction;
+
+  /**
+   * Return an array containing all of the compilation units that are included in this library using
+   * a `part` directive. This does not include the defining compilation unit that contains the
+   * `part` directives.
+   *
+   * @return the compilation units that are included in this library
+   */
+  List<CompilationUnitElement> get parts;
+
+  /**
+   * Return an array containing elements for each of the prefixes used to `import` libraries
+   * into this library. Each prefix can be used in more than one `import` directive.
+   *
+   * @return the prefixes used to `import` libraries into this library
+   */
+  List<PrefixElement> get prefixes;
+
+  /**
+   * Return the class defined in this library that has the given name, or `null` if this
+   * library does not define a class with the given name.
+   *
+   * @param className the name of the class to be returned
+   * @return the class with the given name that is defined in this library
+   */
+  ClassElement getType(String className);
+
+  /**
+   * Return an array containing all of the compilation units this library consists of. This includes
+   * the defining compilation unit and units included using the `part` directive.
+   *
+   * @return the compilation units this library consists of
+   */
+  List<CompilationUnitElement> get units;
+
+  /**
+   * Return an array containing all directly and indirectly imported libraries.
+   *
+   * @return all directly and indirectly imported libraries
+   */
+  List<LibraryElement> get visibleLibraries;
+
+  /**
+   * Return `true` if the defining compilation unit of this library contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  bool get hasExtUri;
+
+  /**
+   * Return `true` if this library defines a top-level function named `loadLibrary`.
+   *
+   * @return `true` if this library defines a top-level function named `loadLibrary`
+   */
+  bool get hasLoadLibraryFunction;
+
+  /**
+   * Return `true` if this library is created for Angular analysis. If this library has not
+   * yet had toolkit references resolved, then `false` will be returned.
+   *
+   * @return `true` if this library is created for Angular analysis
+   */
+  bool get isAngularHtml;
+
+  /**
+   * Return `true` if this library is an application that can be run in the browser.
+   *
+   * @return `true` if this library is an application that can be run in the browser
+   */
+  bool get isBrowserApplication;
+
+  /**
+   * Return `true` if this library is the dart:core library.
+   *
+   * @return `true` if this library is the dart:core library
+   */
+  bool get isDartCore;
+
+  /**
+   * Return `true` if this library is the dart:core library.
+   *
+   * @return `true` if this library is the dart:core library
+   */
+  bool get isInSdk;
+
+  /**
+   * Return `true` if this library is up to date with respect to the given time stamp. If any
+   * transitively referenced Source is newer than the time stamp, this method returns false.
+   *
+   * @param timeStamp the time stamp to compare against
+   * @return `true` if this library is up to date with respect to the given time stamp
+   */
+  bool isUpToDate(int timeStamp);
+}
+
+/**
+ * Instances of the class `LibraryElementImpl` implement a `LibraryElement`.
+ */
+class LibraryElementImpl extends ElementImpl implements LibraryElement {
+  /**
+   * An empty array of library elements.
+   */
+  static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>(0);
+
+  /**
+   * Determine if the given library is up to date with respect to the given time stamp.
+   *
+   * @param library the library to process
+   * @param timeStamp the time stamp to check against
+   * @param visitedLibraries the set of visited libraries
+   */
+  static bool _safeIsUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
+    if (!visitedLibraries.contains(library)) {
+      visitedLibraries.add(library);
+      AnalysisContext context = library.context;
+      // Check the defining compilation unit.
+      if (timeStamp < context.getModificationStamp(library.definingCompilationUnit.source)) {
+        return false;
+      }
+      // Check the parted compilation units.
+      for (CompilationUnitElement element in library.parts) {
+        if (timeStamp < context.getModificationStamp(element.source)) {
+          return false;
+        }
+      }
+      // Check the imported libraries.
+      for (LibraryElement importedLibrary in library.importedLibraries) {
+        if (!_safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
+          return false;
+        }
+      }
+      // Check the exported libraries.
+      for (LibraryElement exportedLibrary in library.exportedLibraries) {
+        if (!_safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * The analysis context in which this library is defined.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The compilation unit that defines this library.
+   */
+  CompilationUnitElement _definingCompilationUnit;
+
+  /**
+   * The entry point for this library, or `null` if this library does not have an entry point.
+   */
+  FunctionElement entryPoint;
+
+  /**
+   * An array containing specifications of all of the imports defined in this library.
+   */
+  List<ImportElement> _imports = ImportElement.EMPTY_ARRAY;
+
+  /**
+   * An array containing specifications of all of the exports defined in this library.
+   */
+  List<ExportElement> _exports = ExportElement.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the compilation units that are included in this library using a
+   * `part` directive.
+   */
+  List<CompilationUnitElement> _parts = CompilationUnitElementImpl.EMPTY_ARRAY;
+
+  /**
+   * Is `true` if this library is created for Angular analysis.
+   */
+  bool _isAngularHtml = false;
+
+  /**
+   * The element representing the synthetic function `loadLibrary` that is defined for this
+   * library, or `null` if the element has not yet been created.
+   */
+  FunctionElement _loadLibraryFunction;
+
+  /**
+   * Initialize a newly created library element to have the given name.
+   *
+   * @param context the analysis context in which the library is defined
+   * @param name the name of this element
+   */
+  LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+
+  @override
+  bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && _definingCompilationUnit == (object as LibraryElementImpl).definingCompilationUnit;
+
+  @override
+  ElementImpl getChild(String identifier) {
+    if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier == identifier) {
+      return _definingCompilationUnit as CompilationUnitElementImpl;
+    }
+    for (CompilationUnitElement part in _parts) {
+      if ((part as CompilationUnitElementImpl).identifier == identifier) {
+        return part as CompilationUnitElementImpl;
+      }
+    }
+    for (ImportElement importElement in _imports) {
+      if ((importElement as ImportElementImpl).identifier == identifier) {
+        return importElement as ImportElementImpl;
+      }
+    }
+    for (ExportElement exportElement in _exports) {
+      if ((exportElement as ExportElementImpl).identifier == identifier) {
+        return exportElement as ExportElementImpl;
+      }
+    }
+    return null;
+  }
+
+  @override
+  CompilationUnitElement get definingCompilationUnit => _definingCompilationUnit;
+
+  @override
+  List<LibraryElement> get exportedLibraries {
+    Set<LibraryElement> libraries = new Set<LibraryElement>();
+    for (ExportElement element in _exports) {
+      LibraryElement library = element.exportedLibrary;
+      if (library != null) {
+        libraries.add(library);
+      }
+    }
+    return new List.from(libraries);
+  }
+
+  @override
+  List<ExportElement> get exports => _exports;
+
+  @override
+  List<LibraryElement> get importedLibraries {
+    Set<LibraryElement> libraries = new Set<LibraryElement>();
+    for (ImportElement element in _imports) {
+      LibraryElement library = element.importedLibrary;
+      if (library != null) {
+        libraries.add(library);
+      }
+    }
+    return new List.from(libraries);
+  }
+
+  @override
+  List<ImportElement> get imports => _imports;
+
+  @override
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
+    int count = _imports.length;
+    List<ImportElement> importList = new List<ImportElement>();
+    for (int i = 0; i < count; i++) {
+      if (identical(_imports[i].prefix, prefixElement)) {
+        importList.add(_imports[i]);
+      }
+    }
+    return new List.from(importList);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.LIBRARY;
+
+  @override
+  LibraryElement get library => this;
+
+  @override
+  FunctionElement get loadLibraryFunction {
+    if (_loadLibraryFunction == null) {
+      FunctionElementImpl function = new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+      function.synthetic = true;
+      function.enclosingElement = this;
+      function.returnType = loadLibraryReturnType;
+      function.type = new FunctionTypeImpl.con1(function);
+      _loadLibraryFunction = function;
+    }
+    return _loadLibraryFunction;
+  }
+
+  @override
+  List<CompilationUnitElement> get parts => _parts;
+
+  @override
+  List<PrefixElement> get prefixes {
+    Set<PrefixElement> prefixes = new Set<PrefixElement>();
+    for (ImportElement element in _imports) {
+      PrefixElement prefix = element.prefix;
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+    return new List.from(prefixes);
+  }
+
+  @override
+  Source get source {
+    if (_definingCompilationUnit == null) {
+      return null;
+    }
+    return _definingCompilationUnit.source;
+  }
+
+  @override
+  ClassElement getType(String className) {
+    ClassElement type = _definingCompilationUnit.getType(className);
+    if (type != null) {
+      return type;
+    }
+    for (CompilationUnitElement part in _parts) {
+      type = part.getType(className);
+      if (type != null) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  List<CompilationUnitElement> get units {
+    List<CompilationUnitElement> units = new List<CompilationUnitElement>(1 + _parts.length);
+    units[0] = _definingCompilationUnit;
+    JavaSystem.arraycopy(_parts, 0, units, 1, _parts.length);
+    return units;
+  }
+
+  @override
+  List<LibraryElement> get visibleLibraries {
+    Set<LibraryElement> visibleLibraries = new Set();
+    _addVisibleLibraries(visibleLibraries, false);
+    return new List.from(visibleLibraries);
+  }
+
+  @override
+  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
+
+  @override
+  int get hashCode => _definingCompilationUnit.hashCode;
+
+  @override
+  bool get hasLoadLibraryFunction {
+    if (_definingCompilationUnit.hasLoadLibraryFunction) {
+      return true;
+    }
+    for (int i = 0; i < _parts.length; i++) {
+      if (_parts[i].hasLoadLibraryFunction) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isAngularHtml => _isAngularHtml;
+
+  @override
+  bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
+
+  @override
+  bool get isDartCore => name == "dart.core";
+
+  @override
+  bool get isInSdk => StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
+
+  @override
+  bool isUpToDate(int timeStamp) {
+    Set<LibraryElement> visitedLibraries = new Set();
+    return _safeIsUpToDate(this, timeStamp, visitedLibraries);
+  }
+
+  /**
+   * Specifies if this library is created for Angular analysis.
+   */
+  void set angularHtml(bool isAngularHtml) {
+    this._isAngularHtml = isAngularHtml;
+  }
+
+  /**
+   * Set the compilation unit that defines this library to the given compilation unit.
+   *
+   * @param definingCompilationUnit the compilation unit that defines this library
+   */
+  void set definingCompilationUnit(CompilationUnitElement definingCompilationUnit) {
+    (definingCompilationUnit as CompilationUnitElementImpl).enclosingElement = this;
+    this._definingCompilationUnit = definingCompilationUnit;
+  }
+
+  /**
+   * Set the specifications of all of the exports defined in this library to the given array.
+   *
+   * @param exports the specifications of all of the exports defined in this library
+   */
+  void set exports(List<ExportElement> exports) {
+    for (ExportElement exportElement in exports) {
+      (exportElement as ExportElementImpl).enclosingElement = this;
+    }
+    this._exports = exports;
+  }
+
+  /**
+   * Set whether this library has an import of a "dart-ext" URI to the given value.
+   *
+   * @param hasExtUri `true` if this library has an import of a "dart-ext" URI
+   */
+  void set hasExtUri(bool hasExtUri) {
+    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
+  }
+
+  /**
+   * Set the specifications of all of the imports defined in this library to the given array.
+   *
+   * @param imports the specifications of all of the imports defined in this library
+   */
+  void set imports(List<ImportElement> imports) {
+    for (ImportElement importElement in imports) {
+      (importElement as ImportElementImpl).enclosingElement = this;
+      PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
+      if (prefix != null) {
+        prefix.enclosingElement = this;
+      }
+    }
+    this._imports = imports;
+  }
+
+  /**
+   * Set the compilation units that are included in this library using a `part` directive.
+   *
+   * @param parts the compilation units that are included in this library using a `part`
+   *          directive
+   */
+  void set parts(List<CompilationUnitElement> parts) {
+    for (CompilationUnitElement compilationUnit in parts) {
+      (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
+    }
+    this._parts = parts;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_definingCompilationUnit, visitor);
+    safelyVisitChildren(_exports, visitor);
+    safelyVisitChildren(_imports, visitor);
+    safelyVisitChildren(_parts, visitor);
+  }
+
+  @override
+  String get identifier => _definingCompilationUnit.source.encoding;
+
+  /**
+   * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
+   */
+  void _addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
+    // maybe already processed
+    if (!visibleLibraries.add(this)) {
+      return;
+    }
+    // add imported libraries
+    for (ImportElement importElement in _imports) {
+      LibraryElement importedLibrary = importElement.importedLibrary;
+      if (importedLibrary != null) {
+        (importedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
+      }
+    }
+    // add exported libraries
+    if (includeExports) {
+      for (ExportElement exportElement in _exports) {
+        LibraryElement exportedLibrary = exportElement.exportedLibrary;
+        if (exportedLibrary != null) {
+          (exportedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
+        }
+      }
+    }
+  }
+
+  /**
+   * Return the object representing the type "Future" from the dart:async library, or the type
+   * "void" if the type "Future" cannot be accessed.
+   *
+   * @return the type "Future" from the dart:async library
+   */
+  DartType get loadLibraryReturnType {
+    try {
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      if (asyncSource == null) {
+        AnalysisEngine.instance.logger.logError("Could not create a source for dart:async");
+        return VoidTypeImpl.instance;
+      }
+      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
+      if (asyncElement == null) {
+        AnalysisEngine.instance.logger.logError("Could not build the element model for dart:async");
+        return VoidTypeImpl.instance;
+      }
+      ClassElement futureElement = asyncElement.getType("Future");
+      if (futureElement == null) {
+        AnalysisEngine.instance.logger.logError("Could not find type Future in dart:async");
+        return VoidTypeImpl.instance;
+      }
+      InterfaceType futureType = futureElement.type;
+      return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
+    } on AnalysisException catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", exception);
+      return VoidTypeImpl.instance;
+    }
+  }
+
+  /**
+   * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
+   *
+   * @return `true` if the receiver directly or indirectly imports the dart:html libraries
+   */
+  bool get isOrImportsBrowserLibrary {
+    List<LibraryElement> visited = new List<LibraryElement>();
+    Source htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
+    visited.add(this);
+    for (int index = 0; index < visited.length; index++) {
+      LibraryElement library = visited[index];
+      Source source = library.definingCompilationUnit.source;
+      if (source == htmlLibSource) {
+        return true;
+      }
+      for (LibraryElement importedLibrary in library.importedLibraries) {
+        if (!visited.contains(importedLibrary)) {
+          visited.add(importedLibrary);
+        }
+      }
+      for (LibraryElement exportedLibrary in library.exportedLibraries) {
+        if (!visited.contains(exportedLibrary)) {
+          visited.add(exportedLibrary);
+        }
+      }
+    }
+    return false;
+  }
+}
+
+/**
+ * The interface `LocalElement` defines the behavior of elements that can be (but are not
+ * required to be) defined within a method or function (an [ExecutableElement]).
+ */
+abstract class LocalElement implements Element {
+  /**
+   * Return a source range that covers the approximate portion of the source in which the name of
+   * this element is visible, or `null` if there is no single range of characters within which
+   * the element name is visible.
+   * * For a local variable, this includes everything from the end of the variable's initializer
+   * to the end of the block that encloses the variable declaration.
+   * * For a parameter, this includes the body of the method or function that declares the
+   * parameter.
+   * * For a local function, this includes everything from the beginning of the function's body to
+   * the end of the block that encloses the function declaration.
+   * * For top-level functions, `null` will be returned because they are potentially visible
+   * in multiple sources.
+   *
+   * @return the range of characters in which the name of this element is visible
+   */
+  SourceRange get visibleRange;
+}
+
+/**
+ * The interface `LocalVariableElement` defines the behavior common to elements that represent
+ * a local variable.
+ */
+abstract class LocalVariableElement implements LocalElement, VariableElement {
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this variable.
+   *
+   * @return the toolkit objects attached to this variable
+   */
+  List<ToolkitObjectElement> get toolkitObjects;
+}
+
+/**
+ * Instances of the class `LocalVariableElementImpl` implement a `LocalVariableElement`.
+ */
+class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
+  /**
+   * Is `true` if this variable is potentially mutated somewhere in its scope.
+   */
+  bool _potentiallyMutatedInScope = false;
+
+  /**
+   * Is `true` if this variable is potentially mutated somewhere in closure.
+   */
+  bool _potentiallyMutatedInClosure = false;
+
+  /**
+   * The offset to the beginning of the visible range for this element.
+   */
+  int _visibleRangeOffset = 0;
+
+  /**
+   * The length of the visible range for this element, or `-1` if this element does not have a
+   * visible range.
+   */
+  int _visibleRangeLength = -1;
+
+  /**
+   * An empty array of field elements.
+   */
+  static List<LocalVariableElement> EMPTY_ARRAY = new List<LocalVariableElement>(0);
+
+  /**
+   * Initialize a newly created local variable element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  LocalVariableElementImpl(Identifier name) : super.forNode(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.LOCAL_VARIABLE;
+
+  @override
+  List<ToolkitObjectElement> get toolkitObjects {
+    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
+    if (unit == null) {
+      return ToolkitObjectElement.EMPTY_ARRAY;
+    }
+    return unit._getToolkitObjects(this);
+  }
+
+  @override
+  SourceRange get visibleRange {
+    if (_visibleRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
+  }
+
+  @override
+  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in closure.
+   */
+  void markPotentiallyMutatedInClosure() {
+    _potentiallyMutatedInClosure = true;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  void markPotentiallyMutatedInScope() {
+    _potentiallyMutatedInScope = true;
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this variable.
+   *
+   * @param toolkitObjects the toolkit objects attached to this variable
+   */
+  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
+    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
+    if (unit == null) {
+      return;
+    }
+    unit._setToolkitObjects(this, toolkitObjects);
+  }
+
+  /**
+   * Set the visible range for this element to the range starting at the given offset with the given
+   * length.
+   *
+   * @param offset the offset to the beginning of the visible range for this element
+   * @param length the length of the visible range for this element, or `-1` if this element
+   *          does not have a visible range
+   */
+  void setVisibleRange(int offset, int length) {
+    _visibleRangeOffset = offset;
+    _visibleRangeLength = length;
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(displayName);
+  }
+
+  @override
+  String get identifier => "${super.identifier}@${nameOffset}";
+}
+
+/**
+ * The abstract class `Member` defines the behavior common to elements that represent members
+ * of parameterized types.
+ */
+abstract class Member implements Element {
+  /**
+   * The element on which the parameterized element was created.
+   */
+  final Element _baseElement;
+
+  /**
+   * The type in which the element is defined.
+   */
+  final ParameterizedType _definingType;
+
+  /**
+   * Initialize a newly created element to represent the member of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  Member(this._baseElement, this._definingType);
+
+  @override
+  String computeDocumentationComment() => _baseElement.computeDocumentationComment();
+
+  @override
+  Element getAncestor(Predicate<Element> predicate) => baseElement.getAncestor(predicate);
+
+  /**
+   * Return the element on which the parameterized element was created.
+   *
+   * @return the element on which the parameterized element was created
+   */
+  Element get baseElement => _baseElement;
+
+  @override
+  AnalysisContext get context => _baseElement.context;
+
+  @override
+  String get displayName => _baseElement.displayName;
+
+  @override
+  ElementKind get kind => _baseElement.kind;
+
+  @override
+  LibraryElement get library => _baseElement.library;
+
+  @override
+  ElementLocation get location => _baseElement.location;
+
+  @override
+  List<ElementAnnotation> get metadata => _baseElement.metadata;
+
+  @override
+  String get name => _baseElement.name;
+
+  @override
+  int get nameOffset => _baseElement.nameOffset;
+
+  @override
+  AstNode get node => _baseElement.node;
+
+  @override
+  Source get source => _baseElement.source;
+
+  @override
+  CompilationUnit get unit => _baseElement.unit;
+
+  @override
+  bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
+
+  @override
+  bool get isDeprecated => _baseElement.isDeprecated;
+
+  @override
+  bool get isOverride => _baseElement.isOverride;
+
+  @override
+  bool get isPrivate => _baseElement.isPrivate;
+
+  @override
+  bool get isPublic => _baseElement.isPublic;
+
+  @override
+  bool get isSynthetic => _baseElement.isSynthetic;
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+  }
+
+  /**
+   * Return the type in which the element is defined.
+   *
+   * @return the type in which the element is defined
+   */
+  ParameterizedType get definingType => _definingType;
+
+  /**
+   * If the given child is not `null`, use the given visitor to visit it.
+   *
+   * @param child the child to be visited
+   * @param visitor the visitor to be used to visit the child
+   */
+  void safelyVisitChild(Element child, ElementVisitor visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
+  }
+
+  /**
+   * Use the given visitor to visit all of the children in the given array.
+   *
+   * @param children the children to be visited
+   * @param visitor the visitor being used to visit the children
+   */
+  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
+    if (children != null) {
+      for (Element child in children) {
+        child.accept(visitor);
+      }
+    }
+  }
+
+  /**
+   * Return the type that results from replacing the type parameters in the given type with the type
+   * arguments.
+   *
+   * @param type the type to be transformed
+   * @return the result of transforming the type
+   */
+  DartType substituteFor(DartType type) {
+    List<DartType> argumentTypes = _definingType.typeArguments;
+    List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
+    return type.substitute2(argumentTypes, parameterTypes);
+  }
+
+  /**
+   * Return the array of types that results from replacing the type parameters in the given types
+   * with the type arguments.
+   *
+   * @param types the types to be transformed
+   * @return the result of transforming the types
+   */
+  List<InterfaceType> substituteFor2(List<InterfaceType> types) {
+    int count = types.length;
+    List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
+    for (int i = 0; i < count; i++) {
+      substitutedTypes[i] = substituteFor(types[i]);
+    }
+    return substitutedTypes;
+  }
+}
+
+/**
+ * The interface `MethodElement` defines the behavior of elements that represent a method
+ * defined within a type.
+ */
+abstract class MethodElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [MethodDeclaration] node that declares this [MethodElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [MethodDeclaration], not `null`.
+   */
+  @override
+  MethodDeclaration get node;
+
+  /**
+   * Return `true` if this method is abstract. Methods are abstract if they are not external
+   * and have no body.
+   *
+   * @return `true` if this method is abstract
+   */
+  bool get isAbstract;
+}
+
+/**
+ * Instances of the class `MethodElementImpl` implement a `MethodElement`.
+ */
+class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+  /**
+   * An empty array of method elements.
+   */
+  static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>(0);
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  MethodElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  MethodElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+
+  @override
+  String get displayName {
+    String displayName = super.displayName;
+    if ("unary-" == displayName) {
+      return "-";
+    }
+    return displayName;
+  }
+
+  @override
+  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
+
+  @override
+  ElementKind get kind => ElementKind.METHOD;
+
+  @override
+  String get name {
+    String name = super.name;
+    if (isOperator && name == "-") {
+      if (parameters.length == 0) {
+        return "unary-";
+      }
+    }
+    return super.name;
+  }
+
+  @override
+  MethodDeclaration get node => getNodeMatching((node) => node is MethodDeclaration);
+
+  @override
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+
+  @override
+  bool get isOperator {
+    String name = displayName;
+    if (name.isEmpty) {
+      return false;
+    }
+    int first = name.codeUnitAt(0);
+    return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
+  }
+
+  @override
+  bool get isStatic => hasModifier(Modifier.STATIC);
+
+  /**
+   * Set whether this method is abstract to correspond to the given value.
+   *
+   * @param isAbstract `true` if the method is abstract
+   */
+  void set abstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
+  /**
+   * Set whether this method is static to correspond to the given value.
+   *
+   * @param isStatic `true` if the method is static
+   */
+  void set static(bool isStatic) {
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(enclosingElement.displayName);
+    builder.append(".");
+    builder.append(displayName);
+    super.appendTo(builder);
+  }
+}
+
+/**
+ * Instances of the class `MethodMember` represent a method element defined in a parameterized
+ * type where the values of the type parameters are known.
+ */
+class MethodMember extends ExecutableMember implements MethodElement {
+  /**
+   * If the given method's type is different when any type parameters from the defining type's
+   * declaration are replaced with the actual type arguments from the defining type, create a method
+   * member representing the given method. Return the member that was created, or the base method if
+   * no member was created.
+   *
+   * @param baseMethod the base method for which a member might be created
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return the method element that will return the correctly substituted types
+   */
+  static MethodElement from(MethodElement baseMethod, InterfaceType definingType) {
+    if (baseMethod == null || definingType.typeArguments.length == 0) {
+      return baseMethod;
+    }
+    FunctionType baseType = baseMethod.type;
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes = definingType.element.type.typeArguments;
+    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return baseMethod;
+    }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
+    return new MethodMember(baseMethod, definingType);
+  }
+
+  /**
+   * Initialize a newly created element to represent a method of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  MethodMember(MethodElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+
+  @override
+  MethodElement get baseElement => super.baseElement as MethodElement;
+
+  @override
+  ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  MethodDeclaration get node => baseElement.node;
+
+  @override
+  bool get isAbstract => baseElement.isAbstract;
+
+  @override
+  String toString() {
+    MethodElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append(baseElement.enclosingElement.displayName);
+    builder.append(".");
+    builder.append(baseElement.displayName);
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(parameters[i]).toString();
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(Element.RIGHT_ARROW);
+      builder.append(type.returnType);
+    }
+    return builder.toString();
+  }
+}
+
+/**
+ * The enumeration `Modifier` defines constants for all of the modifiers defined by the Dart
+ * language and for a few additional flags that are useful.
+ */
+class Modifier extends Enum<Modifier> {
+  /**
+   * Indicates that the modifier 'abstract' was applied to the element.
+   */
+  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+
+  /**
+   * Indicates that the modifier 'const' was applied to the element.
+   */
+  static const Modifier CONST = const Modifier('CONST', 1);
+
+  /**
+   * Indicates that the import element represents a deferred library.
+   */
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 2);
+
+  /**
+   * Indicates that the modifier 'factory' was applied to the element.
+   */
+  static const Modifier FACTORY = const Modifier('FACTORY', 3);
+
+  /**
+   * Indicates that the modifier 'final' was applied to the element.
+   */
+  static const Modifier FINAL = const Modifier('FINAL', 4);
+
+  /**
+   * Indicates that the pseudo-modifier 'get' was applied to the element.
+   */
+  static const Modifier GETTER = const Modifier('GETTER', 5);
+
+  /**
+   * A flag used for libraries indicating that the defining compilation unit contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 6);
+
+  static const Modifier MIXIN = const Modifier('MIXIN', 7);
+
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 8);
+
+  /**
+   * Indicates that the pseudo-modifier 'set' was applied to the element.
+   */
+  static const Modifier SETTER = const Modifier('SETTER', 9);
+
+  /**
+   * Indicates that the modifier 'static' was applied to the element.
+   */
+  static const Modifier STATIC = const Modifier('STATIC', 10);
+
+  /**
+   * Indicates that the element does not appear in the source code but was implicitly created. For
+   * example, if a class does not define any constructors, an implicit zero-argument constructor
+   * will be created and it will be marked as being synthetic.
+   */
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 11);
+
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 12);
+
+  static const List<Modifier> values = const [
+      ABSTRACT,
+      CONST,
+      DEFERRED,
+      FACTORY,
+      FINAL,
+      GETTER,
+      HAS_EXT_URI,
+      MIXIN,
+      REFERENCES_SUPER,
+      SETTER,
+      STATIC,
+      SYNTHETIC,
+      TYPEDEF];
+
+  const Modifier(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `MultiplyDefinedElement` defines the behavior of pseudo-elements that
+ * represent multiple elements defined within a single scope that have the same name. This situation
+ * is not allowed by the language, so objects implementing this interface always represent an error.
+ * As a result, most of the normal operations on elements do not make sense and will return useless
+ * results.
+ */
+abstract class MultiplyDefinedElement implements Element {
+  /**
+   * Return an array containing all of the elements that were defined within the scope to have the
+   * same name.
+   *
+   * @return the elements that were defined with the same name
+   */
+  List<Element> get conflictingElements;
+
+  /**
+   * Return the type of this element as the dynamic type.
+   *
+   * @return the type of this element as the dynamic type
+   */
+  DartType get type;
+}
+
+/**
+ * Instances of the class `MultiplyDefinedElementImpl` represent a collection of elements that
+ * have the same name within the same scope.
+ */
+class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
+  /**
+   * Return an element that represents the given conflicting elements.
+   *
+   * @param context the analysis context in which the multiply defined elements are defined
+   * @param firstElement the first element that conflicts
+   * @param secondElement the second element that conflicts
+   */
+  static Element fromElements(AnalysisContext context, Element firstElement, Element secondElement) {
+    List<Element> conflictingElements = _computeConflictingElements(firstElement, secondElement);
+    int length = conflictingElements.length;
+    if (length == 0) {
+      return null;
+    } else if (length == 1) {
+      return conflictingElements[0];
+    }
+    return new MultiplyDefinedElementImpl(context, conflictingElements);
+  }
+
+  /**
+   * Add the given element to the list of elements. If the element is a multiply-defined element,
+   * add all of the conflicting elements that it represents.
+   *
+   * @param elements the list to which the element(s) are to be added
+   * @param element the element(s) to be added
+   */
+  static void _add(Set<Element> elements, Element element) {
+    if (element is MultiplyDefinedElementImpl) {
+      for (Element conflictingElement in element.conflictingElements) {
+        elements.add(conflictingElement);
+      }
+    } else {
+      elements.add(element);
+    }
+  }
+
+  /**
+   * Use the given elements to construct an array of conflicting elements. If either of the given
+   * elements are multiply-defined elements then the conflicting elements they represent will be
+   * included in the array. Otherwise, the element itself will be included.
+   *
+   * @param firstElement the first element to be included
+   * @param secondElement the second element to be included
+   * @return an array containing all of the conflicting elements
+   */
+  static List<Element> _computeConflictingElements(Element firstElement, Element secondElement) {
+    Set<Element> elements = new Set<Element>();
+    _add(elements, firstElement);
+    _add(elements, secondElement);
+    return new List.from(elements);
+  }
+
+  /**
+   * The analysis context in which the multiply defined elements are defined.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The name of the conflicting elements.
+   */
+  String _name;
+
+  /**
+   * A list containing all of the elements that conflict.
+   */
+  final List<Element> conflictingElements;
+
+  /**
+   * Initialize a newly created element to represent a list of conflicting elements.
+   *
+   * @param context the analysis context in which the multiply defined elements are defined
+   * @param conflictingElements the elements that conflict
+   */
+  MultiplyDefinedElementImpl(this.context, this.conflictingElements) {
+    _name = conflictingElements[0].name;
+  }
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
+
+  @override
+  String computeDocumentationComment() => null;
+
+  @override
+  Element getAncestor(Predicate<Element> predicate) => null;
+
+  @override
+  String get displayName => _name;
+
+  @override
+  Element get enclosingElement => null;
+
+  @override
+  ElementKind get kind => ElementKind.ERROR;
+
+  @override
+  LibraryElement get library => null;
+
+  @override
+  ElementLocation get location => null;
+
+  @override
+  List<ElementAnnotation> get metadata => ElementAnnotationImpl.EMPTY_ARRAY;
+
+  @override
+  String get name => _name;
+
+  @override
+  int get nameOffset => -1;
+
+  @override
+  AstNode get node => null;
+
+  @override
+  Source get source => null;
+
+  @override
+  DartType get type => DynamicTypeImpl.instance;
+
+  @override
+  CompilationUnit get unit => null;
+
+  @override
+  bool isAccessibleIn(LibraryElement library) {
+    for (Element element in conflictingElements) {
+      if (element.isAccessibleIn(library)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isDeprecated => false;
+
+  @override
+  bool get isOverride => false;
+
+  @override
+  bool get isPrivate {
+    String name = displayName;
+    if (name == null) {
+      return false;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  @override
+  bool get isPublic => !isPrivate;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[");
+    int count = conflictingElements.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      (conflictingElements[i] as ElementImpl).appendTo(builder);
+    }
+    builder.append("]");
+    return builder.toString();
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+  }
+}
+
+/**
+ * The interface [MultiplyInheritedExecutableElement] defines all of the behavior of an
+ * [ExecutableElement], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ */
+abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
+  /**
+   * Return an array containing all of the executable elements defined within this executable
+   * element.
+   *
+   * @return the elements defined within this executable element
+   */
+  List<ExecutableElement> get inheritedElements;
+}
+
+/**
+ * The interface [MultiplyInheritedMethodElementImpl] defines all of the behavior of an
+ * [MethodElementImpl], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ */
+class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements MultiplyInheritedExecutableElement {
+  /**
+   * An array the array of executable elements that were used to compose this element.
+   */
+  List<ExecutableElement> _elements = MethodElementImpl.EMPTY_ARRAY;
+
+  MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
+    synthetic = true;
+  }
+
+  @override
+  List<ExecutableElement> get inheritedElements => _elements;
+
+  void set inheritedElements(List<ExecutableElement> elements) {
+    this._elements = elements;
+  }
+}
+
+/**
+ * The interface [MultiplyInheritedPropertyAccessorElementImpl] defines all of the behavior of
+ * an [PropertyAccessorElementImpl], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ */
+class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorElementImpl implements MultiplyInheritedExecutableElement {
+  /**
+   * An array the array of executable elements that were used to compose this element.
+   */
+  List<ExecutableElement> _elements = PropertyAccessorElementImpl.EMPTY_ARRAY;
+
+  MultiplyInheritedPropertyAccessorElementImpl(Identifier name) : super.forNode(name) {
+    synthetic = true;
+  }
+
+  @override
+  List<ExecutableElement> get inheritedElements => _elements;
+
+  void set inheritedElements(List<ExecutableElement> elements) {
+    this._elements = elements;
+  }
+}
+
+/**
+ * The interface `NamespaceCombinator` defines the behavior common to objects that control how
+ * namespaces are combined.
+ */
+abstract class NamespaceCombinator {
+  /**
+   * An empty array of namespace combinators.
+   */
+  static final List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
+}
+
+/**
+ * The interface `ParameterElement` defines the behavior of elements representing a parameter
+ * defined within an executable element.
+ */
+abstract class ParameterElement implements LocalElement, VariableElement {
+  /**
+   * Return a source range that covers the portion of the source in which the default value for this
+   * parameter is specified, or `null` if there is no default value.
+   *
+   * @return the range of characters in which the default value of this parameter is specified
+   */
+  SourceRange get defaultValueRange;
+
+  /**
+   * Return the kind of this parameter.
+   *
+   * @return the kind of this parameter
+   */
+  ParameterKind get parameterKind;
+
+  /**
+   * Return an array containing all of the parameters defined by this parameter. A parameter will
+   * only define other parameters if it is a function typed parameter.
+   *
+   * @return the parameters defined by this parameter element
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return `true` if this parameter is an initializing formal parameter.
+   *
+   * @return `true` if this parameter is an initializing formal parameter
+   */
+  bool get isInitializingFormal;
+}
+
+/**
+ * Instances of the class `ParameterElementImpl` implement a `ParameterElement`.
+ */
+class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
+  /**
+   * Is `true` if this variable is potentially mutated somewhere in its scope.
+   */
+  bool _potentiallyMutatedInScope = false;
+
+  /**
+   * Is `true` if this variable is potentially mutated somewhere in closure.
+   */
+  bool _potentiallyMutatedInClosure = false;
+
+  /**
+   * An array containing all of the parameters defined by this parameter element. There will only be
+   * parameters if this parameter is a function typed parameter.
+   */
+  List<ParameterElement> _parameters = ParameterElementImpl.EMPTY_ARRAY;
+
+  /**
+   * The kind of this parameter.
+   */
+  ParameterKind parameterKind;
+
+  /**
+   * The offset to the beginning of the default value range for this element.
+   */
+  int _defaultValueRangeOffset = 0;
+
+  /**
+   * The length of the default value range for this element, or `-1` if this element does not
+   * have a default value.
+   */
+  int _defaultValueRangeLength = -1;
+
+  /**
+   * The offset to the beginning of the visible range for this element.
+   */
+  int _visibleRangeOffset = 0;
+
+  /**
+   * The length of the visible range for this element, or `-1` if this element does not have a
+   * visible range.
+   */
+  int _visibleRangeLength = -1;
+
+  /**
+   * An empty array of field elements.
+   */
+  static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
+
+  /**
+   * Initialize a newly created parameter element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  ParameterElementImpl.con1(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created parameter element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ParameterElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+
+  @override
+  SourceRange get defaultValueRange {
+    if (_defaultValueRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_defaultValueRangeOffset, _defaultValueRangeLength);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  List<ParameterElement> get parameters => _parameters;
+
+  @override
+  SourceRange get visibleRange {
+    if (_visibleRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
+  }
+
+  @override
+  bool get isInitializingFormal => false;
+
+  @override
+  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in closure.
+   */
+  void markPotentiallyMutatedInClosure() {
+    _potentiallyMutatedInClosure = true;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  void markPotentiallyMutatedInScope() {
+    _potentiallyMutatedInScope = true;
+  }
+
+  /**
+   * Set the range of the default value for this parameter to the range starting at the given offset
+   * with the given length.
+   *
+   * @param offset the offset to the beginning of the default value range for this element
+   * @param length the length of the default value range for this element, or `-1` if this
+   *          element does not have a default value
+   */
+  void setDefaultValueRange(int offset, int length) {
+    _defaultValueRangeOffset = offset;
+    _defaultValueRangeLength = length;
+  }
+
+  /**
+   * Set the parameters defined by this executable element to the given parameters.
+   *
+   * @param parameters the parameters defined by this executable element
+   */
+  void set parameters(List<ParameterElement> parameters) {
+    for (ParameterElement parameter in parameters) {
+      (parameter as ParameterElementImpl).enclosingElement = this;
+    }
+    this._parameters = parameters;
+  }
+
+  /**
+   * Set the visible range for this element to the range starting at the given offset with the given
+   * length.
+   *
+   * @param offset the offset to the beginning of the visible range for this element
+   * @param length the length of the visible range for this element, or `-1` if this element
+   *          does not have a visible range
+   */
+  void setVisibleRange(int offset, int length) {
+    _visibleRangeOffset = offset;
+    _visibleRangeLength = length;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_parameters, visitor);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    String left = "";
+    String right = "";
+    while (true) {
+      if (parameterKind == ParameterKind.NAMED) {
+        left = "{";
+        right = "}";
+      } else if (parameterKind == ParameterKind.POSITIONAL) {
+        left = "[";
+        right = "]";
+      } else if (parameterKind == ParameterKind.REQUIRED) {
+      }
+      break;
+    }
+    builder.append(left);
+    appendToWithoutDelimiters(builder);
+    builder.append(right);
+  }
+
+  /**
+   * Append the type and name of this parameter to the given builder.
+   *
+   * @param builder the builder to which the type and name are to be appended
+   */
+  void appendToWithoutDelimiters(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(displayName);
+  }
+}
+
+/**
+ * Instances of the class `ParameterMember` represent a parameter element defined in a
+ * parameterized type where the values of the type parameters are known.
+ */
+class ParameterMember extends VariableMember implements ParameterElement {
+  /**
+   * If the given parameter's type is different when any type parameters from the defining type's
+   * declaration are replaced with the actual type arguments from the defining type, create a
+   * parameter member representing the given parameter. Return the member that was created, or the
+   * base parameter if no member was created.
+   *
+   * @param baseParameter the base parameter for which a member might be created
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return the parameter element that will return the correctly substituted types
+   */
+  static ParameterElement from(ParameterElement baseParameter, ParameterizedType definingType) {
+    if (baseParameter == null || definingType.typeArguments.length == 0) {
+      return baseParameter;
+    }
+    // Check if parameter type depends on defining type type arguments.
+    // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
+    bool isFieldFormal = baseParameter is FieldFormalParameterElement;
+    if (!isFieldFormal) {
+      DartType baseType = baseParameter.type;
+      List<DartType> argumentTypes = definingType.typeArguments;
+      List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
+      DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+      if (baseType == substitutedType) {
+        return baseParameter;
+      }
+    }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
+    if (isFieldFormal) {
+      return new FieldFormalParameterMember(baseParameter as FieldFormalParameterElement, definingType);
+    }
+    return new ParameterMember(baseParameter, definingType);
+  }
+
+  /**
+   * Initialize a newly created element to represent a parameter of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  ParameterMember(ParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+
+  @override
+  Element getAncestor(Predicate<Element> predicate) {
+    Element element = baseElement.getAncestor(predicate);
+    ParameterizedType definingType = this.definingType;
+    if (definingType is InterfaceType) {
+      InterfaceType definingInterfaceType = definingType;
+      if (element is ConstructorElement) {
+        return ConstructorMember.from(element, definingInterfaceType);
+      } else if (element is MethodElement) {
+        return MethodMember.from(element, definingInterfaceType);
+      } else if (element is PropertyAccessorElement) {
+        return PropertyAccessorMember.from(element, definingInterfaceType);
+      }
+    }
+    return element;
+  }
+
+  @override
+  ParameterElement get baseElement => super.baseElement as ParameterElement;
+
+  @override
+  SourceRange get defaultValueRange => baseElement.defaultValueRange;
+
+  @override
+  Element get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  ParameterKind get parameterKind => baseElement.parameterKind;
+
+  @override
+  List<ParameterElement> get parameters {
+    List<ParameterElement> baseParameters = baseElement.parameters;
+    int parameterCount = baseParameters.length;
+    if (parameterCount == 0) {
+      return baseParameters;
+    }
+    List<ParameterElement> parameterizedParameters = new List<ParameterElement>(parameterCount);
+    for (int i = 0; i < parameterCount; i++) {
+      parameterizedParameters[i] = ParameterMember.from(baseParameters[i], definingType);
+    }
+    return parameterizedParameters;
+  }
+
+  @override
+  SourceRange get visibleRange => baseElement.visibleRange;
+
+  @override
+  bool get isInitializingFormal => baseElement.isInitializingFormal;
+
+  @override
+  String toString() {
+    ParameterElement baseElement = this.baseElement;
+    String left = "";
+    String right = "";
+    while (true) {
+      if (baseElement.parameterKind == ParameterKind.NAMED) {
+        left = "{";
+        right = "}";
+      } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
+        left = "[";
+        right = "]";
+      } else if (baseElement.parameterKind == ParameterKind.REQUIRED) {
+      }
+      break;
+    }
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append(left);
+    builder.append(type);
+    builder.append(" ");
+    builder.append(baseElement.displayName);
+    builder.append(right);
+    return builder.toString();
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(parameters, visitor);
+  }
+}
+
+/**
+ * The interface `ParameterizedType` defines the behavior common to objects representing a
+ * type with type parameters, such as a class or function type alias.
+ */
+abstract class ParameterizedType implements DartType {
+  /**
+   * Return an array containing the actual types of the type arguments. If this type's element does
+   * not have type parameters, then the array should be empty (although it is possible for type
+   * arguments to be erroneously declared). If the element has type parameters and the actual type
+   * does not explicitly include argument values, then the type "dynamic" will be automatically
+   * provided.
+   *
+   * @return the actual types of the type arguments
+   */
+  List<DartType> get typeArguments;
+
+  /**
+   * Return an array containing all of the type parameters declared for this type.
+   *
+   * @return the type parameters declared for this type
+   */
+  List<TypeParameterElement> get typeParameters;
+}
+
+/**
+ * The interface `PolymerAttributeElement` defines an attribute in
+ * [PolymerTagHtmlElement].
+ *
+ * <pre>
+ * <polymer-element name="my-example" attributes='attrA attrB'>
+ * </polymer-element>
+ * </pre>
+ */
+abstract class PolymerAttributeElement implements PolymerElement {
+  /**
+   * An empty array of Polymer custom tag attributes.
+   */
+  static final List<PolymerAttributeElement> EMPTY_ARRAY = new List<PolymerAttributeElement>(0);
+
+  /**
+   * Return the [FieldElement] associated with this attribute. Maybe `null` if
+   * [PolymerTagDartElement] does not have a field associated with it.
+   */
+  FieldElement get field;
+}
+
+/**
+ * Implementation of `PolymerAttributeElement`.
+ */
+class PolymerAttributeElementImpl extends PolymerElementImpl implements PolymerAttributeElement {
+  /**
+   * The [FieldElement] associated with this attribute.
+   */
+  FieldElement field;
+
+  /**
+   * Initialize a newly created Polymer attribute to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerAttributeElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerAttributeElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_ATTRIBUTE;
+}
+
+/**
+ * The interface `PolymerElement` defines the behavior of objects representing information
+ * about a Polymer specific element.
+ */
+abstract class PolymerElement implements ToolkitObjectElement {
+  /**
+   * An empty array of Polymer elements.
+   */
+  static final List<PolymerElement> EMPTY_ARRAY = new List<PolymerElement>(0);
+}
+
+/**
+ * Implementation of `PolymerElement`.
+ */
+abstract class PolymerElementImpl extends ToolkitObjectElementImpl implements PolymerElement {
+  /**
+   * Initialize a newly created Polymer element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * The interface `PolymerTagDartElement` defines a Polymer custom tag in Dart.
+ *
+ * <pre>
+ * @CustomTag('my-example')
+ * </pre>
+ */
+abstract class PolymerTagDartElement implements PolymerElement {
+  /**
+   * Return the [ClassElement] that is associated with this Polymer custom tag. Not
+   * `null`, because [PolymerTagDartElement]s are created for [ClassElement]s
+   * marked with the `@CustomTag` annotation.
+   */
+  ClassElement get classElement;
+
+  /**
+   * Return the [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if
+   * it has not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagHtmlElement get htmlElement;
+}
+
+/**
+ * Implementation of `PolymerTagDartElement`.
+ */
+class PolymerTagDartElementImpl extends PolymerElementImpl implements PolymerTagDartElement {
+  /**
+   * The [ClassElement] that is associated with this Polymer custom tag.
+   */
+  final ClassElement classElement;
+
+  /**
+   * The [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if it has
+   * not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagHtmlElement htmlElement;
+
+  /**
+   * Initialize a newly created Dart part of a Polymer tag to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerTagDartElementImpl(String name, int nameOffset, this.classElement) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerTagDartElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_TAG_DART;
+}
+
+/**
+ * The interface `PolymerTagHtmlElement` defines a Polymer custom tag in HTML.
+ *
+ * <pre>
+ * <polymer-element name="my-example" attributes='attrA attrB'>
+ * </polymer-element>
+ * </pre>
+ */
+abstract class PolymerTagHtmlElement implements PolymerElement {
+  /**
+   * An empty array of [PolymerTagHtmlElement]s.
+   */
+  static final List<PolymerTagHtmlElement> EMPTY_ARRAY = new List<PolymerTagHtmlElement>(0);
+
+  /**
+   * Return an array containing all of the attributes declared by this tag.
+   */
+  List<PolymerAttributeElement> get attributes;
+
+  /**
+   * Return the [PolymerTagDartElement] part on this Polymer custom tag. Maybe `null` if
+   * it has not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagDartElement get dartElement;
+}
+
+/**
+ * Implementation of `PolymerTagHtmlElement`.
+ */
+class PolymerTagHtmlElementImpl extends PolymerElementImpl implements PolymerTagHtmlElement {
+  /**
+   * The [PolymerTagDartElement] part of this Polymer custom tag. Maybe `null` if it has
+   * not been resolved yet or there are no corresponding Dart part defined.
+   */
+  PolymerTagDartElement dartElement;
+
+  /**
+   * The array containing all of the attributes declared by this tag.
+   */
+  List<PolymerAttributeElement> _attributes = PolymerAttributeElement.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created HTML part of a Polymer tag to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PolymerTagHtmlElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPolymerTagHtmlElement(this);
+
+  @override
+  List<PolymerAttributeElement> get attributes => _attributes;
+
+  @override
+  ElementKind get kind => ElementKind.POLYMER_TAG_HTML;
+
+  /**
+   * Set an array containing all of the attributes declared by this tag.
+   *
+   * @param attributes the properties to set
+   */
+  void set attributes(List<PolymerAttributeElement> attributes) {
+    for (PolymerAttributeElement property in attributes) {
+      encloseElement(property as PolymerAttributeElementImpl);
+    }
+    this._attributes = attributes;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_attributes, visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/**
+ * The interface `PrefixElement` defines the behavior common to elements that represent a
+ * prefix used to import one or more libraries into another library.
+ */
+abstract class PrefixElement implements Element {
+  /**
+   * Return the library into which other libraries are imported using this prefix.
+   *
+   * @return the library into which other libraries are imported using this prefix
+   */
+  @override
+  LibraryElement get enclosingElement;
+
+  /**
+   * Return an array containing all of the libraries that are imported using this prefix.
+   *
+   * @return the libraries that are imported using this prefix
+   */
+  List<LibraryElement> get importedLibraries;
+}
+
+/**
+ * Instances of the class `PrefixElementImpl` implement a `PrefixElement`.
+ */
+class PrefixElementImpl extends ElementImpl implements PrefixElement {
+  /**
+   * An array containing all of the libraries that are imported using this prefix.
+   */
+  List<LibraryElement> _importedLibraries = LibraryElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An empty array of prefix elements.
+   */
+  static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>(0);
+
+  /**
+   * Initialize a newly created prefix element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  PrefixElementImpl(Identifier name) : super.forNode(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+
+  @override
+  LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
+
+  @override
+  List<LibraryElement> get importedLibraries => _importedLibraries;
+
+  @override
+  ElementKind get kind => ElementKind.PREFIX;
+
+  /**
+   * Set the libraries that are imported using this prefix to the given libraries.
+   *
+   * @param importedLibraries the libraries that are imported using this prefix
+   */
+  void set importedLibraries(List<LibraryElement> importedLibraries) {
+    for (LibraryElement library in importedLibraries) {
+      (library as LibraryElementImpl).enclosingElement = this;
+    }
+    this._importedLibraries = importedLibraries;
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("as ");
+    super.appendTo(builder);
+  }
+
+  @override
+  String get identifier => "_${super.identifier}";
+}
+
+/**
+ * The interface `PropertyAccessorElement` defines the behavior of elements representing a
+ * getter or a setter. Note that explicitly defined property accessors implicitly define a synthetic
+ * field. Symmetrically, synthetic accessors are implicitly created for explicitly defined fields.
+ * The following rules apply:
+ * * Every explicit field is represented by a non-synthetic [FieldElement].
+ * * Every explicit field induces a getter and possibly a setter, both of which are represented by
+ * synthetic [PropertyAccessorElement]s.
+ * * Every explicit getter or setter is represented by a non-synthetic
+ * [PropertyAccessorElement].
+ * * Every explicit getter or setter (or pair thereof if they have the same name) induces a field
+ * that is represented by a synthetic [FieldElement].
+ */
+abstract class PropertyAccessorElement implements ExecutableElement {
+  /**
+   * Return the accessor representing the getter that corresponds to (has the same name as) this
+   * setter, or `null` if this accessor is not a setter or if there is no corresponding
+   * getter.
+   *
+   * @return the getter that corresponds to this setter
+   */
+  PropertyAccessorElement get correspondingGetter;
+
+  /**
+   * Return the accessor representing the setter that corresponds to (has the same name as) this
+   * getter, or `null` if this accessor is not a getter or if there is no corresponding
+   * setter.
+   *
+   * @return the setter that corresponds to this getter
+   */
+  PropertyAccessorElement get correspondingSetter;
+
+  /**
+   * Return the field or top-level variable associated with this accessor. If this accessor was
+   * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
+   *
+   * @return the variable associated with this accessor
+   */
+  PropertyInducingElement get variable;
+
+  /**
+   * Return `true` if this accessor is abstract. Accessors are abstract if they are not
+   * external and have no body.
+   *
+   * @return `true` if this accessor is abstract
+   */
+  bool get isAbstract;
+
+  /**
+   * Return `true` if this accessor represents a getter.
+   *
+   * @return `true` if this accessor represents a getter
+   */
+  bool get isGetter;
+
+  /**
+   * Return `true` if this accessor represents a setter.
+   *
+   * @return `true` if this accessor represents a setter
+   */
+  bool get isSetter;
+}
+
+/**
+ * Instances of the class `PropertyAccessorElementImpl` implement a
+ * `PropertyAccessorElement`.
+ */
+class PropertyAccessorElementImpl extends ExecutableElementImpl implements PropertyAccessorElement {
+  /**
+   * The variable associated with this accessor.
+   */
+  PropertyInducingElement variable;
+
+  /**
+   * An empty array of property accessor elements.
+   */
+  static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
+
+  /**
+   * Initialize a newly created property accessor element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created synthetic property accessor element to be associated with the given
+   * variable.
+   *
+   * @param variable the variable with which this access is associated
+   */
+  PropertyAccessorElementImpl(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
+    this.variable = variable;
+    synthetic = true;
+  }
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
+
+  @override
+  bool operator ==(Object object) => super == object && isGetter == (object as PropertyAccessorElement).isGetter;
+
+  @override
+  PropertyAccessorElement get correspondingGetter {
+    if (isGetter || variable == null) {
+      return null;
+    }
+    return variable.getter;
+  }
+
+  @override
+  PropertyAccessorElement get correspondingSetter {
+    if (isSetter || variable == null) {
+      return null;
+    }
+    return variable.setter;
+  }
+
+  @override
+  ElementKind get kind {
+    if (isGetter) {
+      return ElementKind.GETTER;
+    }
+    return ElementKind.SETTER;
+  }
+
+  @override
+  String get name {
+    if (isSetter) {
+      return "${super.name}=";
+    }
+    return super.name;
+  }
+
+  @override
+  AstNode get node {
+    if (isSynthetic) {
+      return null;
+    }
+    if (enclosingElement is ClassElement) {
+      return getNodeMatching((node) => node is MethodDeclaration);
+    }
+    if (enclosingElement is CompilationUnitElement) {
+      return getNodeMatching((node) => node is FunctionDeclaration);
+    }
+    return null;
+  }
+
+  @override
+  int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
+
+  @override
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+
+  @override
+  bool get isGetter => hasModifier(Modifier.GETTER);
+
+  @override
+  bool get isSetter => hasModifier(Modifier.SETTER);
+
+  @override
+  bool get isStatic => hasModifier(Modifier.STATIC);
+
+  /**
+   * Set whether this accessor is abstract to correspond to the given value.
+   *
+   * @param isAbstract `true` if the accessor is abstract
+   */
+  void set abstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
+  /**
+   * Set whether this accessor is a getter to correspond to the given value.
+   *
+   * @param isGetter `true` if the accessor is a getter
+   */
+  void set getter(bool isGetter) {
+    setModifier(Modifier.GETTER, isGetter);
+  }
+
+  /**
+   * Set whether this accessor is a setter to correspond to the given value.
+   *
+   * @param isSetter `true` if the accessor is a setter
+   */
+  void set setter(bool isSetter) {
+    setModifier(Modifier.SETTER, isSetter);
+  }
+
+  /**
+   * Set whether this accessor is static to correspond to the given value.
+   *
+   * @param isStatic `true` if the accessor is static
+   */
+  void set static(bool isStatic) {
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(isGetter ? "get " : "set ");
+    builder.append(variable.displayName);
+    super.appendTo(builder);
+  }
+}
+
+/**
+ * Instances of the class `PropertyAccessorMember` represent a property accessor element
+ * defined in a parameterized type where the values of the type parameters are known.
+ */
+class PropertyAccessorMember extends ExecutableMember implements PropertyAccessorElement {
+  /**
+   * If the given property accessor's type is different when any type parameters from the defining
+   * type's declaration are replaced with the actual type arguments from the defining type, create a
+   * property accessor member representing the given property accessor. Return the member that was
+   * created, or the base accessor if no member was created.
+   *
+   * @param baseAccessor the base property accessor for which a member might be created
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return the property accessor element that will return the correctly substituted types
+   */
+  static PropertyAccessorElement from(PropertyAccessorElement baseAccessor, InterfaceType definingType) {
+    if (baseAccessor == null || definingType.typeArguments.length == 0) {
+      return baseAccessor;
+    }
+    FunctionType baseType = baseAccessor.type;
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes = definingType.element.type.typeArguments;
+    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return baseAccessor;
+    }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
+    return new PropertyAccessorMember(baseAccessor, definingType);
+  }
+
+  /**
+   * Initialize a newly created element to represent a property accessor of the given parameterized
+   * type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  PropertyAccessorMember(PropertyAccessorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
+
+  @override
+  PropertyAccessorElement get baseElement => super.baseElement as PropertyAccessorElement;
+
+  @override
+  PropertyAccessorElement get correspondingGetter => from(baseElement.correspondingGetter, definingType);
+
+  @override
+  PropertyAccessorElement get correspondingSetter => from(baseElement.correspondingSetter, definingType);
+
+  @override
+  Element get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  PropertyInducingElement get variable {
+    PropertyInducingElement variable = baseElement.variable;
+    if (variable is FieldElement) {
+      return FieldMember.from(variable, definingType);
+    }
+    return variable;
+  }
+
+  @override
+  bool get isAbstract => baseElement.isAbstract;
+
+  @override
+  bool get isGetter => baseElement.isGetter;
+
+  @override
+  bool get isSetter => baseElement.isSetter;
+
+  @override
+  String toString() {
+    PropertyAccessorElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
+    JavaStringBuilder builder = new JavaStringBuilder();
+    if (isGetter) {
+      builder.append("get ");
+    } else {
+      builder.append("set ");
+    }
+    builder.append(baseElement.enclosingElement.displayName);
+    builder.append(".");
+    builder.append(baseElement.displayName);
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(parameters[i]).toString();
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(Element.RIGHT_ARROW);
+      builder.append(type.returnType);
+    }
+    return builder.toString();
+  }
+
+  @override
+  InterfaceType get definingType => super.definingType as InterfaceType;
+}
+
+/**
+ * The interface `PropertyInducingElement` defines the behavior of elements representing a
+ * variable that has an associated getter and possibly a setter. Note that explicitly defined
+ * variables implicitly define a synthetic getter and that non-`final` explicitly defined
+ * variables implicitly define a synthetic setter. Symmetrically, synthetic fields are implicitly
+ * created for explicitly defined getters and setters. The following rules apply:
+ * * Every explicit variable is represented by a non-synthetic [PropertyInducingElement].
+ * * Every explicit variable induces a getter and possibly a setter, both of which are represented
+ * by synthetic [PropertyAccessorElement]s.
+ * * Every explicit getter or setter is represented by a non-synthetic
+ * [PropertyAccessorElement].
+ * * Every explicit getter or setter (or pair thereof if they have the same name) induces a
+ * variable that is represented by a synthetic [PropertyInducingElement].
+ */
+abstract class PropertyInducingElement implements VariableElement {
+  /**
+   * Return the getter associated with this variable. If this variable was explicitly defined (is
+   * not synthetic) then the getter associated with it will be synthetic.
+   *
+   * @return the getter associated with this variable
+   */
+  PropertyAccessorElement get getter;
+
+  /**
+   * Return the setter associated with this variable, or `null` if the variable is effectively
+   * `final` and therefore does not have a setter associated with it. (This can happen either
+   * because the variable is explicitly defined as being `final` or because the variable is
+   * induced by an explicit getter that does not have a corresponding setter.) If this variable was
+   * explicitly defined (is not synthetic) then the setter associated with it will be synthetic.
+   *
+   * @return the setter associated with this variable
+   */
+  PropertyAccessorElement get setter;
+
+  /**
+   * Return `true` if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   *
+   * @return `true` if this executable element is a static element
+   */
+  bool get isStatic;
+}
+
+/**
+ * Instances of the class `PropertyInducingElementImpl` implement a
+ * `PropertyInducingElement`.
+ */
+abstract class PropertyInducingElementImpl extends VariableElementImpl implements PropertyInducingElement {
+  /**
+   * The getter associated with this element.
+   */
+  PropertyAccessorElement getter;
+
+  /**
+   * The setter associated with this element, or `null` if the element is effectively
+   * `final` and therefore does not have a setter associated with it.
+   */
+  PropertyAccessorElement setter;
+
+  /**
+   * An empty array of elements.
+   */
+  static List<PropertyInducingElement> EMPTY_ARRAY = new List<PropertyInducingElement>(0);
+
+  /**
+   * Initialize a newly created element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  PropertyInducingElementImpl.con1(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created synthetic element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  PropertyInducingElementImpl.con2(String name) : super(name, -1) {
+    synthetic = true;
+  }
+}
+
+/**
+ * Instances of the class `RecursiveElementVisitor` implement an element visitor that will
+ * recursively visit all of the element in an element model. For example, using an instance of this
+ * class to visit a [CompilationUnitElement] will also cause all of the types in the
+ * compilation unit to be visited.
+ *
+ * Subclasses that override a visit method must either invoke the overridden visit method or must
+ * explicitly ask the visited element to visit its children. Failure to do so will cause the
+ * children of the visited element to not be visited.
+ */
+class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  @override
+  R visitAngularComponentElement(AngularComponentElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularControllerElement(AngularControllerElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularDirectiveElement(AngularDecoratorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularFormatterElement(AngularFormatterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularPropertyElement(AngularPropertyElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularSelectorElement(AngularSelectorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAngularViewElement(AngularViewElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitClassElement(ClassElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitCompilationUnitElement(CompilationUnitElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitConstructorElement(ConstructorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitExportElement(ExportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitFieldElement(FieldElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitFunctionElement(FunctionElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitHtmlElement(HtmlElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitImportElement(ImportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitLabelElement(LabelElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitLibraryElement(LibraryElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitMethodElement(MethodElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitParameterElement(ParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPrefixElement(PrefixElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitPropertyAccessorElement(PropertyAccessorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitTopLevelVariableElement(TopLevelVariableElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitTypeParameterElement(TypeParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+}
+
+/**
+ * The interface `ShowElementCombinator` defines the behavior of combinators that cause some
+ * of the names in a namespace to be visible (and the rest hidden) when being imported.
+ */
+abstract class ShowElementCombinator implements NamespaceCombinator {
+  /**
+   * Return the offset of the character immediately following the last character of this node.
+   *
+   * @return the offset of the character just past this node
+   */
+  int get end;
+
+  /**
+   * Return the offset of the 'show' keyword of this element.
+   *
+   * @return the offset of the 'show' keyword of this element
+   */
+  int get offset;
+
+  /**
+   * Return an array containing the names that are to be made visible in the importing library if
+   * they are defined in the imported library.
+   *
+   * @return the names from the imported library that are visible in the importing library
+   */
+  List<String> get shownNames;
+}
+
+/**
+ * Instances of the class `ShowElementCombinatorImpl` implement a
+ * [ShowElementCombinator].
+ */
+class ShowElementCombinatorImpl implements ShowElementCombinator {
+  /**
+   * The names that are to be made visible in the importing library if they are defined in the
+   * imported library.
+   */
+  List<String> shownNames = StringUtilities.EMPTY_ARRAY;
+
+  /**
+   * The offset of the character immediately following the last character of this node.
+   */
+  int end = -1;
+
+  /**
+   * The offset of the 'show' keyword of this element.
+   */
+  int offset = 0;
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("show ");
+    int count = shownNames.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(shownNames[i]);
+    }
+    return builder.toString();
+  }
+}
+
+/**
+ * Instances of the class `SimpleElementVisitor` implement an element visitor that will do
+ * nothing when visiting an element. It is intended to be a superclass for classes that use the
+ * visitor pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a
+ * whole structure) and that only need to visit a small number of element types.
+ */
+class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  @override
+  R visitAngularComponentElement(AngularComponentElement element) => null;
+
+  @override
+  R visitAngularControllerElement(AngularControllerElement element) => null;
+
+  @override
+  R visitAngularDirectiveElement(AngularDecoratorElement element) => null;
+
+  @override
+  R visitAngularFormatterElement(AngularFormatterElement element) => null;
+
+  @override
+  R visitAngularPropertyElement(AngularPropertyElement element) => null;
+
+  @override
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => null;
+
+  @override
+  R visitAngularSelectorElement(AngularSelectorElement element) => null;
+
+  @override
+  R visitAngularViewElement(AngularViewElement element) => null;
+
+  @override
+  R visitClassElement(ClassElement element) => null;
+
+  @override
+  R visitCompilationUnitElement(CompilationUnitElement element) => null;
+
+  @override
+  R visitConstructorElement(ConstructorElement element) => null;
+
+  @override
+  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
+
+  @override
+  R visitExportElement(ExportElement element) => null;
+
+  @override
+  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
+
+  @override
+  R visitFieldElement(FieldElement element) => null;
+
+  @override
+  R visitFieldFormalParameterElement(FieldFormalParameterElement element) => null;
+
+  @override
+  R visitFunctionElement(FunctionElement element) => null;
+
+  @override
+  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
+
+  @override
+  R visitHtmlElement(HtmlElement element) => null;
+
+  @override
+  R visitImportElement(ImportElement element) => null;
+
+  @override
+  R visitLabelElement(LabelElement element) => null;
+
+  @override
+  R visitLibraryElement(LibraryElement element) => null;
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) => null;
+
+  @override
+  R visitMethodElement(MethodElement element) => null;
+
+  @override
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
+
+  @override
+  R visitParameterElement(ParameterElement element) => null;
+
+  @override
+  R visitPolymerAttributeElement(PolymerAttributeElement element) => null;
+
+  @override
+  R visitPolymerTagDartElement(PolymerTagDartElement element) => null;
+
+  @override
+  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => null;
+
+  @override
+  R visitPrefixElement(PrefixElement element) => null;
+
+  @override
+  R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
+
+  @override
+  R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
+
+  @override
+  R visitTypeParameterElement(TypeParameterElement element) => null;
+}
+
+/**
+ * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
+ * toolkit specific object, such as Angular controller or component. These elements are not based on
+ * the Dart syntax, but on some semantic agreement, such as a special annotation.
+ */
+abstract class ToolkitObjectElement implements Element {
+  /**
+   * An empty array of toolkit object elements.
+   */
+  static final List<ToolkitObjectElement> EMPTY_ARRAY = new List<ToolkitObjectElement>(0);
+}
+
+/**
+ * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
+ */
+abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitObjectElement {
+  /**
+   * Initialize a newly created toolkit object element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ToolkitObjectElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * The interface `TopLevelVariableElement` defines the behavior of elements representing a
+ * top-level variable.
+ */
+abstract class TopLevelVariableElement implements PropertyInducingElement {
+}
+
+/**
+ * Instances of the class `TopLevelVariableElementImpl` implement a
+ * `TopLevelVariableElement`.
+ */
+class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
+  /**
+   * An empty array of top-level variable elements.
+   */
+  static List<TopLevelVariableElement> EMPTY_ARRAY = new List<TopLevelVariableElement>(0);
+
+  /**
+   * Initialize a newly created top-level variable element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name);
+
+  /**
+   * Initialize a newly created synthetic top-level variable element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  TopLevelVariableElementImpl.con2(String name) : super.con2(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  bool get isStatic => true;
+}
+
+/**
  * The abstract class `TypeImpl` implements the behavior common to objects representing the
  * declared type of elements in the element model.
  */
@@ -10109,6 +10318,79 @@ class TypeImpl_TypePair {
 }
 
 /**
+ * The interface `TypeParameterElement` defines the behavior of elements representing a type
+ * parameter.
+ */
+abstract class TypeParameterElement implements Element {
+  /**
+   * Return the type representing the bound associated with this parameter, or `null` if this
+   * parameter does not have an explicit bound.
+   *
+   * @return the type representing the bound associated with this parameter
+   */
+  DartType get bound;
+
+  /**
+   * Return the type defined by this type parameter.
+   *
+   * @return the type defined by this type parameter
+   */
+  TypeParameterType get type;
+}
+
+/**
+ * Instances of the class `TypeParameterElementImpl` implement a [TypeParameterElement].
+ */
+class TypeParameterElementImpl extends ElementImpl implements TypeParameterElement {
+  /**
+   * The type defined by this type parameter.
+   */
+  TypeParameterType type;
+
+  /**
+   * The type representing the bound associated with this parameter, or `null` if this
+   * parameter does not have an explicit bound.
+   */
+  DartType bound;
+
+  /**
+   * An empty array of type parameter elements.
+   */
+  static List<TypeParameterElement> EMPTY_ARRAY = new List<TypeParameterElement>(0);
+
+  /**
+   * Initialize a newly created type parameter element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  TypeParameterElementImpl(Identifier name) : super.forNode(name);
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
+
+  @override
+  ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(displayName);
+    if (bound != null) {
+      builder.append(" extends ");
+      builder.append(bound);
+    }
+  }
+}
+
+/**
+ * The interface `TypeParameterType` defines the behavior of objects representing the type
+ * introduced by a type parameter.
+ */
+abstract class TypeParameterType implements DartType {
+  @override
+  TypeParameterElement get element;
+}
+
+/**
  * Instances of the class `TypeParameterTypeImpl` defines the behavior of objects representing
  * the type introduced by a type parameter.
  */
@@ -10231,6 +10513,310 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 }
 
 /**
+ * The interface `UndefinedElement` defines the behavior of pseudo-elements that represent
+ * names that are undefined. This situation is not allowed by the language, so objects implementing
+ * this interface always represent an error. As a result, most of the normal operations on elements
+ * do not make sense and will return useless results.
+ */
+abstract class UndefinedElement implements Element {
+}
+
+/**
+ * The interface `UriReferencedElement` defines the behavior of objects included into a
+ * library using some URI.
+ */
+abstract class UriReferencedElement implements Element {
+  /**
+   * Return the offset of the character immediately following the last character of this node's URI,
+   * or `-1` for synthetic import.
+   *
+   * @return the offset of the character just past the node's URI
+   */
+  int get uriEnd;
+
+  /**
+   * Return the offset of the URI in the file, or `-1` if this element is synthetic.
+   *
+   * @return the offset of the URI
+   */
+  int get uriOffset;
+
+  /**
+   * Return the URI that is used to include this element into the enclosing library, or `null`
+   * if this is the defining compilation unit of a library.
+   *
+   * @return the URI that is used to include this element into the enclosing library
+   */
+  String get uri;
+}
+
+/**
+ * Instances of the class `UriReferencedElementImpl` implement an [UriReferencedElement]
+ * .
+ */
+abstract class UriReferencedElementImpl extends ElementImpl implements UriReferencedElement {
+  /**
+   * The offset of the URI in the file, may be `-1` if synthetic.
+   */
+  int uriOffset = -1;
+
+  /**
+   * The offset of the character immediately following the last character of this node's URI, may be
+   * `-1` if synthetic.
+   */
+  int uriEnd = -1;
+
+  /**
+   * The URI that is specified by this directive.
+   */
+  String uri;
+
+  /**
+   * Initialize a newly created import element.
+   *
+   * @param name the name of this element
+   * @param offset the directive offset, may be `-1` if synthetic.
+   */
+  UriReferencedElementImpl(String name, int offset) : super(name, offset);
+}
+
+/**
+ * The interface `VariableElement` defines the behavior common to elements that represent a
+ * variable.
+ */
+abstract class VariableElement implements Element {
+  /**
+   * Return a synthetic function representing this variable's initializer, or `null` if this
+   * variable does not have an initializer. The function will have no parameters. The return type of
+   * the function will be the compile-time type of the initialization expression.
+   *
+   * @return a synthetic function representing this variable's initializer
+   */
+  FunctionElement get initializer;
+
+  /**
+   * Return the resolved [VariableDeclaration] node that declares this [VariableElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [VariableDeclaration], not `null`.
+   */
+  @override
+  VariableDeclaration get node;
+
+  /**
+   * Return the declared type of this variable, or `null` if the variable did not have a
+   * declared type (such as if it was declared using the keyword 'var').
+   *
+   * @return the declared type of this variable
+   */
+  DartType get type;
+
+  /**
+   * Return `true` if this variable was declared with the 'const' modifier.
+   *
+   * @return `true` if this variable was declared with the 'const' modifier
+   */
+  bool get isConst;
+
+  /**
+   * Return `true` if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return `false` even though they are implicitly
+   * final.
+   *
+   * @return `true` if this variable was declared with the 'final' modifier
+   */
+  bool get isFinal;
+}
+
+/**
+ * Instances of the class `VariableElementImpl` implement a `VariableElement`.
+ */
+abstract class VariableElementImpl extends ElementImpl implements VariableElement {
+  /**
+   * The declared type of this variable.
+   */
+  DartType type;
+
+  /**
+   * A synthetic function representing this variable's initializer, or `null` if this variable
+   * does not have an initializer.
+   */
+  FunctionElement _initializer;
+
+  /**
+   * An empty array of variable elements.
+   */
+  static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
+
+  /**
+   * Initialize a newly created variable element to have the given name.
+   *
+   * @param name the name of this element
+   */
+  VariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created variable element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  VariableElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  /**
+   * Return the result of evaluating this variable's initializer as a compile-time constant
+   * expression, or `null` if this variable is not a 'const' variable, if it does not have an
+   * initializer, or if the compilation unit containing the variable has not been resolved.
+   *
+   * @return the result of evaluating this variable's initializer
+   */
+  EvaluationResultImpl get evaluationResult => null;
+
+  @override
+  FunctionElement get initializer => _initializer;
+
+  @override
+  VariableDeclaration get node => getNodeMatching((node) => node is VariableDeclaration);
+
+  @override
+  bool get isConst => hasModifier(Modifier.CONST);
+
+  @override
+  bool get isFinal => hasModifier(Modifier.FINAL);
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in a closure. This
+   * information is only available for local variables (including parameters) and only after the
+   * compilation unit containing the variable has been resolved.
+   *
+   * @return `true` if this variable is potentially mutated somewhere in closure
+   */
+  bool get isPotentiallyMutatedInClosure => false;
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in its scope. This
+   * information is only available for local variables (including parameters) and only after the
+   * compilation unit containing the variable has been resolved.
+   *
+   * @return `true` if this variable is potentially mutated somewhere in its scope
+   */
+  bool get isPotentiallyMutatedInScope => false;
+
+  /**
+   * Set whether this variable is const to correspond to the given value.
+   *
+   * @param isConst `true` if the variable is const
+   */
+  void set const3(bool isConst) {
+    setModifier(Modifier.CONST, isConst);
+  }
+
+  /**
+   * Set the result of evaluating this variable's initializer as a compile-time constant expression
+   * to the given result.
+   *
+   * @param result the result of evaluating this variable's initializer
+   */
+  void set evaluationResult(EvaluationResultImpl result) {
+    throw new IllegalStateException("Invalid attempt to set a compile-time constant result");
+  }
+
+  /**
+   * Set whether this variable is final to correspond to the given value.
+   *
+   * @param isFinal `true` if the variable is final
+   */
+  void set final2(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  /**
+   * Set the function representing this variable's initializer to the given function.
+   *
+   * @param initializer the function representing this variable's initializer
+   */
+  void set initializer(FunctionElement initializer) {
+    if (initializer != null) {
+      (initializer as FunctionElementImpl).enclosingElement = this;
+    }
+    this._initializer = initializer;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_initializer, visitor);
+  }
+
+  @override
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(displayName);
+  }
+}
+
+/**
+ * The abstract class `VariableMember` defines the behavior common to members that represent a
+ * variable element defined in a parameterized type where the values of the type parameters are
+ * known.
+ */
+abstract class VariableMember extends Member implements VariableElement {
+  /**
+   * Initialize a newly created element to represent an executable element of the given
+   * parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  VariableMember(VariableElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
+
+  @override
+  VariableElement get baseElement => super.baseElement as VariableElement;
+
+  @override
+  FunctionElement get initializer {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
+    throw new UnsupportedOperationException();
+  }
+
+  @override
+  VariableDeclaration get node => baseElement.node;
+
+  @override
+  DartType get type => substituteFor(baseElement.type);
+
+  @override
+  bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isFinal => baseElement.isFinal;
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
+    super.visitChildren(visitor);
+    safelyVisitChild(baseElement.initializer, visitor);
+  }
+}
+
+/**
+ * The interface `VoidType` defines the behavior of the unique object representing the type
+ * `void`.
+ */
+abstract class VoidType implements DartType {
+  @override
+  VoidType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
+}
+
+/**
  * The unique instance of the class `VoidTypeImpl` implements the type `void`.
  */
 class VoidTypeImpl extends TypeImpl implements VoidType {
@@ -10271,590 +10857,4 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
-}
-
-/**
- * The interface `FunctionType` defines the behavior common to objects representing the type
- * of a function, method, constructor, getter, or setter. Function types come in three variations:
- * <ol>
- * * The types of functions that only have required parameters. These have the general form
- * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i>.
- * * The types of functions with optional positional parameters. These have the general form
- * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;, T<sub>n+k</sub>]) &rarr;
- * T</i>.
- * * The types of functions with named parameters. These have the general form <i>(T<sub>1</sub>,
- * &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk}) &rarr; T</i>.
- * </ol>
- */
-abstract class FunctionType implements ParameterizedType {
-  /**
-   * Return a map from the names of named parameters to the types of the named parameters of this
-   * type of function. The entries in the map will be iterated in the same order as the order in
-   * which the named parameters were defined. If there were no named parameters declared then the
-   * map will be empty.
-   *
-   * @return a map from the name to the types of the named parameters of this type of function
-   */
-  Map<String, DartType> get namedParameterTypes;
-
-  /**
-   * Return an array containing the types of the normal parameters of this type of function. The
-   * parameter types are in the same order as they appear in the declaration of the function.
-   *
-   * @return the types of the normal parameters of this type of function
-   */
-  List<DartType> get normalParameterTypes;
-
-  /**
-   * Return a map from the names of optional (positional) parameters to the types of the optional
-   * parameters of this type of function. The entries in the map will be iterated in the same order
-   * as the order in which the optional parameters were defined. If there were no optional
-   * parameters declared then the map will be empty.
-   *
-   * @return a map from the name to the types of the optional parameters of this type of function
-   */
-  List<DartType> get optionalParameterTypes;
-
-  /**
-   * Return an array containing the parameters elements of this type of function. The parameter
-   * types are in the same order as they appear in the declaration of the function.
-   *
-   * @return the parameters elements of this type of function
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the type of object returned by this type of function.
-   *
-   * @return the type of object returned by this type of function
-   */
-  DartType get returnType;
-
-  /**
-   * Return `true` if this type is a subtype of the given type.
-   *
-   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i> is a subtype of the
-   * function type <i>(S<sub>1</sub>, &hellip;, S<sub>n</sub>) &rarr; S</i>, if all of the following
-   * conditions are met:
-   * * Either
-   * * <i>S</i> is void, or
-   * * <i>T &hArr; S</i>.
-   *
-   * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
-   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;,
-   * T<sub>n+k</sub>]) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
-   * S<sub>n</sub>, [S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>]) &rarr; S</i>, if all of the
-   * following conditions are met:
-   * * Either
-   * * <i>S</i> is void, or
-   * * <i>T &hArr; S</i>.
-   *
-   * * <i>k</i> >= <i>m</i> and for all <i>i</i>, 1 <= <i>i</i> <= <i>n+m</i>, <i>T<sub>i</sub>
-   * &hArr; S<sub>i</sub></i>.
-   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;,
-   * T<sub>xk</sub> xk}) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
-   * S<sub>n</sub>, {S<sub>y1</sub> y1, &hellip;, S<sub>ym</sub> ym}) &rarr; S</i>, if all of the
-   * following conditions are met:
-   * * Either
-   * * <i>S</i> is void,
-   * * or <i>T &hArr; S</i>.
-   *
-   * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
-   * * <i>k</i> >= <i>m</i> and <i>y<sub>i</sub></i> in <i>{x<sub>1</sub>, &hellip;,
-   * x<sub>k</sub>}</i>, 1 <= <i>i</i> <= <i>m</i>.
-   * * For all <i>y<sub>i</sub></i> in <i>{y<sub>1</sub>, &hellip;, y<sub>m</sub>}</i>,
-   * <i>y<sub>i</sub> = x<sub>j</sub> => Tj &hArr; Si</i>.
-   * In addition, the following subtype rules apply:
-   *
-   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, []) &rarr; T <: (T<sub>1</sub>, &hellip;,
-   * T<sub>n</sub>) &rarr; T.</i><br>
-   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
-   * T<sub>n</sub>, {}) &rarr; T.</i><br>
-   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {}) &rarr; T <: (T<sub>1</sub>, &hellip;,
-   * T<sub>n</sub>) &rarr; T.</i><br>
-   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
-   * T<sub>n</sub>, []) &rarr; T.</i>
-   *
-   * All functions implement the class `Function`. However not all function types are a
-   * subtype of `Function`. If an interface type <i>I</i> includes a method named
-   * `call()`, and the type of `call()` is the function type <i>F</i>, then <i>I</i> is
-   * considered to be a subtype of <i>F</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a subtype of the given type
-   */
-  @override
-  bool isSubtypeOf(DartType type);
-
-  /**
-   * Return the type resulting from substituting the given arguments for this type's parameters.
-   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
-   *
-   * @param argumentTypes the actual type arguments being substituted for the type parameters
-   * @return the result of performing the substitution
-   */
-  FunctionType substitute3(List<DartType> argumentTypes);
-
-  @override
-  FunctionType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
-}
-
-/**
- * The interface `InterfaceType` defines the behavior common to objects representing the type
- * introduced by either a class or an interface, or a reference to such a type.
- */
-abstract class InterfaceType implements ParameterizedType {
-  /**
-   * Return an array containing all of the accessors (getters and setters) declared in this type.
-   *
-   * @return the accessors declared in this type
-   */
-  List<PropertyAccessorElement> get accessors;
-
-  @override
-  ClassElement get element;
-
-  /**
-   * Return the element representing the getter with the given name that is declared in this class,
-   * or `null` if this class does not declare a getter with the given name.
-   *
-   * @param getterName the name of the getter to be returned
-   * @return the getter declared in this class with the given name
-   */
-  PropertyAccessorElement getGetter(String getterName);
-
-  /**
-   * Return an array containing all of the interfaces that are implemented by this interface. Note
-   * that this is <b>not</b>, in general, equivalent to getting the interfaces from this type's
-   * element because the types returned by this method will have had their type parameters replaced.
-   *
-   * @return the interfaces that are implemented by this type
-   */
-  List<InterfaceType> get interfaces;
-
-  /**
-   * Return the least upper bound of this type and the given type, or `null` if there is no
-   * least upper bound.
-   *
-   * Given two interfaces <i>I</i> and <i>J</i>, let <i>S<sub>I</sub></i> be the set of
-   * superinterfaces of <i>I<i>, let <i>S<sub>J</sub></i> be the set of superinterfaces of <i>J</i>
-   * and let <i>S = (I &cup; S<sub>I</sub>) &cap; (J &cup; S<sub>J</sub>)</i>. Furthermore, we
-   * define <i>S<sub>n</sub> = {T | T &isin; S &and; depth(T) = n}</i> for any finite <i>n</i>,
-   * where <i>depth(T)</i> is the number of steps in the longest inheritance path from <i>T</i> to
-   * <i>Object</i>. Let <i>q</i> be the largest number such that <i>S<sub>q</sub></i> has
-   * cardinality one. The least upper bound of <i>I</i> and <i>J</i> is the sole element of
-   * <i>S<sub>q</sub></i>.
-   *
-   * @param type the other type used to compute the least upper bound
-   * @return the least upper bound of this type and the given type
-   */
-  @override
-  DartType getLeastUpperBound(DartType type);
-
-  /**
-   * Return the element representing the method with the given name that is declared in this class,
-   * or `null` if this class does not declare a method with the given name.
-   *
-   * @param methodName the name of the method to be returned
-   * @return the method declared in this class with the given name
-   */
-  MethodElement getMethod(String methodName);
-
-  /**
-   * Return an array containing all of the methods declared in this type.
-   *
-   * @return the methods declared in this type
-   */
-  List<MethodElement> get methods;
-
-  /**
-   * Return an array containing all of the mixins that are applied to the class being extended in
-   * order to derive the superclass of this class. Note that this is <b>not</b>, in general,
-   * equivalent to getting the mixins from this type's element because the types returned by this
-   * method will have had their type parameters replaced.
-   *
-   * @return the mixins that are applied to derive the superclass of this class
-   */
-  List<InterfaceType> get mixins;
-
-  /**
-   * Return the element representing the setter with the given name that is declared in this class,
-   * or `null` if this class does not declare a setter with the given name.
-   *
-   * @param setterName the name of the setter to be returned
-   * @return the setter declared in this class with the given name
-   */
-  PropertyAccessorElement getSetter(String setterName);
-
-  /**
-   * Return the type representing the superclass of this type, or null if this type represents the
-   * class 'Object'. Note that this is <b>not</b>, in general, equivalent to getting the superclass
-   * from this type's element because the type returned by this method will have had it's type
-   * parameters replaced.
-   *
-   * @return the superclass of this type
-   */
-  InterfaceType get superclass;
-
-  /**
-   * Return `true` if this type is a direct supertype of the given type. The implicit
-   * interface of class <i>I</i> is a direct supertype of the implicit interface of class <i>J</i>
-   * iff:
-   * * <i>I</i> is Object, and <i>J</i> has no extends clause.
-   * * <i>I</i> is listed in the extends clause of <i>J</i>.
-   * * <i>I</i> is listed in the implements clause of <i>J</i>.
-   * * <i>I</i> is listed in the with clause of <i>J</i>.
-   * * <i>J</i> is a mixin application of the mixin of <i>I</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a direct supertype of the given type
-   */
-  bool isDirectSupertypeOf(InterfaceType type);
-
-  /**
-   * Return `true` if this type is more specific than the given type. An interface type
-   * <i>T</i> is more specific than an interface type <i>S</i>, written <i>T &laquo; S</i>, if one
-   * of the following conditions is met:
-   * * Reflexivity: <i>T</i> is <i>S</i>.
-   * * <i>T</i> is bottom.
-   * * <i>S</i> is dynamic.
-   * * Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
-   * * <i>T</i> is a type parameter and <i>S</i> is the upper bound of <i>T</i>.
-   * * Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
-   * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
-   * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.
-   * * Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is more specific than the given type
-   */
-  @override
-  bool isMoreSpecificThan(DartType type);
-
-  /**
-   * Return `true` if this type is a subtype of the given type. An interface type <i>T</i> is
-   * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
-   * <i>[bottom/dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
-   * interface type <i>I</i> includes a method named <i>call()</i>, and the type of <i>call()</i> is
-   * the function type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a subtype of the given type
-   */
-  @override
-  bool isSubtypeOf(DartType type);
-
-  /**
-   * Return the element representing the constructor that results from looking up the given
-   * constructor in this class with respect to the given library, or `null` if the look up
-   * fails. The behavior of this method is defined by the Dart Language Specification in section
-   * 12.11.1: <blockquote>If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
-   * the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor <i>T<i>. Otherwise, if
-   * <i>q</i> is not defined or not accessible, a NoSuchMethodException is thrown. </blockquote>
-   *
-   * @param constructorName the name of the constructor being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given constructor in this class with respect to the given
-   *         library
-   */
-  ConstructorElement lookUpConstructor(String constructorName, LibraryElement library);
-
-  /**
-   * Return the element representing the getter that results from looking up the given getter in
-   * this class with respect to the given library, or `null` if the look up fails. The
-   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
-   * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
-   * with respect to library <i>L</i> is:
-   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
-   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
-   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
-   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
-   * Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param getterName the name of the getter being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given getter in this class with respect to the given
-   *         library
-   */
-  PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
-
-  /**
-   * Return the element representing the getter that results from looking up the given getter in the
-   * superclass of this class with respect to the given library, or `null` if the look up
-   * fails. The behavior of this method is defined by the Dart Language Specification in section
-   * 12.15.1: <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class
-   * <i>C</i> with respect to library <i>L</i> is:
-   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
-   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
-   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
-   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
-   * Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param getterName the name of the getter being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given getter in this class with respect to the given
-   *         library
-   */
-  PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library);
-
-  /**
-   * Return the element representing the method that results from looking up the given method in
-   * this class with respect to the given library, or `null` if the look up fails. The
-   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
-   * <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect to library
-   * <i>L</i> is:
-   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
-   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
-   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
-   * to <i>L</i>. Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param methodName the name of the method being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given method in this class with respect to the given
-   *         library
-   */
-  MethodElement lookUpMethod(String methodName, LibraryElement library);
-
-  /**
-   * Return the element representing the method that results from looking up the given method in the
-   * superclass of this class with respect to the given library, or `null` if the look up
-   * fails. The behavior of this method is defined by the Dart Language Specification in section
-   * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
-   * to library <i>L</i> is:
-   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
-   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
-   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
-   * to <i>L</i>. Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param methodName the name of the method being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given method in this class with respect to the given
-   *         library
-   */
-  MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library);
-
-  /**
-   * Return the element representing the setter that results from looking up the given setter in
-   * this class with respect to the given library, or `null` if the look up fails. The
-   * behavior of this method is defined by the Dart Language Specification in section 12.16:
-   * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
-   * with respect to library <i>L</i> is:
-   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
-   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
-   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
-   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
-   * Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param setterName the name of the setter being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given setter in this class with respect to the given
-   *         library
-   */
-  PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
-
-  /**
-   * Return the element representing the setter that results from looking up the given setter in the
-   * superclass of this class with respect to the given library, or `null` if the look up
-   * fails. The behavior of this method is defined by the Dart Language Specification in section
-   * 12.16: <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class
-   * <i>C</i> with respect to library <i>L</i> is:
-   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
-   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
-   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
-   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
-   * Otherwise, we say that the lookup has failed.
-   * </blockquote>
-   *
-   * @param setterName the name of the setter being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given setter in this class with respect to the given
-   *         library
-   */
-  PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
-
-  /**
-   * Return the type resulting from substituting the given arguments for this type's parameters.
-   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
-   *
-   * @param argumentTypes the actual type arguments being substituted for the type parameters
-   * @return the result of performing the substitution
-   */
-  InterfaceType substitute4(List<DartType> argumentTypes);
-
-  @override
-  InterfaceType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
-}
-
-/**
- * The interface `ParameterizedType` defines the behavior common to objects representing a
- * type with type parameters, such as a class or function type alias.
- */
-abstract class ParameterizedType implements DartType {
-  /**
-   * Return an array containing the actual types of the type arguments. If this type's element does
-   * not have type parameters, then the array should be empty (although it is possible for type
-   * arguments to be erroneously declared). If the element has type parameters and the actual type
-   * does not explicitly include argument values, then the type "dynamic" will be automatically
-   * provided.
-   *
-   * @return the actual types of the type arguments
-   */
-  List<DartType> get typeArguments;
-
-  /**
-   * Return an array containing all of the type parameters declared for this type.
-   *
-   * @return the type parameters declared for this type
-   */
-  List<TypeParameterElement> get typeParameters;
-}
-
-/**
- * The interface `Type` defines the behavior of objects representing the declared type of
- * elements in the element model.
- */
-abstract class DartType {
-  /**
-   * Return the name of this type as it should appear when presented to users in contexts such as
-   * error messages.
-   *
-   * @return the name of this type
-   */
-  String get displayName;
-
-  /**
-   * Return the element representing the declaration of this type, or `null` if the type has
-   * not, or cannot, be associated with an element. The former case will occur if the element model
-   * is not yet complete; the latter case will occur if this object represents an undefined type.
-   *
-   * @return the element representing the declaration of this type
-   */
-  Element get element;
-
-  /**
-   * Return the least upper bound of this type and the given type, or `null` if there is no
-   * least upper bound.
-   *
-   * @param type the other type used to compute the least upper bound
-   * @return the least upper bound of this type and the given type
-   */
-  DartType getLeastUpperBound(DartType type);
-
-  /**
-   * Return the name of this type, or `null` if the type does not have a name, such as when
-   * the type represents the type of an unnamed function.
-   *
-   * @return the name of this type
-   */
-  String get name;
-
-  /**
-   * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
-   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
-   * or <i>S</i> <: <i>T</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is assignable to the given type
-   */
-  bool isAssignableTo(DartType type);
-
-  /**
-   * Return `true` if this type represents the bottom type.
-   *
-   * @return `true` if this type represents the bottom type
-   */
-  bool get isBottom;
-
-  /**
-   * Return `true` if this type represents the type 'Function' defined in the dart:core
-   * library.
-   *
-   * @return `true` if this type represents the type 'Function' defined in the dart:core
-   *         library
-   */
-  bool get isDartCoreFunction;
-
-  /**
-   * Return `true` if this type represents the type 'dynamic'.
-   *
-   * @return `true` if this type represents the type 'dynamic'
-   */
-  bool get isDynamic;
-
-  /**
-   * Return `true` if this type is more specific than the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is more specific than the given type
-   */
-  bool isMoreSpecificThan(DartType type);
-
-  /**
-   * Return `true` if this type represents the type 'Object'.
-   *
-   * @return `true` if this type represents the type 'Object'
-   */
-  bool get isObject;
-
-  /**
-   * Return `true` if this type is a subtype of the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a subtype of the given type
-   */
-  bool isSubtypeOf(DartType type);
-
-  /**
-   * Return `true` if this type is a supertype of the given type. A type <i>S</i> is a
-   * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a supertype of the given type
-   */
-  bool isSupertypeOf(DartType type);
-
-  /**
-   * Return `true` if this type represents the type 'void'.
-   *
-   * @return `true` if this type represents the type 'void'
-   */
-  bool get isVoid;
-
-  /**
-   * Return the type resulting from substituting the given arguments for the given parameters in
-   * this type. The specification defines this operation in section 2: <blockquote> The notation
-   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
-   * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
-   * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
-   * not create a copy of this type if no substitutions were required, but will return this type
-   * directly.
-   *
-   * @param argumentTypes the actual type arguments being substituted for the parameters
-   * @param parameterTypes the parameters to be replaced
-   * @return the result of performing the substitution
-   */
-  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
-}
-
-/**
- * The interface `TypeParameterType` defines the behavior of objects representing the type
- * introduced by a type parameter.
- */
-abstract class TypeParameterType implements DartType {
-  @override
-  TypeParameterElement get element;
-}
-
-/**
- * The interface `VoidType` defines the behavior of the unique object representing the type
- * `void`.
- */
-abstract class VoidType implements DartType {
-  @override
-  VoidType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }

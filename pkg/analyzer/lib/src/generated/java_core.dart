@@ -67,6 +67,24 @@ class Character {
   static bool isLetterOrDigit(int c) {
     return isLetter(c) || isDigit(c);
   }
+  static bool isLowerCase(int c) {
+    return c >= 0x61 && c <= 0x7A;
+  }
+  static bool isUpperCase(int c) {
+    return c >= 0x41 && c <= 0x5A;
+  }
+  static int toLowerCase(int c) {
+    if (c >= 0x41 && c <= 0x5A) {
+      return 0x61 + (c - 0x41);
+    }
+    return c;
+  }
+  static int toUpperCase(int c) {
+    if (c >= 0x61 && c <= 0x7A) {
+      return 0x41 + (c - 0x61);
+    }
+    return c;
+  }
   static bool isWhitespace(int c) {
     return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;
   }

@@ -19,124 +19,74 @@ import 'engine.dart';
 import 'html.dart' as ht;
 
 /**
- * Implementation of [UniverseElement].
+ * Visits resolved [CompilationUnit] and adds Angular specific relationships into
+ * [IndexStore].
  */
-class UniverseElementImpl extends ElementImpl implements UniverseElement {
-  static UniverseElementImpl INSTANCE = new UniverseElementImpl();
+class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
+  final IndexStore _store;
 
-  UniverseElementImpl() : super("--universe--", -1);
+  AngularDartIndexContributor(this._store);
 
   @override
-  accept(ElementVisitor visitor) => null;
+  Object visitClassDeclaration(ClassDeclaration node) {
+    ClassElement classElement = node.element;
+    if (classElement != null) {
+      List<ToolkitObjectElement> toolkitObjects = classElement.toolkitObjects;
+      for (ToolkitObjectElement object in toolkitObjects) {
+        if (object is AngularComponentElement) {
+          _indexComponent(object);
+        }
+        if (object is AngularDecoratorElement) {
+          AngularDecoratorElement directive = object;
+          _indexDirective(directive);
+        }
+      }
+    }
+    // stop visiting
+    return null;
+  }
 
   @override
-  ElementKind get kind => ElementKind.UNIVERSE;
-}
+  Object visitCompilationUnitMember(CompilationUnitMember node) => null;
 
-/**
- * Container of information computed by the index - relationships between elements.
- */
-abstract class IndexStore {
-  /**
-   * Notifies the index store that we are going to index the unit with the given element.
-   *
-   * If the unit is a part of a library, then all its locations are removed. If it is a defining
-   * compilation unit of a library, then index store also checks if some previously indexed parts of
-   * the library are not parts of the library anymore, and clears their information.
-   *
-   * @param the [AnalysisContext] in which unit being indexed
-   * @param unitElement the element of the unit being indexed
-   * @return `true` the given [AnalysisContext] is active, or `false` if it was
-   *         removed before, so no any unit may be indexed with it
-   */
-  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
+  void _indexComponent(AngularComponentElement component) {
+    _indexProperties(component.properties);
+  }
+
+  void _indexDirective(AngularDecoratorElement directive) {
+    _indexProperties(directive.properties);
+  }
 
   /**
-   * Notifies the index store that we are going to index the given [HtmlElement].
-   *
-   * @param the [AnalysisContext] in which unit being indexed
-   * @param htmlElement the [HtmlElement] being indexed
-   * @return `true` the given [AnalysisContext] is active, or `false` if it was
-   *         removed before, so no any unit may be indexed with it
+   * Index [FieldElement] references from [AngularPropertyElement]s.
    */
-  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
-
-  /**
-   * Return the locations of the elements that have the given relationship with the given element.
-   * For example, if the element represents a method and the relationship is the is-referenced-by
-   * relationship, then the returned locations will be all of the places where the method is
-   * invoked.
-   *
-   * @param element the the element that has the relationship with the locations to be returned
-   * @param relationship the [Relationship] between the given element and the locations to be
-   *          returned
-   * @return the locations that have the given relationship with the given element
-   */
-  List<Location> getRelationships(Element element, Relationship relationship);
-
-  /**
-   * Answer index statistics.
-   */
-  String get statistics;
-
-  /**
-   * Record that the given element and location have the given relationship. For example, if the
-   * relationship is the is-referenced-by relationship, then the element would be the element being
-   * referenced and the location would be the point at which it is referenced. Each element can have
-   * the same relationship with multiple locations. In other words, if the following code were
-   * executed
-   *
-   * <pre>
-   *   recordRelationship(element, isReferencedBy, location1);
-   *   recordRelationship(element, isReferencedBy, location2);
-   * </pre>
-   *
-   * then both relationships would be maintained in the index and the result of executing
-   *
-   * <pre>
-   *   getRelationship(element, isReferencedBy);
-   * </pre>
-   *
-   * would be an array containing both <code>location1</code> and <code>location2</code>.
-   *
-   * @param element the element that is related to the location
-   * @param relationship the [Relationship] between the element and the location
-   * @param location the [Location] where relationship happens
-   */
-  void recordRelationship(Element element, Relationship relationship, Location location);
-
-  /**
-   * Remove from the index all of the information associated with [AnalysisContext].
-   *
-   * This method should be invoked when a context is disposed.
-   *
-   * @param the [AnalysisContext] being removed
-   */
-  void removeContext(AnalysisContext context);
-
-  /**
-   * Remove from the index all of the information associated with elements or locations in the given
-   * source. This includes relationships between an element in the given source and any other
-   * locations, relationships between any other elements and a location within the given source.
-   *
-   * This method should be invoked when a source is no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source] being removed
-   * @param source the source being removed
-   */
-  void removeSource(AnalysisContext context, Source source);
-
-  /**
-   * Remove from the index all of the information associated with elements or locations in the given
-   * sources. This includes relationships between an element in the given sources and any other
-   * locations, relationships between any other elements and a location within the given sources.
-   *
-   * This method should be invoked when multiple sources are no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source]s being removed
-   * @param container the [SourceContainer] holding the sources being removed
-   */
-  void removeSources(AnalysisContext context, SourceContainer container);
+  void _indexProperties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      FieldElement field = property.field;
+      if (field != null) {
+        int offset = property.fieldNameOffset;
+        if (offset == -1) {
+          continue;
+        }
+        int length = field.name.length;
+        Location location = new Location(property, offset, length);
+        // getter reference
+        if (property.propertyKind.callsGetter()) {
+          PropertyAccessorElement getter = field.getter;
+          if (getter != null) {
+            _store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+        // setter reference
+        if (property.propertyKind.callsSetter()) {
+          PropertyAccessorElement setter = field.setter;
+          if (setter != null) {
+            _store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -223,25 +173,6 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
   Location _createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
 }
 
-class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
-  final AngularHtmlIndexContributor AngularHtmlIndexContributor_this;
-
-  IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
-
-  @override
-  Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
-
-  @override
-  void recordRelationship(Element element, Relationship relationship, Location location) {
-    AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
-    if (angularElement != null) {
-      element = angularElement;
-      relationship = IndexConstants.ANGULAR_REFERENCE;
-    }
-    super.recordRelationship(element, relationship, location);
-  }
-}
-
 /**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
  */
@@ -286,823 +217,132 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
 }
 
 /**
- * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
- * index based on the resolved [HtmlUnit].
+ * Instances of the [GetRelationshipsOperation] implement an operation used to access the
+ * locations that have a specified relationship with a specified element.
  */
-class IndexHtmlUnitOperation implements IndexOperation {
-  /**
-   * The index store against which this operation is being run.
-   */
+class GetRelationshipsOperation implements IndexOperation {
   final IndexStore _indexStore;
 
-  /**
-   * The context in which [HtmlUnit] was resolved.
-   */
-  final AnalysisContext _context;
+  final Element element;
+
+  final Relationship relationship;
+
+  final RelationshipCallback callback;
 
   /**
-   * The [HtmlUnit] being indexed.
+   * Initialize a newly created operation that will access the locations that have a specified
+   * relationship with a specified element.
    */
-  final ht.HtmlUnit unit;
-
-  /**
-   * The element of the [HtmlUnit] being indexed.
-   */
-  HtmlElement _htmlElement;
-
-  /**
-   * The source being indexed.
-   */
-  Source _source;
-
-  /**
-   * Initialize a newly created operation that will index the specified [HtmlUnit].
-   *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the context in which [HtmlUnit] was resolved
-   * @param unit the fully resolved [HtmlUnit]
-   */
-  IndexHtmlUnitOperation(this._indexStore, this._context, this.unit) {
-    this._htmlElement = unit.element;
-    this._source = _htmlElement.source;
-  }
-
-  /**
-   * @return the [Source] to be indexed.
-   */
-  Source get source => _source;
+  GetRelationshipsOperation(this._indexStore, this.element, this.relationship, this.callback);
 
   @override
-  bool get isQuery => false;
+  bool get isQuery => true;
 
   @override
   void performOperation() {
-    try {
-      bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
-      if (!mayIndex) {
-        return;
-      }
-      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
-      unit.accept(contributor);
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
-    }
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => this._source == source;
-
-  @override
-  String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
-}
-
-/**
- * Visits resolved [CompilationUnit] and adds Angular specific relationships into
- * [IndexStore].
- */
-class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
-  final IndexStore _store;
-
-  AngularDartIndexContributor(this._store);
-
-  @override
-  Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement classElement = node.element;
-    if (classElement != null) {
-      List<ToolkitObjectElement> toolkitObjects = classElement.toolkitObjects;
-      for (ToolkitObjectElement object in toolkitObjects) {
-        if (object is AngularComponentElement) {
-          _indexComponent(object);
-        }
-        if (object is AngularDecoratorElement) {
-          AngularDecoratorElement directive = object;
-          _indexDirective(directive);
-        }
-      }
-    }
-    // stop visiting
-    return null;
-  }
-
-  @override
-  Object visitCompilationUnitMember(CompilationUnitMember node) => null;
-
-  void _indexComponent(AngularComponentElement component) {
-    _indexProperties(component.properties);
-  }
-
-  void _indexDirective(AngularDecoratorElement directive) {
-    _indexProperties(directive.properties);
-  }
-
-  /**
-   * Index [FieldElement] references from [AngularPropertyElement]s.
-   */
-  void _indexProperties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      FieldElement field = property.field;
-      if (field != null) {
-        int offset = property.fieldNameOffset;
-        if (offset == -1) {
-          continue;
-        }
-        int length = field.name.length;
-        Location location = new Location(property, offset, length);
-        // getter reference
-        if (property.propertyKind.callsGetter()) {
-          PropertyAccessorElement getter = field.getter;
-          if (getter != null) {
-            _store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
-          }
-        }
-        // setter reference
-        if (property.propertyKind.callsSetter()) {
-          PropertyAccessorElement setter = field.setter;
-          if (setter != null) {
-            _store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
-          }
-        }
-      }
-    }
-  }
-}
-
-/**
- * Special [Element] which is used to index references to the name without specifying concrete
- * kind of this name - field, method or something else.
- */
-class NameElementImpl extends ElementImpl {
-  NameElementImpl(String name) : super("name:${name}", -1);
-
-  @override
-  accept(ElementVisitor visitor) => null;
-
-  @override
-  ElementKind get kind => ElementKind.NAME;
-}
-
-/**
- * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
- * with the results of a query about a given relationship.
- */
-abstract class RelationshipCallback {
-  /**
-   * This method is invoked when the locations that have a specified relationship with a specified
-   * element are available. For example, if the element is a field and the relationship is the
-   * is-referenced-by relationship, then this method will be invoked with each location at which the
-   * field is referenced.
-   *
-   * @param element the [Element] that has the relationship with the locations
-   * @param relationship the relationship between the given element and the locations
-   * @param locations the locations that were found
-   */
-  void hasRelationships(Element element, Relationship relationship, List<Location> locations);
-}
-
-/**
- * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
- * index any data based on the content of source belonging to a [SourceContainer].
- */
-class RemoveSourcesOperation implements IndexOperation {
-  /**
-   * The index store against which this operation is being run.
-   */
-  final IndexStore _indexStore;
-
-  /**
-   * The context to remove container.
-   */
-  final AnalysisContext _context;
-
-  /**
-   * The source container to remove.
-   */
-  final SourceContainer container;
-
-  /**
-   * Initialize a newly created operation that will remove the specified resource.
-   *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the [AnalysisContext] to remove container in
-   * @param container the [SourceContainer] to remove from index
-   */
-  RemoveSourcesOperation(this._indexStore, this._context, this.container);
-
-  @override
-  bool get isQuery => false;
-
-  @override
-  void performOperation() {
-    _indexStore.removeSources(_context, container);
+    List<Location> locations;
+    locations = _indexStore.getRelationships(element, relationship);
+    callback.hasRelationships(element, relationship, locations);
   }
 
   @override
   bool removeWhenSourceRemoved(Source source) => false;
 
   @override
-  String toString() => "RemoveSources(${container})";
+  String toString() => "GetRelationships(${element}, ${relationship})";
 }
 
 /**
- * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
- * based on the resolved [CompilationUnit].
+ * The interface [Index] defines the behavior of objects that maintain an index storing
+ * [Relationship] between [Element]. All of the operations
+ * defined on the index are asynchronous, and results, when there are any, are provided through a
+ * callback.
+ *
+ * Despite being asynchronous, the results of the operations are guaranteed to be consistent with
+ * the expectation that operations are performed in the order in which they are requested.
+ * Modification operations are executed before any read operation. There is no guarantee about the
+ * order in which the callbacks for read operations will be invoked.
  */
-class IndexUnitOperation implements IndexOperation {
+abstract class Index {
   /**
-   * The index store against which this operation is being run.
-   */
-  final IndexStore _indexStore;
-
-  /**
-   * The context in which compilation unit was resolved.
-   */
-  final AnalysisContext _context;
-
-  /**
-   * The compilation unit being indexed.
-   */
-  final CompilationUnit unit;
-
-  /**
-   * The element of the compilation unit being indexed.
-   */
-  CompilationUnitElement _unitElement;
-
-  /**
-   * The source being indexed.
-   */
-  Source _source;
-
-  /**
-   * Initialize a newly created operation that will index the specified unit.
+   * Asynchronously invoke the given callback with an array containing all of the locations of the
+   * elements that have the given relationship with the given element. For example, if the element
+   * represents a method and the relationship is the is-referenced-by relationship, then the
+   * locations that will be passed into the callback will be all of the places where the method is
+   * invoked.
    *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the context in which compilation unit was resolved
-   * @param unit the fully resolved AST structure
+   * @param element the element that has the relationship with the locations to be returned
+   * @param relationship the relationship between the given element and the locations to be returned
+   * @param callback the callback that will be invoked when the locations are found
    */
-  IndexUnitOperation(this._indexStore, this._context, this.unit) {
-    this._unitElement = unit.element;
-    this._source = _unitElement.source;
-  }
+  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
 
   /**
-   * @return the [Source] to be indexed.
+   * Answer index statistics.
    */
-  Source get source => _source;
-
-  @override
-  bool get isQuery => false;
-
-  @override
-  void performOperation() {
-    try {
-      bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
-      if (!mayIndex) {
-        return;
-      }
-      unit.accept(new IndexContributor(_indexStore));
-      unit.accept(new AngularDartIndexContributor(_indexStore));
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
-    }
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => this._source == source;
-
-  @override
-  String toString() => "IndexUnitOperation(${_source.fullName})";
-}
-
-/**
- * [IndexStore] which keeps full index in memory.
- */
-class MemoryIndexStoreImpl implements MemoryIndexStore {
-  /**
-   * When logging is on, [AnalysisEngine] actually creates
-   * [InstrumentedAnalysisContextImpl], which wraps [AnalysisContextImpl] used to create
-   * actual [Element]s. So, in index we have to unwrap [InstrumentedAnalysisContextImpl]
-   * when perform any operation.
-   */
-  static AnalysisContext unwrapContext(AnalysisContext context) {
-    if (context is InstrumentedAnalysisContextImpl) {
-      context = (context as InstrumentedAnalysisContextImpl).basis;
-    }
-    return context;
-  }
+  String get statistics;
 
   /**
-   * @return the [Source] of the enclosing [LibraryElement], may be `null`.
+   * Asynchronously process the given [HtmlUnit] in order to record the relationships.
+   *
+   * @param context the [AnalysisContext] in which [HtmlUnit] was resolved
+   * @param unit the [HtmlUnit] being indexed
    */
-  static Source _getLibrarySourceOrNull(Element element) {
-    LibraryElement library = element.library;
-    if (library == null) {
-      return null;
-    }
-    if (library.isAngularHtml) {
-      return null;
-    }
-    return library.source;
-  }
+  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit);
 
   /**
-   * This map is used to canonicalize equal keys.
+   * Asynchronously process the given [CompilationUnit] in order to record the relationships.
+   *
+   * @param context the [AnalysisContext] in which [CompilationUnit] was resolved
+   * @param unit the [CompilationUnit] being indexed
    */
-  Map<MemoryIndexStoreImpl_ElementRelationKey, MemoryIndexStoreImpl_ElementRelationKey> _canonicalKeys = {};
+  void indexUnit(AnalysisContext context, CompilationUnit unit);
 
   /**
-   * The mapping of [ElementRelationKey] to the [Location]s, one-to-many.
+   * Asynchronously remove from the index all of the information associated with the given context.
+   *
+   * This method should be invoked when a context is disposed.
+   *
+   * @param context the [AnalysisContext] to remove
    */
-  Map<MemoryIndexStoreImpl_ElementRelationKey, Set<Location>> _keyToLocations = {};
+  void removeContext(AnalysisContext context);
 
   /**
-   * The mapping of [Source] to the [ElementRelationKey]s. It is used in
-   * [removeSource] to identify keys to remove from
-   * [keyToLocations].
+   * Asynchronously remove from the index all of the information associated with elements or
+   * locations in the given source. This includes relationships between an element in the given
+   * source and any other locations, relationships between any other elements and a location within
+   * the given source.
+   *
+   * This method should be invoked when a source is no longer part of the code base.
+   *
+   * @param context the [AnalysisContext] in which [Source] being removed
+   * @param source the [Source] being removed
    */
-  Map<AnalysisContext, Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>>> _contextToSourceToKeys = {};
+  void removeSource(AnalysisContext context, Source source);
 
   /**
-   * The mapping of [Source] to the [Location]s existing in it. It is used in
-   * [clearSource0] to identify locations to remove from
-   * [keyToLocations].
+   * Asynchronously remove from the index all of the information associated with elements or
+   * locations in the given sources. This includes relationships between an element in the given
+   * sources and any other locations, relationships between any other elements and a location within
+   * the given sources.
+   *
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source]s being removed
+   * @param container the [SourceContainer] holding the sources being removed
    */
-  Map<AnalysisContext, Map<MemoryIndexStoreImpl_Source2, List<Location>>> _contextToSourceToLocations = {};
+  void removeSources(AnalysisContext context, SourceContainer container);
 
   /**
-   * The mapping of library [Source] to the [Source]s of part units.
+   * Should be called in separate [Thread] to process request in this [Index]. Does not
+   * return until the [stop] method is called.
    */
-  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToLibraryToUnits = {};
+  void run();
 
   /**
-   * The mapping of unit [Source] to the [Source]s of libraries it is used in.
+   * Should be called to stop process running [run], so stop processing requests.
    */
-  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToUnitToLibraries = {};
-
-  int _sourceCount = 0;
-
-  int _keyCount = 0;
-
-  int _locationCount = 0;
-
-  @override
-  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
-    context = unwrapContext(context);
-    // may be already disposed in other thread
-    if (context.isDisposed) {
-      return false;
-    }
-    // validate unit
-    if (unitElement == null) {
-      return false;
-    }
-    LibraryElement libraryElement = unitElement.library;
-    if (libraryElement == null) {
-      return false;
-    }
-    CompilationUnitElement definingUnitElement = libraryElement.definingCompilationUnit;
-    if (definingUnitElement == null) {
-      return false;
-    }
-    // prepare sources
-    Source library = definingUnitElement.source;
-    Source unit = unitElement.source;
-    // special handling for the defining library unit
-    if (unit == library) {
-      // prepare new parts
-      Set<Source> newParts = new Set();
-      for (CompilationUnitElement part in libraryElement.parts) {
-        newParts.add(part.source);
-      }
-      // prepare old parts
-      Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
-      if (libraryToUnits == null) {
-        libraryToUnits = {};
-        _contextToLibraryToUnits[context] = libraryToUnits;
-      }
-      Set<Source> oldParts = libraryToUnits[library];
-      // check if some parts are not in the library now
-      if (oldParts != null) {
-        Set<Source> noParts = oldParts.difference(newParts);
-        for (Source noPart in noParts) {
-          _removeLocations(context, library, noPart);
-        }
-      }
-      // remember new parts
-      libraryToUnits[library] = newParts;
-    }
-    // remember libraries in which unit is used
-    _recordUnitInLibrary(context, library, unit);
-    // remove locations
-    _removeLocations(context, library, unit);
-    // remove keys
-    {
-      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
-      if (sourceToKeys != null) {
-        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
-        bool hadSource = sourceToKeys.remove(source2) != null;
-        if (hadSource) {
-          _sourceCount--;
-        }
-      }
-    }
-    // OK, we can index
-    return true;
-  }
-
-  @override
-  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
-    context = unwrapContext(context);
-    // may be already disposed in other thread
-    if (context.isDisposed) {
-      return false;
-    }
-    // remove locations
-    Source source = htmlElement.source;
-    _removeLocations(context, null, source);
-    // remove keys
-    {
-      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
-      if (sourceToKeys != null) {
-        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(null, source);
-        bool hadSource = sourceToKeys.remove(source2) != null;
-        if (hadSource) {
-          _sourceCount--;
-        }
-      }
-    }
-    // remember libraries in which unit is used
-    _recordUnitInLibrary(context, null, source);
-    // OK, we can index
-    return true;
-  }
-
-  @override
-  List<Location> getRelationships(Element element, Relationship relationship) {
-    MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
-    Set<Location> locations = _keyToLocations[key];
-    if (locations != null) {
-      return new List.from(locations);
-    }
-    return Location.EMPTY_ARRAY;
-  }
-
-  @override
-  String get statistics => "${_locationCount} relationships in ${_keyCount} keys in ${_sourceCount} sources";
-
-  int internalGetKeyCount() => _keyToLocations.length;
-
-  int internalGetLocationCount() {
-    int count = 0;
-    for (Set<Location> locations in _keyToLocations.values) {
-      count += locations.length;
-    }
-    return count;
-  }
-
-  int internalGetLocationCountForContext(AnalysisContext context) {
-    context = unwrapContext(context);
-    int count = 0;
-    for (Set<Location> locations in _keyToLocations.values) {
-      for (Location location in locations) {
-        if (identical(location.element.context, context)) {
-          count++;
-        }
-      }
-    }
-    return count;
-  }
-
-  int internalGetSourceKeyCount(AnalysisContext context) {
-    int count = 0;
-    Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
-    if (sourceToKeys != null) {
-      for (Set<MemoryIndexStoreImpl_ElementRelationKey> keys in sourceToKeys.values) {
-        count += keys.length;
-      }
-    }
-    return count;
-  }
-
-  @override
-  void recordRelationship(Element element, Relationship relationship, Location location) {
-    if (element == null || location == null) {
-      return;
-    }
-    location = location.newClone();
-    // at the index level we don't care about Member(s)
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
-    //    System.out.println(element + " " + relationship + " " + location);
-    // prepare information
-    AnalysisContext elementContext = element.context;
-    AnalysisContext locationContext = location.element.context;
-    Source elementSource = element.source;
-    Source locationSource = location.element.source;
-    Source elementLibrarySource = _getLibrarySourceOrNull(element);
-    Source locationLibrarySource = _getLibrarySourceOrNull(location.element);
-    // sanity check
-    if (locationContext == null) {
-      return;
-    }
-    if (locationSource == null) {
-      return;
-    }
-    if (elementContext == null && element is! NameElementImpl && element is! UniverseElementImpl) {
-      return;
-    }
-    if (elementSource == null && element is! NameElementImpl && element is! UniverseElementImpl) {
-      return;
-    }
-    // may be already disposed in other thread
-    if (elementContext != null && elementContext.isDisposed) {
-      return;
-    }
-    if (locationContext.isDisposed) {
-      return;
-    }
-    // record: key -> location(s)
-    MemoryIndexStoreImpl_ElementRelationKey key = _getCanonicalKey(element, relationship);
-    {
-      Set<Location> locations = _keyToLocations.remove(key);
-      if (locations == null) {
-        locations = _createLocationIdentitySet();
-      } else {
-        _keyCount--;
-      }
-      _keyToLocations[key] = locations;
-      _keyCount++;
-      locations.add(location);
-      _locationCount++;
-    }
-    // record: location -> key
-    location.internalKey = key;
-    // prepare source pairs
-    MemoryIndexStoreImpl_Source2 elementSource2 = new MemoryIndexStoreImpl_Source2(elementLibrarySource, elementSource);
-    MemoryIndexStoreImpl_Source2 locationSource2 = new MemoryIndexStoreImpl_Source2(locationLibrarySource, locationSource);
-    // record: element source -> keys
-    {
-      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[elementContext];
-      if (sourceToKeys == null) {
-        sourceToKeys = {};
-        _contextToSourceToKeys[elementContext] = sourceToKeys;
-      }
-      Set<MemoryIndexStoreImpl_ElementRelationKey> keys = sourceToKeys[elementSource2];
-      if (keys == null) {
-        keys = new Set();
-        sourceToKeys[elementSource2] = keys;
-        _sourceCount++;
-      }
-      keys.remove(key);
-      keys.add(key);
-    }
-    // record: location source -> locations
-    {
-      Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[locationContext];
-      if (sourceToLocations == null) {
-        sourceToLocations = {};
-        _contextToSourceToLocations[locationContext] = sourceToLocations;
-      }
-      List<Location> locations = sourceToLocations[locationSource2];
-      if (locations == null) {
-        locations = [];
-        sourceToLocations[locationSource2] = locations;
-      }
-      locations.add(location);
-    }
-  }
-
-  @override
-  void removeContext(AnalysisContext context) {
-    context = unwrapContext(context);
-    if (context == null) {
-      return;
-    }
-    // remove sources
-    removeSources(context, null);
-    // remove context
-    _contextToSourceToKeys.remove(context);
-    _contextToSourceToLocations.remove(context);
-    _contextToLibraryToUnits.remove(context);
-    _contextToUnitToLibraries.remove(context);
-  }
-
-  @override
-  void removeSource(AnalysisContext context, Source unit) {
-    context = unwrapContext(context);
-    if (context == null) {
-      return;
-    }
-    // remove locations defined in source
-    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
-    if (unitToLibraries != null) {
-      Set<Source> libraries = unitToLibraries.remove(unit);
-      if (libraries != null) {
-        for (Source library in libraries) {
-          MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
-          // remove locations defined in source
-          _removeLocations(context, library, unit);
-          // remove keys for elements defined in source
-          Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
-          if (sourceToKeys != null) {
-            Set<MemoryIndexStoreImpl_ElementRelationKey> keys = sourceToKeys.remove(source2);
-            if (keys != null) {
-              for (MemoryIndexStoreImpl_ElementRelationKey key in keys) {
-                _canonicalKeys.remove(key);
-                Set<Location> locations = _keyToLocations.remove(key);
-                if (locations != null) {
-                  _keyCount--;
-                  _locationCount -= locations.length;
-                }
-              }
-              _sourceCount--;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  @override
-  void removeSources(AnalysisContext context, SourceContainer container) {
-    context = unwrapContext(context);
-    if (context == null) {
-      return;
-    }
-    // remove sources #1
-    Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
-    if (sourceToKeys != null) {
-      List<MemoryIndexStoreImpl_Source2> sources = [];
-      for (MemoryIndexStoreImpl_Source2 source2 in sources) {
-        Source source = source2._unitSource;
-        if (container == null || container.contains(source)) {
-          removeSource(context, source);
-        }
-      }
-    }
-    // remove sources #2
-    Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
-    if (sourceToLocations != null) {
-      List<MemoryIndexStoreImpl_Source2> sources = [];
-      for (MemoryIndexStoreImpl_Source2 source2 in sources) {
-        Source source = source2._unitSource;
-        if (container == null || container.contains(source)) {
-          removeSource(context, source);
-        }
-      }
-    }
-  }
-
-  /**
-   * Creates new [Set] that uses object identity instead of equals.
-   */
-  Set<Location> _createLocationIdentitySet() => new Set<Location>.identity();
-
-  /**
-   * @return the canonical [ElementRelationKey] for given [Element] and
-   *         [Relationship], i.e. unique instance for this combination.
-   */
-  MemoryIndexStoreImpl_ElementRelationKey _getCanonicalKey(Element element, Relationship relationship) {
-    MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
-    MemoryIndexStoreImpl_ElementRelationKey canonicalKey = _canonicalKeys[key];
-    if (canonicalKey == null) {
-      canonicalKey = key;
-      _canonicalKeys[key] = canonicalKey;
-    }
-    return canonicalKey;
-  }
-
-  void _recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
-    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
-    if (unitToLibraries == null) {
-      unitToLibraries = {};
-      _contextToUnitToLibraries[context] = unitToLibraries;
-    }
-    Set<Source> libraries = unitToLibraries[unit];
-    if (libraries == null) {
-      libraries = new Set();
-      unitToLibraries[unit] = libraries;
-    }
-    libraries.add(library);
-  }
-
-  /**
-   * Removes locations recorded in the given library/unit pair.
-   */
-  void _removeLocations(AnalysisContext context, Source library, Source unit) {
-    MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
-    Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
-    if (sourceToLocations != null) {
-      List<Location> sourceLocations = sourceToLocations.remove(source2);
-      if (sourceLocations != null) {
-        for (Location location in sourceLocations) {
-          MemoryIndexStoreImpl_ElementRelationKey key = location.internalKey as MemoryIndexStoreImpl_ElementRelationKey;
-          Set<Location> relLocations = _keyToLocations[key];
-          if (relLocations != null) {
-            relLocations.remove(location);
-            _locationCount--;
-            // no locations with this key
-            if (relLocations.isEmpty) {
-              _canonicalKeys.remove(key);
-              _keyToLocations.remove(key);
-              _keyCount--;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-class MemoryIndexStoreImpl_ElementRelationKey {
-  final Element _element;
-
-  final Relationship _relationship;
-
-  MemoryIndexStoreImpl_ElementRelationKey(this._element, this._relationship);
-
-  @override
-  bool operator ==(Object obj) {
-    MemoryIndexStoreImpl_ElementRelationKey other = obj as MemoryIndexStoreImpl_ElementRelationKey;
-    Element otherElement = other._element;
-    return identical(other._relationship, _relationship) && otherElement.nameOffset == _element.nameOffset && otherElement.kind == _element.kind && otherElement.displayName == _element.displayName && otherElement.source == _element.source;
-  }
-
-  @override
-  int get hashCode => JavaArrays.makeHashCode([
-      _element.source,
-      _element.nameOffset,
-      _element.kind,
-      _element.displayName,
-      _relationship]);
-
-  @override
-  String toString() => "${_element} ${_relationship}";
-}
-
-class MemoryIndexStoreImpl_Source2 {
-  final Source _librarySource;
-
-  final Source _unitSource;
-
-  MemoryIndexStoreImpl_Source2(this._librarySource, this._unitSource);
-
-  @override
-  bool operator ==(Object obj) {
-    if (identical(obj, this)) {
-      return true;
-    }
-    if (obj is! MemoryIndexStoreImpl_Source2) {
-      return false;
-    }
-    MemoryIndexStoreImpl_Source2 other = obj as MemoryIndexStoreImpl_Source2;
-    return other._librarySource == _librarySource && other._unitSource == _unitSource;
-  }
-
-  @override
-  int get hashCode => JavaArrays.makeHashCode([_librarySource, _unitSource]);
-
-  @override
-  String toString() => "${_librarySource} ${_unitSource}";
-}
-
-/**
- * The interface `UniverseElement` defines element to use when we want to request "defines"
- * relations without specifying exact library.
- */
-abstract class UniverseElement implements Element {
-  static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
-}
-
-/**
- * The enumeration <code>ProcessorState</code> represents the possible states of an operation
- * processor.
- */
-class ProcessorState extends Enum<ProcessorState> {
-  /**
-   * The processor is ready to be run (has not been run before).
-   */
-  static const ProcessorState READY = const ProcessorState('READY', 0);
-
-  /**
-   * The processor is currently performing operations.
-   */
-  static const ProcessorState RUNNING = const ProcessorState('RUNNING', 1);
-
-  /**
-   * The processor is currently performing operations but has been asked to stop.
-   */
-  static const ProcessorState STOP_REQESTED = const ProcessorState('STOP_REQESTED', 2);
-
-  /**
-   * The processor has stopped performing operations and cannot be used again.
-   */
-  static const ProcessorState STOPPED = const ProcessorState('STOPPED', 3);
-
-  static const List<ProcessorState> values = const [READY, RUNNING, STOP_REQESTED, STOPPED];
-
-  const ProcessorState(String name, int ordinal) : super(name, ordinal);
+  void stop();
 }
 
 /**
@@ -2099,6 +1339,25 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 }
 
+class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
+  final AngularHtmlIndexContributor AngularHtmlIndexContributor_this;
+
+  IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
+
+  @override
+  Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
+
+  @override
+  void recordRelationship(Element element, Relationship relationship, Location location) {
+    AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+    if (angularElement != null) {
+      element = angularElement;
+      relationship = IndexConstants.ANGULAR_REFERENCE;
+    }
+    super.recordRelationship(element, relationship, location);
+  }
+}
+
 /**
  * Information about [ImportElement] and place where it is referenced using
  * [PrefixElement].
@@ -2110,214 +1369,74 @@ class IndexContributor_ImportElementInfo {
 }
 
 /**
- * The interface [Index] defines the behavior of objects that maintain an index storing
- * [Relationship] between [Element]. All of the operations
- * defined on the index are asynchronous, and results, when there are any, are provided through a
- * callback.
- *
- * Despite being asynchronous, the results of the operations are guaranteed to be consistent with
- * the expectation that operations are performed in the order in which they are requested.
- * Modification operations are executed before any read operation. There is no guarantee about the
- * order in which the callbacks for read operations will be invoked.
+ * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
+ * index based on the resolved [HtmlUnit].
  */
-abstract class Index {
-  /**
-   * Asynchronously invoke the given callback with an array containing all of the locations of the
-   * elements that have the given relationship with the given element. For example, if the element
-   * represents a method and the relationship is the is-referenced-by relationship, then the
-   * locations that will be passed into the callback will be all of the places where the method is
-   * invoked.
-   *
-   * @param element the element that has the relationship with the locations to be returned
-   * @param relationship the relationship between the given element and the locations to be returned
-   * @param callback the callback that will be invoked when the locations are found
-   */
-  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
-
-  /**
-   * Answer index statistics.
-   */
-  String get statistics;
-
-  /**
-   * Asynchronously process the given [HtmlUnit] in order to record the relationships.
-   *
-   * @param context the [AnalysisContext] in which [HtmlUnit] was resolved
-   * @param unit the [HtmlUnit] being indexed
-   */
-  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit);
-
-  /**
-   * Asynchronously process the given [CompilationUnit] in order to record the relationships.
-   *
-   * @param context the [AnalysisContext] in which [CompilationUnit] was resolved
-   * @param unit the [CompilationUnit] being indexed
-   */
-  void indexUnit(AnalysisContext context, CompilationUnit unit);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with the given context.
-   *
-   * This method should be invoked when a context is disposed.
-   *
-   * @param context the [AnalysisContext] to remove
-   */
-  void removeContext(AnalysisContext context);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with elements or
-   * locations in the given source. This includes relationships between an element in the given
-   * source and any other locations, relationships between any other elements and a location within
-   * the given source.
-   *
-   * This method should be invoked when a source is no longer part of the code base.
-   *
-   * @param context the [AnalysisContext] in which [Source] being removed
-   * @param source the [Source] being removed
-   */
-  void removeSource(AnalysisContext context, Source source);
-
-  /**
-   * Asynchronously remove from the index all of the information associated with elements or
-   * locations in the given sources. This includes relationships between an element in the given
-   * sources and any other locations, relationships between any other elements and a location within
-   * the given sources.
-   *
-   * This method should be invoked when multiple sources are no longer part of the code base.
-   *
-   * @param the [AnalysisContext] in which [Source]s being removed
-   * @param container the [SourceContainer] holding the sources being removed
-   */
-  void removeSources(AnalysisContext context, SourceContainer container);
-
-  /**
-   * Should be called in separate [Thread] to process request in this [Index]. Does not
-   * return until the [stop] method is called.
-   */
-  void run();
-
-  /**
-   * Should be called to stop process running [run], so stop processing requests.
-   */
-  void stop();
-}
-
-/**
- * Instances of the [RemoveContextOperation] implement an operation that removes from the
- * index any data based on the specified [AnalysisContext].
- */
-class RemoveContextOperation implements IndexOperation {
+class IndexHtmlUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   final IndexStore _indexStore;
 
   /**
-   * The context being removed.
-   */
-  final AnalysisContext context;
-
-  /**
-   * Initialize a newly created operation that will remove the specified resource.
-   *
-   * @param indexStore the index store against which this operation is being run
-   * @param context the [AnalysisContext] to remove
-   */
-  RemoveContextOperation(this._indexStore, this.context);
-
-  @override
-  bool get isQuery => false;
-
-  @override
-  void performOperation() {
-    _indexStore.removeContext(context);
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => false;
-
-  @override
-  String toString() => "RemoveContext(${context})";
-}
-
-/**
- * Instances of the [GetRelationshipsOperation] implement an operation used to access the
- * locations that have a specified relationship with a specified element.
- */
-class GetRelationshipsOperation implements IndexOperation {
-  final IndexStore _indexStore;
-
-  final Element element;
-
-  final Relationship relationship;
-
-  final RelationshipCallback callback;
-
-  /**
-   * Initialize a newly created operation that will access the locations that have a specified
-   * relationship with a specified element.
-   */
-  GetRelationshipsOperation(this._indexStore, this.element, this.relationship, this.callback);
-
-  @override
-  bool get isQuery => true;
-
-  @override
-  void performOperation() {
-    List<Location> locations;
-    locations = _indexStore.getRelationships(element, relationship);
-    callback.hasRelationships(element, relationship, locations);
-  }
-
-  @override
-  bool removeWhenSourceRemoved(Source source) => false;
-
-  @override
-  String toString() => "GetRelationships(${element}, ${relationship})";
-}
-
-/**
- * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
- * any data based on the content of a specified source.
- */
-class RemoveSourceOperation implements IndexOperation {
-  /**
-   * The index store against which this operation is being run.
-   */
-  final IndexStore _indexStore;
-
-  /**
-   * The context in which source being removed.
+   * The context in which [HtmlUnit] was resolved.
    */
   final AnalysisContext _context;
 
   /**
-   * The source being removed.
+   * The [HtmlUnit] being indexed.
    */
-  final Source source;
+  final ht.HtmlUnit unit;
 
   /**
-   * Initialize a newly created operation that will remove the specified resource.
+   * The element of the [HtmlUnit] being indexed.
+   */
+  HtmlElement _htmlElement;
+
+  /**
+   * The source being indexed.
+   */
+  Source _source;
+
+  /**
+   * Initialize a newly created operation that will index the specified [HtmlUnit].
    *
    * @param indexStore the index store against which this operation is being run
-   * @param context the [AnalysisContext] to remove source in
-   * @param source the [Source] to remove from index
+   * @param context the context in which [HtmlUnit] was resolved
+   * @param unit the fully resolved [HtmlUnit]
    */
-  RemoveSourceOperation(this._indexStore, this._context, this.source);
+  IndexHtmlUnitOperation(this._indexStore, this._context, this.unit) {
+    this._htmlElement = unit.element;
+    this._source = _htmlElement.source;
+  }
+
+  /**
+   * @return the [Source] to be indexed.
+   */
+  Source get source => _source;
 
   @override
   bool get isQuery => false;
 
   @override
   void performOperation() {
-    _indexStore.removeSource(_context, source);
+    try {
+      bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
+      if (!mayIndex) {
+        return;
+      }
+      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
+      unit.accept(contributor);
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    }
   }
 
   @override
-  bool removeWhenSourceRemoved(Source source) => false;
+  bool removeWhenSourceRemoved(Source source) => this._source == source;
 
   @override
-  String toString() => "RemoveSource(${source.fullName})";
+  String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
 }
 
 /**
@@ -2349,10 +1468,234 @@ abstract class IndexOperation {
 }
 
 /**
- * [IndexStore] which keeps all information in memory, but can write it to stream and read
- * later.
+ * Container of information computed by the index - relationships between elements.
  */
-abstract class MemoryIndexStore implements IndexStore {
+abstract class IndexStore {
+  /**
+   * Notifies the index store that we are going to index the unit with the given element.
+   *
+   * If the unit is a part of a library, then all its locations are removed. If it is a defining
+   * compilation unit of a library, then index store also checks if some previously indexed parts of
+   * the library are not parts of the library anymore, and clears their information.
+   *
+   * @param the [AnalysisContext] in which unit being indexed
+   * @param unitElement the element of the unit being indexed
+   * @return `true` the given [AnalysisContext] is active, or `false` if it was
+   *         removed before, so no any unit may be indexed with it
+   */
+  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
+
+  /**
+   * Notifies the index store that we are going to index the given [HtmlElement].
+   *
+   * @param the [AnalysisContext] in which unit being indexed
+   * @param htmlElement the [HtmlElement] being indexed
+   * @return `true` the given [AnalysisContext] is active, or `false` if it was
+   *         removed before, so no any unit may be indexed with it
+   */
+  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
+
+  /**
+   * Return the locations of the elements that have the given relationship with the given element.
+   * For example, if the element represents a method and the relationship is the is-referenced-by
+   * relationship, then the returned locations will be all of the places where the method is
+   * invoked.
+   *
+   * @param element the the element that has the relationship with the locations to be returned
+   * @param relationship the [Relationship] between the given element and the locations to be
+   *          returned
+   * @return the locations that have the given relationship with the given element
+   */
+  List<Location> getRelationships(Element element, Relationship relationship);
+
+  /**
+   * Answer index statistics.
+   */
+  String get statistics;
+
+  /**
+   * Record that the given element and location have the given relationship. For example, if the
+   * relationship is the is-referenced-by relationship, then the element would be the element being
+   * referenced and the location would be the point at which it is referenced. Each element can have
+   * the same relationship with multiple locations. In other words, if the following code were
+   * executed
+   *
+   * <pre>
+   *   recordRelationship(element, isReferencedBy, location1);
+   *   recordRelationship(element, isReferencedBy, location2);
+   * </pre>
+   *
+   * then both relationships would be maintained in the index and the result of executing
+   *
+   * <pre>
+   *   getRelationship(element, isReferencedBy);
+   * </pre>
+   *
+   * would be an array containing both <code>location1</code> and <code>location2</code>.
+   *
+   * @param element the element that is related to the location
+   * @param relationship the [Relationship] between the element and the location
+   * @param location the [Location] where relationship happens
+   */
+  void recordRelationship(Element element, Relationship relationship, Location location);
+
+  /**
+   * Remove from the index all of the information associated with [AnalysisContext].
+   *
+   * This method should be invoked when a context is disposed.
+   *
+   * @param the [AnalysisContext] being removed
+   */
+  void removeContext(AnalysisContext context);
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * source. This includes relationships between an element in the given source and any other
+   * locations, relationships between any other elements and a location within the given source.
+   *
+   * This method should be invoked when a source is no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source] being removed
+   * @param source the source being removed
+   */
+  void removeSource(AnalysisContext context, Source source);
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * sources. This includes relationships between an element in the given sources and any other
+   * locations, relationships between any other elements and a location within the given sources.
+   *
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   *
+   * @param the [AnalysisContext] in which [Source]s being removed
+   * @param container the [SourceContainer] holding the sources being removed
+   */
+  void removeSources(AnalysisContext context, SourceContainer container);
+}
+
+/**
+ * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
+ * based on the resolved [CompilationUnit].
+ */
+class IndexUnitOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
+
+  /**
+   * The context in which compilation unit was resolved.
+   */
+  final AnalysisContext _context;
+
+  /**
+   * The compilation unit being indexed.
+   */
+  final CompilationUnit unit;
+
+  /**
+   * The element of the compilation unit being indexed.
+   */
+  CompilationUnitElement _unitElement;
+
+  /**
+   * The source being indexed.
+   */
+  Source _source;
+
+  /**
+   * Initialize a newly created operation that will index the specified unit.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the context in which compilation unit was resolved
+   * @param unit the fully resolved AST structure
+   */
+  IndexUnitOperation(this._indexStore, this._context, this.unit) {
+    this._unitElement = unit.element;
+    this._source = _unitElement.source;
+  }
+
+  /**
+   * @return the [Source] to be indexed.
+   */
+  Source get source => _source;
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    try {
+      bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
+      if (!mayIndex) {
+        return;
+      }
+      unit.accept(new IndexContributor(_indexStore));
+      unit.accept(new AngularDartIndexContributor(_indexStore));
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    }
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => this._source == source;
+
+  @override
+  String toString() => "IndexUnitOperation(${_source.fullName})";
+}
+
+/**
+ * Instances of the class <code>Location</code> represent a location related to an element. The
+ * location is expressed as an offset and length, but the offset is relative to the resource
+ * containing the element rather than the start of the element within that resource.
+ */
+class Location {
+  /**
+   * An empty array of locations.
+   */
+  static List<Location> EMPTY_ARRAY = new List<Location>(0);
+
+  /**
+   * The element containing this location.
+   */
+  final Element element;
+
+  /**
+   * The offset of this location within the resource containing the element.
+   */
+  final int offset;
+
+  /**
+   * The length of this location.
+   */
+  final int length;
+
+  /**
+   * Internal field used to hold a key that is referenced at this location.
+   */
+  Object internalKey;
+
+  /**
+   * Initialize a newly create location to be relative to the given element at the given offset with
+   * the given length.
+   *
+   * @param element the [Element] containing this location
+   * @param offset the offset of this location within the resource containing the element
+   * @param length the length of this location
+   */
+  Location(this.element, this.offset, this.length) {
+    if (element == null) {
+      throw new IllegalArgumentException("element location cannot be null");
+    }
+  }
+
+  /**
+   * Returns a clone of this [Location].
+   */
+  Location newClone() => new Location(element, offset, length);
+
+  @override
+  String toString() => "[${offset} - ${(offset + length)}) in ${element}";
 }
 
 /**
@@ -2367,6 +1710,550 @@ class LocationWithData<D> extends Location {
 
   @override
   Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);
+}
+
+/**
+ * [IndexStore] which keeps all information in memory, but can write it to stream and read
+ * later.
+ */
+abstract class MemoryIndexStore implements IndexStore {
+}
+
+/**
+ * [IndexStore] which keeps full index in memory.
+ */
+class MemoryIndexStoreImpl implements MemoryIndexStore {
+  /**
+   * When logging is on, [AnalysisEngine] actually creates
+   * [InstrumentedAnalysisContextImpl], which wraps [AnalysisContextImpl] used to create
+   * actual [Element]s. So, in index we have to unwrap [InstrumentedAnalysisContextImpl]
+   * when perform any operation.
+   */
+  static AnalysisContext unwrapContext(AnalysisContext context) {
+    if (context is InstrumentedAnalysisContextImpl) {
+      context = (context as InstrumentedAnalysisContextImpl).basis;
+    }
+    return context;
+  }
+
+  /**
+   * @return the [Source] of the enclosing [LibraryElement], may be `null`.
+   */
+  static Source _getLibrarySourceOrNull(Element element) {
+    LibraryElement library = element.library;
+    if (library == null) {
+      return null;
+    }
+    if (library.isAngularHtml) {
+      return null;
+    }
+    return library.source;
+  }
+
+  /**
+   * This map is used to canonicalize equal keys.
+   */
+  Map<MemoryIndexStoreImpl_ElementRelationKey, MemoryIndexStoreImpl_ElementRelationKey> _canonicalKeys = {};
+
+  /**
+   * The mapping of [ElementRelationKey] to the [Location]s, one-to-many.
+   */
+  Map<MemoryIndexStoreImpl_ElementRelationKey, Set<Location>> _keyToLocations = {};
+
+  /**
+   * The mapping of [Source] to the [ElementRelationKey]s. It is used in
+   * [removeSource] to identify keys to remove from
+   * [keyToLocations].
+   */
+  Map<AnalysisContext, Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>>> _contextToSourceToKeys = {};
+
+  /**
+   * The mapping of [Source] to the [Location]s existing in it. It is used in
+   * [clearSource0] to identify locations to remove from
+   * [keyToLocations].
+   */
+  Map<AnalysisContext, Map<MemoryIndexStoreImpl_Source2, List<Location>>> _contextToSourceToLocations = {};
+
+  /**
+   * The mapping of library [Source] to the [Source]s of part units.
+   */
+  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToLibraryToUnits = {};
+
+  /**
+   * The mapping of unit [Source] to the [Source]s of libraries it is used in.
+   */
+  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToUnitToLibraries = {};
+
+  int _sourceCount = 0;
+
+  int _keyCount = 0;
+
+  int _locationCount = 0;
+
+  @override
+  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
+    context = unwrapContext(context);
+    // may be already disposed in other thread
+    if (context.isDisposed) {
+      return false;
+    }
+    // validate unit
+    if (unitElement == null) {
+      return false;
+    }
+    LibraryElement libraryElement = unitElement.library;
+    if (libraryElement == null) {
+      return false;
+    }
+    CompilationUnitElement definingUnitElement = libraryElement.definingCompilationUnit;
+    if (definingUnitElement == null) {
+      return false;
+    }
+    // prepare sources
+    Source library = definingUnitElement.source;
+    Source unit = unitElement.source;
+    // special handling for the defining library unit
+    if (unit == library) {
+      // prepare new parts
+      Set<Source> newParts = new Set();
+      for (CompilationUnitElement part in libraryElement.parts) {
+        newParts.add(part.source);
+      }
+      // prepare old parts
+      Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
+      if (libraryToUnits == null) {
+        libraryToUnits = {};
+        _contextToLibraryToUnits[context] = libraryToUnits;
+      }
+      Set<Source> oldParts = libraryToUnits[library];
+      // check if some parts are not in the library now
+      if (oldParts != null) {
+        Set<Source> noParts = oldParts.difference(newParts);
+        for (Source noPart in noParts) {
+          _removeLocations(context, library, noPart);
+        }
+      }
+      // remember new parts
+      libraryToUnits[library] = newParts;
+    }
+    // remember libraries in which unit is used
+    _recordUnitInLibrary(context, library, unit);
+    // remove locations
+    _removeLocations(context, library, unit);
+    // remove keys
+    {
+      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
+      if (sourceToKeys != null) {
+        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
+        bool hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          _sourceCount--;
+        }
+      }
+    }
+    // OK, we can index
+    return true;
+  }
+
+  @override
+  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
+    context = unwrapContext(context);
+    // may be already disposed in other thread
+    if (context.isDisposed) {
+      return false;
+    }
+    // remove locations
+    Source source = htmlElement.source;
+    _removeLocations(context, null, source);
+    // remove keys
+    {
+      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
+      if (sourceToKeys != null) {
+        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(null, source);
+        bool hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          _sourceCount--;
+        }
+      }
+    }
+    // remember libraries in which unit is used
+    _recordUnitInLibrary(context, null, source);
+    // OK, we can index
+    return true;
+  }
+
+  @override
+  List<Location> getRelationships(Element element, Relationship relationship) {
+    MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
+    Set<Location> locations = _keyToLocations[key];
+    if (locations != null) {
+      return new List.from(locations);
+    }
+    return Location.EMPTY_ARRAY;
+  }
+
+  @override
+  String get statistics => "${_locationCount} relationships in ${_keyCount} keys in ${_sourceCount} sources";
+
+  int internalGetKeyCount() => _keyToLocations.length;
+
+  int internalGetLocationCount() {
+    int count = 0;
+    for (Set<Location> locations in _keyToLocations.values) {
+      count += locations.length;
+    }
+    return count;
+  }
+
+  int internalGetLocationCountForContext(AnalysisContext context) {
+    context = unwrapContext(context);
+    int count = 0;
+    for (Set<Location> locations in _keyToLocations.values) {
+      for (Location location in locations) {
+        if (identical(location.element.context, context)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  int internalGetSourceKeyCount(AnalysisContext context) {
+    int count = 0;
+    Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
+    if (sourceToKeys != null) {
+      for (Set<MemoryIndexStoreImpl_ElementRelationKey> keys in sourceToKeys.values) {
+        count += keys.length;
+      }
+    }
+    return count;
+  }
+
+  @override
+  void recordRelationship(Element element, Relationship relationship, Location location) {
+    if (element == null || location == null) {
+      return;
+    }
+    location = location.newClone();
+    // at the index level we don't care about Member(s)
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
+    //    System.out.println(element + " " + relationship + " " + location);
+    // prepare information
+    AnalysisContext elementContext = element.context;
+    AnalysisContext locationContext = location.element.context;
+    Source elementSource = element.source;
+    Source locationSource = location.element.source;
+    Source elementLibrarySource = _getLibrarySourceOrNull(element);
+    Source locationLibrarySource = _getLibrarySourceOrNull(location.element);
+    // sanity check
+    if (locationContext == null) {
+      return;
+    }
+    if (locationSource == null) {
+      return;
+    }
+    if (elementContext == null && element is! NameElementImpl && element is! UniverseElementImpl) {
+      return;
+    }
+    if (elementSource == null && element is! NameElementImpl && element is! UniverseElementImpl) {
+      return;
+    }
+    // may be already disposed in other thread
+    if (elementContext != null && elementContext.isDisposed) {
+      return;
+    }
+    if (locationContext.isDisposed) {
+      return;
+    }
+    // record: key -> location(s)
+    MemoryIndexStoreImpl_ElementRelationKey key = _getCanonicalKey(element, relationship);
+    {
+      Set<Location> locations = _keyToLocations.remove(key);
+      if (locations == null) {
+        locations = _createLocationIdentitySet();
+      } else {
+        _keyCount--;
+      }
+      _keyToLocations[key] = locations;
+      _keyCount++;
+      locations.add(location);
+      _locationCount++;
+    }
+    // record: location -> key
+    location.internalKey = key;
+    // prepare source pairs
+    MemoryIndexStoreImpl_Source2 elementSource2 = new MemoryIndexStoreImpl_Source2(elementLibrarySource, elementSource);
+    MemoryIndexStoreImpl_Source2 locationSource2 = new MemoryIndexStoreImpl_Source2(locationLibrarySource, locationSource);
+    // record: element source -> keys
+    {
+      Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[elementContext];
+      if (sourceToKeys == null) {
+        sourceToKeys = {};
+        _contextToSourceToKeys[elementContext] = sourceToKeys;
+      }
+      Set<MemoryIndexStoreImpl_ElementRelationKey> keys = sourceToKeys[elementSource2];
+      if (keys == null) {
+        keys = new Set();
+        sourceToKeys[elementSource2] = keys;
+        _sourceCount++;
+      }
+      keys.remove(key);
+      keys.add(key);
+    }
+    // record: location source -> locations
+    {
+      Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[locationContext];
+      if (sourceToLocations == null) {
+        sourceToLocations = {};
+        _contextToSourceToLocations[locationContext] = sourceToLocations;
+      }
+      List<Location> locations = sourceToLocations[locationSource2];
+      if (locations == null) {
+        locations = [];
+        sourceToLocations[locationSource2] = locations;
+      }
+      locations.add(location);
+    }
+  }
+
+  @override
+  void removeContext(AnalysisContext context) {
+    context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
+    // remove sources
+    removeSources(context, null);
+    // remove context
+    _contextToSourceToKeys.remove(context);
+    _contextToSourceToLocations.remove(context);
+    _contextToLibraryToUnits.remove(context);
+    _contextToUnitToLibraries.remove(context);
+  }
+
+  @override
+  void removeSource(AnalysisContext context, Source unit) {
+    context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
+    // remove locations defined in source
+    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
+    if (unitToLibraries != null) {
+      Set<Source> libraries = unitToLibraries.remove(unit);
+      if (libraries != null) {
+        for (Source library in libraries) {
+          MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
+          // remove locations defined in source
+          _removeLocations(context, library, unit);
+          // remove keys for elements defined in source
+          Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
+          if (sourceToKeys != null) {
+            Set<MemoryIndexStoreImpl_ElementRelationKey> keys = sourceToKeys.remove(source2);
+            if (keys != null) {
+              for (MemoryIndexStoreImpl_ElementRelationKey key in keys) {
+                _canonicalKeys.remove(key);
+                Set<Location> locations = _keyToLocations.remove(key);
+                if (locations != null) {
+                  _keyCount--;
+                  _locationCount -= locations.length;
+                }
+              }
+              _sourceCount--;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  void removeSources(AnalysisContext context, SourceContainer container) {
+    context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
+    // remove sources #1
+    Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
+    if (sourceToKeys != null) {
+      List<MemoryIndexStoreImpl_Source2> sources = [];
+      for (MemoryIndexStoreImpl_Source2 source2 in sources) {
+        Source source = source2._unitSource;
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
+        }
+      }
+    }
+    // remove sources #2
+    Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
+    if (sourceToLocations != null) {
+      List<MemoryIndexStoreImpl_Source2> sources = [];
+      for (MemoryIndexStoreImpl_Source2 source2 in sources) {
+        Source source = source2._unitSource;
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates new [Set] that uses object identity instead of equals.
+   */
+  Set<Location> _createLocationIdentitySet() => new Set<Location>.identity();
+
+  /**
+   * @return the canonical [ElementRelationKey] for given [Element] and
+   *         [Relationship], i.e. unique instance for this combination.
+   */
+  MemoryIndexStoreImpl_ElementRelationKey _getCanonicalKey(Element element, Relationship relationship) {
+    MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
+    MemoryIndexStoreImpl_ElementRelationKey canonicalKey = _canonicalKeys[key];
+    if (canonicalKey == null) {
+      canonicalKey = key;
+      _canonicalKeys[key] = canonicalKey;
+    }
+    return canonicalKey;
+  }
+
+  void _recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
+    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
+    if (unitToLibraries == null) {
+      unitToLibraries = {};
+      _contextToUnitToLibraries[context] = unitToLibraries;
+    }
+    Set<Source> libraries = unitToLibraries[unit];
+    if (libraries == null) {
+      libraries = new Set();
+      unitToLibraries[unit] = libraries;
+    }
+    libraries.add(library);
+  }
+
+  /**
+   * Removes locations recorded in the given library/unit pair.
+   */
+  void _removeLocations(AnalysisContext context, Source library, Source unit) {
+    MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
+    Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
+    if (sourceToLocations != null) {
+      List<Location> sourceLocations = sourceToLocations.remove(source2);
+      if (sourceLocations != null) {
+        for (Location location in sourceLocations) {
+          MemoryIndexStoreImpl_ElementRelationKey key = location.internalKey as MemoryIndexStoreImpl_ElementRelationKey;
+          Set<Location> relLocations = _keyToLocations[key];
+          if (relLocations != null) {
+            relLocations.remove(location);
+            _locationCount--;
+            // no locations with this key
+            if (relLocations.isEmpty) {
+              _canonicalKeys.remove(key);
+              _keyToLocations.remove(key);
+              _keyCount--;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+class MemoryIndexStoreImpl_ElementRelationKey {
+  final Element _element;
+
+  final Relationship _relationship;
+
+  MemoryIndexStoreImpl_ElementRelationKey(this._element, this._relationship);
+
+  @override
+  bool operator ==(Object obj) {
+    MemoryIndexStoreImpl_ElementRelationKey other = obj as MemoryIndexStoreImpl_ElementRelationKey;
+    Element otherElement = other._element;
+    return identical(other._relationship, _relationship) && otherElement.nameOffset == _element.nameOffset && otherElement.kind == _element.kind && otherElement.displayName == _element.displayName && otherElement.source == _element.source;
+  }
+
+  @override
+  int get hashCode => JavaArrays.makeHashCode([
+      _element.source,
+      _element.nameOffset,
+      _element.kind,
+      _element.displayName,
+      _relationship]);
+
+  @override
+  String toString() => "${_element} ${_relationship}";
+}
+
+class MemoryIndexStoreImpl_Source2 {
+  final Source _librarySource;
+
+  final Source _unitSource;
+
+  MemoryIndexStoreImpl_Source2(this._librarySource, this._unitSource);
+
+  @override
+  bool operator ==(Object obj) {
+    if (identical(obj, this)) {
+      return true;
+    }
+    if (obj is! MemoryIndexStoreImpl_Source2) {
+      return false;
+    }
+    MemoryIndexStoreImpl_Source2 other = obj as MemoryIndexStoreImpl_Source2;
+    return other._librarySource == _librarySource && other._unitSource == _unitSource;
+  }
+
+  @override
+  int get hashCode => JavaArrays.makeHashCode([_librarySource, _unitSource]);
+
+  @override
+  String toString() => "${_librarySource} ${_unitSource}";
+}
+
+/**
+ * Special [Element] which is used to index references to the name without specifying concrete
+ * kind of this name - field, method or something else.
+ */
+class NameElementImpl extends ElementImpl {
+  NameElementImpl(String name) : super("name:${name}", -1);
+
+  @override
+  accept(ElementVisitor visitor) => null;
+
+  @override
+  ElementKind get kind => ElementKind.NAME;
+}
+
+/**
+ * The enumeration <code>ProcessorState</code> represents the possible states of an operation
+ * processor.
+ */
+class ProcessorState extends Enum<ProcessorState> {
+  /**
+   * The processor is ready to be run (has not been run before).
+   */
+  static const ProcessorState READY = const ProcessorState('READY', 0);
+
+  /**
+   * The processor is currently performing operations.
+   */
+  static const ProcessorState RUNNING = const ProcessorState('RUNNING', 1);
+
+  /**
+   * The processor is currently performing operations but has been asked to stop.
+   */
+  static const ProcessorState STOP_REQESTED = const ProcessorState('STOP_REQESTED', 2);
+
+  /**
+   * The processor has stopped performing operations and cannot be used again.
+   */
+  static const ProcessorState STOPPED = const ProcessorState('STOPPED', 3);
+
+  static const List<ProcessorState> values = const [READY, RUNNING, STOP_REQESTED, STOPPED];
+
+  const ProcessorState(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -2423,55 +2310,168 @@ class Relationship {
 }
 
 /**
- * Instances of the class <code>Location</code> represent a location related to an element. The
- * location is expressed as an offset and length, but the offset is relative to the resource
- * containing the element rather than the start of the element within that resource.
+ * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
+ * with the results of a query about a given relationship.
  */
-class Location {
+abstract class RelationshipCallback {
   /**
-   * An empty array of locations.
-   */
-  static List<Location> EMPTY_ARRAY = new List<Location>(0);
-
-  /**
-   * The element containing this location.
-   */
-  final Element element;
-
-  /**
-   * The offset of this location within the resource containing the element.
-   */
-  final int offset;
-
-  /**
-   * The length of this location.
-   */
-  final int length;
-
-  /**
-   * Internal field used to hold a key that is referenced at this location.
-   */
-  Object internalKey;
-
-  /**
-   * Initialize a newly create location to be relative to the given element at the given offset with
-   * the given length.
+   * This method is invoked when the locations that have a specified relationship with a specified
+   * element are available. For example, if the element is a field and the relationship is the
+   * is-referenced-by relationship, then this method will be invoked with each location at which the
+   * field is referenced.
    *
-   * @param element the [Element] containing this location
-   * @param offset the offset of this location within the resource containing the element
-   * @param length the length of this location
+   * @param element the [Element] that has the relationship with the locations
+   * @param relationship the relationship between the given element and the locations
+   * @param locations the locations that were found
    */
-  Location(this.element, this.offset, this.length) {
-    if (element == null) {
-      throw new IllegalArgumentException("element location cannot be null");
-    }
-  }
+  void hasRelationships(Element element, Relationship relationship, List<Location> locations);
+}
+
+/**
+ * Instances of the [RemoveContextOperation] implement an operation that removes from the
+ * index any data based on the specified [AnalysisContext].
+ */
+class RemoveContextOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
 
   /**
-   * Returns a clone of this [Location].
+   * The context being removed.
    */
-  Location newClone() => new Location(element, offset, length);
+  final AnalysisContext context;
+
+  /**
+   * Initialize a newly created operation that will remove the specified resource.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the [AnalysisContext] to remove
+   */
+  RemoveContextOperation(this._indexStore, this.context);
 
   @override
-  String toString() => "[${offset} - ${(offset + length)}) in ${element}";
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    _indexStore.removeContext(context);
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => false;
+
+  @override
+  String toString() => "RemoveContext(${context})";
+}
+
+/**
+ * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
+ * any data based on the content of a specified source.
+ */
+class RemoveSourceOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
+
+  /**
+   * The context in which source being removed.
+   */
+  final AnalysisContext _context;
+
+  /**
+   * The source being removed.
+   */
+  final Source source;
+
+  /**
+   * Initialize a newly created operation that will remove the specified resource.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the [AnalysisContext] to remove source in
+   * @param source the [Source] to remove from index
+   */
+  RemoveSourceOperation(this._indexStore, this._context, this.source);
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    _indexStore.removeSource(_context, source);
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => false;
+
+  @override
+  String toString() => "RemoveSource(${source.fullName})";
+}
+
+/**
+ * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
+ * index any data based on the content of source belonging to a [SourceContainer].
+ */
+class RemoveSourcesOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
+
+  /**
+   * The context to remove container.
+   */
+  final AnalysisContext _context;
+
+  /**
+   * The source container to remove.
+   */
+  final SourceContainer container;
+
+  /**
+   * Initialize a newly created operation that will remove the specified resource.
+   *
+   * @param indexStore the index store against which this operation is being run
+   * @param context the [AnalysisContext] to remove container in
+   * @param container the [SourceContainer] to remove from index
+   */
+  RemoveSourcesOperation(this._indexStore, this._context, this.container);
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    _indexStore.removeSources(_context, container);
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => false;
+
+  @override
+  String toString() => "RemoveSources(${container})";
+}
+
+/**
+ * The interface `UniverseElement` defines element to use when we want to request "defines"
+ * relations without specifying exact library.
+ */
+abstract class UniverseElement implements Element {
+  static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
+}
+
+/**
+ * Implementation of [UniverseElement].
+ */
+class UniverseElementImpl extends ElementImpl implements UniverseElement {
+  static UniverseElementImpl INSTANCE = new UniverseElementImpl();
+
+  UniverseElementImpl() : super("--universe--", -1);
+
+  @override
+  accept(ElementVisitor visitor) => null;
+
+  @override
+  ElementKind get kind => ElementKind.UNIVERSE;
 }

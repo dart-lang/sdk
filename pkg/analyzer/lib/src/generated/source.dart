@@ -12,43 +12,248 @@ import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, TimestampedData;
 
 /**
- * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
- * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
- * absolute URI.
+ * Instances of class `ContentCache` hold content used to override the default content of a
+ * [Source].
  */
-abstract class UriResolver {
+class ContentCache {
   /**
-   * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
-   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a
-   * [Source] representing the file to which it was resolved, whether or not the
-   * resulting source exists, or `null` if it could not be resolved because the URI is
-   * invalid.
-   *
-   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
-   *          the given URI
-   * @param uri the URI to be resolved
-   * @return a [Source] representing the file to which given URI was resolved
+   * A table mapping sources to the contents of those sources. This is used to override the default
+   * contents of a source.
    */
-  Source fromEncoding(UriKind kind, Uri uri);
+  Map<Source, String> _contentMap = new Map<Source, String>();
 
   /**
-   * Resolve the given absolute URI. Return a [Source] representing the file to which
-   * it was resolved, whether or not the resulting source exists, or `null` if it could not be
-   * resolved because the URI is invalid.
-   *
-   * @param uri the URI to be resolved
-   * @return a [Source] representing the file to which given URI was resolved
+   * A table mapping sources to the modification stamps of those sources. This is used when the
+   * default contents of a source has been overridden.
    */
-  Source resolveAbsolute(Uri uri);
+  Map<Source, int> _stampMap = new Map<Source, int>();
 
   /**
-   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
-   * be computed.
+   * Return the contents of the given source, or `null` if this cache does not override the
+   * contents of the source.
    *
-   * @param source the source to get URI for
-   * @return the absolute URI representing the given source
+   * <b>Note:</b> This method is not intended to be used except by
+   * [AnalysisContext#getContents].
+   *
+   * @param source the source whose content is to be returned
+   * @return the contents of the given source
    */
-  Uri restoreAbsolute(Source source) => null;
+  String getContents(Source source) => _contentMap[source];
+
+  /**
+   * Return the modification stamp of the given source, or `null` if this cache does not
+   * override the contents of the source.
+   *
+   * <b>Note:</b> This method is not intended to be used except by
+   * [AnalysisContext#getModificationStamp].
+   *
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp of the given source
+   */
+  int getModificationStamp(Source source) => _stampMap[source];
+
+  /**
+   * Set the contents of the given source to the given contents. This has the effect of overriding
+   * the default contents of the source. If the contents are `null` the override is removed so
+   * that the default contents will be returned.
+   *
+   * @param source the source whose contents are being overridden
+   * @param contents the new contents of the source
+   * @return the original cached contents or `null` if none
+   */
+  String setContents(Source source, String contents) {
+    if (contents == null) {
+      _stampMap.remove(source);
+      return _contentMap.remove(source);
+    } else {
+      int newStamp = JavaSystem.currentTimeMillis();
+      int oldStamp = javaMapPut(_stampMap, source, newStamp);
+      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
+      // Guard against this by artificially incrementing the new timestamp
+      if (newStamp == oldStamp) {
+        _stampMap[source] = newStamp + 1;
+      }
+      return javaMapPut(_contentMap, source, contents);
+    }
+  }
+}
+
+/**
+ * Instances of the class `DartUriResolver` resolve `dart` URI's.
+ */
+class DartUriResolver extends UriResolver {
+  /**
+   * Return `true` if the given URI is a `dart-ext:` URI.
+   *
+   * @param uriContent the textual representation of the URI being tested
+   * @return `true` if the given URI is a `dart-ext:` URI
+   */
+  static bool isDartExtUri(String uriContent) => uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
+
+  /**
+   * The Dart SDK against which URI's are to be resolved.
+   */
+  final DartSdk _sdk;
+
+  /**
+   * The name of the `dart` scheme.
+   */
+  static String _DART_SCHEME = "dart";
+
+  /**
+   * The prefix of a URI using the dart-ext scheme to reference a native code library.
+   */
+  static String _DART_EXT_SCHEME = "dart-ext:";
+
+  /**
+   * Return `true` if the given URI is a `dart:` URI.
+   *
+   * @param uri the URI being tested
+   * @return `true` if the given URI is a `dart:` URI
+   */
+  static bool isDartUri(Uri uri) => _DART_SCHEME == uri.scheme;
+
+  /**
+   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
+   * given Dart SDK.
+   *
+   * @param sdk the Dart SDK against which URI's are to be resolved
+   */
+  DartUriResolver(this._sdk);
+
+  @override
+  Source fromEncoding(UriKind kind, Uri uri) {
+    if (kind == UriKind.DART_URI) {
+      return _sdk.fromEncoding(kind, uri);
+    }
+    return null;
+  }
+
+  /**
+   * Return the [DartSdk] against which URIs are to be resolved.
+   *
+   * @return the [DartSdk] against which URIs are to be resolved.
+   */
+  DartSdk get dartSdk => _sdk;
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    if (!isDartUri(uri)) {
+      return null;
+    }
+    return _sdk.mapDartUri(uri.toString());
+  }
+}
+
+/**
+ * Instances of the class `LineInfo` encapsulate information about line and column information
+ * within a source file.
+ */
+class LineInfo {
+  /**
+   * An array containing the offsets of the first character of each line in the source code.
+   */
+  final List<int> _lineStarts;
+
+  /**
+   * Initialize a newly created set of line information to represent the data encoded in the given
+   * array.
+   *
+   * @param lineStarts the offsets of the first character of each line in the source code
+   */
+  LineInfo(this._lineStarts) {
+    if (_lineStarts == null) {
+      throw new IllegalArgumentException("lineStarts must be non-null");
+    } else if (_lineStarts.length < 1) {
+      throw new IllegalArgumentException("lineStarts must be non-empty");
+    }
+  }
+
+  /**
+   * Return the location information for the character at the given offset.
+   *
+   * @param offset the offset of the character for which location information is to be returned
+   * @return the location information for the character at the given offset
+   */
+  LineInfo_Location getLocation(int offset) {
+    int lineCount = _lineStarts.length;
+    for (int i = 1; i < lineCount; i++) {
+      if (offset < _lineStarts[i]) {
+        return new LineInfo_Location(i, offset - _lineStarts[i - 1] + 1);
+      }
+    }
+    return new LineInfo_Location(lineCount, offset - _lineStarts[lineCount - 1] + 1);
+  }
+}
+
+/**
+ * Instances of the class `Location` represent the location of a character as a line and
+ * column pair.
+ */
+class LineInfo_Location {
+  /**
+   * The one-based index of the line containing the character.
+   */
+  final int lineNumber;
+
+  /**
+   * The one-based index of the column containing the character.
+   */
+  final int columnNumber;
+
+  /**
+   * Initialize a newly created location to represent the location of the character at the given
+   * line and column position.
+   *
+   * @param lineNumber the one-based index of the line containing the character
+   * @param columnNumber the one-based index of the column containing the character
+   */
+  LineInfo_Location(this.lineNumber, this.columnNumber);
+}
+
+/**
+ * Instances of interface `LocalSourcePredicate` are used to determine if the given
+ * [Source] is "local" in some sense, so can be updated.
+ */
+abstract class LocalSourcePredicate {
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `false`.
+   */
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
+
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `true`.
+   */
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
+
+  /**
+   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
+   * except of SDK.
+   */
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
+
+  /**
+   * Determines if the given [Source] is local.
+   *
+   * @param source the [Source] to analyze
+   * @return `true` if the given [Source] is local
+   */
+  bool isLocal(Source source);
+}
+
+class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => false;
+}
+
+class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
+}
+
+class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => true;
 }
 
 /**
@@ -197,262 +402,21 @@ abstract class Source {
 }
 
 /**
- * The interface `ContentReceiver` defines the behavior of objects that can receive the
- * content of a source.
+ * The interface `SourceContainer` is used by clients to define a collection of sources
+ *
+ * Source containers are not used within analysis engine, but can be used by clients to group
+ * sources for the purposes of accessing composite dependency information. For example, the Eclipse
+ * client uses source containers to represent Eclipse projects, which allows it to easily compute
+ * project-level dependencies.
  */
-abstract class Source_ContentReceiver {
+abstract class SourceContainer {
   /**
-   * Accept the contents of a source.
+   * Determine if the specified source is part of the receiver's collection of sources.
    *
-   * @param contents the contents of the source
-   * @param modificationTime the time at which the contents were last set
+   * @param source the source in question
+   * @return `true` if the receiver contains the source, else `false`
    */
-  void accept(String contents, int modificationTime);
-}
-
-/**
- * Instances of interface `LocalSourcePredicate` are used to determine if the given
- * [Source] is "local" in some sense, so can be updated.
- */
-abstract class LocalSourcePredicate {
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `false`.
-   */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `true`.
-   */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
-   * except of SDK.
-   */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocal(Source source);
-}
-
-class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => false;
-}
-
-class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => true;
-}
-
-class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
-}
-
-/**
- * Instances of the class `LineInfo` encapsulate information about line and column information
- * within a source file.
- */
-class LineInfo {
-  /**
-   * An array containing the offsets of the first character of each line in the source code.
-   */
-  final List<int> _lineStarts;
-
-  /**
-   * Initialize a newly created set of line information to represent the data encoded in the given
-   * array.
-   *
-   * @param lineStarts the offsets of the first character of each line in the source code
-   */
-  LineInfo(this._lineStarts) {
-    if (_lineStarts == null) {
-      throw new IllegalArgumentException("lineStarts must be non-null");
-    } else if (_lineStarts.length < 1) {
-      throw new IllegalArgumentException("lineStarts must be non-empty");
-    }
-  }
-
-  /**
-   * Return the location information for the character at the given offset.
-   *
-   * @param offset the offset of the character for which location information is to be returned
-   * @return the location information for the character at the given offset
-   */
-  LineInfo_Location getLocation(int offset) {
-    int lineCount = _lineStarts.length;
-    for (int i = 1; i < lineCount; i++) {
-      if (offset < _lineStarts[i]) {
-        return new LineInfo_Location(i, offset - _lineStarts[i - 1] + 1);
-      }
-    }
-    return new LineInfo_Location(lineCount, offset - _lineStarts[lineCount - 1] + 1);
-  }
-}
-
-/**
- * Instances of the class `Location` represent the location of a character as a line and
- * column pair.
- */
-class LineInfo_Location {
-  /**
-   * The one-based index of the line containing the character.
-   */
-  final int lineNumber;
-
-  /**
-   * The one-based index of the column containing the character.
-   */
-  final int columnNumber;
-
-  /**
-   * Initialize a newly created location to represent the location of the character at the given
-   * line and column position.
-   *
-   * @param lineNumber the one-based index of the line containing the character
-   * @param columnNumber the one-based index of the column containing the character
-   */
-  LineInfo_Location(this.lineNumber, this.columnNumber);
-}
-
-/**
- * Instances of class `ContentCache` hold content used to override the default content of a
- * [Source].
- */
-class ContentCache {
-  /**
-   * A table mapping sources to the contents of those sources. This is used to override the default
-   * contents of a source.
-   */
-  Map<Source, String> _contentMap = new Map<Source, String>();
-
-  /**
-   * A table mapping sources to the modification stamps of those sources. This is used when the
-   * default contents of a source has been overridden.
-   */
-  Map<Source, int> _stampMap = new Map<Source, int>();
-
-  /**
-   * Return the contents of the given source, or `null` if this cache does not override the
-   * contents of the source.
-   *
-   * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext#getContents].
-   *
-   * @param source the source whose content is to be returned
-   * @return the contents of the given source
-   */
-  String getContents(Source source) => _contentMap[source];
-
-  /**
-   * Return the modification stamp of the given source, or `null` if this cache does not
-   * override the contents of the source.
-   *
-   * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext#getModificationStamp].
-   *
-   * @param source the source whose modification stamp is to be returned
-   * @return the modification stamp of the given source
-   */
-  int getModificationStamp(Source source) => _stampMap[source];
-
-  /**
-   * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are `null` the override is removed so
-   * that the default contents will be returned.
-   *
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   * @return the original cached contents or `null` if none
-   */
-  String setContents(Source source, String contents) {
-    if (contents == null) {
-      _stampMap.remove(source);
-      return _contentMap.remove(source);
-    } else {
-      int newStamp = JavaSystem.currentTimeMillis();
-      int oldStamp = javaMapPut(_stampMap, source, newStamp);
-      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
-      // Guard against this by artificially incrementing the new timestamp
-      if (newStamp == oldStamp) {
-        _stampMap[source] = newStamp + 1;
-      }
-      return javaMapPut(_contentMap, source, contents);
-    }
-  }
-}
-
-/**
- * Instances of the class `DartUriResolver` resolve `dart` URI's.
- */
-class DartUriResolver extends UriResolver {
-  /**
-   * Return `true` if the given URI is a `dart-ext:` URI.
-   *
-   * @param uriContent the textual representation of the URI being tested
-   * @return `true` if the given URI is a `dart-ext:` URI
-   */
-  static bool isDartExtUri(String uriContent) => uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
-
-  /**
-   * The Dart SDK against which URI's are to be resolved.
-   */
-  final DartSdk _sdk;
-
-  /**
-   * The name of the `dart` scheme.
-   */
-  static String _DART_SCHEME = "dart";
-
-  /**
-   * The prefix of a URI using the dart-ext scheme to reference a native code library.
-   */
-  static String _DART_EXT_SCHEME = "dart-ext:";
-
-  /**
-   * Return `true` if the given URI is a `dart:` URI.
-   *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `dart:` URI
-   */
-  static bool isDartUri(Uri uri) => _DART_SCHEME == uri.scheme;
-
-  /**
-   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
-   * given Dart SDK.
-   *
-   * @param sdk the Dart SDK against which URI's are to be resolved
-   */
-  DartUriResolver(this._sdk);
-
-  @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.DART_URI) {
-      return _sdk.fromEncoding(kind, uri);
-    }
-    return null;
-  }
-
-  /**
-   * Return the [DartSdk] against which URIs are to be resolved.
-   *
-   * @return the [DartSdk] against which URIs are to be resolved.
-   */
-  DartSdk get dartSdk => _sdk;
-
-  @override
-  Source resolveAbsolute(Uri uri) {
-    if (!isDartUri(uri)) {
-      return null;
-    }
-    return _sdk.mapDartUri(uri.toString());
-  }
+  bool contains(Source source);
 }
 
 /**
@@ -629,21 +593,36 @@ class SourceFactory {
 }
 
 /**
- * The interface `SourceContainer` is used by clients to define a collection of sources
- *
- * Source containers are not used within analysis engine, but can be used by clients to group
- * sources for the purposes of accessing composite dependency information. For example, the Eclipse
- * client uses source containers to represent Eclipse projects, which allows it to easily compute
- * project-level dependencies.
+ * The enumeration `SourceKind` defines the different kinds of sources that are known to the
+ * analysis engine.
  */
-abstract class SourceContainer {
+class SourceKind extends Enum<SourceKind> {
   /**
-   * Determine if the specified source is part of the receiver's collection of sources.
-   *
-   * @param source the source in question
-   * @return `true` if the receiver contains the source, else `false`
+   * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
-  bool contains(Source source);
+  static const SourceKind HTML = const SourceKind('HTML', 0);
+
+  /**
+   * A Dart compilation unit that is not a part of another library. Libraries might or might not
+   * contain any directives, including a library directive.
+   */
+  static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
+
+  /**
+   * A Dart compilation unit that is part of another library. Parts contain a part-of directive.
+   */
+  static const SourceKind PART = const SourceKind('PART', 2);
+
+  /**
+   * An unknown kind of source. Used both when it is not possible to identify the kind of a source
+   * and also when the kind of a source is not known without performing a computation and the client
+   * does not want to spend the time to identify the kind.
+   */
+  static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
+
+  static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
+
+  const SourceKind(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -779,36 +758,17 @@ class SourceRange {
 }
 
 /**
- * The enumeration `SourceKind` defines the different kinds of sources that are known to the
- * analysis engine.
+ * The interface `ContentReceiver` defines the behavior of objects that can receive the
+ * content of a source.
  */
-class SourceKind extends Enum<SourceKind> {
+abstract class Source_ContentReceiver {
   /**
-   * A source containing HTML. The HTML might or might not contain Dart scripts.
+   * Accept the contents of a source.
+   *
+   * @param contents the contents of the source
+   * @param modificationTime the time at which the contents were last set
    */
-  static const SourceKind HTML = const SourceKind('HTML', 0);
-
-  /**
-   * A Dart compilation unit that is not a part of another library. Libraries might or might not
-   * contain any directives, including a library directive.
-   */
-  static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
-
-  /**
-   * A Dart compilation unit that is part of another library. Parts contain a part-of directive.
-   */
-  static const SourceKind PART = const SourceKind('PART', 2);
-
-  /**
-   * An unknown kind of source. Used both when it is not possible to identify the kind of a source
-   * and also when the kind of a source is not known without performing a computation and the client
-   * does not want to spend the time to identify the kind.
-   */
-  static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
-
-  static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
-
-  const SourceKind(String name, int ordinal) : super(name, ordinal);
+  void accept(String contents, int modificationTime);
 }
 
 /**
@@ -872,4 +832,44 @@ class UriKind extends Enum<UriKind> {
    * @param encoding the single character encoding used to identify this kind of URI.
    */
   const UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
+}
+
+/**
+ * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
+ * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
+ * absolute URI.
+ */
+abstract class UriResolver {
+  /**
+   * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
+   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a
+   * [Source] representing the file to which it was resolved, whether or not the
+   * resulting source exists, or `null` if it could not be resolved because the URI is
+   * invalid.
+   *
+   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
+   *          the given URI
+   * @param uri the URI to be resolved
+   * @return a [Source] representing the file to which given URI was resolved
+   */
+  Source fromEncoding(UriKind kind, Uri uri);
+
+  /**
+   * Resolve the given absolute URI. Return a [Source] representing the file to which
+   * it was resolved, whether or not the resulting source exists, or `null` if it could not be
+   * resolved because the URI is invalid.
+   *
+   * @param uri the URI to be resolved
+   * @return a [Source] representing the file to which given URI was resolved
+   */
+  Source resolveAbsolute(Uri uri);
+
+  /**
+   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
+   * be computed.
+   *
+   * @param source the source to get URI for
+   * @return the absolute URI representing the given source
+   */
+  Uri restoreAbsolute(Source source) => null;
 }

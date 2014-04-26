@@ -19,73 +19,6 @@ import 'sdk.dart';
 import 'engine.dart';
 
 /**
- * Instances of the class `SdkLibrariesReader` read and parse the libraries file
- * (dart-sdk/lib/_internal/libraries.dart) for information about the libraries in an SDK. The
- * library information is represented as a Dart file containing a single top-level variable whose
- * value is a const map. The keys of the map are the names of libraries defined in the SDK and the
- * values in the map are info objects defining the library. For example, a subset of a typical SDK
- * might have a libraries file that looks like the following:
- *
- * <pre>
- * final Map&lt;String, LibraryInfo&gt; LIBRARIES = const &lt;LibraryInfo&gt; {
- *   // Used by VM applications
- *   "builtin" : const LibraryInfo(
- *     "builtin/builtin_runtime.dart",
- *     category: "Server",
- *     platforms: VM_PLATFORM),
- *
- *   "compiler" : const LibraryInfo(
- *     "compiler/compiler.dart",
- *     category: "Tools",
- *     platforms: 0),
- * };
- * </pre>
- */
-class SdkLibrariesReader {
-  /**
-   * A flag indicating whether the dart2js path should be used when it is available.
-   */
-  final bool _useDart2jsPaths;
-
-  /**
-   * Initialize a newly created library reader to use the dart2js path if the given value is
-   * `true`.
-   *
-   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
-   */
-  SdkLibrariesReader(this._useDart2jsPaths);
-
-  /**
-   * Return the library map read from the given source.
-   *
-   * @param file the [File] of the library file
-   * @param libraryFileContents the contents from the library file
-   * @return the library map read from the given source
-   */
-  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
-
-  /**
-   * Return the library map read from the given source.
-   *
-   * @param source the source of the library file
-   * @param libraryFileContents the contents from the library file
-   * @return the library map read from the given source
-   */
-  LibraryMap readFromSource(Source source, String libraryFileContents) {
-    BooleanErrorListener errorListener = new BooleanErrorListener();
-    Scanner scanner = new Scanner(source, new CharSequenceReader(libraryFileContents), errorListener);
-    Parser parser = new Parser(source, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
-    // If any syntactic errors were found then don't try to visit the AST structure.
-    if (!errorListener.errorReported) {
-      unit.accept(libraryBuilder);
-    }
-    return libraryBuilder.librariesMap;
-  }
-}
-
-/**
  * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
  * specified directory. Typical Dart SDK layout is something like...
  *
@@ -551,4 +484,71 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the file if it exists and is executable, else `null`
    */
   JavaFile _verifyExecutable(JavaFile file) => file.isExecutable() ? file : null;
+}
+
+/**
+ * Instances of the class `SdkLibrariesReader` read and parse the libraries file
+ * (dart-sdk/lib/_internal/libraries.dart) for information about the libraries in an SDK. The
+ * library information is represented as a Dart file containing a single top-level variable whose
+ * value is a const map. The keys of the map are the names of libraries defined in the SDK and the
+ * values in the map are info objects defining the library. For example, a subset of a typical SDK
+ * might have a libraries file that looks like the following:
+ *
+ * <pre>
+ * final Map&lt;String, LibraryInfo&gt; LIBRARIES = const &lt;LibraryInfo&gt; {
+ *   // Used by VM applications
+ *   "builtin" : const LibraryInfo(
+ *     "builtin/builtin_runtime.dart",
+ *     category: "Server",
+ *     platforms: VM_PLATFORM),
+ *
+ *   "compiler" : const LibraryInfo(
+ *     "compiler/compiler.dart",
+ *     category: "Tools",
+ *     platforms: 0),
+ * };
+ * </pre>
+ */
+class SdkLibrariesReader {
+  /**
+   * A flag indicating whether the dart2js path should be used when it is available.
+   */
+  final bool _useDart2jsPaths;
+
+  /**
+   * Initialize a newly created library reader to use the dart2js path if the given value is
+   * `true`.
+   *
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   */
+  SdkLibrariesReader(this._useDart2jsPaths);
+
+  /**
+   * Return the library map read from the given source.
+   *
+   * @param file the [File] of the library file
+   * @param libraryFileContents the contents from the library file
+   * @return the library map read from the given source
+   */
+  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
+
+  /**
+   * Return the library map read from the given source.
+   *
+   * @param source the source of the library file
+   * @param libraryFileContents the contents from the library file
+   * @return the library map read from the given source
+   */
+  LibraryMap readFromSource(Source source, String libraryFileContents) {
+    BooleanErrorListener errorListener = new BooleanErrorListener();
+    Scanner scanner = new Scanner(source, new CharSequenceReader(libraryFileContents), errorListener);
+    Parser parser = new Parser(source, errorListener);
+    CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
+    SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
+    // If any syntactic errors were found then don't try to visit the AST structure.
+    if (!errorListener.errorReported) {
+      unit.accept(libraryBuilder);
+    }
+    return libraryBuilder.librariesMap;
+  }
 }

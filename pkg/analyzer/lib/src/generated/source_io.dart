@@ -15,61 +15,67 @@ import 'engine.dart';
 export 'source.dart';
 
 /**
- * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
+ * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
+ * contains all sources within a given directory.
  */
-class RelativeFileUriResolver extends UriResolver {
+class DirectoryBasedSourceContainer implements SourceContainer {
   /**
-   * The name of the `file` scheme.
-   */
-  static String FILE_SCHEME = "file";
-
-  /**
-   * Return `true` if the given URI is a `file` URI.
+   * Append the system file separator to the given path unless the path already ends with a
+   * separator.
    *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `file` URI
+   * @param path the path to which the file separator is to be added
+   * @return a path that ends with the system file separator
    */
-  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
-
-  /**
-   * The directories for the relatvie URI's
-   */
-  final List<JavaFile> _relativeDirectories;
-
-  /**
-   * The root directory for all the source trees
-   */
-  final JavaFile _rootDirectory;
-
-  /**
-   * Initialize a newly created resolver to resolve `file` URI's relative to the given root
-   * directory.
-   */
-  RelativeFileUriResolver(this._rootDirectory, this._relativeDirectories) : super();
-
-  @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.FILE_URI) {
-      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
+  static String _appendFileSeparator(String path) {
+    if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
+      return path;
     }
-    return null;
+    return "${path}${JavaFile.separator}";
+  }
+
+  /**
+   * The container's path (not `null`).
+   */
+  String _path;
+
+  /**
+   * Construct a container representing the specified directory and containing any sources whose
+   * [Source#getFullName] starts with the directory's path. This is a convenience method,
+   * fully equivalent to [DirectoryBasedSourceContainer#DirectoryBasedSourceContainer]
+   * .
+   *
+   * @param directory the directory (not `null`)
+   */
+  DirectoryBasedSourceContainer.con1(JavaFile directory) : this.con2(directory.getPath());
+
+  /**
+   * Construct a container representing the specified path and containing any sources whose
+   * [Source#getFullName] starts with the specified path.
+   *
+   * @param path the path (not `null` and not empty)
+   */
+  DirectoryBasedSourceContainer.con2(String path) {
+    this._path = _appendFileSeparator(path);
   }
 
   @override
-  Source resolveAbsolute(Uri uri) {
-    String rootPath = _rootDirectory.toURI().path;
-    String uriPath = uri.path;
-    if (uriPath != null && uriPath.startsWith(rootPath)) {
-      String filePath = uri.path.substring(rootPath.length);
-      for (JavaFile dir in _relativeDirectories) {
-        JavaFile file = new JavaFile.relative(dir, filePath);
-        if (file.exists()) {
-          return new FileBasedSource.con2(file, UriKind.FILE_URI);
-        }
-      }
-    }
-    return null;
-  }
+  bool contains(Source source) => source.fullName.startsWith(_path);
+
+  @override
+  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && obj.path == path;
+
+  /**
+   * Answer the receiver's path, used to determine if a source is contained in the receiver.
+   *
+   * @return the path (not `null`, not empty)
+   */
+  String get path => _path;
+
+  @override
+  int get hashCode => _path.hashCode;
+
+  @override
+  String toString() => "SourceContainer[${_path}]";
 }
 
 /**
@@ -215,6 +221,51 @@ class FileUriResolver extends UriResolver {
 }
 
 /**
+ * Instances of interface `LocalSourcePredicate` are used to determine if the given
+ * [Source] is "local" in some sense, so can be updated.
+ */
+abstract class LocalSourcePredicate {
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `false`.
+   */
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
+
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `true`.
+   */
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
+
+  /**
+   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
+   * except of SDK.
+   */
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
+
+  /**
+   * Determines if the given [Source] is local.
+   *
+   * @param source the [Source] to analyze
+   * @return `true` if the given [Source] is local
+   */
+  bool isLocal(Source source);
+}
+
+class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => false;
+}
+
+class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
+}
+
+class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
+  @override
+  bool isLocal(Source source) => true;
+}
+
+/**
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource implements Source {
@@ -253,51 +304,6 @@ class NonExistingSource implements Source {
   Source resolveRelative(Uri relativeUri) {
     throw new UnsupportedOperationException("${_name}does not exist.");
   }
-}
-
-/**
- * Instances of interface `LocalSourcePredicate` are used to determine if the given
- * [Source] is "local" in some sense, so can be updated.
- */
-abstract class LocalSourcePredicate {
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `false`.
-   */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `true`.
-   */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
-   * except of SDK.
-   */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocal(Source source);
-}
-
-class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => false;
-}
-
-class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => true;
-}
-
-class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
 /**
@@ -454,65 +460,59 @@ class PackageUriResolver extends UriResolver {
 }
 
 /**
- * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
- * contains all sources within a given directory.
+ * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
  */
-class DirectoryBasedSourceContainer implements SourceContainer {
+class RelativeFileUriResolver extends UriResolver {
   /**
-   * Append the system file separator to the given path unless the path already ends with a
-   * separator.
-   *
-   * @param path the path to which the file separator is to be added
-   * @return a path that ends with the system file separator
+   * The name of the `file` scheme.
    */
-  static String _appendFileSeparator(String path) {
-    if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
-      return path;
+  static String FILE_SCHEME = "file";
+
+  /**
+   * Return `true` if the given URI is a `file` URI.
+   *
+   * @param uri the URI being tested
+   * @return `true` if the given URI is a `file` URI
+   */
+  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
+
+  /**
+   * The directories for the relatvie URI's
+   */
+  final List<JavaFile> _relativeDirectories;
+
+  /**
+   * The root directory for all the source trees
+   */
+  final JavaFile _rootDirectory;
+
+  /**
+   * Initialize a newly created resolver to resolve `file` URI's relative to the given root
+   * directory.
+   */
+  RelativeFileUriResolver(this._rootDirectory, this._relativeDirectories) : super();
+
+  @override
+  Source fromEncoding(UriKind kind, Uri uri) {
+    if (kind == UriKind.FILE_URI) {
+      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
     }
-    return "${path}${JavaFile.separator}";
-  }
-
-  /**
-   * The container's path (not `null`).
-   */
-  String _path;
-
-  /**
-   * Construct a container representing the specified directory and containing any sources whose
-   * [Source#getFullName] starts with the directory's path. This is a convenience method,
-   * fully equivalent to [DirectoryBasedSourceContainer#DirectoryBasedSourceContainer]
-   * .
-   *
-   * @param directory the directory (not `null`)
-   */
-  DirectoryBasedSourceContainer.con1(JavaFile directory) : this.con2(directory.getPath());
-
-  /**
-   * Construct a container representing the specified path and containing any sources whose
-   * [Source#getFullName] starts with the specified path.
-   *
-   * @param path the path (not `null` and not empty)
-   */
-  DirectoryBasedSourceContainer.con2(String path) {
-    this._path = _appendFileSeparator(path);
+    return null;
   }
 
   @override
-  bool contains(Source source) => source.fullName.startsWith(_path);
-
-  @override
-  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && obj.path == path;
-
-  /**
-   * Answer the receiver's path, used to determine if a source is contained in the receiver.
-   *
-   * @return the path (not `null`, not empty)
-   */
-  String get path => _path;
-
-  @override
-  int get hashCode => _path.hashCode;
-
-  @override
-  String toString() => "SourceContainer[${_path}]";
+  Source resolveAbsolute(Uri uri) {
+    String rootPath = _rootDirectory.toURI().path;
+    String uriPath = uri.path;
+    if (uriPath != null && uriPath.startsWith(rootPath)) {
+      String filePath = uri.path.substring(rootPath.length);
+      for (JavaFile dir in _relativeDirectories) {
+        JavaFile file = new JavaFile.relative(dir, filePath);
+        if (file.exists()) {
+          return new FileBasedSource.con2(file, UriKind.FILE_URI);
+        }
+      }
+    }
+    return null;
+  }
 }

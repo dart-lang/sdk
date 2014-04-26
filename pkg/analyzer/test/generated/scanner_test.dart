@@ -16,70 +16,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 
-/**
- * Instances of the class `TokenStreamValidator` are used to validate the correct construction
- * of a stream of tokens.
- */
-class TokenStreamValidator {
-  /**
-   * Validate that the stream of tokens that starts with the given token is correct.
-   *
-   * @param token the first token in the stream of tokens to be validated
-   */
-  void validate(Token token) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    _validateStream(builder, token);
-    if (builder.length > 0) {
-      JUnitTestCase.fail(builder.toString());
-    }
-  }
-
-  void _validateStream(JavaStringBuilder builder, Token token) {
-    if (token == null) {
-      return;
-    }
-    Token previousToken = null;
-    int previousEnd = -1;
-    Token currentToken = token;
-    while (currentToken != null && currentToken.type != TokenType.EOF) {
-      _validateStream(builder, currentToken.precedingComments);
-      TokenType type = currentToken.type;
-      if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-        if (currentToken is! BeginToken) {
-          builder.append("\r\nExpected BeginToken, found ");
-          builder.append(currentToken.runtimeType.toString());
-          builder.append(" ");
-          _writeToken(builder, currentToken);
-        }
-      }
-      int currentStart = currentToken.offset;
-      int currentLength = currentToken.length;
-      int currentEnd = currentStart + currentLength - 1;
-      if (currentStart <= previousEnd) {
-        builder.append("\r\nInvalid token sequence: ");
-        _writeToken(builder, previousToken);
-        builder.append(" followed by ");
-        _writeToken(builder, currentToken);
-      }
-      previousEnd = currentEnd;
-      previousToken = currentToken;
-      currentToken = currentToken.next;
-    }
-  }
-
-  void _writeToken(JavaStringBuilder builder, Token token) {
-    builder.append("[");
-    builder.append(token.type);
-    builder.append(", '");
-    builder.append(token.lexeme);
-    builder.append("', ");
-    builder.append(token.offset);
-    builder.append(", ");
-    builder.append(token.length);
-    builder.append("]");
-  }
-}
-
 class CharSequenceReaderTest extends JUnitTestCase {
   void test_advance() {
     CharSequenceReader reader = new CharSequenceReader("x");
@@ -151,86 +87,6 @@ class CharSequenceReaderTest extends JUnitTestCase {
       _ut.test('test_setOffset', () {
         final __test = new CharSequenceReaderTest();
         runJUnitTest(__test, __test.test_setOffset);
-      });
-    });
-  }
-}
-
-class TokenTypeTest extends EngineTestCase {
-  void test_isOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator);
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_AMPERSAND.isOperator);
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BANG.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BANG_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR_BAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET.isOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX.isOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.IS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS_MINUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERIOD_PERIOD.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS_PLUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.QUESTION.isOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH.isOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH_EQ.isOperator);
-  }
-
-  void test_isUserDefinableOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isUserDefinableOperator);
-  }
-
-  static dartSuite() {
-    _ut.group('TokenTypeTest', () {
-      _ut.test('test_isOperator', () {
-        final __test = new TokenTypeTest();
-        runJUnitTest(__test, __test.test_isOperator);
-      });
-      _ut.test('test_isUserDefinableOperator', () {
-        final __test = new TokenTypeTest();
-        runJUnitTest(__test, __test.test_isUserDefinableOperator);
       });
     });
   }
@@ -752,6 +608,58 @@ class IncrementalScannerTest extends EngineTestCase {
       _ut.test('test_tokenMap', () {
         final __test = new IncrementalScannerTest();
         runJUnitTest(__test, __test.test_tokenMap);
+      });
+    });
+  }
+}
+
+class KeywordStateTest extends JUnitTestCase {
+  void test_KeywordState() {
+    //
+    // Generate the test data to be scanned.
+    //
+    List<Keyword> keywords = Keyword.values;
+    int keywordCount = keywords.length;
+    List<String> textToTest = new List<String>(keywordCount * 3);
+    for (int i = 0; i < keywordCount; i++) {
+      String syntax = keywords[i].syntax;
+      textToTest[i] = syntax;
+      textToTest[i + keywordCount] = "${syntax}x";
+      textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
+    }
+    //
+    // Scan each of the identifiers.
+    //
+    KeywordState firstState = KeywordState.KEYWORD_STATE;
+    for (int i = 0; i < textToTest.length; i++) {
+      String text = textToTest[i];
+      int index = 0;
+      int length = text.length;
+      KeywordState state = firstState;
+      while (index < length && state != null) {
+        state = state.next(text.codeUnitAt(index));
+        index++;
+      }
+      if (i < keywordCount) {
+        // keyword
+        JUnitTestCase.assertNotNull(state);
+        JUnitTestCase.assertNotNull(state.keyword());
+        JUnitTestCase.assertEquals(keywords[i], state.keyword());
+      } else if (i < keywordCount * 2) {
+        // keyword + "x"
+        JUnitTestCase.assertNull(state);
+      } else {
+        // keyword.substring(0, keyword.length() - 1)
+        JUnitTestCase.assertNotNull(state);
+      }
+    }
+  }
+
+  static dartSuite() {
+    _ut.group('KeywordStateTest', () {
+      _ut.test('test_KeywordState', () {
+        final __test = new KeywordStateTest();
+        runJUnitTest(__test, __test.test_KeywordState);
       });
     });
   }
@@ -2382,58 +2290,6 @@ class ScannerTest_ExpectedLocation {
   ScannerTest_ExpectedLocation(this._offset, this._lineNumber, this._columnNumber);
 }
 
-class KeywordStateTest extends JUnitTestCase {
-  void test_KeywordState() {
-    //
-    // Generate the test data to be scanned.
-    //
-    List<Keyword> keywords = Keyword.values;
-    int keywordCount = keywords.length;
-    List<String> textToTest = new List<String>(keywordCount * 3);
-    for (int i = 0; i < keywordCount; i++) {
-      String syntax = keywords[i].syntax;
-      textToTest[i] = syntax;
-      textToTest[i + keywordCount] = "${syntax}x";
-      textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
-    }
-    //
-    // Scan each of the identifiers.
-    //
-    KeywordState firstState = KeywordState.KEYWORD_STATE;
-    for (int i = 0; i < textToTest.length; i++) {
-      String text = textToTest[i];
-      int index = 0;
-      int length = text.length;
-      KeywordState state = firstState;
-      while (index < length && state != null) {
-        state = state.next(text.codeUnitAt(index));
-        index++;
-      }
-      if (i < keywordCount) {
-        // keyword
-        JUnitTestCase.assertNotNull(state);
-        JUnitTestCase.assertNotNull(state.keyword());
-        JUnitTestCase.assertEquals(keywords[i], state.keyword());
-      } else if (i < keywordCount * 2) {
-        // keyword + "x"
-        JUnitTestCase.assertNull(state);
-      } else {
-        // keyword.substring(0, keyword.length() - 1)
-        JUnitTestCase.assertNotNull(state);
-      }
-    }
-  }
-
-  static dartSuite() {
-    _ut.group('KeywordStateTest', () {
-      _ut.test('test_KeywordState', () {
-        final __test = new KeywordStateTest();
-        runJUnitTest(__test, __test.test_KeywordState);
-      });
-    });
-  }
-}
-
 /**
  * The class `TokenFactory` defines utility methods that can be used to create tokens.
  */
@@ -2445,6 +2301,150 @@ class TokenFactory {
   static Token tokenFromType(TokenType type) => new Token(type, 0);
 
   static Token tokenFromTypeAndString(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
+}
+
+/**
+ * Instances of the class `TokenStreamValidator` are used to validate the correct construction
+ * of a stream of tokens.
+ */
+class TokenStreamValidator {
+  /**
+   * Validate that the stream of tokens that starts with the given token is correct.
+   *
+   * @param token the first token in the stream of tokens to be validated
+   */
+  void validate(Token token) {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    _validateStream(builder, token);
+    if (builder.length > 0) {
+      JUnitTestCase.fail(builder.toString());
+    }
+  }
+
+  void _validateStream(JavaStringBuilder builder, Token token) {
+    if (token == null) {
+      return;
+    }
+    Token previousToken = null;
+    int previousEnd = -1;
+    Token currentToken = token;
+    while (currentToken != null && currentToken.type != TokenType.EOF) {
+      _validateStream(builder, currentToken.precedingComments);
+      TokenType type = currentToken.type;
+      if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+        if (currentToken is! BeginToken) {
+          builder.append("\r\nExpected BeginToken, found ");
+          builder.append(currentToken.runtimeType.toString());
+          builder.append(" ");
+          _writeToken(builder, currentToken);
+        }
+      }
+      int currentStart = currentToken.offset;
+      int currentLength = currentToken.length;
+      int currentEnd = currentStart + currentLength - 1;
+      if (currentStart <= previousEnd) {
+        builder.append("\r\nInvalid token sequence: ");
+        _writeToken(builder, previousToken);
+        builder.append(" followed by ");
+        _writeToken(builder, currentToken);
+      }
+      previousEnd = currentEnd;
+      previousToken = currentToken;
+      currentToken = currentToken.next;
+    }
+  }
+
+  void _writeToken(JavaStringBuilder builder, Token token) {
+    builder.append("[");
+    builder.append(token.type);
+    builder.append(", '");
+    builder.append(token.lexeme);
+    builder.append("', ");
+    builder.append(token.offset);
+    builder.append(", ");
+    builder.append(token.length);
+    builder.append("]");
+  }
+}
+
+class TokenTypeTest extends EngineTestCase {
+  void test_isOperator() {
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator);
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND_AMPERSAND.isOperator);
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BANG.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BANG_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR_BAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET.isOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX.isOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.IS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS_MINUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERIOD_PERIOD.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS_PLUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.QUESTION.isOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH.isOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH_EQ.isOperator);
+  }
+
+  void test_isUserDefinableOperator() {
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isUserDefinableOperator);
+  }
+
+  static dartSuite() {
+    _ut.group('TokenTypeTest', () {
+      _ut.test('test_isOperator', () {
+        final __test = new TokenTypeTest();
+        runJUnitTest(__test, __test.test_isOperator);
+      });
+      _ut.test('test_isUserDefinableOperator', () {
+        final __test = new TokenTypeTest();
+        runJUnitTest(__test, __test.test_isUserDefinableOperator);
+      });
+    });
+  }
 }
 
 main() {

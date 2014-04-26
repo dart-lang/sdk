@@ -20,6 +20,475 @@ import 'test_support.dart';
 import 'ast_test.dart' show AstFactory;
 import 'resolver_test.dart' show TestTypeProvider, AnalysisContextHelper;
 
+class AngularPropertyKindTest extends EngineTestCase {
+  void test_ATTR() {
+    AngularPropertyKind kind = AngularPropertyKind.ATTR;
+    JUnitTestCase.assertFalse(kind.callsGetter());
+    JUnitTestCase.assertTrue(kind.callsSetter());
+  }
+
+  void test_CALLBACK() {
+    AngularPropertyKind kind = AngularPropertyKind.CALLBACK;
+    JUnitTestCase.assertFalse(kind.callsGetter());
+    JUnitTestCase.assertTrue(kind.callsSetter());
+  }
+
+  void test_ONE_WAY() {
+    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY;
+    JUnitTestCase.assertFalse(kind.callsGetter());
+    JUnitTestCase.assertTrue(kind.callsSetter());
+  }
+
+  void test_ONE_WAY_ONE_TIME() {
+    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
+    JUnitTestCase.assertFalse(kind.callsGetter());
+    JUnitTestCase.assertTrue(kind.callsSetter());
+  }
+
+  void test_TWO_WAY() {
+    AngularPropertyKind kind = AngularPropertyKind.TWO_WAY;
+    JUnitTestCase.assertTrue(kind.callsGetter());
+    JUnitTestCase.assertTrue(kind.callsSetter());
+  }
+
+  static dartSuite() {
+    _ut.group('AngularPropertyKindTest', () {
+      _ut.test('test_ATTR', () {
+        final __test = new AngularPropertyKindTest();
+        runJUnitTest(__test, __test.test_ATTR);
+      });
+      _ut.test('test_CALLBACK', () {
+        final __test = new AngularPropertyKindTest();
+        runJUnitTest(__test, __test.test_CALLBACK);
+      });
+      _ut.test('test_ONE_WAY', () {
+        final __test = new AngularPropertyKindTest();
+        runJUnitTest(__test, __test.test_ONE_WAY);
+      });
+      _ut.test('test_ONE_WAY_ONE_TIME', () {
+        final __test = new AngularPropertyKindTest();
+        runJUnitTest(__test, __test.test_ONE_WAY_ONE_TIME);
+      });
+      _ut.test('test_TWO_WAY', () {
+        final __test = new AngularPropertyKindTest();
+        runJUnitTest(__test, __test.test_TWO_WAY);
+      });
+    });
+  }
+}
+
+class ClassElementImplTest extends EngineTestCase {
+  void test_getAllSupertypes_interface() {
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl elementC = ElementFactory.classElement2("C", []);
+    InterfaceType typeObject = classA.supertype;
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = elementC.type;
+    elementC.interfaces = <InterfaceType> [typeB];
+    List<InterfaceType> supers = elementC.allSupertypes;
+    List<InterfaceType> types = new List<InterfaceType>();
+    types.addAll(supers);
+    JUnitTestCase.assertTrue(types.contains(typeA));
+    JUnitTestCase.assertTrue(types.contains(typeB));
+    JUnitTestCase.assertTrue(types.contains(typeObject));
+    JUnitTestCase.assertFalse(types.contains(typeC));
+  }
+
+  void test_getAllSupertypes_mixins() {
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classC = ElementFactory.classElement2("C", []);
+    InterfaceType typeObject = classA.supertype;
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    classC.mixins = <InterfaceType> [typeB];
+    List<InterfaceType> supers = classC.allSupertypes;
+    List<InterfaceType> types = new List<InterfaceType>();
+    types.addAll(supers);
+    JUnitTestCase.assertFalse(types.contains(typeA));
+    JUnitTestCase.assertTrue(types.contains(typeB));
+    JUnitTestCase.assertTrue(types.contains(typeObject));
+    JUnitTestCase.assertFalse(types.contains(typeC));
+  }
+
+  void test_getAllSupertypes_recursive() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    List<InterfaceType> supers = classB.allSupertypes;
+    EngineTestCase.assertLength(1, supers);
+  }
+
+  void test_getField() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String fieldName = "f";
+    FieldElementImpl field = ElementFactory.fieldElement(fieldName, false, false, false, null);
+    classA.fields = <FieldElement> [field];
+    JUnitTestCase.assertSame(field, classA.getField(fieldName));
+    // no such field
+    JUnitTestCase.assertSame(null, classA.getField("noSuchField"));
+  }
+
+  void test_getMethod_declared() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    JUnitTestCase.assertSame(method, classA.getMethod(methodName));
+  }
+
+  void test_getMethod_undeclared() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    JUnitTestCase.assertNull(classA.getMethod("${methodName}x"));
+  }
+
+  void test_getNode() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B {}"]));
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassDeclaration nodeA = elementA.node;
+      JUnitTestCase.assertNotNull(nodeA);
+      JUnitTestCase.assertEquals("A", nodeA.name.name);
+      JUnitTestCase.assertSame(elementA, nodeA.element);
+    }
+    // B
+    {
+      ClassElement elementB = unitElement.getType("B");
+      ClassDeclaration nodeB = elementB.node;
+      JUnitTestCase.assertNotNull(nodeB);
+      JUnitTestCase.assertEquals("B", nodeB.name.name);
+      JUnitTestCase.assertSame(elementB, nodeB.element);
+    }
+  }
+
+  void test_hasNonFinalField_false_const() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, true, classA.type)];
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
+  }
+
+  void test_hasNonFinalField_false_final() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, true, false, classA.type)];
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
+  }
+
+  void test_hasNonFinalField_false_recursive() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
+  }
+
+  void test_hasNonFinalField_true_immediate() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
+    JUnitTestCase.assertTrue(classA.hasNonFinalField);
+  }
+
+  void test_hasNonFinalField_true_inherited() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
+    JUnitTestCase.assertTrue(classB.hasNonFinalField);
+  }
+
+  void test_hasStaticMember_false_empty() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    // no members
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_false_instanceMethod() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MethodElement method = ElementFactory.methodElement("foo", null, []);
+    classA.methods = <MethodElement> [method];
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_instanceGetter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElement getter = ElementFactory.getterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_getter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElementImpl getter = ElementFactory.getterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    // "foo" is static
+    getter.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_method() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MethodElementImpl method = ElementFactory.methodElement("foo", null, []);
+    classA.methods = <MethodElement> [method];
+    // "foo" is static
+    method.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_setter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElementImpl setter = ElementFactory.setterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    // "foo" is static
+    setter.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
+  void test_lookUpGetter_declared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String getterName = "g";
+    PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(getter, classA.lookUpGetter(getterName, library));
+  }
+
+  void test_lookUpGetter_inherited() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String getterName = "g";
+    PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(getter, classB.lookUpGetter(getterName, library));
+  }
+
+  void test_lookUpGetter_undeclared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
+  }
+
+  void test_lookUpGetter_undeclared_recursive() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
+  }
+
+  void test_lookUpMethod_declared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(method, classA.lookUpMethod(methodName, library));
+  }
+
+  void test_lookUpMethod_inherited() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(method, classB.lookUpMethod(methodName, library));
+  }
+
+  void test_lookUpMethod_undeclared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpMethod("m", library));
+  }
+
+  void test_lookUpMethod_undeclared_recursive() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classA.lookUpMethod("m", library));
+  }
+
+  void test_lookUpSetter_declared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String setterName = "s";
+    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(setter, classA.lookUpSetter(setterName, library));
+  }
+
+  void test_lookUpSetter_inherited() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String setterName = "s";
+    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(setter, classB.lookUpSetter(setterName, library));
+  }
+
+  void test_lookUpSetter_undeclared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpSetter("s", library));
+  }
+
+  void test_lookUpSetter_undeclared_recursive() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classA.lookUpSetter("s", library));
+  }
+
+  static dartSuite() {
+    _ut.group('ClassElementImplTest', () {
+      _ut.test('test_getAllSupertypes_interface', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getAllSupertypes_interface);
+      });
+      _ut.test('test_getAllSupertypes_mixins', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getAllSupertypes_mixins);
+      });
+      _ut.test('test_getAllSupertypes_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getAllSupertypes_recursive);
+      });
+      _ut.test('test_getField', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getField);
+      });
+      _ut.test('test_getMethod_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getMethod_declared);
+      });
+      _ut.test('test_getMethod_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getMethod_undeclared);
+      });
+      _ut.test('test_getNode', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getNode);
+      });
+      _ut.test('test_hasNonFinalField_false_const', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasNonFinalField_false_const);
+      });
+      _ut.test('test_hasNonFinalField_false_final', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasNonFinalField_false_final);
+      });
+      _ut.test('test_hasNonFinalField_false_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasNonFinalField_false_recursive);
+      });
+      _ut.test('test_hasNonFinalField_true_immediate', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasNonFinalField_true_immediate);
+      });
+      _ut.test('test_hasNonFinalField_true_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasNonFinalField_true_inherited);
+      });
+      _ut.test('test_hasStaticMember_false_empty', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_false_empty);
+      });
+      _ut.test('test_hasStaticMember_false_instanceMethod', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_false_instanceMethod);
+      });
+      _ut.test('test_hasStaticMember_instanceGetter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_instanceGetter);
+      });
+      _ut.test('test_hasStaticMember_true_getter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_getter);
+      });
+      _ut.test('test_hasStaticMember_true_method', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_method);
+      });
+      _ut.test('test_hasStaticMember_true_setter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_setter);
+      });
+      _ut.test('test_lookUpGetter_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpGetter_declared);
+      });
+      _ut.test('test_lookUpGetter_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpGetter_inherited);
+      });
+      _ut.test('test_lookUpGetter_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpGetter_undeclared);
+      });
+      _ut.test('test_lookUpGetter_undeclared_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpGetter_undeclared_recursive);
+      });
+      _ut.test('test_lookUpMethod_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpMethod_declared);
+      });
+      _ut.test('test_lookUpMethod_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpMethod_inherited);
+      });
+      _ut.test('test_lookUpMethod_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpMethod_undeclared);
+      });
+      _ut.test('test_lookUpMethod_undeclared_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpMethod_undeclared_recursive);
+      });
+      _ut.test('test_lookUpSetter_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpSetter_declared);
+      });
+      _ut.test('test_lookUpSetter_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpSetter_inherited);
+      });
+      _ut.test('test_lookUpSetter_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpSetter_undeclared);
+      });
+      _ut.test('test_lookUpSetter_undeclared_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpSetter_undeclared_recursive);
+      });
+    });
+  }
+}
+
 /**
  * The class `ElementFactory` defines utility methods used to create elements for testing
  * purposes. The elements that are created are complete in the sense that as much of the element
@@ -383,99 +852,275 @@ class ElementFactory {
   }
 }
 
-class HtmlElementImplTest extends EngineTestCase {
-  void test_equals_differentSource() {
-    AnalysisContextImpl context = createAnalysisContext();
-    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "indexA.html");
-    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "indexB.html");
-    JUnitTestCase.assertFalse(elementA == elementB);
+class ElementImplTest extends EngineTestCase {
+  void test_equals() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classElement = ElementFactory.classElement2("C", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
+    FieldElement field = ElementFactory.fieldElement("next", false, false, false, classElement.type);
+    classElement.fields = <FieldElement> [field];
+    JUnitTestCase.assertTrue(field == field);
+    JUnitTestCase.assertFalse(field == field.getter);
+    JUnitTestCase.assertFalse(field == field.setter);
+    JUnitTestCase.assertFalse(field.getter == field.setter);
   }
 
-  void test_equals_null() {
+  void test_isAccessibleIn_private_differentLibrary() {
     AnalysisContextImpl context = createAnalysisContext();
-    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
-    JUnitTestCase.assertFalse(element == null);
+    LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
+    ClassElement classElement = ElementFactory.classElement2("_C", []);
+    (library1.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
+    LibraryElementImpl library2 = ElementFactory.library(context, "lib2");
+    JUnitTestCase.assertFalse(classElement.isAccessibleIn(library2));
   }
 
-  void test_equals_sameSource() {
-    AnalysisContextImpl context = createAnalysisContext();
-    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "index.html");
-    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "index.html");
-    JUnitTestCase.assertTrue(elementA == elementB);
+  void test_isAccessibleIn_private_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElement classElement = ElementFactory.classElement2("_C", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
+    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
   }
 
-  void test_equals_self() {
+  void test_isAccessibleIn_public_differentLibrary() {
     AnalysisContextImpl context = createAnalysisContext();
-    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
-    JUnitTestCase.assertTrue(element == element);
+    LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
+    ClassElement classElement = ElementFactory.classElement2("C", []);
+    (library1.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
+    LibraryElementImpl library2 = ElementFactory.library(context, "lib2");
+    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library2));
+  }
+
+  void test_isAccessibleIn_public_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElement classElement = ElementFactory.classElement2("C", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
+    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
+  }
+
+  void test_isPrivate_false() {
+    Element element = ElementFactory.classElement2("C", []);
+    JUnitTestCase.assertFalse(element.isPrivate);
+  }
+
+  void test_isPrivate_null() {
+    Element element = ElementFactory.classElement2(null, []);
+    JUnitTestCase.assertTrue(element.isPrivate);
+  }
+
+  void test_isPrivate_true() {
+    Element element = ElementFactory.classElement2("_C", []);
+    JUnitTestCase.assertTrue(element.isPrivate);
+  }
+
+  void test_isPublic_false() {
+    Element element = ElementFactory.classElement2("_C", []);
+    JUnitTestCase.assertFalse(element.isPublic);
+  }
+
+  void test_isPublic_null() {
+    Element element = ElementFactory.classElement2(null, []);
+    JUnitTestCase.assertFalse(element.isPublic);
+  }
+
+  void test_isPublic_true() {
+    Element element = ElementFactory.classElement2("C", []);
+    JUnitTestCase.assertTrue(element.isPublic);
+  }
+
+  void test_SORT_BY_OFFSET() {
+    ClassElementImpl classElementA = ElementFactory.classElement2("A", []);
+    classElementA.nameOffset = 1;
+    ClassElementImpl classElementB = ElementFactory.classElement2("B", []);
+    classElementB.nameOffset = 2;
+    JUnitTestCase.assertEquals(0, Element.SORT_BY_OFFSET(classElementA, classElementA));
+    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0);
+    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0);
   }
 
   static dartSuite() {
-    _ut.group('HtmlElementImplTest', () {
-      _ut.test('test_equals_differentSource', () {
-        final __test = new HtmlElementImplTest();
-        runJUnitTest(__test, __test.test_equals_differentSource);
+    _ut.group('ElementImplTest', () {
+      _ut.test('test_SORT_BY_OFFSET', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_SORT_BY_OFFSET);
       });
-      _ut.test('test_equals_null', () {
-        final __test = new HtmlElementImplTest();
-        runJUnitTest(__test, __test.test_equals_null);
+      _ut.test('test_equals', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_equals);
       });
-      _ut.test('test_equals_sameSource', () {
-        final __test = new HtmlElementImplTest();
-        runJUnitTest(__test, __test.test_equals_sameSource);
+      _ut.test('test_isAccessibleIn_private_differentLibrary', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isAccessibleIn_private_differentLibrary);
       });
-      _ut.test('test_equals_self', () {
-        final __test = new HtmlElementImplTest();
-        runJUnitTest(__test, __test.test_equals_self);
+      _ut.test('test_isAccessibleIn_private_sameLibrary', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isAccessibleIn_private_sameLibrary);
+      });
+      _ut.test('test_isAccessibleIn_public_differentLibrary', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isAccessibleIn_public_differentLibrary);
+      });
+      _ut.test('test_isAccessibleIn_public_sameLibrary', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isAccessibleIn_public_sameLibrary);
+      });
+      _ut.test('test_isPrivate_false', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_false);
+      });
+      _ut.test('test_isPrivate_null', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_null);
+      });
+      _ut.test('test_isPrivate_true', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_true);
+      });
+      _ut.test('test_isPublic_false', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_false);
+      });
+      _ut.test('test_isPublic_null', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_null);
+      });
+      _ut.test('test_isPublic_true', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_true);
       });
     });
   }
 }
 
-class MultiplyDefinedElementImplTest extends EngineTestCase {
-  void test_fromElements_conflicting() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
-    Element result = MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement);
-    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
-    List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
-    EngineTestCase.assertLength(2, elements);
-    for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
-    }
+class ElementKindTest extends EngineTestCase {
+  void test_of_nonNull() {
+    JUnitTestCase.assertSame(ElementKind.CLASS, ElementKind.of(ElementFactory.classElement2("A", [])));
   }
 
-  void test_fromElements_multiple() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
-    Element thirdElement = ElementFactory.localVariableElement2("zz");
-    Element result = MultiplyDefinedElementImpl.fromElements(null, MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement), thirdElement);
-    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
-    List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
-    EngineTestCase.assertLength(3, elements);
-    for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
-    }
-  }
-
-  void test_fromElements_nonConflicting() {
-    Element element = ElementFactory.localVariableElement2("xx");
-    JUnitTestCase.assertSame(element, MultiplyDefinedElementImpl.fromElements(null, element, element));
+  void test_of_null() {
+    JUnitTestCase.assertSame(ElementKind.ERROR, ElementKind.of(null));
   }
 
   static dartSuite() {
-    _ut.group('MultiplyDefinedElementImplTest', () {
-      _ut.test('test_fromElements_conflicting', () {
-        final __test = new MultiplyDefinedElementImplTest();
-        runJUnitTest(__test, __test.test_fromElements_conflicting);
+    _ut.group('ElementKindTest', () {
+      _ut.test('test_of_nonNull', () {
+        final __test = new ElementKindTest();
+        runJUnitTest(__test, __test.test_of_nonNull);
       });
-      _ut.test('test_fromElements_multiple', () {
-        final __test = new MultiplyDefinedElementImplTest();
-        runJUnitTest(__test, __test.test_fromElements_multiple);
+      _ut.test('test_of_null', () {
+        final __test = new ElementKindTest();
+        runJUnitTest(__test, __test.test_of_null);
       });
-      _ut.test('test_fromElements_nonConflicting', () {
-        final __test = new MultiplyDefinedElementImplTest();
-        runJUnitTest(__test, __test.test_fromElements_nonConflicting);
+    });
+  }
+}
+
+class ElementLocationImplTest extends EngineTestCase {
+  void test_create_encoding() {
+    String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertEquals(encoding, location.encoding);
+  }
+
+  void test_equals_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
+    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertTrue(first == second);
+  }
+
+  void test_equals_equalWithDifferentUriKind() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
+    JUnitTestCase.assertTrue(first == second);
+  }
+
+  void test_equals_notEqual_differentLengths() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;c;d");
+    JUnitTestCase.assertFalse(first == second);
+  }
+
+  void test_equals_notEqual_notLocation() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    JUnitTestCase.assertFalse(first == "a;b;d");
+  }
+
+  void test_equals_notEqual_sameLengths() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;d");
+    JUnitTestCase.assertFalse(first == second);
+  }
+
+  void test_getComponents() {
+    String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    List<String> components = location.components;
+    EngineTestCase.assertLength(3, components);
+    JUnitTestCase.assertEquals("a", components[0]);
+    JUnitTestCase.assertEquals("b", components[1]);
+    JUnitTestCase.assertEquals("c", components[2]);
+  }
+
+  void test_getEncoding() {
+    String encoding = "a;b;c;;d";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertEquals(encoding, location.encoding);
+  }
+
+  void test_hashCode_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
+    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
+  }
+
+  void test_hashCode_equalWithDifferentUriKind() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
+    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
+  }
+
+  static dartSuite() {
+    _ut.group('ElementLocationImplTest', () {
+      _ut.test('test_create_encoding', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_create_encoding);
+      });
+      _ut.test('test_equals_equal', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_equal);
+      });
+      _ut.test('test_equals_equalWithDifferentUriKind', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_equalWithDifferentUriKind);
+      });
+      _ut.test('test_equals_notEqual_differentLengths', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_notEqual_differentLengths);
+      });
+      _ut.test('test_equals_notEqual_notLocation', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_notEqual_notLocation);
+      });
+      _ut.test('test_equals_notEqual_sameLengths', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_notEqual_sameLengths);
+      });
+      _ut.test('test_getComponents', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_getComponents);
+      });
+      _ut.test('test_getEncoding', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_getEncoding);
+      });
+      _ut.test('test_hashCode_equal', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_hashCode_equal);
+      });
+      _ut.test('test_hashCode_equalWithDifferentUriKind', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_hashCode_equalWithDifferentUriKind);
       });
     });
   }
@@ -1099,1106 +1744,50 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction extends InterfaceTypeImpl {
-  InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction(ClassElement arg0) : super.con1(arg0);
-
-  @override
-  bool get isDartCoreFunction => true;
-}
-
-class LibraryElementImplTest extends EngineTestCase {
-  void test_creation() {
-    JUnitTestCase.assertNotNull(new LibraryElementImpl(createAnalysisContext(), AstFactory.libraryIdentifier2(["l"])));
-  }
-
-  void test_getImportedLibraries() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library1 = ElementFactory.library(context, "l1");
-    LibraryElementImpl library2 = ElementFactory.library(context, "l2");
-    LibraryElementImpl library3 = ElementFactory.library(context, "l3");
-    LibraryElementImpl library4 = ElementFactory.library(context, "l4");
-    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
-    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
-    List<ImportElementImpl> imports = [
-        ElementFactory.importFor(library2, null, []),
-        ElementFactory.importFor(library2, prefixB, []),
-        ElementFactory.importFor(library3, null, []),
-        ElementFactory.importFor(library3, prefixA, []),
-        ElementFactory.importFor(library3, prefixB, []),
-        ElementFactory.importFor(library4, prefixA, [])];
-    library1.imports = imports;
-    List<LibraryElement> libraries = library1.importedLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library2, library3, library4], libraries);
-  }
-
-  void test_getPrefixes() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "l1");
-    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
-    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
-    List<ImportElementImpl> imports = [
-        ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
-        ElementFactory.importFor(ElementFactory.library(context, "l3"), null, []),
-        ElementFactory.importFor(ElementFactory.library(context, "l4"), prefixA, []),
-        ElementFactory.importFor(ElementFactory.library(context, "l5"), prefixA, []),
-        ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB, [])];
-    library.imports = imports;
-    List<PrefixElement> prefixes = library.prefixes;
-    EngineTestCase.assertLength(2, prefixes);
-    if (identical(prefixA, prefixes[0])) {
-      JUnitTestCase.assertSame(prefixB, prefixes[1]);
-    } else {
-      JUnitTestCase.assertSame(prefixB, prefixes[0]);
-      JUnitTestCase.assertSame(prefixA, prefixes[1]);
-    }
-  }
-
-  void test_getUnits() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "test");
-    CompilationUnitElement unitLib = library.definingCompilationUnit;
-    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit("unit_a.dart");
-    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit("unit_b.dart");
-    library.parts = <CompilationUnitElement> [unitA, unitB];
-    EngineTestCase.assertEqualsIgnoreOrder(<CompilationUnitElement> [unitLib, unitA, unitB], library.units);
-  }
-
-  void test_getVisibleLibraries_cycle() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(library, null, [])];
-    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
-  }
-
-  void test_getVisibleLibraries_directExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryA, [])];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], libraries);
-  }
-
-  void test_getVisibleLibraries_directImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
-  }
-
-  void test_getVisibleLibraries_indirectExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    libraryA.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryAA, [])];
-    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA], libraries);
-  }
-
-  void test_getVisibleLibraries_indirectImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    LibraryElementImpl libraryB = ElementFactory.library(context, "B");
-    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(libraryAA, null, [])];
-    library.imports = <ImportElementImpl> [
-        ElementFactory.importFor(libraryA, null, []),
-        ElementFactory.importFor(libraryB, null, [])];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA, libraryB], libraries);
-  }
-
-  void test_getVisibleLibraries_noImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], library.visibleLibraries);
-  }
-
-  void test_isUpToDate() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-    LibraryElement library = ElementFactory.library(context, "foo");
-    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
-    // Assert that we are not up to date if the target has an old time stamp.
-    JUnitTestCase.assertFalse(library.isUpToDate(0));
-    // Assert that we are up to date with a target modification time in the future.
-    JUnitTestCase.assertTrue(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000));
-  }
-
-  void test_setImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["l1"]));
-    List<ImportElementImpl> expectedImports = [
-        ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
-        ElementFactory.importFor(ElementFactory.library(context, "l3"), null, [])];
-    library.imports = expectedImports;
-    List<ImportElement> actualImports = library.imports;
-    EngineTestCase.assertLength(expectedImports.length, actualImports);
-    for (int i = 0; i < actualImports.length; i++) {
-      JUnitTestCase.assertSame(expectedImports[i], actualImports[i]);
-    }
-  }
-
-  static dartSuite() {
-    _ut.group('LibraryElementImplTest', () {
-      _ut.test('test_creation', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_creation);
-      });
-      _ut.test('test_getImportedLibraries', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getImportedLibraries);
-      });
-      _ut.test('test_getPrefixes', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getPrefixes);
-      });
-      _ut.test('test_getUnits', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getUnits);
-      });
-      _ut.test('test_getVisibleLibraries_cycle', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_cycle);
-      });
-      _ut.test('test_getVisibleLibraries_directExports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_directExports);
-      });
-      _ut.test('test_getVisibleLibraries_directImports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_directImports);
-      });
-      _ut.test('test_getVisibleLibraries_indirectExports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectExports);
-      });
-      _ut.test('test_getVisibleLibraries_indirectImports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectImports);
-      });
-      _ut.test('test_getVisibleLibraries_noImports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_getVisibleLibraries_noImports);
-      });
-      _ut.test('test_isUpToDate', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_isUpToDate);
-      });
-      _ut.test('test_setImports', () {
-        final __test = new LibraryElementImplTest();
-        runJUnitTest(__test, __test.test_setImports);
-      });
-    });
-  }
-}
-
-class TypeParameterTypeImplTest extends EngineTestCase {
-  void test_creation() {
-    JUnitTestCase.assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E"))));
-  }
-
-  void test_getElement() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    JUnitTestCase.assertEquals(element, type.element);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_bottom() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << bottom
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(BottomTypeImpl.instance));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_dynamic() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << dynamic
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.instance));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_object() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << Object
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_resursive() {
-    ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
-    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
-    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
-    typeParameterT.bound = typeParameterTypeU;
-    typeParameterU.bound = typeParameterTypeU;
-    // <T extends U> and <U extends T>
-    // T << S
-    JUnitTestCase.assertFalse(typeParameterTypeT.isMoreSpecificThan(classS.type));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_self() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << E
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {
-    //  class A {}
-    //  class B extends A {}
-    //
-    ClassElement classA = ElementFactory.classElement2("A", []);
-    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
-    typeParameterT.bound = typeB;
-    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
-    // <T extends B>
-    // T << A
-    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(typeA));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
-    ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
-    typeParameterU.bound = classS.type;
-    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
-    typeParameterT.bound = typeParameterTypeU;
-    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
-    // <T extends U> and <U extends S>
-    // T << S
-    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.type));
-  }
-
-  void test_isMoreSpecificThan_typeArguments_upperBound() {
-    ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
-    typeParameterT.bound = classS.type;
-    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
-    // <T extends S>
-    // T << S
-    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.type));
-  }
-
-  void test_substitute_equal() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
-    JUnitTestCase.assertSame(argument, type.substitute2(<DartType> [argument], <DartType> [parameter]));
-  }
-
-  void test_substitute_notEqual() {
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E")));
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("F")));
-    JUnitTestCase.assertSame(type, type.substitute2(<DartType> [argument], <DartType> [parameter]));
-  }
-
-  static dartSuite() {
-    _ut.group('TypeParameterTypeImplTest', () {
-      _ut.test('test_creation', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_creation);
-      });
-      _ut.test('test_getElement', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_getElement);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_bottom', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_bottom);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_dynamic', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_dynamic);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_object', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_object);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_resursive', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_resursive);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_self', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_self);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_typeParameters', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_typeParameters);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_upperBound', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_upperBound);
-      });
-      _ut.test('test_substitute_equal', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_substitute_equal);
-      });
-      _ut.test('test_substitute_notEqual', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_substitute_notEqual);
-      });
-    });
-  }
-}
-
-class ElementLocationImplTest extends EngineTestCase {
-  void test_create_encoding() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
-    JUnitTestCase.assertEquals(encoding, location.encoding);
-  }
-
-  void test_equals_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
-    JUnitTestCase.assertTrue(first == second);
-  }
-
-  void test_equals_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
-    JUnitTestCase.assertTrue(first == second);
-  }
-
-  void test_equals_notEqual_differentLengths() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;c;d");
-    JUnitTestCase.assertFalse(first == second);
-  }
-
-  void test_equals_notEqual_notLocation() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
-    JUnitTestCase.assertFalse(first == "a;b;d");
-  }
-
-  void test_equals_notEqual_sameLengths() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;d");
-    JUnitTestCase.assertFalse(first == second);
-  }
-
-  void test_getComponents() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
-    List<String> components = location.components;
-    EngineTestCase.assertLength(3, components);
-    JUnitTestCase.assertEquals("a", components[0]);
-    JUnitTestCase.assertEquals("b", components[1]);
-    JUnitTestCase.assertEquals("c", components[2]);
-  }
-
-  void test_getEncoding() {
-    String encoding = "a;b;c;;d";
-    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
-    JUnitTestCase.assertEquals(encoding, location.encoding);
-  }
-
-  void test_hashCode_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
-    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
-  }
-
-  void test_hashCode_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
-    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
-  }
-
-  static dartSuite() {
-    _ut.group('ElementLocationImplTest', () {
-      _ut.test('test_create_encoding', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_create_encoding);
-      });
-      _ut.test('test_equals_equal', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_equal);
-      });
-      _ut.test('test_equals_equalWithDifferentUriKind', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_equalWithDifferentUriKind);
-      });
-      _ut.test('test_equals_notEqual_differentLengths', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_notEqual_differentLengths);
-      });
-      _ut.test('test_equals_notEqual_notLocation', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_notEqual_notLocation);
-      });
-      _ut.test('test_equals_notEqual_sameLengths', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_notEqual_sameLengths);
-      });
-      _ut.test('test_getComponents', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_getComponents);
-      });
-      _ut.test('test_getEncoding', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_getEncoding);
-      });
-      _ut.test('test_hashCode_equal', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_hashCode_equal);
-      });
-      _ut.test('test_hashCode_equalWithDifferentUriKind', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_hashCode_equalWithDifferentUriKind);
-      });
-    });
-  }
-}
-
-class ClassElementImplTest extends EngineTestCase {
-  void test_getAllSupertypes_interface() {
-    ClassElement classA = ElementFactory.classElement2("A", []);
-    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl elementC = ElementFactory.classElement2("C", []);
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = elementC.type;
-    elementC.interfaces = <InterfaceType> [typeB];
-    List<InterfaceType> supers = elementC.allSupertypes;
-    List<InterfaceType> types = new List<InterfaceType>();
-    types.addAll(supers);
-    JUnitTestCase.assertTrue(types.contains(typeA));
-    JUnitTestCase.assertTrue(types.contains(typeB));
-    JUnitTestCase.assertTrue(types.contains(typeObject));
-    JUnitTestCase.assertFalse(types.contains(typeC));
-  }
-
-  void test_getAllSupertypes_mixins() {
-    ClassElement classA = ElementFactory.classElement2("A", []);
-    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl classC = ElementFactory.classElement2("C", []);
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classC.mixins = <InterfaceType> [typeB];
-    List<InterfaceType> supers = classC.allSupertypes;
-    List<InterfaceType> types = new List<InterfaceType>();
-    types.addAll(supers);
-    JUnitTestCase.assertFalse(types.contains(typeA));
-    JUnitTestCase.assertTrue(types.contains(typeB));
-    JUnitTestCase.assertTrue(types.contains(typeObject));
-    JUnitTestCase.assertFalse(types.contains(typeC));
-  }
-
-  void test_getAllSupertypes_recursive() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.supertype = classB.type;
-    List<InterfaceType> supers = classB.allSupertypes;
-    EngineTestCase.assertLength(1, supers);
-  }
-
-  void test_getField() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String fieldName = "f";
-    FieldElementImpl field = ElementFactory.fieldElement(fieldName, false, false, false, null);
-    classA.fields = <FieldElement> [field];
-    JUnitTestCase.assertSame(field, classA.getField(fieldName));
-    // no such field
-    JUnitTestCase.assertSame(null, classA.getField("noSuchField"));
-  }
-
-  void test_getMethod_declared() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, null, []);
-    classA.methods = <MethodElement> [method];
-    JUnitTestCase.assertSame(method, classA.getMethod(methodName));
-  }
-
-  void test_getMethod_undeclared() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, null, []);
-    classA.methods = <MethodElement> [method];
-    JUnitTestCase.assertNull(classA.getMethod("${methodName}x"));
-  }
-
-  void test_getNode() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B {}"]));
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      ClassElement elementA = unitElement.getType("A");
-      ClassDeclaration nodeA = elementA.node;
-      JUnitTestCase.assertNotNull(nodeA);
-      JUnitTestCase.assertEquals("A", nodeA.name.name);
-      JUnitTestCase.assertSame(elementA, nodeA.element);
-    }
-    // B
-    {
-      ClassElement elementB = unitElement.getType("B");
-      ClassDeclaration nodeB = elementB.node;
-      JUnitTestCase.assertNotNull(nodeB);
-      JUnitTestCase.assertEquals("B", nodeB.name.name);
-      JUnitTestCase.assertSame(elementB, nodeB.element);
-    }
-  }
-
-  void test_hasNonFinalField_false_const() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, true, classA.type)];
-    JUnitTestCase.assertFalse(classA.hasNonFinalField);
-  }
-
-  void test_hasNonFinalField_false_final() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, true, false, classA.type)];
-    JUnitTestCase.assertFalse(classA.hasNonFinalField);
-  }
-
-  void test_hasNonFinalField_false_recursive() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.supertype = classB.type;
-    JUnitTestCase.assertFalse(classA.hasNonFinalField);
-  }
-
-  void test_hasNonFinalField_true_immediate() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
-    JUnitTestCase.assertTrue(classA.hasNonFinalField);
-  }
-
-  void test_hasNonFinalField_true_inherited() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
-    JUnitTestCase.assertTrue(classB.hasNonFinalField);
-  }
-
-  void test_hasStaticMember_false_empty() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    // no members
-    JUnitTestCase.assertFalse(classA.hasStaticMember);
-  }
-
-  void test_hasStaticMember_false_instanceMethod() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    MethodElement method = ElementFactory.methodElement("foo", null, []);
-    classA.methods = <MethodElement> [method];
-    JUnitTestCase.assertFalse(classA.hasStaticMember);
-  }
-
-  void test_hasStaticMember_instanceGetter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    PropertyAccessorElement getter = ElementFactory.getterElement("foo", false, null);
-    classA.accessors = <PropertyAccessorElement> [getter];
-    JUnitTestCase.assertFalse(classA.hasStaticMember);
-  }
-
-  void test_hasStaticMember_true_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    PropertyAccessorElementImpl getter = ElementFactory.getterElement("foo", false, null);
-    classA.accessors = <PropertyAccessorElement> [getter];
-    // "foo" is static
-    getter.static = true;
-    JUnitTestCase.assertTrue(classA.hasStaticMember);
-  }
-
-  void test_hasStaticMember_true_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    MethodElementImpl method = ElementFactory.methodElement("foo", null, []);
-    classA.methods = <MethodElement> [method];
-    // "foo" is static
-    method.static = true;
-    JUnitTestCase.assertTrue(classA.hasStaticMember);
-  }
-
-  void test_hasStaticMember_true_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    PropertyAccessorElementImpl setter = ElementFactory.setterElement("foo", false, null);
-    classA.accessors = <PropertyAccessorElement> [setter];
-    // "foo" is static
-    setter.static = true;
-    JUnitTestCase.assertTrue(classA.hasStaticMember);
-  }
-
-  void test_lookUpGetter_declared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String getterName = "g";
-    PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
-    classA.accessors = <PropertyAccessorElement> [getter];
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(getter, classA.lookUpGetter(getterName, library));
-  }
-
-  void test_lookUpGetter_inherited() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String getterName = "g";
-    PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
-    classA.accessors = <PropertyAccessorElement> [getter];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(getter, classB.lookUpGetter(getterName, library));
-  }
-
-  void test_lookUpGetter_undeclared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
-  }
-
-  void test_lookUpGetter_undeclared_recursive() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.supertype = classB.type;
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
-  }
-
-  void test_lookUpMethod_declared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, null, []);
-    classA.methods = <MethodElement> [method];
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(method, classA.lookUpMethod(methodName, library));
-  }
-
-  void test_lookUpMethod_inherited() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, null, []);
-    classA.methods = <MethodElement> [method];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(method, classB.lookUpMethod(methodName, library));
-  }
-
-  void test_lookUpMethod_undeclared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpMethod("m", library));
-  }
-
-  void test_lookUpMethod_undeclared_recursive() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.supertype = classB.type;
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertNull(classA.lookUpMethod("m", library));
-  }
-
-  void test_lookUpSetter_declared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String setterName = "s";
-    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
-    classA.accessors = <PropertyAccessorElement> [setter];
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(setter, classA.lookUpSetter(setterName, library));
-  }
-
-  void test_lookUpSetter_inherited() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    String setterName = "s";
-    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
-    classA.accessors = <PropertyAccessorElement> [setter];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(setter, classB.lookUpSetter(setterName, library));
-  }
-
-  void test_lookUpSetter_undeclared() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpSetter("s", library));
-  }
-
-  void test_lookUpSetter_undeclared_recursive() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    classA.supertype = classB.type;
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertNull(classA.lookUpSetter("s", library));
-  }
-
-  static dartSuite() {
-    _ut.group('ClassElementImplTest', () {
-      _ut.test('test_getAllSupertypes_interface', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getAllSupertypes_interface);
-      });
-      _ut.test('test_getAllSupertypes_mixins', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getAllSupertypes_mixins);
-      });
-      _ut.test('test_getAllSupertypes_recursive', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getAllSupertypes_recursive);
-      });
-      _ut.test('test_getField', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getField);
-      });
-      _ut.test('test_getMethod_declared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getMethod_declared);
-      });
-      _ut.test('test_getMethod_undeclared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getMethod_undeclared);
-      });
-      _ut.test('test_getNode', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_getNode);
-      });
-      _ut.test('test_hasNonFinalField_false_const', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasNonFinalField_false_const);
-      });
-      _ut.test('test_hasNonFinalField_false_final', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasNonFinalField_false_final);
-      });
-      _ut.test('test_hasNonFinalField_false_recursive', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasNonFinalField_false_recursive);
-      });
-      _ut.test('test_hasNonFinalField_true_immediate', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasNonFinalField_true_immediate);
-      });
-      _ut.test('test_hasNonFinalField_true_inherited', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasNonFinalField_true_inherited);
-      });
-      _ut.test('test_hasStaticMember_false_empty', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_false_empty);
-      });
-      _ut.test('test_hasStaticMember_false_instanceMethod', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_false_instanceMethod);
-      });
-      _ut.test('test_hasStaticMember_instanceGetter', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_instanceGetter);
-      });
-      _ut.test('test_hasStaticMember_true_getter', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_true_getter);
-      });
-      _ut.test('test_hasStaticMember_true_method', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_true_method);
-      });
-      _ut.test('test_hasStaticMember_true_setter', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_hasStaticMember_true_setter);
-      });
-      _ut.test('test_lookUpGetter_declared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpGetter_declared);
-      });
-      _ut.test('test_lookUpGetter_inherited', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpGetter_inherited);
-      });
-      _ut.test('test_lookUpGetter_undeclared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpGetter_undeclared);
-      });
-      _ut.test('test_lookUpGetter_undeclared_recursive', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpGetter_undeclared_recursive);
-      });
-      _ut.test('test_lookUpMethod_declared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpMethod_declared);
-      });
-      _ut.test('test_lookUpMethod_inherited', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpMethod_inherited);
-      });
-      _ut.test('test_lookUpMethod_undeclared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpMethod_undeclared);
-      });
-      _ut.test('test_lookUpMethod_undeclared_recursive', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpMethod_undeclared_recursive);
-      });
-      _ut.test('test_lookUpSetter_declared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpSetter_declared);
-      });
-      _ut.test('test_lookUpSetter_inherited', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpSetter_inherited);
-      });
-      _ut.test('test_lookUpSetter_undeclared', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpSetter_undeclared);
-      });
-      _ut.test('test_lookUpSetter_undeclared_recursive', () {
-        final __test = new ClassElementImplTest();
-        runJUnitTest(__test, __test.test_lookUpSetter_undeclared_recursive);
-      });
-    });
-  }
-}
-
-class AngularPropertyKindTest extends EngineTestCase {
-  void test_ATTR() {
-    AngularPropertyKind kind = AngularPropertyKind.ATTR;
-    JUnitTestCase.assertFalse(kind.callsGetter());
-    JUnitTestCase.assertTrue(kind.callsSetter());
-  }
-
-  void test_CALLBACK() {
-    AngularPropertyKind kind = AngularPropertyKind.CALLBACK;
-    JUnitTestCase.assertFalse(kind.callsGetter());
-    JUnitTestCase.assertTrue(kind.callsSetter());
-  }
-
-  void test_ONE_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY;
-    JUnitTestCase.assertFalse(kind.callsGetter());
-    JUnitTestCase.assertTrue(kind.callsSetter());
-  }
-
-  void test_ONE_WAY_ONE_TIME() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
-    JUnitTestCase.assertFalse(kind.callsGetter());
-    JUnitTestCase.assertTrue(kind.callsSetter());
-  }
-
-  void test_TWO_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.TWO_WAY;
-    JUnitTestCase.assertTrue(kind.callsGetter());
-    JUnitTestCase.assertTrue(kind.callsSetter());
-  }
-
-  static dartSuite() {
-    _ut.group('AngularPropertyKindTest', () {
-      _ut.test('test_ATTR', () {
-        final __test = new AngularPropertyKindTest();
-        runJUnitTest(__test, __test.test_ATTR);
-      });
-      _ut.test('test_CALLBACK', () {
-        final __test = new AngularPropertyKindTest();
-        runJUnitTest(__test, __test.test_CALLBACK);
-      });
-      _ut.test('test_ONE_WAY', () {
-        final __test = new AngularPropertyKindTest();
-        runJUnitTest(__test, __test.test_ONE_WAY);
-      });
-      _ut.test('test_ONE_WAY_ONE_TIME', () {
-        final __test = new AngularPropertyKindTest();
-        runJUnitTest(__test, __test.test_ONE_WAY_ONE_TIME);
-      });
-      _ut.test('test_TWO_WAY', () {
-        final __test = new AngularPropertyKindTest();
-        runJUnitTest(__test, __test.test_TWO_WAY);
-      });
-    });
-  }
-}
-
-class ElementImplTest extends EngineTestCase {
-  void test_equals() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElementImpl classElement = ElementFactory.classElement2("C", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
-    FieldElement field = ElementFactory.fieldElement("next", false, false, false, classElement.type);
-    classElement.fields = <FieldElement> [field];
-    JUnitTestCase.assertTrue(field == field);
-    JUnitTestCase.assertFalse(field == field.getter);
-    JUnitTestCase.assertFalse(field == field.setter);
-    JUnitTestCase.assertFalse(field.getter == field.setter);
-  }
-
-  void test_isAccessibleIn_private_differentLibrary() {
+class HtmlElementImplTest extends EngineTestCase {
+  void test_equals_differentSource() {
     AnalysisContextImpl context = createAnalysisContext();
-    LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
-    ClassElement classElement = ElementFactory.classElement2("_C", []);
-    (library1.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
-    LibraryElementImpl library2 = ElementFactory.library(context, "lib2");
-    JUnitTestCase.assertFalse(classElement.isAccessibleIn(library2));
+    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "indexA.html");
+    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "indexB.html");
+    JUnitTestCase.assertFalse(elementA == elementB);
   }
 
-  void test_isAccessibleIn_private_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElement classElement = ElementFactory.classElement2("_C", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
-    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
-  }
-
-  void test_isAccessibleIn_public_differentLibrary() {
+  void test_equals_null() {
     AnalysisContextImpl context = createAnalysisContext();
-    LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
-    ClassElement classElement = ElementFactory.classElement2("C", []);
-    (library1.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
-    LibraryElementImpl library2 = ElementFactory.library(context, "lib2");
-    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library2));
+    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertFalse(element == null);
   }
 
-  void test_isAccessibleIn_public_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
-    ClassElement classElement = ElementFactory.classElement2("C", []);
-    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classElement];
-    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
+  void test_equals_sameSource() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "index.html");
+    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertTrue(elementA == elementB);
   }
 
-  void test_isPrivate_false() {
-    Element element = ElementFactory.classElement2("C", []);
-    JUnitTestCase.assertFalse(element.isPrivate);
-  }
-
-  void test_isPrivate_null() {
-    Element element = ElementFactory.classElement2(null, []);
-    JUnitTestCase.assertTrue(element.isPrivate);
-  }
-
-  void test_isPrivate_true() {
-    Element element = ElementFactory.classElement2("_C", []);
-    JUnitTestCase.assertTrue(element.isPrivate);
-  }
-
-  void test_isPublic_false() {
-    Element element = ElementFactory.classElement2("_C", []);
-    JUnitTestCase.assertFalse(element.isPublic);
-  }
-
-  void test_isPublic_null() {
-    Element element = ElementFactory.classElement2(null, []);
-    JUnitTestCase.assertFalse(element.isPublic);
-  }
-
-  void test_isPublic_true() {
-    Element element = ElementFactory.classElement2("C", []);
-    JUnitTestCase.assertTrue(element.isPublic);
-  }
-
-  void test_SORT_BY_OFFSET() {
-    ClassElementImpl classElementA = ElementFactory.classElement2("A", []);
-    classElementA.nameOffset = 1;
-    ClassElementImpl classElementB = ElementFactory.classElement2("B", []);
-    classElementB.nameOffset = 2;
-    JUnitTestCase.assertEquals(0, Element.SORT_BY_OFFSET(classElementA, classElementA));
-    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0);
-    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0);
+  void test_equals_self() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertTrue(element == element);
   }
 
   static dartSuite() {
-    _ut.group('ElementImplTest', () {
-      _ut.test('test_SORT_BY_OFFSET', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_SORT_BY_OFFSET);
+    _ut.group('HtmlElementImplTest', () {
+      _ut.test('test_equals_differentSource', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_differentSource);
       });
-      _ut.test('test_equals', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_equals);
+      _ut.test('test_equals_null', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_null);
       });
-      _ut.test('test_isAccessibleIn_private_differentLibrary', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isAccessibleIn_private_differentLibrary);
+      _ut.test('test_equals_sameSource', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_sameSource);
       });
-      _ut.test('test_isAccessibleIn_private_sameLibrary', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isAccessibleIn_private_sameLibrary);
-      });
-      _ut.test('test_isAccessibleIn_public_differentLibrary', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isAccessibleIn_public_differentLibrary);
-      });
-      _ut.test('test_isAccessibleIn_public_sameLibrary', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isAccessibleIn_public_sameLibrary);
-      });
-      _ut.test('test_isPrivate_false', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPrivate_false);
-      });
-      _ut.test('test_isPrivate_null', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPrivate_null);
-      });
-      _ut.test('test_isPrivate_true', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPrivate_true);
-      });
-      _ut.test('test_isPublic_false', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPublic_false);
-      });
-      _ut.test('test_isPublic_null', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPublic_null);
-      });
-      _ut.test('test_isPublic_true', () {
-        final __test = new ElementImplTest();
-        runJUnitTest(__test, __test.test_isPublic_true);
-      });
-    });
-  }
-}
-
-class ElementKindTest extends EngineTestCase {
-  void test_of_nonNull() {
-    JUnitTestCase.assertSame(ElementKind.CLASS, ElementKind.of(ElementFactory.classElement2("A", [])));
-  }
-
-  void test_of_null() {
-    JUnitTestCase.assertSame(ElementKind.ERROR, ElementKind.of(null));
-  }
-
-  static dartSuite() {
-    _ut.group('ElementKindTest', () {
-      _ut.test('test_of_nonNull', () {
-        final __test = new ElementKindTest();
-        runJUnitTest(__test, __test.test_of_nonNull);
-      });
-      _ut.test('test_of_null', () {
-        final __test = new ElementKindTest();
-        runJUnitTest(__test, __test.test_of_null);
+      _ut.test('test_equals_self', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_self);
       });
     });
   }
@@ -4145,6 +3734,417 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 }
 
+class InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction extends InterfaceTypeImpl {
+  InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction(ClassElement arg0) : super.con1(arg0);
+
+  @override
+  bool get isDartCoreFunction => true;
+}
+
+class LibraryElementImplTest extends EngineTestCase {
+  void test_creation() {
+    JUnitTestCase.assertNotNull(new LibraryElementImpl(createAnalysisContext(), AstFactory.libraryIdentifier2(["l"])));
+  }
+
+  void test_getImportedLibraries() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library1 = ElementFactory.library(context, "l1");
+    LibraryElementImpl library2 = ElementFactory.library(context, "l2");
+    LibraryElementImpl library3 = ElementFactory.library(context, "l3");
+    LibraryElementImpl library4 = ElementFactory.library(context, "l4");
+    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
+    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
+    List<ImportElementImpl> imports = [
+        ElementFactory.importFor(library2, null, []),
+        ElementFactory.importFor(library2, prefixB, []),
+        ElementFactory.importFor(library3, null, []),
+        ElementFactory.importFor(library3, prefixA, []),
+        ElementFactory.importFor(library3, prefixB, []),
+        ElementFactory.importFor(library4, prefixA, [])];
+    library1.imports = imports;
+    List<LibraryElement> libraries = library1.importedLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library2, library3, library4], libraries);
+  }
+
+  void test_getPrefixes() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "l1");
+    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
+    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
+    List<ImportElementImpl> imports = [
+        ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
+        ElementFactory.importFor(ElementFactory.library(context, "l3"), null, []),
+        ElementFactory.importFor(ElementFactory.library(context, "l4"), prefixA, []),
+        ElementFactory.importFor(ElementFactory.library(context, "l5"), prefixA, []),
+        ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB, [])];
+    library.imports = imports;
+    List<PrefixElement> prefixes = library.prefixes;
+    EngineTestCase.assertLength(2, prefixes);
+    if (identical(prefixA, prefixes[0])) {
+      JUnitTestCase.assertSame(prefixB, prefixes[1]);
+    } else {
+      JUnitTestCase.assertSame(prefixB, prefixes[0]);
+      JUnitTestCase.assertSame(prefixA, prefixes[1]);
+    }
+  }
+
+  void test_getUnits() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "test");
+    CompilationUnitElement unitLib = library.definingCompilationUnit;
+    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit("unit_a.dart");
+    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit("unit_b.dart");
+    library.parts = <CompilationUnitElement> [unitA, unitB];
+    EngineTestCase.assertEqualsIgnoreOrder(<CompilationUnitElement> [unitLib, unitA, unitB], library.units);
+  }
+
+  void test_getVisibleLibraries_cycle() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(library, null, [])];
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+  }
+
+  void test_getVisibleLibraries_directExports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    library.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryA, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], libraries);
+  }
+
+  void test_getVisibleLibraries_directImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+  }
+
+  void test_getVisibleLibraries_indirectExports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
+    libraryA.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryAA, [])];
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA], libraries);
+  }
+
+  void test_getVisibleLibraries_indirectImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
+    LibraryElementImpl libraryB = ElementFactory.library(context, "B");
+    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(libraryAA, null, [])];
+    library.imports = <ImportElementImpl> [
+        ElementFactory.importFor(libraryA, null, []),
+        ElementFactory.importFor(libraryB, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA, libraryB], libraries);
+  }
+
+  void test_getVisibleLibraries_noImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], library.visibleLibraries);
+  }
+
+  void test_isUpToDate() {
+    AnalysisContext context = createAnalysisContext();
+    context.sourceFactory = new SourceFactory([]);
+    LibraryElement library = ElementFactory.library(context, "foo");
+    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
+    // Assert that we are not up to date if the target has an old time stamp.
+    JUnitTestCase.assertFalse(library.isUpToDate(0));
+    // Assert that we are up to date with a target modification time in the future.
+    JUnitTestCase.assertTrue(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000));
+  }
+
+  void test_setImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["l1"]));
+    List<ImportElementImpl> expectedImports = [
+        ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
+        ElementFactory.importFor(ElementFactory.library(context, "l3"), null, [])];
+    library.imports = expectedImports;
+    List<ImportElement> actualImports = library.imports;
+    EngineTestCase.assertLength(expectedImports.length, actualImports);
+    for (int i = 0; i < actualImports.length; i++) {
+      JUnitTestCase.assertSame(expectedImports[i], actualImports[i]);
+    }
+  }
+
+  static dartSuite() {
+    _ut.group('LibraryElementImplTest', () {
+      _ut.test('test_creation', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getImportedLibraries', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getImportedLibraries);
+      });
+      _ut.test('test_getPrefixes', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getPrefixes);
+      });
+      _ut.test('test_getUnits', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getUnits);
+      });
+      _ut.test('test_getVisibleLibraries_cycle', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_cycle);
+      });
+      _ut.test('test_getVisibleLibraries_directExports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_directExports);
+      });
+      _ut.test('test_getVisibleLibraries_directImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_directImports);
+      });
+      _ut.test('test_getVisibleLibraries_indirectExports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectExports);
+      });
+      _ut.test('test_getVisibleLibraries_indirectImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectImports);
+      });
+      _ut.test('test_getVisibleLibraries_noImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_noImports);
+      });
+      _ut.test('test_isUpToDate', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_isUpToDate);
+      });
+      _ut.test('test_setImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_setImports);
+      });
+    });
+  }
+}
+
+class MultiplyDefinedElementImplTest extends EngineTestCase {
+  void test_fromElements_conflicting() {
+    Element firstElement = ElementFactory.localVariableElement2("xx");
+    Element secondElement = ElementFactory.localVariableElement2("yy");
+    Element result = MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement);
+    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
+    List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
+    EngineTestCase.assertLength(2, elements);
+    for (int i = 0; i < elements.length; i++) {
+      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
+    }
+  }
+
+  void test_fromElements_multiple() {
+    Element firstElement = ElementFactory.localVariableElement2("xx");
+    Element secondElement = ElementFactory.localVariableElement2("yy");
+    Element thirdElement = ElementFactory.localVariableElement2("zz");
+    Element result = MultiplyDefinedElementImpl.fromElements(null, MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement), thirdElement);
+    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
+    List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
+    EngineTestCase.assertLength(3, elements);
+    for (int i = 0; i < elements.length; i++) {
+      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
+    }
+  }
+
+  void test_fromElements_nonConflicting() {
+    Element element = ElementFactory.localVariableElement2("xx");
+    JUnitTestCase.assertSame(element, MultiplyDefinedElementImpl.fromElements(null, element, element));
+  }
+
+  static dartSuite() {
+    _ut.group('MultiplyDefinedElementImplTest', () {
+      _ut.test('test_fromElements_conflicting', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_conflicting);
+      });
+      _ut.test('test_fromElements_multiple', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_multiple);
+      });
+      _ut.test('test_fromElements_nonConflicting', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_nonConflicting);
+      });
+    });
+  }
+}
+
+class TypeParameterTypeImplTest extends EngineTestCase {
+  void test_creation() {
+    JUnitTestCase.assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E"))));
+  }
+
+  void test_getElement() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertEquals(element, type.element);
+  }
+
+  void test_isMoreSpecificThan_typeArguments_bottom() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    // E << bottom
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(BottomTypeImpl.instance));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_dynamic() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    // E << dynamic
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.instance));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_object() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    // E << Object
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_resursive() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    typeParameterT.bound = typeParameterTypeU;
+    typeParameterU.bound = typeParameterTypeU;
+    // <T extends U> and <U extends T>
+    // T << S
+    JUnitTestCase.assertFalse(typeParameterTypeT.isMoreSpecificThan(classS.type));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_self() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    // E << E
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {
+    //  class A {}
+    //  class B extends A {}
+    //
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
+    typeParameterT.bound = typeB;
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    // <T extends B>
+    // T << A
+    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(typeA));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
+    typeParameterU.bound = classS.type;
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
+    typeParameterT.bound = typeParameterTypeU;
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    // <T extends U> and <U extends S>
+    // T << S
+    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.type));
+  }
+
+  void test_isMoreSpecificThan_typeArguments_upperBound() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
+    typeParameterT.bound = classS.type;
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    // <T extends S>
+    // T << S
+    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.type));
+  }
+
+  void test_substitute_equal() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertSame(argument, type.substitute2(<DartType> [argument], <DartType> [parameter]));
+  }
+
+  void test_substitute_notEqual() {
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E")));
+    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("F")));
+    JUnitTestCase.assertSame(type, type.substitute2(<DartType> [argument], <DartType> [parameter]));
+  }
+
+  static dartSuite() {
+    _ut.group('TypeParameterTypeImplTest', () {
+      _ut.test('test_creation', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getElement', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_getElement);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_bottom', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_bottom);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_dynamic', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_dynamic);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_object', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_object);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_resursive', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_resursive);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_self', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_self);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_typeParameters', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_typeParameters);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_upperBound', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_upperBound);
+      });
+      _ut.test('test_substitute_equal', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_substitute_equal);
+      });
+      _ut.test('test_substitute_notEqual', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_substitute_notEqual);
+      });
+    });
+  }
+}
+
 class VoidTypeImplTest extends EngineTestCase {
   /**
    * Reference {code VoidTypeImpl.getInstance()}.
@@ -4216,6 +4216,8 @@ class VoidTypeImplTest extends EngineTestCase {
 }
 
 main() {
+  ElementKindTest.dartSuite();
+  AngularPropertyKindTest.dartSuite();
   FunctionTypeImplTest.dartSuite();
   InterfaceTypeImplTest.dartSuite();
   TypeParameterTypeImplTest.dartSuite();
@@ -4226,6 +4228,4 @@ main() {
   HtmlElementImplTest.dartSuite();
   LibraryElementImplTest.dartSuite();
   MultiplyDefinedElementImplTest.dartSuite();
-  AngularPropertyKindTest.dartSuite();
-  ElementKindTest.dartSuite();
 }
