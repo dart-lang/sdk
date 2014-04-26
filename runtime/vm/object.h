@@ -3471,7 +3471,7 @@ class Code : public Object {
   }
 
   RawDeoptInfo* GetDeoptInfoAtPc(
-      uword pc, ICData::ICData::DeoptReasonId* deopt_reason) const;
+      uword pc, ICData::DeoptReasonId* deopt_reason) const;
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;

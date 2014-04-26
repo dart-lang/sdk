@@ -1269,7 +1269,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 }
 
 
-const char* DeoptReasonToCString(ICData::ICData::DeoptReasonId deopt_reason) {
+const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   switch (deopt_reason) {
 #define DEOPT_REASON_TO_TEXT(name) case ICData::kDeopt##name: return #name;
 DEOPT_REASONS(DEOPT_REASON_TO_TEXT)

@@ -610,7 +610,7 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 void Simulator::UnimplementedInstruction(Instr* instr) {
   char buffer[128];
   snprintf(buffer, sizeof(buffer),
-      "Unimplemented instruction: at %p, last_pc=0x%"Px"\n",
+      "Unimplemented instruction: at %p, last_pc=0x%" Px64 "\n",
       instr, get_last_pc());
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);

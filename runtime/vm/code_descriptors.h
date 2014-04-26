@@ -25,7 +25,7 @@ class DescriptorList : public ZoneAllocated {
     intptr_t TokenPos() const { return data; }
     void SetDeoptReason(ICData::DeoptReasonId value) { data = value; }
     ICData::DeoptReasonId DeoptReason() const {
-      ASSERT((0 <= data) && (data < ICData::ICData::kDeoptNumReasons));
+      ASSERT((0 <= data) && (data < ICData::kDeoptNumReasons));
       return static_cast<ICData::DeoptReasonId>(data);
     }
   };
