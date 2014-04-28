@@ -419,8 +419,8 @@ class Debugger {
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Script& script,
                                         intptr_t token_pos);
-  void MakeCodeBreakpointsAt(const Function& func,
-                             SourceBreakpoint* bpt);
+  void MakeCodeBreakpointAt(const Function& func,
+                            SourceBreakpoint* bpt);
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 

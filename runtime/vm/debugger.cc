@@ -1547,27 +1547,39 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
 }
 
 
-void Debugger::MakeCodeBreakpointsAt(const Function& func,
-                                     SourceBreakpoint* bpt) {
+void Debugger::MakeCodeBreakpointAt(const Function& func,
+                                    SourceBreakpoint* bpt) {
   ASSERT((bpt != NULL) && bpt->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  uword lowest_pc = kUwordMax;
+  intptr_t lowest_pc_index = -1;
+  // Find the safe point with the lowest compiled code address
+  // that maps to the token position of the source breakpoint.
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     if ((desc_token_pos == bpt->token_pos_) && IsSafePoint(desc, i)) {
-      CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
-      if (code_bpt == NULL) {
-        // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(code, i);
-        RegisterCodeBreakpoint(code_bpt);
-      }
-      code_bpt->set_src_bpt(bpt);
-      if (bpt->IsEnabled()) {
-        code_bpt->Enable();
+      if (desc.PC(i) < lowest_pc) {
+        // This descriptor so far has the lowest code address.
+        lowest_pc = desc.PC(i);
+        lowest_pc_index = i;
       }
     }
+  }
+  if (lowest_pc_index < 0) {
+    return;
+  }
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(lowest_pc_index));
+  if (code_bpt == NULL) {
+    // No code breakpoint for this code exists; create one.
+    code_bpt = new CodeBreakpoint(code, lowest_pc_index);
+    RegisterCodeBreakpoint(code_bpt);
+  }
+  code_bpt->set_src_bpt(bpt);
+  if (bpt->IsEnabled()) {
+    code_bpt->Enable();
   }
 }
 
@@ -1770,7 +1782,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
       for (intptr_t i = 0; i < num_functions; i++) {
         func ^= functions.At(i);
         ASSERT(func.HasCode());
-        MakeCodeBreakpointsAt(func, bpt);
+        MakeCodeBreakpointAt(func, bpt);
       }
       bpt->Enable();
       if (FLAG_verbose_debug) {
@@ -2379,7 +2391,7 @@ void Debugger::NotifyCompilation(const Function& func) {
                   func.IsClosureFunction() ? "closure" : "function",
                   String::Handle(func.name()).ToCString());
       }
-      MakeCodeBreakpointsAt(func, bpt);
+      MakeCodeBreakpointAt(func, bpt);
     }
   }
 }
