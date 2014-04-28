@@ -1884,6 +1884,8 @@ class Definition : public Instruction {
     UNREACHABLE();
   }
 
+  Definition* OriginalDefinition();
+
  protected:
   friend class RangeAnalysis;
   friend class Value;
@@ -2984,7 +2986,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
   bool HasSingleRecognizedTarget() const;
 
-  bool HasSingleDispatcherTarget() const;
+  bool HasOnlyDispatcherTargets() const;
 
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 

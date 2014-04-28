@@ -3733,18 +3733,6 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
 }
 
 
-static Definition* OriginalDefinition(Definition* defn) {
-  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
-    if (defn->IsRedefinition()) {
-      defn = defn->AsRedefinition()->value()->definition();
-    } else {
-      defn = defn->AsAssertAssignable()->value()->definition();
-    }
-  }
-  return defn;
-}
-
-
 // Returns true if checking against this type is a direct class id comparison.
 static bool TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
@@ -3839,7 +3827,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
   const bool negate = Bool::Cast(
-      OriginalDefinition(call->ArgumentAt(4))->AsConstant()->value()).value();
+      call->ArgumentAt(4)->OriginalDefinition()->AsConstant()->value()).value();
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
@@ -5268,7 +5256,7 @@ class Place : public ValueObject {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
         representation_ = load_field->representation();
-        instance_ = OriginalDefinition(load_field->instance()->definition());
+        instance_ = load_field->instance()->definition()->OriginalDefinition();
         if (load_field->field() != NULL) {
           kind_ = kField;
           field_ = load_field->field();
@@ -5285,7 +5273,7 @@ class Place : public ValueObject {
             instr->AsStoreInstanceField();
         representation_ = store->RequiredInputRepresentation(
             StoreInstanceFieldInstr::kValuePos);
-        instance_ = OriginalDefinition(store->instance()->definition());
+        instance_ = store->instance()->definition()->OriginalDefinition();
         if (!store->field().IsNull()) {
           kind_ = kField;
           field_ = &store->field();
@@ -5314,7 +5302,7 @@ class Place : public ValueObject {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         kind_ = kIndexed;
         representation_ = load_indexed->representation();
-        instance_ = OriginalDefinition(load_indexed->array()->definition());
+        instance_ = load_indexed->array()->definition()->OriginalDefinition();
         index_ = load_indexed->index()->definition();
         *is_load = true;
         break;
@@ -5325,7 +5313,7 @@ class Place : public ValueObject {
         kind_ = kIndexed;
         representation_ = store_indexed->
             RequiredInputRepresentation(StoreIndexedInstr::kValuePos);
-        instance_ = OriginalDefinition(store_indexed->array()->definition());
+        instance_ = store_indexed->array()->definition()->OriginalDefinition();
         index_ = store_indexed->index()->definition();
         break;
       }
@@ -5363,7 +5351,7 @@ class Place : public ValueObject {
 
   void set_instance(Definition* def) {
     ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
-    instance_ = OriginalDefinition(def);
+    instance_ = def->OriginalDefinition();
   }
 
   const Field& field() const {

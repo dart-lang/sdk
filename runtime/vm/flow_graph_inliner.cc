@@ -349,7 +349,7 @@ class CallSites : public ValueObject {
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
               instance_call->HasSingleRecognizedTarget() ||
-              instance_call->HasSingleDispatcherTarget()) {
+              instance_call->HasOnlyDispatcherTargets()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
@@ -996,7 +996,7 @@ class CallSiteInliner : public ValueObject {
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
       AllocateObjectInstr* alloc =
-          call->ArgumentAt(0)->AsAllocateObject();
+          call->ArgumentAt(0)->OriginalDefinition()->AsAllocateObject();
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
         target ^= alloc->closure_function().raw();
         ASSERT(target.signature_class() == alloc->cls().raw());

@@ -47,6 +47,19 @@ Definition::Definition()
 }
 
 
+Definition* Definition::OriginalDefinition() {
+  Definition* defn = this;
+  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+    if (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    } else {
+      defn = defn->AsAssertAssignable()->value()->definition();
+    }
+  }
+  return defn;
+}
+
+
 ICData* Instruction::GetICData(const Array& ic_data_array) const {
   ICData& ic_data = ICData::ZoneHandle();
   // The deopt_id can be outside the range of the IC data array for
@@ -2197,10 +2210,15 @@ bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
 }
 
 
-bool PolymorphicInstanceCallInstr::HasSingleDispatcherTarget() const {
-  if (!ic_data().HasOneTarget()) return false;
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
-  return target.IsNoSuchMethodDispatcher() || target.IsInvokeFieldDispatcher();
+bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
+  for (intptr_t i = 0; i < ic_data().NumberOfChecks(); ++i) {
+    const Function& target = Function::Handle(ic_data().GetTargetAt(i));
+    if (!target.IsNoSuchMethodDispatcher() &&
+        !target.IsInvokeFieldDispatcher()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
