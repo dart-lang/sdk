@@ -325,7 +325,6 @@ mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared 
 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 mirrors/metadata_scope_test/01: MissingCompileTimeError # Issue 17894
-mirrors/new_instance_with_type_arguments_test: StaticWarning # Issue 18374
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Skip # Issue 17458

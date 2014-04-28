@@ -486,7 +486,4 @@ factory1_test/01: StaticWarning
 factory1_test/none: StaticWarning
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
-null_test/none: StaticWarning
 redirecting_factory_long_test: StaticWarning
-type_parameter_literal_test: StaticWarning
-mirrors/new_instance_with_type_arguments_test: StaticWarning

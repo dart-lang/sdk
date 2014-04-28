@@ -118,8 +118,6 @@ WebPlatformTest1/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 #co19 issue 680
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t04: StaticWarning
-Language/12_Expressions/30_Identifier_Reference_A07_t01: StaticWarning
-Language/12_Expressions/30_Identifier_Reference_A16_t01: StaticWarning
 
 # co19 roll to r706: Please triage all these issues.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03: StaticWarning # co19-roll r706: Please triage this failure.
