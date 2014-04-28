@@ -79,6 +79,10 @@ class ClosureTracerVisitor extends TracerVisitor {
       } else if (info.targets.any((element) => checkIfCurrentUser(element))) {
         analyzeCall(info);
       }
+    } else if (info.selector.isGetter() &&
+        info.selector.name == Compiler.CALL_OPERATOR_NAME) {
+      // We are potentially tearing off ourself here
+      addNewEscapeInformation(info);
     }
   }
 }

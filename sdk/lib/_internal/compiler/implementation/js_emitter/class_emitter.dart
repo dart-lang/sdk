@@ -47,6 +47,14 @@ class ClassEmitter extends CodeEmitterHelper {
       additionalProperties.forEach(builder.addProperty);
     }
 
+    if (classElement == compiler.closureClass) {
+      // We add a special getter here to allow for tearing off a closure form
+      // itself.
+      String name = namer.safeName(Compiler.CALL_OPERATOR_NAME);
+      jsAst.Fun function = js('function() { return this; }');
+      builder.addProperty(namer.getterNameFromAccessorName(name), function);
+    }
+
     emitTypeVariableReaders(classElement, builder);
 
     emitClassBuilderWithReflectionData(
