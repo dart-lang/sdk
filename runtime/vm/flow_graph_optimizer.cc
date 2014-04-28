@@ -3683,7 +3683,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
-  results->Clear();
+  ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
@@ -3818,7 +3818,6 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 
   ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
   ASSERT(results->length() >= 2);
-  // const Class& type_class = Class::Handle(type.type_class())
   if (type.IsIntType()) {
     ASSERT((*results)[0] == kSmiCid);
     TryAddTest(results, kMintCid, true);
