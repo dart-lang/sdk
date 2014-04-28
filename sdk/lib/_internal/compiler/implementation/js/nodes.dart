@@ -125,9 +125,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitConditional(Conditional node) => visitExpression(node);
   T visitNew(New node) => visitExpression(node);
   T visitCall(Call node) => visitExpression(node);
-  T visitBinary(Binary node) => visitCall(node);
-  T visitPrefix(Prefix node) => visitCall(node);
-  T visitPostfix(Postfix node) => visitCall(node);
+  T visitBinary(Binary node) => visitExpression(node);
+  T visitPrefix(Prefix node) => visitExpression(node);
+  T visitPostfix(Postfix node) => visitExpression(node);
   T visitAccess(PropertyAccess node) => visitExpression(node);
 
   T visitVariableUse(VariableUse node) => visitVariableReference(node);
@@ -619,31 +619,26 @@ class Sequence extends Expression {
 
 class Assignment extends Expression {
   final Expression leftHandSide;
-  // Null, if the assignment is not compound.
-  final VariableReference compoundTarget;
+  final String op;         // Null, if the assignment is not compound.
   final Expression value;  // May be null, for [VariableInitialization]s.
 
   Assignment(leftHandSide, value)
-      : this._internal(leftHandSide, null, value);
-  Assignment.compound(leftHandSide, String op, value)
-      : this._internal(leftHandSide, new VariableUse(op), value);
-  Assignment._internal(this.leftHandSide, this.compoundTarget, this.value);
+      : this.compound(leftHandSide, null, value);
+  Assignment.compound(this.leftHandSide, this.op, this.value);
 
   int get precedenceLevel => ASSIGNMENT;
 
-  bool get isCompound => compoundTarget != null;
-  String get op => compoundTarget == null ? null : compoundTarget.name;
+  bool get isCompound => op != null;
 
   accept(NodeVisitor visitor) => visitor.visitAssignment(this);
 
   void visitChildren(NodeVisitor visitor) {
     leftHandSide.accept(visitor);
-    if (compoundTarget != null) compoundTarget.accept(visitor);
     if (value != null) value.accept(visitor);
   }
 
   Assignment _clone() =>
-      new Assignment._internal(leftHandSide, compoundTarget, value);
+      new Assignment.compound(leftHandSide, op, value);
 }
 
 class VariableInitialization extends Assignment {
@@ -705,24 +700,21 @@ class New extends Call {
   New _clone() => new New(target, arguments);
 }
 
-class Binary extends Call {
-  Binary(String op, Expression left, Expression right)
-      : this._internal(new VariableUse(op), <Expression>[left, right]);
+class Binary extends Expression {
+  final String op;
+  final Expression left;
+  final Expression right;
 
-  Binary._internal(Expression target, List<Expression> arguments)
-      : super(target, arguments);
-
-  String get op {
-    VariableUse use = target;
-    return use.name;
-  }
-
-  Expression get left => arguments[0];
-  Expression get right => arguments[1];
+  Binary(this.op, this.left, this.right);
 
   accept(NodeVisitor visitor) => visitor.visitBinary(this);
 
-  Binary _clone() => new Binary._internal(target, arguments);
+  Binary _clone() => new Binary(op, left, right);
+
+  void visitChildren(NodeVisitor visitor) {
+    left.accept(visitor);
+    right.accept(visitor);
+  }
 
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
@@ -769,36 +761,37 @@ class Binary extends Call {
   }
 }
 
-class Prefix extends Call {
-  Prefix(String op, Expression arg)
-      : this._internal(new VariableUse(op), <Expression>[arg]);
+class Prefix extends Expression {
+  final String op;
+  final Expression argument;
 
-  Prefix._internal(Expression target, List<Expression> arguments)
-      : super(target, arguments);
-
-  String get op => (target as VariableUse).name;
-  Expression get argument => arguments[0];
+  Prefix(this.op, this.argument);
 
   accept(NodeVisitor visitor) => visitor.visitPrefix(this);
 
-  Prefix _clone() => new Prefix._internal(target, arguments);
+  Prefix _clone() => new Prefix(op, argument);
+
+  void visitChildren(NodeVisitor visitor) {
+    argument.accept(visitor);
+  }
 
   int get precedenceLevel => UNARY;
 }
 
-class Postfix extends Call {
-  Postfix(String op, Expression arg)
-      : this._internal(new VariableUse(op), <Expression>[arg]);
+class Postfix extends Expression {
+  final String op;
+  final Expression argument;
 
-  Postfix._internal(Expression target, List<Expression> arguments)
-      : super(target, arguments);
-
-  String get op => (target as VariableUse).name;
-  Expression get argument => arguments[0];
+  Postfix(this.op, this.argument);
 
   accept(NodeVisitor visitor) => visitor.visitPostfix(this);
 
-  Postfix _clone() => new Postfix._internal(target, arguments);
+  Postfix _clone() => new Postfix(op, argument);
+
+  void visitChildren(NodeVisitor visitor) {
+    argument.accept(visitor);
+  }
+
 
   int get precedenceLevel => UNARY;
 }

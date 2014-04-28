@@ -795,7 +795,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 if (expression is js.Assignment) {
                   js.Assignment assignment = expression;
                   if (assignment.leftHandSide is js.VariableUse &&
-                      assignment.compoundTarget == null) {
+                      !assignment.isCompound) {
                     expressionIsVariableAssignment = true;
                   }
                 }
