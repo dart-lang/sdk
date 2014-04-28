@@ -48,9 +48,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (classElement == compiler.closureClass) {
-      // We add a special getter here to allow for tearing off a closure form
+      // We add a special getter here to allow for tearing off a closure from
       // itself.
-      String name = namer.safeName(Compiler.CALL_OPERATOR_NAME);
+      String name = namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME);
       jsAst.Fun function = js('function() { return this; }');
       builder.addProperty(namer.getterNameFromAccessorName(name), function);
     }

@@ -2261,12 +2261,13 @@ abstract class Closure implements Function {
         '}');
   }
 
-  // Note that the backend adds the below special getter to allow for tearing
-  // off a closure from itself. We do this magically in the backend, as we do
-  // not want this getter to be visisble to resolution and the generation of
-  // extra stubs.
+  // The backend adds a special getter of the form
   //
   // Closure get call => this;
+  //
+  // to allow tearing off a closure from itself. We do this magically in the
+  // backend rather than simply adding it here, as we do not want this getter
+  // to be visible to resolution and the generation of extra stubs.
 
   String toString() => "Closure";
 }
