@@ -32,8 +32,16 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
     " native entries.");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
+
+// Disable optimizing compiler on ARM64.
+#if defined(TARGET_ARCH_ARM64)
+DEFINE_FLAG(int, optimization_counter_threshold, -1,
+    "Function's usage-counter value before it is optimized, -1 means never");
+#else
 DEFINE_FLAG(int, optimization_counter_threshold, 15000,
     "Function's usage-counter value before it is optimized, -1 means never");
+#endif
+
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
     "Counter threshold before a function gets reoptimized.");
