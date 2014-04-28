@@ -85,9 +85,7 @@ void testConfigurations(List<Map> configurations) {
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
-  // We set a special flag in the safari browser if we need to clear out
-  // the cache before running.
-  Safari.deleteCache = firstConf['clear_safari_cache'];
+  Browser.deleteCache = firstConf['clear_browser_cache'];
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"

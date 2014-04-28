@@ -335,6 +335,13 @@ Note: currently only implemented for dart2js.''',
               false,
               type: 'bool'),
           new _TestOptionSpecification(
+              'clear_browser_cache',
+              'Browser specific clearing of caches(i.e., delete it).',
+              ['--clear_browser_cache'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
               'copy_coredumps',
               'If we see a crash that we did not expect, copy the core dumps. '
               'to /tmp',
@@ -675,6 +682,12 @@ Note: currently only implemented for dart2js.''',
 
     // Allow suppression that is valid for all ie versions
     configuration['ie'] = runtime.startsWith('ie');
+
+    // Temporary grace period for clear_safaci_cache
+    // See issue 18478
+    if (configuration['clear_safari_cache']) {
+      configuration['clear_browser_cache'] = true;
+    }
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
