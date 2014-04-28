@@ -170,11 +170,38 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 }
 
 abstract class Node {
-  var sourcePosition;
-  var endSourcePosition;
+  get sourcePosition => _sourcePosition;
+  get endSourcePosition => _endSourcePosition;
+
+  var _sourcePosition;
+  var _endSourcePosition;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
+
+  // Shallow clone of node.  Does not clone positions since the only use of this
+  // private method is create a copy with a new position.
+  Node _clone();
+
+  // Returns a node equivalent to [this], but with new source position and end
+  // source position.
+  Node withPosition(var sourcePosition, var endSourcePosition) {
+    if (sourcePosition == _sourcePosition &&
+        endSourcePosition == _endSourcePosition) {
+      return this;
+    }
+    Node clone = _clone();
+    // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
+    // `null`?
+    clone._sourcePosition = sourcePosition;
+    clone._endSourcePosition = endSourcePosition;
+    return clone;
+  }
+
+  // Returns a node equivalent to [this], but with new [this.sourcePositions],
+  // keeping the existing [endPosition]
+  Node withLocation(var sourcePosition) =>
+      withPosition(sourcePosition, this.endSourcePosition);
 
   VariableUse asVariableUse() => null;
 
@@ -191,10 +218,14 @@ class Program extends Node {
   void visitChildren(NodeVisitor visitor) {
     for (Statement statement in body) statement.accept(visitor);
   }
+  Program _clone() => new Program(body);
 }
 
 abstract class Statement extends Node {
   Statement toStatement() => this;
+
+  Statement withPosition(var sourcePosition, var endSourcePosition) =>
+      super.withPosition(sourcePosition, endSourcePosition);
 }
 
 class Block extends Statement {
@@ -206,6 +237,7 @@ class Block extends Statement {
   void visitChildren(NodeVisitor visitor) {
     for (Statement statement in statements) statement.accept(visitor);
   }
+  Block _clone() => new Block(statements);
 }
 
 class ExpressionStatement extends Statement {
@@ -214,6 +246,7 @@ class ExpressionStatement extends Statement {
 
   accept(NodeVisitor visitor) => visitor.visitExpressionStatement(this);
   void visitChildren(NodeVisitor visitor) { expression.accept(visitor); }
+  ExpressionStatement _clone() => new ExpressionStatement(expression);
 }
 
 class EmptyStatement extends Statement {
@@ -221,6 +254,7 @@ class EmptyStatement extends Statement {
 
   accept(NodeVisitor visitor) => visitor.visitEmptyStatement(this);
   void visitChildren(NodeVisitor visitor) {}
+  EmptyStatement _clone() => new EmptyStatement();
 }
 
 class If extends Statement {
@@ -240,6 +274,8 @@ class If extends Statement {
     then.accept(visitor);
     otherwise.accept(visitor);
   }
+
+  If _clone() => new If(condition, then, otherwise);
 }
 
 abstract class Loop extends Statement {
@@ -262,6 +298,8 @@ class For extends Loop {
     if (update != null) update.accept(visitor);
     body.accept(visitor);
   }
+
+  For _clone() => new For(init, condition, update, body);
 }
 
 class ForIn extends Loop {
@@ -279,6 +317,8 @@ class ForIn extends Loop {
     object.accept(visitor);
     body.accept(visitor);
   }
+
+  ForIn _clone() => new ForIn(leftHandSide, object, body);
 }
 
 class While extends Loop {
@@ -292,6 +332,8 @@ class While extends Loop {
     condition.accept(visitor);
     body.accept(visitor);
   }
+
+  While _clone() => new While(condition, body);
 }
 
 class Do extends Loop {
@@ -305,6 +347,8 @@ class Do extends Loop {
     body.accept(visitor);
     condition.accept(visitor);
   }
+
+  Do _clone() => new Do(body, condition);
 }
 
 class Continue extends Statement {
@@ -314,6 +358,8 @@ class Continue extends Statement {
 
   accept(NodeVisitor visitor) => visitor.visitContinue(this);
   void visitChildren(NodeVisitor visitor) {}
+
+  Continue _clone() => new Continue(targetLabel);
 }
 
 class Break extends Statement {
@@ -323,6 +369,8 @@ class Break extends Statement {
 
   accept(NodeVisitor visitor) => visitor.visitBreak(this);
   void visitChildren(NodeVisitor visitor) {}
+
+  Break _clone() => new Break(targetLabel);
 }
 
 class Return extends Statement {
@@ -335,6 +383,8 @@ class Return extends Statement {
   void visitChildren(NodeVisitor visitor) {
     if (value != null) value.accept(visitor);
   }
+
+  Return _clone() => new Return(value);
 }
 
 class Throw extends Statement {
@@ -347,6 +397,8 @@ class Throw extends Statement {
   void visitChildren(NodeVisitor visitor) {
     expression.accept(visitor);
   }
+
+  Throw _clone() => new Throw(expression);
 }
 
 class Try extends Statement {
@@ -365,6 +417,8 @@ class Try extends Statement {
     if (catchPart != null) catchPart.accept(visitor);
     if (finallyPart != null) finallyPart.accept(visitor);
   }
+
+  Try _clone() => new Try(body, catchPart, finallyPart);
 }
 
 class Catch extends Node {
@@ -379,6 +433,8 @@ class Catch extends Node {
     declaration.accept(visitor);
     body.accept(visitor);
   }
+
+  Catch _clone() => new Catch(declaration, body);
 }
 
 class Switch extends Statement {
@@ -393,6 +449,8 @@ class Switch extends Statement {
     key.accept(visitor);
     for (SwitchClause clause in cases) clause.accept(visitor);
   }
+
+  Switch _clone() => new Switch(key, cases);
 }
 
 abstract class SwitchClause extends Node {
@@ -412,6 +470,8 @@ class Case extends SwitchClause {
     expression.accept(visitor);
     body.accept(visitor);
   }
+
+  Case _clone() => new Case(expression, body);
 }
 
 class Default extends SwitchClause {
@@ -422,6 +482,8 @@ class Default extends SwitchClause {
   void visitChildren(NodeVisitor visitor) {
     body.accept(visitor);
   }
+
+  Default _clone() => new Default(body);
 }
 
 class FunctionDeclaration extends Statement {
@@ -436,6 +498,8 @@ class FunctionDeclaration extends Statement {
     name.accept(visitor);
     function.accept(visitor);
   }
+
+  FunctionDeclaration _clone() => new FunctionDeclaration(name, function);
 }
 
 class LabeledStatement extends Statement {
@@ -449,6 +513,8 @@ class LabeledStatement extends Statement {
   void visitChildren(NodeVisitor visitor) {
     body.accept(visitor);
   }
+
+  LabeledStatement _clone() => new LabeledStatement(label, body);
 }
 
 class LiteralStatement extends Statement {
@@ -458,12 +524,17 @@ class LiteralStatement extends Statement {
 
   accept(NodeVisitor visitor) => visitor.visitLiteralStatement(this);
   void visitChildren(NodeVisitor visitor) { }
+
+  LiteralStatement _clone() => new LiteralStatement(code);
 }
 
 abstract class Expression extends Node {
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);
+
+  Expression withPosition(var sourcePosition, var endSourcePosition) =>
+      super.withPosition(sourcePosition, endSourcePosition);
 }
 
 /// Wrap a CodeBuffer as an expression.
@@ -479,7 +550,10 @@ class Blob extends Expression {
 
   void visitChildren(NodeVisitor visitor) {}
 
+  Blob _clone() => new Blob(buffer);
+
   int get precedenceLevel => PRIMARY;
+
 }
 
 class LiteralExpression extends Expression {
@@ -496,6 +570,9 @@ class LiteralExpression extends Expression {
       for (Expression expr in inputs) expr.accept(visitor);
     }
   }
+
+  LiteralExpression _clone() =>
+      new LiteralExpression.withData(template, inputs);
 
   // Code that uses JS must take care of operator precedences, and
   // put parenthesis if needed.
@@ -519,6 +596,8 @@ class VariableDeclarationList extends Expression {
     }
   }
 
+  VariableDeclarationList _clone() => new VariableDeclarationList(declarations);
+
   int get precedenceLevel => EXPRESSION;
 }
 
@@ -532,6 +611,8 @@ class Sequence extends Expression {
   void visitChildren(NodeVisitor visitor) {
     for (Expression expr in expressions) expr.accept(visitor);
   }
+
+  Sequence _clone() => new Sequence(expressions);
 
   int get precedenceLevel => EXPRESSION;
 }
@@ -560,6 +641,9 @@ class Assignment extends Expression {
     if (compoundTarget != null) compoundTarget.accept(visitor);
     if (value != null) value.accept(visitor);
   }
+
+  Assignment _clone() =>
+      new Assignment._internal(leftHandSide, compoundTarget, value);
 }
 
 class VariableInitialization extends Assignment {
@@ -570,6 +654,9 @@ class VariableInitialization extends Assignment {
   VariableDeclaration get declaration => leftHandSide;
 
   accept(NodeVisitor visitor) => visitor.visitVariableInitialization(this);
+
+  VariableInitialization _clone() =>
+      new VariableInitialization(declaration, value);
 }
 
 class Conditional extends Expression {
@@ -587,6 +674,8 @@ class Conditional extends Expression {
     otherwise.accept(visitor);
   }
 
+  Conditional _clone() => new Conditional(condition, then, otherwise);
+
   int get precedenceLevel => ASSIGNMENT;
 }
 
@@ -603,6 +692,8 @@ class Call extends Expression {
     for (Expression arg in arguments) arg.accept(visitor);
   }
 
+  Call _clone() => new Call(target, arguments);
+
   int get precedenceLevel => CALL;
 }
 
@@ -610,11 +701,16 @@ class New extends Call {
   New(Expression cls, List<Expression> arguments) : super(cls, arguments);
 
   accept(NodeVisitor visitor) => visitor.visitNew(this);
+
+  New _clone() => new New(target, arguments);
 }
 
 class Binary extends Call {
   Binary(String op, Expression left, Expression right)
-      : super(new VariableUse(op), <Expression>[left, right]);
+      : this._internal(new VariableUse(op), <Expression>[left, right]);
+
+  Binary._internal(Expression target, List<Expression> arguments)
+      : super(target, arguments);
 
   String get op {
     VariableUse use = target;
@@ -625,6 +721,8 @@ class Binary extends Call {
   Expression get right => arguments[1];
 
   accept(NodeVisitor visitor) => visitor.visitBinary(this);
+
+  Binary _clone() => new Binary._internal(target, arguments);
 
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
@@ -673,24 +771,34 @@ class Binary extends Call {
 
 class Prefix extends Call {
   Prefix(String op, Expression arg)
-      : super(new VariableUse(op), <Expression>[arg]);
+      : this._internal(new VariableUse(op), <Expression>[arg]);
+
+  Prefix._internal(Expression target, List<Expression> arguments)
+      : super(target, arguments);
 
   String get op => (target as VariableUse).name;
   Expression get argument => arguments[0];
 
   accept(NodeVisitor visitor) => visitor.visitPrefix(this);
 
+  Prefix _clone() => new Prefix._internal(target, arguments);
+
   int get precedenceLevel => UNARY;
 }
 
 class Postfix extends Call {
   Postfix(String op, Expression arg)
-      : super(new VariableUse(op), <Expression>[arg]);
+      : this._internal(new VariableUse(op), <Expression>[arg]);
+
+  Postfix._internal(Expression target, List<Expression> arguments)
+      : super(target, arguments);
 
   String get op => (target as VariableUse).name;
   Expression get argument => arguments[0];
 
   accept(NodeVisitor visitor) => visitor.visitPostfix(this);
+
+  Postfix _clone() => new Postfix._internal(target, arguments);
 
   int get precedenceLevel => UNARY;
 }
@@ -711,26 +819,32 @@ class VariableUse extends VariableReference {
   VariableUse(String name) : super(name);
 
   accept(NodeVisitor visitor) => visitor.visitVariableUse(this);
+  VariableUse _clone() => new VariableUse(name);
 
   VariableUse asVariableUse() => this;
+
+  toString() => 'VariableUse($name)';
 }
 
 class VariableDeclaration extends VariableReference {
   VariableDeclaration(String name) : super(name);
 
   accept(NodeVisitor visitor) => visitor.visitVariableDeclaration(this);
+  VariableDeclaration _clone() => new VariableDeclaration(name);
 }
 
 class Parameter extends VariableDeclaration {
   Parameter(String id) : super(id);
 
   accept(NodeVisitor visitor) => visitor.visitParameter(this);
+  Parameter _clone() => new Parameter(name);
 }
 
 class This extends Parameter {
   This() : super("this");
 
   accept(NodeVisitor visitor) => visitor.visitThis(this);
+  This _clone() => new This();
 }
 
 class NamedFunction extends Expression {
@@ -745,6 +859,7 @@ class NamedFunction extends Expression {
     name.accept(visitor);
     function.accept(visitor);
   }
+  NamedFunction _clone() => new NamedFunction(name, function);
 
   int get precedenceLevel => CALL;
 }
@@ -761,6 +876,8 @@ class Fun extends Expression {
     for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
+
+  Fun _clone() => new Fun(params, body);
 
   int get precedenceLevel => CALL;
 }
@@ -782,6 +899,8 @@ class PropertyAccess extends Expression {
     selector.accept(visitor);
   }
 
+  PropertyAccess _clone() => new PropertyAccess(receiver, selector);
+
   int get precedenceLevel => CALL;
 }
 
@@ -798,12 +917,14 @@ class LiteralBool extends Literal {
 
   accept(NodeVisitor visitor) => visitor.visitLiteralBool(this);
   // [visitChildren] inherited from [Literal].
+  LiteralBool _clone() => new LiteralBool(value);
 }
 
 class LiteralNull extends Literal {
   LiteralNull();
 
   accept(NodeVisitor visitor) => visitor.visitLiteralNull(this);
+  LiteralNull _clone() => new LiteralNull();
 }
 
 class LiteralString extends Literal {
@@ -819,6 +940,7 @@ class LiteralString extends Literal {
   LiteralString(this.value);
 
   accept(NodeVisitor visitor) => visitor.visitLiteralString(this);
+  LiteralString _clone() => new LiteralString(value);
 }
 
 class LiteralNumber extends Literal {
@@ -827,6 +949,7 @@ class LiteralNumber extends Literal {
   LiteralNumber(this.value);
 
   accept(NodeVisitor visitor) => visitor.visitLiteralNumber(this);
+  LiteralNumber _clone() => new LiteralNumber(value);
 }
 
 class ArrayInitializer extends Expression {
@@ -846,6 +969,8 @@ class ArrayInitializer extends Expression {
     for (ArrayElement element in elements) element.accept(visitor);
   }
 
+  ArrayInitializer _clone() => new ArrayInitializer(length, elements);
+
   int get precedenceLevel => PRIMARY;
 
   static List<ArrayElement> _convert(Iterable<Expression> expressions) {
@@ -861,8 +986,8 @@ class ArrayInitializer extends Expression {
  * its position in the containing [ArrayInitializer].
  */
 class ArrayElement extends Node {
-  int index;
-  Expression value;
+  final int index;
+  final Expression value;
 
   ArrayElement(this.index, this.value);
 
@@ -871,11 +996,13 @@ class ArrayElement extends Node {
   void visitChildren(NodeVisitor visitor) {
     value.accept(visitor);
   }
+
+  ArrayElement _clone() => new ArrayElement(index, value);
 }
 
 class ObjectInitializer extends Expression {
-  List<Property> properties;
-  bool isOneLiner;
+  final List<Property> properties;
+  final bool isOneLiner;
 
   /**
    * Constructs a new object-initializer containing the given [properties].
@@ -892,12 +1019,15 @@ class ObjectInitializer extends Expression {
     for (Property init in properties) init.accept(visitor);
   }
 
+  ObjectInitializer _clone() =>
+      new ObjectInitializer(properties, isOneLiner: isOneLiner);
+
   int get precedenceLevel => PRIMARY;
 }
 
 class Property extends Node {
-  Literal name;
-  Expression value;
+  final Literal name;
+  final Expression value;
 
   Property(this.name, this.value);
 
@@ -907,6 +1037,8 @@ class Property extends Node {
     name.accept(visitor);
     value.accept(visitor);
   }
+
+  Property _clone() => new Property(name, value);
 }
 
 /// Tag class for all interpolated positions.
@@ -921,6 +1053,7 @@ class InterpolatedExpression extends Expression implements InterpolatedNode {
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
   void visitChildren(NodeVisitor visitor) {}
+  InterpolatedExpression _clone() => new InterpolatedExpression(name);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -932,6 +1065,7 @@ class InterpolatedLiteral extends Literal implements InterpolatedNode {
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedLiteral(this);
   void visitChildren(NodeVisitor visitor) {}
+  InterpolatedLiteral _clone() => new InterpolatedLiteral(name);
 }
 
 class InterpolatedParameter extends Expression
@@ -942,6 +1076,7 @@ class InterpolatedParameter extends Expression
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedParameter(this);
   void visitChildren(NodeVisitor visitor) {}
+  InterpolatedParameter _clone() => new InterpolatedParameter(name);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -953,6 +1088,7 @@ class InterpolatedSelector extends Expression implements InterpolatedNode {
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedSelector(this);
   void visitChildren(NodeVisitor visitor) {}
+  InterpolatedSelector _clone() => new InterpolatedSelector(name);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -964,6 +1100,7 @@ class InterpolatedStatement extends Statement implements InterpolatedNode {
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedStatement(this);
   void visitChildren(NodeVisitor visitor) {}
+  InterpolatedStatement _clone() => new InterpolatedStatement(name);
 }
 
 /**
@@ -973,12 +1110,13 @@ class InterpolatedStatement extends Statement implements InterpolatedNode {
  */
 class RegExpLiteral extends Expression {
   /** Contains the pattern and the flags.*/
-  String pattern;
+  final String pattern;
 
   RegExpLiteral(this.pattern);
 
   accept(NodeVisitor visitor) => visitor.visitRegExpLiteral(this);
   void visitChildren(NodeVisitor visitor) {}
+  RegExpLiteral _clone() => new RegExpLiteral(pattern);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -995,6 +1133,7 @@ class Comment extends Statement {
   Comment(this.comment);
 
   accept(NodeVisitor visitor) => visitor.visitComment(this);
+  Comment _clone() => new Comment(comment);
 
   void visitChildren(NodeVisitor visitor) {}
 }
