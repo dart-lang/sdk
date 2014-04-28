@@ -180,44 +180,68 @@ Iterable<DeclarationMirror> membersOf(
 
 Iterable<TypeMirror> classesOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where((mirror) => mirror is ClassMirror);
+  return new _TypeOfIterable<ClassMirror>(declarations.values);
 }
 
 Iterable<TypeMirror> typesOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where((mirror) => mirror is TypeMirror);
+  return new _TypeOfIterable<TypeMirror>(declarations.values);
 }
 
 Iterable<MethodMirror> methodsOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where(
-      (mirror) => mirror is MethodMirror && mirror.isRegularMethod);
+  return anyMethodOf(declarations).where((mirror) => mirror.isRegularMethod);
 }
 
 Iterable<MethodMirror> constructorsOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where(
-      (mirror) => mirror is MethodMirror && mirror.isConstructor);
+  return anyMethodOf(declarations).where((mirror) => mirror.isConstructor);
 }
 
 Iterable<MethodMirror> settersOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where(
-      (mirror) => mirror is MethodMirror && mirror.isSetter);
+  return anyMethodOf(declarations).where((mirror) => mirror.isSetter);
 }
 
 Iterable<MethodMirror> gettersOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where(
-      (mirror) => mirror is MethodMirror && mirror.isGetter);
+  return anyMethodOf(declarations).where((mirror) => mirror.isGetter);
+}
+
+Iterable<MethodMirror> anyMethodOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return new _TypeOfIterable<MethodMirror>(declarations.values);
 }
 
 Iterable<VariableMirror> variablesOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where((mirror) => mirror is VariableMirror);
+  return new _TypeOfIterable<VariableMirror>(declarations.values);
 }
 
+class _TypeOfIterable<T> extends IterableBase<T> {
+  final Iterable _source;
 
+  _TypeOfIterable(this._source);
+
+  Iterator<T> get iterator => new _TypeOfIterator<T>(_source.iterator);
+}
+
+class _TypeOfIterator<T> implements Iterator<T> {
+  final Iterator _source;
+
+  T get current => _source.current;
+
+  _TypeOfIterator(this._source);
+
+  bool moveNext() {
+    while(_source.moveNext()) {
+      if (_source.current is T) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
 
 bool isObject(TypeMirror mirror) =>
     mirror is ClassMirror && mirror.superclass == null;

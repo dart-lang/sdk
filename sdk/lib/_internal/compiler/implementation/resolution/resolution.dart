@@ -28,7 +28,6 @@ import '../elements/modelx.dart'
          MetadataAnnotationX,
          ParameterMetadataAnnotation,
          MetadataContainer;
-import '../helpers/helpers.dart';
 import '../util/util.dart';
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
