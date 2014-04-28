@@ -115,7 +115,6 @@ void testHttpServerClientClose() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     runZoned(() {
       server.listen((request) {
-        request.response.bufferOutput = false;
         request.response.add(new Uint8List(64 * 1024));
         new Timer(const Duration(milliseconds: 100), () {
           request.response.close().then((_) {
