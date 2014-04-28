@@ -15,13 +15,13 @@ import sys
 
 import bot
 
-PUB_BUILDER = r'pub-(linux|mac|win)(-(russian))?'
+PUB_BUILDER = r'pub-(linux|mac|win)(-(russian))?(-(debug))?'
 
 def PubConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
 
   Currently, this is just:
-  - mode: always "release"
+  - mode: "debug", "release"
   - system: "linux", "mac", or "win"
   """
   pub_pattern = re.match(PUB_BUILDER, name)
@@ -30,9 +30,10 @@ def PubConfig(name, is_buildbot):
 
   system = pub_pattern.group(1)
   locale = pub_pattern.group(3)
+  mode = pub_pattern.group(5) or 'release'
   if system == 'win': system = 'windows'
 
-  return bot.BuildInfo('none', 'vm', 'release', system, checked=True,
+  return bot.BuildInfo('none', 'vm', mode, system, checked=True,
                        builder_tag=locale)
 
 
@@ -46,11 +47,14 @@ def PubSteps(build_info):
   common_args = ['--write-test-outcome-log']
   if build_info.builder_tag:
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
-                 
-  bot.RunTest('pub', build_info,
-              common_args + ['pub', 'pkg', 'docs'])
+                
+  # Pub tests currently have a lot of timeouts when run in debug mode.
+  # See issue 18479
+  if build_info.mode == 'release':
+    bot.RunTest('pub', build_info,
+                common_args + ['pub', 'pkg', 'docs'])
 
-  pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
+  pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
       build_info.system, checked=False)
   bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
       common_args + ['--append_logs', '--use-repository-packages', 'pkgbuild'])
