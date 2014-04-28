@@ -401,18 +401,18 @@ class RuntimeTypes {
         ..addAll(checkedArguments);
   }
 
-  /// Return the unique name for the element as an unquoted string.
-  String getJsName(Element element) {
+  String getTypeRepresentationForTypeConstant(DartType type) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    return namer.isolateAccess(element);
-  }
-
-  String getRawTypeRepresentation(DartType type) {
-    String name = getJsName(type.element);
+    String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass()) return name;
     InterfaceType interface = type;
     Link<DartType> variables = interface.element.typeVariables;
+    // Type constants can currently only be raw types, so there is no point
+    // adding ground-term type parameters, as they would just be 'dynamic'.
+    // TODO(sra): Since the result string is used only in constructing constant
+    // names, it would result in more readable names if the final string was a
+    // legal JavaScript identifer.
     if (variables.isEmpty) return name;
     String arguments =
         new List.filled(variables.slowLength(), 'dynamic').join(', ');

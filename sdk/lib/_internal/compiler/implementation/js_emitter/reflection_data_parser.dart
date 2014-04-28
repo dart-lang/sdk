@@ -24,6 +24,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
   String tearOffGlobalObjectName;
   String tearOffGlobalObject;
   if (closureFromTearOff != null) {
+    // TODO(sra): Replace with AST.
     tearOffAccess = namer.isolateAccess(closureFromTearOff);
     tearOffGlobalObjectName = tearOffGlobalObject =
         namer.globalObjectFor(closureFromTearOff);

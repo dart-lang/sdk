@@ -1771,13 +1771,12 @@ class JavaScriptBackend extends Backend {
     // helper rather than reading it inside the helper to increase the
     // chance of making the dispatch record access monomorphic.
     jsAst.PropertyAccess record = new jsAst.PropertyAccess(
-        use2, new jsAst.VariableUse(dispatchPropertyName));
+        use2, js(dispatchPropertyName));
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    FunctionElement helper =
-        compiler.findHelper('isJsIndexable');
-    String helperName = namer.isolateAccess(helper);
-    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
+    FunctionElement helper = compiler.findHelper('isJsIndexable');
+    jsAst.Expression helperExpression = namer.elementAccess(helper);
+    return new jsAst.Call(helperExpression, arguments);
   }
 
   bool isTypedArray(TypeMask mask) {

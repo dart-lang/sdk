@@ -19,8 +19,8 @@ class CheckedModeHelper {
     codegen.use(node.checkedInput);
     arguments.add(codegen.pop());
     generateAdditionalArguments(codegen, node, arguments);
-    String helperName = codegen.backend.namer.isolateAccess(helperElement);
-    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
+    jsAst.Expression helper = codegen.backend.namer.elementAccess(helperElement);
+    return new jsAst.Call(helper, arguments);
   }
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,

@@ -1611,7 +1611,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
     }
 
-    push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+    push(backend.namer.elementAccess(node.element));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
 
@@ -1743,11 +1743,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    String jsClassReference = backend.namer.isolateAccess(node.element);
+    js.Expression jsClassReference = backend.namer.elementAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
-    // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
-    // as if it was a string.
-    push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
+    push(new js.New(jsClassReference, arguments), node);
     registerForeignTypes(node);
     if (node.instantiatedTypes == null) {
       return;
@@ -1983,8 +1981,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateThrowWithHelper(String helperName, argument) {
     Element helper = compiler.findHelper(helperName);
     world.registerStaticUse(helper);
-    js.VariableUse jsHelper =
-        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Expression jsHelper = backend.namer.elementAccess(helper);
     List arguments = [];
     var location;
     if (argument is List) {
@@ -2017,8 +2014,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element helper = compiler.findHelper("throwExpression");
     world.registerStaticUse(helper);
 
-    js.VariableUse jsHelper =
-        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Expression jsHelper = backend.namer.elementAccess(helper);
     js.Call value = new js.Call(jsHelper, [pop()]);
     value = attachLocation(value, argument);
     push(value, node);
@@ -2031,10 +2027,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitStatic(HStatic node) {
     Element element = node.element;
     if (element.isFunction()) {
-      push(new js.VariableUse(
-          backend.namer.isolateStaticClosureAccess(node.element)));
+      push(backend.namer.isolateStaticClosureAccess(node.element));
     } else {
-      push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+      push(backend.namer.elementAccess(node.element));
     }
     world.registerStaticUse(element);
   }
@@ -2042,9 +2037,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitLazyStatic(HLazyStatic node) {
     Element element = node.element;
     world.registerStaticUse(element);
-    String lazyGetter = backend.namer.isolateLazyInitializerAccess(element);
-    js.VariableUse target = new js.VariableUse(lazyGetter);
-    js.Call call = new js.Call(target, <js.Expression>[]);
+    js.Expression lazyGetter =
+        backend.namer.isolateLazyInitializerAccess(element);
+    js.Call call = new js.Call(lazyGetter, <js.Expression>[]);
     push(call, node);
   }
 
@@ -2081,10 +2076,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
       world.registerStaticUse(convertToString);
-      js.VariableUse variableUse =
-          new js.VariableUse(backend.namer.isolateAccess(convertToString));
+      js.Expression jsHelper = backend.namer.elementAccess(convertToString);
       use(input);
-      push(new js.Call(variableUse, <js.Expression>[pop()]), node);
+      push(new js.Call(jsHelper, <js.Expression>[pop()]), node);
     }
   }
 

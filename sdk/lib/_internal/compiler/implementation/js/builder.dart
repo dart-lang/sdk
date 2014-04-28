@@ -679,7 +679,7 @@ class MiniJsParser {
         expectCategory(RSQUARE);
       }
       return new ArrayInitializer(values.length, values);
-    } else if (last.startsWith("/")) {
+    } else if (last != null && last.startsWith("/")) {
       String regexp = getDelimited(lastPosition);
       getToken();
       String flags = lastToken;

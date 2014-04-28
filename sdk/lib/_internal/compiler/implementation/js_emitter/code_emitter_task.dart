@@ -547,7 +547,8 @@ class CodeEmitterTask extends CompilerTask {
 
   jsAst.Fun get lazyInitializerFunction {
     String isolate = namer.currentIsolate;
-    String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
+    jsAst.Expression cyclicThrow =
+        namer.elementAccess(backend.getCyclicThrowHelper());
 
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
@@ -577,7 +578,7 @@ class CodeEmitterTask extends CompilerTask {
               }
             } else {
               if (result === sentinelInProgress)
-                $cyclicThrow(staticName);
+                #(staticName);
             }
 
             return result;
@@ -586,7 +587,7 @@ class CodeEmitterTask extends CompilerTask {
           }
         }
       }
-    ''', [backend.rememberLazies]);
+    ''', [backend.rememberLazies, cyclicThrow]);
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
@@ -958,10 +959,13 @@ class CodeEmitterTask extends CompilerTask {
   String buildIsolateSetupClosure(CodeBuffer buffer,
                                   Element appMain,
                                   Element isolateMain) {
-    String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
+    jsAst.Expression mainAccess = namer.isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    return "(function(a){${namer.isolateAccess(isolateMain)}($mainAccess,a)})";
+    jsAst.Expression setup = js('function(a){ #(#, a); }',
+            [namer.elementAccess(isolateMain), mainAccess]);
+
+    return '(' + jsAst.prettyPrint(setup, compiler).getText() + ')';
   }
 
   /**
@@ -1021,6 +1025,7 @@ class CodeEmitterTask extends CompilerTask {
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(buffer, main, isolateMain);
     } else {
+      // TODO(sra): Replace with AST.
       mainCallClosure = '${namer.isolateAccess(main)}';
     }
 
@@ -1192,6 +1197,7 @@ class CodeEmitterTask extends CompilerTask {
       FunctionElement printHelper =
           compiler.lookupElementIn(
               primitives, 'printString');
+      // TODO(sra): Replace with AST.
       String printHelperName = namer.isolateAccess(printHelper);
       mainBuffer.add('''
 // The following only works on V8 when run with option "--allow-natives-syntax".
@@ -1478,6 +1484,7 @@ mainBuffer.add(r'''
         FunctionElement printHelper =
             compiler.lookupElementIn(
                 primitives, 'printString');
+        // TODO(sra): Replace with AST.
         String printHelperName = namer.isolateAccess(printHelper);
 
         mainBuffer.add('''

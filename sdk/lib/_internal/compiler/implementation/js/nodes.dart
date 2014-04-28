@@ -799,9 +799,10 @@ class Postfix extends Expression {
 abstract class VariableReference extends Expression {
   final String name;
 
-  // We treat operators as if they were special functions. They can thus be
-  // referenced like other variables.
-  VariableReference(this.name);
+  VariableReference(this.name) {
+    assert(_identifierRE.hasMatch(name));
+  }
+  static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
   accept(NodeVisitor visitor);
   int get precedenceLevel => PRIMARY;
@@ -827,7 +828,7 @@ class VariableDeclaration extends VariableReference {
 }
 
 class Parameter extends VariableDeclaration {
-  Parameter(String id) : super(id);
+  Parameter(String name) : super(name);
 
   accept(NodeVisitor visitor) => visitor.visitParameter(this);
   Parameter _clone() => new Parameter(name);

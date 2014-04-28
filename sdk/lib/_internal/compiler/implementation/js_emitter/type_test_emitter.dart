@@ -279,25 +279,36 @@ class TypeTestEmitter extends CodeEmitterHelper {
     // Add checks to the constructors of instantiated classes.
     // TODO(sigurdm): We should avoid running through this list for each
     // output unit.
+
+    List<jsAst.Statement> statements = <jsAst.Statement>[];
+
     for (ClassElement cls in typeChecks) {
       OutputUnit destination =
           compiler.deferredLoadTask.outputUnitForElement(cls);
       if (destination != outputUnit) continue;
       // TODO(9556).  The properties added to 'holder' should be generated
       // directly as properties of the class object, not added later.
-      String holder = namer.isolateAccess(backend.getImplementationClass(cls));
+      jsAst.Expression holder
+          = namer.elementAccess(backend.getImplementationClass(cls));
+
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
-        buffer.write('$holder.${namer.operatorIs(cls)}$_=${_}true$N');
+        buffer.write(
+            jsAst.prettyPrint(
+                js('#.# = true', [holder, namer.operatorIs(cls)]),
+                compiler));
+        buffer.write('$N');
         Substitution substitution = check.substitution;
         if (substitution != null) {
-          CodeBuffer body =
-             jsAst.prettyPrint(substitution.getCode(rti, false), compiler);
-          buffer.write('$holder.${namer.substitutionName(cls)}$_=${_}');
-          buffer.write(body);
+          jsAst.Expression body = substitution.getCode(rti, false);
+          buffer.write(
+              jsAst.prettyPrint(
+                  js('#.# = #',
+                      [holder, namer.substitutionName(cls), body]),
+                  compiler));
           buffer.write('$N');
         }
-      };
+      }
     }
   }
 

@@ -895,12 +895,21 @@ class Namer implements ClosureNamer {
     return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
-  String isolateLazyInitializerAccess(Element element) {
-    return "${globalObjectFor(element)}.${getLazyInitializerName(element)}";
+  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+    return js('#.#',
+        [globalObjectFor(element), getLazyInitializerName(element)]);
   }
 
-  String isolateStaticClosureAccess(Element element) {
-    return "${globalObjectFor(element)}.${getStaticClosureName(element)}()";
+  jsAst.Expression isolateStaticClosureAccess(Element element) {
+    return js('#.#()',
+        [globalObjectFor(element), getStaticClosureName(element)]);
+  }
+
+  // This name is used as part of the name of a TypeConstant
+  String uniqueNameForTypeConstantElement(Element element) {
+    // TODO(sra): If we replace the period with an identifier character,
+    // TypeConstants will have better names in unminified code.
+    return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
   String globalObjectForConstant(Constant constant) => 'C';
@@ -1178,7 +1187,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     addRoot('Type');
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     addIdentifier(name);
   }
 
@@ -1258,7 +1267,7 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   int visitType(TypeConstant constant) {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
