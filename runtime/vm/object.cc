@@ -1979,6 +1979,7 @@ void Class::AddClosureFunction(const Function& function) const {
     StorePointer(&raw_ptr()->closure_functions_, closures.raw());
   }
   ASSERT(function.IsNonImplicitClosureFunction());
+  ASSERT(function.Owner() == this->raw());
   closures.Add(function);
 }
 

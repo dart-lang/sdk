@@ -2192,22 +2192,24 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     const Class& cls = Class::Handle(
         owner()->parsed_function()->function().Owner());
     // The closure is now properly setup, add it to the lookup table.
-#if DEBUG
+    // It is possible that the compiler creates more than one function
+    // object for the same closure, e.g. when inlining nodes from
+    // finally clauses. If we already have a function object for the
+    // same closure, do not add a second one. We compare the origin
+    // class, token position, and parent function to detect duplicates.
+    // Note that we can have two different closure object for the same
+    // source text represntation of the closure: one with a non-closurized
+    // parent, and one with a closurized parent function.
+
     const Function& found_func = Function::Handle(
         cls.LookupClosureFunction(function.token_pos()));
-    ASSERT(found_func.IsNull() ||
-           (found_func.token_pos() != function.token_pos()) ||
-           // TODO(hausner): The following check should not be necessary.
-           // Since we only lookup based on the token_pos we can get
-           // duplicate entries due to closurized and non-closurized parent
-           // functions (see Parser::ParseFunctionStatement).
-           // We need two ways to lookup in this cache: One way to cache the
-           // appropriate closure function and one way to find the functions
-           // while debugging (we might need to set breakpoints in multiple
-           // different function for a single token index.)
-           (found_func.parent_function() != function.parent_function()));
-#endif  // DEBUG
-    cls.AddClosureFunction(function);
+
+    if (found_func.IsNull() ||
+        (found_func.token_pos() != function.token_pos()) ||
+        (found_func.script() != function.script()) ||
+        (found_func.parent_function() != function.parent_function())) {
+      cls.AddClosureFunction(function);
+    }
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
