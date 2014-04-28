@@ -231,8 +231,8 @@ def main():
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
     GenerateSingleFile(
-        os.path.join(dartium_output_dir, 'blink_dartium.dart'),
-        os.path.join('..', '..', '..', 'sdk', 'lib', 'blink', 'dartium'))
+        os.path.join(dartium_output_dir, '_blink_dartium.dart'),
+        os.path.join('..', '..', '..', 'sdk', 'lib', '_blink', 'dartium'))
 
 if __name__ == '__main__':
   sys.exit(main())

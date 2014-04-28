@@ -105,11 +105,11 @@ class _Utils {
     return element;
   }
 
-  static window() => blink.Native_Utils_window();
-  static forwardingPrint(String message) => blink.Native_Utils_forwardingPrint(message);
+  static window() => _blink.Native_Utils_window();
+  static forwardingPrint(String message) => _blink.Native_Utils_forwardingPrint(message);
   // TODO(vsm): Make this API compatible with spawnUri.  It should also
   // return a Future<Isolate>.
-  static spawnDomUri(String uri) => blink.Native_Utils_spawnDomUri(uri);
+  static spawnDomUri(String uri) => _blink.Native_Utils_spawnDomUri(uri);
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
@@ -411,16 +411,16 @@ class _Utils {
   }
 
   static void _register(Document document, String tag, Type customType,
-    String extendsTagName) => blink.Native_Utils_register(document, tag, customType, extendsTagName);
+    String extendsTagName) => _blink.Native_Utils_register(document, tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
-    blink.Native_Utils_createElement(document, tagName);
+    _blink.Native_Utils_createElement(document, tagName);
 
   static void initializeCustomElement(HtmlElement element) =>
-    blink.Native_Utils_initializeCustomElement(element);
+    _blink.Native_Utils_initializeCustomElement(element);
 
   static void changeElementWrapper(HtmlElement element, Type type) =>
-    blink.Native_Utils_changeElementWrapper(element, type);
+    _blink.Native_Utils_changeElementWrapper(element, type);
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
@@ -428,17 +428,17 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  HistoryBase get history => blink.Native_DOMWindowCrossFrame_get_history(this);
-  LocationBase get location => blink.Native_DOMWindowCrossFrame_get_location(this);
-  bool get closed => blink.Native_DOMWindowCrossFrame_get_closed(this);
-  WindowBase get opener => blink.Native_DOMWindowCrossFrame_get_opener(this);
-  WindowBase get parent => blink.Native_DOMWindowCrossFrame_get_parent(this);
-  WindowBase get top => blink.Native_DOMWindowCrossFrame_get_top(this);
+  HistoryBase get history => _blink.Native_DOMWindowCrossFrame_get_history(this);
+  LocationBase get location => _blink.Native_DOMWindowCrossFrame_get_location(this);
+  bool get closed => _blink.Native_DOMWindowCrossFrame_get_closed(this);
+  WindowBase get opener => _blink.Native_DOMWindowCrossFrame_get_opener(this);
+  WindowBase get parent => _blink.Native_DOMWindowCrossFrame_get_parent(this);
+  WindowBase get top => _blink.Native_DOMWindowCrossFrame_get_top(this);
 
   // Methods.
-  void close() => blink.Native_DOMWindowCrossFrame_close(this);
+  void close() => _blink.Native_DOMWindowCrossFrame_close(this);
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) =>
-    blink.Native_DOMWindowCrossFrame_postMessage(this, message, targetOrigin, messagePorts);
+    _blink.Native_DOMWindowCrossFrame_postMessage(this, message, targetOrigin, messagePorts);
 
   // Implementation support.
   String get typeName => "Window";
@@ -463,9 +463,9 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => blink.Native_HistoryCrossFrame_back(this);
-  void forward() => blink.Native_HistoryCrossFrame_forward(this);
-  void go(int distance) => blink.Native_HistoryCrossFrame_go(this, distance);
+  void back() => _blink.Native_HistoryCrossFrame_back(this);
+  void forward() => _blink.Native_HistoryCrossFrame_forward(this);
+  void go(int distance) => _blink.Native_HistoryCrossFrame_go(this, distance);
 
   // Implementation support.
   String get typeName => "History";
@@ -475,7 +475,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   _LocationCrossFrame.internal();
 
   // Fields.
-  void set href(String h) => blink.Native_LocationCrossFrame_set_href(this, h);
+  void set href(String h) => _blink.Native_LocationCrossFrame_set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";
@@ -485,14 +485,14 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
-  bool containsKey(String key) => blink.Native_DOMStringMap_containsKey(this, key);
-  String operator [](String key) => blink.Native_DOMStringMap_item(this, key);
-  void operator []=(String key, String value) => blink.Native_DOMStringMap_setItem(this, key, value);
+  bool containsKey(String key) => _blink.Native_DOMStringMap_containsKey(this, key);
+  String operator [](String key) => _blink.Native_DOMStringMap_item(this, key);
+  void operator []=(String key, String value) => _blink.Native_DOMStringMap_setItem(this, key, value);
   String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
-  String remove(String key) => blink.Native_DOMStringMap_remove(this, key);
+  String remove(String key) => _blink.Native_DOMStringMap_remove(this, key);
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Iterable<String> get keys => blink.Native_DOMStringMap_get_keys(this, keys);
+  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this, keys);
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);

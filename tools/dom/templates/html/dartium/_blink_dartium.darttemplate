@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
-// Auto-generated dart:blink library.
+// Auto-generated dart:_blink library.
 
 /**
  * This library provides entry points to the native Blink code which backs
  * up the dart:html library.
  */
-library dart.dom.blink;
+library dart.dom._blink;
 
 part '$AUXILIARY_DIR/blink_native_DOMImplementation.dart';
 

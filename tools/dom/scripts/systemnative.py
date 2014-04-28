@@ -231,8 +231,8 @@ def GetNativeLibraryEmitter(emitters, template_loader,
     def massage_path(path):
         # The most robust way to emit path separators is to use / always.
         return path.replace('\\', '/')
-    template = template_loader.Load('blink_dartium.darttemplate')
-    dart_path = os.path.join(dartium_output_dir, 'blink_dartium.dart')
+    template = template_loader.Load('_blink_dartium.darttemplate')
+    dart_path = os.path.join(dartium_output_dir, '_blink_dartium.dart')
     library_emitter = emitters.FileEmitter(dart_path)
     auxiliary_dir = os.path.relpath(auxiliary_dir, dartium_output_dir)
     emitter = \
@@ -255,7 +255,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
-    self._native_library_name = "blink"
+    self._native_library_name = "_blink"
     # This goes away after the Chrome 35 roll (or whenever we commit to the
     # dart:blink refactor)
     self._dart_use_blink = dart_use_blink
@@ -393,18 +393,6 @@ class DartiumBackend(HtmlDartGenerator):
       template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('dart_implementation.darttemplate')
-    return template
-
-  def _NativeImplementationTemplate(self):
-    template = None
-    interface_name = self._interface.doc_js_name
-    if (interface_name == self._interface.id or
-       not self._database.HasInterface(interface_name)):
-      template_file = 'impl_blink_%s.darttemplate' % interface_name
-      template = self._template_loader.TryLoad(template_file)
-    if not template:
-      template = \
-          self._template_loader.Load('dart_blink_implementation.darttemplate')
     return template
 
   def RootClassName(self):

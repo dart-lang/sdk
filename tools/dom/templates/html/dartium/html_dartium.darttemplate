@@ -52,7 +52,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 $if DART_USE_BLINK
-import 'dart:blink' as blink;
+import 'dart:_blink' as _blink;
 $endif
 
 export 'dart:math' show Rectangle, Point;

@@ -11,7 +11,7 @@ import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 $if DART_USE_BLINK
-import 'dart:blink' as blink;
+import 'dart:_blink' as _blink;
 $endif
 
 part '$AUXILIARY_DIR/WebGLConstants.dart';

@@ -12,7 +12,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 $if DART_USE_BLINK
-import 'dart:blink' as blink;
+import 'dart:_blink' as _blink;
 $endif
 
 $!GENERATED_DART_FILES

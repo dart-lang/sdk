@@ -7,7 +7,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
-import 'dart:blink' as blink;
+import 'dart:_blink' as _blink;
 // DO NOT EDIT
 // Auto-generated dart:web_gl library.
 
@@ -332,15 +332,15 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable()
-  String get name => blink.Native_WebGLActiveInfo_name_Getter(this);
+  String get name => _blink.Native_WebGLActiveInfo_name_Getter(this);
 
   @DomName('WebGLActiveInfo.size')
   @DocsEditable()
-  int get size => blink.Native_WebGLActiveInfo_size_Getter(this);
+  int get size => _blink.Native_WebGLActiveInfo_size_Getter(this);
 
   @DomName('WebGLActiveInfo.type')
   @DocsEditable()
-  int get type => blink.Native_WebGLActiveInfo_type_Getter(this);
+  int get type => _blink.Native_WebGLActiveInfo_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -365,17 +365,17 @@ class AngleInstancedArrays extends NativeFieldWrapperClass2 {
   @DomName('ANGLEInstancedArrays.drawArraysInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) => blink.Native_ANGLEInstancedArrays_drawArraysInstancedANGLE_Callback(this, mode, first, count, primcount);
+  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) => _blink.Native_ANGLEInstancedArrays_drawArraysInstancedANGLE_Callback(this, mode, first, count, primcount);
 
   @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) => blink.Native_ANGLEInstancedArrays_drawElementsInstancedANGLE_Callback(this, mode, count, type, offset, primcount);
+  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) => _blink.Native_ANGLEInstancedArrays_drawElementsInstancedANGLE_Callback(this, mode, count, type, offset, primcount);
 
   @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) => blink.Native_ANGLEInstancedArrays_vertexAttribDivisorANGLE_Callback(this, index, divisor);
+  void vertexAttribDivisorAngle(int index, int divisor) => _blink.Native_ANGLEInstancedArrays_vertexAttribDivisorANGLE_Callback(this, index, divisor);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -523,61 +523,61 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
-  bool get alpha => blink.Native_WebGLContextAttributes_alpha_Getter(this);
+  bool get alpha => _blink.Native_WebGLContextAttributes_alpha_Getter(this);
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => blink.Native_WebGLContextAttributes_alpha_Setter(this, value);
+  void set alpha(bool value) => _blink.Native_WebGLContextAttributes_alpha_Setter(this, value);
 
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
-  bool get antialias => blink.Native_WebGLContextAttributes_antialias_Getter(this);
+  bool get antialias => _blink.Native_WebGLContextAttributes_antialias_Getter(this);
 
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
-  void set antialias(bool value) => blink.Native_WebGLContextAttributes_antialias_Setter(this, value);
+  void set antialias(bool value) => _blink.Native_WebGLContextAttributes_antialias_Setter(this, value);
 
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
-  bool get depth => blink.Native_WebGLContextAttributes_depth_Getter(this);
+  bool get depth => _blink.Native_WebGLContextAttributes_depth_Getter(this);
 
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
-  void set depth(bool value) => blink.Native_WebGLContextAttributes_depth_Setter(this, value);
+  void set depth(bool value) => _blink.Native_WebGLContextAttributes_depth_Setter(this, value);
 
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get failIfMajorPerformanceCaveat => blink.Native_WebGLContextAttributes_failIfMajorPerformanceCaveat_Getter(this);
+  bool get failIfMajorPerformanceCaveat => _blink.Native_WebGLContextAttributes_failIfMajorPerformanceCaveat_Getter(this);
 
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
   @Experimental() // untriaged
-  void set failIfMajorPerformanceCaveat(bool value) => blink.Native_WebGLContextAttributes_failIfMajorPerformanceCaveat_Setter(this, value);
+  void set failIfMajorPerformanceCaveat(bool value) => _blink.Native_WebGLContextAttributes_failIfMajorPerformanceCaveat_Setter(this, value);
 
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
-  bool get premultipliedAlpha => blink.Native_WebGLContextAttributes_premultipliedAlpha_Getter(this);
+  bool get premultipliedAlpha => _blink.Native_WebGLContextAttributes_premultipliedAlpha_Getter(this);
 
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
-  void set premultipliedAlpha(bool value) => blink.Native_WebGLContextAttributes_premultipliedAlpha_Setter(this, value);
+  void set premultipliedAlpha(bool value) => _blink.Native_WebGLContextAttributes_premultipliedAlpha_Setter(this, value);
 
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
-  bool get preserveDrawingBuffer => blink.Native_WebGLContextAttributes_preserveDrawingBuffer_Getter(this);
+  bool get preserveDrawingBuffer => _blink.Native_WebGLContextAttributes_preserveDrawingBuffer_Getter(this);
 
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
-  void set preserveDrawingBuffer(bool value) => blink.Native_WebGLContextAttributes_preserveDrawingBuffer_Setter(this, value);
+  void set preserveDrawingBuffer(bool value) => _blink.Native_WebGLContextAttributes_preserveDrawingBuffer_Setter(this, value);
 
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
-  bool get stencil => blink.Native_WebGLContextAttributes_stencil_Getter(this);
+  bool get stencil => _blink.Native_WebGLContextAttributes_stencil_Getter(this);
 
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
-  void set stencil(bool value) => blink.Native_WebGLContextAttributes_stencil_Setter(this, value);
+  void set stencil(bool value) => _blink.Native_WebGLContextAttributes_stencil_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -596,7 +596,7 @@ class ContextEvent extends Event {
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable()
-  String get statusMessage => blink.Native_WebGLContextEvent_statusMessage_Getter(this);
+  String get statusMessage => _blink.Native_WebGLContextEvent_statusMessage_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -640,7 +640,7 @@ class DebugShaders extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
-  String getTranslatedShaderSource(Shader shader) => blink.Native_WebGLDebugShaders_getTranslatedShaderSource_Callback(this, shader);
+  String getTranslatedShaderSource(Shader shader) => _blink.Native_WebGLDebugShaders_getTranslatedShaderSource_Callback(this, shader);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -816,7 +816,7 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersWebgl(List<int> buffers) => blink.Native_WebGLDrawBuffers_drawBuffersWEBGL_Callback(this, buffers);
+  void drawBuffersWebgl(List<int> buffers) => _blink.Native_WebGLDrawBuffers_drawBuffersWEBGL_Callback(this, buffers);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -891,11 +891,11 @@ class LoseContext extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() => blink.Native_WebGLLoseContext_loseContext_Callback(this);
+  void loseContext() => _blink.Native_WebGLLoseContext_loseContext_Callback(this);
 
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() => blink.Native_WebGLLoseContext_restoreContext_Callback(this);
+  void restoreContext() => _blink.Native_WebGLLoseContext_restoreContext_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1023,19 +1023,19 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
 
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObject arrayObject) => blink.Native_OESVertexArrayObject_bindVertexArrayOES_Callback(this, arrayObject);
+  void bindVertexArray(VertexArrayObject arrayObject) => _blink.Native_OESVertexArrayObject_bindVertexArrayOES_Callback(this, arrayObject);
 
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() => blink.Native_OESVertexArrayObject_createVertexArrayOES_Callback(this);
+  VertexArrayObject createVertexArray() => _blink.Native_OESVertexArrayObject_createVertexArrayOES_Callback(this);
 
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObject arrayObject) => blink.Native_OESVertexArrayObject_deleteVertexArrayOES_Callback(this, arrayObject);
+  void deleteVertexArray(VertexArrayObject arrayObject) => _blink.Native_OESVertexArrayObject_deleteVertexArrayOES_Callback(this, arrayObject);
 
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObject arrayObject) => blink.Native_OESVertexArrayObject_isVertexArrayOES_Callback(this, arrayObject);
+  bool isVertexArray(VertexArrayObject arrayObject) => _blink.Native_OESVertexArrayObject_isVertexArrayOES_Callback(this, arrayObject);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2267,63 +2267,63 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.drawingBufferHeight')
   @DocsEditable()
-  int get drawingBufferHeight => blink.Native_WebGLRenderingContext_drawingBufferHeight_Getter(this);
+  int get drawingBufferHeight => _blink.Native_WebGLRenderingContext_drawingBufferHeight_Getter(this);
 
   @DomName('WebGLRenderingContext.drawingBufferWidth')
   @DocsEditable()
-  int get drawingBufferWidth => blink.Native_WebGLRenderingContext_drawingBufferWidth_Getter(this);
+  int get drawingBufferWidth => _blink.Native_WebGLRenderingContext_drawingBufferWidth_Getter(this);
 
   @DomName('WebGLRenderingContext.activeTexture')
   @DocsEditable()
-  void activeTexture(int texture) => blink.Native_WebGLRenderingContext_activeTexture_Callback(this, texture);
+  void activeTexture(int texture) => _blink.Native_WebGLRenderingContext_activeTexture_Callback(this, texture);
 
   @DomName('WebGLRenderingContext.attachShader')
   @DocsEditable()
-  void attachShader(Program program, Shader shader) => blink.Native_WebGLRenderingContext_attachShader_Callback(this, program, shader);
+  void attachShader(Program program, Shader shader) => _blink.Native_WebGLRenderingContext_attachShader_Callback(this, program, shader);
 
   @DomName('WebGLRenderingContext.bindAttribLocation')
   @DocsEditable()
-  void bindAttribLocation(Program program, int index, String name) => blink.Native_WebGLRenderingContext_bindAttribLocation_Callback(this, program, index, name);
+  void bindAttribLocation(Program program, int index, String name) => _blink.Native_WebGLRenderingContext_bindAttribLocation_Callback(this, program, index, name);
 
   @DomName('WebGLRenderingContext.bindBuffer')
   @DocsEditable()
-  void bindBuffer(int target, Buffer buffer) => blink.Native_WebGLRenderingContext_bindBuffer_Callback(this, target, buffer);
+  void bindBuffer(int target, Buffer buffer) => _blink.Native_WebGLRenderingContext_bindBuffer_Callback(this, target, buffer);
 
   @DomName('WebGLRenderingContext.bindFramebuffer')
   @DocsEditable()
-  void bindFramebuffer(int target, Framebuffer framebuffer) => blink.Native_WebGLRenderingContext_bindFramebuffer_Callback(this, target, framebuffer);
+  void bindFramebuffer(int target, Framebuffer framebuffer) => _blink.Native_WebGLRenderingContext_bindFramebuffer_Callback(this, target, framebuffer);
 
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   @DocsEditable()
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => blink.Native_WebGLRenderingContext_bindRenderbuffer_Callback(this, target, renderbuffer);
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => _blink.Native_WebGLRenderingContext_bindRenderbuffer_Callback(this, target, renderbuffer);
 
   @DomName('WebGLRenderingContext.bindTexture')
   @DocsEditable()
-  void bindTexture(int target, Texture texture) => blink.Native_WebGLRenderingContext_bindTexture_Callback(this, target, texture);
+  void bindTexture(int target, Texture texture) => _blink.Native_WebGLRenderingContext_bindTexture_Callback(this, target, texture);
 
   @DomName('WebGLRenderingContext.blendColor')
   @DocsEditable()
-  void blendColor(num red, num green, num blue, num alpha) => blink.Native_WebGLRenderingContext_blendColor_Callback(this, red, green, blue, alpha);
+  void blendColor(num red, num green, num blue, num alpha) => _blink.Native_WebGLRenderingContext_blendColor_Callback(this, red, green, blue, alpha);
 
   @DomName('WebGLRenderingContext.blendEquation')
   @DocsEditable()
-  void blendEquation(int mode) => blink.Native_WebGLRenderingContext_blendEquation_Callback(this, mode);
+  void blendEquation(int mode) => _blink.Native_WebGLRenderingContext_blendEquation_Callback(this, mode);
 
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   @DocsEditable()
-  void blendEquationSeparate(int modeRGB, int modeAlpha) => blink.Native_WebGLRenderingContext_blendEquationSeparate_Callback(this, modeRGB, modeAlpha);
+  void blendEquationSeparate(int modeRGB, int modeAlpha) => _blink.Native_WebGLRenderingContext_blendEquationSeparate_Callback(this, modeRGB, modeAlpha);
 
   @DomName('WebGLRenderingContext.blendFunc')
   @DocsEditable()
-  void blendFunc(int sfactor, int dfactor) => blink.Native_WebGLRenderingContext_blendFunc_Callback(this, sfactor, dfactor);
+  void blendFunc(int sfactor, int dfactor) => _blink.Native_WebGLRenderingContext_blendFunc_Callback(this, sfactor, dfactor);
 
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   @DocsEditable()
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => blink.Native_WebGLRenderingContext_blendFuncSeparate_Callback(this, srcRGB, dstRGB, srcAlpha, dstAlpha);
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.Native_WebGLRenderingContext_blendFuncSeparate_Callback(this, srcRGB, dstRGB, srcAlpha, dstAlpha);
 
   @DomName('WebGLRenderingContext.bufferByteData')
   @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) => blink.Native_WebGLRenderingContext_bufferByteData_Callback(this, target, data, usage);
+  void bufferByteData(int target, ByteBuffer data, int usage) => _blink.Native_WebGLRenderingContext_bufferByteData_Callback(this, target, data, usage);
 
   void bufferData(int target, data_OR_size, int usage) {
     if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
@@ -2341,19 +2341,19 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _bufferData_1(target, data_OR_size, usage) => blink.Native_WebGLRenderingContext__bufferData_1_Callback(this, target, data_OR_size, usage);
+  void _bufferData_1(target, data_OR_size, usage) => _blink.Native_WebGLRenderingContext__bufferData_1_Callback(this, target, data_OR_size, usage);
 
-  void _bufferData_2(target, data_OR_size, usage) => blink.Native_WebGLRenderingContext__bufferData_2_Callback(this, target, data_OR_size, usage);
+  void _bufferData_2(target, data_OR_size, usage) => _blink.Native_WebGLRenderingContext__bufferData_2_Callback(this, target, data_OR_size, usage);
 
-  void _bufferData_3(target, data_OR_size, usage) => blink.Native_WebGLRenderingContext__bufferData_3_Callback(this, target, data_OR_size, usage);
+  void _bufferData_3(target, data_OR_size, usage) => _blink.Native_WebGLRenderingContext__bufferData_3_Callback(this, target, data_OR_size, usage);
 
   @DomName('WebGLRenderingContext.bufferDataTyped')
   @DocsEditable()
-  void bufferDataTyped(int target, TypedData data, int usage) => blink.Native_WebGLRenderingContext_bufferDataTyped_Callback(this, target, data, usage);
+  void bufferDataTyped(int target, TypedData data, int usage) => _blink.Native_WebGLRenderingContext_bufferDataTyped_Callback(this, target, data, usage);
 
   @DomName('WebGLRenderingContext.bufferSubByteData')
   @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) => blink.Native_WebGLRenderingContext_bufferSubByteData_Callback(this, target, offset, data);
+  void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.Native_WebGLRenderingContext_bufferSubByteData_Callback(this, target, offset, data);
 
   void bufferSubData(int target, int offset, data) {
     if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
@@ -2367,361 +2367,361 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _bufferSubData_1(target, offset, data) => blink.Native_WebGLRenderingContext__bufferSubData_1_Callback(this, target, offset, data);
+  void _bufferSubData_1(target, offset, data) => _blink.Native_WebGLRenderingContext__bufferSubData_1_Callback(this, target, offset, data);
 
-  void _bufferSubData_2(target, offset, data) => blink.Native_WebGLRenderingContext__bufferSubData_2_Callback(this, target, offset, data);
+  void _bufferSubData_2(target, offset, data) => _blink.Native_WebGLRenderingContext__bufferSubData_2_Callback(this, target, offset, data);
 
   @DomName('WebGLRenderingContext.bufferSubDataTyped')
   @DocsEditable()
-  void bufferSubDataTyped(int target, int offset, TypedData data) => blink.Native_WebGLRenderingContext_bufferSubDataTyped_Callback(this, target, offset, data);
+  void bufferSubDataTyped(int target, int offset, TypedData data) => _blink.Native_WebGLRenderingContext_bufferSubDataTyped_Callback(this, target, offset, data);
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
-  int checkFramebufferStatus(int target) => blink.Native_WebGLRenderingContext_checkFramebufferStatus_Callback(this, target);
+  int checkFramebufferStatus(int target) => _blink.Native_WebGLRenderingContext_checkFramebufferStatus_Callback(this, target);
 
   @DomName('WebGLRenderingContext.clear')
   @DocsEditable()
-  void clear(int mask) => blink.Native_WebGLRenderingContext_clear_Callback(this, mask);
+  void clear(int mask) => _blink.Native_WebGLRenderingContext_clear_Callback(this, mask);
 
   @DomName('WebGLRenderingContext.clearColor')
   @DocsEditable()
-  void clearColor(num red, num green, num blue, num alpha) => blink.Native_WebGLRenderingContext_clearColor_Callback(this, red, green, blue, alpha);
+  void clearColor(num red, num green, num blue, num alpha) => _blink.Native_WebGLRenderingContext_clearColor_Callback(this, red, green, blue, alpha);
 
   @DomName('WebGLRenderingContext.clearDepth')
   @DocsEditable()
-  void clearDepth(num depth) => blink.Native_WebGLRenderingContext_clearDepth_Callback(this, depth);
+  void clearDepth(num depth) => _blink.Native_WebGLRenderingContext_clearDepth_Callback(this, depth);
 
   @DomName('WebGLRenderingContext.clearStencil')
   @DocsEditable()
-  void clearStencil(int s) => blink.Native_WebGLRenderingContext_clearStencil_Callback(this, s);
+  void clearStencil(int s) => _blink.Native_WebGLRenderingContext_clearStencil_Callback(this, s);
 
   @DomName('WebGLRenderingContext.colorMask')
   @DocsEditable()
-  void colorMask(bool red, bool green, bool blue, bool alpha) => blink.Native_WebGLRenderingContext_colorMask_Callback(this, red, green, blue, alpha);
+  void colorMask(bool red, bool green, bool blue, bool alpha) => _blink.Native_WebGLRenderingContext_colorMask_Callback(this, red, green, blue, alpha);
 
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
-  void compileShader(Shader shader) => blink.Native_WebGLRenderingContext_compileShader_Callback(this, shader);
+  void compileShader(Shader shader) => _blink.Native_WebGLRenderingContext_compileShader_Callback(this, shader);
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable()
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => blink.Native_WebGLRenderingContext_compressedTexImage2D_Callback(this, target, level, internalformat, width, height, border, data);
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => _blink.Native_WebGLRenderingContext_compressedTexImage2D_Callback(this, target, level, internalformat, width, height, border, data);
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable()
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => blink.Native_WebGLRenderingContext_compressedTexSubImage2D_Callback(this, target, level, xoffset, yoffset, width, height, format, data);
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => _blink.Native_WebGLRenderingContext_compressedTexSubImage2D_Callback(this, target, level, xoffset, yoffset, width, height, format, data);
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable()
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => blink.Native_WebGLRenderingContext_copyTexImage2D_Callback(this, target, level, internalformat, x, y, width, height, border);
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _blink.Native_WebGLRenderingContext_copyTexImage2D_Callback(this, target, level, internalformat, x, y, width, height, border);
 
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   @DocsEditable()
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => blink.Native_WebGLRenderingContext_copyTexSubImage2D_Callback(this, target, level, xoffset, yoffset, x, y, width, height);
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _blink.Native_WebGLRenderingContext_copyTexSubImage2D_Callback(this, target, level, xoffset, yoffset, x, y, width, height);
 
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() => blink.Native_WebGLRenderingContext_createBuffer_Callback(this);
+  Buffer createBuffer() => _blink.Native_WebGLRenderingContext_createBuffer_Callback(this);
 
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() => blink.Native_WebGLRenderingContext_createFramebuffer_Callback(this);
+  Framebuffer createFramebuffer() => _blink.Native_WebGLRenderingContext_createFramebuffer_Callback(this);
 
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() => blink.Native_WebGLRenderingContext_createProgram_Callback(this);
+  Program createProgram() => _blink.Native_WebGLRenderingContext_createProgram_Callback(this);
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() => blink.Native_WebGLRenderingContext_createRenderbuffer_Callback(this);
+  Renderbuffer createRenderbuffer() => _blink.Native_WebGLRenderingContext_createRenderbuffer_Callback(this);
 
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) => blink.Native_WebGLRenderingContext_createShader_Callback(this, type);
+  Shader createShader(int type) => _blink.Native_WebGLRenderingContext_createShader_Callback(this, type);
 
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() => blink.Native_WebGLRenderingContext_createTexture_Callback(this);
+  Texture createTexture() => _blink.Native_WebGLRenderingContext_createTexture_Callback(this);
 
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
-  void cullFace(int mode) => blink.Native_WebGLRenderingContext_cullFace_Callback(this, mode);
+  void cullFace(int mode) => _blink.Native_WebGLRenderingContext_cullFace_Callback(this, mode);
 
   @DomName('WebGLRenderingContext.deleteBuffer')
   @DocsEditable()
-  void deleteBuffer(Buffer buffer) => blink.Native_WebGLRenderingContext_deleteBuffer_Callback(this, buffer);
+  void deleteBuffer(Buffer buffer) => _blink.Native_WebGLRenderingContext_deleteBuffer_Callback(this, buffer);
 
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   @DocsEditable()
-  void deleteFramebuffer(Framebuffer framebuffer) => blink.Native_WebGLRenderingContext_deleteFramebuffer_Callback(this, framebuffer);
+  void deleteFramebuffer(Framebuffer framebuffer) => _blink.Native_WebGLRenderingContext_deleteFramebuffer_Callback(this, framebuffer);
 
   @DomName('WebGLRenderingContext.deleteProgram')
   @DocsEditable()
-  void deleteProgram(Program program) => blink.Native_WebGLRenderingContext_deleteProgram_Callback(this, program);
+  void deleteProgram(Program program) => _blink.Native_WebGLRenderingContext_deleteProgram_Callback(this, program);
 
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   @DocsEditable()
-  void deleteRenderbuffer(Renderbuffer renderbuffer) => blink.Native_WebGLRenderingContext_deleteRenderbuffer_Callback(this, renderbuffer);
+  void deleteRenderbuffer(Renderbuffer renderbuffer) => _blink.Native_WebGLRenderingContext_deleteRenderbuffer_Callback(this, renderbuffer);
 
   @DomName('WebGLRenderingContext.deleteShader')
   @DocsEditable()
-  void deleteShader(Shader shader) => blink.Native_WebGLRenderingContext_deleteShader_Callback(this, shader);
+  void deleteShader(Shader shader) => _blink.Native_WebGLRenderingContext_deleteShader_Callback(this, shader);
 
   @DomName('WebGLRenderingContext.deleteTexture')
   @DocsEditable()
-  void deleteTexture(Texture texture) => blink.Native_WebGLRenderingContext_deleteTexture_Callback(this, texture);
+  void deleteTexture(Texture texture) => _blink.Native_WebGLRenderingContext_deleteTexture_Callback(this, texture);
 
   @DomName('WebGLRenderingContext.depthFunc')
   @DocsEditable()
-  void depthFunc(int func) => blink.Native_WebGLRenderingContext_depthFunc_Callback(this, func);
+  void depthFunc(int func) => _blink.Native_WebGLRenderingContext_depthFunc_Callback(this, func);
 
   @DomName('WebGLRenderingContext.depthMask')
   @DocsEditable()
-  void depthMask(bool flag) => blink.Native_WebGLRenderingContext_depthMask_Callback(this, flag);
+  void depthMask(bool flag) => _blink.Native_WebGLRenderingContext_depthMask_Callback(this, flag);
 
   @DomName('WebGLRenderingContext.depthRange')
   @DocsEditable()
-  void depthRange(num zNear, num zFar) => blink.Native_WebGLRenderingContext_depthRange_Callback(this, zNear, zFar);
+  void depthRange(num zNear, num zFar) => _blink.Native_WebGLRenderingContext_depthRange_Callback(this, zNear, zFar);
 
   @DomName('WebGLRenderingContext.detachShader')
   @DocsEditable()
-  void detachShader(Program program, Shader shader) => blink.Native_WebGLRenderingContext_detachShader_Callback(this, program, shader);
+  void detachShader(Program program, Shader shader) => _blink.Native_WebGLRenderingContext_detachShader_Callback(this, program, shader);
 
   @DomName('WebGLRenderingContext.disable')
   @DocsEditable()
-  void disable(int cap) => blink.Native_WebGLRenderingContext_disable_Callback(this, cap);
+  void disable(int cap) => _blink.Native_WebGLRenderingContext_disable_Callback(this, cap);
 
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   @DocsEditable()
-  void disableVertexAttribArray(int index) => blink.Native_WebGLRenderingContext_disableVertexAttribArray_Callback(this, index);
+  void disableVertexAttribArray(int index) => _blink.Native_WebGLRenderingContext_disableVertexAttribArray_Callback(this, index);
 
   @DomName('WebGLRenderingContext.drawArrays')
   @DocsEditable()
-  void drawArrays(int mode, int first, int count) => blink.Native_WebGLRenderingContext_drawArrays_Callback(this, mode, first, count);
+  void drawArrays(int mode, int first, int count) => _blink.Native_WebGLRenderingContext_drawArrays_Callback(this, mode, first, count);
 
   @DomName('WebGLRenderingContext.drawElements')
   @DocsEditable()
-  void drawElements(int mode, int count, int type, int offset) => blink.Native_WebGLRenderingContext_drawElements_Callback(this, mode, count, type, offset);
+  void drawElements(int mode, int count, int type, int offset) => _blink.Native_WebGLRenderingContext_drawElements_Callback(this, mode, count, type, offset);
 
   @DomName('WebGLRenderingContext.enable')
   @DocsEditable()
-  void enable(int cap) => blink.Native_WebGLRenderingContext_enable_Callback(this, cap);
+  void enable(int cap) => _blink.Native_WebGLRenderingContext_enable_Callback(this, cap);
 
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   @DocsEditable()
-  void enableVertexAttribArray(int index) => blink.Native_WebGLRenderingContext_enableVertexAttribArray_Callback(this, index);
+  void enableVertexAttribArray(int index) => _blink.Native_WebGLRenderingContext_enableVertexAttribArray_Callback(this, index);
 
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() => blink.Native_WebGLRenderingContext_finish_Callback(this);
+  void finish() => _blink.Native_WebGLRenderingContext_finish_Callback(this);
 
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() => blink.Native_WebGLRenderingContext_flush_Callback(this);
+  void flush() => _blink.Native_WebGLRenderingContext_flush_Callback(this);
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => blink.Native_WebGLRenderingContext_framebufferRenderbuffer_Callback(this, target, attachment, renderbuffertarget, renderbuffer);
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => _blink.Native_WebGLRenderingContext_framebufferRenderbuffer_Callback(this, target, attachment, renderbuffertarget, renderbuffer);
 
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   @DocsEditable()
-  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => blink.Native_WebGLRenderingContext_framebufferTexture2D_Callback(this, target, attachment, textarget, texture, level);
+  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => _blink.Native_WebGLRenderingContext_framebufferTexture2D_Callback(this, target, attachment, textarget, texture, level);
 
   @DomName('WebGLRenderingContext.frontFace')
   @DocsEditable()
-  void frontFace(int mode) => blink.Native_WebGLRenderingContext_frontFace_Callback(this, mode);
+  void frontFace(int mode) => _blink.Native_WebGLRenderingContext_frontFace_Callback(this, mode);
 
   @DomName('WebGLRenderingContext.generateMipmap')
   @DocsEditable()
-  void generateMipmap(int target) => blink.Native_WebGLRenderingContext_generateMipmap_Callback(this, target);
+  void generateMipmap(int target) => _blink.Native_WebGLRenderingContext_generateMipmap_Callback(this, target);
 
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) => blink.Native_WebGLRenderingContext_getActiveAttrib_Callback(this, program, index);
+  ActiveInfo getActiveAttrib(Program program, int index) => _blink.Native_WebGLRenderingContext_getActiveAttrib_Callback(this, program, index);
 
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) => blink.Native_WebGLRenderingContext_getActiveUniform_Callback(this, program, index);
+  ActiveInfo getActiveUniform(Program program, int index) => _blink.Native_WebGLRenderingContext_getActiveUniform_Callback(this, program, index);
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  void getAttachedShaders(Program program) => blink.Native_WebGLRenderingContext_getAttachedShaders_Callback(this, program);
+  void getAttachedShaders(Program program) => _blink.Native_WebGLRenderingContext_getAttachedShaders_Callback(this, program);
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
-  int getAttribLocation(Program program, String name) => blink.Native_WebGLRenderingContext_getAttribLocation_Callback(this, program, name);
+  int getAttribLocation(Program program, String name) => _blink.Native_WebGLRenderingContext_getAttribLocation_Callback(this, program, name);
 
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable()
-  Object getBufferParameter(int target, int pname) => blink.Native_WebGLRenderingContext_getBufferParameter_Callback(this, target, pname);
+  Object getBufferParameter(int target, int pname) => _blink.Native_WebGLRenderingContext_getBufferParameter_Callback(this, target, pname);
 
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  ContextAttributes getContextAttributes() => blink.Native_WebGLRenderingContext_getContextAttributes_Callback(this);
+  ContextAttributes getContextAttributes() => _blink.Native_WebGLRenderingContext_getContextAttributes_Callback(this);
 
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() => blink.Native_WebGLRenderingContext_getError_Callback(this);
+  int getError() => _blink.Native_WebGLRenderingContext_getError_Callback(this);
 
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
-  Object getExtension(String name) => blink.Native_WebGLRenderingContext_getExtension_Callback(this, name);
+  Object getExtension(String name) => _blink.Native_WebGLRenderingContext_getExtension_Callback(this, name);
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
-  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => blink.Native_WebGLRenderingContext_getFramebufferAttachmentParameter_Callback(this, target, attachment, pname);
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => _blink.Native_WebGLRenderingContext_getFramebufferAttachmentParameter_Callback(this, target, attachment, pname);
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
-  Object getParameter(int pname) => blink.Native_WebGLRenderingContext_getParameter_Callback(this, pname);
+  Object getParameter(int pname) => _blink.Native_WebGLRenderingContext_getParameter_Callback(this, pname);
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   @DocsEditable()
-  String getProgramInfoLog(Program program) => blink.Native_WebGLRenderingContext_getProgramInfoLog_Callback(this, program);
+  String getProgramInfoLog(Program program) => _blink.Native_WebGLRenderingContext_getProgramInfoLog_Callback(this, program);
 
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable()
-  Object getProgramParameter(Program program, int pname) => blink.Native_WebGLRenderingContext_getProgramParameter_Callback(this, program, pname);
+  Object getProgramParameter(Program program, int pname) => _blink.Native_WebGLRenderingContext_getProgramParameter_Callback(this, program, pname);
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable()
-  Object getRenderbufferParameter(int target, int pname) => blink.Native_WebGLRenderingContext_getRenderbufferParameter_Callback(this, target, pname);
+  Object getRenderbufferParameter(int target, int pname) => _blink.Native_WebGLRenderingContext_getRenderbufferParameter_Callback(this, target, pname);
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   @DocsEditable()
-  String getShaderInfoLog(Shader shader) => blink.Native_WebGLRenderingContext_getShaderInfoLog_Callback(this, shader);
+  String getShaderInfoLog(Shader shader) => _blink.Native_WebGLRenderingContext_getShaderInfoLog_Callback(this, shader);
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable()
-  Object getShaderParameter(Shader shader, int pname) => blink.Native_WebGLRenderingContext_getShaderParameter_Callback(this, shader, pname);
+  Object getShaderParameter(Shader shader, int pname) => _blink.Native_WebGLRenderingContext_getShaderParameter_Callback(this, shader, pname);
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
-  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => blink.Native_WebGLRenderingContext_getShaderPrecisionFormat_Callback(this, shadertype, precisiontype);
+  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _blink.Native_WebGLRenderingContext_getShaderPrecisionFormat_Callback(this, shadertype, precisiontype);
 
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
-  String getShaderSource(Shader shader) => blink.Native_WebGLRenderingContext_getShaderSource_Callback(this, shader);
+  String getShaderSource(Shader shader) => _blink.Native_WebGLRenderingContext_getShaderSource_Callback(this, shader);
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() => blink.Native_WebGLRenderingContext_getSupportedExtensions_Callback(this);
+  List<String> getSupportedExtensions() => _blink.Native_WebGLRenderingContext_getSupportedExtensions_Callback(this);
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
-  Object getTexParameter(int target, int pname) => blink.Native_WebGLRenderingContext_getTexParameter_Callback(this, target, pname);
+  Object getTexParameter(int target, int pname) => _blink.Native_WebGLRenderingContext_getTexParameter_Callback(this, target, pname);
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
-  Object getUniform(Program program, UniformLocation location) => blink.Native_WebGLRenderingContext_getUniform_Callback(this, program, location);
+  Object getUniform(Program program, UniformLocation location) => _blink.Native_WebGLRenderingContext_getUniform_Callback(this, program, location);
 
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) => blink.Native_WebGLRenderingContext_getUniformLocation_Callback(this, program, name);
+  UniformLocation getUniformLocation(Program program, String name) => _blink.Native_WebGLRenderingContext_getUniformLocation_Callback(this, program, name);
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
-  Object getVertexAttrib(int index, int pname) => blink.Native_WebGLRenderingContext_getVertexAttrib_Callback(this, index, pname);
+  Object getVertexAttrib(int index, int pname) => _blink.Native_WebGLRenderingContext_getVertexAttrib_Callback(this, index, pname);
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   @DocsEditable()
-  int getVertexAttribOffset(int index, int pname) => blink.Native_WebGLRenderingContext_getVertexAttribOffset_Callback(this, index, pname);
+  int getVertexAttribOffset(int index, int pname) => _blink.Native_WebGLRenderingContext_getVertexAttribOffset_Callback(this, index, pname);
 
   @DomName('WebGLRenderingContext.hint')
   @DocsEditable()
-  void hint(int target, int mode) => blink.Native_WebGLRenderingContext_hint_Callback(this, target, mode);
+  void hint(int target, int mode) => _blink.Native_WebGLRenderingContext_hint_Callback(this, target, mode);
 
   @DomName('WebGLRenderingContext.isBuffer')
   @DocsEditable()
-  bool isBuffer(Buffer buffer) => blink.Native_WebGLRenderingContext_isBuffer_Callback(this, buffer);
+  bool isBuffer(Buffer buffer) => _blink.Native_WebGLRenderingContext_isBuffer_Callback(this, buffer);
 
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() => blink.Native_WebGLRenderingContext_isContextLost_Callback(this);
+  bool isContextLost() => _blink.Native_WebGLRenderingContext_isContextLost_Callback(this);
 
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()
-  bool isEnabled(int cap) => blink.Native_WebGLRenderingContext_isEnabled_Callback(this, cap);
+  bool isEnabled(int cap) => _blink.Native_WebGLRenderingContext_isEnabled_Callback(this, cap);
 
   @DomName('WebGLRenderingContext.isFramebuffer')
   @DocsEditable()
-  bool isFramebuffer(Framebuffer framebuffer) => blink.Native_WebGLRenderingContext_isFramebuffer_Callback(this, framebuffer);
+  bool isFramebuffer(Framebuffer framebuffer) => _blink.Native_WebGLRenderingContext_isFramebuffer_Callback(this, framebuffer);
 
   @DomName('WebGLRenderingContext.isProgram')
   @DocsEditable()
-  bool isProgram(Program program) => blink.Native_WebGLRenderingContext_isProgram_Callback(this, program);
+  bool isProgram(Program program) => _blink.Native_WebGLRenderingContext_isProgram_Callback(this, program);
 
   @DomName('WebGLRenderingContext.isRenderbuffer')
   @DocsEditable()
-  bool isRenderbuffer(Renderbuffer renderbuffer) => blink.Native_WebGLRenderingContext_isRenderbuffer_Callback(this, renderbuffer);
+  bool isRenderbuffer(Renderbuffer renderbuffer) => _blink.Native_WebGLRenderingContext_isRenderbuffer_Callback(this, renderbuffer);
 
   @DomName('WebGLRenderingContext.isShader')
   @DocsEditable()
-  bool isShader(Shader shader) => blink.Native_WebGLRenderingContext_isShader_Callback(this, shader);
+  bool isShader(Shader shader) => _blink.Native_WebGLRenderingContext_isShader_Callback(this, shader);
 
   @DomName('WebGLRenderingContext.isTexture')
   @DocsEditable()
-  bool isTexture(Texture texture) => blink.Native_WebGLRenderingContext_isTexture_Callback(this, texture);
+  bool isTexture(Texture texture) => _blink.Native_WebGLRenderingContext_isTexture_Callback(this, texture);
 
   @DomName('WebGLRenderingContext.lineWidth')
   @DocsEditable()
-  void lineWidth(num width) => blink.Native_WebGLRenderingContext_lineWidth_Callback(this, width);
+  void lineWidth(num width) => _blink.Native_WebGLRenderingContext_lineWidth_Callback(this, width);
 
   @DomName('WebGLRenderingContext.linkProgram')
   @DocsEditable()
-  void linkProgram(Program program) => blink.Native_WebGLRenderingContext_linkProgram_Callback(this, program);
+  void linkProgram(Program program) => _blink.Native_WebGLRenderingContext_linkProgram_Callback(this, program);
 
   @DomName('WebGLRenderingContext.pixelStorei')
   @DocsEditable()
-  void pixelStorei(int pname, int param) => blink.Native_WebGLRenderingContext_pixelStorei_Callback(this, pname, param);
+  void pixelStorei(int pname, int param) => _blink.Native_WebGLRenderingContext_pixelStorei_Callback(this, pname, param);
 
   @DomName('WebGLRenderingContext.polygonOffset')
   @DocsEditable()
-  void polygonOffset(num factor, num units) => blink.Native_WebGLRenderingContext_polygonOffset_Callback(this, factor, units);
+  void polygonOffset(num factor, num units) => _blink.Native_WebGLRenderingContext_polygonOffset_Callback(this, factor, units);
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
-  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => blink.Native_WebGLRenderingContext_readPixels_Callback(this, x, y, width, height, format, type, pixels);
+  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => _blink.Native_WebGLRenderingContext_readPixels_Callback(this, x, y, width, height, format, type, pixels);
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable()
-  void renderbufferStorage(int target, int internalformat, int width, int height) => blink.Native_WebGLRenderingContext_renderbufferStorage_Callback(this, target, internalformat, width, height);
+  void renderbufferStorage(int target, int internalformat, int width, int height) => _blink.Native_WebGLRenderingContext_renderbufferStorage_Callback(this, target, internalformat, width, height);
 
   @DomName('WebGLRenderingContext.sampleCoverage')
   @DocsEditable()
-  void sampleCoverage(num value, bool invert) => blink.Native_WebGLRenderingContext_sampleCoverage_Callback(this, value, invert);
+  void sampleCoverage(num value, bool invert) => _blink.Native_WebGLRenderingContext_sampleCoverage_Callback(this, value, invert);
 
   @DomName('WebGLRenderingContext.scissor')
   @DocsEditable()
-  void scissor(int x, int y, int width, int height) => blink.Native_WebGLRenderingContext_scissor_Callback(this, x, y, width, height);
+  void scissor(int x, int y, int width, int height) => _blink.Native_WebGLRenderingContext_scissor_Callback(this, x, y, width, height);
 
   @DomName('WebGLRenderingContext.shaderSource')
   @DocsEditable()
-  void shaderSource(Shader shader, String string) => blink.Native_WebGLRenderingContext_shaderSource_Callback(this, shader, string);
+  void shaderSource(Shader shader, String string) => _blink.Native_WebGLRenderingContext_shaderSource_Callback(this, shader, string);
 
   @DomName('WebGLRenderingContext.stencilFunc')
   @DocsEditable()
-  void stencilFunc(int func, int ref, int mask) => blink.Native_WebGLRenderingContext_stencilFunc_Callback(this, func, ref, mask);
+  void stencilFunc(int func, int ref, int mask) => _blink.Native_WebGLRenderingContext_stencilFunc_Callback(this, func, ref, mask);
 
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   @DocsEditable()
-  void stencilFuncSeparate(int face, int func, int ref, int mask) => blink.Native_WebGLRenderingContext_stencilFuncSeparate_Callback(this, face, func, ref, mask);
+  void stencilFuncSeparate(int face, int func, int ref, int mask) => _blink.Native_WebGLRenderingContext_stencilFuncSeparate_Callback(this, face, func, ref, mask);
 
   @DomName('WebGLRenderingContext.stencilMask')
   @DocsEditable()
-  void stencilMask(int mask) => blink.Native_WebGLRenderingContext_stencilMask_Callback(this, mask);
+  void stencilMask(int mask) => _blink.Native_WebGLRenderingContext_stencilMask_Callback(this, mask);
 
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   @DocsEditable()
-  void stencilMaskSeparate(int face, int mask) => blink.Native_WebGLRenderingContext_stencilMaskSeparate_Callback(this, face, mask);
+  void stencilMaskSeparate(int face, int mask) => _blink.Native_WebGLRenderingContext_stencilMaskSeparate_Callback(this, face, mask);
 
   @DomName('WebGLRenderingContext.stencilOp')
   @DocsEditable()
-  void stencilOp(int fail, int zfail, int zpass) => blink.Native_WebGLRenderingContext_stencilOp_Callback(this, fail, zfail, zpass);
+  void stencilOp(int fail, int zfail, int zpass) => _blink.Native_WebGLRenderingContext_stencilOp_Callback(this, fail, zfail, zpass);
 
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   @DocsEditable()
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => blink.Native_WebGLRenderingContext_stencilOpSeparate_Callback(this, face, fail, zfail, zpass);
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.Native_WebGLRenderingContext_stencilOpSeparate_Callback(this, face, fail, zfail, zpass);
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
@@ -2747,39 +2747,39 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) => blink.Native_WebGLRenderingContext__texImage2D_1_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+  void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) => _blink.Native_WebGLRenderingContext__texImage2D_1_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
 
-  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texImage2D_2_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texImage2D_2_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
 
-  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texImage2D_3_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texImage2D_3_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
 
-  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texImage2D_4_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texImage2D_4_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
 
-  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texImage2D_5_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texImage2D_5_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
 
   @DomName('WebGLRenderingContext.texImage2DCanvas')
   @DocsEditable()
-  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => blink.Native_WebGLRenderingContext_texImage2DCanvas_Callback(this, target, level, internalformat, format, type, canvas);
+  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => _blink.Native_WebGLRenderingContext_texImage2DCanvas_Callback(this, target, level, internalformat, format, type, canvas);
 
   @DomName('WebGLRenderingContext.texImage2DImage')
   @DocsEditable()
-  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => blink.Native_WebGLRenderingContext_texImage2DImage_Callback(this, target, level, internalformat, format, type, image);
+  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => _blink.Native_WebGLRenderingContext_texImage2DImage_Callback(this, target, level, internalformat, format, type, image);
 
   @DomName('WebGLRenderingContext.texImage2DImageData')
   @DocsEditable()
-  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => blink.Native_WebGLRenderingContext_texImage2DImageData_Callback(this, target, level, internalformat, format, type, pixels);
+  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => _blink.Native_WebGLRenderingContext_texImage2DImageData_Callback(this, target, level, internalformat, format, type, pixels);
 
   @DomName('WebGLRenderingContext.texImage2DVideo')
   @DocsEditable()
-  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => blink.Native_WebGLRenderingContext_texImage2DVideo_Callback(this, target, level, internalformat, format, type, video);
+  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => _blink.Native_WebGLRenderingContext_texImage2DVideo_Callback(this, target, level, internalformat, format, type, video);
 
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
-  void texParameterf(int target, int pname, num param) => blink.Native_WebGLRenderingContext_texParameterf_Callback(this, target, pname, param);
+  void texParameterf(int target, int pname, num param) => _blink.Native_WebGLRenderingContext_texParameterf_Callback(this, target, pname, param);
 
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
-  void texParameteri(int target, int pname, int param) => blink.Native_WebGLRenderingContext_texParameteri_Callback(this, target, pname, param);
+  void texParameteri(int target, int pname, int param) => _blink.Native_WebGLRenderingContext_texParameteri_Callback(this, target, pname, param);
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
@@ -2805,155 +2805,155 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) => blink.Native_WebGLRenderingContext__texSubImage2D_1_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+  void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) => _blink.Native_WebGLRenderingContext__texSubImage2D_1_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
 
-  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texSubImage2D_2_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texSubImage2D_2_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
 
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texSubImage2D_3_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texSubImage2D_3_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
 
-  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texSubImage2D_4_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texSubImage2D_4_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
 
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => blink.Native_WebGLRenderingContext__texSubImage2D_5_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) => _blink.Native_WebGLRenderingContext__texSubImage2D_5_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
 
   @DomName('WebGLRenderingContext.texSubImage2DCanvas')
   @DocsEditable()
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => blink.Native_WebGLRenderingContext_texSubImage2DCanvas_Callback(this, target, level, xoffset, yoffset, format, type, canvas);
+  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => _blink.Native_WebGLRenderingContext_texSubImage2DCanvas_Callback(this, target, level, xoffset, yoffset, format, type, canvas);
 
   @DomName('WebGLRenderingContext.texSubImage2DImage')
   @DocsEditable()
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => blink.Native_WebGLRenderingContext_texSubImage2DImage_Callback(this, target, level, xoffset, yoffset, format, type, image);
+  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => _blink.Native_WebGLRenderingContext_texSubImage2DImage_Callback(this, target, level, xoffset, yoffset, format, type, image);
 
   @DomName('WebGLRenderingContext.texSubImage2DImageData')
   @DocsEditable()
-  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => blink.Native_WebGLRenderingContext_texSubImage2DImageData_Callback(this, target, level, xoffset, yoffset, format, type, pixels);
+  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => _blink.Native_WebGLRenderingContext_texSubImage2DImageData_Callback(this, target, level, xoffset, yoffset, format, type, pixels);
 
   @DomName('WebGLRenderingContext.texSubImage2DVideo')
   @DocsEditable()
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => blink.Native_WebGLRenderingContext_texSubImage2DVideo_Callback(this, target, level, xoffset, yoffset, format, type, video);
+  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => _blink.Native_WebGLRenderingContext_texSubImage2DVideo_Callback(this, target, level, xoffset, yoffset, format, type, video);
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
-  void uniform1f(UniformLocation location, num x) => blink.Native_WebGLRenderingContext_uniform1f_Callback(this, location, x);
+  void uniform1f(UniformLocation location, num x) => _blink.Native_WebGLRenderingContext_uniform1f_Callback(this, location, x);
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable()
-  void uniform1fv(UniformLocation location, Float32List v) => blink.Native_WebGLRenderingContext_uniform1fv_Callback(this, location, v);
+  void uniform1fv(UniformLocation location, Float32List v) => _blink.Native_WebGLRenderingContext_uniform1fv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
-  void uniform1i(UniformLocation location, int x) => blink.Native_WebGLRenderingContext_uniform1i_Callback(this, location, x);
+  void uniform1i(UniformLocation location, int x) => _blink.Native_WebGLRenderingContext_uniform1i_Callback(this, location, x);
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable()
-  void uniform1iv(UniformLocation location, Int32List v) => blink.Native_WebGLRenderingContext_uniform1iv_Callback(this, location, v);
+  void uniform1iv(UniformLocation location, Int32List v) => _blink.Native_WebGLRenderingContext_uniform1iv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
-  void uniform2f(UniformLocation location, num x, num y) => blink.Native_WebGLRenderingContext_uniform2f_Callback(this, location, x, y);
+  void uniform2f(UniformLocation location, num x, num y) => _blink.Native_WebGLRenderingContext_uniform2f_Callback(this, location, x, y);
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable()
-  void uniform2fv(UniformLocation location, Float32List v) => blink.Native_WebGLRenderingContext_uniform2fv_Callback(this, location, v);
+  void uniform2fv(UniformLocation location, Float32List v) => _blink.Native_WebGLRenderingContext_uniform2fv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
-  void uniform2i(UniformLocation location, int x, int y) => blink.Native_WebGLRenderingContext_uniform2i_Callback(this, location, x, y);
+  void uniform2i(UniformLocation location, int x, int y) => _blink.Native_WebGLRenderingContext_uniform2i_Callback(this, location, x, y);
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable()
-  void uniform2iv(UniformLocation location, Int32List v) => blink.Native_WebGLRenderingContext_uniform2iv_Callback(this, location, v);
+  void uniform2iv(UniformLocation location, Int32List v) => _blink.Native_WebGLRenderingContext_uniform2iv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
-  void uniform3f(UniformLocation location, num x, num y, num z) => blink.Native_WebGLRenderingContext_uniform3f_Callback(this, location, x, y, z);
+  void uniform3f(UniformLocation location, num x, num y, num z) => _blink.Native_WebGLRenderingContext_uniform3f_Callback(this, location, x, y, z);
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable()
-  void uniform3fv(UniformLocation location, Float32List v) => blink.Native_WebGLRenderingContext_uniform3fv_Callback(this, location, v);
+  void uniform3fv(UniformLocation location, Float32List v) => _blink.Native_WebGLRenderingContext_uniform3fv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
-  void uniform3i(UniformLocation location, int x, int y, int z) => blink.Native_WebGLRenderingContext_uniform3i_Callback(this, location, x, y, z);
+  void uniform3i(UniformLocation location, int x, int y, int z) => _blink.Native_WebGLRenderingContext_uniform3i_Callback(this, location, x, y, z);
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable()
-  void uniform3iv(UniformLocation location, Int32List v) => blink.Native_WebGLRenderingContext_uniform3iv_Callback(this, location, v);
+  void uniform3iv(UniformLocation location, Int32List v) => _blink.Native_WebGLRenderingContext_uniform3iv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) => blink.Native_WebGLRenderingContext_uniform4f_Callback(this, location, x, y, z, w);
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.Native_WebGLRenderingContext_uniform4f_Callback(this, location, x, y, z, w);
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable()
-  void uniform4fv(UniformLocation location, Float32List v) => blink.Native_WebGLRenderingContext_uniform4fv_Callback(this, location, v);
+  void uniform4fv(UniformLocation location, Float32List v) => _blink.Native_WebGLRenderingContext_uniform4fv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) => blink.Native_WebGLRenderingContext_uniform4i_Callback(this, location, x, y, z, w);
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.Native_WebGLRenderingContext_uniform4i_Callback(this, location, x, y, z, w);
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable()
-  void uniform4iv(UniformLocation location, Int32List v) => blink.Native_WebGLRenderingContext_uniform4iv_Callback(this, location, v);
+  void uniform4iv(UniformLocation location, Int32List v) => _blink.Native_WebGLRenderingContext_uniform4iv_Callback(this, location, v);
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable()
-  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => blink.Native_WebGLRenderingContext_uniformMatrix2fv_Callback(this, location, transpose, array);
+  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => _blink.Native_WebGLRenderingContext_uniformMatrix2fv_Callback(this, location, transpose, array);
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable()
-  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => blink.Native_WebGLRenderingContext_uniformMatrix3fv_Callback(this, location, transpose, array);
+  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => _blink.Native_WebGLRenderingContext_uniformMatrix3fv_Callback(this, location, transpose, array);
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable()
-  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => blink.Native_WebGLRenderingContext_uniformMatrix4fv_Callback(this, location, transpose, array);
+  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => _blink.Native_WebGLRenderingContext_uniformMatrix4fv_Callback(this, location, transpose, array);
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
-  void useProgram(Program program) => blink.Native_WebGLRenderingContext_useProgram_Callback(this, program);
+  void useProgram(Program program) => _blink.Native_WebGLRenderingContext_useProgram_Callback(this, program);
 
   @DomName('WebGLRenderingContext.validateProgram')
   @DocsEditable()
-  void validateProgram(Program program) => blink.Native_WebGLRenderingContext_validateProgram_Callback(this, program);
+  void validateProgram(Program program) => _blink.Native_WebGLRenderingContext_validateProgram_Callback(this, program);
 
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   @DocsEditable()
-  void vertexAttrib1f(int indx, num x) => blink.Native_WebGLRenderingContext_vertexAttrib1f_Callback(this, indx, x);
+  void vertexAttrib1f(int indx, num x) => _blink.Native_WebGLRenderingContext_vertexAttrib1f_Callback(this, indx, x);
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable()
-  void vertexAttrib1fv(int indx, Float32List values) => blink.Native_WebGLRenderingContext_vertexAttrib1fv_Callback(this, indx, values);
+  void vertexAttrib1fv(int indx, Float32List values) => _blink.Native_WebGLRenderingContext_vertexAttrib1fv_Callback(this, indx, values);
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
-  void vertexAttrib2f(int indx, num x, num y) => blink.Native_WebGLRenderingContext_vertexAttrib2f_Callback(this, indx, x, y);
+  void vertexAttrib2f(int indx, num x, num y) => _blink.Native_WebGLRenderingContext_vertexAttrib2f_Callback(this, indx, x, y);
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable()
-  void vertexAttrib2fv(int indx, Float32List values) => blink.Native_WebGLRenderingContext_vertexAttrib2fv_Callback(this, indx, values);
+  void vertexAttrib2fv(int indx, Float32List values) => _blink.Native_WebGLRenderingContext_vertexAttrib2fv_Callback(this, indx, values);
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
-  void vertexAttrib3f(int indx, num x, num y, num z) => blink.Native_WebGLRenderingContext_vertexAttrib3f_Callback(this, indx, x, y, z);
+  void vertexAttrib3f(int indx, num x, num y, num z) => _blink.Native_WebGLRenderingContext_vertexAttrib3f_Callback(this, indx, x, y, z);
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable()
-  void vertexAttrib3fv(int indx, Float32List values) => blink.Native_WebGLRenderingContext_vertexAttrib3fv_Callback(this, indx, values);
+  void vertexAttrib3fv(int indx, Float32List values) => _blink.Native_WebGLRenderingContext_vertexAttrib3fv_Callback(this, indx, values);
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) => blink.Native_WebGLRenderingContext_vertexAttrib4f_Callback(this, indx, x, y, z, w);
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.Native_WebGLRenderingContext_vertexAttrib4f_Callback(this, indx, x, y, z, w);
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable()
-  void vertexAttrib4fv(int indx, Float32List values) => blink.Native_WebGLRenderingContext_vertexAttrib4fv_Callback(this, indx, values);
+  void vertexAttrib4fv(int indx, Float32List values) => _blink.Native_WebGLRenderingContext_vertexAttrib4fv_Callback(this, indx, values);
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
-  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => blink.Native_WebGLRenderingContext_vertexAttribPointer_Callback(this, indx, size, type, normalized, stride, offset);
+  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.Native_WebGLRenderingContext_vertexAttribPointer_Callback(this, indx, size, type, normalized, stride, offset);
 
   @DomName('WebGLRenderingContext.viewport')
   @DocsEditable()
-  void viewport(int x, int y, int width, int height) => blink.Native_WebGLRenderingContext_viewport_Callback(this, x, y, width, height);
+  void viewport(int x, int y, int width, int height) => _blink.Native_WebGLRenderingContext_viewport_Callback(this, x, y, width, height);
 
 
   /**
@@ -3045,15 +3045,15 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable()
-  int get precision => blink.Native_WebGLShaderPrecisionFormat_precision_Getter(this);
+  int get precision => _blink.Native_WebGLShaderPrecisionFormat_precision_Getter(this);
 
   @DomName('WebGLShaderPrecisionFormat.rangeMax')
   @DocsEditable()
-  int get rangeMax => blink.Native_WebGLShaderPrecisionFormat_rangeMax_Getter(this);
+  int get rangeMax => _blink.Native_WebGLShaderPrecisionFormat_rangeMax_Getter(this);
 
   @DomName('WebGLShaderPrecisionFormat.rangeMin')
   @DocsEditable()
-  int get rangeMin => blink.Native_WebGLShaderPrecisionFormat_rangeMin_Getter(this);
+  int get rangeMin => _blink.Native_WebGLShaderPrecisionFormat_rangeMin_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

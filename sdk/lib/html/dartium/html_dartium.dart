@@ -41,7 +41,7 @@ import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
-import 'dart:blink' as blink;
+import 'dart:_blink' as _blink;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -151,7 +151,7 @@ class Algorithm extends NativeFieldWrapperClass2 {
   @DomName('Algorithm.name')
   @DocsEditable()
   @Experimental() // untriaged
-  String get name => blink.Native_Algorithm_name_Getter(this);
+  String get name => _blink.Native_Algorithm_name_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -183,137 +183,137 @@ class AnchorElement extends HtmlElement implements UrlUtils {
 
   @DomName('HTMLAnchorElement.download')
   @DocsEditable()
-  String get download => blink.Native_HTMLAnchorElement_download_Getter(this);
+  String get download => _blink.Native_HTMLAnchorElement_download_Getter(this);
 
   @DomName('HTMLAnchorElement.download')
   @DocsEditable()
-  void set download(String value) => blink.Native_HTMLAnchorElement_download_Setter(this, value);
+  void set download(String value) => _blink.Native_HTMLAnchorElement_download_Setter(this, value);
 
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
-  String get hreflang => blink.Native_HTMLAnchorElement_hreflang_Getter(this);
+  String get hreflang => _blink.Native_HTMLAnchorElement_hreflang_Getter(this);
 
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => blink.Native_HTMLAnchorElement_hreflang_Setter(this, value);
+  void set hreflang(String value) => _blink.Native_HTMLAnchorElement_hreflang_Setter(this, value);
 
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
-  String get rel => blink.Native_HTMLAnchorElement_rel_Getter(this);
+  String get rel => _blink.Native_HTMLAnchorElement_rel_Getter(this);
 
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
-  void set rel(String value) => blink.Native_HTMLAnchorElement_rel_Setter(this, value);
+  void set rel(String value) => _blink.Native_HTMLAnchorElement_rel_Setter(this, value);
 
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
-  String get target => blink.Native_HTMLAnchorElement_target_Getter(this);
+  String get target => _blink.Native_HTMLAnchorElement_target_Getter(this);
 
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
-  void set target(String value) => blink.Native_HTMLAnchorElement_target_Setter(this, value);
+  void set target(String value) => _blink.Native_HTMLAnchorElement_target_Setter(this, value);
 
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLAnchorElement_type_Getter(this);
+  String get type => _blink.Native_HTMLAnchorElement_type_Getter(this);
 
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLAnchorElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLAnchorElement_type_Setter(this, value);
 
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
-  String get hash => blink.Native_HTMLAnchorElement_hash_Getter(this);
+  String get hash => _blink.Native_HTMLAnchorElement_hash_Getter(this);
 
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
-  void set hash(String value) => blink.Native_HTMLAnchorElement_hash_Setter(this, value);
+  void set hash(String value) => _blink.Native_HTMLAnchorElement_hash_Setter(this, value);
 
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
-  String get host => blink.Native_HTMLAnchorElement_host_Getter(this);
+  String get host => _blink.Native_HTMLAnchorElement_host_Getter(this);
 
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
-  void set host(String value) => blink.Native_HTMLAnchorElement_host_Setter(this, value);
+  void set host(String value) => _blink.Native_HTMLAnchorElement_host_Setter(this, value);
 
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
-  String get hostname => blink.Native_HTMLAnchorElement_hostname_Getter(this);
+  String get hostname => _blink.Native_HTMLAnchorElement_hostname_Getter(this);
 
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => blink.Native_HTMLAnchorElement_hostname_Setter(this, value);
+  void set hostname(String value) => _blink.Native_HTMLAnchorElement_hostname_Setter(this, value);
 
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
-  String get href => blink.Native_HTMLAnchorElement_href_Getter(this);
+  String get href => _blink.Native_HTMLAnchorElement_href_Getter(this);
 
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
-  void set href(String value) => blink.Native_HTMLAnchorElement_href_Setter(this, value);
+  void set href(String value) => _blink.Native_HTMLAnchorElement_href_Setter(this, value);
 
   @DomName('HTMLAnchorElement.origin')
   @DocsEditable()
   // WebKit only
   @Experimental() // non-standard
-  String get origin => blink.Native_HTMLAnchorElement_origin_Getter(this);
+  String get origin => _blink.Native_HTMLAnchorElement_origin_Getter(this);
 
   @DomName('HTMLAnchorElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  String get password => blink.Native_HTMLAnchorElement_password_Getter(this);
+  String get password => _blink.Native_HTMLAnchorElement_password_Getter(this);
 
   @DomName('HTMLAnchorElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => blink.Native_HTMLAnchorElement_password_Setter(this, value);
+  void set password(String value) => _blink.Native_HTMLAnchorElement_password_Setter(this, value);
 
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
-  String get pathname => blink.Native_HTMLAnchorElement_pathname_Getter(this);
+  String get pathname => _blink.Native_HTMLAnchorElement_pathname_Getter(this);
 
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => blink.Native_HTMLAnchorElement_pathname_Setter(this, value);
+  void set pathname(String value) => _blink.Native_HTMLAnchorElement_pathname_Setter(this, value);
 
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
-  String get port => blink.Native_HTMLAnchorElement_port_Getter(this);
+  String get port => _blink.Native_HTMLAnchorElement_port_Getter(this);
 
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
-  void set port(String value) => blink.Native_HTMLAnchorElement_port_Setter(this, value);
+  void set port(String value) => _blink.Native_HTMLAnchorElement_port_Setter(this, value);
 
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
-  String get protocol => blink.Native_HTMLAnchorElement_protocol_Getter(this);
+  String get protocol => _blink.Native_HTMLAnchorElement_protocol_Getter(this);
 
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => blink.Native_HTMLAnchorElement_protocol_Setter(this, value);
+  void set protocol(String value) => _blink.Native_HTMLAnchorElement_protocol_Setter(this, value);
 
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
-  String get search => blink.Native_HTMLAnchorElement_search_Getter(this);
+  String get search => _blink.Native_HTMLAnchorElement_search_Getter(this);
 
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
-  void set search(String value) => blink.Native_HTMLAnchorElement_search_Setter(this, value);
+  void set search(String value) => _blink.Native_HTMLAnchorElement_search_Setter(this, value);
 
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  String get username => blink.Native_HTMLAnchorElement_username_Getter(this);
+  String get username => _blink.Native_HTMLAnchorElement_username_Getter(this);
 
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => blink.Native_HTMLAnchorElement_username_Setter(this, value);
+  void set username(String value) => _blink.Native_HTMLAnchorElement_username_Setter(this, value);
 
   @DomName('HTMLAnchorElement.toString')
   @DocsEditable()
-  String toString() => blink.Native_HTMLAnchorElement_toString_Callback(this);
+  String toString() => _blink.Native_HTMLAnchorElement_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -346,13 +346,13 @@ class Animation extends TimedItem {
   }
 
   @DocsEditable()
-  static Animation _create_1(target, keyframes, timingInput) => blink.Native_Animation__create_1constructorCallback(target, keyframes, timingInput);
+  static Animation _create_1(target, keyframes, timingInput) => _blink.Native_Animation__create_1constructorCallback(target, keyframes, timingInput);
 
   @DocsEditable()
-  static Animation _create_2(target, keyframes, timingInput) => blink.Native_Animation__create_2constructorCallback(target, keyframes, timingInput);
+  static Animation _create_2(target, keyframes, timingInput) => _blink.Native_Animation__create_2constructorCallback(target, keyframes, timingInput);
 
   @DocsEditable()
-  static Animation _create_3(target, keyframes) => blink.Native_Animation__create_3constructorCallback(target, keyframes);
+  static Animation _create_3(target, keyframes) => _blink.Native_Animation__create_3constructorCallback(target, keyframes);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -373,11 +373,11 @@ class AnimationEvent extends Event {
 
   @DomName('WebKitAnimationEvent.animationName')
   @DocsEditable()
-  String get animationName => blink.Native_WebKitAnimationEvent_animationName_Getter(this);
+  String get animationName => _blink.Native_WebKitAnimationEvent_animationName_Getter(this);
 
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => blink.Native_WebKitAnimationEvent_elapsedTime_Getter(this);
+  double get elapsedTime => _blink.Native_WebKitAnimationEvent_elapsedTime_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -508,31 +508,31 @@ class ApplicationCache extends EventTarget {
 
   @DomName('ApplicationCache.status')
   @DocsEditable()
-  int get status => blink.Native_ApplicationCache_status_Getter(this);
+  int get status => _blink.Native_ApplicationCache_status_Getter(this);
 
   @DomName('ApplicationCache.abort')
   @DocsEditable()
-  void abort() => blink.Native_ApplicationCache_abort_Callback(this);
+  void abort() => _blink.Native_ApplicationCache_abort_Callback(this);
 
   @DomName('ApplicationCache.swapCache')
   @DocsEditable()
-  void swapCache() => blink.Native_ApplicationCache_swapCache_Callback(this);
+  void swapCache() => _blink.Native_ApplicationCache_swapCache_Callback(this);
 
   @DomName('ApplicationCache.update')
   @DocsEditable()
-  void update() => blink.Native_ApplicationCache_update_Callback(this);
+  void update() => _blink.Native_ApplicationCache_update_Callback(this);
 
   @DomName('ApplicationCache.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_ApplicationCache_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_ApplicationCache_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('ApplicationCache.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_ApplicationCache_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_ApplicationCache_dispatchEvent_Callback(this, event);
 
   @DomName('ApplicationCache.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_ApplicationCache_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_ApplicationCache_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `cached` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.oncached')
@@ -610,129 +610,129 @@ class AreaElement extends HtmlElement implements UrlUtils {
 
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
-  String get alt => blink.Native_HTMLAreaElement_alt_Getter(this);
+  String get alt => _blink.Native_HTMLAreaElement_alt_Getter(this);
 
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
-  void set alt(String value) => blink.Native_HTMLAreaElement_alt_Setter(this, value);
+  void set alt(String value) => _blink.Native_HTMLAreaElement_alt_Setter(this, value);
 
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
-  String get coords => blink.Native_HTMLAreaElement_coords_Getter(this);
+  String get coords => _blink.Native_HTMLAreaElement_coords_Getter(this);
 
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
-  void set coords(String value) => blink.Native_HTMLAreaElement_coords_Setter(this, value);
+  void set coords(String value) => _blink.Native_HTMLAreaElement_coords_Setter(this, value);
 
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
-  String get shape => blink.Native_HTMLAreaElement_shape_Getter(this);
+  String get shape => _blink.Native_HTMLAreaElement_shape_Getter(this);
 
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
-  void set shape(String value) => blink.Native_HTMLAreaElement_shape_Setter(this, value);
+  void set shape(String value) => _blink.Native_HTMLAreaElement_shape_Setter(this, value);
 
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
-  String get target => blink.Native_HTMLAreaElement_target_Getter(this);
+  String get target => _blink.Native_HTMLAreaElement_target_Getter(this);
 
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
-  void set target(String value) => blink.Native_HTMLAreaElement_target_Setter(this, value);
+  void set target(String value) => _blink.Native_HTMLAreaElement_target_Setter(this, value);
 
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
-  String get hash => blink.Native_HTMLAreaElement_hash_Getter(this);
+  String get hash => _blink.Native_HTMLAreaElement_hash_Getter(this);
 
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
-  void set hash(String value) => blink.Native_HTMLAreaElement_hash_Setter(this, value);
+  void set hash(String value) => _blink.Native_HTMLAreaElement_hash_Setter(this, value);
 
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
-  String get host => blink.Native_HTMLAreaElement_host_Getter(this);
+  String get host => _blink.Native_HTMLAreaElement_host_Getter(this);
 
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
-  void set host(String value) => blink.Native_HTMLAreaElement_host_Setter(this, value);
+  void set host(String value) => _blink.Native_HTMLAreaElement_host_Setter(this, value);
 
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
-  String get hostname => blink.Native_HTMLAreaElement_hostname_Getter(this);
+  String get hostname => _blink.Native_HTMLAreaElement_hostname_Getter(this);
 
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => blink.Native_HTMLAreaElement_hostname_Setter(this, value);
+  void set hostname(String value) => _blink.Native_HTMLAreaElement_hostname_Setter(this, value);
 
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
-  String get href => blink.Native_HTMLAreaElement_href_Getter(this);
+  String get href => _blink.Native_HTMLAreaElement_href_Getter(this);
 
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
-  void set href(String value) => blink.Native_HTMLAreaElement_href_Setter(this, value);
+  void set href(String value) => _blink.Native_HTMLAreaElement_href_Setter(this, value);
 
   @DomName('HTMLAreaElement.origin')
   @DocsEditable()
   @Experimental() // untriaged
-  String get origin => blink.Native_HTMLAreaElement_origin_Getter(this);
+  String get origin => _blink.Native_HTMLAreaElement_origin_Getter(this);
 
   @DomName('HTMLAreaElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  String get password => blink.Native_HTMLAreaElement_password_Getter(this);
+  String get password => _blink.Native_HTMLAreaElement_password_Getter(this);
 
   @DomName('HTMLAreaElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => blink.Native_HTMLAreaElement_password_Setter(this, value);
+  void set password(String value) => _blink.Native_HTMLAreaElement_password_Setter(this, value);
 
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
-  String get pathname => blink.Native_HTMLAreaElement_pathname_Getter(this);
+  String get pathname => _blink.Native_HTMLAreaElement_pathname_Getter(this);
 
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => blink.Native_HTMLAreaElement_pathname_Setter(this, value);
+  void set pathname(String value) => _blink.Native_HTMLAreaElement_pathname_Setter(this, value);
 
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
-  String get port => blink.Native_HTMLAreaElement_port_Getter(this);
+  String get port => _blink.Native_HTMLAreaElement_port_Getter(this);
 
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
-  void set port(String value) => blink.Native_HTMLAreaElement_port_Setter(this, value);
+  void set port(String value) => _blink.Native_HTMLAreaElement_port_Setter(this, value);
 
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
-  String get protocol => blink.Native_HTMLAreaElement_protocol_Getter(this);
+  String get protocol => _blink.Native_HTMLAreaElement_protocol_Getter(this);
 
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => blink.Native_HTMLAreaElement_protocol_Setter(this, value);
+  void set protocol(String value) => _blink.Native_HTMLAreaElement_protocol_Setter(this, value);
 
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
-  String get search => blink.Native_HTMLAreaElement_search_Getter(this);
+  String get search => _blink.Native_HTMLAreaElement_search_Getter(this);
 
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
-  void set search(String value) => blink.Native_HTMLAreaElement_search_Setter(this, value);
+  void set search(String value) => _blink.Native_HTMLAreaElement_search_Setter(this, value);
 
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  String get username => blink.Native_HTMLAreaElement_username_Getter(this);
+  String get username => _blink.Native_HTMLAreaElement_username_Getter(this);
 
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => blink.Native_HTMLAreaElement_username_Setter(this, value);
+  void set username(String value) => _blink.Native_HTMLAreaElement_username_Setter(this, value);
 
   @DomName('HTMLAreaElement.toString')
   @DocsEditable()
   @Experimental() // untriaged
-  String toString() => blink.Native_HTMLAreaElement_toString_Callback(this);
+  String toString() => _blink.Native_HTMLAreaElement_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -755,7 +755,7 @@ class AudioElement extends MediaElement {
   }
 
   @DocsEditable()
-  static AudioElement _create_1(src) => blink.Native_HTMLAudioElement__create_1constructorCallback(src);
+  static AudioElement _create_1(src) => _blink.Native_HTMLAudioElement__create_1constructorCallback(src);
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -781,7 +781,7 @@ class AutocompleteErrorEvent extends Event {
 
   @DomName('AutocompleteErrorEvent.reason')
   @DocsEditable()
-  String get reason => blink.Native_AutocompleteErrorEvent_reason_Getter(this);
+  String get reason => _blink.Native_AutocompleteErrorEvent_reason_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -825,7 +825,7 @@ class BarProp extends NativeFieldWrapperClass2 {
 
   @DomName('BarProp.visible')
   @DocsEditable()
-  bool get visible => blink.Native_BarProp_visible_Getter(this);
+  bool get visible => _blink.Native_BarProp_visible_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -853,19 +853,19 @@ class BaseElement extends HtmlElement {
 
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
-  String get href => blink.Native_HTMLBaseElement_href_Getter(this);
+  String get href => _blink.Native_HTMLBaseElement_href_Getter(this);
 
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
-  void set href(String value) => blink.Native_HTMLBaseElement_href_Setter(this, value);
+  void set href(String value) => _blink.Native_HTMLBaseElement_href_Setter(this, value);
 
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
-  String get target => blink.Native_HTMLBaseElement_target_Getter(this);
+  String get target => _blink.Native_HTMLBaseElement_target_Getter(this);
 
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
-  void set target(String value) => blink.Native_HTMLBaseElement_target_Setter(this, value);
+  void set target(String value) => _blink.Native_HTMLBaseElement_target_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -884,7 +884,7 @@ class BeforeLoadEvent extends Event {
 
   @DomName('BeforeLoadEvent.url')
   @DocsEditable()
-  String get url => blink.Native_BeforeLoadEvent_url_Getter(this);
+  String get url => _blink.Native_BeforeLoadEvent_url_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -902,11 +902,11 @@ class BeforeUnloadEvent extends Event {
 
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
-  String get returnValue => blink.Native_BeforeUnloadEvent_returnValue_Getter(this);
+  String get returnValue => _blink.Native_BeforeUnloadEvent_returnValue_Getter(this);
 
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
-  void set returnValue(String value) => blink.Native_BeforeUnloadEvent_returnValue_Setter(this, value);
+  void set returnValue(String value) => _blink.Native_BeforeUnloadEvent_returnValue_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -924,15 +924,15 @@ class Blob extends NativeFieldWrapperClass2 {
   factory Blob(List blobParts, [String type, String endings]) => _create(blobParts, type, endings);
 
   @DocsEditable()
-  static Blob _create(blobParts, type, endings) => blink.Native_Blob_constructorCallback(blobParts, type, endings);
+  static Blob _create(blobParts, type, endings) => _blink.Native_Blob_constructorCallback(blobParts, type, endings);
 
   @DomName('Blob.size')
   @DocsEditable()
-  int get size => blink.Native_Blob_size_Getter(this);
+  int get size => _blink.Native_Blob_size_Getter(this);
 
   @DomName('Blob.type')
   @DocsEditable()
-  String get type => blink.Native_Blob_type_Getter(this);
+  String get type => _blink.Native_Blob_type_Getter(this);
 
   Blob slice([int start, int end, String contentType]) {
     if (contentType != null) {
@@ -947,13 +947,13 @@ class Blob extends NativeFieldWrapperClass2 {
     return _slice_4();
   }
 
-  Blob _slice_1(start, end, contentType) => blink.Native_Blob__slice_1_Callback(this, start, end, contentType);
+  Blob _slice_1(start, end, contentType) => _blink.Native_Blob__slice_1_Callback(this, start, end, contentType);
 
-  Blob _slice_2(start, end) => blink.Native_Blob__slice_2_Callback(this, start, end);
+  Blob _slice_2(start, end) => _blink.Native_Blob__slice_2_Callback(this, start, end);
 
-  Blob _slice_3(start) => blink.Native_Blob__slice_3_Callback(this, start);
+  Blob _slice_3(start) => _blink.Native_Blob__slice_3_Callback(this, start);
 
-  Blob _slice_4() => blink.Native_Blob__slice_4_Callback(this);
+  Blob _slice_4() => _blink.Native_Blob__slice_4_Callback(this);
 
 }
 
@@ -1196,112 +1196,112 @@ class ButtonElement extends HtmlElement {
 
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
-  bool get autofocus => blink.Native_HTMLButtonElement_autofocus_Getter(this);
+  bool get autofocus => _blink.Native_HTMLButtonElement_autofocus_Getter(this);
 
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => blink.Native_HTMLButtonElement_autofocus_Setter(this, value);
+  void set autofocus(bool value) => _blink.Native_HTMLButtonElement_autofocus_Setter(this, value);
 
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLButtonElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLButtonElement_disabled_Getter(this);
 
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLButtonElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLButtonElement_disabled_Setter(this, value);
 
   @DomName('HTMLButtonElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLButtonElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLButtonElement_form_Getter(this);
 
   @DomName('HTMLButtonElement.formAction')
   @DocsEditable()
-  String get formAction => blink.Native_HTMLButtonElement_formAction_Getter(this);
+  String get formAction => _blink.Native_HTMLButtonElement_formAction_Getter(this);
 
   @DomName('HTMLButtonElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => blink.Native_HTMLButtonElement_formAction_Setter(this, value);
+  void set formAction(String value) => _blink.Native_HTMLButtonElement_formAction_Setter(this, value);
 
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
-  String get formEnctype => blink.Native_HTMLButtonElement_formEnctype_Getter(this);
+  String get formEnctype => _blink.Native_HTMLButtonElement_formEnctype_Getter(this);
 
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => blink.Native_HTMLButtonElement_formEnctype_Setter(this, value);
+  void set formEnctype(String value) => _blink.Native_HTMLButtonElement_formEnctype_Setter(this, value);
 
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
-  String get formMethod => blink.Native_HTMLButtonElement_formMethod_Getter(this);
+  String get formMethod => _blink.Native_HTMLButtonElement_formMethod_Getter(this);
 
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => blink.Native_HTMLButtonElement_formMethod_Setter(this, value);
+  void set formMethod(String value) => _blink.Native_HTMLButtonElement_formMethod_Setter(this, value);
 
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
-  bool get formNoValidate => blink.Native_HTMLButtonElement_formNoValidate_Getter(this);
+  bool get formNoValidate => _blink.Native_HTMLButtonElement_formNoValidate_Getter(this);
 
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => blink.Native_HTMLButtonElement_formNoValidate_Setter(this, value);
+  void set formNoValidate(bool value) => _blink.Native_HTMLButtonElement_formNoValidate_Setter(this, value);
 
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
-  String get formTarget => blink.Native_HTMLButtonElement_formTarget_Getter(this);
+  String get formTarget => _blink.Native_HTMLButtonElement_formTarget_Getter(this);
 
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => blink.Native_HTMLButtonElement_formTarget_Setter(this, value);
+  void set formTarget(String value) => _blink.Native_HTMLButtonElement_formTarget_Setter(this, value);
 
   @DomName('HTMLButtonElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLButtonElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLButtonElement_labels_Getter(this);
 
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLButtonElement_name_Getter(this);
+  String get name => _blink.Native_HTMLButtonElement_name_Getter(this);
 
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLButtonElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLButtonElement_name_Setter(this, value);
 
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLButtonElement_type_Getter(this);
+  String get type => _blink.Native_HTMLButtonElement_type_Getter(this);
 
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLButtonElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLButtonElement_type_Setter(this, value);
 
   @DomName('HTMLButtonElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLButtonElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLButtonElement_validationMessage_Getter(this);
 
   @DomName('HTMLButtonElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLButtonElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLButtonElement_validity_Getter(this);
 
   @DomName('HTMLButtonElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLButtonElement_value_Getter(this);
+  String get value => _blink.Native_HTMLButtonElement_value_Getter(this);
 
   @DomName('HTMLButtonElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLButtonElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLButtonElement_value_Setter(this, value);
 
   @DomName('HTMLButtonElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLButtonElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLButtonElement_willValidate_Getter(this);
 
   @DomName('HTMLButtonElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLButtonElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLButtonElement_checkValidity_Callback(this);
 
   @DomName('HTMLButtonElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLButtonElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLButtonElement_setCustomValidity_Callback(this, error);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1337,11 +1337,11 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
-  bool get alpha => blink.Native_Canvas2DContextAttributes_alpha_Getter(this);
+  bool get alpha => _blink.Native_Canvas2DContextAttributes_alpha_Getter(this);
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => blink.Native_Canvas2DContextAttributes_alpha_Setter(this, value);
+  void set alpha(bool value) => _blink.Native_Canvas2DContextAttributes_alpha_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1392,30 +1392,30 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable()
-  int get height => blink.Native_HTMLCanvasElement_height_Getter(this);
+  int get height => _blink.Native_HTMLCanvasElement_height_Getter(this);
 
   /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable()
-  void set height(int value) => blink.Native_HTMLCanvasElement_height_Setter(this, value);
+  void set height(int value) => _blink.Native_HTMLCanvasElement_height_Setter(this, value);
 
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable()
-  int get width => blink.Native_HTMLCanvasElement_width_Getter(this);
+  int get width => _blink.Native_HTMLCanvasElement_width_Getter(this);
 
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable()
-  void set width(int value) => blink.Native_HTMLCanvasElement_width_Setter(this, value);
+  void set width(int value) => _blink.Native_HTMLCanvasElement_width_Setter(this, value);
 
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  CanvasRenderingContext getContext(String contextId, [Map attrs]) => blink.Native_HTMLCanvasElement_getContext_Callback(this, contextId, attrs);
+  CanvasRenderingContext getContext(String contextId, [Map attrs]) => _blink.Native_HTMLCanvasElement_getContext_Callback(this, contextId, attrs);
 
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
-  String _toDataUrl(String type, [num quality]) => blink.Native_HTMLCanvasElement_toDataURL_Callback(this, type, quality);
+  String _toDataUrl(String type, [num quality]) => _blink.Native_HTMLCanvasElement_toDataURL_Callback(this, type, quality);
 
   /// Stream of `webglcontextlost` events handled by this [CanvasElement].
   @DomName('HTMLCanvasElement.onwebglcontextlost')
@@ -1558,7 +1558,7 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
    */
   @DomName('CanvasGradient.addColorStop')
   @DocsEditable()
-  void addColorStop(num offset, String color) => blink.Native_CanvasGradient_addColorStop_Callback(this, offset, color);
+  void addColorStop(num offset, String color) => _blink.Native_CanvasGradient_addColorStop_Callback(this, offset, color);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1624,7 +1624,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass2 {
   /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
   @DocsEditable()
-  CanvasElement get canvas => blink.Native_CanvasRenderingContext_canvas_Getter(this);
+  CanvasElement get canvas => _blink.Native_CanvasRenderingContext_canvas_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1650,7 +1650,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
   @Experimental()
-  Path get currentPath => blink.Native_CanvasRenderingContext2D_currentPath_Getter(this);
+  Path get currentPath => _blink.Native_CanvasRenderingContext2D_currentPath_Getter(this);
 
   /**
    * The current default path of this canvas context, if there is one.
@@ -1665,49 +1665,49 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
   @Experimental()
-  void set currentPath(Path value) => blink.Native_CanvasRenderingContext2D_currentPath_Setter(this, value);
+  void set currentPath(Path value) => _blink.Native_CanvasRenderingContext2D_currentPath_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix get currentTransform => blink.Native_CanvasRenderingContext2D_currentTransform_Getter(this);
+  Matrix get currentTransform => _blink.Native_CanvasRenderingContext2D_currentTransform_Getter(this);
 
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTransform(Matrix value) => blink.Native_CanvasRenderingContext2D_currentTransform_Setter(this, value);
+  void set currentTransform(Matrix value) => _blink.Native_CanvasRenderingContext2D_currentTransform_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  Object get fillStyle => blink.Native_CanvasRenderingContext2D_fillStyle_Getter(this);
+  Object get fillStyle => _blink.Native_CanvasRenderingContext2D_fillStyle_Getter(this);
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  void set fillStyle(Object value) => blink.Native_CanvasRenderingContext2D_fillStyle_Setter(this, value);
+  void set fillStyle(Object value) => _blink.Native_CanvasRenderingContext2D_fillStyle_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
-  String get font => blink.Native_CanvasRenderingContext2D_font_Getter(this);
+  String get font => _blink.Native_CanvasRenderingContext2D_font_Getter(this);
 
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
-  void set font(String value) => blink.Native_CanvasRenderingContext2D_font_Setter(this, value);
+  void set font(String value) => _blink.Native_CanvasRenderingContext2D_font_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
-  num get globalAlpha => blink.Native_CanvasRenderingContext2D_globalAlpha_Getter(this);
+  num get globalAlpha => _blink.Native_CanvasRenderingContext2D_globalAlpha_Getter(this);
 
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
-  void set globalAlpha(num value) => blink.Native_CanvasRenderingContext2D_globalAlpha_Setter(this, value);
+  void set globalAlpha(num value) => _blink.Native_CanvasRenderingContext2D_globalAlpha_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
-  String get globalCompositeOperation => blink.Native_CanvasRenderingContext2D_globalCompositeOperation_Getter(this);
+  String get globalCompositeOperation => _blink.Native_CanvasRenderingContext2D_globalCompositeOperation_Getter(this);
 
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
-  void set globalCompositeOperation(String value) => blink.Native_CanvasRenderingContext2D_globalCompositeOperation_Setter(this, value);
+  void set globalCompositeOperation(String value) => _blink.Native_CanvasRenderingContext2D_globalCompositeOperation_Setter(this, value);
 
   /**
    * Whether images and patterns on this canvas will be smoothed when this
@@ -1722,7 +1722,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get imageSmoothingEnabled => blink.Native_CanvasRenderingContext2D_imageSmoothingEnabled_Getter(this);
+  bool get imageSmoothingEnabled => _blink.Native_CanvasRenderingContext2D_imageSmoothingEnabled_Getter(this);
 
   /**
    * Whether images and patterns on this canvas will be smoothed when this
@@ -1737,103 +1737,103 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set imageSmoothingEnabled(bool value) => blink.Native_CanvasRenderingContext2D_imageSmoothingEnabled_Setter(this, value);
+  void set imageSmoothingEnabled(bool value) => _blink.Native_CanvasRenderingContext2D_imageSmoothingEnabled_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
-  String get lineCap => blink.Native_CanvasRenderingContext2D_lineCap_Getter(this);
+  String get lineCap => _blink.Native_CanvasRenderingContext2D_lineCap_Getter(this);
 
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
-  void set lineCap(String value) => blink.Native_CanvasRenderingContext2D_lineCap_Setter(this, value);
+  void set lineCap(String value) => _blink.Native_CanvasRenderingContext2D_lineCap_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
-  num get lineDashOffset => blink.Native_CanvasRenderingContext2D_lineDashOffset_Getter(this);
+  num get lineDashOffset => _blink.Native_CanvasRenderingContext2D_lineDashOffset_Getter(this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
-  void set lineDashOffset(num value) => blink.Native_CanvasRenderingContext2D_lineDashOffset_Setter(this, value);
+  void set lineDashOffset(num value) => _blink.Native_CanvasRenderingContext2D_lineDashOffset_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
-  String get lineJoin => blink.Native_CanvasRenderingContext2D_lineJoin_Getter(this);
+  String get lineJoin => _blink.Native_CanvasRenderingContext2D_lineJoin_Getter(this);
 
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
-  void set lineJoin(String value) => blink.Native_CanvasRenderingContext2D_lineJoin_Setter(this, value);
+  void set lineJoin(String value) => _blink.Native_CanvasRenderingContext2D_lineJoin_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
-  num get lineWidth => blink.Native_CanvasRenderingContext2D_lineWidth_Getter(this);
+  num get lineWidth => _blink.Native_CanvasRenderingContext2D_lineWidth_Getter(this);
 
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
-  void set lineWidth(num value) => blink.Native_CanvasRenderingContext2D_lineWidth_Setter(this, value);
+  void set lineWidth(num value) => _blink.Native_CanvasRenderingContext2D_lineWidth_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
-  num get miterLimit => blink.Native_CanvasRenderingContext2D_miterLimit_Getter(this);
+  num get miterLimit => _blink.Native_CanvasRenderingContext2D_miterLimit_Getter(this);
 
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
-  void set miterLimit(num value) => blink.Native_CanvasRenderingContext2D_miterLimit_Setter(this, value);
+  void set miterLimit(num value) => _blink.Native_CanvasRenderingContext2D_miterLimit_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
-  num get shadowBlur => blink.Native_CanvasRenderingContext2D_shadowBlur_Getter(this);
+  num get shadowBlur => _blink.Native_CanvasRenderingContext2D_shadowBlur_Getter(this);
 
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
-  void set shadowBlur(num value) => blink.Native_CanvasRenderingContext2D_shadowBlur_Setter(this, value);
+  void set shadowBlur(num value) => _blink.Native_CanvasRenderingContext2D_shadowBlur_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
-  String get shadowColor => blink.Native_CanvasRenderingContext2D_shadowColor_Getter(this);
+  String get shadowColor => _blink.Native_CanvasRenderingContext2D_shadowColor_Getter(this);
 
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
-  void set shadowColor(String value) => blink.Native_CanvasRenderingContext2D_shadowColor_Setter(this, value);
+  void set shadowColor(String value) => _blink.Native_CanvasRenderingContext2D_shadowColor_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
-  num get shadowOffsetX => blink.Native_CanvasRenderingContext2D_shadowOffsetX_Getter(this);
+  num get shadowOffsetX => _blink.Native_CanvasRenderingContext2D_shadowOffsetX_Getter(this);
 
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
-  void set shadowOffsetX(num value) => blink.Native_CanvasRenderingContext2D_shadowOffsetX_Setter(this, value);
+  void set shadowOffsetX(num value) => _blink.Native_CanvasRenderingContext2D_shadowOffsetX_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
-  num get shadowOffsetY => blink.Native_CanvasRenderingContext2D_shadowOffsetY_Getter(this);
+  num get shadowOffsetY => _blink.Native_CanvasRenderingContext2D_shadowOffsetY_Getter(this);
 
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
-  void set shadowOffsetY(num value) => blink.Native_CanvasRenderingContext2D_shadowOffsetY_Setter(this, value);
+  void set shadowOffsetY(num value) => _blink.Native_CanvasRenderingContext2D_shadowOffsetY_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  Object get strokeStyle => blink.Native_CanvasRenderingContext2D_strokeStyle_Getter(this);
+  Object get strokeStyle => _blink.Native_CanvasRenderingContext2D_strokeStyle_Getter(this);
 
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  void set strokeStyle(Object value) => blink.Native_CanvasRenderingContext2D_strokeStyle_Setter(this, value);
+  void set strokeStyle(Object value) => _blink.Native_CanvasRenderingContext2D_strokeStyle_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
-  String get textAlign => blink.Native_CanvasRenderingContext2D_textAlign_Getter(this);
+  String get textAlign => _blink.Native_CanvasRenderingContext2D_textAlign_Getter(this);
 
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
-  void set textAlign(String value) => blink.Native_CanvasRenderingContext2D_textAlign_Setter(this, value);
+  void set textAlign(String value) => _blink.Native_CanvasRenderingContext2D_textAlign_Setter(this, value);
 
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
-  String get textBaseline => blink.Native_CanvasRenderingContext2D_textBaseline_Getter(this);
+  String get textBaseline => _blink.Native_CanvasRenderingContext2D_textBaseline_Getter(this);
 
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
-  void set textBaseline(String value) => blink.Native_CanvasRenderingContext2D_textBaseline_Setter(this, value);
+  void set textBaseline(String value) => _blink.Native_CanvasRenderingContext2D_textBaseline_Setter(this, value);
 
   /**
    * The ratio between this canvas' backing store dimensions and the canvas'
@@ -1849,27 +1849,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  double get backingStorePixelRatio => blink.Native_CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter(this);
+  double get backingStorePixelRatio => _blink.Native_CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter(this);
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
-  void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => blink.Native_CanvasRenderingContext2D_arc_Callback(this, x, y, radius, startAngle, endAngle, anticlockwise);
+  void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => _blink.Native_CanvasRenderingContext2D_arc_Callback(this, x, y, radius, startAngle, endAngle, anticlockwise);
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable()
-  void arcTo(num x1, num y1, num x2, num y2, num radius) => blink.Native_CanvasRenderingContext2D_arcTo_Callback(this, x1, y1, x2, y2, radius);
+  void arcTo(num x1, num y1, num x2, num y2, num radius) => _blink.Native_CanvasRenderingContext2D_arcTo_Callback(this, x1, y1, x2, y2, radius);
 
   @DomName('CanvasRenderingContext2D.beginPath')
   @DocsEditable()
-  void beginPath() => blink.Native_CanvasRenderingContext2D_beginPath_Callback(this);
+  void beginPath() => _blink.Native_CanvasRenderingContext2D_beginPath_Callback(this);
 
   @DomName('CanvasRenderingContext2D.bezierCurveTo')
   @DocsEditable()
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) => blink.Native_CanvasRenderingContext2D_bezierCurveTo_Callback(this, cp1x, cp1y, cp2x, cp2y, x, y);
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) => _blink.Native_CanvasRenderingContext2D_bezierCurveTo_Callback(this, cp1x, cp1y, cp2x, cp2y, x, y);
 
   @DomName('CanvasRenderingContext2D.clearRect')
   @DocsEditable()
-  void clearRect(num x, num y, num width, num height) => blink.Native_CanvasRenderingContext2D_clearRect_Callback(this, x, y, width, height);
+  void clearRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_clearRect_Callback(this, x, y, width, height);
 
   void clip([String winding]) {
     if (winding != null) {
@@ -1880,42 +1880,42 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  void _clip_1(winding) => blink.Native_CanvasRenderingContext2D__clip_1_Callback(this, winding);
+  void _clip_1(winding) => _blink.Native_CanvasRenderingContext2D__clip_1_Callback(this, winding);
 
-  void _clip_2() => blink.Native_CanvasRenderingContext2D__clip_2_Callback(this);
+  void _clip_2() => _blink.Native_CanvasRenderingContext2D__clip_2_Callback(this);
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable()
-  void closePath() => blink.Native_CanvasRenderingContext2D_closePath_Callback(this);
+  void closePath() => _blink.Native_CanvasRenderingContext2D_closePath_Callback(this);
 
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable()
-  ImageData createImageData(num sw, num sh) => blink.Native_CanvasRenderingContext2D_createImageData_Callback(this, sw, sh);
+  ImageData createImageData(num sw, num sh) => _blink.Native_CanvasRenderingContext2D_createImageData_Callback(this, sw, sh);
 
   @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
   @DocsEditable()
-  ImageData createImageDataFromImageData(ImageData imagedata) => blink.Native_CanvasRenderingContext2D_createImageDataFromImageData_Callback(this, imagedata);
+  ImageData createImageDataFromImageData(ImageData imagedata) => _blink.Native_CanvasRenderingContext2D_createImageDataFromImageData_Callback(this, imagedata);
 
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   @DocsEditable()
-  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) => blink.Native_CanvasRenderingContext2D_createLinearGradient_Callback(this, x0, y0, x1, y1);
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) => _blink.Native_CanvasRenderingContext2D_createLinearGradient_Callback(this, x0, y0, x1, y1);
 
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPattern(CanvasElement canvas, String repetitionType) => blink.Native_CanvasRenderingContext2D_createPattern_Callback(this, canvas, repetitionType);
+  CanvasPattern createPattern(CanvasElement canvas, String repetitionType) => _blink.Native_CanvasRenderingContext2D_createPattern_Callback(this, canvas, repetitionType);
 
   @DomName('CanvasRenderingContext2D.createPatternFromImage')
   @DocsEditable()
-  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) => blink.Native_CanvasRenderingContext2D_createPatternFromImage_Callback(this, image, repetitionType);
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) => _blink.Native_CanvasRenderingContext2D_createPatternFromImage_Callback(this, image, repetitionType);
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
-  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) => blink.Native_CanvasRenderingContext2D_createRadialGradient_Callback(this, x0, y0, r0, x1, y1, r1);
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) => _blink.Native_CanvasRenderingContext2D_createRadialGradient_Callback(this, x0, y0, r0, x1, y1, r1);
 
   @DomName('CanvasRenderingContext2D.drawCustomFocusRing')
   @DocsEditable()
   @Experimental() // untriaged
-  bool drawCustomFocusRing(Element element) => blink.Native_CanvasRenderingContext2D_drawCustomFocusRing_Callback(this, element);
+  bool drawCustomFocusRing(Element element) => _blink.Native_CanvasRenderingContext2D_drawCustomFocusRing_Callback(this, element);
 
   void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
@@ -1969,39 +1969,39 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => blink.Native_CanvasRenderingContext2D__drawImage_1_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+  void _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_1_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
 
-  void _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => blink.Native_CanvasRenderingContext2D__drawImage_2_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+  void _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_2_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
 
-  void _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => blink.Native_CanvasRenderingContext2D__drawImage_3_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_3_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
-  void _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => blink.Native_CanvasRenderingContext2D__drawImage_4_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+  void _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_4_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
 
-  void _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => blink.Native_CanvasRenderingContext2D__drawImage_5_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+  void _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_5_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
 
-  void _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => blink.Native_CanvasRenderingContext2D__drawImage_6_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_6_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
-  void _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => blink.Native_CanvasRenderingContext2D__drawImage_7_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+  void _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_7_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
 
-  void _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => blink.Native_CanvasRenderingContext2D__drawImage_8_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+  void _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_8_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
 
-  void _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => blink.Native_CanvasRenderingContext2D__drawImage_9_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_9_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
-  void _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => blink.Native_CanvasRenderingContext2D__drawImage_10_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+  void _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_10_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
 
-  void _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => blink.Native_CanvasRenderingContext2D__drawImage_11_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+  void _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_11_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
 
-  void _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => blink.Native_CanvasRenderingContext2D__drawImage_12_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_12_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
   @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawSystemFocusRing(Element element) => blink.Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(this, element);
+  void drawSystemFocusRing(Element element) => _blink.Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(this, element);
 
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) => blink.Native_CanvasRenderingContext2D_ellipse_Callback(this, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
+  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) => _blink.Native_CanvasRenderingContext2D_ellipse_Callback(this, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
 
   void fill([String winding]) {
     if (winding != null) {
@@ -2012,13 +2012,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  void _fill_1(winding) => blink.Native_CanvasRenderingContext2D__fill_1_Callback(this, winding);
+  void _fill_1(winding) => _blink.Native_CanvasRenderingContext2D__fill_1_Callback(this, winding);
 
-  void _fill_2() => blink.Native_CanvasRenderingContext2D__fill_2_Callback(this);
+  void _fill_2() => _blink.Native_CanvasRenderingContext2D__fill_2_Callback(this);
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
-  void fillRect(num x, num y, num width, num height) => blink.Native_CanvasRenderingContext2D_fillRect_Callback(this, x, y, width, height);
+  void fillRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_fillRect_Callback(this, x, y, width, height);
 
   void fillText(String text, num x, num y, [num maxWidth]) {
     if (maxWidth != null) {
@@ -2029,23 +2029,23 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  void _fillText_1(text, x, y, maxWidth) => blink.Native_CanvasRenderingContext2D__fillText_1_Callback(this, text, x, y, maxWidth);
+  void _fillText_1(text, x, y, maxWidth) => _blink.Native_CanvasRenderingContext2D__fillText_1_Callback(this, text, x, y, maxWidth);
 
-  void _fillText_2(text, x, y) => blink.Native_CanvasRenderingContext2D__fillText_2_Callback(this, text, x, y);
+  void _fillText_2(text, x, y) => _blink.Native_CanvasRenderingContext2D__fillText_2_Callback(this, text, x, y);
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable()
   // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
   @Experimental()
-  Canvas2DContextAttributes getContextAttributes() => blink.Native_CanvasRenderingContext2D_getContextAttributes_Callback(this);
+  Canvas2DContextAttributes getContextAttributes() => _blink.Native_CanvasRenderingContext2D_getContextAttributes_Callback(this);
 
   @DomName('CanvasRenderingContext2D.getImageData')
   @DocsEditable()
-  ImageData getImageData(num sx, num sy, num sw, num sh) => blink.Native_CanvasRenderingContext2D_getImageData_Callback(this, sx, sy, sw, sh);
+  ImageData getImageData(num sx, num sy, num sw, num sh) => _blink.Native_CanvasRenderingContext2D_getImageData_Callback(this, sx, sy, sw, sh);
 
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> _getLineDash() => blink.Native_CanvasRenderingContext2D_getLineDash_Callback(this);
+  List<num> _getLineDash() => _blink.Native_CanvasRenderingContext2D_getLineDash_Callback(this);
 
   bool isPointInPath(num x, num y, [String winding]) {
     if (winding != null) {
@@ -2054,25 +2054,25 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return _isPointInPath_2(x, y);
   }
 
-  bool _isPointInPath_1(x, y, winding) => blink.Native_CanvasRenderingContext2D__isPointInPath_1_Callback(this, x, y, winding);
+  bool _isPointInPath_1(x, y, winding) => _blink.Native_CanvasRenderingContext2D__isPointInPath_1_Callback(this, x, y, winding);
 
-  bool _isPointInPath_2(x, y) => blink.Native_CanvasRenderingContext2D__isPointInPath_2_Callback(this, x, y);
+  bool _isPointInPath_2(x, y) => _blink.Native_CanvasRenderingContext2D__isPointInPath_2_Callback(this, x, y);
 
   @DomName('CanvasRenderingContext2D.isPointInStroke')
   @DocsEditable()
-  bool isPointInStroke(num x, num y) => blink.Native_CanvasRenderingContext2D_isPointInStroke_Callback(this, x, y);
+  bool isPointInStroke(num x, num y) => _blink.Native_CanvasRenderingContext2D_isPointInStroke_Callback(this, x, y);
 
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable()
-  void lineTo(num x, num y) => blink.Native_CanvasRenderingContext2D_lineTo_Callback(this, x, y);
+  void lineTo(num x, num y) => _blink.Native_CanvasRenderingContext2D_lineTo_Callback(this, x, y);
 
   @DomName('CanvasRenderingContext2D.measureText')
   @DocsEditable()
-  TextMetrics measureText(String text) => blink.Native_CanvasRenderingContext2D_measureText_Callback(this, text);
+  TextMetrics measureText(String text) => _blink.Native_CanvasRenderingContext2D_measureText_Callback(this, text);
 
   @DomName('CanvasRenderingContext2D.moveTo')
   @DocsEditable()
-  void moveTo(num x, num y) => blink.Native_CanvasRenderingContext2D_moveTo_Callback(this, x, y);
+  void moveTo(num x, num y) => _blink.Native_CanvasRenderingContext2D_moveTo_Callback(this, x, y);
 
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
@@ -2086,54 +2086,54 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _putImageData_1(imagedata, dx, dy) => blink.Native_CanvasRenderingContext2D__putImageData_1_Callback(this, imagedata, dx, dy);
+  void _putImageData_1(imagedata, dx, dy) => _blink.Native_CanvasRenderingContext2D__putImageData_1_Callback(this, imagedata, dx, dy);
 
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => blink.Native_CanvasRenderingContext2D__putImageData_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => _blink.Native_CanvasRenderingContext2D__putImageData_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   @DocsEditable()
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) => blink.Native_CanvasRenderingContext2D_quadraticCurveTo_Callback(this, cpx, cpy, x, y);
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) => _blink.Native_CanvasRenderingContext2D_quadraticCurveTo_Callback(this, cpx, cpy, x, y);
 
   @DomName('CanvasRenderingContext2D.rect')
   @DocsEditable()
-  void rect(num x, num y, num width, num height) => blink.Native_CanvasRenderingContext2D_rect_Callback(this, x, y, width, height);
+  void rect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_rect_Callback(this, x, y, width, height);
 
   @DomName('CanvasRenderingContext2D.resetTransform')
   @DocsEditable()
   @Experimental() // untriaged
-  void resetTransform() => blink.Native_CanvasRenderingContext2D_resetTransform_Callback(this);
+  void resetTransform() => _blink.Native_CanvasRenderingContext2D_resetTransform_Callback(this);
 
   @DomName('CanvasRenderingContext2D.restore')
   @DocsEditable()
-  void restore() => blink.Native_CanvasRenderingContext2D_restore_Callback(this);
+  void restore() => _blink.Native_CanvasRenderingContext2D_restore_Callback(this);
 
   @DomName('CanvasRenderingContext2D.rotate')
   @DocsEditable()
-  void rotate(num angle) => blink.Native_CanvasRenderingContext2D_rotate_Callback(this, angle);
+  void rotate(num angle) => _blink.Native_CanvasRenderingContext2D_rotate_Callback(this, angle);
 
   @DomName('CanvasRenderingContext2D.save')
   @DocsEditable()
-  void save() => blink.Native_CanvasRenderingContext2D_save_Callback(this);
+  void save() => _blink.Native_CanvasRenderingContext2D_save_Callback(this);
 
   @DomName('CanvasRenderingContext2D.scale')
   @DocsEditable()
-  void scale(num sx, num sy) => blink.Native_CanvasRenderingContext2D_scale_Callback(this, sx, sy);
+  void scale(num sx, num sy) => _blink.Native_CanvasRenderingContext2D_scale_Callback(this, sx, sy);
 
   @DomName('CanvasRenderingContext2D.setLineDash')
   @DocsEditable()
-  void setLineDash(List<num> dash) => blink.Native_CanvasRenderingContext2D_setLineDash_Callback(this, dash);
+  void setLineDash(List<num> dash) => _blink.Native_CanvasRenderingContext2D_setLineDash_Callback(this, dash);
 
   @DomName('CanvasRenderingContext2D.setTransform')
   @DocsEditable()
-  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) => blink.Native_CanvasRenderingContext2D_setTransform_Callback(this, m11, m12, m21, m22, dx, dy);
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) => _blink.Native_CanvasRenderingContext2D_setTransform_Callback(this, m11, m12, m21, m22, dx, dy);
 
   @DomName('CanvasRenderingContext2D.stroke')
   @DocsEditable()
-  void stroke() => blink.Native_CanvasRenderingContext2D_stroke_Callback(this);
+  void stroke() => _blink.Native_CanvasRenderingContext2D_stroke_Callback(this);
 
   @DomName('CanvasRenderingContext2D.strokeRect')
   @DocsEditable()
-  void strokeRect(num x, num y, num width, num height) => blink.Native_CanvasRenderingContext2D_strokeRect_Callback(this, x, y, width, height);
+  void strokeRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_strokeRect_Callback(this, x, y, width, height);
 
   void strokeText(String text, num x, num y, [num maxWidth]) {
     if (maxWidth != null) {
@@ -2144,24 +2144,24 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  void _strokeText_1(text, x, y, maxWidth) => blink.Native_CanvasRenderingContext2D__strokeText_1_Callback(this, text, x, y, maxWidth);
+  void _strokeText_1(text, x, y, maxWidth) => _blink.Native_CanvasRenderingContext2D__strokeText_1_Callback(this, text, x, y, maxWidth);
 
-  void _strokeText_2(text, x, y) => blink.Native_CanvasRenderingContext2D__strokeText_2_Callback(this, text, x, y);
+  void _strokeText_2(text, x, y) => _blink.Native_CanvasRenderingContext2D__strokeText_2_Callback(this, text, x, y);
 
   @DomName('CanvasRenderingContext2D.transform')
   @DocsEditable()
-  void transform(num m11, num m12, num m21, num m22, num dx, num dy) => blink.Native_CanvasRenderingContext2D_transform_Callback(this, m11, m12, m21, m22, dx, dy);
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy) => _blink.Native_CanvasRenderingContext2D_transform_Callback(this, m11, m12, m21, m22, dx, dy);
 
   @DomName('CanvasRenderingContext2D.translate')
   @DocsEditable()
-  void translate(num tx, num ty) => blink.Native_CanvasRenderingContext2D_translate_Callback(this, tx, ty);
+  void translate(num tx, num ty) => _blink.Native_CanvasRenderingContext2D_translate_Callback(this, tx, ty);
 
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  ImageData getImageDataHD(num sx, num sy, num sw, num sh) => blink.Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(this, sx, sy, sw, sh);
+  ImageData getImageDataHD(num sx, num sy, num sw, num sh) => _blink.Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(this, sx, sy, sw, sh);
 
   void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
@@ -2175,9 +2175,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) => blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(this, imagedata, dx, dy);
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) => _blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(this, imagedata, dx, dy);
 
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => _blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 
 
   /**
@@ -2423,43 +2423,43 @@ class CharacterData extends Node implements ChildNode {
 
   @DomName('CharacterData.data')
   @DocsEditable()
-  String get data => blink.Native_CharacterData_data_Getter(this);
+  String get data => _blink.Native_CharacterData_data_Getter(this);
 
   @DomName('CharacterData.data')
   @DocsEditable()
-  void set data(String value) => blink.Native_CharacterData_data_Setter(this, value);
+  void set data(String value) => _blink.Native_CharacterData_data_Setter(this, value);
 
   @DomName('CharacterData.length')
   @DocsEditable()
-  int get length => blink.Native_CharacterData_length_Getter(this);
+  int get length => _blink.Native_CharacterData_length_Getter(this);
 
   @DomName('CharacterData.appendData')
   @DocsEditable()
-  void appendData(String data) => blink.Native_CharacterData_appendData_Callback(this, data);
+  void appendData(String data) => _blink.Native_CharacterData_appendData_Callback(this, data);
 
   @DomName('CharacterData.deleteData')
   @DocsEditable()
-  void deleteData(int offset, int length) => blink.Native_CharacterData_deleteData_Callback(this, offset, length);
+  void deleteData(int offset, int length) => _blink.Native_CharacterData_deleteData_Callback(this, offset, length);
 
   @DomName('CharacterData.insertData')
   @DocsEditable()
-  void insertData(int offset, String data) => blink.Native_CharacterData_insertData_Callback(this, offset, data);
+  void insertData(int offset, String data) => _blink.Native_CharacterData_insertData_Callback(this, offset, data);
 
   @DomName('CharacterData.replaceData')
   @DocsEditable()
-  void replaceData(int offset, int length, String data) => blink.Native_CharacterData_replaceData_Callback(this, offset, length, data);
+  void replaceData(int offset, int length, String data) => _blink.Native_CharacterData_replaceData_Callback(this, offset, length, data);
 
   @DomName('CharacterData.substringData')
   @DocsEditable()
-  String substringData(int offset, int length) => blink.Native_CharacterData_substringData_Callback(this, offset, length);
+  String substringData(int offset, int length) => _blink.Native_CharacterData_substringData_Callback(this, offset, length);
 
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable()
-  Element get nextElementSibling => blink.Native_CharacterData_nextElementSibling_Getter(this);
+  Element get nextElementSibling => _blink.Native_CharacterData_nextElementSibling_Getter(this);
 
   @DomName('CharacterData.previousElementSibling')
   @DocsEditable()
-  Element get previousElementSibling => blink.Native_CharacterData_previousElementSibling_Getter(this);
+  Element get previousElementSibling => _blink.Native_CharacterData_previousElementSibling_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2479,17 +2479,17 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
   @DomName('ChildNode.nextElementSibling')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get nextElementSibling => blink.Native_ChildNode_nextElementSibling_Getter(this);
+  Element get nextElementSibling => _blink.Native_ChildNode_nextElementSibling_Getter(this);
 
   @DomName('ChildNode.previousElementSibling')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get previousElementSibling => blink.Native_ChildNode_previousElementSibling_Getter(this);
+  Element get previousElementSibling => _blink.Native_ChildNode_previousElementSibling_Getter(this);
 
   @DomName('ChildNode.remove')
   @DocsEditable()
   @Experimental() // untriaged
-  void remove() => blink.Native_ChildNode_remove_Callback(this);
+  void remove() => _blink.Native_ChildNode_remove_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2507,15 +2507,15 @@ class CloseEvent extends Event {
 
   @DomName('CloseEvent.code')
   @DocsEditable()
-  int get code => blink.Native_CloseEvent_code_Getter(this);
+  int get code => _blink.Native_CloseEvent_code_Getter(this);
 
   @DomName('CloseEvent.reason')
   @DocsEditable()
-  String get reason => blink.Native_CloseEvent_reason_Getter(this);
+  String get reason => _blink.Native_CloseEvent_reason_Getter(this);
 
   @DomName('CloseEvent.wasClean')
   @DocsEditable()
-  bool get wasClean => blink.Native_CloseEvent_wasClean_Getter(this);
+  bool get wasClean => _blink.Native_CloseEvent_wasClean_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2536,7 +2536,7 @@ class Comment extends CharacterData {
   }
 
   @DocsEditable()
-  static Comment _create_1(data) => blink.Native_Comment__create_1constructorCallback(data);
+  static Comment _create_1(data) => _blink.Native_Comment__create_1constructorCallback(data);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2563,20 +2563,20 @@ class CompositionEvent extends UIEvent {
   @DomName('CompositionEvent.activeSegmentEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  int get activeSegmentEnd => blink.Native_CompositionEvent_activeSegmentEnd_Getter(this);
+  int get activeSegmentEnd => _blink.Native_CompositionEvent_activeSegmentEnd_Getter(this);
 
   @DomName('CompositionEvent.activeSegmentStart')
   @DocsEditable()
   @Experimental() // untriaged
-  int get activeSegmentStart => blink.Native_CompositionEvent_activeSegmentStart_Getter(this);
+  int get activeSegmentStart => _blink.Native_CompositionEvent_activeSegmentStart_Getter(this);
 
   @DomName('CompositionEvent.data')
   @DocsEditable()
-  String get data => blink.Native_CompositionEvent_data_Getter(this);
+  String get data => _blink.Native_CompositionEvent_data_Getter(this);
 
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
-  void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => blink.Native_CompositionEvent_initCompositionEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+  void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => _blink.Native_CompositionEvent_initCompositionEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2595,7 +2595,7 @@ class Console extends ConsoleBase {
   @DomName('Console.memory')
   @DocsEditable()
   @Experimental()
-  MemoryInfo get memory => blink.Native_Console_memory_Getter(this);
+  MemoryInfo get memory => _blink.Native_Console_memory_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2615,117 +2615,117 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
   @Experimental() // untriaged
-  void assertCondition(bool condition, Object arg) => blink.Native_ConsoleBase_assertCondition_Callback(this, condition, arg);
+  void assertCondition(bool condition, Object arg) => _blink.Native_ConsoleBase_assertCondition_Callback(this, condition, arg);
 
   @DomName('ConsoleBase.clear')
   @DocsEditable()
   @Experimental() // untriaged
-  void clear(Object arg) => blink.Native_ConsoleBase_clear_Callback(this, arg);
+  void clear(Object arg) => _blink.Native_ConsoleBase_clear_Callback(this, arg);
 
   @DomName('ConsoleBase.count')
   @DocsEditable()
   @Experimental() // untriaged
-  void count(Object arg) => blink.Native_ConsoleBase_count_Callback(this, arg);
+  void count(Object arg) => _blink.Native_ConsoleBase_count_Callback(this, arg);
 
   @DomName('ConsoleBase.debug')
   @DocsEditable()
   @Experimental() // untriaged
-  void debug(Object arg) => blink.Native_ConsoleBase_debug_Callback(this, arg);
+  void debug(Object arg) => _blink.Native_ConsoleBase_debug_Callback(this, arg);
 
   @DomName('ConsoleBase.dir')
   @DocsEditable()
   @Experimental() // untriaged
-  void dir(Object arg) => blink.Native_ConsoleBase_dir_Callback(this, arg);
+  void dir(Object arg) => _blink.Native_ConsoleBase_dir_Callback(this, arg);
 
   @DomName('ConsoleBase.dirxml')
   @DocsEditable()
   @Experimental() // untriaged
-  void dirxml(Object arg) => blink.Native_ConsoleBase_dirxml_Callback(this, arg);
+  void dirxml(Object arg) => _blink.Native_ConsoleBase_dirxml_Callback(this, arg);
 
   @DomName('ConsoleBase.error')
   @DocsEditable()
   @Experimental() // untriaged
-  void error(Object arg) => blink.Native_ConsoleBase_error_Callback(this, arg);
+  void error(Object arg) => _blink.Native_ConsoleBase_error_Callback(this, arg);
 
   @DomName('ConsoleBase.group')
   @DocsEditable()
   @Experimental() // untriaged
-  void group(Object arg) => blink.Native_ConsoleBase_group_Callback(this, arg);
+  void group(Object arg) => _blink.Native_ConsoleBase_group_Callback(this, arg);
 
   @DomName('ConsoleBase.groupCollapsed')
   @DocsEditable()
   @Experimental() // untriaged
-  void groupCollapsed(Object arg) => blink.Native_ConsoleBase_groupCollapsed_Callback(this, arg);
+  void groupCollapsed(Object arg) => _blink.Native_ConsoleBase_groupCollapsed_Callback(this, arg);
 
   @DomName('ConsoleBase.groupEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void groupEnd() => blink.Native_ConsoleBase_groupEnd_Callback(this);
+  void groupEnd() => _blink.Native_ConsoleBase_groupEnd_Callback(this);
 
   @DomName('ConsoleBase.info')
   @DocsEditable()
   @Experimental() // untriaged
-  void info(Object arg) => blink.Native_ConsoleBase_info_Callback(this, arg);
+  void info(Object arg) => _blink.Native_ConsoleBase_info_Callback(this, arg);
 
   @DomName('ConsoleBase.log')
   @DocsEditable()
   @Experimental() // untriaged
-  void log(Object arg) => blink.Native_ConsoleBase_log_Callback(this, arg);
+  void log(Object arg) => _blink.Native_ConsoleBase_log_Callback(this, arg);
 
   @DomName('ConsoleBase.markTimeline')
   @DocsEditable()
   @Experimental() // untriaged
-  void markTimeline(String title) => blink.Native_ConsoleBase_markTimeline_Callback(this, title);
+  void markTimeline(String title) => _blink.Native_ConsoleBase_markTimeline_Callback(this, title);
 
   @DomName('ConsoleBase.profile')
   @DocsEditable()
   @Experimental() // untriaged
-  void profile(String title) => blink.Native_ConsoleBase_profile_Callback(this, title);
+  void profile(String title) => _blink.Native_ConsoleBase_profile_Callback(this, title);
 
   @DomName('ConsoleBase.profileEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void profileEnd(String title) => blink.Native_ConsoleBase_profileEnd_Callback(this, title);
+  void profileEnd(String title) => _blink.Native_ConsoleBase_profileEnd_Callback(this, title);
 
   @DomName('ConsoleBase.table')
   @DocsEditable()
   @Experimental() // untriaged
-  void table(Object arg) => blink.Native_ConsoleBase_table_Callback(this, arg);
+  void table(Object arg) => _blink.Native_ConsoleBase_table_Callback(this, arg);
 
   @DomName('ConsoleBase.time')
   @DocsEditable()
   @Experimental() // untriaged
-  void time(String title) => blink.Native_ConsoleBase_time_Callback(this, title);
+  void time(String title) => _blink.Native_ConsoleBase_time_Callback(this, title);
 
   @DomName('ConsoleBase.timeEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void timeEnd(String title) => blink.Native_ConsoleBase_timeEnd_Callback(this, title);
+  void timeEnd(String title) => _blink.Native_ConsoleBase_timeEnd_Callback(this, title);
 
   @DomName('ConsoleBase.timeStamp')
   @DocsEditable()
   @Experimental() // untriaged
-  void timeStamp(String title) => blink.Native_ConsoleBase_timeStamp_Callback(this, title);
+  void timeStamp(String title) => _blink.Native_ConsoleBase_timeStamp_Callback(this, title);
 
   @DomName('ConsoleBase.timeline')
   @DocsEditable()
   @Experimental() // untriaged
-  void timeline(String title) => blink.Native_ConsoleBase_timeline_Callback(this, title);
+  void timeline(String title) => _blink.Native_ConsoleBase_timeline_Callback(this, title);
 
   @DomName('ConsoleBase.timelineEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void timelineEnd(String title) => blink.Native_ConsoleBase_timelineEnd_Callback(this, title);
+  void timelineEnd(String title) => _blink.Native_ConsoleBase_timelineEnd_Callback(this, title);
 
   @DomName('ConsoleBase.trace')
   @DocsEditable()
   @Experimental() // untriaged
-  void trace(Object arg) => blink.Native_ConsoleBase_trace_Callback(this, arg);
+  void trace(Object arg) => _blink.Native_ConsoleBase_trace_Callback(this, arg);
 
   @DomName('ConsoleBase.warn')
   @DocsEditable()
   @Experimental() // untriaged
-  void warn(Object arg) => blink.Native_ConsoleBase_warn_Callback(this, arg);
+  void warn(Object arg) => _blink.Native_ConsoleBase_warn_Callback(this, arg);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2759,23 +2759,23 @@ class ContentElement extends HtmlElement {
 
   @DomName('HTMLContentElement.resetStyleInheritance')
   @DocsEditable()
-  bool get resetStyleInheritance => blink.Native_HTMLContentElement_resetStyleInheritance_Getter(this);
+  bool get resetStyleInheritance => _blink.Native_HTMLContentElement_resetStyleInheritance_Getter(this);
 
   @DomName('HTMLContentElement.resetStyleInheritance')
   @DocsEditable()
-  void set resetStyleInheritance(bool value) => blink.Native_HTMLContentElement_resetStyleInheritance_Setter(this, value);
+  void set resetStyleInheritance(bool value) => _blink.Native_HTMLContentElement_resetStyleInheritance_Setter(this, value);
 
   @DomName('HTMLContentElement.select')
   @DocsEditable()
-  String get select => blink.Native_HTMLContentElement_select_Getter(this);
+  String get select => _blink.Native_HTMLContentElement_select_Getter(this);
 
   @DomName('HTMLContentElement.select')
   @DocsEditable()
-  void set select(String value) => blink.Native_HTMLContentElement_select_Setter(this, value);
+  void set select(String value) => _blink.Native_HTMLContentElement_select_Setter(this, value);
 
   @DomName('HTMLContentElement.getDistributedNodes')
   @DocsEditable()
-  List<Node> getDistributedNodes() => blink.Native_HTMLContentElement_getDistributedNodes_Callback(this);
+  List<Node> getDistributedNodes() => _blink.Native_HTMLContentElement_getDistributedNodes_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2793,31 +2793,31 @@ class Coordinates extends NativeFieldWrapperClass2 {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  double get accuracy => blink.Native_Coordinates_accuracy_Getter(this);
+  double get accuracy => _blink.Native_Coordinates_accuracy_Getter(this);
 
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  double get altitude => blink.Native_Coordinates_altitude_Getter(this);
+  double get altitude => _blink.Native_Coordinates_altitude_Getter(this);
 
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  double get altitudeAccuracy => blink.Native_Coordinates_altitudeAccuracy_Getter(this);
+  double get altitudeAccuracy => _blink.Native_Coordinates_altitudeAccuracy_Getter(this);
 
   @DomName('Coordinates.heading')
   @DocsEditable()
-  double get heading => blink.Native_Coordinates_heading_Getter(this);
+  double get heading => _blink.Native_Coordinates_heading_Getter(this);
 
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  double get latitude => blink.Native_Coordinates_latitude_Getter(this);
+  double get latitude => _blink.Native_Coordinates_latitude_Getter(this);
 
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  double get longitude => blink.Native_Coordinates_longitude_Getter(this);
+  double get longitude => _blink.Native_Coordinates_longitude_Getter(this);
 
   @DomName('Coordinates.speed')
   @DocsEditable()
-  double get speed => blink.Native_Coordinates_speed_Getter(this);
+  double get speed => _blink.Native_Coordinates_speed_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2843,11 +2843,11 @@ class Crypto extends NativeFieldWrapperClass2 {
   @DomName('Crypto.subtle')
   @DocsEditable()
   @Experimental() // untriaged
-  _SubtleCrypto get subtle => blink.Native_Crypto_subtle_Getter(this);
+  _SubtleCrypto get subtle => _blink.Native_Crypto_subtle_Getter(this);
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
-  TypedData getRandomValues(TypedData array) => blink.Native_Crypto_getRandomValues_Callback(this, array);
+  TypedData getRandomValues(TypedData array) => _blink.Native_Crypto_getRandomValues_Callback(this, array);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2867,22 +2867,22 @@ class CryptoKey extends NativeFieldWrapperClass2 {
   @DomName('Key.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
-  Algorithm get algorithm => blink.Native_Key_algorithm_Getter(this);
+  Algorithm get algorithm => _blink.Native_Key_algorithm_Getter(this);
 
   @DomName('Key.extractable')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get extractable => blink.Native_Key_extractable_Getter(this);
+  bool get extractable => _blink.Native_Key_extractable_Getter(this);
 
   @DomName('Key.type')
   @DocsEditable()
   @Experimental() // untriaged
-  String get type => blink.Native_Key_type_Getter(this);
+  String get type => _blink.Native_Key_type_Getter(this);
 
   @DomName('Key.usages')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get usages => blink.Native_Key_usages_Getter(this);
+  List<String> get usages => _blink.Native_Key_usages_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2902,11 +2902,11 @@ class Css extends NativeFieldWrapperClass2 {
 
   @DomName('CSS.supports')
   @DocsEditable()
-  bool supports(String property, String value) => blink.Native_CSS_supports_Callback(this, property, value);
+  bool supports(String property, String value) => _blink.Native_CSS_supports_Callback(this, property, value);
 
   @DomName('CSS.supportsCondition')
   @DocsEditable()
-  bool supportsCondition(String conditionText) => blink.Native_CSS_supportsCondition_Callback(this, conditionText);
+  bool supportsCondition(String conditionText) => _blink.Native_CSS_supportsCondition_Callback(this, conditionText);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2926,11 +2926,11 @@ class CssCharsetRule extends CssRule {
 
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
-  String get encoding => blink.Native_CSSCharsetRule_encoding_Getter(this);
+  String get encoding => _blink.Native_CSSCharsetRule_encoding_Getter(this);
 
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
-  void set encoding(String value) => blink.Native_CSSCharsetRule_encoding_Setter(this, value);
+  void set encoding(String value) => _blink.Native_CSSCharsetRule_encoding_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2952,7 +2952,7 @@ class CssFilterRule extends CssRule {
 
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable()
-  CssStyleDeclaration get style => blink.Native_WebKitCSSFilterRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_WebKitCSSFilterRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2973,7 +2973,7 @@ class CssFontFaceLoadEvent extends Event {
   @DomName('CSSFontFaceLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => blink.Native_CSSFontFaceLoadEvent_fontfaces_Getter(this);
+  List<FontFace> get fontfaces => _blink.Native_CSSFontFaceLoadEvent_fontfaces_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2991,7 +2991,7 @@ class CssFontFaceRule extends CssRule {
 
   @DomName('CSSFontFaceRule.style')
   @DocsEditable()
-  CssStyleDeclaration get style => blink.Native_CSSFontFaceRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_CSSFontFaceRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3009,15 +3009,15 @@ class CssImportRule extends CssRule {
 
   @DomName('CSSImportRule.href')
   @DocsEditable()
-  String get href => blink.Native_CSSImportRule_href_Getter(this);
+  String get href => _blink.Native_CSSImportRule_href_Getter(this);
 
   @DomName('CSSImportRule.media')
   @DocsEditable()
-  MediaList get media => blink.Native_CSSImportRule_media_Getter(this);
+  MediaList get media => _blink.Native_CSSImportRule_media_Getter(this);
 
   @DomName('CSSImportRule.styleSheet')
   @DocsEditable()
-  CssStyleSheet get styleSheet => blink.Native_CSSImportRule_styleSheet_Getter(this);
+  CssStyleSheet get styleSheet => _blink.Native_CSSImportRule_styleSheet_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3037,17 +3037,17 @@ class CssKeyframeRule extends CssRule {
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
   @Experimental() // untriaged
-  String get keyText => blink.Native_CSSKeyframeRule_keyText_Getter(this);
+  String get keyText => _blink.Native_CSSKeyframeRule_keyText_Getter(this);
 
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
   @Experimental() // untriaged
-  void set keyText(String value) => blink.Native_CSSKeyframeRule_keyText_Setter(this, value);
+  void set keyText(String value) => _blink.Native_CSSKeyframeRule_keyText_Setter(this, value);
 
   @DomName('CSSKeyframeRule.style')
   @DocsEditable()
   @Experimental() // untriaged
-  CssStyleDeclaration get style => blink.Native_CSSKeyframeRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_CSSKeyframeRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3067,37 +3067,37 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
   @Experimental() // untriaged
-  List<CssRule> get cssRules => blink.Native_CSSKeyframesRule_cssRules_Getter(this);
+  List<CssRule> get cssRules => _blink.Native_CSSKeyframesRule_cssRules_Getter(this);
 
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
   @Experimental() // untriaged
-  String get name => blink.Native_CSSKeyframesRule_name_Getter(this);
+  String get name => _blink.Native_CSSKeyframesRule_name_Getter(this);
 
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
   @Experimental() // untriaged
-  void set name(String value) => blink.Native_CSSKeyframesRule_name_Setter(this, value);
+  void set name(String value) => _blink.Native_CSSKeyframesRule_name_Setter(this, value);
 
   @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule __getter__(int index) => blink.Native_CSSKeyframesRule___getter___Callback(this, index);
+  CssKeyframeRule __getter__(int index) => _blink.Native_CSSKeyframesRule___getter___Callback(this, index);
 
   @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteRule(String key) => blink.Native_CSSKeyframesRule_deleteRule_Callback(this, key);
+  void deleteRule(String key) => _blink.Native_CSSKeyframesRule_deleteRule_Callback(this, key);
 
   @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule findRule(String key) => blink.Native_CSSKeyframesRule_findRule_Callback(this, key);
+  CssKeyframeRule findRule(String key) => _blink.Native_CSSKeyframesRule_findRule_Callback(this, key);
 
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void appendRule(String rule) => blink.Native_CSSKeyframesRule_insertRule_Callback(this, rule);
+  void appendRule(String rule) => _blink.Native_CSSKeyframesRule_insertRule_Callback(this, rule);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3115,19 +3115,19 @@ class CssMediaRule extends CssRule {
 
   @DomName('CSSMediaRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => blink.Native_CSSMediaRule_cssRules_Getter(this);
+  List<CssRule> get cssRules => _blink.Native_CSSMediaRule_cssRules_Getter(this);
 
   @DomName('CSSMediaRule.media')
   @DocsEditable()
-  MediaList get media => blink.Native_CSSMediaRule_media_Getter(this);
+  MediaList get media => _blink.Native_CSSMediaRule_media_Getter(this);
 
   @DomName('CSSMediaRule.deleteRule')
   @DocsEditable()
-  void deleteRule(int index) => blink.Native_CSSMediaRule_deleteRule_Callback(this, index);
+  void deleteRule(int index) => _blink.Native_CSSMediaRule_deleteRule_Callback(this, index);
 
   @DomName('CSSMediaRule.insertRule')
   @DocsEditable()
-  int insertRule(String rule, int index) => blink.Native_CSSMediaRule_insertRule_Callback(this, rule, index);
+  int insertRule(String rule, int index) => _blink.Native_CSSMediaRule_insertRule_Callback(this, rule, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3145,15 +3145,15 @@ class CssPageRule extends CssRule {
 
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
-  String get selectorText => blink.Native_CSSPageRule_selectorText_Getter(this);
+  String get selectorText => _blink.Native_CSSPageRule_selectorText_Getter(this);
 
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => blink.Native_CSSPageRule_selectorText_Setter(this, value);
+  void set selectorText(String value) => _blink.Native_CSSPageRule_selectorText_Setter(this, value);
 
   @DomName('CSSPageRule.style')
   @DocsEditable()
-  CssStyleDeclaration get style => blink.Native_CSSPageRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_CSSPageRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3232,23 +3232,23 @@ class CssRule extends NativeFieldWrapperClass2 {
 
   @DomName('CSSRule.cssText')
   @DocsEditable()
-  String get cssText => blink.Native_CSSRule_cssText_Getter(this);
+  String get cssText => _blink.Native_CSSRule_cssText_Getter(this);
 
   @DomName('CSSRule.cssText')
   @DocsEditable()
-  void set cssText(String value) => blink.Native_CSSRule_cssText_Setter(this, value);
+  void set cssText(String value) => _blink.Native_CSSRule_cssText_Setter(this, value);
 
   @DomName('CSSRule.parentRule')
   @DocsEditable()
-  CssRule get parentRule => blink.Native_CSSRule_parentRule_Getter(this);
+  CssRule get parentRule => _blink.Native_CSSRule_parentRule_Getter(this);
 
   @DomName('CSSRule.parentStyleSheet')
   @DocsEditable()
-  CssStyleSheet get parentStyleSheet => blink.Native_CSSRule_parentStyleSheet_Getter(this);
+  CssStyleSheet get parentStyleSheet => _blink.Native_CSSRule_parentStyleSheet_Getter(this);
 
   @DomName('CSSRule.type')
   @DocsEditable()
-  int get type => blink.Native_CSSRule_type_Getter(this);
+  int get type => _blink.Native_CSSRule_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3289,43 +3289,43 @@ class CssRule extends NativeFieldWrapperClass2 {
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
-  String get cssText => blink.Native_CSSStyleDeclaration_cssText_Getter(this);
+  String get cssText => _blink.Native_CSSStyleDeclaration_cssText_Getter(this);
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
-  void set cssText(String value) => blink.Native_CSSStyleDeclaration_cssText_Setter(this, value);
+  void set cssText(String value) => _blink.Native_CSSStyleDeclaration_cssText_Setter(this, value);
 
   @DomName('CSSStyleDeclaration.length')
   @DocsEditable()
-  int get length => blink.Native_CSSStyleDeclaration_length_Getter(this);
+  int get length => _blink.Native_CSSStyleDeclaration_length_Getter(this);
 
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
-  CssRule get parentRule => blink.Native_CSSStyleDeclaration_parentRule_Getter(this);
+  CssRule get parentRule => _blink.Native_CSSStyleDeclaration_parentRule_Getter(this);
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
-  void __setter__(String propertyName, String propertyValue) => blink.Native_CSSStyleDeclaration___setter___Callback(this, propertyName, propertyValue);
+  void __setter__(String propertyName, String propertyValue) => _blink.Native_CSSStyleDeclaration___setter___Callback(this, propertyName, propertyValue);
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable()
-  String getPropertyPriority(String propertyName) => blink.Native_CSSStyleDeclaration_getPropertyPriority_Callback(this, propertyName);
+  String getPropertyPriority(String propertyName) => _blink.Native_CSSStyleDeclaration_getPropertyPriority_Callback(this, propertyName);
 
   @DomName('CSSStyleDeclaration.getPropertyValue')
   @DocsEditable()
-  String _getPropertyValue(String propertyName) => blink.Native_CSSStyleDeclaration_getPropertyValue_Callback(this, propertyName);
+  String _getPropertyValue(String propertyName) => _blink.Native_CSSStyleDeclaration_getPropertyValue_Callback(this, propertyName);
 
   @DomName('CSSStyleDeclaration.item')
   @DocsEditable()
-  String item(int index) => blink.Native_CSSStyleDeclaration_item_Callback(this, index);
+  String item(int index) => _blink.Native_CSSStyleDeclaration_item_Callback(this, index);
 
   @DomName('CSSStyleDeclaration.removeProperty')
   @DocsEditable()
-  String removeProperty(String propertyName) => blink.Native_CSSStyleDeclaration_removeProperty_Callback(this, propertyName);
+  String removeProperty(String propertyName) => _blink.Native_CSSStyleDeclaration_removeProperty_Callback(this, propertyName);
 
   @DomName('CSSStyleDeclaration.setProperty')
   @DocsEditable()
-  void _setProperty(String propertyName, String value, String priority) => blink.Native_CSSStyleDeclaration_setProperty_Callback(this, propertyName, value, priority);
+  void _setProperty(String propertyName, String value, String priority) => _blink.Native_CSSStyleDeclaration_setProperty_Callback(this, propertyName, value, priority);
 
 }
 
@@ -6536,15 +6536,15 @@ class CssStyleRule extends CssRule {
 
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
-  String get selectorText => blink.Native_CSSStyleRule_selectorText_Getter(this);
+  String get selectorText => _blink.Native_CSSStyleRule_selectorText_Getter(this);
 
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => blink.Native_CSSStyleRule_selectorText_Setter(this, value);
+  void set selectorText(String value) => _blink.Native_CSSStyleRule_selectorText_Setter(this, value);
 
   @DomName('CSSStyleRule.style')
   @DocsEditable()
-  CssStyleDeclaration get style => blink.Native_CSSStyleRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_CSSStyleRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6562,16 +6562,16 @@ class CssStyleSheet extends StyleSheet {
 
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => blink.Native_CSSStyleSheet_cssRules_Getter(this);
+  List<CssRule> get cssRules => _blink.Native_CSSStyleSheet_cssRules_Getter(this);
 
   @DomName('CSSStyleSheet.ownerRule')
   @DocsEditable()
-  CssRule get ownerRule => blink.Native_CSSStyleSheet_ownerRule_Getter(this);
+  CssRule get ownerRule => _blink.Native_CSSStyleSheet_ownerRule_Getter(this);
 
   @DomName('CSSStyleSheet.rules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> get rules => blink.Native_CSSStyleSheet_rules_Getter(this);
+  List<CssRule> get rules => _blink.Native_CSSStyleSheet_rules_Getter(this);
 
   int addRule(String selector, String style, [int index]) {
     if (index != null) {
@@ -6580,13 +6580,13 @@ class CssStyleSheet extends StyleSheet {
     return _addRule_2(selector, style);
   }
 
-  int _addRule_1(selector, style, index) => blink.Native_CSSStyleSheet__addRule_1_Callback(this, selector, style, index);
+  int _addRule_1(selector, style, index) => _blink.Native_CSSStyleSheet__addRule_1_Callback(this, selector, style, index);
 
-  int _addRule_2(selector, style) => blink.Native_CSSStyleSheet__addRule_2_Callback(this, selector, style);
+  int _addRule_2(selector, style) => _blink.Native_CSSStyleSheet__addRule_2_Callback(this, selector, style);
 
   @DomName('CSSStyleSheet.deleteRule')
   @DocsEditable()
-  void deleteRule(int index) => blink.Native_CSSStyleSheet_deleteRule_Callback(this, index);
+  void deleteRule(int index) => _blink.Native_CSSStyleSheet_deleteRule_Callback(this, index);
 
   int insertRule(String rule, [int index]) {
     if (index != null) {
@@ -6595,14 +6595,14 @@ class CssStyleSheet extends StyleSheet {
     return _insertRule_2(rule);
   }
 
-  int _insertRule_1(rule, index) => blink.Native_CSSStyleSheet__insertRule_1_Callback(this, rule, index);
+  int _insertRule_1(rule, index) => _blink.Native_CSSStyleSheet__insertRule_1_Callback(this, rule, index);
 
-  int _insertRule_2(rule) => blink.Native_CSSStyleSheet__insertRule_2_Callback(this, rule);
+  int _insertRule_2(rule) => _blink.Native_CSSStyleSheet__insertRule_2_Callback(this, rule);
 
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable()
   @Experimental() // non-standard
-  void removeRule(int index) => blink.Native_CSSStyleSheet_removeRule_Callback(this, index);
+  void removeRule(int index) => _blink.Native_CSSStyleSheet_removeRule_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6620,19 +6620,19 @@ class CssSupportsRule extends CssRule {
 
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable()
-  String get conditionText => blink.Native_CSSSupportsRule_conditionText_Getter(this);
+  String get conditionText => _blink.Native_CSSSupportsRule_conditionText_Getter(this);
 
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => blink.Native_CSSSupportsRule_cssRules_Getter(this);
+  List<CssRule> get cssRules => _blink.Native_CSSSupportsRule_cssRules_Getter(this);
 
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable()
-  void deleteRule(int index) => blink.Native_CSSSupportsRule_deleteRule_Callback(this, index);
+  void deleteRule(int index) => _blink.Native_CSSSupportsRule_deleteRule_Callback(this, index);
 
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable()
-  int insertRule(String rule, int index) => blink.Native_CSSSupportsRule_insertRule_Callback(this, rule, index);
+  int insertRule(String rule, int index) => _blink.Native_CSSSupportsRule_insertRule_Callback(this, rule, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6652,7 +6652,7 @@ class CssViewportRule extends CssRule {
   @DomName('CSSViewportRule.style')
   @DocsEditable()
   @Experimental() // untriaged
-  CssStyleDeclaration get style => blink.Native_CSSViewportRule_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_CSSViewportRule_style_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6700,11 +6700,11 @@ class CustomEvent extends Event {
 
   @DomName('CustomEvent.detail')
   @DocsEditable()
-  Object get _detail => blink.Native_CustomEvent_detail_Getter(this);
+  Object get _detail => _blink.Native_CustomEvent_detail_Getter(this);
 
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
-  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) => blink.Native_CustomEvent_initCustomEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, detailArg);
+  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) => _blink.Native_CustomEvent_initCustomEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, detailArg);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6763,7 +6763,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.options')
   @DocsEditable()
-  List<Node> get options => blink.Native_HTMLDataListElement_options_Getter(this);
+  List<Node> get options => _blink.Native_HTMLDataListElement_options_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6781,31 +6781,31 @@ class DataTransfer extends NativeFieldWrapperClass2 {
 
   @DomName('Clipboard.dropEffect')
   @DocsEditable()
-  String get dropEffect => blink.Native_Clipboard_dropEffect_Getter(this);
+  String get dropEffect => _blink.Native_Clipboard_dropEffect_Getter(this);
 
   @DomName('Clipboard.dropEffect')
   @DocsEditable()
-  void set dropEffect(String value) => blink.Native_Clipboard_dropEffect_Setter(this, value);
+  void set dropEffect(String value) => _blink.Native_Clipboard_dropEffect_Setter(this, value);
 
   @DomName('Clipboard.effectAllowed')
   @DocsEditable()
-  String get effectAllowed => blink.Native_Clipboard_effectAllowed_Getter(this);
+  String get effectAllowed => _blink.Native_Clipboard_effectAllowed_Getter(this);
 
   @DomName('Clipboard.effectAllowed')
   @DocsEditable()
-  void set effectAllowed(String value) => blink.Native_Clipboard_effectAllowed_Setter(this, value);
+  void set effectAllowed(String value) => _blink.Native_Clipboard_effectAllowed_Setter(this, value);
 
   @DomName('Clipboard.files')
   @DocsEditable()
-  List<File> get files => blink.Native_Clipboard_files_Getter(this);
+  List<File> get files => _blink.Native_Clipboard_files_Getter(this);
 
   @DomName('Clipboard.items')
   @DocsEditable()
-  DataTransferItemList get items => blink.Native_Clipboard_items_Getter(this);
+  DataTransferItemList get items => _blink.Native_Clipboard_items_Getter(this);
 
   @DomName('Clipboard.types')
   @DocsEditable()
-  List<String> get types => blink.Native_Clipboard_types_Getter(this);
+  List<String> get types => _blink.Native_Clipboard_types_Getter(this);
 
   void clearData([String type]) {
     if (type != null) {
@@ -6816,9 +6816,9 @@ class DataTransfer extends NativeFieldWrapperClass2 {
     return;
   }
 
-  void _clearData_1(type) => blink.Native_Clipboard__clearData_1_Callback(this, type);
+  void _clearData_1(type) => _blink.Native_Clipboard__clearData_1_Callback(this, type);
 
-  void _clearData_2() => blink.Native_Clipboard__clearData_2_Callback(this);
+  void _clearData_2() => _blink.Native_Clipboard__clearData_2_Callback(this);
 
   /**
    * Gets the data for the specified type.
@@ -6838,15 +6838,15 @@ class DataTransfer extends NativeFieldWrapperClass2 {
    */
   @DomName('Clipboard.getData')
   @DocsEditable()
-  String getData(String type) => blink.Native_Clipboard_getData_Callback(this, type);
+  String getData(String type) => _blink.Native_Clipboard_getData_Callback(this, type);
 
   @DomName('Clipboard.setData')
   @DocsEditable()
-  bool setData(String type, String data) => blink.Native_Clipboard_setData_Callback(this, type, data);
+  bool setData(String type, String data) => _blink.Native_Clipboard_setData_Callback(this, type, data);
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable()
-  void setDragImage(Element element, int x, int y) => blink.Native_Clipboard_setDragImage_Callback(this, element, x, y);
+  void setDragImage(Element element, int x, int y) => _blink.Native_Clipboard_setDragImage_Callback(this, element, x, y);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6866,19 +6866,19 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
 
   @DomName('DataTransferItem.kind')
   @DocsEditable()
-  String get kind => blink.Native_DataTransferItem_kind_Getter(this);
+  String get kind => _blink.Native_DataTransferItem_kind_Getter(this);
 
   @DomName('DataTransferItem.type')
   @DocsEditable()
-  String get type => blink.Native_DataTransferItem_type_Getter(this);
+  String get type => _blink.Native_DataTransferItem_type_Getter(this);
 
   @DomName('DataTransferItem.getAsFile')
   @DocsEditable()
-  Blob getAsFile() => blink.Native_DataTransferItem_getAsFile_Callback(this);
+  Blob getAsFile() => _blink.Native_DataTransferItem_getAsFile_Callback(this);
 
   @DomName('DataTransferItem.getAsString')
   @DocsEditable()
-  void _getAsString(_StringCallback callback) => blink.Native_DataTransferItem_getAsString_Callback(this, callback);
+  void _getAsString(_StringCallback callback) => _blink.Native_DataTransferItem_getAsString_Callback(this, callback);
 
   Future<String> getAsString() {
     var completer = new Completer<String>();
@@ -6892,7 +6892,7 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Entry getAsEntry() => blink.Native_DataTransferItem_webkitGetAsEntry_Callback(this);
+  Entry getAsEntry() => _blink.Native_DataTransferItem_webkitGetAsEntry_Callback(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -6910,12 +6910,12 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
 
   @DomName('DataTransferItemList.length')
   @DocsEditable()
-  int get length => blink.Native_DataTransferItemList_length_Getter(this);
+  int get length => _blink.Native_DataTransferItemList_length_Getter(this);
 
   @DomName('DataTransferItemList.__getter__')
   @DocsEditable()
   @Experimental() // untriaged
-  DataTransferItem __getter__(int index) => blink.Native_DataTransferItemList___getter___Callback(this, index);
+  DataTransferItem __getter__(int index) => _blink.Native_DataTransferItemList___getter___Callback(this, index);
 
   DataTransferItem add(data_OR_file, [String type]) {
     if ((data_OR_file is File || data_OR_file == null) && type == null) {
@@ -6927,26 +6927,26 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  DataTransferItem _add_1(data_OR_file) => blink.Native_DataTransferItemList__add_1_Callback(this, data_OR_file);
+  DataTransferItem _add_1(data_OR_file) => _blink.Native_DataTransferItemList__add_1_Callback(this, data_OR_file);
 
-  DataTransferItem _add_2(data_OR_file, type) => blink.Native_DataTransferItemList__add_2_Callback(this, data_OR_file, type);
+  DataTransferItem _add_2(data_OR_file, type) => _blink.Native_DataTransferItemList__add_2_Callback(this, data_OR_file, type);
 
   @DomName('DataTransferItemList.addData')
   @DocsEditable()
-  DataTransferItem addData(String data, String type) => blink.Native_DataTransferItemList_addData_Callback(this, data, type);
+  DataTransferItem addData(String data, String type) => _blink.Native_DataTransferItemList_addData_Callback(this, data, type);
 
   @DomName('DataTransferItemList.addFile')
   @DocsEditable()
-  DataTransferItem addFile(File file) => blink.Native_DataTransferItemList_addFile_Callback(this, file);
+  DataTransferItem addFile(File file) => _blink.Native_DataTransferItemList_addFile_Callback(this, file);
 
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
-  void clear() => blink.Native_DataTransferItemList_clear_Callback(this);
+  void clear() => _blink.Native_DataTransferItemList_clear_Callback(this);
 
   @DomName('DataTransferItemList.remove')
   @DocsEditable()
   @Experimental() // untriaged
-  void remove(int index) => blink.Native_DataTransferItemList_remove_Callback(this, index);
+  void remove(int index) => _blink.Native_DataTransferItemList_remove_Callback(this, index);
 
 
   DataTransferItem operator[] (int index) {
@@ -6993,7 +6993,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> messagePorts]) => blink.Native_DedicatedWorkerGlobalScope_postMessage_Callback(this, message, messagePorts);
+  void postMessage(Object message, [List<MessagePort> messagePorts]) => _blink.Native_DedicatedWorkerGlobalScope_postMessage_Callback(this, message, messagePorts);
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -7029,12 +7029,12 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
   @DomName('DeprecatedStorageInfo.queryUsageAndQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) => blink.Native_DeprecatedStorageInfo_queryUsageAndQuota_Callback(this, storageType, usageCallback, errorCallback);
+  void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) => _blink.Native_DeprecatedStorageInfo_queryUsageAndQuota_Callback(this, storageType, usageCallback, errorCallback);
 
   @DomName('DeprecatedStorageInfo.requestQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) => blink.Native_DeprecatedStorageInfo_requestQuota_Callback(this, storageType, newQuotaInBytes, quotaCallback, errorCallback);
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) => _blink.Native_DeprecatedStorageInfo_requestQuota_Callback(this, storageType, newQuotaInBytes, quotaCallback, errorCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7054,12 +7054,12 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
   @DomName('DeprecatedStorageQuota.queryUsageAndQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) => blink.Native_DeprecatedStorageQuota_queryUsageAndQuota_Callback(this, usageCallback, errorCallback);
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) => _blink.Native_DeprecatedStorageQuota_queryUsageAndQuota_Callback(this, usageCallback, errorCallback);
 
   @DomName('DeprecatedStorageQuota.requestQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) => blink.Native_DeprecatedStorageQuota_requestQuota_Callback(this, newQuotaInBytes, quotaCallback, errorCallback);
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) => _blink.Native_DeprecatedStorageQuota_requestQuota_Callback(this, newQuotaInBytes, quotaCallback, errorCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7093,11 +7093,11 @@ class DetailsElement extends HtmlElement {
 
   @DomName('HTMLDetailsElement.open')
   @DocsEditable()
-  bool get open => blink.Native_HTMLDetailsElement_open_Getter(this);
+  bool get open => _blink.Native_HTMLDetailsElement_open_Getter(this);
 
   @DomName('HTMLDetailsElement.open')
   @DocsEditable()
-  void set open(bool value) => blink.Native_HTMLDetailsElement_open_Setter(this, value);
+  void set open(bool value) => _blink.Native_HTMLDetailsElement_open_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7117,15 +7117,15 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  double get x => blink.Native_DeviceAcceleration_x_Getter(this);
+  double get x => _blink.Native_DeviceAcceleration_x_Getter(this);
 
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  double get y => blink.Native_DeviceAcceleration_y_Getter(this);
+  double get y => _blink.Native_DeviceAcceleration_y_Getter(this);
 
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  double get z => blink.Native_DeviceAcceleration_z_Getter(this);
+  double get z => _blink.Native_DeviceAcceleration_z_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7145,24 +7145,24 @@ class DeviceMotionEvent extends Event {
 
   @DomName('DeviceMotionEvent.acceleration')
   @DocsEditable()
-  DeviceAcceleration get acceleration => blink.Native_DeviceMotionEvent_acceleration_Getter(this);
+  DeviceAcceleration get acceleration => _blink.Native_DeviceMotionEvent_acceleration_Getter(this);
 
   @DomName('DeviceMotionEvent.accelerationIncludingGravity')
   @DocsEditable()
-  DeviceAcceleration get accelerationIncludingGravity => blink.Native_DeviceMotionEvent_accelerationIncludingGravity_Getter(this);
+  DeviceAcceleration get accelerationIncludingGravity => _blink.Native_DeviceMotionEvent_accelerationIncludingGravity_Getter(this);
 
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  double get interval => blink.Native_DeviceMotionEvent_interval_Getter(this);
+  double get interval => _blink.Native_DeviceMotionEvent_interval_Getter(this);
 
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
-  DeviceRotationRate get rotationRate => blink.Native_DeviceMotionEvent_rotationRate_Getter(this);
+  DeviceRotationRate get rotationRate => _blink.Native_DeviceMotionEvent_rotationRate_Getter(this);
 
   @DomName('DeviceMotionEvent.initDeviceMotionEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  void initDeviceMotionEvent(String type, bool bubbles, bool cancelable, DeviceAcceleration acceleration, DeviceAcceleration accelerationIncludingGravity, DeviceRotationRate rotationRate, num interval) => blink.Native_DeviceMotionEvent_initDeviceMotionEvent_Callback(this, type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval);
+  void initDeviceMotionEvent(String type, bool bubbles, bool cancelable, DeviceAcceleration acceleration, DeviceAcceleration accelerationIncludingGravity, DeviceRotationRate rotationRate, num interval) => _blink.Native_DeviceMotionEvent_initDeviceMotionEvent_Callback(this, type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -7188,23 +7188,23 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.absolute')
   @DocsEditable()
-  bool get absolute => blink.Native_DeviceOrientationEvent_absolute_Getter(this);
+  bool get absolute => _blink.Native_DeviceOrientationEvent_absolute_Getter(this);
 
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  double get alpha => blink.Native_DeviceOrientationEvent_alpha_Getter(this);
+  double get alpha => _blink.Native_DeviceOrientationEvent_alpha_Getter(this);
 
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  double get beta => blink.Native_DeviceOrientationEvent_beta_Getter(this);
+  double get beta => _blink.Native_DeviceOrientationEvent_beta_Getter(this);
 
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  double get gamma => blink.Native_DeviceOrientationEvent_gamma_Getter(this);
+  double get gamma => _blink.Native_DeviceOrientationEvent_gamma_Getter(this);
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
-  void _initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) => blink.Native_DeviceOrientationEvent_initDeviceOrientationEvent_Callback(this, type, bubbles, cancelable, alpha, beta, gamma, absolute);
+  void _initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) => _blink.Native_DeviceOrientationEvent_initDeviceOrientationEvent_Callback(this, type, bubbles, cancelable, alpha, beta, gamma, absolute);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7224,15 +7224,15 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  double get alpha => blink.Native_DeviceRotationRate_alpha_Getter(this);
+  double get alpha => _blink.Native_DeviceRotationRate_alpha_Getter(this);
 
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  double get beta => blink.Native_DeviceRotationRate_beta_Getter(this);
+  double get beta => _blink.Native_DeviceRotationRate_beta_Getter(this);
 
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  double get gamma => blink.Native_DeviceRotationRate_gamma_Getter(this);
+  double get gamma => _blink.Native_DeviceRotationRate_gamma_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7257,33 +7257,33 @@ class DialogElement extends HtmlElement {
 
   @DomName('HTMLDialogElement.open')
   @DocsEditable()
-  bool get open => blink.Native_HTMLDialogElement_open_Getter(this);
+  bool get open => _blink.Native_HTMLDialogElement_open_Getter(this);
 
   @DomName('HTMLDialogElement.open')
   @DocsEditable()
-  void set open(bool value) => blink.Native_HTMLDialogElement_open_Setter(this, value);
+  void set open(bool value) => _blink.Native_HTMLDialogElement_open_Setter(this, value);
 
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
   @Experimental() // untriaged
-  String get returnValue => blink.Native_HTMLDialogElement_returnValue_Getter(this);
+  String get returnValue => _blink.Native_HTMLDialogElement_returnValue_Getter(this);
 
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
   @Experimental() // untriaged
-  void set returnValue(String value) => blink.Native_HTMLDialogElement_returnValue_Setter(this, value);
+  void set returnValue(String value) => _blink.Native_HTMLDialogElement_returnValue_Setter(this, value);
 
   @DomName('HTMLDialogElement.close')
   @DocsEditable()
-  void close(String returnValue) => blink.Native_HTMLDialogElement_close_Callback(this, returnValue);
+  void close(String returnValue) => _blink.Native_HTMLDialogElement_close_Callback(this, returnValue);
 
   @DomName('HTMLDialogElement.show')
   @DocsEditable()
-  void show() => blink.Native_HTMLDialogElement_show_Callback(this);
+  void show() => _blink.Native_HTMLDialogElement_show_Callback(this);
 
   @DomName('HTMLDialogElement.showModal')
   @DocsEditable()
-  void showModal() => blink.Native_HTMLDialogElement_showModal_Callback(this);
+  void showModal() => _blink.Native_HTMLDialogElement_showModal_Callback(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -7337,11 +7337,11 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.createReader')
   @DocsEditable()
-  DirectoryReader createReader() => blink.Native_DirectoryEntry_createReader_Callback(this);
+  DirectoryReader createReader() => _blink.Native_DirectoryEntry_createReader_Callback(this);
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
-  void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) => blink.Native_DirectoryEntry_getDirectory_Callback(this, path, options, successCallback, errorCallback);
+  void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.Native_DirectoryEntry_getDirectory_Callback(this, path, options, successCallback, errorCallback);
 
   Future<Entry> _getDirectory(String path, {Map options}) {
     var completer = new Completer<Entry>();
@@ -7353,7 +7353,7 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
-  void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) => blink.Native_DirectoryEntry_getFile_Callback(this, path, options, successCallback, errorCallback);
+  void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.Native_DirectoryEntry_getFile_Callback(this, path, options, successCallback, errorCallback);
 
   Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
@@ -7365,7 +7365,7 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.removeRecursively')
   @DocsEditable()
-  void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_DirectoryEntry_removeRecursively_Callback(this, successCallback, errorCallback);
+  void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_DirectoryEntry_removeRecursively_Callback(this, successCallback, errorCallback);
 
   Future removeRecursively() {
     var completer = new Completer();
@@ -7394,7 +7394,7 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
 
   @DomName('DirectoryReader.readEntries')
   @DocsEditable()
-  void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_DirectoryReader_readEntries_Callback(this, successCallback, errorCallback);
+  void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_DirectoryReader_readEntries_Callback(this, successCallback, errorCallback);
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
@@ -7536,109 +7536,109 @@ class Document extends Node
   @DomName('Document.activeElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get activeElement => blink.Native_Document_activeElement_Getter(this);
+  Element get activeElement => _blink.Native_Document_activeElement_Getter(this);
 
   @DomName('Document.body')
   @DocsEditable()
-  HtmlElement get _body => blink.Native_Document_body_Getter(this);
+  HtmlElement get _body => _blink.Native_Document_body_Getter(this);
 
   @DomName('Document.body')
   @DocsEditable()
-  void set _body(HtmlElement value) => blink.Native_Document_body_Setter(this, value);
+  void set _body(HtmlElement value) => _blink.Native_Document_body_Setter(this, value);
 
   @DomName('Document.cookie')
   @DocsEditable()
-  String get cookie => blink.Native_Document_cookie_Getter(this);
+  String get cookie => _blink.Native_Document_cookie_Getter(this);
 
   @DomName('Document.cookie')
   @DocsEditable()
-  void set cookie(String value) => blink.Native_Document_cookie_Setter(this, value);
+  void set cookie(String value) => _blink.Native_Document_cookie_Setter(this, value);
 
   @DomName('Document.currentScript')
   @DocsEditable()
   @Experimental() // untriaged
-  ScriptElement get currentScript => blink.Native_Document_currentScript_Getter(this);
+  ScriptElement get currentScript => _blink.Native_Document_currentScript_Getter(this);
 
   @DomName('Document.defaultView')
   @DocsEditable()
-  WindowBase get window => blink.Native_Document_defaultView_Getter(this);
+  WindowBase get window => _blink.Native_Document_defaultView_Getter(this);
 
   @DomName('Document.documentElement')
   @DocsEditable()
-  Element get documentElement => blink.Native_Document_documentElement_Getter(this);
+  Element get documentElement => _blink.Native_Document_documentElement_Getter(this);
 
   @DomName('Document.domain')
   @DocsEditable()
-  String get domain => blink.Native_Document_domain_Getter(this);
+  String get domain => _blink.Native_Document_domain_Getter(this);
 
   @DomName('Document.fonts')
   @DocsEditable()
   @Experimental() // untriaged
-  FontFaceSet get fonts => blink.Native_Document_fonts_Getter(this);
+  FontFaceSet get fonts => _blink.Native_Document_fonts_Getter(this);
 
   @DomName('Document.head')
   @DocsEditable()
-  HeadElement get _head => blink.Native_Document_head_Getter(this);
+  HeadElement get _head => _blink.Native_Document_head_Getter(this);
 
   @DomName('Document.hidden')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get hidden => blink.Native_Document_hidden_Getter(this);
+  bool get hidden => _blink.Native_Document_hidden_Getter(this);
 
   @DomName('Document.implementation')
   @DocsEditable()
-  DomImplementation get implementation => blink.Native_Document_implementation_Getter(this);
+  DomImplementation get implementation => _blink.Native_Document_implementation_Getter(this);
 
   @DomName('Document.lastModified')
   @DocsEditable()
-  String get _lastModified => blink.Native_Document_lastModified_Getter(this);
+  String get _lastModified => _blink.Native_Document_lastModified_Getter(this);
 
   @DomName('Document.preferredStylesheetSet')
   @DocsEditable()
-  String get _preferredStylesheetSet => blink.Native_Document_preferredStylesheetSet_Getter(this);
+  String get _preferredStylesheetSet => _blink.Native_Document_preferredStylesheetSet_Getter(this);
 
   @DomName('Document.readyState')
   @DocsEditable()
-  String get readyState => blink.Native_Document_readyState_Getter(this);
+  String get readyState => _blink.Native_Document_readyState_Getter(this);
 
   @DomName('Document.referrer')
   @DocsEditable()
-  String get _referrer => blink.Native_Document_referrer_Getter(this);
+  String get _referrer => _blink.Native_Document_referrer_Getter(this);
 
   @DomName('Document.rootElement')
   @DocsEditable()
   @Experimental() // untriaged
-  SvgSvgElement get rootElement => blink.Native_Document_rootElement_Getter(this);
+  SvgSvgElement get rootElement => _blink.Native_Document_rootElement_Getter(this);
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  String get _selectedStylesheetSet => blink.Native_Document_selectedStylesheetSet_Getter(this);
+  String get _selectedStylesheetSet => _blink.Native_Document_selectedStylesheetSet_Getter(this);
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  void set _selectedStylesheetSet(String value) => blink.Native_Document_selectedStylesheetSet_Setter(this, value);
+  void set _selectedStylesheetSet(String value) => _blink.Native_Document_selectedStylesheetSet_Setter(this, value);
 
   @DomName('Document.styleSheets')
   @DocsEditable()
-  List<StyleSheet> get _styleSheets => blink.Native_Document_styleSheets_Getter(this);
+  List<StyleSheet> get _styleSheets => _blink.Native_Document_styleSheets_Getter(this);
 
   @DomName('Document.timeline')
   @DocsEditable()
   @Experimental() // untriaged
-  Timeline get timeline => blink.Native_Document_timeline_Getter(this);
+  Timeline get timeline => _blink.Native_Document_timeline_Getter(this);
 
   @DomName('Document.title')
   @DocsEditable()
-  String get _title => blink.Native_Document_title_Getter(this);
+  String get _title => _blink.Native_Document_title_Getter(this);
 
   @DomName('Document.title')
   @DocsEditable()
-  void set _title(String value) => blink.Native_Document_title_Setter(this, value);
+  void set _title(String value) => _blink.Native_Document_title_Setter(this, value);
 
   @DomName('Document.visibilityState')
   @DocsEditable()
   @Experimental() // untriaged
-  String get visibilityState => blink.Native_Document_visibilityState_Getter(this);
+  String get visibilityState => _blink.Native_Document_visibilityState_Getter(this);
 
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable()
@@ -7646,7 +7646,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenelement
-  Element get _webkitFullscreenElement => blink.Native_Document_webkitFullscreenElement_Getter(this);
+  Element get _webkitFullscreenElement => _blink.Native_Document_webkitFullscreenElement_Getter(this);
 
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable()
@@ -7654,7 +7654,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenenabled
-  bool get _webkitFullscreenEnabled => blink.Native_Document_webkitFullscreenEnabled_Getter(this);
+  bool get _webkitFullscreenEnabled => _blink.Native_Document_webkitFullscreenEnabled_Getter(this);
 
   @DomName('Document.webkitHidden')
   @DocsEditable()
@@ -7662,7 +7662,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
-  bool get _webkitHidden => blink.Native_Document_webkitHidden_Getter(this);
+  bool get _webkitHidden => _blink.Native_Document_webkitHidden_Getter(this);
 
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
@@ -7670,7 +7670,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-pointerLockElement
-  Element get _webkitPointerLockElement => blink.Native_Document_webkitPointerLockElement_Getter(this);
+  Element get _webkitPointerLockElement => _blink.Native_Document_webkitPointerLockElement_Getter(this);
 
   @DomName('Document.webkitVisibilityState')
   @DocsEditable()
@@ -7678,29 +7678,29 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#dom-document-visibilitystate
-  String get _webkitVisibilityState => blink.Native_Document_webkitVisibilityState_Getter(this);
+  String get _webkitVisibilityState => _blink.Native_Document_webkitVisibilityState_Getter(this);
 
   @DomName('Document.adoptNode')
   @DocsEditable()
-  Node adoptNode(Node node) => blink.Native_Document_adoptNode_Callback(this, node);
+  Node adoptNode(Node node) => _blink.Native_Document_adoptNode_Callback(this, node);
 
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable()
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
   @Experimental()
-  Range _caretRangeFromPoint(int x, int y) => blink.Native_Document_caretRangeFromPoint_Callback(this, x, y);
+  Range _caretRangeFromPoint(int x, int y) => _blink.Native_Document_caretRangeFromPoint_Callback(this, x, y);
 
   @DomName('Document.createDocumentFragment')
   @DocsEditable()
-  DocumentFragment createDocumentFragment() => blink.Native_Document_createDocumentFragment_Callback(this);
+  DocumentFragment createDocumentFragment() => _blink.Native_Document_createDocumentFragment_Callback(this);
 
   @DomName('Document.createElement')
   @DocsEditable()
-  Element _createElement(String localName_OR_tagName, [String typeExtension]) => blink.Native_Document_createElement_Callback(this, localName_OR_tagName, typeExtension);
+  Element _createElement(String localName_OR_tagName, [String typeExtension]) => _blink.Native_Document_createElement_Callback(this, localName_OR_tagName, typeExtension);
 
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => blink.Native_Document_createElementNS_Callback(this, namespaceURI, qualifiedName, typeExtension);
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => _blink.Native_Document_createElementNS_Callback(this, namespaceURI, qualifiedName, typeExtension);
 
   Event _createEvent([String eventType]) {
     if (eventType != null) {
@@ -7709,9 +7709,9 @@ class Document extends Node
     return _createEvent_2();
   }
 
-  Event _createEvent_1(eventType) => blink.Native_Document__createEvent_1_Callback(this, eventType);
+  Event _createEvent_1(eventType) => _blink.Native_Document__createEvent_1_Callback(this, eventType);
 
-  Event _createEvent_2() => blink.Native_Document__createEvent_2_Callback(this);
+  Event _createEvent_2() => _blink.Native_Document__createEvent_2_Callback(this);
 
   NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
     if (filter != null) {
@@ -7723,25 +7723,25 @@ class Document extends Node
     return _createNodeIterator_3(root);
   }
 
-  NodeIterator _createNodeIterator_1(root, whatToShow, filter) => blink.Native_Document__createNodeIterator_1_Callback(this, root, whatToShow, filter);
+  NodeIterator _createNodeIterator_1(root, whatToShow, filter) => _blink.Native_Document__createNodeIterator_1_Callback(this, root, whatToShow, filter);
 
-  NodeIterator _createNodeIterator_2(root, whatToShow) => blink.Native_Document__createNodeIterator_2_Callback(this, root, whatToShow);
+  NodeIterator _createNodeIterator_2(root, whatToShow) => _blink.Native_Document__createNodeIterator_2_Callback(this, root, whatToShow);
 
-  NodeIterator _createNodeIterator_3(root) => blink.Native_Document__createNodeIterator_3_Callback(this, root);
+  NodeIterator _createNodeIterator_3(root) => _blink.Native_Document__createNodeIterator_3_Callback(this, root);
 
   @DomName('Document.createRange')
   @DocsEditable()
-  Range createRange() => blink.Native_Document_createRange_Callback(this);
+  Range createRange() => _blink.Native_Document_createRange_Callback(this);
 
   @DomName('Document.createTextNode')
   @DocsEditable()
-  Text _createTextNode(String data) => blink.Native_Document_createTextNode_Callback(this, data);
+  Text _createTextNode(String data) => _blink.Native_Document_createTextNode_Callback(this, data);
 
   @DomName('Document.createTouch')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => blink.Native_Document_createTouch_Callback(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+  Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _blink.Native_Document_createTouch_Callback(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
 
   TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
     if (filter != null) {
@@ -7753,41 +7753,41 @@ class Document extends Node
     return _createTreeWalker_3(root);
   }
 
-  TreeWalker _createTreeWalker_1(root, whatToShow, filter) => blink.Native_Document__createTreeWalker_1_Callback(this, root, whatToShow, filter);
+  TreeWalker _createTreeWalker_1(root, whatToShow, filter) => _blink.Native_Document__createTreeWalker_1_Callback(this, root, whatToShow, filter);
 
-  TreeWalker _createTreeWalker_2(root, whatToShow) => blink.Native_Document__createTreeWalker_2_Callback(this, root, whatToShow);
+  TreeWalker _createTreeWalker_2(root, whatToShow) => _blink.Native_Document__createTreeWalker_2_Callback(this, root, whatToShow);
 
-  TreeWalker _createTreeWalker_3(root) => blink.Native_Document__createTreeWalker_3_Callback(this, root);
+  TreeWalker _createTreeWalker_3(root) => _blink.Native_Document__createTreeWalker_3_Callback(this, root);
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
-  Element _elementFromPoint(int x, int y) => blink.Native_Document_elementFromPoint_Callback(this, x, y);
+  Element _elementFromPoint(int x, int y) => _blink.Native_Document_elementFromPoint_Callback(this, x, y);
 
   @DomName('Document.execCommand')
   @DocsEditable()
-  bool execCommand(String command, bool userInterface, String value) => blink.Native_Document_execCommand_Callback(this, command, userInterface, value);
+  bool execCommand(String command, bool userInterface, String value) => _blink.Native_Document_execCommand_Callback(this, command, userInterface, value);
 
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable()
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
   @Experimental() // non-standard
-  CanvasRenderingContext _getCssCanvasContext(String contextId, String name, int width, int height) => blink.Native_Document_getCSSCanvasContext_Callback(this, contextId, name, width, height);
+  CanvasRenderingContext _getCssCanvasContext(String contextId, String name, int width, int height) => _blink.Native_Document_getCSSCanvasContext_Callback(this, contextId, name, width, height);
 
   @DomName('Document.getElementById')
   @DocsEditable()
-  Element getElementById(String elementId) => blink.Native_Document_getElementById_Callback(this, elementId);
+  Element getElementById(String elementId) => _blink.Native_Document_getElementById_Callback(this, elementId);
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => blink.Native_Document_getElementsByClassName_Callback(this, classNames);
+  List<Node> getElementsByClassName(String classNames) => _blink.Native_Document_getElementsByClassName_Callback(this, classNames);
 
   @DomName('Document.getElementsByName')
   @DocsEditable()
-  List<Node> getElementsByName(String elementName) => blink.Native_Document_getElementsByName_Callback(this, elementName);
+  List<Node> getElementsByName(String elementName) => _blink.Native_Document_getElementsByName_Callback(this, elementName);
 
   @DomName('Document.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String localName) => blink.Native_Document_getElementsByTagName_Callback(this, localName);
+  List<Node> getElementsByTagName(String localName) => _blink.Native_Document_getElementsByTagName_Callback(this, localName);
 
   Node importNode(Node node, [bool deep]) {
     if (deep != null) {
@@ -7796,29 +7796,29 @@ class Document extends Node
     return _importNode_2(node);
   }
 
-  Node _importNode_1(node, deep) => blink.Native_Document__importNode_1_Callback(this, node, deep);
+  Node _importNode_1(node, deep) => _blink.Native_Document__importNode_1_Callback(this, node, deep);
 
-  Node _importNode_2(node) => blink.Native_Document__importNode_2_Callback(this, node);
+  Node _importNode_2(node) => _blink.Native_Document__importNode_2_Callback(this, node);
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
-  bool queryCommandEnabled(String command) => blink.Native_Document_queryCommandEnabled_Callback(this, command);
+  bool queryCommandEnabled(String command) => _blink.Native_Document_queryCommandEnabled_Callback(this, command);
 
   @DomName('Document.queryCommandIndeterm')
   @DocsEditable()
-  bool queryCommandIndeterm(String command) => blink.Native_Document_queryCommandIndeterm_Callback(this, command);
+  bool queryCommandIndeterm(String command) => _blink.Native_Document_queryCommandIndeterm_Callback(this, command);
 
   @DomName('Document.queryCommandState')
   @DocsEditable()
-  bool queryCommandState(String command) => blink.Native_Document_queryCommandState_Callback(this, command);
+  bool queryCommandState(String command) => _blink.Native_Document_queryCommandState_Callback(this, command);
 
   @DomName('Document.queryCommandSupported')
   @DocsEditable()
-  bool queryCommandSupported(String command) => blink.Native_Document_queryCommandSupported_Callback(this, command);
+  bool queryCommandSupported(String command) => _blink.Native_Document_queryCommandSupported_Callback(this, command);
 
   @DomName('Document.queryCommandValue')
   @DocsEditable()
-  String queryCommandValue(String command) => blink.Native_Document_queryCommandValue_Callback(this, command);
+  String queryCommandValue(String command) => _blink.Native_Document_queryCommandValue_Callback(this, command);
 
   /**
    * Finds the first descendant element of this document that matches the
@@ -7839,11 +7839,11 @@ class Document extends Node
    */
   @DomName('Document.querySelector')
   @DocsEditable()
-  Element querySelector(String selectors) => blink.Native_Document_querySelector_Callback(this, selectors);
+  Element querySelector(String selectors) => _blink.Native_Document_querySelector_Callback(this, selectors);
 
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => blink.Native_Document_querySelectorAll_Callback(this, selectors);
+  List<Node> _querySelectorAll(String selectors) => _blink.Native_Document_querySelectorAll_Callback(this, selectors);
 
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable()
@@ -7851,7 +7851,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  void _webkitExitFullscreen() => blink.Native_Document_webkitExitFullscreen_Callback(this);
+  void _webkitExitFullscreen() => _blink.Native_Document_webkitExitFullscreen_Callback(this);
 
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable()
@@ -7859,23 +7859,23 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-exitPointerLock-void
-  void _webkitExitPointerLock() => blink.Native_Document_webkitExitPointerLock_Callback(this);
+  void _webkitExitPointerLock() => _blink.Native_Document_webkitExitPointerLock_Callback(this);
 
   @DomName('Document.childElementCount')
   @DocsEditable()
-  int get _childElementCount => blink.Native_Document_childElementCount_Getter(this);
+  int get _childElementCount => _blink.Native_Document_childElementCount_Getter(this);
 
   @DomName('Document.children')
   @DocsEditable()
-  List<Node> get _children => blink.Native_Document_children_Getter(this);
+  List<Node> get _children => _blink.Native_Document_children_Getter(this);
 
   @DomName('Document.firstElementChild')
   @DocsEditable()
-  Element get _firstElementChild => blink.Native_Document_firstElementChild_Getter(this);
+  Element get _firstElementChild => _blink.Native_Document_firstElementChild_Getter(this);
 
   @DomName('Document.lastElementChild')
   @DocsEditable()
-  Element get _lastElementChild => blink.Native_Document_lastElementChild_Getter(this);
+  Element get _lastElementChild => _blink.Native_Document_lastElementChild_Getter(this);
 
   /// Stream of `abort` events handled by this [Document].
   @DomName('Document.onabort')
@@ -8351,23 +8351,23 @@ class DocumentFragment extends Node implements ParentNode {
    */
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
-  Element querySelector(String selectors) => blink.Native_DocumentFragment_querySelector_Callback(this, selectors);
+  Element querySelector(String selectors) => _blink.Native_DocumentFragment_querySelector_Callback(this, selectors);
 
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => blink.Native_DocumentFragment_querySelectorAll_Callback(this, selectors);
+  List<Node> _querySelectorAll(String selectors) => _blink.Native_DocumentFragment_querySelectorAll_Callback(this, selectors);
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable()
-  int get _childElementCount => blink.Native_DocumentFragment_childElementCount_Getter(this);
+  int get _childElementCount => _blink.Native_DocumentFragment_childElementCount_Getter(this);
 
   @DomName('DocumentFragment.firstElementChild')
   @DocsEditable()
-  Element get _firstElementChild => blink.Native_DocumentFragment_firstElementChild_Getter(this);
+  Element get _firstElementChild => _blink.Native_DocumentFragment_firstElementChild_Getter(this);
 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable()
-  Element get _lastElementChild => blink.Native_DocumentFragment_lastElementChild_Getter(this);
+  Element get _lastElementChild => _blink.Native_DocumentFragment_lastElementChild_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8386,11 +8386,11 @@ class DomError extends NativeFieldWrapperClass2 {
   @DomName('DOMError.message')
   @DocsEditable()
   @Experimental() // untriaged
-  String get message => blink.Native_DOMError_message_Getter(this);
+  String get message => _blink.Native_DOMError_message_Getter(this);
 
   @DomName('DOMError.name')
   @DocsEditable()
-  String get name => blink.Native_DOMError_name_Getter(this);
+  String get name => _blink.Native_DOMError_name_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -8429,15 +8429,15 @@ class DomException extends NativeFieldWrapperClass2 {
 
   @DomName('DOMException.message')
   @DocsEditable()
-  String get message => blink.Native_DOMException_message_Getter(this);
+  String get message => _blink.Native_DOMException_message_Getter(this);
 
   @DomName('DOMException.name')
   @DocsEditable()
-  String get name => blink.Native_DOMException_name_Getter(this);
+  String get name => _blink.Native_DOMException_name_Getter(this);
 
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => blink.Native_DOMException_toString_Callback(this);
+  String toString() => _blink.Native_DOMException_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8456,23 +8456,23 @@ class DomImplementation extends NativeFieldWrapperClass2 {
   @DomName('DOMImplementation.createCSSStyleSheet')
   @DocsEditable()
   @Experimental() // non-standard
-  CssStyleSheet createCssStyleSheet(String title, String media) => blink.Native_DOMImplementation_createCSSStyleSheet_Callback(this, title, media);
+  CssStyleSheet createCssStyleSheet(String title, String media) => _blink.Native_DOMImplementation_createCSSStyleSheet_Callback(this, title, media);
 
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
-  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => blink.Native_DOMImplementation_createDocument_Callback(this, namespaceURI, qualifiedName, doctype);
+  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => _blink.Native_DOMImplementation_createDocument_Callback(this, namespaceURI, qualifiedName, doctype);
 
   @DomName('DOMImplementation.createDocumentType')
   @DocsEditable()
-  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => blink.Native_DOMImplementation_createDocumentType_Callback(this, qualifiedName, publicId, systemId);
+  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => _blink.Native_DOMImplementation_createDocumentType_Callback(this, qualifiedName, publicId, systemId);
 
   @DomName('DOMImplementation.createHTMLDocument')
   @DocsEditable()
-  HtmlDocument createHtmlDocument(String title) => blink.Native_DOMImplementation_createHTMLDocument_Callback(this, title);
+  HtmlDocument createHtmlDocument(String title) => _blink.Native_DOMImplementation_createHTMLDocument_Callback(this, title);
 
   @DomName('DOMImplementation.hasFeature')
   @DocsEditable()
-  bool hasFeature(String feature, String version) => blink.Native_DOMImplementation_hasFeature_Callback(this, feature, version);
+  bool hasFeature(String feature, String version) => _blink.Native_DOMImplementation_hasFeature_Callback(this, feature, version);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8495,11 +8495,11 @@ class DomParser extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static DomParser _create_1() => blink.Native_DOMParser__create_1constructorCallback();
+  static DomParser _create_1() => _blink.Native_DOMParser__create_1constructorCallback();
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
-  Document parseFromString(String str, String contentType) => blink.Native_DOMParser_parseFromString_Callback(this, str, contentType);
+  Document parseFromString(String str, String contentType) => _blink.Native_DOMParser_parseFromString_Callback(this, str, contentType);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8517,15 +8517,15 @@ class DomSettableTokenList extends DomTokenList {
 
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
-  String get value => blink.Native_DOMSettableTokenList_value_Getter(this);
+  String get value => _blink.Native_DOMSettableTokenList_value_Getter(this);
 
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_DOMSettableTokenList_value_Setter(this, value);
+  void set value(String value) => _blink.Native_DOMSettableTokenList_value_Setter(this, value);
 
   @DomName('DOMSettableTokenList.__getter__')
   @DocsEditable()
-  String __getter__(int index) => blink.Native_DOMSettableTokenList___getter___Callback(this, index);
+  String __getter__(int index) => _blink.Native_DOMSettableTokenList___getter___Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8543,15 +8543,15 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
 
   @DomName('DOMStringList.length')
   @DocsEditable()
-  int get length => blink.Native_DOMStringList_length_Getter(this);
+  int get length => _blink.Native_DOMStringList_length_Getter(this);
 
   String operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_DOMStringList_NativeIndexed_Getter(this, index);
+    return _blink.Native_DOMStringList_NativeIndexed_Getter(this, index);
   }
 
-  String _nativeIndexedGetter(int index) => blink.Native_DOMStringList_NativeIndexed_Getter(this, index);
+  String _nativeIndexedGetter(int index) => _blink.Native_DOMStringList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -8593,11 +8593,11 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
 
   @DomName('DOMStringList.contains')
   @DocsEditable()
-  bool contains(String string) => blink.Native_DOMStringList_contains_Callback(this, string);
+  bool contains(String string) => _blink.Native_DOMStringList_contains_Callback(this, string);
 
   @DomName('DOMStringList.item')
   @DocsEditable()
-  String item(int index) => blink.Native_DOMStringList_item_Callback(this, index);
+  String item(int index) => _blink.Native_DOMStringList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8623,9 +8623,9 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  bool ___delete___1(index_OR_name) => blink.Native_DOMStringMap____delete___1_Callback(this, index_OR_name);
+  bool ___delete___1(index_OR_name) => _blink.Native_DOMStringMap____delete___1_Callback(this, index_OR_name);
 
-  bool ___delete___2(index_OR_name) => blink.Native_DOMStringMap____delete___2_Callback(this, index_OR_name);
+  bool ___delete___2(index_OR_name) => _blink.Native_DOMStringMap____delete___2_Callback(this, index_OR_name);
 
   String __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -8637,9 +8637,9 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  String ___getter___1(index_OR_name) => blink.Native_DOMStringMap____getter___1_Callback(this, index_OR_name);
+  String ___getter___1(index_OR_name) => _blink.Native_DOMStringMap____getter___1_Callback(this, index_OR_name);
 
-  String ___getter___2(index_OR_name) => blink.Native_DOMStringMap____getter___2_Callback(this, index_OR_name);
+  String ___getter___2(index_OR_name) => _blink.Native_DOMStringMap____getter___2_Callback(this, index_OR_name);
 
   void __setter__(index_OR_name, String value) {
     if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
@@ -8653,9 +8653,9 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void ___setter___1(index_OR_name, value) => blink.Native_DOMStringMap____setter___1_Callback(this, index_OR_name, value);
+  void ___setter___1(index_OR_name, value) => _blink.Native_DOMStringMap____setter___1_Callback(this, index_OR_name, value);
 
-  void ___setter___2(index_OR_name, value) => blink.Native_DOMStringMap____setter___2_Callback(this, index_OR_name, value);
+  void ___setter___2(index_OR_name, value) => _blink.Native_DOMStringMap____setter___2_Callback(this, index_OR_name, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8673,19 +8673,19 @@ class DomTokenList extends NativeFieldWrapperClass2 {
 
   @DomName('DOMTokenList.length')
   @DocsEditable()
-  int get length => blink.Native_DOMTokenList_length_Getter(this);
+  int get length => _blink.Native_DOMTokenList_length_Getter(this);
 
   @DomName('DOMTokenList.contains')
   @DocsEditable()
-  bool contains(String token) => blink.Native_DOMTokenList_contains_Callback(this, token);
+  bool contains(String token) => _blink.Native_DOMTokenList_contains_Callback(this, token);
 
   @DomName('DOMTokenList.item')
   @DocsEditable()
-  String item(int index) => blink.Native_DOMTokenList_item_Callback(this, index);
+  String item(int index) => _blink.Native_DOMTokenList_item_Callback(this, index);
 
   @DomName('DOMTokenList.toString')
   @DocsEditable()
-  String toString() => blink.Native_DOMTokenList_toString_Callback(this);
+  String toString() => _blink.Native_DOMTokenList_toString_Callback(this);
 
   bool toggle(String token, [bool force]) {
     if (force != null) {
@@ -8694,9 +8694,9 @@ class DomTokenList extends NativeFieldWrapperClass2 {
     return _toggle_2(token);
   }
 
-  bool _toggle_1(token, force) => blink.Native_DOMTokenList__toggle_1_Callback(this, token, force);
+  bool _toggle_1(token, force) => _blink.Native_DOMTokenList__toggle_1_Callback(this, token, force);
 
-  bool _toggle_2(token) => blink.Native_DOMTokenList__toggle_2_Callback(this, token);
+  bool _toggle_2(token) => _blink.Native_DOMTokenList__toggle_2_Callback(this, token);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11157,119 +11157,119 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.attributes')
   @DocsEditable()
-  _NamedNodeMap get _attributes => blink.Native_Element_attributes_Getter(this);
+  _NamedNodeMap get _attributes => _blink.Native_Element_attributes_Getter(this);
 
   @DomName('Element.className')
   @DocsEditable()
-  String get className => blink.Native_Element_className_Getter(this);
+  String get className => _blink.Native_Element_className_Getter(this);
 
   @DomName('Element.className')
   @DocsEditable()
-  void set className(String value) => blink.Native_Element_className_Setter(this, value);
+  void set className(String value) => _blink.Native_Element_className_Setter(this, value);
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => blink.Native_Element_clientHeight_Getter(this);
+  int get clientHeight => _blink.Native_Element_clientHeight_Getter(this);
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => blink.Native_Element_clientLeft_Getter(this);
+  int get clientLeft => _blink.Native_Element_clientLeft_Getter(this);
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => blink.Native_Element_clientTop_Getter(this);
+  int get clientTop => _blink.Native_Element_clientTop_Getter(this);
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => blink.Native_Element_clientWidth_Getter(this);
+  int get clientWidth => _blink.Native_Element_clientWidth_Getter(this);
 
   @DomName('Element.id')
   @DocsEditable()
-  String get id => blink.Native_Element_id_Getter(this);
+  String get id => _blink.Native_Element_id_Getter(this);
 
   @DomName('Element.id')
   @DocsEditable()
-  void set id(String value) => blink.Native_Element_id_Setter(this, value);
+  void set id(String value) => _blink.Native_Element_id_Setter(this, value);
 
   @DomName('Element.innerHTML')
   @DocsEditable()
-  String get _innerHtml => blink.Native_Element_innerHTML_Getter(this);
+  String get _innerHtml => _blink.Native_Element_innerHTML_Getter(this);
 
   @DomName('Element.innerHTML')
   @DocsEditable()
-  void set _innerHtml(String value) => blink.Native_Element_innerHTML_Setter(this, value);
+  void set _innerHtml(String value) => _blink.Native_Element_innerHTML_Setter(this, value);
 
   @DomName('Element.localName')
   @DocsEditable()
   @Experimental() // untriaged
-  String get _localName => blink.Native_Element_localName_Getter(this);
+  String get _localName => _blink.Native_Element_localName_Getter(this);
 
   @DomName('Element.namespaceURI')
   @DocsEditable()
   @Experimental() // untriaged
-  String get _namespaceUri => blink.Native_Element_namespaceURI_Getter(this);
+  String get _namespaceUri => _blink.Native_Element_namespaceURI_Getter(this);
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => blink.Native_Element_offsetHeight_Getter(this);
+  int get offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => blink.Native_Element_offsetLeft_Getter(this);
+  int get offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
 
   @DomName('Element.offsetParent')
   @DocsEditable()
-  Element get offsetParent => blink.Native_Element_offsetParent_Getter(this);
+  Element get offsetParent => _blink.Native_Element_offsetParent_Getter(this);
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => blink.Native_Element_offsetTop_Getter(this);
+  int get offsetTop => _blink.Native_Element_offsetTop_Getter(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => blink.Native_Element_offsetWidth_Getter(this);
+  int get offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
 
   @DomName('Element.outerHTML')
   @DocsEditable()
-  String get outerHtml => blink.Native_Element_outerHTML_Getter(this);
+  String get outerHtml => _blink.Native_Element_outerHTML_Getter(this);
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => blink.Native_Element_scrollHeight_Getter(this);
+  int get scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => blink.Native_Element_scrollLeft_Getter(this);
+  int get scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => blink.Native_Element_scrollLeft_Setter(this, value);
+  void set scrollLeft(int value) => _blink.Native_Element_scrollLeft_Setter(this, value);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => blink.Native_Element_scrollTop_Getter(this);
+  int get scrollTop => _blink.Native_Element_scrollTop_Getter(this);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => blink.Native_Element_scrollTop_Setter(this, value);
+  void set scrollTop(int value) => _blink.Native_Element_scrollTop_Setter(this, value);
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => blink.Native_Element_scrollWidth_Getter(this);
+  int get scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
 
   @DomName('Element.shadowRoot')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
   @Experimental()
-  ShadowRoot get shadowRoot => blink.Native_Element_shadowRoot_Getter(this);
+  ShadowRoot get shadowRoot => _blink.Native_Element_shadowRoot_Getter(this);
 
   @DomName('Element.style')
   @DocsEditable()
-  CssStyleDeclaration get style => blink.Native_Element_style_Getter(this);
+  CssStyleDeclaration get style => _blink.Native_Element_style_Getter(this);
 
   @DomName('Element.tagName')
   @DocsEditable()
-  String get tagName => blink.Native_Element_tagName_Getter(this);
+  String get tagName => _blink.Native_Element_tagName_Getter(this);
 
   Animation animate(List<Map> keyframes, [timingInput]) {
     if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
@@ -11284,36 +11284,36 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  Animation _animate_1(keyframes, timingInput) => blink.Native_Element__animate_1_Callback(this, keyframes, timingInput);
+  Animation _animate_1(keyframes, timingInput) => _blink.Native_Element__animate_1_Callback(this, keyframes, timingInput);
 
-  Animation _animate_2(keyframes, timingInput) => blink.Native_Element__animate_2_Callback(this, keyframes, timingInput);
+  Animation _animate_2(keyframes, timingInput) => _blink.Native_Element__animate_2_Callback(this, keyframes, timingInput);
 
-  Animation _animate_3(keyframes) => blink.Native_Element__animate_3_Callback(this, keyframes);
+  Animation _animate_3(keyframes) => _blink.Native_Element__animate_3_Callback(this, keyframes);
 
   @DomName('Element.blur')
   @DocsEditable()
-  void blur() => blink.Native_Element_blur_Callback(this);
+  void blur() => _blink.Native_Element_blur_Callback(this);
 
   @DomName('Element.createShadowRoot')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
-  ShadowRoot createShadowRoot() => blink.Native_Element_createShadowRoot_Callback(this);
+  ShadowRoot createShadowRoot() => _blink.Native_Element_createShadowRoot_Callback(this);
 
   @DomName('Element.focus')
   @DocsEditable()
-  void focus() => blink.Native_Element_focus_Callback(this);
+  void focus() => _blink.Native_Element_focus_Callback(this);
 
   @DomName('Element.getAttribute')
   @DocsEditable()
   @Experimental() // untriaged
-  String getAttribute(String name) => blink.Native_Element_getAttribute_Callback(this, name);
+  String getAttribute(String name) => _blink.Native_Element_getAttribute_Callback(this, name);
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
   @Experimental() // untriaged
-  String getAttributeNS(String namespaceURI, String localName) => blink.Native_Element_getAttributeNS_Callback(this, namespaceURI, localName);
+  String getAttributeNS(String namespaceURI, String localName) => _blink.Native_Element_getAttributeNS_Callback(this, namespaceURI, localName);
 
   /**
    * Returns the smallest bounding rectangle that encompasses this element's
@@ -11330,7 +11330,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
-  Rectangle getBoundingClientRect() => blink.Native_Element_getBoundingClientRect_Callback(this);
+  Rectangle getBoundingClientRect() => _blink.Native_Element_getBoundingClientRect_Callback(this);
 
   /**
    * Returns a list of bounding rectangles for each box associated with this
@@ -11347,7 +11347,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => blink.Native_Element_getClientRects_Callback(this);
+  List<Rectangle> getClientRects() => _blink.Native_Element_getClientRects_Callback(this);
 
   /**
    * Returns a list of shadow DOM insertion points to which this element is
@@ -11362,7 +11362,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => blink.Native_Element_getDestinationInsertionPoints_Callback(this);
+  List<Node> getDestinationInsertionPoints() => _blink.Native_Element_getDestinationInsertionPoints_Callback(this);
 
   /**
    * Returns a list of nodes with the given class name inside this element.
@@ -11377,39 +11377,39 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => blink.Native_Element_getElementsByClassName_Callback(this, classNames);
+  List<Node> getElementsByClassName(String classNames) => _blink.Native_Element_getElementsByClassName_Callback(this, classNames);
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  List<Node> _getElementsByTagName(String name) => blink.Native_Element_getElementsByTagName_Callback(this, name);
+  List<Node> _getElementsByTagName(String name) => _blink.Native_Element_getElementsByTagName_Callback(this, name);
 
   @DomName('Element.hasAttribute')
   @DocsEditable()
-  bool _hasAttribute(String name) => blink.Native_Element_hasAttribute_Callback(this, name);
+  bool _hasAttribute(String name) => _blink.Native_Element_hasAttribute_Callback(this, name);
 
   @DomName('Element.hasAttributeNS')
   @DocsEditable()
-  bool _hasAttributeNS(String namespaceURI, String localName) => blink.Native_Element_hasAttributeNS_Callback(this, namespaceURI, localName);
+  bool _hasAttributeNS(String namespaceURI, String localName) => _blink.Native_Element_hasAttributeNS_Callback(this, namespaceURI, localName);
 
   @DomName('Element.insertAdjacentElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Element insertAdjacentElement(String where, Element element) => blink.Native_Element_insertAdjacentElement_Callback(this, where, element);
+  Element insertAdjacentElement(String where, Element element) => _blink.Native_Element_insertAdjacentElement_Callback(this, where, element);
 
   @DomName('Element.insertAdjacentHTML')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertAdjacentHtml(String where, String html) => blink.Native_Element_insertAdjacentHTML_Callback(this, where, html);
+  void insertAdjacentHtml(String where, String html) => _blink.Native_Element_insertAdjacentHTML_Callback(this, where, html);
 
   @DomName('Element.insertAdjacentText')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertAdjacentText(String where, String text) => blink.Native_Element_insertAdjacentText_Callback(this, where, text);
+  void insertAdjacentText(String where, String text) => _blink.Native_Element_insertAdjacentText_Callback(this, where, text);
 
   @DomName('Element.matches')
   @DocsEditable()
   @Experimental() // untriaged
-  bool matches(String selectors) => blink.Native_Element_matches_Callback(this, selectors);
+  bool matches(String selectors) => _blink.Native_Element_matches_Callback(this, selectors);
 
   /**
    * Finds the first descendant element of this element that matches the
@@ -11429,19 +11429,19 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.querySelector')
   @DocsEditable()
-  Element querySelector(String selectors) => blink.Native_Element_querySelector_Callback(this, selectors);
+  Element querySelector(String selectors) => _blink.Native_Element_querySelector_Callback(this, selectors);
 
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => blink.Native_Element_querySelectorAll_Callback(this, selectors);
+  List<Node> _querySelectorAll(String selectors) => _blink.Native_Element_querySelectorAll_Callback(this, selectors);
 
   @DomName('Element.removeAttribute')
   @DocsEditable()
-  void _removeAttribute(String name) => blink.Native_Element_removeAttribute_Callback(this, name);
+  void _removeAttribute(String name) => _blink.Native_Element_removeAttribute_Callback(this, name);
 
   @DomName('Element.removeAttributeNS')
   @DocsEditable()
-  void _removeAttributeNS(String namespaceURI, String localName) => blink.Native_Element_removeAttributeNS_Callback(this, namespaceURI, localName);
+  void _removeAttributeNS(String namespaceURI, String localName) => _blink.Native_Element_removeAttributeNS_Callback(this, namespaceURI, localName);
 
   /**
    * Scrolls the element by a number of lines.
@@ -11453,7 +11453,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.scrollByLines')
   @DocsEditable()
-  void scrollByLines(int lines) => blink.Native_Element_scrollByLines_Callback(this, lines);
+  void scrollByLines(int lines) => _blink.Native_Element_scrollByLines_Callback(this, lines);
 
   /**
    * Scrolls the element by a number of pages.
@@ -11465,7 +11465,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.scrollByPages')
   @DocsEditable()
-  void scrollByPages(int pages) => blink.Native_Element_scrollByPages_Callback(this, pages);
+  void scrollByPages(int pages) => _blink.Native_Element_scrollByPages_Callback(this, pages);
 
   void _scrollIntoView([bool alignWithTop]) {
     if (alignWithTop != null) {
@@ -11476,9 +11476,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     return;
   }
 
-  void _scrollIntoView_1(alignWithTop) => blink.Native_Element__scrollIntoView_1_Callback(this, alignWithTop);
+  void _scrollIntoView_1(alignWithTop) => _blink.Native_Element__scrollIntoView_1_Callback(this, alignWithTop);
 
-  void _scrollIntoView_2() => blink.Native_Element__scrollIntoView_2_Callback(this);
+  void _scrollIntoView_2() => _blink.Native_Element__scrollIntoView_2_Callback(this);
 
   void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
     if (centerIfNeeded != null) {
@@ -11489,17 +11489,17 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     return;
   }
 
-  void _scrollIntoViewIfNeeded_1(centerIfNeeded) => blink.Native_Element__scrollIntoViewIfNeeded_1_Callback(this, centerIfNeeded);
+  void _scrollIntoViewIfNeeded_1(centerIfNeeded) => _blink.Native_Element__scrollIntoViewIfNeeded_1_Callback(this, centerIfNeeded);
 
-  void _scrollIntoViewIfNeeded_2() => blink.Native_Element__scrollIntoViewIfNeeded_2_Callback(this);
+  void _scrollIntoViewIfNeeded_2() => _blink.Native_Element__scrollIntoViewIfNeeded_2_Callback(this);
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void setAttribute(String name, String value) => blink.Native_Element_setAttribute_Callback(this, name, value);
+  void setAttribute(String name, String value) => _blink.Native_Element_setAttribute_Callback(this, name, value);
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void setAttributeNS(String namespaceURI, String qualifiedName, String value) => blink.Native_Element_setAttributeNS_Callback(this, namespaceURI, qualifiedName, value);
+  void setAttributeNS(String namespaceURI, String qualifiedName, String value) => _blink.Native_Element_setAttributeNS_Callback(this, namespaceURI, qualifiedName, value);
 
   /**
    * Displays this element fullscreen.
@@ -11518,7 +11518,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  void requestFullscreen() => blink.Native_Element_webkitRequestFullscreen_Callback(this);
+  void requestFullscreen() => _blink.Native_Element_webkitRequestFullscreen_Callback(this);
 
   /**
    * Locks the mouse pointer to this element.
@@ -11538,35 +11538,35 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Element-requestPointerLock-void
-  void requestPointerLock() => blink.Native_Element_webkitRequestPointerLock_Callback(this);
+  void requestPointerLock() => _blink.Native_Element_webkitRequestPointerLock_Callback(this);
 
   @DomName('Element.nextElementSibling')
   @DocsEditable()
-  Element get nextElementSibling => blink.Native_Element_nextElementSibling_Getter(this);
+  Element get nextElementSibling => _blink.Native_Element_nextElementSibling_Getter(this);
 
   @DomName('Element.previousElementSibling')
   @DocsEditable()
-  Element get previousElementSibling => blink.Native_Element_previousElementSibling_Getter(this);
+  Element get previousElementSibling => _blink.Native_Element_previousElementSibling_Getter(this);
 
   @DomName('Element.remove')
   @DocsEditable()
-  void remove() => blink.Native_Element_remove_Callback(this);
+  void remove() => _blink.Native_Element_remove_Callback(this);
 
   @DomName('Element.childElementCount')
   @DocsEditable()
-  int get _childElementCount => blink.Native_Element_childElementCount_Getter(this);
+  int get _childElementCount => _blink.Native_Element_childElementCount_Getter(this);
 
   @DomName('Element.children')
   @DocsEditable()
-  List<Node> get _children => blink.Native_Element_children_Getter(this);
+  List<Node> get _children => _blink.Native_Element_children_Getter(this);
 
   @DomName('Element.firstElementChild')
   @DocsEditable()
-  Element get _firstElementChild => blink.Native_Element_firstElementChild_Getter(this);
+  Element get _firstElementChild => _blink.Native_Element_firstElementChild_Getter(this);
 
   @DomName('Element.lastElementChild')
   @DocsEditable()
-  Element get _lastElementChild => blink.Native_Element_lastElementChild_Getter(this);
+  Element get _lastElementChild => _blink.Native_Element_lastElementChild_Getter(this);
 
   /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
@@ -12002,51 +12002,51 @@ class EmbedElement extends HtmlElement {
 
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
-  String get height => blink.Native_HTMLEmbedElement_height_Getter(this);
+  String get height => _blink.Native_HTMLEmbedElement_height_Getter(this);
 
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
-  void set height(String value) => blink.Native_HTMLEmbedElement_height_Setter(this, value);
+  void set height(String value) => _blink.Native_HTMLEmbedElement_height_Setter(this, value);
 
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLEmbedElement_name_Getter(this);
+  String get name => _blink.Native_HTMLEmbedElement_name_Getter(this);
 
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLEmbedElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLEmbedElement_name_Setter(this, value);
 
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLEmbedElement_src_Getter(this);
+  String get src => _blink.Native_HTMLEmbedElement_src_Getter(this);
 
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLEmbedElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLEmbedElement_src_Setter(this, value);
 
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLEmbedElement_type_Getter(this);
+  String get type => _blink.Native_HTMLEmbedElement_type_Getter(this);
 
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLEmbedElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLEmbedElement_type_Setter(this, value);
 
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
-  String get width => blink.Native_HTMLEmbedElement_width_Getter(this);
+  String get width => _blink.Native_HTMLEmbedElement_width_Getter(this);
 
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
-  void set width(String value) => blink.Native_HTMLEmbedElement_width_Setter(this, value);
+  void set width(String value) => _blink.Native_HTMLEmbedElement_width_Setter(this, value);
 
   @DomName('HTMLEmbedElement.__getter__')
   @DocsEditable()
-  bool __getter__(index_OR_name) => blink.Native_HTMLEmbedElement___getter___Callback(this, index_OR_name);
+  bool __getter__(index_OR_name) => _blink.Native_HTMLEmbedElement___getter___Callback(this, index_OR_name);
 
   @DomName('HTMLEmbedElement.__setter__')
   @DocsEditable()
-  void __setter__(index_OR_name, Node value) => blink.Native_HTMLEmbedElement___setter___Callback(this, index_OR_name, value);
+  void __setter__(index_OR_name, Node value) => _blink.Native_HTMLEmbedElement___setter___Callback(this, index_OR_name, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12077,23 +12077,23 @@ class Entry extends NativeFieldWrapperClass2 {
 
   @DomName('Entry.filesystem')
   @DocsEditable()
-  FileSystem get filesystem => blink.Native_Entry_filesystem_Getter(this);
+  FileSystem get filesystem => _blink.Native_Entry_filesystem_Getter(this);
 
   @DomName('Entry.fullPath')
   @DocsEditable()
-  String get fullPath => blink.Native_Entry_fullPath_Getter(this);
+  String get fullPath => _blink.Native_Entry_fullPath_Getter(this);
 
   @DomName('Entry.isDirectory')
   @DocsEditable()
-  bool get isDirectory => blink.Native_Entry_isDirectory_Getter(this);
+  bool get isDirectory => _blink.Native_Entry_isDirectory_Getter(this);
 
   @DomName('Entry.isFile')
   @DocsEditable()
-  bool get isFile => blink.Native_Entry_isFile_Getter(this);
+  bool get isFile => _blink.Native_Entry_isFile_Getter(this);
 
   @DomName('Entry.name')
   @DocsEditable()
-  String get name => blink.Native_Entry_name_Getter(this);
+  String get name => _blink.Native_Entry_name_Getter(this);
 
   void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (name != null) {
@@ -12104,9 +12104,9 @@ class Entry extends NativeFieldWrapperClass2 {
     return;
   }
 
-  void _copyTo_1(parent, name, successCallback, errorCallback) => blink.Native_Entry__copyTo_1_Callback(this, parent, name, successCallback, errorCallback);
+  void _copyTo_1(parent, name, successCallback, errorCallback) => _blink.Native_Entry__copyTo_1_Callback(this, parent, name, successCallback, errorCallback);
 
-  void _copyTo_2(parent) => blink.Native_Entry__copyTo_2_Callback(this, parent);
+  void _copyTo_2(parent) => _blink.Native_Entry__copyTo_2_Callback(this, parent);
 
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12118,7 +12118,7 @@ class Entry extends NativeFieldWrapperClass2 {
 
   @DomName('Entry.getMetadata')
   @DocsEditable()
-  void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_Entry_getMetadata_Callback(this, successCallback, errorCallback);
+  void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_Entry_getMetadata_Callback(this, successCallback, errorCallback);
 
   Future<Metadata> getMetadata() {
     var completer = new Completer<Metadata>();
@@ -12130,7 +12130,7 @@ class Entry extends NativeFieldWrapperClass2 {
 
   @DomName('Entry.getParent')
   @DocsEditable()
-  void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) => blink.Native_Entry_getParent_Callback(this, successCallback, errorCallback);
+  void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) => _blink.Native_Entry_getParent_Callback(this, successCallback, errorCallback);
 
   Future<Entry> getParent() {
     var completer = new Completer<Entry>();
@@ -12149,9 +12149,9 @@ class Entry extends NativeFieldWrapperClass2 {
     return;
   }
 
-  void _moveTo_1(parent, name, successCallback, errorCallback) => blink.Native_Entry__moveTo_1_Callback(this, parent, name, successCallback, errorCallback);
+  void _moveTo_1(parent, name, successCallback, errorCallback) => _blink.Native_Entry__moveTo_1_Callback(this, parent, name, successCallback, errorCallback);
 
-  void _moveTo_2(parent) => blink.Native_Entry__moveTo_2_Callback(this, parent);
+  void _moveTo_2(parent) => _blink.Native_Entry__moveTo_2_Callback(this, parent);
 
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12163,7 +12163,7 @@ class Entry extends NativeFieldWrapperClass2 {
 
   @DomName('Entry.remove')
   @DocsEditable()
-  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_Entry_remove_Callback(this, successCallback, errorCallback);
+  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_Entry_remove_Callback(this, successCallback, errorCallback);
 
   Future remove() {
     var completer = new Completer();
@@ -12175,7 +12175,7 @@ class Entry extends NativeFieldWrapperClass2 {
 
   @DomName('Entry.toURL')
   @DocsEditable()
-  String toUrl() => blink.Native_Entry_toURL_Callback(this);
+  String toUrl() => _blink.Native_Entry_toURL_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12217,24 +12217,24 @@ class ErrorEvent extends Event {
   @DomName('ErrorEvent.colno')
   @DocsEditable()
   @Experimental() // untriaged
-  int get colno => blink.Native_ErrorEvent_colno_Getter(this);
+  int get colno => _blink.Native_ErrorEvent_colno_Getter(this);
 
   @DomName('ErrorEvent.error')
   @DocsEditable()
   @Experimental() // untriaged
-  Object get error => blink.Native_ErrorEvent_error_Getter(this);
+  Object get error => _blink.Native_ErrorEvent_error_Getter(this);
 
   @DomName('ErrorEvent.filename')
   @DocsEditable()
-  String get filename => blink.Native_ErrorEvent_filename_Getter(this);
+  String get filename => _blink.Native_ErrorEvent_filename_Getter(this);
 
   @DomName('ErrorEvent.lineno')
   @DocsEditable()
-  int get lineno => blink.Native_ErrorEvent_lineno_Getter(this);
+  int get lineno => _blink.Native_ErrorEvent_lineno_Getter(this);
 
   @DomName('ErrorEvent.message')
   @DocsEditable()
-  String get message => blink.Native_ErrorEvent_message_Getter(this);
+  String get message => _blink.Native_ErrorEvent_message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12337,11 +12337,11 @@ class Event extends NativeFieldWrapperClass2 {
 
   @DomName('Event.bubbles')
   @DocsEditable()
-  bool get bubbles => blink.Native_Event_bubbles_Getter(this);
+  bool get bubbles => _blink.Native_Event_bubbles_Getter(this);
 
   @DomName('Event.cancelable')
   @DocsEditable()
-  bool get cancelable => blink.Native_Event_cancelable_Getter(this);
+  bool get cancelable => _blink.Native_Event_cancelable_Getter(this);
 
   /**
    * Access to the system's clipboard data during copy, cut, and paste events.
@@ -12358,19 +12358,19 @@ class Event extends NativeFieldWrapperClass2 {
   @Experimental()
   // Part of copy/paste
   @Experimental() // nonstandard
-  DataTransfer get clipboardData => blink.Native_Event_clipboardData_Getter(this);
+  DataTransfer get clipboardData => _blink.Native_Event_clipboardData_Getter(this);
 
   @DomName('Event.currentTarget')
   @DocsEditable()
-  EventTarget get currentTarget => blink.Native_Event_currentTarget_Getter(this);
+  EventTarget get currentTarget => _blink.Native_Event_currentTarget_Getter(this);
 
   @DomName('Event.defaultPrevented')
   @DocsEditable()
-  bool get defaultPrevented => blink.Native_Event_defaultPrevented_Getter(this);
+  bool get defaultPrevented => _blink.Native_Event_defaultPrevented_Getter(this);
 
   @DomName('Event.eventPhase')
   @DocsEditable()
-  int get eventPhase => blink.Native_Event_eventPhase_Getter(this);
+  int get eventPhase => _blink.Native_Event_eventPhase_Getter(this);
 
   /**
    * This event's path, taking into account shadow DOM.
@@ -12385,35 +12385,35 @@ class Event extends NativeFieldWrapperClass2 {
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
-  List<Node> get path => blink.Native_Event_path_Getter(this);
+  List<Node> get path => _blink.Native_Event_path_Getter(this);
 
   @DomName('Event.target')
   @DocsEditable()
-  EventTarget get target => blink.Native_Event_target_Getter(this);
+  EventTarget get target => _blink.Native_Event_target_Getter(this);
 
   @DomName('Event.timeStamp')
   @DocsEditable()
-  int get timeStamp => blink.Native_Event_timeStamp_Getter(this);
+  int get timeStamp => _blink.Native_Event_timeStamp_Getter(this);
 
   @DomName('Event.type')
   @DocsEditable()
-  String get type => blink.Native_Event_type_Getter(this);
+  String get type => _blink.Native_Event_type_Getter(this);
 
   @DomName('Event.initEvent')
   @DocsEditable()
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) => blink.Native_Event_initEvent_Callback(this, eventTypeArg, canBubbleArg, cancelableArg);
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) => _blink.Native_Event_initEvent_Callback(this, eventTypeArg, canBubbleArg, cancelableArg);
 
   @DomName('Event.preventDefault')
   @DocsEditable()
-  void preventDefault() => blink.Native_Event_preventDefault_Callback(this);
+  void preventDefault() => _blink.Native_Event_preventDefault_Callback(this);
 
   @DomName('Event.stopImmediatePropagation')
   @DocsEditable()
-  void stopImmediatePropagation() => blink.Native_Event_stopImmediatePropagation_Callback(this);
+  void stopImmediatePropagation() => _blink.Native_Event_stopImmediatePropagation_Callback(this);
 
   @DomName('Event.stopPropagation')
   @DocsEditable()
-  void stopPropagation() => blink.Native_Event_stopPropagation_Callback(this);
+  void stopPropagation() => _blink.Native_Event_stopPropagation_Callback(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -12471,7 +12471,7 @@ class EventSource extends EventTarget {
   }
 
   @DocsEditable()
-  static EventSource _create_1(url, eventSourceInit) => blink.Native_EventSource__create_1constructorCallback(url, eventSourceInit);
+  static EventSource _create_1(url, eventSourceInit) => _blink.Native_EventSource__create_1constructorCallback(url, eventSourceInit);
 
   @DomName('EventSource.CLOSED')
   @DocsEditable()
@@ -12487,31 +12487,31 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_EventSource_readyState_Getter(this);
+  int get readyState => _blink.Native_EventSource_readyState_Getter(this);
 
   @DomName('EventSource.url')
   @DocsEditable()
-  String get url => blink.Native_EventSource_url_Getter(this);
+  String get url => _blink.Native_EventSource_url_Getter(this);
 
   @DomName('EventSource.withCredentials')
   @DocsEditable()
-  bool get withCredentials => blink.Native_EventSource_withCredentials_Getter(this);
+  bool get withCredentials => _blink.Native_EventSource_withCredentials_Getter(this);
 
   @DomName('EventSource.close')
   @DocsEditable()
-  void close() => blink.Native_EventSource_close_Callback(this);
+  void close() => _blink.Native_EventSource_close_Callback(this);
 
   @DomName('EventSource.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_EventSource_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventSource_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('EventSource.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_EventSource_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_EventSource_dispatchEvent_Callback(this, event);
 
   @DomName('EventSource.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_EventSource_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventSource_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `error` events handled by this [EventSource].
   @DomName('EventSource.onerror')
@@ -12636,15 +12636,15 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_EventTarget_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventTarget_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_EventTarget_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_EventTarget_dispatchEvent_Callback(this, event);
 
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_EventTarget_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventTarget_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12673,51 +12673,51 @@ class FieldSetElement extends HtmlElement {
 
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLFieldSetElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLFieldSetElement_disabled_Getter(this);
 
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLFieldSetElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLFieldSetElement_disabled_Setter(this, value);
 
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
-  List<Node> get elements => blink.Native_HTMLFieldSetElement_elements_Getter(this);
+  List<Node> get elements => _blink.Native_HTMLFieldSetElement_elements_Getter(this);
 
   @DomName('HTMLFieldSetElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLFieldSetElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLFieldSetElement_form_Getter(this);
 
   @DomName('HTMLFieldSetElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLFieldSetElement_name_Getter(this);
+  String get name => _blink.Native_HTMLFieldSetElement_name_Getter(this);
 
   @DomName('HTMLFieldSetElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLFieldSetElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLFieldSetElement_name_Setter(this, value);
 
   @DomName('HTMLFieldSetElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLFieldSetElement_type_Getter(this);
+  String get type => _blink.Native_HTMLFieldSetElement_type_Getter(this);
 
   @DomName('HTMLFieldSetElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLFieldSetElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLFieldSetElement_validationMessage_Getter(this);
 
   @DomName('HTMLFieldSetElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLFieldSetElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLFieldSetElement_validity_Getter(this);
 
   @DomName('HTMLFieldSetElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLFieldSetElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLFieldSetElement_willValidate_Getter(this);
 
   @DomName('HTMLFieldSetElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLFieldSetElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLFieldSetElement_checkValidity_Callback(this);
 
   @DomName('HTMLFieldSetElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLFieldSetElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLFieldSetElement_setCustomValidity_Callback(this, error);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12736,15 +12736,15 @@ class File extends Blob {
   @DomName('File.lastModified')
   @DocsEditable()
   @Experimental() // untriaged
-  int get lastModified => blink.Native_File_lastModified_Getter(this);
+  int get lastModified => _blink.Native_File_lastModified_Getter(this);
 
   @DomName('File.lastModifiedDate')
   @DocsEditable()
-  DateTime get lastModifiedDate => blink.Native_File_lastModifiedDate_Getter(this);
+  DateTime get lastModifiedDate => _blink.Native_File_lastModifiedDate_Getter(this);
 
   @DomName('File.name')
   @DocsEditable()
-  String get name => blink.Native_File_name_Getter(this);
+  String get name => _blink.Native_File_name_Getter(this);
 
   @DomName('File.webkitRelativePath')
   @DocsEditable()
@@ -12752,7 +12752,7 @@ class File extends Blob {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
-  String get relativePath => blink.Native_File_webkitRelativePath_Getter(this);
+  String get relativePath => _blink.Native_File_webkitRelativePath_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12783,7 +12783,7 @@ class FileEntry extends Entry {
 
   @DomName('FileEntry.createWriter')
   @DocsEditable()
-  void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_FileEntry_createWriter_Callback(this, successCallback, errorCallback);
+  void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_FileEntry_createWriter_Callback(this, successCallback, errorCallback);
 
   Future<FileWriter> createWriter() {
     var completer = new Completer<FileWriter>();
@@ -12795,7 +12795,7 @@ class FileEntry extends Entry {
 
   @DomName('FileEntry.file')
   @DocsEditable()
-  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_FileEntry_file_Callback(this, successCallback, errorCallback);
+  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_FileEntry_file_Callback(this, successCallback, errorCallback);
 
   Future<File> file() {
     var completer = new Completer<File>();
@@ -12871,7 +12871,7 @@ class FileError extends DomError {
 
   @DomName('FileError.code')
   @DocsEditable()
-  int get code => blink.Native_FileError_code_Getter(this);
+  int get code => _blink.Native_FileError_code_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12889,15 +12889,15 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
 
   @DomName('FileList.length')
   @DocsEditable()
-  int get length => blink.Native_FileList_length_Getter(this);
+  int get length => _blink.Native_FileList_length_Getter(this);
 
   File operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_FileList_NativeIndexed_Getter(this, index);
+    return _blink.Native_FileList_NativeIndexed_Getter(this, index);
   }
 
-  File _nativeIndexedGetter(int index) => blink.Native_FileList_NativeIndexed_Getter(this, index);
+  File _nativeIndexedGetter(int index) => _blink.Native_FileList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -12939,7 +12939,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
 
   @DomName('FileList.item')
   @DocsEditable()
-  File item(int index) => blink.Native_FileList_item_Callback(this, index);
+  File item(int index) => _blink.Native_FileList_item_Callback(this, index);
 
 }
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -13022,7 +13022,7 @@ class FileReader extends EventTarget {
   }
 
   @DocsEditable()
-  static FileReader _create_1() => blink.Native_FileReader__create_1constructorCallback();
+  static FileReader _create_1() => _blink.Native_FileReader__create_1constructorCallback();
 
   @DomName('FileReader.DONE')
   @DocsEditable()
@@ -13038,27 +13038,27 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.error')
   @DocsEditable()
-  FileError get error => blink.Native_FileReader_error_Getter(this);
+  FileError get error => _blink.Native_FileReader_error_Getter(this);
 
   @DomName('FileReader.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_FileReader_readyState_Getter(this);
+  int get readyState => _blink.Native_FileReader_readyState_Getter(this);
 
   @DomName('FileReader.result')
   @DocsEditable()
-  Object get result => blink.Native_FileReader_result_Getter(this);
+  Object get result => _blink.Native_FileReader_result_Getter(this);
 
   @DomName('FileReader.abort')
   @DocsEditable()
-  void abort() => blink.Native_FileReader_abort_Callback(this);
+  void abort() => _blink.Native_FileReader_abort_Callback(this);
 
   @DomName('FileReader.readAsArrayBuffer')
   @DocsEditable()
-  void readAsArrayBuffer(Blob blob) => blink.Native_FileReader_readAsArrayBuffer_Callback(this, blob);
+  void readAsArrayBuffer(Blob blob) => _blink.Native_FileReader_readAsArrayBuffer_Callback(this, blob);
 
   @DomName('FileReader.readAsDataURL')
   @DocsEditable()
-  void readAsDataUrl(Blob blob) => blink.Native_FileReader_readAsDataURL_Callback(this, blob);
+  void readAsDataUrl(Blob blob) => _blink.Native_FileReader_readAsDataURL_Callback(this, blob);
 
   void readAsText(Blob blob, [String encoding]) {
     if (encoding != null) {
@@ -13069,21 +13069,21 @@ class FileReader extends EventTarget {
     return;
   }
 
-  void _readAsText_1(blob, encoding) => blink.Native_FileReader__readAsText_1_Callback(this, blob, encoding);
+  void _readAsText_1(blob, encoding) => _blink.Native_FileReader__readAsText_1_Callback(this, blob, encoding);
 
-  void _readAsText_2(blob) => blink.Native_FileReader__readAsText_2_Callback(this, blob);
+  void _readAsText_2(blob) => _blink.Native_FileReader__readAsText_2_Callback(this, blob);
 
   @DomName('FileReader.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FileReader_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileReader_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('FileReader.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_FileReader_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_FileReader_dispatchEvent_Callback(this, event);
 
   @DomName('FileReader.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FileReader_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileReader_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
@@ -13133,7 +13133,7 @@ class FileStream extends NativeFieldWrapperClass2 {
   @DomName('Stream.type')
   @DocsEditable()
   @Experimental() // untriaged
-  String get type => blink.Native_Stream_type_Getter(this);
+  String get type => _blink.Native_Stream_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13157,11 +13157,11 @@ class FileSystem extends NativeFieldWrapperClass2 {
 
   @DomName('DOMFileSystem.name')
   @DocsEditable()
-  String get name => blink.Native_DOMFileSystem_name_Getter(this);
+  String get name => _blink.Native_DOMFileSystem_name_Getter(this);
 
   @DomName('DOMFileSystem.root')
   @DocsEditable()
-  DirectoryEntry get root => blink.Native_DOMFileSystem_root_Getter(this);
+  DirectoryEntry get root => _blink.Native_DOMFileSystem_root_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13264,47 +13264,47 @@ class FileWriter extends EventTarget {
 
   @DomName('FileWriter.error')
   @DocsEditable()
-  FileError get error => blink.Native_FileWriter_error_Getter(this);
+  FileError get error => _blink.Native_FileWriter_error_Getter(this);
 
   @DomName('FileWriter.length')
   @DocsEditable()
-  int get length => blink.Native_FileWriter_length_Getter(this);
+  int get length => _blink.Native_FileWriter_length_Getter(this);
 
   @DomName('FileWriter.position')
   @DocsEditable()
-  int get position => blink.Native_FileWriter_position_Getter(this);
+  int get position => _blink.Native_FileWriter_position_Getter(this);
 
   @DomName('FileWriter.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_FileWriter_readyState_Getter(this);
+  int get readyState => _blink.Native_FileWriter_readyState_Getter(this);
 
   @DomName('FileWriter.abort')
   @DocsEditable()
-  void abort() => blink.Native_FileWriter_abort_Callback(this);
+  void abort() => _blink.Native_FileWriter_abort_Callback(this);
 
   @DomName('FileWriter.seek')
   @DocsEditable()
-  void seek(int position) => blink.Native_FileWriter_seek_Callback(this, position);
+  void seek(int position) => _blink.Native_FileWriter_seek_Callback(this, position);
 
   @DomName('FileWriter.truncate')
   @DocsEditable()
-  void truncate(int size) => blink.Native_FileWriter_truncate_Callback(this, size);
+  void truncate(int size) => _blink.Native_FileWriter_truncate_Callback(this, size);
 
   @DomName('FileWriter.write')
   @DocsEditable()
-  void write(Blob data) => blink.Native_FileWriter_write_Callback(this, data);
+  void write(Blob data) => _blink.Native_FileWriter_write_Callback(this, data);
 
   @DomName('FileWriter.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FileWriter_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileWriter_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('FileWriter.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_FileWriter_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_FileWriter_dispatchEvent_Callback(this, event);
 
   @DomName('FileWriter.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FileWriter_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileWriter_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [FileWriter].
   @DomName('FileWriter.onabort')
@@ -13363,7 +13363,7 @@ class FocusEvent extends UIEvent {
 
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => blink.Native_FocusEvent_relatedTarget_Getter(this);
+  EventTarget get relatedTarget => _blink.Native_FocusEvent_relatedTarget_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13387,87 +13387,87 @@ class FontFace extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static FontFace _create_1(family, source, descriptors) => blink.Native_FontFace__create_1constructorCallback(family, source, descriptors);
+  static FontFace _create_1(family, source, descriptors) => _blink.Native_FontFace__create_1constructorCallback(family, source, descriptors);
 
   @DomName('FontFace.family')
   @DocsEditable()
   @Experimental() // untriaged
-  String get family => blink.Native_FontFace_family_Getter(this);
+  String get family => _blink.Native_FontFace_family_Getter(this);
 
   @DomName('FontFace.family')
   @DocsEditable()
   @Experimental() // untriaged
-  void set family(String value) => blink.Native_FontFace_family_Setter(this, value);
+  void set family(String value) => _blink.Native_FontFace_family_Setter(this, value);
 
   @DomName('FontFace.featureSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  String get featureSettings => blink.Native_FontFace_featureSettings_Getter(this);
+  String get featureSettings => _blink.Native_FontFace_featureSettings_Getter(this);
 
   @DomName('FontFace.featureSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  void set featureSettings(String value) => blink.Native_FontFace_featureSettings_Setter(this, value);
+  void set featureSettings(String value) => _blink.Native_FontFace_featureSettings_Setter(this, value);
 
   @DomName('FontFace.status')
   @DocsEditable()
   @Experimental() // untriaged
-  String get status => blink.Native_FontFace_status_Getter(this);
+  String get status => _blink.Native_FontFace_status_Getter(this);
 
   @DomName('FontFace.stretch')
   @DocsEditable()
   @Experimental() // untriaged
-  String get stretch => blink.Native_FontFace_stretch_Getter(this);
+  String get stretch => _blink.Native_FontFace_stretch_Getter(this);
 
   @DomName('FontFace.stretch')
   @DocsEditable()
   @Experimental() // untriaged
-  void set stretch(String value) => blink.Native_FontFace_stretch_Setter(this, value);
+  void set stretch(String value) => _blink.Native_FontFace_stretch_Setter(this, value);
 
   @DomName('FontFace.style')
   @DocsEditable()
   @Experimental() // untriaged
-  String get style => blink.Native_FontFace_style_Getter(this);
+  String get style => _blink.Native_FontFace_style_Getter(this);
 
   @DomName('FontFace.style')
   @DocsEditable()
   @Experimental() // untriaged
-  void set style(String value) => blink.Native_FontFace_style_Setter(this, value);
+  void set style(String value) => _blink.Native_FontFace_style_Setter(this, value);
 
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
   @Experimental() // untriaged
-  String get unicodeRange => blink.Native_FontFace_unicodeRange_Getter(this);
+  String get unicodeRange => _blink.Native_FontFace_unicodeRange_Getter(this);
 
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
   @Experimental() // untriaged
-  void set unicodeRange(String value) => blink.Native_FontFace_unicodeRange_Setter(this, value);
+  void set unicodeRange(String value) => _blink.Native_FontFace_unicodeRange_Setter(this, value);
 
   @DomName('FontFace.variant')
   @DocsEditable()
   @Experimental() // untriaged
-  String get variant => blink.Native_FontFace_variant_Getter(this);
+  String get variant => _blink.Native_FontFace_variant_Getter(this);
 
   @DomName('FontFace.variant')
   @DocsEditable()
   @Experimental() // untriaged
-  void set variant(String value) => blink.Native_FontFace_variant_Setter(this, value);
+  void set variant(String value) => _blink.Native_FontFace_variant_Setter(this, value);
 
   @DomName('FontFace.weight')
   @DocsEditable()
   @Experimental() // untriaged
-  String get weight => blink.Native_FontFace_weight_Getter(this);
+  String get weight => _blink.Native_FontFace_weight_Getter(this);
 
   @DomName('FontFace.weight')
   @DocsEditable()
   @Experimental() // untriaged
-  void set weight(String value) => blink.Native_FontFace_weight_Setter(this, value);
+  void set weight(String value) => _blink.Native_FontFace_weight_Setter(this, value);
 
   @DomName('FontFace.load')
   @DocsEditable()
   @Experimental() // untriaged
-  void load() => blink.Native_FontFace_load_Callback(this);
+  void load() => _blink.Native_FontFace_load_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13487,32 +13487,32 @@ class FontFaceSet extends EventTarget {
   @DomName('FontFaceSet.size')
   @DocsEditable()
   @Experimental() // untriaged
-  int get size => blink.Native_FontFaceSet_size_Getter(this);
+  int get size => _blink.Native_FontFaceSet_size_Getter(this);
 
   @DomName('FontFaceSet.status')
   @DocsEditable()
   @Experimental() // untriaged
-  String get status => blink.Native_FontFaceSet_status_Getter(this);
+  String get status => _blink.Native_FontFaceSet_status_Getter(this);
 
   @DomName('FontFaceSet.add')
   @DocsEditable()
   @Experimental() // untriaged
-  void add(FontFace fontFace) => blink.Native_FontFaceSet_add_Callback(this, fontFace);
+  void add(FontFace fontFace) => _blink.Native_FontFaceSet_add_Callback(this, fontFace);
 
   @DomName('FontFaceSet.check')
   @DocsEditable()
   @Experimental() // untriaged
-  bool check(String font, String text) => blink.Native_FontFaceSet_check_Callback(this, font, text);
+  bool check(String font, String text) => _blink.Native_FontFaceSet_check_Callback(this, font, text);
 
   @DomName('FontFaceSet.clear')
   @DocsEditable()
   @Experimental() // untriaged
-  void clear() => blink.Native_FontFaceSet_clear_Callback(this);
+  void clear() => _blink.Native_FontFaceSet_clear_Callback(this);
 
   @DomName('FontFaceSet.delete')
   @DocsEditable()
   @Experimental() // untriaged
-  bool delete(FontFace fontFace) => blink.Native_FontFaceSet_delete_Callback(this, fontFace);
+  bool delete(FontFace fontFace) => _blink.Native_FontFaceSet_delete_Callback(this, fontFace);
 
   void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
@@ -13523,29 +13523,29 @@ class FontFaceSet extends EventTarget {
     return;
   }
 
-  void _forEach_1(callback, thisArg) => blink.Native_FontFaceSet__forEach_1_Callback(this, callback, thisArg);
+  void _forEach_1(callback, thisArg) => _blink.Native_FontFaceSet__forEach_1_Callback(this, callback, thisArg);
 
-  void _forEach_2(callback) => blink.Native_FontFaceSet__forEach_2_Callback(this, callback);
+  void _forEach_2(callback) => _blink.Native_FontFaceSet__forEach_2_Callback(this, callback);
 
   @DomName('FontFaceSet.has')
   @DocsEditable()
   @Experimental() // untriaged
-  bool has(FontFace fontFace) => blink.Native_FontFaceSet_has_Callback(this, fontFace);
+  bool has(FontFace fontFace) => _blink.Native_FontFaceSet_has_Callback(this, fontFace);
 
   @DomName('FontFaceSet.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FontFaceSet_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FontFaceSet_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('FontFaceSet.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_FontFaceSet_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_FontFaceSet_dispatchEvent_Callback(this, event);
 
   @DomName('FontFaceSet.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_FontFaceSet_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FontFaceSet_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13580,18 +13580,18 @@ class FormData extends NativeFieldWrapperClass2 {
   factory FormData([FormElement form]) => _create(form);
 
   @DocsEditable()
-  static FormData _create(form) => blink.Native_FormData_constructorCallback(form);
+  static FormData _create(form) => _blink.Native_FormData_constructorCallback(form);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('FormData.append')
   @DocsEditable()
-  void append(String name, String value) => blink.Native_FormData_append_Callback(this, name, value);
+  void append(String name, String value) => _blink.Native_FormData_append_Callback(this, name, value);
 
   @DomName('FormData.appendBlob')
   @DocsEditable()
-  void appendBlob(String name, Blob value, [String filename]) => blink.Native_FormData_appendBlob_Callback(this, name, value, filename);
+  void appendBlob(String name, Blob value, [String filename]) => _blink.Native_FormData_appendBlob_Callback(this, name, value, filename);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13643,105 +13643,105 @@ class FormElement extends HtmlElement {
 
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
-  String get acceptCharset => blink.Native_HTMLFormElement_acceptCharset_Getter(this);
+  String get acceptCharset => _blink.Native_HTMLFormElement_acceptCharset_Getter(this);
 
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
-  void set acceptCharset(String value) => blink.Native_HTMLFormElement_acceptCharset_Setter(this, value);
+  void set acceptCharset(String value) => _blink.Native_HTMLFormElement_acceptCharset_Setter(this, value);
 
   @DomName('HTMLFormElement.action')
   @DocsEditable()
-  String get action => blink.Native_HTMLFormElement_action_Getter(this);
+  String get action => _blink.Native_HTMLFormElement_action_Getter(this);
 
   @DomName('HTMLFormElement.action')
   @DocsEditable()
-  void set action(String value) => blink.Native_HTMLFormElement_action_Setter(this, value);
+  void set action(String value) => _blink.Native_HTMLFormElement_action_Setter(this, value);
 
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  String get autocomplete => blink.Native_HTMLFormElement_autocomplete_Getter(this);
+  String get autocomplete => _blink.Native_HTMLFormElement_autocomplete_Getter(this);
 
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  void set autocomplete(String value) => blink.Native_HTMLFormElement_autocomplete_Setter(this, value);
+  void set autocomplete(String value) => _blink.Native_HTMLFormElement_autocomplete_Setter(this, value);
 
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
-  String get encoding => blink.Native_HTMLFormElement_encoding_Getter(this);
+  String get encoding => _blink.Native_HTMLFormElement_encoding_Getter(this);
 
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
-  void set encoding(String value) => blink.Native_HTMLFormElement_encoding_Setter(this, value);
+  void set encoding(String value) => _blink.Native_HTMLFormElement_encoding_Setter(this, value);
 
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
-  String get enctype => blink.Native_HTMLFormElement_enctype_Getter(this);
+  String get enctype => _blink.Native_HTMLFormElement_enctype_Getter(this);
 
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
-  void set enctype(String value) => blink.Native_HTMLFormElement_enctype_Setter(this, value);
+  void set enctype(String value) => _blink.Native_HTMLFormElement_enctype_Setter(this, value);
 
   @DomName('HTMLFormElement.length')
   @DocsEditable()
-  int get length => blink.Native_HTMLFormElement_length_Getter(this);
+  int get length => _blink.Native_HTMLFormElement_length_Getter(this);
 
   @DomName('HTMLFormElement.method')
   @DocsEditable()
-  String get method => blink.Native_HTMLFormElement_method_Getter(this);
+  String get method => _blink.Native_HTMLFormElement_method_Getter(this);
 
   @DomName('HTMLFormElement.method')
   @DocsEditable()
-  void set method(String value) => blink.Native_HTMLFormElement_method_Setter(this, value);
+  void set method(String value) => _blink.Native_HTMLFormElement_method_Setter(this, value);
 
   @DomName('HTMLFormElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLFormElement_name_Getter(this);
+  String get name => _blink.Native_HTMLFormElement_name_Getter(this);
 
   @DomName('HTMLFormElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLFormElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLFormElement_name_Setter(this, value);
 
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
-  bool get noValidate => blink.Native_HTMLFormElement_noValidate_Getter(this);
+  bool get noValidate => _blink.Native_HTMLFormElement_noValidate_Getter(this);
 
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
-  void set noValidate(bool value) => blink.Native_HTMLFormElement_noValidate_Setter(this, value);
+  void set noValidate(bool value) => _blink.Native_HTMLFormElement_noValidate_Setter(this, value);
 
   @DomName('HTMLFormElement.target')
   @DocsEditable()
-  String get target => blink.Native_HTMLFormElement_target_Getter(this);
+  String get target => _blink.Native_HTMLFormElement_target_Getter(this);
 
   @DomName('HTMLFormElement.target')
   @DocsEditable()
-  void set target(String value) => blink.Native_HTMLFormElement_target_Setter(this, value);
+  void set target(String value) => _blink.Native_HTMLFormElement_target_Setter(this, value);
 
   @DomName('HTMLFormElement.__getter__')
   @DocsEditable()
-  Element __getter__(int index) => blink.Native_HTMLFormElement___getter___Callback(this, index);
+  Element __getter__(int index) => _blink.Native_HTMLFormElement___getter___Callback(this, index);
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLFormElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLFormElement_checkValidity_Callback(this);
 
   @DomName('HTMLFormElement.requestAutocomplete')
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete() => blink.Native_HTMLFormElement_requestAutocomplete_Callback(this);
+  void requestAutocomplete() => _blink.Native_HTMLFormElement_requestAutocomplete_Callback(this);
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
-  void reset() => blink.Native_HTMLFormElement_reset_Callback(this);
+  void reset() => _blink.Native_HTMLFormElement_reset_Callback(this);
 
   @DomName('HTMLFormElement.submit')
   @DocsEditable()
-  void submit() => blink.Native_HTMLFormElement_submit_Callback(this);
+  void submit() => _blink.Native_HTMLFormElement_submit_Callback(this);
 
   /// Stream of `autocomplete` events handled by this [FormElement].
   @DomName('HTMLFormElement.onautocomplete')
@@ -13775,23 +13775,23 @@ class Gamepad extends NativeFieldWrapperClass2 {
 
   @DomName('Gamepad.axes')
   @DocsEditable()
-  List<num> get axes => blink.Native_Gamepad_axes_Getter(this);
+  List<num> get axes => _blink.Native_Gamepad_axes_Getter(this);
 
   @DomName('Gamepad.buttons')
   @DocsEditable()
-  List<num> get buttons => blink.Native_Gamepad_buttons_Getter(this);
+  List<num> get buttons => _blink.Native_Gamepad_buttons_Getter(this);
 
   @DomName('Gamepad.id')
   @DocsEditable()
-  String get id => blink.Native_Gamepad_id_Getter(this);
+  String get id => _blink.Native_Gamepad_id_Getter(this);
 
   @DomName('Gamepad.index')
   @DocsEditable()
-  int get index => blink.Native_Gamepad_index_Getter(this);
+  int get index => _blink.Native_Gamepad_index_Getter(this);
 
   @DomName('Gamepad.timestamp')
   @DocsEditable()
-  int get timestamp => blink.Native_Gamepad_timestamp_Getter(this);
+  int get timestamp => _blink.Native_Gamepad_timestamp_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13879,15 +13879,15 @@ class Geolocation extends NativeFieldWrapperClass2 {
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
-  void _clearWatch(int watchID) => blink.Native_Geolocation_clearWatch_Callback(this, watchID);
+  void _clearWatch(int watchID) => _blink.Native_Geolocation_clearWatch_Callback(this, watchID);
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable()
-  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => blink.Native_Geolocation_getCurrentPosition_Callback(this, successCallback, errorCallback, options);
+  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => _blink.Native_Geolocation_getCurrentPosition_Callback(this, successCallback, errorCallback, options);
 
   @DomName('Geolocation.watchPosition')
   @DocsEditable()
-  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => blink.Native_Geolocation_watchPosition_Callback(this, successCallback, errorCallback, options);
+  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => _blink.Native_Geolocation_watchPosition_Callback(this, successCallback, errorCallback, options);
 }
 
 
@@ -13908,11 +13908,11 @@ class Geoposition extends NativeFieldWrapperClass2 {
 
   @DomName('Geoposition.coords')
   @DocsEditable()
-  Coordinates get coords => blink.Native_Geoposition_coords_Getter(this);
+  Coordinates get coords => _blink.Native_Geoposition_coords_Getter(this);
 
   @DomName('Geoposition.timestamp')
   @DocsEditable()
-  int get timestamp => blink.Native_Geoposition_timestamp_Getter(this);
+  int get timestamp => _blink.Native_Geoposition_timestamp_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14296,12 +14296,12 @@ class HRElement extends HtmlElement {
   @DomName('HTMLHRElement.color')
   @DocsEditable()
   @Experimental() // untriaged
-  String get color => blink.Native_HTMLHRElement_color_Getter(this);
+  String get color => _blink.Native_HTMLHRElement_color_Getter(this);
 
   @DomName('HTMLHRElement.color')
   @DocsEditable()
   @Experimental() // untriaged
-  void set color(String value) => blink.Native_HTMLHRElement_color_Setter(this, value);
+  void set color(String value) => _blink.Native_HTMLHRElement_color_Setter(this, value);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -14331,15 +14331,15 @@ class HashChangeEvent extends Event {
 
   @DomName('HashChangeEvent.newURL')
   @DocsEditable()
-  String get newUrl => blink.Native_HashChangeEvent_newURL_Getter(this);
+  String get newUrl => _blink.Native_HashChangeEvent_newURL_Getter(this);
 
   @DomName('HashChangeEvent.oldURL')
   @DocsEditable()
-  String get oldUrl => blink.Native_HashChangeEvent_oldURL_Getter(this);
+  String get oldUrl => _blink.Native_HashChangeEvent_oldURL_Getter(this);
 
   @DomName('HashChangeEvent.initHashChangeEvent')
   @DocsEditable()
-  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) => blink.Native_HashChangeEvent_initHashChangeEvent_Callback(this, type, canBubble, cancelable, oldURL, newURL);
+  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) => _blink.Native_HashChangeEvent_initHashChangeEvent_Callback(this, type, canBubble, cancelable, oldURL, newURL);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14433,23 +14433,23 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 
   @DomName('History.length')
   @DocsEditable()
-  int get length => blink.Native_History_length_Getter(this);
+  int get length => _blink.Native_History_length_Getter(this);
 
   @DomName('History.state')
   @DocsEditable()
-  dynamic get state => blink.Native_History_state_Getter(this);
+  dynamic get state => _blink.Native_History_state_Getter(this);
 
   @DomName('History.back')
   @DocsEditable()
-  void back() => blink.Native_History_back_Callback(this);
+  void back() => _blink.Native_History_back_Callback(this);
 
   @DomName('History.forward')
   @DocsEditable()
-  void forward() => blink.Native_History_forward_Callback(this);
+  void forward() => _blink.Native_History_forward_Callback(this);
 
   @DomName('History.go')
   @DocsEditable()
-  void go(int distance) => blink.Native_History_go_Callback(this, distance);
+  void go(int distance) => _blink.Native_History_go_Callback(this, distance);
 
   @DomName('History.pushState')
   @DocsEditable()
@@ -14457,7 +14457,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) => blink.Native_History_pushState_Callback(this, data, title, url);
+  void pushState(Object data, String title, [String url]) => _blink.Native_History_pushState_Callback(this, data, title, url);
 
   @DomName('History.replaceState')
   @DocsEditable()
@@ -14465,7 +14465,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) => blink.Native_History_replaceState_Callback(this, data, title, url);
+  void replaceState(Object data, String title, [String url]) => _blink.Native_History_replaceState_Callback(this, data, title, url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14482,15 +14482,15 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
-  int get length => blink.Native_HTMLCollection_length_Getter(this);
+  int get length => _blink.Native_HTMLCollection_length_Getter(this);
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_HTMLCollection_NativeIndexed_Getter(this, index);
+    return _blink.Native_HTMLCollection_NativeIndexed_Getter(this, index);
   }
 
-  Node _nativeIndexedGetter(int index) => blink.Native_HTMLCollection_NativeIndexed_Getter(this, index);
+  Node _nativeIndexedGetter(int index) => _blink.Native_HTMLCollection_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -14532,11 +14532,11 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
 
   @DomName('HTMLCollection.item')
   @DocsEditable()
-  Element item(int index) => blink.Native_HTMLCollection_item_Callback(this, index);
+  Element item(int index) => _blink.Native_HTMLCollection_item_Callback(this, index);
 
   @DomName('HTMLCollection.namedItem')
   @DocsEditable()
-  Element namedItem(String name) => blink.Native_HTMLCollection_namedItem_Callback(this, name);
+  Element namedItem(String name) => _blink.Native_HTMLCollection_namedItem_Callback(this, name);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15096,88 +15096,88 @@ class HtmlElement extends Element implements GlobalEventHandlers {
 
   @DomName('HTMLElement.contentEditable')
   @DocsEditable()
-  String get contentEditable => blink.Native_HTMLElement_contentEditable_Getter(this);
+  String get contentEditable => _blink.Native_HTMLElement_contentEditable_Getter(this);
 
   @DomName('HTMLElement.contentEditable')
   @DocsEditable()
-  void set contentEditable(String value) => blink.Native_HTMLElement_contentEditable_Setter(this, value);
+  void set contentEditable(String value) => _blink.Native_HTMLElement_contentEditable_Setter(this, value);
 
   @DomName('HTMLElement.dir')
   @DocsEditable()
-  String get dir => blink.Native_HTMLElement_dir_Getter(this);
+  String get dir => _blink.Native_HTMLElement_dir_Getter(this);
 
   @DomName('HTMLElement.dir')
   @DocsEditable()
-  void set dir(String value) => blink.Native_HTMLElement_dir_Setter(this, value);
+  void set dir(String value) => _blink.Native_HTMLElement_dir_Setter(this, value);
 
   @DomName('HTMLElement.draggable')
   @DocsEditable()
-  bool get draggable => blink.Native_HTMLElement_draggable_Getter(this);
+  bool get draggable => _blink.Native_HTMLElement_draggable_Getter(this);
 
   @DomName('HTMLElement.draggable')
   @DocsEditable()
-  void set draggable(bool value) => blink.Native_HTMLElement_draggable_Setter(this, value);
+  void set draggable(bool value) => _blink.Native_HTMLElement_draggable_Setter(this, value);
 
   @DomName('HTMLElement.hidden')
   @DocsEditable()
-  bool get hidden => blink.Native_HTMLElement_hidden_Getter(this);
+  bool get hidden => _blink.Native_HTMLElement_hidden_Getter(this);
 
   @DomName('HTMLElement.hidden')
   @DocsEditable()
-  void set hidden(bool value) => blink.Native_HTMLElement_hidden_Setter(this, value);
+  void set hidden(bool value) => _blink.Native_HTMLElement_hidden_Setter(this, value);
 
   @DomName('HTMLElement.inputMethodContext')
   @DocsEditable()
   @Experimental() // untriaged
-  InputMethodContext get inputMethodContext => blink.Native_HTMLElement_inputMethodContext_Getter(this);
+  InputMethodContext get inputMethodContext => _blink.Native_HTMLElement_inputMethodContext_Getter(this);
 
   @DomName('HTMLElement.isContentEditable')
   @DocsEditable()
-  bool get isContentEditable => blink.Native_HTMLElement_isContentEditable_Getter(this);
+  bool get isContentEditable => _blink.Native_HTMLElement_isContentEditable_Getter(this);
 
   @DomName('HTMLElement.lang')
   @DocsEditable()
-  String get lang => blink.Native_HTMLElement_lang_Getter(this);
+  String get lang => _blink.Native_HTMLElement_lang_Getter(this);
 
   @DomName('HTMLElement.lang')
   @DocsEditable()
-  void set lang(String value) => blink.Native_HTMLElement_lang_Setter(this, value);
+  void set lang(String value) => _blink.Native_HTMLElement_lang_Setter(this, value);
 
   @DomName('HTMLElement.spellcheck')
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
   @Experimental() // nonstandard
-  bool get spellcheck => blink.Native_HTMLElement_spellcheck_Getter(this);
+  bool get spellcheck => _blink.Native_HTMLElement_spellcheck_Getter(this);
 
   @DomName('HTMLElement.spellcheck')
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
   @Experimental() // nonstandard
-  void set spellcheck(bool value) => blink.Native_HTMLElement_spellcheck_Setter(this, value);
+  void set spellcheck(bool value) => _blink.Native_HTMLElement_spellcheck_Setter(this, value);
 
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
-  int get tabIndex => blink.Native_HTMLElement_tabIndex_Getter(this);
+  int get tabIndex => _blink.Native_HTMLElement_tabIndex_Getter(this);
 
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
-  void set tabIndex(int value) => blink.Native_HTMLElement_tabIndex_Setter(this, value);
+  void set tabIndex(int value) => _blink.Native_HTMLElement_tabIndex_Setter(this, value);
 
   @DomName('HTMLElement.title')
   @DocsEditable()
-  String get title => blink.Native_HTMLElement_title_Getter(this);
+  String get title => _blink.Native_HTMLElement_title_Getter(this);
 
   @DomName('HTMLElement.title')
   @DocsEditable()
-  void set title(String value) => blink.Native_HTMLElement_title_Setter(this, value);
+  void set title(String value) => _blink.Native_HTMLElement_title_Setter(this, value);
 
   @DomName('HTMLElement.translate')
   @DocsEditable()
-  bool get translate => blink.Native_HTMLElement_translate_Getter(this);
+  bool get translate => _blink.Native_HTMLElement_translate_Getter(this);
 
   @DomName('HTMLElement.translate')
   @DocsEditable()
-  void set translate(bool value) => blink.Native_HTMLElement_translate_Setter(this, value);
+  void set translate(bool value) => _blink.Native_HTMLElement_translate_Setter(this, value);
 
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable()
@@ -15185,7 +15185,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  String get dropzone => blink.Native_HTMLElement_webkitdropzone_Getter(this);
+  String get dropzone => _blink.Native_HTMLElement_webkitdropzone_Getter(this);
 
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable()
@@ -15193,11 +15193,11 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  void set dropzone(String value) => blink.Native_HTMLElement_webkitdropzone_Setter(this, value);
+  void set dropzone(String value) => _blink.Native_HTMLElement_webkitdropzone_Setter(this, value);
 
   @DomName('HTMLElement.click')
   @DocsEditable()
-  void click() => blink.Native_HTMLElement_click_Callback(this);
+  void click() => _blink.Native_HTMLElement_click_Callback(this);
 
   @DomName('HTMLElement.onabort')
   @DocsEditable()
@@ -15868,7 +15868,7 @@ class HttpRequest extends HttpRequestEventTarget {
   factory HttpRequest() => _create();
 
   @DocsEditable()
-  static HttpRequest _create() => blink.Native_XMLHttpRequest_constructorCallback();
+  static HttpRequest _create() => _blink.Native_XMLHttpRequest_constructorCallback();
 
   @DomName('XMLHttpRequest.DONE')
   @DocsEditable()
@@ -15924,7 +15924,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_XMLHttpRequest_readyState_Getter(this);
+  int get readyState => _blink.Native_XMLHttpRequest_readyState_Getter(this);
 
   /**
    * The data received as a reponse from the request.
@@ -15939,14 +15939,14 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Object get response => blink.Native_XMLHttpRequest_response_Getter(this);
+  Object get response => _blink.Native_XMLHttpRequest_response_Getter(this);
 
   /**
    * The response in String form or empty String on failure.
    */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable()
-  String get responseText => blink.Native_XMLHttpRequest_responseText_Getter(this);
+  String get responseText => _blink.Native_XMLHttpRequest_responseText_Getter(this);
 
   /**
    * [String] telling the server the desired response format.
@@ -15960,7 +15960,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
-  String get responseType => blink.Native_XMLHttpRequest_responseType_Getter(this);
+  String get responseType => _blink.Native_XMLHttpRequest_responseType_Getter(this);
 
   /**
    * [String] telling the server the desired response format.
@@ -15974,7 +15974,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
-  void set responseType(String value) => blink.Native_XMLHttpRequest_responseType_Setter(this, value);
+  void set responseType(String value) => _blink.Native_XMLHttpRequest_responseType_Setter(this, value);
 
   /**
    * The request response, or null on failure.
@@ -15985,7 +15985,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.responseXML')
   @DocsEditable()
-  Document get responseXml => blink.Native_XMLHttpRequest_responseXML_Getter(this);
+  Document get responseXml => _blink.Native_XMLHttpRequest_responseXML_Getter(this);
 
   /**
    * The http result code from the request (200, 404, etc).
@@ -15993,7 +15993,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.status')
   @DocsEditable()
-  int get status => blink.Native_XMLHttpRequest_status_Getter(this);
+  int get status => _blink.Native_XMLHttpRequest_status_Getter(this);
 
   /**
    * The request response string (such as \"200 OK\").
@@ -16001,7 +16001,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable()
-  String get statusText => blink.Native_XMLHttpRequest_statusText_Getter(this);
+  String get statusText => _blink.Native_XMLHttpRequest_statusText_Getter(this);
 
   /**
    * Length of time before a request is automatically terminated.
@@ -16022,7 +16022,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int get timeout => blink.Native_XMLHttpRequest_timeout_Getter(this);
+  int get timeout => _blink.Native_XMLHttpRequest_timeout_Getter(this);
 
   /**
    * Length of time before a request is automatically terminated.
@@ -16043,7 +16043,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void set timeout(int value) => blink.Native_XMLHttpRequest_timeout_Setter(this, value);
+  void set timeout(int value) => _blink.Native_XMLHttpRequest_timeout_Setter(this, value);
 
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
@@ -16052,7 +16052,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.upload')
   @DocsEditable()
   @Unstable()
-  HttpRequestUpload get upload => blink.Native_XMLHttpRequest_upload_Getter(this);
+  HttpRequestUpload get upload => _blink.Native_XMLHttpRequest_upload_Getter(this);
 
   /**
    * True if cross-site requests should use credentials such as cookies
@@ -16062,7 +16062,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable()
-  bool get withCredentials => blink.Native_XMLHttpRequest_withCredentials_Getter(this);
+  bool get withCredentials => _blink.Native_XMLHttpRequest_withCredentials_Getter(this);
 
   /**
    * True if cross-site requests should use credentials such as cookies
@@ -16072,7 +16072,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable()
-  void set withCredentials(bool value) => blink.Native_XMLHttpRequest_withCredentials_Setter(this, value);
+  void set withCredentials(bool value) => _blink.Native_XMLHttpRequest_withCredentials_Setter(this, value);
 
   /**
    * Stop the current request.
@@ -16083,7 +16083,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable()
-  void abort() => blink.Native_XMLHttpRequest_abort_Callback(this);
+  void abort() => _blink.Native_XMLHttpRequest_abort_Callback(this);
 
   /**
    * Retrieve all the response headers from a request.
@@ -16098,7 +16098,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   @DocsEditable()
   @Unstable()
-  String getAllResponseHeaders() => blink.Native_XMLHttpRequest_getAllResponseHeaders_Callback(this);
+  String getAllResponseHeaders() => _blink.Native_XMLHttpRequest_getAllResponseHeaders_Callback(this);
 
   /**
    * Return the response header named `header`, or null if not found.
@@ -16109,7 +16109,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.getResponseHeader')
   @DocsEditable()
   @Unstable()
-  String getResponseHeader(String header) => blink.Native_XMLHttpRequest_getResponseHeader_Callback(this, header);
+  String getResponseHeader(String header) => _blink.Native_XMLHttpRequest_getResponseHeader_Callback(this, header);
 
   /**
    * Specify the desired `url`, and `method` to use in making the request.
@@ -16128,7 +16128,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) => blink.Native_XMLHttpRequest_open_Callback(this, method, url, async, user, password);
+  void open(String method, String url, {bool async, String user, String password}) => _blink.Native_XMLHttpRequest_open_Callback(this, method, url, async, user, password);
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -16142,7 +16142,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void overrideMimeType(String override) => blink.Native_XMLHttpRequest_overrideMimeType_Callback(this, override);
+  void overrideMimeType(String override) => _blink.Native_XMLHttpRequest_overrideMimeType_Callback(this, override);
 
   /**
    * Send the request with any given `data`.
@@ -16160,7 +16160,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
-  void send([data]) => blink.Native_XMLHttpRequest_send_Callback(this, data);
+  void send([data]) => _blink.Native_XMLHttpRequest_send_Callback(this, data);
 
   /**
    * Sets the value of an HTTP requst header.
@@ -16182,7 +16182,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
-  void setRequestHeader(String header, String value) => blink.Native_XMLHttpRequest_setRequestHeader_Callback(this, header, value);
+  void setRequestHeader(String header, String value) => _blink.Native_XMLHttpRequest_setRequestHeader_Callback(this, header, value);
 
   /// Stream of `readystatechange` events handled by this [HttpRequest].
 /**
@@ -16288,17 +16288,17 @@ class HttpRequestEventTarget extends EventTarget {
   @DomName('XMLHttpRequestEventTarget.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_XMLHttpRequestEventTarget_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_XMLHttpRequestEventTarget_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('XMLHttpRequestEventTarget.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_XMLHttpRequestEventTarget_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_XMLHttpRequestEventTarget_dispatchEvent_Callback(this, event);
 
   @DomName('XMLHttpRequestEventTarget.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_XMLHttpRequestEventTarget_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_XMLHttpRequestEventTarget_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onabort')
@@ -16392,55 +16392,55 @@ class IFrameElement extends HtmlElement {
 
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
-  WindowBase get contentWindow => blink.Native_HTMLIFrameElement_contentWindow_Getter(this);
+  WindowBase get contentWindow => _blink.Native_HTMLIFrameElement_contentWindow_Getter(this);
 
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
-  String get height => blink.Native_HTMLIFrameElement_height_Getter(this);
+  String get height => _blink.Native_HTMLIFrameElement_height_Getter(this);
 
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
-  void set height(String value) => blink.Native_HTMLIFrameElement_height_Setter(this, value);
+  void set height(String value) => _blink.Native_HTMLIFrameElement_height_Setter(this, value);
 
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLIFrameElement_name_Getter(this);
+  String get name => _blink.Native_HTMLIFrameElement_name_Getter(this);
 
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLIFrameElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLIFrameElement_name_Setter(this, value);
 
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
-  String get sandbox => blink.Native_HTMLIFrameElement_sandbox_Getter(this);
+  String get sandbox => _blink.Native_HTMLIFrameElement_sandbox_Getter(this);
 
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
-  void set sandbox(String value) => blink.Native_HTMLIFrameElement_sandbox_Setter(this, value);
+  void set sandbox(String value) => _blink.Native_HTMLIFrameElement_sandbox_Setter(this, value);
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLIFrameElement_src_Getter(this);
+  String get src => _blink.Native_HTMLIFrameElement_src_Getter(this);
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLIFrameElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLIFrameElement_src_Setter(this, value);
 
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
-  String get srcdoc => blink.Native_HTMLIFrameElement_srcdoc_Getter(this);
+  String get srcdoc => _blink.Native_HTMLIFrameElement_srcdoc_Getter(this);
 
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
-  void set srcdoc(String value) => blink.Native_HTMLIFrameElement_srcdoc_Setter(this, value);
+  void set srcdoc(String value) => _blink.Native_HTMLIFrameElement_srcdoc_Setter(this, value);
 
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
-  String get width => blink.Native_HTMLIFrameElement_width_Getter(this);
+  String get width => _blink.Native_HTMLIFrameElement_width_Getter(this);
 
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
-  void set width(String value) => blink.Native_HTMLIFrameElement_width_Setter(this, value);
+  void set width(String value) => _blink.Native_HTMLIFrameElement_width_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16460,12 +16460,12 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
   @DomName('ImageBitmap.height')
   @DocsEditable()
   @Experimental() // untriaged
-  int get height => blink.Native_ImageBitmap_height_Getter(this);
+  int get height => _blink.Native_ImageBitmap_height_Getter(this);
 
   @DomName('ImageBitmap.width')
   @DocsEditable()
   @Experimental() // untriaged
-  int get width => blink.Native_ImageBitmap_width_Getter(this);
+  int get width => _blink.Native_ImageBitmap_width_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -16488,15 +16488,15 @@ class ImageData extends NativeFieldWrapperClass2 {
 
   @DomName('ImageData.data')
   @DocsEditable()
-  List<int> get _data => blink.Native_ImageData_data_Getter(this);
+  List<int> get _data => _blink.Native_ImageData_data_Getter(this);
 
   @DomName('ImageData.height')
   @DocsEditable()
-  int get height => blink.Native_ImageData_height_Getter(this);
+  int get height => _blink.Native_ImageData_height_Getter(this);
 
   @DomName('ImageData.width')
   @DocsEditable()
-  int get width => blink.Native_ImageData_width_Getter(this);
+  int get width => _blink.Native_ImageData_width_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16527,81 +16527,81 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   @DomName('HTMLImageElement.alt')
   @DocsEditable()
-  String get alt => blink.Native_HTMLImageElement_alt_Getter(this);
+  String get alt => _blink.Native_HTMLImageElement_alt_Getter(this);
 
   @DomName('HTMLImageElement.alt')
   @DocsEditable()
-  void set alt(String value) => blink.Native_HTMLImageElement_alt_Setter(this, value);
+  void set alt(String value) => _blink.Native_HTMLImageElement_alt_Setter(this, value);
 
   @DomName('HTMLImageElement.complete')
   @DocsEditable()
-  bool get complete => blink.Native_HTMLImageElement_complete_Getter(this);
+  bool get complete => _blink.Native_HTMLImageElement_complete_Getter(this);
 
   @DomName('HTMLImageElement.crossOrigin')
   @DocsEditable()
-  String get crossOrigin => blink.Native_HTMLImageElement_crossOrigin_Getter(this);
+  String get crossOrigin => _blink.Native_HTMLImageElement_crossOrigin_Getter(this);
 
   @DomName('HTMLImageElement.crossOrigin')
   @DocsEditable()
-  void set crossOrigin(String value) => blink.Native_HTMLImageElement_crossOrigin_Setter(this, value);
+  void set crossOrigin(String value) => _blink.Native_HTMLImageElement_crossOrigin_Setter(this, value);
 
   @DomName('HTMLImageElement.height')
   @DocsEditable()
-  int get height => blink.Native_HTMLImageElement_height_Getter(this);
+  int get height => _blink.Native_HTMLImageElement_height_Getter(this);
 
   @DomName('HTMLImageElement.height')
   @DocsEditable()
-  void set height(int value) => blink.Native_HTMLImageElement_height_Setter(this, value);
+  void set height(int value) => _blink.Native_HTMLImageElement_height_Setter(this, value);
 
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
-  bool get isMap => blink.Native_HTMLImageElement_isMap_Getter(this);
+  bool get isMap => _blink.Native_HTMLImageElement_isMap_Getter(this);
 
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
-  void set isMap(bool value) => blink.Native_HTMLImageElement_isMap_Setter(this, value);
+  void set isMap(bool value) => _blink.Native_HTMLImageElement_isMap_Setter(this, value);
 
   @DomName('HTMLImageElement.naturalHeight')
   @DocsEditable()
-  int get naturalHeight => blink.Native_HTMLImageElement_naturalHeight_Getter(this);
+  int get naturalHeight => _blink.Native_HTMLImageElement_naturalHeight_Getter(this);
 
   @DomName('HTMLImageElement.naturalWidth')
   @DocsEditable()
-  int get naturalWidth => blink.Native_HTMLImageElement_naturalWidth_Getter(this);
+  int get naturalWidth => _blink.Native_HTMLImageElement_naturalWidth_Getter(this);
 
   @DomName('HTMLImageElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLImageElement_src_Getter(this);
+  String get src => _blink.Native_HTMLImageElement_src_Getter(this);
 
   @DomName('HTMLImageElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLImageElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLImageElement_src_Setter(this, value);
 
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  String get srcset => blink.Native_HTMLImageElement_srcset_Getter(this);
+  String get srcset => _blink.Native_HTMLImageElement_srcset_Getter(this);
 
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  void set srcset(String value) => blink.Native_HTMLImageElement_srcset_Setter(this, value);
+  void set srcset(String value) => _blink.Native_HTMLImageElement_srcset_Setter(this, value);
 
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
-  String get useMap => blink.Native_HTMLImageElement_useMap_Getter(this);
+  String get useMap => _blink.Native_HTMLImageElement_useMap_Getter(this);
 
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => blink.Native_HTMLImageElement_useMap_Setter(this, value);
+  void set useMap(String value) => _blink.Native_HTMLImageElement_useMap_Setter(this, value);
 
   @DomName('HTMLImageElement.width')
   @DocsEditable()
-  int get width => blink.Native_HTMLImageElement_width_Getter(this);
+  int get width => _blink.Native_HTMLImageElement_width_Getter(this);
 
   @DomName('HTMLImageElement.width')
   @DocsEditable()
-  void set width(int value) => blink.Native_HTMLImageElement_width_Setter(this, value);
+  void set width(int value) => _blink.Native_HTMLImageElement_width_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16670,333 +16670,333 @@ class InputElement extends HtmlElement implements
 
   @DomName('HTMLInputElement.accept')
   @DocsEditable()
-  String get accept => blink.Native_HTMLInputElement_accept_Getter(this);
+  String get accept => _blink.Native_HTMLInputElement_accept_Getter(this);
 
   @DomName('HTMLInputElement.accept')
   @DocsEditable()
-  void set accept(String value) => blink.Native_HTMLInputElement_accept_Setter(this, value);
+  void set accept(String value) => _blink.Native_HTMLInputElement_accept_Setter(this, value);
 
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
-  String get alt => blink.Native_HTMLInputElement_alt_Getter(this);
+  String get alt => _blink.Native_HTMLInputElement_alt_Getter(this);
 
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
-  void set alt(String value) => blink.Native_HTMLInputElement_alt_Setter(this, value);
+  void set alt(String value) => _blink.Native_HTMLInputElement_alt_Setter(this, value);
 
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
-  String get autocomplete => blink.Native_HTMLInputElement_autocomplete_Getter(this);
+  String get autocomplete => _blink.Native_HTMLInputElement_autocomplete_Getter(this);
 
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
-  void set autocomplete(String value) => blink.Native_HTMLInputElement_autocomplete_Setter(this, value);
+  void set autocomplete(String value) => _blink.Native_HTMLInputElement_autocomplete_Setter(this, value);
 
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
-  bool get autofocus => blink.Native_HTMLInputElement_autofocus_Getter(this);
+  bool get autofocus => _blink.Native_HTMLInputElement_autofocus_Getter(this);
 
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => blink.Native_HTMLInputElement_autofocus_Setter(this, value);
+  void set autofocus(bool value) => _blink.Native_HTMLInputElement_autofocus_Setter(this, value);
 
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
-  bool get checked => blink.Native_HTMLInputElement_checked_Getter(this);
+  bool get checked => _blink.Native_HTMLInputElement_checked_Getter(this);
 
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
-  void set checked(bool value) => blink.Native_HTMLInputElement_checked_Setter(this, value);
+  void set checked(bool value) => _blink.Native_HTMLInputElement_checked_Setter(this, value);
 
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
-  bool get defaultChecked => blink.Native_HTMLInputElement_defaultChecked_Getter(this);
+  bool get defaultChecked => _blink.Native_HTMLInputElement_defaultChecked_Getter(this);
 
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
-  void set defaultChecked(bool value) => blink.Native_HTMLInputElement_defaultChecked_Setter(this, value);
+  void set defaultChecked(bool value) => _blink.Native_HTMLInputElement_defaultChecked_Setter(this, value);
 
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
-  String get defaultValue => blink.Native_HTMLInputElement_defaultValue_Getter(this);
+  String get defaultValue => _blink.Native_HTMLInputElement_defaultValue_Getter(this);
 
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => blink.Native_HTMLInputElement_defaultValue_Setter(this, value);
+  void set defaultValue(String value) => _blink.Native_HTMLInputElement_defaultValue_Setter(this, value);
 
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
-  String get dirName => blink.Native_HTMLInputElement_dirName_Getter(this);
+  String get dirName => _blink.Native_HTMLInputElement_dirName_Getter(this);
 
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
-  void set dirName(String value) => blink.Native_HTMLInputElement_dirName_Setter(this, value);
+  void set dirName(String value) => _blink.Native_HTMLInputElement_dirName_Setter(this, value);
 
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLInputElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLInputElement_disabled_Getter(this);
 
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLInputElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLInputElement_disabled_Setter(this, value);
 
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  List<File> get files => blink.Native_HTMLInputElement_files_Getter(this);
+  List<File> get files => _blink.Native_HTMLInputElement_files_Getter(this);
 
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  void set files(List<File> value) => blink.Native_HTMLInputElement_files_Setter(this, value);
+  void set files(List<File> value) => _blink.Native_HTMLInputElement_files_Setter(this, value);
 
   @DomName('HTMLInputElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLInputElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLInputElement_form_Getter(this);
 
   @DomName('HTMLInputElement.formAction')
   @DocsEditable()
-  String get formAction => blink.Native_HTMLInputElement_formAction_Getter(this);
+  String get formAction => _blink.Native_HTMLInputElement_formAction_Getter(this);
 
   @DomName('HTMLInputElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => blink.Native_HTMLInputElement_formAction_Setter(this, value);
+  void set formAction(String value) => _blink.Native_HTMLInputElement_formAction_Setter(this, value);
 
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
-  String get formEnctype => blink.Native_HTMLInputElement_formEnctype_Getter(this);
+  String get formEnctype => _blink.Native_HTMLInputElement_formEnctype_Getter(this);
 
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => blink.Native_HTMLInputElement_formEnctype_Setter(this, value);
+  void set formEnctype(String value) => _blink.Native_HTMLInputElement_formEnctype_Setter(this, value);
 
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
-  String get formMethod => blink.Native_HTMLInputElement_formMethod_Getter(this);
+  String get formMethod => _blink.Native_HTMLInputElement_formMethod_Getter(this);
 
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => blink.Native_HTMLInputElement_formMethod_Setter(this, value);
+  void set formMethod(String value) => _blink.Native_HTMLInputElement_formMethod_Setter(this, value);
 
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
-  bool get formNoValidate => blink.Native_HTMLInputElement_formNoValidate_Getter(this);
+  bool get formNoValidate => _blink.Native_HTMLInputElement_formNoValidate_Getter(this);
 
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => blink.Native_HTMLInputElement_formNoValidate_Setter(this, value);
+  void set formNoValidate(bool value) => _blink.Native_HTMLInputElement_formNoValidate_Setter(this, value);
 
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
-  String get formTarget => blink.Native_HTMLInputElement_formTarget_Getter(this);
+  String get formTarget => _blink.Native_HTMLInputElement_formTarget_Getter(this);
 
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => blink.Native_HTMLInputElement_formTarget_Setter(this, value);
+  void set formTarget(String value) => _blink.Native_HTMLInputElement_formTarget_Setter(this, value);
 
   @DomName('HTMLInputElement.height')
   @DocsEditable()
-  int get height => blink.Native_HTMLInputElement_height_Getter(this);
+  int get height => _blink.Native_HTMLInputElement_height_Getter(this);
 
   @DomName('HTMLInputElement.height')
   @DocsEditable()
-  void set height(int value) => blink.Native_HTMLInputElement_height_Setter(this, value);
+  void set height(int value) => _blink.Native_HTMLInputElement_height_Setter(this, value);
 
   @DomName('HTMLInputElement.incremental')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  bool get incremental => blink.Native_HTMLInputElement_incremental_Getter(this);
+  bool get incremental => _blink.Native_HTMLInputElement_incremental_Getter(this);
 
   @DomName('HTMLInputElement.incremental')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  void set incremental(bool value) => blink.Native_HTMLInputElement_incremental_Setter(this, value);
+  void set incremental(bool value) => _blink.Native_HTMLInputElement_incremental_Setter(this, value);
 
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
-  bool get indeterminate => blink.Native_HTMLInputElement_indeterminate_Getter(this);
+  bool get indeterminate => _blink.Native_HTMLInputElement_indeterminate_Getter(this);
 
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
-  void set indeterminate(bool value) => blink.Native_HTMLInputElement_indeterminate_Setter(this, value);
+  void set indeterminate(bool value) => _blink.Native_HTMLInputElement_indeterminate_Setter(this, value);
 
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  String get inputMode => blink.Native_HTMLInputElement_inputMode_Getter(this);
+  String get inputMode => _blink.Native_HTMLInputElement_inputMode_Getter(this);
 
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => blink.Native_HTMLInputElement_inputMode_Setter(this, value);
+  void set inputMode(String value) => _blink.Native_HTMLInputElement_inputMode_Setter(this, value);
 
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
-  List<Node> get labels => blink.Native_HTMLInputElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLInputElement_labels_Getter(this);
 
   @DomName('HTMLInputElement.list')
   @DocsEditable()
-  HtmlElement get list => blink.Native_HTMLInputElement_list_Getter(this);
+  HtmlElement get list => _blink.Native_HTMLInputElement_list_Getter(this);
 
   @DomName('HTMLInputElement.max')
   @DocsEditable()
-  String get max => blink.Native_HTMLInputElement_max_Getter(this);
+  String get max => _blink.Native_HTMLInputElement_max_Getter(this);
 
   @DomName('HTMLInputElement.max')
   @DocsEditable()
-  void set max(String value) => blink.Native_HTMLInputElement_max_Setter(this, value);
+  void set max(String value) => _blink.Native_HTMLInputElement_max_Setter(this, value);
 
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
-  int get maxLength => blink.Native_HTMLInputElement_maxLength_Getter(this);
+  int get maxLength => _blink.Native_HTMLInputElement_maxLength_Getter(this);
 
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => blink.Native_HTMLInputElement_maxLength_Setter(this, value);
+  void set maxLength(int value) => _blink.Native_HTMLInputElement_maxLength_Setter(this, value);
 
   @DomName('HTMLInputElement.min')
   @DocsEditable()
-  String get min => blink.Native_HTMLInputElement_min_Getter(this);
+  String get min => _blink.Native_HTMLInputElement_min_Getter(this);
 
   @DomName('HTMLInputElement.min')
   @DocsEditable()
-  void set min(String value) => blink.Native_HTMLInputElement_min_Setter(this, value);
+  void set min(String value) => _blink.Native_HTMLInputElement_min_Setter(this, value);
 
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
-  bool get multiple => blink.Native_HTMLInputElement_multiple_Getter(this);
+  bool get multiple => _blink.Native_HTMLInputElement_multiple_Getter(this);
 
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => blink.Native_HTMLInputElement_multiple_Setter(this, value);
+  void set multiple(bool value) => _blink.Native_HTMLInputElement_multiple_Setter(this, value);
 
   @DomName('HTMLInputElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLInputElement_name_Getter(this);
+  String get name => _blink.Native_HTMLInputElement_name_Getter(this);
 
   @DomName('HTMLInputElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLInputElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLInputElement_name_Setter(this, value);
 
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
-  String get pattern => blink.Native_HTMLInputElement_pattern_Getter(this);
+  String get pattern => _blink.Native_HTMLInputElement_pattern_Getter(this);
 
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
-  void set pattern(String value) => blink.Native_HTMLInputElement_pattern_Setter(this, value);
+  void set pattern(String value) => _blink.Native_HTMLInputElement_pattern_Setter(this, value);
 
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
-  String get placeholder => blink.Native_HTMLInputElement_placeholder_Getter(this);
+  String get placeholder => _blink.Native_HTMLInputElement_placeholder_Getter(this);
 
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => blink.Native_HTMLInputElement_placeholder_Setter(this, value);
+  void set placeholder(String value) => _blink.Native_HTMLInputElement_placeholder_Setter(this, value);
 
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
-  bool get readOnly => blink.Native_HTMLInputElement_readOnly_Getter(this);
+  bool get readOnly => _blink.Native_HTMLInputElement_readOnly_Getter(this);
 
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => blink.Native_HTMLInputElement_readOnly_Setter(this, value);
+  void set readOnly(bool value) => _blink.Native_HTMLInputElement_readOnly_Setter(this, value);
 
   @DomName('HTMLInputElement.required')
   @DocsEditable()
-  bool get required => blink.Native_HTMLInputElement_required_Getter(this);
+  bool get required => _blink.Native_HTMLInputElement_required_Getter(this);
 
   @DomName('HTMLInputElement.required')
   @DocsEditable()
-  void set required(bool value) => blink.Native_HTMLInputElement_required_Setter(this, value);
+  void set required(bool value) => _blink.Native_HTMLInputElement_required_Setter(this, value);
 
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
-  String get selectionDirection => blink.Native_HTMLInputElement_selectionDirection_Getter(this);
+  String get selectionDirection => _blink.Native_HTMLInputElement_selectionDirection_Getter(this);
 
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => blink.Native_HTMLInputElement_selectionDirection_Setter(this, value);
+  void set selectionDirection(String value) => _blink.Native_HTMLInputElement_selectionDirection_Setter(this, value);
 
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
-  int get selectionEnd => blink.Native_HTMLInputElement_selectionEnd_Getter(this);
+  int get selectionEnd => _blink.Native_HTMLInputElement_selectionEnd_Getter(this);
 
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => blink.Native_HTMLInputElement_selectionEnd_Setter(this, value);
+  void set selectionEnd(int value) => _blink.Native_HTMLInputElement_selectionEnd_Setter(this, value);
 
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
-  int get selectionStart => blink.Native_HTMLInputElement_selectionStart_Getter(this);
+  int get selectionStart => _blink.Native_HTMLInputElement_selectionStart_Getter(this);
 
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => blink.Native_HTMLInputElement_selectionStart_Setter(this, value);
+  void set selectionStart(int value) => _blink.Native_HTMLInputElement_selectionStart_Setter(this, value);
 
   @DomName('HTMLInputElement.size')
   @DocsEditable()
-  int get size => blink.Native_HTMLInputElement_size_Getter(this);
+  int get size => _blink.Native_HTMLInputElement_size_Getter(this);
 
   @DomName('HTMLInputElement.size')
   @DocsEditable()
-  void set size(int value) => blink.Native_HTMLInputElement_size_Setter(this, value);
+  void set size(int value) => _blink.Native_HTMLInputElement_size_Setter(this, value);
 
   @DomName('HTMLInputElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLInputElement_src_Getter(this);
+  String get src => _blink.Native_HTMLInputElement_src_Getter(this);
 
   @DomName('HTMLInputElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLInputElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLInputElement_src_Setter(this, value);
 
   @DomName('HTMLInputElement.step')
   @DocsEditable()
-  String get step => blink.Native_HTMLInputElement_step_Getter(this);
+  String get step => _blink.Native_HTMLInputElement_step_Getter(this);
 
   @DomName('HTMLInputElement.step')
   @DocsEditable()
-  void set step(String value) => blink.Native_HTMLInputElement_step_Setter(this, value);
+  void set step(String value) => _blink.Native_HTMLInputElement_step_Setter(this, value);
 
   @DomName('HTMLInputElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLInputElement_type_Getter(this);
+  String get type => _blink.Native_HTMLInputElement_type_Getter(this);
 
   @DomName('HTMLInputElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLInputElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLInputElement_type_Setter(this, value);
 
   @DomName('HTMLInputElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLInputElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLInputElement_validationMessage_Getter(this);
 
   @DomName('HTMLInputElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLInputElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLInputElement_validity_Getter(this);
 
   @DomName('HTMLInputElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLInputElement_value_Getter(this);
+  String get value => _blink.Native_HTMLInputElement_value_Getter(this);
 
   @DomName('HTMLInputElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLInputElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLInputElement_value_Setter(this, value);
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
-  DateTime get valueAsDate => blink.Native_HTMLInputElement_valueAsDate_Getter(this);
+  DateTime get valueAsDate => _blink.Native_HTMLInputElement_valueAsDate_Getter(this);
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
-  void set valueAsDate(DateTime value) => blink.Native_HTMLInputElement_valueAsDate_Setter(this, value);
+  void set valueAsDate(DateTime value) => _blink.Native_HTMLInputElement_valueAsDate_Setter(this, value);
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
-  num get valueAsNumber => blink.Native_HTMLInputElement_valueAsNumber_Getter(this);
+  num get valueAsNumber => _blink.Native_HTMLInputElement_valueAsNumber_Getter(this);
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
-  void set valueAsNumber(num value) => blink.Native_HTMLInputElement_valueAsNumber_Setter(this, value);
+  void set valueAsNumber(num value) => _blink.Native_HTMLInputElement_valueAsNumber_Setter(this, value);
 
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable()
@@ -17004,7 +17004,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => blink.Native_HTMLInputElement_webkitEntries_Getter(this);
+  List<Entry> get entries => _blink.Native_HTMLInputElement_webkitEntries_Getter(this);
 
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable()
@@ -17012,7 +17012,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  bool get grammar => blink.Native_HTMLInputElement_webkitGrammar_Getter(this);
+  bool get grammar => _blink.Native_HTMLInputElement_webkitGrammar_Getter(this);
 
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable()
@@ -17020,7 +17020,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  void set grammar(bool value) => blink.Native_HTMLInputElement_webkitGrammar_Setter(this, value);
+  void set grammar(bool value) => _blink.Native_HTMLInputElement_webkitGrammar_Setter(this, value);
 
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable()
@@ -17028,7 +17028,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  bool get speech => blink.Native_HTMLInputElement_webkitSpeech_Getter(this);
+  bool get speech => _blink.Native_HTMLInputElement_webkitSpeech_Getter(this);
 
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable()
@@ -17036,7 +17036,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  void set speech(bool value) => blink.Native_HTMLInputElement_webkitSpeech_Setter(this, value);
+  void set speech(bool value) => _blink.Native_HTMLInputElement_webkitSpeech_Setter(this, value);
 
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -17044,7 +17044,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
-  bool get directory => blink.Native_HTMLInputElement_webkitdirectory_Getter(this);
+  bool get directory => _blink.Native_HTMLInputElement_webkitdirectory_Getter(this);
 
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -17052,31 +17052,31 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
-  void set directory(bool value) => blink.Native_HTMLInputElement_webkitdirectory_Setter(this, value);
+  void set directory(bool value) => _blink.Native_HTMLInputElement_webkitdirectory_Setter(this, value);
 
   @DomName('HTMLInputElement.width')
   @DocsEditable()
-  int get width => blink.Native_HTMLInputElement_width_Getter(this);
+  int get width => _blink.Native_HTMLInputElement_width_Getter(this);
 
   @DomName('HTMLInputElement.width')
   @DocsEditable()
-  void set width(int value) => blink.Native_HTMLInputElement_width_Setter(this, value);
+  void set width(int value) => _blink.Native_HTMLInputElement_width_Setter(this, value);
 
   @DomName('HTMLInputElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLInputElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLInputElement_willValidate_Getter(this);
 
   @DomName('HTMLInputElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLInputElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLInputElement_checkValidity_Callback(this);
 
   @DomName('HTMLInputElement.select')
   @DocsEditable()
-  void select() => blink.Native_HTMLInputElement_select_Callback(this);
+  void select() => _blink.Native_HTMLInputElement_select_Callback(this);
 
   @DomName('HTMLInputElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLInputElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLInputElement_setCustomValidity_Callback(this, error);
 
   void setRangeText(String replacement, {int start, int end, String selectionMode}) {
     if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
@@ -17090,9 +17090,9 @@ class InputElement extends HtmlElement implements
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _setRangeText_1(replacement) => blink.Native_HTMLInputElement__setRangeText_1_Callback(this, replacement);
+  void _setRangeText_1(replacement) => _blink.Native_HTMLInputElement__setRangeText_1_Callback(this, replacement);
 
-  void _setRangeText_2(replacement, start, end, selectionMode) => blink.Native_HTMLInputElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+  void _setRangeText_2(replacement, start, end, selectionMode) => _blink.Native_HTMLInputElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
 
   void setSelectionRange(int start, int end, [String direction]) {
     if (direction != null) {
@@ -17103,9 +17103,9 @@ class InputElement extends HtmlElement implements
     return;
   }
 
-  void _setSelectionRange_1(start, end, direction) => blink.Native_HTMLInputElement__setSelectionRange_1_Callback(this, start, end, direction);
+  void _setSelectionRange_1(start, end, direction) => _blink.Native_HTMLInputElement__setSelectionRange_1_Callback(this, start, end, direction);
 
-  void _setSelectionRange_2(start, end) => blink.Native_HTMLInputElement__setSelectionRange_2_Callback(this, start, end);
+  void _setSelectionRange_2(start, end) => _blink.Native_HTMLInputElement__setSelectionRange_2_Callback(this, start, end);
 
   void stepDown([int n]) {
     if (n != null) {
@@ -17116,9 +17116,9 @@ class InputElement extends HtmlElement implements
     return;
   }
 
-  void _stepDown_1(n) => blink.Native_HTMLInputElement__stepDown_1_Callback(this, n);
+  void _stepDown_1(n) => _blink.Native_HTMLInputElement__stepDown_1_Callback(this, n);
 
-  void _stepDown_2() => blink.Native_HTMLInputElement__stepDown_2_Callback(this);
+  void _stepDown_2() => _blink.Native_HTMLInputElement__stepDown_2_Callback(this);
 
   void stepUp([int n]) {
     if (n != null) {
@@ -17129,9 +17129,9 @@ class InputElement extends HtmlElement implements
     return;
   }
 
-  void _stepUp_1(n) => blink.Native_HTMLInputElement__stepUp_1_Callback(this, n);
+  void _stepUp_1(n) => _blink.Native_HTMLInputElement__stepUp_1_Callback(this, n);
 
-  void _stepUp_2() => blink.Native_HTMLInputElement__stepUp_2_Callback(this);
+  void _stepUp_2() => _blink.Native_HTMLInputElement__stepUp_2_Callback(this);
 
   /// Stream of `speechchange` events handled by this [InputElement].
   @DomName('HTMLInputElement.onwebkitSpeechChange')
@@ -17715,40 +17715,40 @@ class InputMethodContext extends EventTarget {
   @DomName('InputMethodContext.compositionEndOffset')
   @DocsEditable()
   @Experimental() // untriaged
-  int get compositionEndOffset => blink.Native_InputMethodContext_compositionEndOffset_Getter(this);
+  int get compositionEndOffset => _blink.Native_InputMethodContext_compositionEndOffset_Getter(this);
 
   @DomName('InputMethodContext.compositionStartOffset')
   @DocsEditable()
   @Experimental() // untriaged
-  int get compositionStartOffset => blink.Native_InputMethodContext_compositionStartOffset_Getter(this);
+  int get compositionStartOffset => _blink.Native_InputMethodContext_compositionStartOffset_Getter(this);
 
   @DomName('InputMethodContext.locale')
   @DocsEditable()
-  String get locale => blink.Native_InputMethodContext_locale_Getter(this);
+  String get locale => _blink.Native_InputMethodContext_locale_Getter(this);
 
   @DomName('InputMethodContext.target')
   @DocsEditable()
   @Experimental() // untriaged
-  HtmlElement get target => blink.Native_InputMethodContext_target_Getter(this);
+  HtmlElement get target => _blink.Native_InputMethodContext_target_Getter(this);
 
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable()
-  void confirmComposition() => blink.Native_InputMethodContext_confirmComposition_Callback(this);
+  void confirmComposition() => _blink.Native_InputMethodContext_confirmComposition_Callback(this);
 
   @DomName('InputMethodContext.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_InputMethodContext_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_InputMethodContext_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('InputMethodContext.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_InputMethodContext_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_InputMethodContext_dispatchEvent_Callback(this, event);
 
   @DomName('InputMethodContext.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_InputMethodContext_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_InputMethodContext_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17768,7 +17768,7 @@ class InstallEvent extends InstallPhaseEvent {
   @DomName('InstallEvent.replace')
   @DocsEditable()
   @Experimental() // untriaged
-  void replace() => blink.Native_InstallEvent_replace_Callback(this);
+  void replace() => _blink.Native_InstallEvent_replace_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17788,7 +17788,7 @@ class InstallPhaseEvent extends Event {
   @DomName('InstallPhaseEvent.waitUntil')
   @DocsEditable()
   @Experimental() // untriaged
-  void waitUntil(Object value) => blink.Native_InstallPhaseEvent_waitUntil_Callback(this, value);
+  void waitUntil(Object value) => _blink.Native_InstallPhaseEvent_waitUntil_Callback(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17808,12 +17808,12 @@ class KeyPair extends NativeFieldWrapperClass2 {
   @DomName('KeyPair.privateKey')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoKey get privateKey => blink.Native_KeyPair_privateKey_Getter(this);
+  CryptoKey get privateKey => _blink.Native_KeyPair_privateKey_Getter(this);
 
   @DomName('KeyPair.publicKey')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoKey get publicKey => blink.Native_KeyPair_publicKey_Getter(this);
+  CryptoKey get publicKey => _blink.Native_KeyPair_publicKey_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17869,52 +17869,52 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.altGraphKey')
   @DocsEditable()
   @Experimental() // nonstandard
-  bool get altGraphKey => blink.Native_KeyboardEvent_altGraphKey_Getter(this);
+  bool get altGraphKey => _blink.Native_KeyboardEvent_altGraphKey_Getter(this);
 
   @DomName('KeyboardEvent.altKey')
   @DocsEditable()
-  bool get altKey => blink.Native_KeyboardEvent_altKey_Getter(this);
+  bool get altKey => _blink.Native_KeyboardEvent_altKey_Getter(this);
 
   @DomName('KeyboardEvent.ctrlKey')
   @DocsEditable()
-  bool get ctrlKey => blink.Native_KeyboardEvent_ctrlKey_Getter(this);
+  bool get ctrlKey => _blink.Native_KeyboardEvent_ctrlKey_Getter(this);
 
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable()
   @Experimental() // nonstandard
-  String get _keyIdentifier => blink.Native_KeyboardEvent_keyIdentifier_Getter(this);
+  String get _keyIdentifier => _blink.Native_KeyboardEvent_keyIdentifier_Getter(this);
 
   @DomName('KeyboardEvent.keyLocation')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get keyLocation => blink.Native_KeyboardEvent_keyLocation_Getter(this);
+  int get keyLocation => _blink.Native_KeyboardEvent_keyLocation_Getter(this);
 
   @DomName('KeyboardEvent.location')
   @DocsEditable()
   @Experimental() // untriaged
-  int get location => blink.Native_KeyboardEvent_location_Getter(this);
+  int get location => _blink.Native_KeyboardEvent_location_Getter(this);
 
   @DomName('KeyboardEvent.metaKey')
   @DocsEditable()
-  bool get metaKey => blink.Native_KeyboardEvent_metaKey_Getter(this);
+  bool get metaKey => _blink.Native_KeyboardEvent_metaKey_Getter(this);
 
   @DomName('KeyboardEvent.repeat')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get repeat => blink.Native_KeyboardEvent_repeat_Getter(this);
+  bool get repeat => _blink.Native_KeyboardEvent_repeat_Getter(this);
 
   @DomName('KeyboardEvent.shiftKey')
   @DocsEditable()
-  bool get shiftKey => blink.Native_KeyboardEvent_shiftKey_Getter(this);
+  bool get shiftKey => _blink.Native_KeyboardEvent_shiftKey_Getter(this);
 
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
   @Experimental() // untriaged
-  bool getModifierState(String keyArgument) => blink.Native_KeyboardEvent_getModifierState_Callback(this, keyArgument);
+  bool getModifierState(String keyArgument) => _blink.Native_KeyboardEvent_getModifierState_Callback(this, keyArgument);
 
   @DomName('KeyboardEvent.initKeyboardEvent')
   @DocsEditable()
-  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) => blink.Native_KeyboardEvent_initKeyboardEvent_Callback(this, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) => _blink.Native_KeyboardEvent_initKeyboardEvent_Callback(this, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17949,76 +17949,76 @@ class KeygenElement extends HtmlElement {
 
   @DomName('HTMLKeygenElement.autofocus')
   @DocsEditable()
-  bool get autofocus => blink.Native_HTMLKeygenElement_autofocus_Getter(this);
+  bool get autofocus => _blink.Native_HTMLKeygenElement_autofocus_Getter(this);
 
   @DomName('HTMLKeygenElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => blink.Native_HTMLKeygenElement_autofocus_Setter(this, value);
+  void set autofocus(bool value) => _blink.Native_HTMLKeygenElement_autofocus_Setter(this, value);
 
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
-  String get challenge => blink.Native_HTMLKeygenElement_challenge_Getter(this);
+  String get challenge => _blink.Native_HTMLKeygenElement_challenge_Getter(this);
 
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
-  void set challenge(String value) => blink.Native_HTMLKeygenElement_challenge_Setter(this, value);
+  void set challenge(String value) => _blink.Native_HTMLKeygenElement_challenge_Setter(this, value);
 
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLKeygenElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLKeygenElement_disabled_Getter(this);
 
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLKeygenElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLKeygenElement_disabled_Setter(this, value);
 
   @DomName('HTMLKeygenElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLKeygenElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLKeygenElement_form_Getter(this);
 
   @DomName('HTMLKeygenElement.keytype')
   @DocsEditable()
-  String get keytype => blink.Native_HTMLKeygenElement_keytype_Getter(this);
+  String get keytype => _blink.Native_HTMLKeygenElement_keytype_Getter(this);
 
   @DomName('HTMLKeygenElement.keytype')
   @DocsEditable()
-  void set keytype(String value) => blink.Native_HTMLKeygenElement_keytype_Setter(this, value);
+  void set keytype(String value) => _blink.Native_HTMLKeygenElement_keytype_Setter(this, value);
 
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLKeygenElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLKeygenElement_labels_Getter(this);
 
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLKeygenElement_name_Getter(this);
+  String get name => _blink.Native_HTMLKeygenElement_name_Getter(this);
 
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLKeygenElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLKeygenElement_name_Setter(this, value);
 
   @DomName('HTMLKeygenElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLKeygenElement_type_Getter(this);
+  String get type => _blink.Native_HTMLKeygenElement_type_Getter(this);
 
   @DomName('HTMLKeygenElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLKeygenElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLKeygenElement_validationMessage_Getter(this);
 
   @DomName('HTMLKeygenElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLKeygenElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLKeygenElement_validity_Getter(this);
 
   @DomName('HTMLKeygenElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLKeygenElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLKeygenElement_willValidate_Getter(this);
 
   @DomName('HTMLKeygenElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLKeygenElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLKeygenElement_checkValidity_Callback(this);
 
   @DomName('HTMLKeygenElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLKeygenElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLKeygenElement_setCustomValidity_Callback(this, error);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18046,11 +18046,11 @@ class LIElement extends HtmlElement {
 
   @DomName('HTMLLIElement.value')
   @DocsEditable()
-  int get value => blink.Native_HTMLLIElement_value_Getter(this);
+  int get value => _blink.Native_HTMLLIElement_value_Getter(this);
 
   @DomName('HTMLLIElement.value')
   @DocsEditable()
-  void set value(int value) => blink.Native_HTMLLIElement_value_Setter(this, value);
+  void set value(int value) => _blink.Native_HTMLLIElement_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18078,19 +18078,19 @@ class LabelElement extends HtmlElement {
 
   @DomName('HTMLLabelElement.control')
   @DocsEditable()
-  HtmlElement get control => blink.Native_HTMLLabelElement_control_Getter(this);
+  HtmlElement get control => _blink.Native_HTMLLabelElement_control_Getter(this);
 
   @DomName('HTMLLabelElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLLabelElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLLabelElement_form_Getter(this);
 
   @DomName('HTMLLabelElement.htmlFor')
   @DocsEditable()
-  String get htmlFor => blink.Native_HTMLLabelElement_htmlFor_Getter(this);
+  String get htmlFor => _blink.Native_HTMLLabelElement_htmlFor_Getter(this);
 
   @DomName('HTMLLabelElement.htmlFor')
   @DocsEditable()
-  void set htmlFor(String value) => blink.Native_HTMLLabelElement_htmlFor_Setter(this, value);
+  void set htmlFor(String value) => _blink.Native_HTMLLabelElement_htmlFor_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18118,7 +18118,7 @@ class LegendElement extends HtmlElement {
 
   @DomName('HTMLLegendElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLLegendElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLLegendElement_form_Getter(this);
 
 }
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -18145,74 +18145,74 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  String get crossOrigin => blink.Native_HTMLLinkElement_crossOrigin_Getter(this);
+  String get crossOrigin => _blink.Native_HTMLLinkElement_crossOrigin_Getter(this);
 
   @DomName('HTMLLinkElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => blink.Native_HTMLLinkElement_crossOrigin_Setter(this, value);
+  void set crossOrigin(String value) => _blink.Native_HTMLLinkElement_crossOrigin_Setter(this, value);
 
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLLinkElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLLinkElement_disabled_Getter(this);
 
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLLinkElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLLinkElement_disabled_Setter(this, value);
 
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
-  String get href => blink.Native_HTMLLinkElement_href_Getter(this);
+  String get href => _blink.Native_HTMLLinkElement_href_Getter(this);
 
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
-  void set href(String value) => blink.Native_HTMLLinkElement_href_Setter(this, value);
+  void set href(String value) => _blink.Native_HTMLLinkElement_href_Setter(this, value);
 
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
-  String get hreflang => blink.Native_HTMLLinkElement_hreflang_Getter(this);
+  String get hreflang => _blink.Native_HTMLLinkElement_hreflang_Getter(this);
 
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => blink.Native_HTMLLinkElement_hreflang_Setter(this, value);
+  void set hreflang(String value) => _blink.Native_HTMLLinkElement_hreflang_Setter(this, value);
 
   @DomName('HTMLLinkElement.import')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/imports/index.html#interface-import
   @Experimental()
-  Document get import => blink.Native_HTMLLinkElement_import_Getter(this);
+  Document get import => _blink.Native_HTMLLinkElement_import_Getter(this);
 
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
-  String get media => blink.Native_HTMLLinkElement_media_Getter(this);
+  String get media => _blink.Native_HTMLLinkElement_media_Getter(this);
 
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
-  void set media(String value) => blink.Native_HTMLLinkElement_media_Setter(this, value);
+  void set media(String value) => _blink.Native_HTMLLinkElement_media_Setter(this, value);
 
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
-  String get rel => blink.Native_HTMLLinkElement_rel_Getter(this);
+  String get rel => _blink.Native_HTMLLinkElement_rel_Getter(this);
 
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
-  void set rel(String value) => blink.Native_HTMLLinkElement_rel_Setter(this, value);
+  void set rel(String value) => _blink.Native_HTMLLinkElement_rel_Setter(this, value);
 
   @DomName('HTMLLinkElement.sheet')
   @DocsEditable()
-  StyleSheet get sheet => blink.Native_HTMLLinkElement_sheet_Getter(this);
+  StyleSheet get sheet => _blink.Native_HTMLLinkElement_sheet_Getter(this);
 
   @DomName('HTMLLinkElement.sizes')
   @DocsEditable()
-  DomSettableTokenList get sizes => blink.Native_HTMLLinkElement_sizes_Getter(this);
+  DomSettableTokenList get sizes => _blink.Native_HTMLLinkElement_sizes_Getter(this);
 
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLLinkElement_type_Getter(this);
+  String get type => _blink.Native_HTMLLinkElement_type_Getter(this);
 
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLLinkElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLLinkElement_type_Setter(this, value);
 
 
     /// Checks if HTML imports are supported on the current platform.
@@ -18234,93 +18234,93 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
-  List<String> get ancestorOrigins => blink.Native_Location_ancestorOrigins_Getter(this);
+  List<String> get ancestorOrigins => _blink.Native_Location_ancestorOrigins_Getter(this);
 
   @DomName('Location.hash')
   @DocsEditable()
-  String get hash => blink.Native_Location_hash_Getter(this);
+  String get hash => _blink.Native_Location_hash_Getter(this);
 
   @DomName('Location.hash')
   @DocsEditable()
-  void set hash(String value) => blink.Native_Location_hash_Setter(this, value);
+  void set hash(String value) => _blink.Native_Location_hash_Setter(this, value);
 
   @DomName('Location.host')
   @DocsEditable()
-  String get host => blink.Native_Location_host_Getter(this);
+  String get host => _blink.Native_Location_host_Getter(this);
 
   @DomName('Location.host')
   @DocsEditable()
-  void set host(String value) => blink.Native_Location_host_Setter(this, value);
+  void set host(String value) => _blink.Native_Location_host_Setter(this, value);
 
   @DomName('Location.hostname')
   @DocsEditable()
-  String get hostname => blink.Native_Location_hostname_Getter(this);
+  String get hostname => _blink.Native_Location_hostname_Getter(this);
 
   @DomName('Location.hostname')
   @DocsEditable()
-  void set hostname(String value) => blink.Native_Location_hostname_Setter(this, value);
+  void set hostname(String value) => _blink.Native_Location_hostname_Setter(this, value);
 
   @DomName('Location.href')
   @DocsEditable()
-  String get href => blink.Native_Location_href_Getter(this);
+  String get href => _blink.Native_Location_href_Getter(this);
 
   @DomName('Location.href')
   @DocsEditable()
-  void set href(String value) => blink.Native_Location_href_Setter(this, value);
+  void set href(String value) => _blink.Native_Location_href_Setter(this, value);
 
   @DomName('Location.origin')
   @DocsEditable()
   // http://url.spec.whatwg.org/#urlutils Webkit Only
   @Experimental() // non-standard
-  String get origin => blink.Native_Location_origin_Getter(this);
+  String get origin => _blink.Native_Location_origin_Getter(this);
 
   @DomName('Location.pathname')
   @DocsEditable()
-  String get pathname => blink.Native_Location_pathname_Getter(this);
+  String get pathname => _blink.Native_Location_pathname_Getter(this);
 
   @DomName('Location.pathname')
   @DocsEditable()
-  void set pathname(String value) => blink.Native_Location_pathname_Setter(this, value);
+  void set pathname(String value) => _blink.Native_Location_pathname_Setter(this, value);
 
   @DomName('Location.port')
   @DocsEditable()
-  String get port => blink.Native_Location_port_Getter(this);
+  String get port => _blink.Native_Location_port_Getter(this);
 
   @DomName('Location.port')
   @DocsEditable()
-  void set port(String value) => blink.Native_Location_port_Setter(this, value);
+  void set port(String value) => _blink.Native_Location_port_Setter(this, value);
 
   @DomName('Location.protocol')
   @DocsEditable()
-  String get protocol => blink.Native_Location_protocol_Getter(this);
+  String get protocol => _blink.Native_Location_protocol_Getter(this);
 
   @DomName('Location.protocol')
   @DocsEditable()
-  void set protocol(String value) => blink.Native_Location_protocol_Setter(this, value);
+  void set protocol(String value) => _blink.Native_Location_protocol_Setter(this, value);
 
   @DomName('Location.search')
   @DocsEditable()
-  String get search => blink.Native_Location_search_Getter(this);
+  String get search => _blink.Native_Location_search_Getter(this);
 
   @DomName('Location.search')
   @DocsEditable()
-  void set search(String value) => blink.Native_Location_search_Setter(this, value);
+  void set search(String value) => _blink.Native_Location_search_Setter(this, value);
 
   @DomName('Location.assign')
   @DocsEditable()
-  void assign(String url) => blink.Native_Location_assign_Callback(this, url);
+  void assign(String url) => _blink.Native_Location_assign_Callback(this, url);
 
   @DomName('Location.reload')
   @DocsEditable()
-  void reload() => blink.Native_Location_reload_Callback(this);
+  void reload() => _blink.Native_Location_reload_Callback(this);
 
   @DomName('Location.replace')
   @DocsEditable()
-  void replace(String url) => blink.Native_Location_replace_Callback(this, url);
+  void replace(String url) => _blink.Native_Location_replace_Callback(this, url);
 
   @DomName('Location.toString')
   @DocsEditable()
-  String toString() => blink.Native_Location_toString_Callback(this);
+  String toString() => _blink.Native_Location_toString_Callback(this);
 
 
 }
@@ -18370,15 +18370,15 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
-  List<Node> get areas => blink.Native_HTMLMapElement_areas_Getter(this);
+  List<Node> get areas => _blink.Native_HTMLMapElement_areas_Getter(this);
 
   @DomName('HTMLMapElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLMapElement_name_Getter(this);
+  String get name => _blink.Native_HTMLMapElement_name_Getter(this);
 
   @DomName('HTMLMapElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLMapElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLMapElement_name_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18403,95 +18403,95 @@ class MediaController extends EventTarget {
   }
 
   @DocsEditable()
-  static MediaController _create_1() => blink.Native_MediaController__create_1constructorCallback();
+  static MediaController _create_1() => _blink.Native_MediaController__create_1constructorCallback();
 
   @DomName('MediaController.buffered')
   @DocsEditable()
-  TimeRanges get buffered => blink.Native_MediaController_buffered_Getter(this);
+  TimeRanges get buffered => _blink.Native_MediaController_buffered_Getter(this);
 
   @DomName('MediaController.currentTime')
   @DocsEditable()
-  num get currentTime => blink.Native_MediaController_currentTime_Getter(this);
+  num get currentTime => _blink.Native_MediaController_currentTime_Getter(this);
 
   @DomName('MediaController.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => blink.Native_MediaController_currentTime_Setter(this, value);
+  void set currentTime(num value) => _blink.Native_MediaController_currentTime_Setter(this, value);
 
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
-  num get defaultPlaybackRate => blink.Native_MediaController_defaultPlaybackRate_Getter(this);
+  num get defaultPlaybackRate => _blink.Native_MediaController_defaultPlaybackRate_Getter(this);
 
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => blink.Native_MediaController_defaultPlaybackRate_Setter(this, value);
+  void set defaultPlaybackRate(num value) => _blink.Native_MediaController_defaultPlaybackRate_Setter(this, value);
 
   @DomName('MediaController.duration')
   @DocsEditable()
-  double get duration => blink.Native_MediaController_duration_Getter(this);
+  double get duration => _blink.Native_MediaController_duration_Getter(this);
 
   @DomName('MediaController.muted')
   @DocsEditable()
-  bool get muted => blink.Native_MediaController_muted_Getter(this);
+  bool get muted => _blink.Native_MediaController_muted_Getter(this);
 
   @DomName('MediaController.muted')
   @DocsEditable()
-  void set muted(bool value) => blink.Native_MediaController_muted_Setter(this, value);
+  void set muted(bool value) => _blink.Native_MediaController_muted_Setter(this, value);
 
   @DomName('MediaController.paused')
   @DocsEditable()
-  bool get paused => blink.Native_MediaController_paused_Getter(this);
+  bool get paused => _blink.Native_MediaController_paused_Getter(this);
 
   @DomName('MediaController.playbackRate')
   @DocsEditable()
-  num get playbackRate => blink.Native_MediaController_playbackRate_Getter(this);
+  num get playbackRate => _blink.Native_MediaController_playbackRate_Getter(this);
 
   @DomName('MediaController.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => blink.Native_MediaController_playbackRate_Setter(this, value);
+  void set playbackRate(num value) => _blink.Native_MediaController_playbackRate_Setter(this, value);
 
   @DomName('MediaController.playbackState')
   @DocsEditable()
-  String get playbackState => blink.Native_MediaController_playbackState_Getter(this);
+  String get playbackState => _blink.Native_MediaController_playbackState_Getter(this);
 
   @DomName('MediaController.played')
   @DocsEditable()
-  TimeRanges get played => blink.Native_MediaController_played_Getter(this);
+  TimeRanges get played => _blink.Native_MediaController_played_Getter(this);
 
   @DomName('MediaController.seekable')
   @DocsEditable()
-  TimeRanges get seekable => blink.Native_MediaController_seekable_Getter(this);
+  TimeRanges get seekable => _blink.Native_MediaController_seekable_Getter(this);
 
   @DomName('MediaController.volume')
   @DocsEditable()
-  num get volume => blink.Native_MediaController_volume_Getter(this);
+  num get volume => _blink.Native_MediaController_volume_Getter(this);
 
   @DomName('MediaController.volume')
   @DocsEditable()
-  void set volume(num value) => blink.Native_MediaController_volume_Setter(this, value);
+  void set volume(num value) => _blink.Native_MediaController_volume_Setter(this, value);
 
   @DomName('MediaController.pause')
   @DocsEditable()
-  void pause() => blink.Native_MediaController_pause_Callback(this);
+  void pause() => _blink.Native_MediaController_pause_Callback(this);
 
   @DomName('MediaController.play')
   @DocsEditable()
-  void play() => blink.Native_MediaController_play_Callback(this);
+  void play() => _blink.Native_MediaController_play_Callback(this);
 
   @DomName('MediaController.unpause')
   @DocsEditable()
-  void unpause() => blink.Native_MediaController_unpause_Callback(this);
+  void unpause() => _blink.Native_MediaController_unpause_Callback(this);
 
   @DomName('MediaController.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaController_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaController_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MediaController.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MediaController_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MediaController_dispatchEvent_Callback(this, event);
 
   @DomName('MediaController.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaController_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaController_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18820,173 +18820,173 @@ class MediaElement extends HtmlElement {
 
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()
-  bool get autoplay => blink.Native_HTMLMediaElement_autoplay_Getter(this);
+  bool get autoplay => _blink.Native_HTMLMediaElement_autoplay_Getter(this);
 
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()
-  void set autoplay(bool value) => blink.Native_HTMLMediaElement_autoplay_Setter(this, value);
+  void set autoplay(bool value) => _blink.Native_HTMLMediaElement_autoplay_Setter(this, value);
 
   @DomName('HTMLMediaElement.buffered')
   @DocsEditable()
-  TimeRanges get buffered => blink.Native_HTMLMediaElement_buffered_Getter(this);
+  TimeRanges get buffered => _blink.Native_HTMLMediaElement_buffered_Getter(this);
 
   @DomName('HTMLMediaElement.controller')
   @DocsEditable()
-  MediaController get controller => blink.Native_HTMLMediaElement_controller_Getter(this);
+  MediaController get controller => _blink.Native_HTMLMediaElement_controller_Getter(this);
 
   @DomName('HTMLMediaElement.controller')
   @DocsEditable()
-  void set controller(MediaController value) => blink.Native_HTMLMediaElement_controller_Setter(this, value);
+  void set controller(MediaController value) => _blink.Native_HTMLMediaElement_controller_Setter(this, value);
 
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
-  bool get controls => blink.Native_HTMLMediaElement_controls_Getter(this);
+  bool get controls => _blink.Native_HTMLMediaElement_controls_Getter(this);
 
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
-  void set controls(bool value) => blink.Native_HTMLMediaElement_controls_Setter(this, value);
+  void set controls(bool value) => _blink.Native_HTMLMediaElement_controls_Setter(this, value);
 
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  String get crossOrigin => blink.Native_HTMLMediaElement_crossOrigin_Getter(this);
+  String get crossOrigin => _blink.Native_HTMLMediaElement_crossOrigin_Getter(this);
 
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => blink.Native_HTMLMediaElement_crossOrigin_Setter(this, value);
+  void set crossOrigin(String value) => _blink.Native_HTMLMediaElement_crossOrigin_Setter(this, value);
 
   @DomName('HTMLMediaElement.currentSrc')
   @DocsEditable()
-  String get currentSrc => blink.Native_HTMLMediaElement_currentSrc_Getter(this);
+  String get currentSrc => _blink.Native_HTMLMediaElement_currentSrc_Getter(this);
 
   @DomName('HTMLMediaElement.currentTime')
   @DocsEditable()
-  num get currentTime => blink.Native_HTMLMediaElement_currentTime_Getter(this);
+  num get currentTime => _blink.Native_HTMLMediaElement_currentTime_Getter(this);
 
   @DomName('HTMLMediaElement.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => blink.Native_HTMLMediaElement_currentTime_Setter(this, value);
+  void set currentTime(num value) => _blink.Native_HTMLMediaElement_currentTime_Setter(this, value);
 
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
-  bool get defaultMuted => blink.Native_HTMLMediaElement_defaultMuted_Getter(this);
+  bool get defaultMuted => _blink.Native_HTMLMediaElement_defaultMuted_Getter(this);
 
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
-  void set defaultMuted(bool value) => blink.Native_HTMLMediaElement_defaultMuted_Setter(this, value);
+  void set defaultMuted(bool value) => _blink.Native_HTMLMediaElement_defaultMuted_Setter(this, value);
 
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
-  num get defaultPlaybackRate => blink.Native_HTMLMediaElement_defaultPlaybackRate_Getter(this);
+  num get defaultPlaybackRate => _blink.Native_HTMLMediaElement_defaultPlaybackRate_Getter(this);
 
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => blink.Native_HTMLMediaElement_defaultPlaybackRate_Setter(this, value);
+  void set defaultPlaybackRate(num value) => _blink.Native_HTMLMediaElement_defaultPlaybackRate_Setter(this, value);
 
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  double get duration => blink.Native_HTMLMediaElement_duration_Getter(this);
+  double get duration => _blink.Native_HTMLMediaElement_duration_Getter(this);
 
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
-  bool get ended => blink.Native_HTMLMediaElement_ended_Getter(this);
+  bool get ended => _blink.Native_HTMLMediaElement_ended_Getter(this);
 
   @DomName('HTMLMediaElement.error')
   @DocsEditable()
-  MediaError get error => blink.Native_HTMLMediaElement_error_Getter(this);
+  MediaError get error => _blink.Native_HTMLMediaElement_error_Getter(this);
 
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
-  bool get loop => blink.Native_HTMLMediaElement_loop_Getter(this);
+  bool get loop => _blink.Native_HTMLMediaElement_loop_Getter(this);
 
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
-  void set loop(bool value) => blink.Native_HTMLMediaElement_loop_Setter(this, value);
+  void set loop(bool value) => _blink.Native_HTMLMediaElement_loop_Setter(this, value);
 
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
-  String get mediaGroup => blink.Native_HTMLMediaElement_mediaGroup_Getter(this);
+  String get mediaGroup => _blink.Native_HTMLMediaElement_mediaGroup_Getter(this);
 
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
-  void set mediaGroup(String value) => blink.Native_HTMLMediaElement_mediaGroup_Setter(this, value);
+  void set mediaGroup(String value) => _blink.Native_HTMLMediaElement_mediaGroup_Setter(this, value);
 
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
   @Experimental()
-  MediaKeys get mediaKeys => blink.Native_HTMLMediaElement_mediaKeys_Getter(this);
+  MediaKeys get mediaKeys => _blink.Native_HTMLMediaElement_mediaKeys_Getter(this);
 
   @DomName('HTMLMediaElement.muted')
   @DocsEditable()
-  bool get muted => blink.Native_HTMLMediaElement_muted_Getter(this);
+  bool get muted => _blink.Native_HTMLMediaElement_muted_Getter(this);
 
   @DomName('HTMLMediaElement.muted')
   @DocsEditable()
-  void set muted(bool value) => blink.Native_HTMLMediaElement_muted_Setter(this, value);
+  void set muted(bool value) => _blink.Native_HTMLMediaElement_muted_Setter(this, value);
 
   @DomName('HTMLMediaElement.networkState')
   @DocsEditable()
-  int get networkState => blink.Native_HTMLMediaElement_networkState_Getter(this);
+  int get networkState => _blink.Native_HTMLMediaElement_networkState_Getter(this);
 
   @DomName('HTMLMediaElement.paused')
   @DocsEditable()
-  bool get paused => blink.Native_HTMLMediaElement_paused_Getter(this);
+  bool get paused => _blink.Native_HTMLMediaElement_paused_Getter(this);
 
   @DomName('HTMLMediaElement.playbackRate')
   @DocsEditable()
-  num get playbackRate => blink.Native_HTMLMediaElement_playbackRate_Getter(this);
+  num get playbackRate => _blink.Native_HTMLMediaElement_playbackRate_Getter(this);
 
   @DomName('HTMLMediaElement.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => blink.Native_HTMLMediaElement_playbackRate_Setter(this, value);
+  void set playbackRate(num value) => _blink.Native_HTMLMediaElement_playbackRate_Setter(this, value);
 
   @DomName('HTMLMediaElement.played')
   @DocsEditable()
-  TimeRanges get played => blink.Native_HTMLMediaElement_played_Getter(this);
+  TimeRanges get played => _blink.Native_HTMLMediaElement_played_Getter(this);
 
   @DomName('HTMLMediaElement.preload')
   @DocsEditable()
-  String get preload => blink.Native_HTMLMediaElement_preload_Getter(this);
+  String get preload => _blink.Native_HTMLMediaElement_preload_Getter(this);
 
   @DomName('HTMLMediaElement.preload')
   @DocsEditable()
-  void set preload(String value) => blink.Native_HTMLMediaElement_preload_Setter(this, value);
+  void set preload(String value) => _blink.Native_HTMLMediaElement_preload_Setter(this, value);
 
   @DomName('HTMLMediaElement.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_HTMLMediaElement_readyState_Getter(this);
+  int get readyState => _blink.Native_HTMLMediaElement_readyState_Getter(this);
 
   @DomName('HTMLMediaElement.seekable')
   @DocsEditable()
-  TimeRanges get seekable => blink.Native_HTMLMediaElement_seekable_Getter(this);
+  TimeRanges get seekable => _blink.Native_HTMLMediaElement_seekable_Getter(this);
 
   @DomName('HTMLMediaElement.seeking')
   @DocsEditable()
-  bool get seeking => blink.Native_HTMLMediaElement_seeking_Getter(this);
+  bool get seeking => _blink.Native_HTMLMediaElement_seeking_Getter(this);
 
   @DomName('HTMLMediaElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLMediaElement_src_Getter(this);
+  String get src => _blink.Native_HTMLMediaElement_src_Getter(this);
 
   @DomName('HTMLMediaElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLMediaElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLMediaElement_src_Setter(this, value);
 
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#dom-media-texttracks
   @Experimental()
-  TextTrackList get textTracks => blink.Native_HTMLMediaElement_textTracks_Getter(this);
+  TextTrackList get textTracks => _blink.Native_HTMLMediaElement_textTracks_Getter(this);
 
   @DomName('HTMLMediaElement.volume')
   @DocsEditable()
-  num get volume => blink.Native_HTMLMediaElement_volume_Getter(this);
+  num get volume => _blink.Native_HTMLMediaElement_volume_Getter(this);
 
   @DomName('HTMLMediaElement.volume')
   @DocsEditable()
-  void set volume(num value) => blink.Native_HTMLMediaElement_volume_Setter(this, value);
+  void set volume(num value) => _blink.Native_HTMLMediaElement_volume_Setter(this, value);
 
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable()
@@ -18994,7 +18994,7 @@ class MediaElement extends HtmlElement {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // nonstandard
-  int get audioDecodedByteCount => blink.Native_HTMLMediaElement_webkitAudioDecodedByteCount_Getter(this);
+  int get audioDecodedByteCount => _blink.Native_HTMLMediaElement_webkitAudioDecodedByteCount_Getter(this);
 
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   @DocsEditable()
@@ -19002,7 +19002,7 @@ class MediaElement extends HtmlElement {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // nonstandard
-  int get videoDecodedByteCount => blink.Native_HTMLMediaElement_webkitVideoDecodedByteCount_Getter(this);
+  int get videoDecodedByteCount => _blink.Native_HTMLMediaElement_webkitVideoDecodedByteCount_Getter(this);
 
   TextTrack addTextTrack(String kind, [String label, String language]) {
     if (language != null) {
@@ -19014,33 +19014,33 @@ class MediaElement extends HtmlElement {
     return _addTextTrack_3(kind);
   }
 
-  TextTrack _addTextTrack_1(kind, label, language) => blink.Native_HTMLMediaElement__addTextTrack_1_Callback(this, kind, label, language);
+  TextTrack _addTextTrack_1(kind, label, language) => _blink.Native_HTMLMediaElement__addTextTrack_1_Callback(this, kind, label, language);
 
-  TextTrack _addTextTrack_2(kind, label) => blink.Native_HTMLMediaElement__addTextTrack_2_Callback(this, kind, label);
+  TextTrack _addTextTrack_2(kind, label) => _blink.Native_HTMLMediaElement__addTextTrack_2_Callback(this, kind, label);
 
-  TextTrack _addTextTrack_3(kind) => blink.Native_HTMLMediaElement__addTextTrack_3_Callback(this, kind);
+  TextTrack _addTextTrack_3(kind) => _blink.Native_HTMLMediaElement__addTextTrack_3_Callback(this, kind);
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable()
   @Unstable()
-  String canPlayType(String type, [String keySystem]) => blink.Native_HTMLMediaElement_canPlayType_Callback(this, type, keySystem);
+  String canPlayType(String type, [String keySystem]) => _blink.Native_HTMLMediaElement_canPlayType_Callback(this, type, keySystem);
 
   @DomName('HTMLMediaElement.load')
   @DocsEditable()
-  void load() => blink.Native_HTMLMediaElement_load_Callback(this);
+  void load() => _blink.Native_HTMLMediaElement_load_Callback(this);
 
   @DomName('HTMLMediaElement.pause')
   @DocsEditable()
-  void pause() => blink.Native_HTMLMediaElement_pause_Callback(this);
+  void pause() => _blink.Native_HTMLMediaElement_pause_Callback(this);
 
   @DomName('HTMLMediaElement.play')
   @DocsEditable()
-  void play() => blink.Native_HTMLMediaElement_play_Callback(this);
+  void play() => _blink.Native_HTMLMediaElement_play_Callback(this);
 
   @DomName('HTMLMediaElement.setMediaKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  void setMediaKeys(MediaKeys mediaKeys) => blink.Native_HTMLMediaElement_setMediaKeys_Callback(this, mediaKeys);
+  void setMediaKeys(MediaKeys mediaKeys) => _blink.Native_HTMLMediaElement_setMediaKeys_Callback(this, mediaKeys);
 
   void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
     if (initData != null) {
@@ -19051,9 +19051,9 @@ class MediaElement extends HtmlElement {
     return;
   }
 
-  void _webkitAddKey_1(keySystem, key, initData, sessionId) => blink.Native_HTMLMediaElement__webkitAddKey_1_Callback(this, keySystem, key, initData, sessionId);
+  void _webkitAddKey_1(keySystem, key, initData, sessionId) => _blink.Native_HTMLMediaElement__webkitAddKey_1_Callback(this, keySystem, key, initData, sessionId);
 
-  void _webkitAddKey_2(keySystem, key) => blink.Native_HTMLMediaElement__webkitAddKey_2_Callback(this, keySystem, key);
+  void _webkitAddKey_2(keySystem, key) => _blink.Native_HTMLMediaElement__webkitAddKey_2_Callback(this, keySystem, key);
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable()
@@ -19061,7 +19061,7 @@ class MediaElement extends HtmlElement {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
-  void cancelKeyRequest(String keySystem, String sessionId) => blink.Native_HTMLMediaElement_webkitCancelKeyRequest_Callback(this, keySystem, sessionId);
+  void cancelKeyRequest(String keySystem, String sessionId) => _blink.Native_HTMLMediaElement_webkitCancelKeyRequest_Callback(this, keySystem, sessionId);
 
   void generateKeyRequest(String keySystem, [Uint8List initData]) {
     if (initData != null) {
@@ -19072,9 +19072,9 @@ class MediaElement extends HtmlElement {
     return;
   }
 
-  void _webkitGenerateKeyRequest_1(keySystem, initData) => blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(this, keySystem, initData);
+  void _webkitGenerateKeyRequest_1(keySystem, initData) => _blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(this, keySystem, initData);
 
-  void _webkitGenerateKeyRequest_2(keySystem) => blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(this, keySystem);
+  void _webkitGenerateKeyRequest_2(keySystem) => _blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(this, keySystem);
 
   /// Stream of `canplay` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplay')
@@ -19250,7 +19250,7 @@ class MediaError extends NativeFieldWrapperClass2 {
 
   @DomName('MediaError.code')
   @DocsEditable()
-  int get code => blink.Native_MediaError_code_Getter(this);
+  int get code => _blink.Native_MediaError_code_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19294,12 +19294,12 @@ class MediaKeyError extends NativeFieldWrapperClass2 {
 
   @DomName('MediaKeyError.code')
   @DocsEditable()
-  int get code => blink.Native_MediaKeyError_code_Getter(this);
+  int get code => _blink.Native_MediaKeyError_code_Getter(this);
 
   @DomName('MediaKeyError.systemCode')
   @DocsEditable()
   @Experimental() // non-standard
-  int get systemCode => blink.Native_MediaKeyError_systemCode_Getter(this);
+  int get systemCode => _blink.Native_MediaKeyError_systemCode_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19319,31 +19319,31 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.defaultURL')
   @DocsEditable()
-  String get defaultUrl => blink.Native_MediaKeyEvent_defaultURL_Getter(this);
+  String get defaultUrl => _blink.Native_MediaKeyEvent_defaultURL_Getter(this);
 
   @DomName('MediaKeyEvent.errorCode')
   @DocsEditable()
-  MediaKeyError get errorCode => blink.Native_MediaKeyEvent_errorCode_Getter(this);
+  MediaKeyError get errorCode => _blink.Native_MediaKeyEvent_errorCode_Getter(this);
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable()
-  Uint8List get initData => blink.Native_MediaKeyEvent_initData_Getter(this);
+  Uint8List get initData => _blink.Native_MediaKeyEvent_initData_Getter(this);
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable()
-  String get keySystem => blink.Native_MediaKeyEvent_keySystem_Getter(this);
+  String get keySystem => _blink.Native_MediaKeyEvent_keySystem_Getter(this);
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable()
-  Uint8List get message => blink.Native_MediaKeyEvent_message_Getter(this);
+  Uint8List get message => _blink.Native_MediaKeyEvent_message_Getter(this);
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable()
-  String get sessionId => blink.Native_MediaKeyEvent_sessionId_Getter(this);
+  String get sessionId => _blink.Native_MediaKeyEvent_sessionId_Getter(this);
 
   @DomName('MediaKeyEvent.systemCode')
   @DocsEditable()
-  int get systemCode => blink.Native_MediaKeyEvent_systemCode_Getter(this);
+  int get systemCode => _blink.Native_MediaKeyEvent_systemCode_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19363,11 +19363,11 @@ class MediaKeyMessageEvent extends Event {
 
   @DomName('MediaKeyMessageEvent.destinationURL')
   @DocsEditable()
-  String get destinationUrl => blink.Native_MediaKeyMessageEvent_destinationURL_Getter(this);
+  String get destinationUrl => _blink.Native_MediaKeyMessageEvent_destinationURL_Getter(this);
 
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable()
-  Uint8List get message => blink.Native_MediaKeyMessageEvent_message_Getter(this);
+  Uint8List get message => _blink.Native_MediaKeyMessageEvent_message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19388,11 +19388,11 @@ class MediaKeyNeededEvent extends Event {
   @DomName('MediaKeyNeededEvent.contentType')
   @DocsEditable()
   @Experimental() // untriaged
-  String get contentType => blink.Native_MediaKeyNeededEvent_contentType_Getter(this);
+  String get contentType => _blink.Native_MediaKeyNeededEvent_contentType_Getter(this);
 
   @DomName('MediaKeyNeededEvent.initData')
   @DocsEditable()
-  Uint8List get initData => blink.Native_MediaKeyNeededEvent_initData_Getter(this);
+  Uint8List get initData => _blink.Native_MediaKeyNeededEvent_initData_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19412,36 +19412,36 @@ class MediaKeySession extends EventTarget {
 
   @DomName('MediaKeySession.error')
   @DocsEditable()
-  MediaKeyError get error => blink.Native_MediaKeySession_error_Getter(this);
+  MediaKeyError get error => _blink.Native_MediaKeySession_error_Getter(this);
 
   @DomName('MediaKeySession.keySystem')
   @DocsEditable()
-  String get keySystem => blink.Native_MediaKeySession_keySystem_Getter(this);
+  String get keySystem => _blink.Native_MediaKeySession_keySystem_Getter(this);
 
   @DomName('MediaKeySession.sessionId')
   @DocsEditable()
-  String get sessionId => blink.Native_MediaKeySession_sessionId_Getter(this);
+  String get sessionId => _blink.Native_MediaKeySession_sessionId_Getter(this);
 
   @DomName('MediaKeySession.release')
   @DocsEditable()
   @Experimental() // untriaged
-  void release() => blink.Native_MediaKeySession_release_Callback(this);
+  void release() => _blink.Native_MediaKeySession_release_Callback(this);
 
   @DomName('MediaKeySession.update')
   @DocsEditable()
-  void update(Uint8List response) => blink.Native_MediaKeySession_update_Callback(this, response);
+  void update(Uint8List response) => _blink.Native_MediaKeySession_update_Callback(this, response);
 
   @DomName('MediaKeySession.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaKeySession_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaKeySession_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MediaKeySession.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MediaKeySession_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MediaKeySession_dispatchEvent_Callback(this, event);
 
   @DomName('MediaKeySession.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaKeySession_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaKeySession_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19466,15 +19466,15 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static MediaKeys _create_1(keySystem) => blink.Native_MediaKeys__create_1constructorCallback(keySystem);
+  static MediaKeys _create_1(keySystem) => _blink.Native_MediaKeys__create_1constructorCallback(keySystem);
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
-  String get keySystem => blink.Native_MediaKeys_keySystem_Getter(this);
+  String get keySystem => _blink.Native_MediaKeys_keySystem_Getter(this);
 
   @DomName('MediaKeys.createSession')
   @DocsEditable()
-  MediaKeySession createSession(String type, Uint8List initData) => blink.Native_MediaKeys_createSession_Callback(this, type, initData);
+  MediaKeySession createSession(String type, Uint8List initData) => _blink.Native_MediaKeys_createSession_Callback(this, type, initData);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19493,27 +19493,27 @@ class MediaList extends NativeFieldWrapperClass2 {
 
   @DomName('MediaList.length')
   @DocsEditable()
-  int get length => blink.Native_MediaList_length_Getter(this);
+  int get length => _blink.Native_MediaList_length_Getter(this);
 
   @DomName('MediaList.mediaText')
   @DocsEditable()
-  String get mediaText => blink.Native_MediaList_mediaText_Getter(this);
+  String get mediaText => _blink.Native_MediaList_mediaText_Getter(this);
 
   @DomName('MediaList.mediaText')
   @DocsEditable()
-  void set mediaText(String value) => blink.Native_MediaList_mediaText_Setter(this, value);
+  void set mediaText(String value) => _blink.Native_MediaList_mediaText_Setter(this, value);
 
   @DomName('MediaList.appendMedium')
   @DocsEditable()
-  void appendMedium(String newMedium) => blink.Native_MediaList_appendMedium_Callback(this, newMedium);
+  void appendMedium(String newMedium) => _blink.Native_MediaList_appendMedium_Callback(this, newMedium);
 
   @DomName('MediaList.deleteMedium')
   @DocsEditable()
-  void deleteMedium(String oldMedium) => blink.Native_MediaList_deleteMedium_Callback(this, oldMedium);
+  void deleteMedium(String oldMedium) => _blink.Native_MediaList_deleteMedium_Callback(this, oldMedium);
 
   @DomName('MediaList.item')
   @DocsEditable()
-  String item(int index) => blink.Native_MediaList_item_Callback(this, index);
+  String item(int index) => _blink.Native_MediaList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19532,11 +19532,11 @@ class MediaQueryList extends NativeFieldWrapperClass2 {
 
   @DomName('MediaQueryList.matches')
   @DocsEditable()
-  bool get matches => blink.Native_MediaQueryList_matches_Getter(this);
+  bool get matches => _blink.Native_MediaQueryList_matches_Getter(this);
 
   @DomName('MediaQueryList.media')
   @DocsEditable()
-  String get media => blink.Native_MediaQueryList_media_Getter(this);
+  String get media => _blink.Native_MediaQueryList_media_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19561,31 +19561,31 @@ class MediaSource extends EventTarget {
   }
 
   @DocsEditable()
-  static MediaSource _create_1() => blink.Native_MediaSource__create_1constructorCallback();
+  static MediaSource _create_1() => _blink.Native_MediaSource__create_1constructorCallback();
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()
-  SourceBufferList get activeSourceBuffers => blink.Native_MediaSource_activeSourceBuffers_Getter(this);
+  SourceBufferList get activeSourceBuffers => _blink.Native_MediaSource_activeSourceBuffers_Getter(this);
 
   @DomName('MediaSource.duration')
   @DocsEditable()
-  num get duration => blink.Native_MediaSource_duration_Getter(this);
+  num get duration => _blink.Native_MediaSource_duration_Getter(this);
 
   @DomName('MediaSource.duration')
   @DocsEditable()
-  void set duration(num value) => blink.Native_MediaSource_duration_Setter(this, value);
+  void set duration(num value) => _blink.Native_MediaSource_duration_Setter(this, value);
 
   @DomName('MediaSource.readyState')
   @DocsEditable()
-  String get readyState => blink.Native_MediaSource_readyState_Getter(this);
+  String get readyState => _blink.Native_MediaSource_readyState_Getter(this);
 
   @DomName('MediaSource.sourceBuffers')
   @DocsEditable()
-  SourceBufferList get sourceBuffers => blink.Native_MediaSource_sourceBuffers_Getter(this);
+  SourceBufferList get sourceBuffers => _blink.Native_MediaSource_sourceBuffers_Getter(this);
 
   @DomName('MediaSource.addSourceBuffer')
   @DocsEditable()
-  SourceBuffer addSourceBuffer(String type) => blink.Native_MediaSource_addSourceBuffer_Callback(this, type);
+  SourceBuffer addSourceBuffer(String type) => _blink.Native_MediaSource_addSourceBuffer_Callback(this, type);
 
   void endOfStream([String error]) {
     if (error != null) {
@@ -19596,29 +19596,29 @@ class MediaSource extends EventTarget {
     return;
   }
 
-  void _endOfStream_1(error) => blink.Native_MediaSource__endOfStream_1_Callback(this, error);
+  void _endOfStream_1(error) => _blink.Native_MediaSource__endOfStream_1_Callback(this, error);
 
-  void _endOfStream_2() => blink.Native_MediaSource__endOfStream_2_Callback(this);
+  void _endOfStream_2() => _blink.Native_MediaSource__endOfStream_2_Callback(this);
 
   @DomName('MediaSource.isTypeSupported')
   @DocsEditable()
-  static bool isTypeSupported(String type) => blink.Native_MediaSource_isTypeSupported_Callback(type);
+  static bool isTypeSupported(String type) => _blink.Native_MediaSource_isTypeSupported_Callback(type);
 
   @DomName('MediaSource.removeSourceBuffer')
   @DocsEditable()
-  void removeSourceBuffer(SourceBuffer buffer) => blink.Native_MediaSource_removeSourceBuffer_Callback(this, buffer);
+  void removeSourceBuffer(SourceBuffer buffer) => _blink.Native_MediaSource_removeSourceBuffer_Callback(this, buffer);
 
   @DomName('MediaSource.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaSource_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaSource_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MediaSource.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MediaSource_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MediaSource_dispatchEvent_Callback(this, event);
 
   @DomName('MediaSource.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaSource_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaSource_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -19680,62 +19680,62 @@ class MediaStream extends EventTarget {
   }
 
   @DocsEditable()
-  static MediaStream _create_1() => blink.Native_MediaStream__create_1constructorCallback();
+  static MediaStream _create_1() => _blink.Native_MediaStream__create_1constructorCallback();
 
   @DocsEditable()
-  static MediaStream _create_2(stream_OR_tracks) => blink.Native_MediaStream__create_2constructorCallback(stream_OR_tracks);
+  static MediaStream _create_2(stream_OR_tracks) => _blink.Native_MediaStream__create_2constructorCallback(stream_OR_tracks);
 
   @DocsEditable()
-  static MediaStream _create_3(stream_OR_tracks) => blink.Native_MediaStream__create_3constructorCallback(stream_OR_tracks);
+  static MediaStream _create_3(stream_OR_tracks) => _blink.Native_MediaStream__create_3constructorCallback(stream_OR_tracks);
 
   @DomName('MediaStream.ended')
   @DocsEditable()
-  bool get ended => blink.Native_MediaStream_ended_Getter(this);
+  bool get ended => _blink.Native_MediaStream_ended_Getter(this);
 
   @DomName('MediaStream.id')
   @DocsEditable()
-  String get id => blink.Native_MediaStream_id_Getter(this);
+  String get id => _blink.Native_MediaStream_id_Getter(this);
 
   @DomName('MediaStream.label')
   @DocsEditable()
   @Experimental() // non-standard
-  String get label => blink.Native_MediaStream_label_Getter(this);
+  String get label => _blink.Native_MediaStream_label_Getter(this);
 
   @DomName('MediaStream.addTrack')
   @DocsEditable()
-  void addTrack(MediaStreamTrack track) => blink.Native_MediaStream_addTrack_Callback(this, track);
+  void addTrack(MediaStreamTrack track) => _blink.Native_MediaStream_addTrack_Callback(this, track);
 
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getAudioTracks() => blink.Native_MediaStream_getAudioTracks_Callback(this);
+  List<MediaStreamTrack> getAudioTracks() => _blink.Native_MediaStream_getAudioTracks_Callback(this);
 
   @DomName('MediaStream.getTrackById')
   @DocsEditable()
-  MediaStreamTrack getTrackById(String trackId) => blink.Native_MediaStream_getTrackById_Callback(this, trackId);
+  MediaStreamTrack getTrackById(String trackId) => _blink.Native_MediaStream_getTrackById_Callback(this, trackId);
 
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getVideoTracks() => blink.Native_MediaStream_getVideoTracks_Callback(this);
+  List<MediaStreamTrack> getVideoTracks() => _blink.Native_MediaStream_getVideoTracks_Callback(this);
 
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
-  void removeTrack(MediaStreamTrack track) => blink.Native_MediaStream_removeTrack_Callback(this, track);
+  void removeTrack(MediaStreamTrack track) => _blink.Native_MediaStream_removeTrack_Callback(this, track);
 
   @DomName('MediaStream.stop')
   @DocsEditable()
-  void stop() => blink.Native_MediaStream_stop_Callback(this);
+  void stop() => _blink.Native_MediaStream_stop_Callback(this);
 
   @DomName('MediaStream.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaStream_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStream_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MediaStream.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MediaStream_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MediaStream_dispatchEvent_Callback(this, event);
 
   @DomName('MediaStream.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaStream_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStream_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `addtrack` events handled by this [MediaStream].
   @DomName('MediaStream.onaddtrack')
@@ -19783,7 +19783,7 @@ class MediaStreamEvent extends Event {
 
   @DomName('MediaStreamEvent.stream')
   @DocsEditable()
-  MediaStream get stream => blink.Native_MediaStreamEvent_stream_Getter(this);
+  MediaStream get stream => _blink.Native_MediaStreamEvent_stream_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19834,32 +19834,32 @@ class MediaStreamTrack extends EventTarget {
 
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
-  bool get enabled => blink.Native_MediaStreamTrack_enabled_Getter(this);
+  bool get enabled => _blink.Native_MediaStreamTrack_enabled_Getter(this);
 
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
-  void set enabled(bool value) => blink.Native_MediaStreamTrack_enabled_Setter(this, value);
+  void set enabled(bool value) => _blink.Native_MediaStreamTrack_enabled_Setter(this, value);
 
   @DomName('MediaStreamTrack.id')
   @DocsEditable()
-  String get id => blink.Native_MediaStreamTrack_id_Getter(this);
+  String get id => _blink.Native_MediaStreamTrack_id_Getter(this);
 
   @DomName('MediaStreamTrack.kind')
   @DocsEditable()
-  String get kind => blink.Native_MediaStreamTrack_kind_Getter(this);
+  String get kind => _blink.Native_MediaStreamTrack_kind_Getter(this);
 
   @DomName('MediaStreamTrack.label')
   @DocsEditable()
-  String get label => blink.Native_MediaStreamTrack_label_Getter(this);
+  String get label => _blink.Native_MediaStreamTrack_label_Getter(this);
 
   @DomName('MediaStreamTrack.readyState')
   @DocsEditable()
-  String get readyState => blink.Native_MediaStreamTrack_readyState_Getter(this);
+  String get readyState => _blink.Native_MediaStreamTrack_readyState_Getter(this);
 
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void _getSources(MediaStreamTrackSourcesCallback callback) => blink.Native_MediaStreamTrack_getSources_Callback(callback);
+  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.Native_MediaStreamTrack_getSources_Callback(callback);
 
   static Future<List<SourceInfo>> getSources() {
     var completer = new Completer<List<SourceInfo>>();
@@ -19871,19 +19871,19 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.stop')
   @DocsEditable()
   @Experimental() // untriaged
-  void stop() => blink.Native_MediaStreamTrack_stop_Callback(this);
+  void stop() => _blink.Native_MediaStreamTrack_stop_Callback(this);
 
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaStreamTrack_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStreamTrack_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MediaStreamTrack.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MediaStreamTrack_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MediaStreamTrack_dispatchEvent_Callback(this, event);
 
   @DomName('MediaStreamTrack.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MediaStreamTrack_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStreamTrack_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `ended` events handled by this [MediaStreamTrack].
   @DomName('MediaStreamTrack.onended')
@@ -19922,7 +19922,7 @@ class MediaStreamTrackEvent extends Event {
 
   @DomName('MediaStreamTrackEvent.track')
   @DocsEditable()
-  MediaStreamTrack get track => blink.Native_MediaStreamTrackEvent_track_Getter(this);
+  MediaStreamTrack get track => _blink.Native_MediaStreamTrackEvent_track_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19951,15 +19951,15 @@ class MemoryInfo extends NativeFieldWrapperClass2 {
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable()
-  int get jsHeapSizeLimit => blink.Native_MemoryInfo_jsHeapSizeLimit_Getter(this);
+  int get jsHeapSizeLimit => _blink.Native_MemoryInfo_jsHeapSizeLimit_Getter(this);
 
   @DomName('MemoryInfo.totalJSHeapSize')
   @DocsEditable()
-  int get totalJSHeapSize => blink.Native_MemoryInfo_totalJSHeapSize_Getter(this);
+  int get totalJSHeapSize => _blink.Native_MemoryInfo_totalJSHeapSize_Getter(this);
 
   @DomName('MemoryInfo.usedJSHeapSize')
   @DocsEditable()
-  int get usedJSHeapSize => blink.Native_MemoryInfo_usedJSHeapSize_Getter(this);
+  int get usedJSHeapSize => _blink.Native_MemoryInfo_usedJSHeapSize_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20012,11 +20012,11 @@ class MessageChannel extends NativeFieldWrapperClass2 {
 
   @DomName('MessageChannel.port1')
   @DocsEditable()
-  MessagePort get port1 => blink.Native_MessageChannel_port1_Getter(this);
+  MessagePort get port1 => _blink.Native_MessageChannel_port1_Getter(this);
 
   @DomName('MessageChannel.port2')
   @DocsEditable()
-  MessagePort get port2 => blink.Native_MessageChannel_port2_Getter(this);
+  MessagePort get port2 => _blink.Native_MessageChannel_port2_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -20045,24 +20045,24 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.data')
   @DocsEditable()
-  Object get data => blink.Native_MessageEvent_data_Getter(this);
+  Object get data => _blink.Native_MessageEvent_data_Getter(this);
 
   @DomName('MessageEvent.lastEventId')
   @DocsEditable()
   @Unstable()
-  String get lastEventId => blink.Native_MessageEvent_lastEventId_Getter(this);
+  String get lastEventId => _blink.Native_MessageEvent_lastEventId_Getter(this);
 
   @DomName('MessageEvent.origin')
   @DocsEditable()
-  String get origin => blink.Native_MessageEvent_origin_Getter(this);
+  String get origin => _blink.Native_MessageEvent_origin_Getter(this);
 
   @DomName('MessageEvent.source')
   @DocsEditable()
-  EventTarget get source => blink.Native_MessageEvent_source_Getter(this);
+  EventTarget get source => _blink.Native_MessageEvent_source_Getter(this);
 
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => blink.Native_MessageEvent_initMessageEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts);
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => _blink.Native_MessageEvent_initMessageEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20091,27 +20091,27 @@ class MessagePort extends EventTarget {
 
   @DomName('MessagePort.close')
   @DocsEditable()
-  void close() => blink.Native_MessagePort_close_Callback(this);
+  void close() => _blink.Native_MessagePort_close_Callback(this);
 
   @DomName('MessagePort.postMessage')
   @DocsEditable()
-  void postMessage(Object message, [List<MessagePort> messagePorts]) => blink.Native_MessagePort_postMessage_Callback(this, message, messagePorts);
+  void postMessage(Object message, [List<MessagePort> messagePorts]) => _blink.Native_MessagePort_postMessage_Callback(this, message, messagePorts);
 
   @DomName('MessagePort.start')
   @DocsEditable()
-  void start() => blink.Native_MessagePort_start_Callback(this);
+  void start() => _blink.Native_MessagePort_start_Callback(this);
 
   @DomName('MessagePort.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MessagePort_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MessagePort_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MessagePort.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MessagePort_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MessagePort_dispatchEvent_Callback(this, event);
 
   @DomName('MessagePort.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MessagePort_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MessagePort_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `message` events handled by this [MessagePort].
   @DomName('MessagePort.onmessage')
@@ -20144,27 +20144,27 @@ class MetaElement extends HtmlElement {
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
-  String get content => blink.Native_HTMLMetaElement_content_Getter(this);
+  String get content => _blink.Native_HTMLMetaElement_content_Getter(this);
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
-  void set content(String value) => blink.Native_HTMLMetaElement_content_Setter(this, value);
+  void set content(String value) => _blink.Native_HTMLMetaElement_content_Setter(this, value);
 
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
-  String get httpEquiv => blink.Native_HTMLMetaElement_httpEquiv_Getter(this);
+  String get httpEquiv => _blink.Native_HTMLMetaElement_httpEquiv_Getter(this);
 
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
-  void set httpEquiv(String value) => blink.Native_HTMLMetaElement_httpEquiv_Setter(this, value);
+  void set httpEquiv(String value) => _blink.Native_HTMLMetaElement_httpEquiv_Setter(this, value);
 
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLMetaElement_name_Getter(this);
+  String get name => _blink.Native_HTMLMetaElement_name_Getter(this);
 
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLMetaElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLMetaElement_name_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20184,11 +20184,11 @@ class Metadata extends NativeFieldWrapperClass2 {
 
   @DomName('Metadata.modificationTime')
   @DocsEditable()
-  DateTime get modificationTime => blink.Native_Metadata_modificationTime_Getter(this);
+  DateTime get modificationTime => _blink.Native_Metadata_modificationTime_Getter(this);
 
   @DomName('Metadata.size')
   @DocsEditable()
-  int get size => blink.Native_Metadata_size_Getter(this);
+  int get size => _blink.Native_Metadata_size_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20234,56 +20234,56 @@ class MeterElement extends HtmlElement {
 
   @DomName('HTMLMeterElement.high')
   @DocsEditable()
-  num get high => blink.Native_HTMLMeterElement_high_Getter(this);
+  num get high => _blink.Native_HTMLMeterElement_high_Getter(this);
 
   @DomName('HTMLMeterElement.high')
   @DocsEditable()
-  void set high(num value) => blink.Native_HTMLMeterElement_high_Setter(this, value);
+  void set high(num value) => _blink.Native_HTMLMeterElement_high_Setter(this, value);
 
   @DomName('HTMLMeterElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLMeterElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLMeterElement_labels_Getter(this);
 
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
-  num get low => blink.Native_HTMLMeterElement_low_Getter(this);
+  num get low => _blink.Native_HTMLMeterElement_low_Getter(this);
 
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
-  void set low(num value) => blink.Native_HTMLMeterElement_low_Setter(this, value);
+  void set low(num value) => _blink.Native_HTMLMeterElement_low_Setter(this, value);
 
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
-  num get max => blink.Native_HTMLMeterElement_max_Getter(this);
+  num get max => _blink.Native_HTMLMeterElement_max_Getter(this);
 
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
-  void set max(num value) => blink.Native_HTMLMeterElement_max_Setter(this, value);
+  void set max(num value) => _blink.Native_HTMLMeterElement_max_Setter(this, value);
 
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
-  num get min => blink.Native_HTMLMeterElement_min_Getter(this);
+  num get min => _blink.Native_HTMLMeterElement_min_Getter(this);
 
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
-  void set min(num value) => blink.Native_HTMLMeterElement_min_Setter(this, value);
+  void set min(num value) => _blink.Native_HTMLMeterElement_min_Setter(this, value);
 
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
-  num get optimum => blink.Native_HTMLMeterElement_optimum_Getter(this);
+  num get optimum => _blink.Native_HTMLMeterElement_optimum_Getter(this);
 
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
-  void set optimum(num value) => blink.Native_HTMLMeterElement_optimum_Setter(this, value);
+  void set optimum(num value) => _blink.Native_HTMLMeterElement_optimum_Setter(this, value);
 
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
-  num get value => blink.Native_HTMLMeterElement_value_Getter(this);
+  num get value => _blink.Native_HTMLMeterElement_value_Getter(this);
 
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
-  void set value(num value) => blink.Native_HTMLMeterElement_value_Setter(this, value);
+  void set value(num value) => _blink.Native_HTMLMeterElement_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20323,23 +20323,23 @@ class MidiAccess extends EventTarget {
 
   @DomName('MIDIAccess.inputs')
   @DocsEditable()
-  List<MidiInput> inputs() => blink.Native_MIDIAccess_inputs_Callback(this);
+  List<MidiInput> inputs() => _blink.Native_MIDIAccess_inputs_Callback(this);
 
   @DomName('MIDIAccess.outputs')
   @DocsEditable()
-  List<MidiOutput> outputs() => blink.Native_MIDIAccess_outputs_Callback(this);
+  List<MidiOutput> outputs() => _blink.Native_MIDIAccess_outputs_Callback(this);
 
   @DomName('MIDIAccess.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MIDIAccess_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIAccess_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MIDIAccess.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MIDIAccess_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MIDIAccess_dispatchEvent_Callback(this, event);
 
   @DomName('MIDIAccess.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MIDIAccess_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIAccess_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `connect` events handled by this [MidiAccess].
   @DomName('MIDIAccess.onconnect')
@@ -20369,7 +20369,7 @@ class MidiAccessPromise extends NativeFieldWrapperClass2 {
   @DomName('MIDIAccessPromise.then')
   @DocsEditable()
   @Experimental() // untriaged
-  void then(MidiSuccessCallback successCallback, MidiErrorCallback errorCallback) => blink.Native_MIDIAccessPromise_then_Callback(this, successCallback, errorCallback);
+  void then(MidiSuccessCallback successCallback, MidiErrorCallback errorCallback) => _blink.Native_MIDIAccessPromise_then_Callback(this, successCallback, errorCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20389,7 +20389,7 @@ class MidiConnectionEvent extends Event {
 
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable()
-  MidiPort get port => blink.Native_MIDIConnectionEvent_port_Getter(this);
+  MidiPort get port => _blink.Native_MIDIConnectionEvent_port_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20440,11 +20440,11 @@ class MidiMessageEvent extends Event {
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable()
-  Uint8List get data => blink.Native_MIDIMessageEvent_data_Getter(this);
+  Uint8List get data => _blink.Native_MIDIMessageEvent_data_Getter(this);
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  double get receivedTime => blink.Native_MIDIMessageEvent_receivedTime_Getter(this);
+  double get receivedTime => _blink.Native_MIDIMessageEvent_receivedTime_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20471,9 +20471,9 @@ class MidiOutput extends MidiPort {
     return;
   }
 
-  void _send_1(data, timestamp) => blink.Native_MIDIOutput__send_1_Callback(this, data, timestamp);
+  void _send_1(data, timestamp) => _blink.Native_MIDIOutput__send_1_Callback(this, data, timestamp);
 
-  void _send_2(data) => blink.Native_MIDIOutput__send_2_Callback(this, data);
+  void _send_2(data) => _blink.Native_MIDIOutput__send_2_Callback(this, data);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20503,35 +20503,35 @@ class MidiPort extends EventTarget {
 
   @DomName('MIDIPort.id')
   @DocsEditable()
-  String get id => blink.Native_MIDIPort_id_Getter(this);
+  String get id => _blink.Native_MIDIPort_id_Getter(this);
 
   @DomName('MIDIPort.manufacturer')
   @DocsEditable()
-  String get manufacturer => blink.Native_MIDIPort_manufacturer_Getter(this);
+  String get manufacturer => _blink.Native_MIDIPort_manufacturer_Getter(this);
 
   @DomName('MIDIPort.name')
   @DocsEditable()
-  String get name => blink.Native_MIDIPort_name_Getter(this);
+  String get name => _blink.Native_MIDIPort_name_Getter(this);
 
   @DomName('MIDIPort.type')
   @DocsEditable()
-  String get type => blink.Native_MIDIPort_type_Getter(this);
+  String get type => _blink.Native_MIDIPort_type_Getter(this);
 
   @DomName('MIDIPort.version')
   @DocsEditable()
-  String get version => blink.Native_MIDIPort_version_Getter(this);
+  String get version => _blink.Native_MIDIPort_version_Getter(this);
 
   @DomName('MIDIPort.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MIDIPort_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIPort_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('MIDIPort.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_MIDIPort_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_MIDIPort_dispatchEvent_Callback(this, event);
 
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_MIDIPort_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIPort_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `disconnect` events handled by this [MidiPort].
   @DomName('MIDIPort.ondisconnect')
@@ -20555,19 +20555,19 @@ class MimeType extends NativeFieldWrapperClass2 {
 
   @DomName('MimeType.description')
   @DocsEditable()
-  String get description => blink.Native_MimeType_description_Getter(this);
+  String get description => _blink.Native_MimeType_description_Getter(this);
 
   @DomName('MimeType.enabledPlugin')
   @DocsEditable()
-  Plugin get enabledPlugin => blink.Native_MimeType_enabledPlugin_Getter(this);
+  Plugin get enabledPlugin => _blink.Native_MimeType_enabledPlugin_Getter(this);
 
   @DomName('MimeType.suffixes')
   @DocsEditable()
-  String get suffixes => blink.Native_MimeType_suffixes_Getter(this);
+  String get suffixes => _blink.Native_MimeType_suffixes_Getter(this);
 
   @DomName('MimeType.type')
   @DocsEditable()
-  String get type => blink.Native_MimeType_type_Getter(this);
+  String get type => _blink.Native_MimeType_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20586,15 +20586,15 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
-  int get length => blink.Native_MimeTypeArray_length_Getter(this);
+  int get length => _blink.Native_MimeTypeArray_length_Getter(this);
 
   MimeType operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_MimeTypeArray_NativeIndexed_Getter(this, index);
+    return _blink.Native_MimeTypeArray_NativeIndexed_Getter(this, index);
   }
 
-  MimeType _nativeIndexedGetter(int index) => blink.Native_MimeTypeArray_NativeIndexed_Getter(this, index);
+  MimeType _nativeIndexedGetter(int index) => _blink.Native_MimeTypeArray_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20636,15 +20636,15 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
 
   @DomName('MimeTypeArray.__getter__')
   @DocsEditable()
-  MimeType __getter__(String name) => blink.Native_MimeTypeArray___getter___Callback(this, name);
+  MimeType __getter__(String name) => _blink.Native_MimeTypeArray___getter___Callback(this, name);
 
   @DomName('MimeTypeArray.item')
   @DocsEditable()
-  MimeType item(int index) => blink.Native_MimeTypeArray_item_Callback(this, index);
+  MimeType item(int index) => _blink.Native_MimeTypeArray_item_Callback(this, index);
 
   @DomName('MimeTypeArray.namedItem')
   @DocsEditable()
-  MimeType namedItem(String name) => blink.Native_MimeTypeArray_namedItem_Callback(this, name);
+  MimeType namedItem(String name) => _blink.Native_MimeTypeArray_namedItem_Callback(this, name);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20669,19 +20669,19 @@ class ModElement extends HtmlElement {
 
   @DomName('HTMLModElement.cite')
   @DocsEditable()
-  String get cite => blink.Native_HTMLModElement_cite_Getter(this);
+  String get cite => _blink.Native_HTMLModElement_cite_Getter(this);
 
   @DomName('HTMLModElement.cite')
   @DocsEditable()
-  void set cite(String value) => blink.Native_HTMLModElement_cite_Setter(this, value);
+  void set cite(String value) => _blink.Native_HTMLModElement_cite_Setter(this, value);
 
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
-  String get dateTime => blink.Native_HTMLModElement_dateTime_Getter(this);
+  String get dateTime => _blink.Native_HTMLModElement_dateTime_Getter(this);
 
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
-  void set dateTime(String value) => blink.Native_HTMLModElement_dateTime_Setter(this, value);
+  void set dateTime(String value) => _blink.Native_HTMLModElement_dateTime_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20713,86 +20713,86 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.altKey')
   @DocsEditable()
-  bool get altKey => blink.Native_MouseEvent_altKey_Getter(this);
+  bool get altKey => _blink.Native_MouseEvent_altKey_Getter(this);
 
   @DomName('MouseEvent.button')
   @DocsEditable()
-  int get button => blink.Native_MouseEvent_button_Getter(this);
+  int get button => _blink.Native_MouseEvent_button_Getter(this);
 
   @DomName('MouseEvent.clientX')
   @DocsEditable()
-  int get _clientX => blink.Native_MouseEvent_clientX_Getter(this);
+  int get _clientX => _blink.Native_MouseEvent_clientX_Getter(this);
 
   @DomName('MouseEvent.clientY')
   @DocsEditable()
-  int get _clientY => blink.Native_MouseEvent_clientY_Getter(this);
+  int get _clientY => _blink.Native_MouseEvent_clientY_Getter(this);
 
   @DomName('MouseEvent.ctrlKey')
   @DocsEditable()
-  bool get ctrlKey => blink.Native_MouseEvent_ctrlKey_Getter(this);
+  bool get ctrlKey => _blink.Native_MouseEvent_ctrlKey_Getter(this);
 
   @DomName('MouseEvent.dataTransfer')
   @DocsEditable()
   @Unstable()
-  DataTransfer get dataTransfer => blink.Native_MouseEvent_dataTransfer_Getter(this);
+  DataTransfer get dataTransfer => _blink.Native_MouseEvent_dataTransfer_Getter(this);
 
   @DomName('MouseEvent.fromElement')
   @DocsEditable()
   @Experimental() // nonstandard
-  Node get fromElement => blink.Native_MouseEvent_fromElement_Getter(this);
+  Node get fromElement => _blink.Native_MouseEvent_fromElement_Getter(this);
 
   @DomName('MouseEvent.metaKey')
   @DocsEditable()
-  bool get metaKey => blink.Native_MouseEvent_metaKey_Getter(this);
+  bool get metaKey => _blink.Native_MouseEvent_metaKey_Getter(this);
 
   @DomName('MouseEvent.offsetX')
   @DocsEditable()
   @Unstable()
-  int get _offsetX => blink.Native_MouseEvent_offsetX_Getter(this);
+  int get _offsetX => _blink.Native_MouseEvent_offsetX_Getter(this);
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable()
   @Unstable()
-  int get _offsetY => blink.Native_MouseEvent_offsetY_Getter(this);
+  int get _offsetY => _blink.Native_MouseEvent_offsetY_Getter(this);
 
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => blink.Native_MouseEvent_relatedTarget_Getter(this);
+  EventTarget get relatedTarget => _blink.Native_MouseEvent_relatedTarget_Getter(this);
 
   @DomName('MouseEvent.screenX')
   @DocsEditable()
-  int get _screenX => blink.Native_MouseEvent_screenX_Getter(this);
+  int get _screenX => _blink.Native_MouseEvent_screenX_Getter(this);
 
   @DomName('MouseEvent.screenY')
   @DocsEditable()
-  int get _screenY => blink.Native_MouseEvent_screenY_Getter(this);
+  int get _screenY => _blink.Native_MouseEvent_screenY_Getter(this);
 
   @DomName('MouseEvent.shiftKey')
   @DocsEditable()
-  bool get shiftKey => blink.Native_MouseEvent_shiftKey_Getter(this);
+  bool get shiftKey => _blink.Native_MouseEvent_shiftKey_Getter(this);
 
   @DomName('MouseEvent.toElement')
   @DocsEditable()
   @Experimental() // nonstandard
-  Node get toElement => blink.Native_MouseEvent_toElement_Getter(this);
+  Node get toElement => _blink.Native_MouseEvent_toElement_Getter(this);
 
   @DomName('MouseEvent.webkitMovementX')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get _webkitMovementX => blink.Native_MouseEvent_webkitMovementX_Getter(this);
+  int get _webkitMovementX => _blink.Native_MouseEvent_webkitMovementX_Getter(this);
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get _webkitMovementY => blink.Native_MouseEvent_webkitMovementY_Getter(this);
+  int get _webkitMovementY => _blink.Native_MouseEvent_webkitMovementY_Getter(this);
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) => blink.Native_MouseEvent_initMouseEvent_Callback(this, type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) => _blink.Native_MouseEvent_initMouseEvent_Callback(this, type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
 
 
   @deprecated
@@ -20862,19 +20862,19 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   factory MutationObserver._(MutationCallback callback) => _create(callback);
 
   @DocsEditable()
-  static MutationObserver _create(callback) => blink.Native_MutationObserver_constructorCallback(callback);
+  static MutationObserver _create(callback) => _blink.Native_MutationObserver_constructorCallback(callback);
 
   @DomName('MutationObserver.disconnect')
   @DocsEditable()
-  void disconnect() => blink.Native_MutationObserver_disconnect_Callback(this);
+  void disconnect() => _blink.Native_MutationObserver_disconnect_Callback(this);
 
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe(Node target, Map options) => blink.Native_MutationObserver_observe_Callback(this, target, options);
+  void _observe(Node target, Map options) => _blink.Native_MutationObserver_observe_Callback(this, target, options);
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
-  List<MutationRecord> takeRecords() => blink.Native_MutationObserver_takeRecords_Callback(this);
+  List<MutationRecord> takeRecords() => _blink.Native_MutationObserver_takeRecords_Callback(this);
 
   /**
    * Checks to see if the mutation observer API is supported on the current
@@ -20959,39 +20959,39 @@ class MutationRecord extends NativeFieldWrapperClass2 {
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
-  List<Node> get addedNodes => blink.Native_MutationRecord_addedNodes_Getter(this);
+  List<Node> get addedNodes => _blink.Native_MutationRecord_addedNodes_Getter(this);
 
   @DomName('MutationRecord.attributeName')
   @DocsEditable()
-  String get attributeName => blink.Native_MutationRecord_attributeName_Getter(this);
+  String get attributeName => _blink.Native_MutationRecord_attributeName_Getter(this);
 
   @DomName('MutationRecord.attributeNamespace')
   @DocsEditable()
-  String get attributeNamespace => blink.Native_MutationRecord_attributeNamespace_Getter(this);
+  String get attributeNamespace => _blink.Native_MutationRecord_attributeNamespace_Getter(this);
 
   @DomName('MutationRecord.nextSibling')
   @DocsEditable()
-  Node get nextSibling => blink.Native_MutationRecord_nextSibling_Getter(this);
+  Node get nextSibling => _blink.Native_MutationRecord_nextSibling_Getter(this);
 
   @DomName('MutationRecord.oldValue')
   @DocsEditable()
-  String get oldValue => blink.Native_MutationRecord_oldValue_Getter(this);
+  String get oldValue => _blink.Native_MutationRecord_oldValue_Getter(this);
 
   @DomName('MutationRecord.previousSibling')
   @DocsEditable()
-  Node get previousSibling => blink.Native_MutationRecord_previousSibling_Getter(this);
+  Node get previousSibling => _blink.Native_MutationRecord_previousSibling_Getter(this);
 
   @DomName('MutationRecord.removedNodes')
   @DocsEditable()
-  List<Node> get removedNodes => blink.Native_MutationRecord_removedNodes_Getter(this);
+  List<Node> get removedNodes => _blink.Native_MutationRecord_removedNodes_Getter(this);
 
   @DomName('MutationRecord.target')
   @DocsEditable()
-  Node get target => blink.Native_MutationRecord_target_Getter(this);
+  Node get target => _blink.Native_MutationRecord_target_Getter(this);
 
   @DomName('MutationRecord.type')
   @DocsEditable()
-  String get type => blink.Native_MutationRecord_type_Getter(this);
+  String get type => _blink.Native_MutationRecord_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21064,57 +21064,57 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @DomName('Navigator.cookieEnabled')
   @DocsEditable()
   @Unstable()
-  bool get cookieEnabled => blink.Native_Navigator_cookieEnabled_Getter(this);
+  bool get cookieEnabled => _blink.Native_Navigator_cookieEnabled_Getter(this);
 
   @DomName('Navigator.doNotTrack')
   @DocsEditable()
   // http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#js-dom
   @Experimental() // experimental
-  String get doNotTrack => blink.Native_Navigator_doNotTrack_Getter(this);
+  String get doNotTrack => _blink.Native_Navigator_doNotTrack_Getter(this);
 
   @DomName('Navigator.geolocation')
   @DocsEditable()
   @Unstable()
-  Geolocation get geolocation => blink.Native_Navigator_geolocation_Getter(this);
+  Geolocation get geolocation => _blink.Native_Navigator_geolocation_Getter(this);
 
   @DomName('Navigator.language')
   @DocsEditable()
-  String get language => blink.Native_Navigator_language_Getter(this);
+  String get language => _blink.Native_Navigator_language_Getter(this);
 
   @DomName('Navigator.maxTouchPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  int get maxTouchPoints => blink.Native_Navigator_maxTouchPoints_Getter(this);
+  int get maxTouchPoints => _blink.Native_Navigator_maxTouchPoints_Getter(this);
 
   @DomName('Navigator.mimeTypes')
   @DocsEditable()
   @Experimental() // nonstandard
-  MimeTypeArray get mimeTypes => blink.Native_Navigator_mimeTypes_Getter(this);
+  MimeTypeArray get mimeTypes => _blink.Native_Navigator_mimeTypes_Getter(this);
 
   @DomName('Navigator.productSub')
   @DocsEditable()
   @Unstable()
-  String get productSub => blink.Native_Navigator_productSub_Getter(this);
+  String get productSub => _blink.Native_Navigator_productSub_Getter(this);
 
   @DomName('Navigator.serviceWorker')
   @DocsEditable()
   @Experimental() // untriaged
-  ServiceWorkerContainer get serviceWorker => blink.Native_Navigator_serviceWorker_Getter(this);
+  ServiceWorkerContainer get serviceWorker => _blink.Native_Navigator_serviceWorker_Getter(this);
 
   @DomName('Navigator.storageQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  StorageQuota get storageQuota => blink.Native_Navigator_storageQuota_Getter(this);
+  StorageQuota get storageQuota => _blink.Native_Navigator_storageQuota_Getter(this);
 
   @DomName('Navigator.vendor')
   @DocsEditable()
   @Unstable()
-  String get vendor => blink.Native_Navigator_vendor_Getter(this);
+  String get vendor => _blink.Native_Navigator_vendor_Getter(this);
 
   @DomName('Navigator.vendorSub')
   @DocsEditable()
   @Unstable()
-  String get vendorSub => blink.Native_Navigator_vendorSub_Getter(this);
+  String get vendorSub => _blink.Native_Navigator_vendorSub_Getter(this);
 
   @DomName('Navigator.webkitPersistentStorage')
   @DocsEditable()
@@ -21122,7 +21122,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  DeprecatedStorageQuota get persistentStorage => blink.Native_Navigator_webkitPersistentStorage_Getter(this);
+  DeprecatedStorageQuota get persistentStorage => _blink.Native_Navigator_webkitPersistentStorage_Getter(this);
 
   @DomName('Navigator.webkitTemporaryStorage')
   @DocsEditable()
@@ -21130,33 +21130,33 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  DeprecatedStorageQuota get temporaryStorage => blink.Native_Navigator_webkitTemporaryStorage_Getter(this);
+  DeprecatedStorageQuota get temporaryStorage => _blink.Native_Navigator_webkitTemporaryStorage_Getter(this);
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
   @Experimental()
-  void getStorageUpdates() => blink.Native_Navigator_getStorageUpdates_Callback(this);
+  void getStorageUpdates() => _blink.Native_Navigator_getStorageUpdates_Callback(this);
 
   @DomName('Navigator.isProtocolHandlerRegistered')
   @DocsEditable()
   @Experimental() // untriaged
-  String isProtocolHandlerRegistered(String scheme, String url) => blink.Native_Navigator_isProtocolHandlerRegistered_Callback(this, scheme, url);
+  String isProtocolHandlerRegistered(String scheme, String url) => _blink.Native_Navigator_isProtocolHandlerRegistered_Callback(this, scheme, url);
 
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
-  void registerProtocolHandler(String scheme, String url, String title) => blink.Native_Navigator_registerProtocolHandler_Callback(this, scheme, url, title);
+  void registerProtocolHandler(String scheme, String url, String title) => _blink.Native_Navigator_registerProtocolHandler_Callback(this, scheme, url, title);
 
   @DomName('Navigator.requestMIDIAccess')
   @DocsEditable()
   @Experimental() // untriaged
-  MidiAccessPromise requestMidiAccess([Map options]) => blink.Native_Navigator_requestMIDIAccess_Callback(this, options);
+  MidiAccessPromise requestMidiAccess([Map options]) => _blink.Native_Navigator_requestMIDIAccess_Callback(this, options);
 
   @DomName('Navigator.unregisterProtocolHandler')
   @DocsEditable()
   @Experimental() // untriaged
-  void unregisterProtocolHandler(String scheme, String url) => blink.Native_Navigator_unregisterProtocolHandler_Callback(this, scheme, url);
+  void unregisterProtocolHandler(String scheme, String url) => _blink.Native_Navigator_unregisterProtocolHandler_Callback(this, scheme, url);
 
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable()
@@ -21164,44 +21164,44 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#widl-Navigator-getGamepads-Gamepad
-  List<Gamepad> getGamepads() => blink.Native_Navigator_webkitGetGamepads_Callback(this);
+  List<Gamepad> getGamepads() => _blink.Native_Navigator_webkitGetGamepads_Callback(this);
 
   @DomName('Navigator.webkitGetUserMedia')
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) => blink.Native_Navigator_webkitGetUserMedia_Callback(this, options, successCallback, errorCallback);
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) => _blink.Native_Navigator_webkitGetUserMedia_Callback(this, options, successCallback, errorCallback);
 
   @DomName('Navigator.appCodeName')
   @DocsEditable()
   @Experimental() // non-standard
-  String get appCodeName => blink.Native_Navigator_appCodeName_Getter(this);
+  String get appCodeName => _blink.Native_Navigator_appCodeName_Getter(this);
 
   @DomName('Navigator.appName')
   @DocsEditable()
-  String get appName => blink.Native_Navigator_appName_Getter(this);
+  String get appName => _blink.Native_Navigator_appName_Getter(this);
 
   @DomName('Navigator.appVersion')
   @DocsEditable()
-  String get appVersion => blink.Native_Navigator_appVersion_Getter(this);
+  String get appVersion => _blink.Native_Navigator_appVersion_Getter(this);
 
   @DomName('Navigator.platform')
   @DocsEditable()
-  String get platform => blink.Native_Navigator_platform_Getter(this);
+  String get platform => _blink.Native_Navigator_platform_Getter(this);
 
   @DomName('Navigator.product')
   @DocsEditable()
   @Unstable()
-  String get product => blink.Native_Navigator_product_Getter(this);
+  String get product => _blink.Native_Navigator_product_Getter(this);
 
   @DomName('Navigator.userAgent')
   @DocsEditable()
-  String get userAgent => blink.Native_Navigator_userAgent_Getter(this);
+  String get userAgent => _blink.Native_Navigator_userAgent_Getter(this);
 
   @DomName('Navigator.onLine')
   @DocsEditable()
   @Unstable()
-  bool get onLine => blink.Native_Navigator_onLine_Getter(this);
+  bool get onLine => _blink.Native_Navigator_onLine_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21221,32 +21221,32 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   @DomName('NavigatorID.appCodeName')
   @DocsEditable()
   @Experimental() // untriaged
-  String get appCodeName => blink.Native_NavigatorID_appCodeName_Getter(this);
+  String get appCodeName => _blink.Native_NavigatorID_appCodeName_Getter(this);
 
   @DomName('NavigatorID.appName')
   @DocsEditable()
   @Experimental() // untriaged
-  String get appName => blink.Native_NavigatorID_appName_Getter(this);
+  String get appName => _blink.Native_NavigatorID_appName_Getter(this);
 
   @DomName('NavigatorID.appVersion')
   @DocsEditable()
   @Experimental() // untriaged
-  String get appVersion => blink.Native_NavigatorID_appVersion_Getter(this);
+  String get appVersion => _blink.Native_NavigatorID_appVersion_Getter(this);
 
   @DomName('NavigatorID.platform')
   @DocsEditable()
   @Experimental() // untriaged
-  String get platform => blink.Native_NavigatorID_platform_Getter(this);
+  String get platform => _blink.Native_NavigatorID_platform_Getter(this);
 
   @DomName('NavigatorID.product')
   @DocsEditable()
   @Experimental() // untriaged
-  String get product => blink.Native_NavigatorID_product_Getter(this);
+  String get product => _blink.Native_NavigatorID_product_Getter(this);
 
   @DomName('NavigatorID.userAgent')
   @DocsEditable()
   @Experimental() // untriaged
-  String get userAgent => blink.Native_NavigatorID_userAgent_Getter(this);
+  String get userAgent => _blink.Native_NavigatorID_userAgent_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21266,7 +21266,7 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
   @DomName('NavigatorOnLine.onLine')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get onLine => blink.Native_NavigatorOnLine_onLine_Getter(this);
+  bool get onLine => _blink.Native_NavigatorOnLine_onLine_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21286,15 +21286,15 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
 
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable()
-  String get constraintName => blink.Native_NavigatorUserMediaError_constraintName_Getter(this);
+  String get constraintName => _blink.Native_NavigatorUserMediaError_constraintName_Getter(this);
 
   @DomName('NavigatorUserMediaError.message')
   @DocsEditable()
-  String get message => blink.Native_NavigatorUserMediaError_message_Getter(this);
+  String get message => _blink.Native_NavigatorUserMediaError_message_Getter(this);
 
   @DomName('NavigatorUserMediaError.name')
   @DocsEditable()
-  String get name => blink.Native_NavigatorUserMediaError_name_Getter(this);
+  String get name => _blink.Native_NavigatorUserMediaError_name_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21624,7 +21624,7 @@ class Node extends EventTarget {
 
   @DomName('Node.baseURI')
   @DocsEditable()
-  String get baseUri => blink.Native_Node_baseURI_Getter(this);
+  String get baseUri => _blink.Native_Node_baseURI_Getter(this);
 
   /**
    * A list of this node's children.
@@ -21637,7 +21637,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get childNodes => blink.Native_Node_childNodes_Getter(this);
+  List<Node> get childNodes => _blink.Native_Node_childNodes_Getter(this);
 
   /**
    * The first child of this node.
@@ -21650,7 +21650,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.firstChild')
   @DocsEditable()
-  Node get firstChild => blink.Native_Node_firstChild_Getter(this);
+  Node get firstChild => _blink.Native_Node_firstChild_Getter(this);
 
   /**
    * The last child of this node.
@@ -21663,15 +21663,15 @@ class Node extends EventTarget {
    */
   @DomName('Node.lastChild')
   @DocsEditable()
-  Node get lastChild => blink.Native_Node_lastChild_Getter(this);
+  Node get lastChild => _blink.Native_Node_lastChild_Getter(this);
 
   @DomName('Node.localName')
   @DocsEditable()
-  String get _localName => blink.Native_Node_localName_Getter(this);
+  String get _localName => _blink.Native_Node_localName_Getter(this);
 
   @DomName('Node.namespaceURI')
   @DocsEditable()
-  String get _namespaceUri => blink.Native_Node_namespaceURI_Getter(this);
+  String get _namespaceUri => _blink.Native_Node_namespaceURI_Getter(this);
 
   /**
    * The next sibling node.
@@ -21684,7 +21684,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.nextSibling')
   @DocsEditable()
-  Node get nextNode => blink.Native_Node_nextSibling_Getter(this);
+  Node get nextNode => _blink.Native_Node_nextSibling_Getter(this);
 
   /**
    * The name of this node.
@@ -21700,7 +21700,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.nodeName')
   @DocsEditable()
-  String get nodeName => blink.Native_Node_nodeName_Getter(this);
+  String get nodeName => _blink.Native_Node_nodeName_Getter(this);
 
   /**
    * The type of node.
@@ -21727,7 +21727,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.nodeType')
   @DocsEditable()
-  int get nodeType => blink.Native_Node_nodeType_Getter(this);
+  int get nodeType => _blink.Native_Node_nodeType_Getter(this);
 
   /**
    * The value of this node.
@@ -21743,7 +21743,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.nodeValue')
   @DocsEditable()
-  String get nodeValue => blink.Native_Node_nodeValue_Getter(this);
+  String get nodeValue => _blink.Native_Node_nodeValue_Getter(this);
 
   /**
    * The document this node belongs to.
@@ -21758,7 +21758,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.ownerDocument')
   @DocsEditable()
-  Document get ownerDocument => blink.Native_Node_ownerDocument_Getter(this);
+  Document get ownerDocument => _blink.Native_Node_ownerDocument_Getter(this);
 
   /**
    * The parent element of this node.
@@ -21774,7 +21774,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.parentElement')
   @DocsEditable()
-  Element get parent => blink.Native_Node_parentElement_Getter(this);
+  Element get parent => _blink.Native_Node_parentElement_Getter(this);
 
   /**
    * The parent node of this node.
@@ -21787,7 +21787,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.parentNode')
   @DocsEditable()
-  Node get parentNode => blink.Native_Node_parentNode_Getter(this);
+  Node get parentNode => _blink.Native_Node_parentNode_Getter(this);
 
   /**
    * The previous sibling node.
@@ -21800,7 +21800,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.previousSibling')
   @DocsEditable()
-  Node get previousNode => blink.Native_Node_previousSibling_Getter(this);
+  Node get previousNode => _blink.Native_Node_previousSibling_Getter(this);
 
   /**
    * All text within this node and its decendents.
@@ -21813,7 +21813,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.textContent')
   @DocsEditable()
-  String get text => blink.Native_Node_textContent_Getter(this);
+  String get text => _blink.Native_Node_textContent_Getter(this);
 
   /**
    * All text within this node and its decendents.
@@ -21826,7 +21826,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.textContent')
   @DocsEditable()
-  void set text(String value) => blink.Native_Node_textContent_Setter(this, value);
+  void set text(String value) => _blink.Native_Node_textContent_Setter(this, value);
 
   /**
    * Adds a node to the end of the child [nodes] list of this node.
@@ -21839,7 +21839,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.appendChild')
   @DocsEditable()
-  Node append(Node newChild) => blink.Native_Node_appendChild_Callback(this, newChild);
+  Node append(Node newChild) => _blink.Native_Node_appendChild_Callback(this, newChild);
 
   /**
    * Returns a copy of this node.
@@ -21855,7 +21855,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.cloneNode')
   @DocsEditable()
-  Node clone(bool deep) => blink.Native_Node_cloneNode_Callback(this, deep);
+  Node clone(bool deep) => _blink.Native_Node_cloneNode_Callback(this, deep);
 
   /**
    * Returns true if this node contains the specified node.
@@ -21867,7 +21867,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.contains')
   @DocsEditable()
-  bool contains(Node other) => blink.Native_Node_contains_Callback(this, other);
+  bool contains(Node other) => _blink.Native_Node_contains_Callback(this, other);
 
   /**
    * Returns true if this node has any children.
@@ -21880,7 +21880,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.hasChildNodes')
   @DocsEditable()
-  bool hasChildNodes() => blink.Native_Node_hasChildNodes_Callback(this);
+  bool hasChildNodes() => _blink.Native_Node_hasChildNodes_Callback(this);
 
   /**
    * Inserts all of the nodes into this node directly before refChild.
@@ -21893,27 +21893,27 @@ class Node extends EventTarget {
    */
   @DomName('Node.insertBefore')
   @DocsEditable()
-  Node insertBefore(Node newChild, Node refChild) => blink.Native_Node_insertBefore_Callback(this, newChild, refChild);
+  Node insertBefore(Node newChild, Node refChild) => _blink.Native_Node_insertBefore_Callback(this, newChild, refChild);
 
   @DomName('Node.removeChild')
   @DocsEditable()
-  Node _removeChild(Node oldChild) => blink.Native_Node_removeChild_Callback(this, oldChild);
+  Node _removeChild(Node oldChild) => _blink.Native_Node_removeChild_Callback(this, oldChild);
 
   @DomName('Node.replaceChild')
   @DocsEditable()
-  Node _replaceChild(Node newChild, Node oldChild) => blink.Native_Node_replaceChild_Callback(this, newChild, oldChild);
+  Node _replaceChild(Node newChild, Node oldChild) => _blink.Native_Node_replaceChild_Callback(this, newChild, oldChild);
 
   @DomName('Node.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Node_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Node_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Node.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_Node_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Node_dispatchEvent_Callback(this, event);
 
   @DomName('Node.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Node_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Node_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21991,31 +21991,31 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable()
-  bool get pointerBeforeReferenceNode => blink.Native_NodeIterator_pointerBeforeReferenceNode_Getter(this);
+  bool get pointerBeforeReferenceNode => _blink.Native_NodeIterator_pointerBeforeReferenceNode_Getter(this);
 
   @DomName('NodeIterator.referenceNode')
   @DocsEditable()
-  Node get referenceNode => blink.Native_NodeIterator_referenceNode_Getter(this);
+  Node get referenceNode => _blink.Native_NodeIterator_referenceNode_Getter(this);
 
   @DomName('NodeIterator.root')
   @DocsEditable()
-  Node get root => blink.Native_NodeIterator_root_Getter(this);
+  Node get root => _blink.Native_NodeIterator_root_Getter(this);
 
   @DomName('NodeIterator.whatToShow')
   @DocsEditable()
-  int get whatToShow => blink.Native_NodeIterator_whatToShow_Getter(this);
+  int get whatToShow => _blink.Native_NodeIterator_whatToShow_Getter(this);
 
   @DomName('NodeIterator.detach')
   @DocsEditable()
-  void detach() => blink.Native_NodeIterator_detach_Callback(this);
+  void detach() => _blink.Native_NodeIterator_detach_Callback(this);
 
   @DomName('NodeIterator.nextNode')
   @DocsEditable()
-  Node nextNode() => blink.Native_NodeIterator_nextNode_Callback(this);
+  Node nextNode() => _blink.Native_NodeIterator_nextNode_Callback(this);
 
   @DomName('NodeIterator.previousNode')
   @DocsEditable()
-  Node previousNode() => blink.Native_NodeIterator_previousNode_Callback(this);
+  Node previousNode() => _blink.Native_NodeIterator_previousNode_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22033,15 +22033,15 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 
   @DomName('NodeList.length')
   @DocsEditable()
-  int get length => blink.Native_NodeList_length_Getter(this);
+  int get length => _blink.Native_NodeList_length_Getter(this);
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_NodeList_NativeIndexed_Getter(this, index);
+    return _blink.Native_NodeList_NativeIndexed_Getter(this, index);
   }
 
-  Node _nativeIndexedGetter(int index) => blink.Native_NodeList_NativeIndexed_Getter(this, index);
+  Node _nativeIndexedGetter(int index) => _blink.Native_NodeList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -22083,7 +22083,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 
   @DomName('NodeList.item')
   @DocsEditable()
-  Node _item(int index) => blink.Native_NodeList_item_Callback(this, index);
+  Node _item(int index) => _blink.Native_NodeList_item_Callback(this, index);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -22158,49 +22158,49 @@ class Notification extends EventTarget {
   }
 
   @DocsEditable()
-  static Notification _create_1(title, options) => blink.Native_Notification__create_1constructorCallback(title, options);
+  static Notification _create_1(title, options) => _blink.Native_Notification__create_1constructorCallback(title, options);
 
   @DomName('Notification.body')
   @DocsEditable()
   @Experimental() // untriaged
-  String get body => blink.Native_Notification_body_Getter(this);
+  String get body => _blink.Native_Notification_body_Getter(this);
 
   @DomName('Notification.dir')
   @DocsEditable()
   @Experimental() // nonstandard
-  String get dir => blink.Native_Notification_dir_Getter(this);
+  String get dir => _blink.Native_Notification_dir_Getter(this);
 
   @DomName('Notification.icon')
   @DocsEditable()
   @Experimental() // untriaged
-  String get icon => blink.Native_Notification_icon_Getter(this);
+  String get icon => _blink.Native_Notification_icon_Getter(this);
 
   @DomName('Notification.lang')
   @DocsEditable()
   @Experimental() // untriaged
-  String get lang => blink.Native_Notification_lang_Getter(this);
+  String get lang => _blink.Native_Notification_lang_Getter(this);
 
   @DomName('Notification.permission')
   @DocsEditable()
-  String get permission => blink.Native_Notification_permission_Getter(this);
+  String get permission => _blink.Native_Notification_permission_Getter(this);
 
   @DomName('Notification.tag')
   @DocsEditable()
   @Experimental() // nonstandard
-  String get tag => blink.Native_Notification_tag_Getter(this);
+  String get tag => _blink.Native_Notification_tag_Getter(this);
 
   @DomName('Notification.title')
   @DocsEditable()
   @Experimental() // untriaged
-  String get title => blink.Native_Notification_title_Getter(this);
+  String get title => _blink.Native_Notification_title_Getter(this);
 
   @DomName('Notification.close')
   @DocsEditable()
-  void close() => blink.Native_Notification_close_Callback(this);
+  void close() => _blink.Native_Notification_close_Callback(this);
 
   @DomName('Notification.requestPermission')
   @DocsEditable()
-  static void _requestPermission([_NotificationPermissionCallback callback]) => blink.Native_Notification_requestPermission_Callback(callback);
+  static void _requestPermission([_NotificationPermissionCallback callback]) => _blink.Native_Notification_requestPermission_Callback(callback);
 
   static Future<String> requestPermission() {
     var completer = new Completer<String>();
@@ -22211,15 +22211,15 @@ class Notification extends EventTarget {
 
   @DomName('Notification.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Notification_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Notification_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Notification.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_Notification_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Notification_dispatchEvent_Callback(this, event);
 
   @DomName('Notification.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Notification_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Notification_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `click` events handled by this [Notification].
   @DomName('Notification.onclick')
@@ -22278,27 +22278,27 @@ class OListElement extends HtmlElement {
 
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
-  bool get reversed => blink.Native_HTMLOListElement_reversed_Getter(this);
+  bool get reversed => _blink.Native_HTMLOListElement_reversed_Getter(this);
 
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
-  void set reversed(bool value) => blink.Native_HTMLOListElement_reversed_Setter(this, value);
+  void set reversed(bool value) => _blink.Native_HTMLOListElement_reversed_Setter(this, value);
 
   @DomName('HTMLOListElement.start')
   @DocsEditable()
-  int get start => blink.Native_HTMLOListElement_start_Getter(this);
+  int get start => _blink.Native_HTMLOListElement_start_Getter(this);
 
   @DomName('HTMLOListElement.start')
   @DocsEditable()
-  void set start(int value) => blink.Native_HTMLOListElement_start_Setter(this, value);
+  void set start(int value) => _blink.Native_HTMLOListElement_start_Setter(this, value);
 
   @DomName('HTMLOListElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLOListElement_type_Getter(this);
+  String get type => _blink.Native_HTMLOListElement_type_Getter(this);
 
   @DomName('HTMLOListElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLOListElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLOListElement_type_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22333,83 +22333,83 @@ class ObjectElement extends HtmlElement {
 
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
-  String get data => blink.Native_HTMLObjectElement_data_Getter(this);
+  String get data => _blink.Native_HTMLObjectElement_data_Getter(this);
 
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
-  void set data(String value) => blink.Native_HTMLObjectElement_data_Setter(this, value);
+  void set data(String value) => _blink.Native_HTMLObjectElement_data_Setter(this, value);
 
   @DomName('HTMLObjectElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLObjectElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLObjectElement_form_Getter(this);
 
   @DomName('HTMLObjectElement.height')
   @DocsEditable()
-  String get height => blink.Native_HTMLObjectElement_height_Getter(this);
+  String get height => _blink.Native_HTMLObjectElement_height_Getter(this);
 
   @DomName('HTMLObjectElement.height')
   @DocsEditable()
-  void set height(String value) => blink.Native_HTMLObjectElement_height_Setter(this, value);
+  void set height(String value) => _blink.Native_HTMLObjectElement_height_Setter(this, value);
 
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLObjectElement_name_Getter(this);
+  String get name => _blink.Native_HTMLObjectElement_name_Getter(this);
 
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLObjectElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLObjectElement_name_Setter(this, value);
 
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLObjectElement_type_Getter(this);
+  String get type => _blink.Native_HTMLObjectElement_type_Getter(this);
 
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLObjectElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLObjectElement_type_Setter(this, value);
 
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
-  String get useMap => blink.Native_HTMLObjectElement_useMap_Getter(this);
+  String get useMap => _blink.Native_HTMLObjectElement_useMap_Getter(this);
 
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => blink.Native_HTMLObjectElement_useMap_Setter(this, value);
+  void set useMap(String value) => _blink.Native_HTMLObjectElement_useMap_Setter(this, value);
 
   @DomName('HTMLObjectElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLObjectElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLObjectElement_validationMessage_Getter(this);
 
   @DomName('HTMLObjectElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLObjectElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLObjectElement_validity_Getter(this);
 
   @DomName('HTMLObjectElement.width')
   @DocsEditable()
-  String get width => blink.Native_HTMLObjectElement_width_Getter(this);
+  String get width => _blink.Native_HTMLObjectElement_width_Getter(this);
 
   @DomName('HTMLObjectElement.width')
   @DocsEditable()
-  void set width(String value) => blink.Native_HTMLObjectElement_width_Setter(this, value);
+  void set width(String value) => _blink.Native_HTMLObjectElement_width_Setter(this, value);
 
   @DomName('HTMLObjectElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLObjectElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLObjectElement_willValidate_Getter(this);
 
   @DomName('HTMLObjectElement.__getter__')
   @DocsEditable()
-  bool __getter__(index_OR_name) => blink.Native_HTMLObjectElement___getter___Callback(this, index_OR_name);
+  bool __getter__(index_OR_name) => _blink.Native_HTMLObjectElement___getter___Callback(this, index_OR_name);
 
   @DomName('HTMLObjectElement.__setter__')
   @DocsEditable()
-  void __setter__(index_OR_name, Node value) => blink.Native_HTMLObjectElement___setter___Callback(this, index_OR_name, value);
+  void __setter__(index_OR_name, Node value) => _blink.Native_HTMLObjectElement___setter___Callback(this, index_OR_name, value);
 
   @DomName('HTMLObjectElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLObjectElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLObjectElement_checkValidity_Callback(this);
 
   @DomName('HTMLObjectElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLObjectElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLObjectElement_setCustomValidity_Callback(this, error);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22437,19 +22437,19 @@ class OptGroupElement extends HtmlElement {
 
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLOptGroupElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLOptGroupElement_disabled_Getter(this);
 
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLOptGroupElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLOptGroupElement_disabled_Setter(this, value);
 
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
-  String get label => blink.Native_HTMLOptGroupElement_label_Getter(this);
+  String get label => _blink.Native_HTMLOptGroupElement_label_Getter(this);
 
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
-  void set label(String value) => blink.Native_HTMLOptGroupElement_label_Setter(this, value);
+  void set label(String value) => _blink.Native_HTMLOptGroupElement_label_Setter(this, value);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -22470,7 +22470,7 @@ class OptionElement extends HtmlElement {
   }
 
   @DocsEditable()
-  static OptionElement _create_1(data, value, defaultSelected, selected) => blink.Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected);
+  static OptionElement _create_1(data, value, defaultSelected, selected) => _blink.Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected);
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22480,51 +22480,51 @@ class OptionElement extends HtmlElement {
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable()
-  bool get defaultSelected => blink.Native_HTMLOptionElement_defaultSelected_Getter(this);
+  bool get defaultSelected => _blink.Native_HTMLOptionElement_defaultSelected_Getter(this);
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable()
-  void set defaultSelected(bool value) => blink.Native_HTMLOptionElement_defaultSelected_Setter(this, value);
+  void set defaultSelected(bool value) => _blink.Native_HTMLOptionElement_defaultSelected_Setter(this, value);
 
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLOptionElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLOptionElement_disabled_Getter(this);
 
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLOptionElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLOptionElement_disabled_Setter(this, value);
 
   @DomName('HTMLOptionElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLOptionElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLOptionElement_form_Getter(this);
 
   @DomName('HTMLOptionElement.index')
   @DocsEditable()
-  int get index => blink.Native_HTMLOptionElement_index_Getter(this);
+  int get index => _blink.Native_HTMLOptionElement_index_Getter(this);
 
   @DomName('HTMLOptionElement.label')
   @DocsEditable()
-  String get label => blink.Native_HTMLOptionElement_label_Getter(this);
+  String get label => _blink.Native_HTMLOptionElement_label_Getter(this);
 
   @DomName('HTMLOptionElement.label')
   @DocsEditable()
-  void set label(String value) => blink.Native_HTMLOptionElement_label_Setter(this, value);
+  void set label(String value) => _blink.Native_HTMLOptionElement_label_Setter(this, value);
 
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
-  bool get selected => blink.Native_HTMLOptionElement_selected_Getter(this);
+  bool get selected => _blink.Native_HTMLOptionElement_selected_Getter(this);
 
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
-  void set selected(bool value) => blink.Native_HTMLOptionElement_selected_Setter(this, value);
+  void set selected(bool value) => _blink.Native_HTMLOptionElement_selected_Setter(this, value);
 
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLOptionElement_value_Getter(this);
+  String get value => _blink.Native_HTMLOptionElement_value_Getter(this);
 
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLOptionElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLOptionElement_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22558,64 +22558,64 @@ class OutputElement extends HtmlElement {
 
   @DomName('HTMLOutputElement.defaultValue')
   @DocsEditable()
-  String get defaultValue => blink.Native_HTMLOutputElement_defaultValue_Getter(this);
+  String get defaultValue => _blink.Native_HTMLOutputElement_defaultValue_Getter(this);
 
   @DomName('HTMLOutputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => blink.Native_HTMLOutputElement_defaultValue_Setter(this, value);
+  void set defaultValue(String value) => _blink.Native_HTMLOutputElement_defaultValue_Setter(this, value);
 
   @DomName('HTMLOutputElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLOutputElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLOutputElement_form_Getter(this);
 
   @DomName('HTMLOutputElement.htmlFor')
   @DocsEditable()
-  DomSettableTokenList get htmlFor => blink.Native_HTMLOutputElement_htmlFor_Getter(this);
+  DomSettableTokenList get htmlFor => _blink.Native_HTMLOutputElement_htmlFor_Getter(this);
 
   @DomName('HTMLOutputElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLOutputElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLOutputElement_labels_Getter(this);
 
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLOutputElement_name_Getter(this);
+  String get name => _blink.Native_HTMLOutputElement_name_Getter(this);
 
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLOutputElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLOutputElement_name_Setter(this, value);
 
   @DomName('HTMLOutputElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLOutputElement_type_Getter(this);
+  String get type => _blink.Native_HTMLOutputElement_type_Getter(this);
 
   @DomName('HTMLOutputElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLOutputElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLOutputElement_validationMessage_Getter(this);
 
   @DomName('HTMLOutputElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLOutputElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLOutputElement_validity_Getter(this);
 
   @DomName('HTMLOutputElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLOutputElement_value_Getter(this);
+  String get value => _blink.Native_HTMLOutputElement_value_Getter(this);
 
   @DomName('HTMLOutputElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLOutputElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLOutputElement_value_Setter(this, value);
 
   @DomName('HTMLOutputElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLOutputElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLOutputElement_willValidate_Getter(this);
 
   @DomName('HTMLOutputElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLOutputElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLOutputElement_checkValidity_Callback(this);
 
   @DomName('HTMLOutputElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLOutputElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLOutputElement_setCustomValidity_Callback(this, error);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22646,15 +22646,15 @@ class OverflowEvent extends Event {
 
   @DomName('OverflowEvent.horizontalOverflow')
   @DocsEditable()
-  bool get horizontalOverflow => blink.Native_OverflowEvent_horizontalOverflow_Getter(this);
+  bool get horizontalOverflow => _blink.Native_OverflowEvent_horizontalOverflow_Getter(this);
 
   @DomName('OverflowEvent.orient')
   @DocsEditable()
-  int get orient => blink.Native_OverflowEvent_orient_Getter(this);
+  int get orient => _blink.Native_OverflowEvent_orient_Getter(this);
 
   @DomName('OverflowEvent.verticalOverflow')
   @DocsEditable()
-  bool get verticalOverflow => blink.Native_OverflowEvent_verticalOverflow_Getter(this);
+  bool get verticalOverflow => _blink.Native_OverflowEvent_verticalOverflow_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22674,7 +22674,7 @@ class PageTransitionEvent extends Event {
 
   @DomName('PageTransitionEvent.persisted')
   @DocsEditable()
-  bool get persisted => blink.Native_PageTransitionEvent_persisted_Getter(this);
+  bool get persisted => _blink.Native_PageTransitionEvent_persisted_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22727,19 +22727,19 @@ class ParamElement extends HtmlElement {
 
   @DomName('HTMLParamElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLParamElement_name_Getter(this);
+  String get name => _blink.Native_HTMLParamElement_name_Getter(this);
 
   @DomName('HTMLParamElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLParamElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLParamElement_name_Setter(this, value);
 
   @DomName('HTMLParamElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLParamElement_value_Getter(this);
+  String get value => _blink.Native_HTMLParamElement_value_Getter(this);
 
   @DomName('HTMLParamElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLParamElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLParamElement_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22759,22 +22759,22 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
   @Experimental() // untriaged
-  int get _childElementCount => blink.Native_ParentNode_childElementCount_Getter(this);
+  int get _childElementCount => _blink.Native_ParentNode_childElementCount_Getter(this);
 
   @DomName('ParentNode.children')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> get _children => blink.Native_ParentNode_children_Getter(this);
+  List<Node> get _children => _blink.Native_ParentNode_children_Getter(this);
 
   @DomName('ParentNode.firstElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get _firstElementChild => blink.Native_ParentNode_firstElementChild_Getter(this);
+  Element get _firstElementChild => _blink.Native_ParentNode_firstElementChild_Getter(this);
 
   @DomName('ParentNode.lastElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get _lastElementChild => blink.Native_ParentNode_lastElementChild_Getter(this);
+  Element get _lastElementChild => _blink.Native_ParentNode_lastElementChild_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22808,45 +22808,45 @@ class Path extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static Path _create_1() => blink.Native_Path__create_1constructorCallback();
+  static Path _create_1() => _blink.Native_Path__create_1constructorCallback();
 
   @DocsEditable()
-  static Path _create_2(path_OR_text) => blink.Native_Path__create_2constructorCallback(path_OR_text);
+  static Path _create_2(path_OR_text) => _blink.Native_Path__create_2constructorCallback(path_OR_text);
 
   @DocsEditable()
-  static Path _create_3(path_OR_text) => blink.Native_Path__create_3constructorCallback(path_OR_text);
+  static Path _create_3(path_OR_text) => _blink.Native_Path__create_3constructorCallback(path_OR_text);
 
   @DomName('Path.arc')
   @DocsEditable()
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => blink.Native_Path_arc_Callback(this, x, y, radius, startAngle, endAngle, anticlockwise);
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => _blink.Native_Path_arc_Callback(this, x, y, radius, startAngle, endAngle, anticlockwise);
 
   @DomName('Path.arcTo')
   @DocsEditable()
-  void arcTo(num x1, num y1, num x2, num y2, num radius) => blink.Native_Path_arcTo_Callback(this, x1, y1, x2, y2, radius);
+  void arcTo(num x1, num y1, num x2, num y2, num radius) => _blink.Native_Path_arcTo_Callback(this, x1, y1, x2, y2, radius);
 
   @DomName('Path.bezierCurveTo')
   @DocsEditable()
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) => blink.Native_Path_bezierCurveTo_Callback(this, cp1x, cp1y, cp2x, cp2y, x, y);
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) => _blink.Native_Path_bezierCurveTo_Callback(this, cp1x, cp1y, cp2x, cp2y, x, y);
 
   @DomName('Path.closePath')
   @DocsEditable()
-  void closePath() => blink.Native_Path_closePath_Callback(this);
+  void closePath() => _blink.Native_Path_closePath_Callback(this);
 
   @DomName('Path.lineTo')
   @DocsEditable()
-  void lineTo(num x, num y) => blink.Native_Path_lineTo_Callback(this, x, y);
+  void lineTo(num x, num y) => _blink.Native_Path_lineTo_Callback(this, x, y);
 
   @DomName('Path.moveTo')
   @DocsEditable()
-  void moveTo(num x, num y) => blink.Native_Path_moveTo_Callback(this, x, y);
+  void moveTo(num x, num y) => _blink.Native_Path_moveTo_Callback(this, x, y);
 
   @DomName('Path.quadraticCurveTo')
   @DocsEditable()
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) => blink.Native_Path_quadraticCurveTo_Callback(this, cpx, cpy, x, y);
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) => _blink.Native_Path_quadraticCurveTo_Callback(this, cpx, cpy, x, y);
 
   @DomName('Path.rect')
   @DocsEditable()
-  void rect(num x, num y, num width, num height) => blink.Native_Path_rect_Callback(this, x, y, width, height);
+  void rect(num x, num y, num width, num height) => _blink.Native_Path_rect_Callback(this, x, y, width, height);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22885,61 +22885,61 @@ class Performance extends EventTarget {
   @DomName('Performance.memory')
   @DocsEditable()
   @Experimental() // nonstandard
-  MemoryInfo get memory => blink.Native_Performance_memory_Getter(this);
+  MemoryInfo get memory => _blink.Native_Performance_memory_Getter(this);
 
   @DomName('Performance.navigation')
   @DocsEditable()
-  PerformanceNavigation get navigation => blink.Native_Performance_navigation_Getter(this);
+  PerformanceNavigation get navigation => _blink.Native_Performance_navigation_Getter(this);
 
   @DomName('Performance.timing')
   @DocsEditable()
-  PerformanceTiming get timing => blink.Native_Performance_timing_Getter(this);
+  PerformanceTiming get timing => _blink.Native_Performance_timing_Getter(this);
 
   @DomName('Performance.clearMarks')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
-  void clearMarks(String markName) => blink.Native_Performance_clearMarks_Callback(this, markName);
+  void clearMarks(String markName) => _blink.Native_Performance_clearMarks_Callback(this, markName);
 
   @DomName('Performance.clearMeasures')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
-  void clearMeasures(String measureName) => blink.Native_Performance_clearMeasures_Callback(this, measureName);
+  void clearMeasures(String measureName) => _blink.Native_Performance_clearMeasures_Callback(this, measureName);
 
   @DomName('Performance.getEntries')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntries() => blink.Native_Performance_getEntries_Callback(this);
+  List<PerformanceEntry> getEntries() => _blink.Native_Performance_getEntries_Callback(this);
 
   @DomName('Performance.getEntriesByName')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) => blink.Native_Performance_getEntriesByName_Callback(this, name, entryType);
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => _blink.Native_Performance_getEntriesByName_Callback(this, name, entryType);
 
   @DomName('Performance.getEntriesByType')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByType(String entryType) => blink.Native_Performance_getEntriesByType_Callback(this, entryType);
+  List<PerformanceEntry> getEntriesByType(String entryType) => _blink.Native_Performance_getEntriesByType_Callback(this, entryType);
 
   @DomName('Performance.mark')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
-  void mark(String markName) => blink.Native_Performance_mark_Callback(this, markName);
+  void mark(String markName) => _blink.Native_Performance_mark_Callback(this, markName);
 
   @DomName('Performance.measure')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
-  void measure(String measureName, String startMark, String endMark) => blink.Native_Performance_measure_Callback(this, measureName, startMark, endMark);
+  void measure(String measureName, String startMark, String endMark) => _blink.Native_Performance_measure_Callback(this, measureName, startMark, endMark);
 
   @DomName('Performance.now')
   @DocsEditable()
-  double now() => blink.Native_Performance_now_Callback(this);
+  double now() => _blink.Native_Performance_now_Callback(this);
 
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -22947,7 +22947,7 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#extensions-performance-interface
-  void clearResourceTimings() => blink.Native_Performance_webkitClearResourceTimings_Callback(this);
+  void clearResourceTimings() => _blink.Native_Performance_webkitClearResourceTimings_Callback(this);
 
   @DomName('Performance.webkitSetResourceTimingBufferSize')
   @DocsEditable()
@@ -22955,22 +22955,22 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
-  void setResourceTimingBufferSize(int maxSize) => blink.Native_Performance_webkitSetResourceTimingBufferSize_Callback(this, maxSize);
+  void setResourceTimingBufferSize(int maxSize) => _blink.Native_Performance_webkitSetResourceTimingBufferSize_Callback(this, maxSize);
 
   @DomName('Performance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Performance_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Performance_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Performance.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_Performance_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Performance_dispatchEvent_Callback(this, event);
 
   @DomName('Performance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Performance_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Performance_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `resourcetimingbufferfull` events handled by this [Performance].
   @DomName('Performance.onwebkitresourcetimingbufferfull')
@@ -22997,19 +22997,19 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  double get duration => blink.Native_PerformanceEntry_duration_Getter(this);
+  double get duration => _blink.Native_PerformanceEntry_duration_Getter(this);
 
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
-  String get entryType => blink.Native_PerformanceEntry_entryType_Getter(this);
+  String get entryType => _blink.Native_PerformanceEntry_entryType_Getter(this);
 
   @DomName('PerformanceEntry.name')
   @DocsEditable()
-  String get name => blink.Native_PerformanceEntry_name_Getter(this);
+  String get name => _blink.Native_PerformanceEntry_name_Getter(this);
 
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  double get startTime => blink.Native_PerformanceEntry_startTime_Getter(this);
+  double get startTime => _blink.Native_PerformanceEntry_startTime_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23076,11 +23076,11 @@ class PerformanceNavigation extends NativeFieldWrapperClass2 {
 
   @DomName('PerformanceNavigation.redirectCount')
   @DocsEditable()
-  int get redirectCount => blink.Native_PerformanceNavigation_redirectCount_Getter(this);
+  int get redirectCount => _blink.Native_PerformanceNavigation_redirectCount_Getter(this);
 
   @DomName('PerformanceNavigation.type')
   @DocsEditable()
-  int get type => blink.Native_PerformanceNavigation_type_Getter(this);
+  int get type => _blink.Native_PerformanceNavigation_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23100,54 +23100,54 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  double get connectEnd => blink.Native_PerformanceResourceTiming_connectEnd_Getter(this);
+  double get connectEnd => _blink.Native_PerformanceResourceTiming_connectEnd_Getter(this);
 
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  double get connectStart => blink.Native_PerformanceResourceTiming_connectStart_Getter(this);
+  double get connectStart => _blink.Native_PerformanceResourceTiming_connectStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  double get domainLookupEnd => blink.Native_PerformanceResourceTiming_domainLookupEnd_Getter(this);
+  double get domainLookupEnd => _blink.Native_PerformanceResourceTiming_domainLookupEnd_Getter(this);
 
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  double get domainLookupStart => blink.Native_PerformanceResourceTiming_domainLookupStart_Getter(this);
+  double get domainLookupStart => _blink.Native_PerformanceResourceTiming_domainLookupStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  double get fetchStart => blink.Native_PerformanceResourceTiming_fetchStart_Getter(this);
+  double get fetchStart => _blink.Native_PerformanceResourceTiming_fetchStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
-  String get initiatorType => blink.Native_PerformanceResourceTiming_initiatorType_Getter(this);
+  String get initiatorType => _blink.Native_PerformanceResourceTiming_initiatorType_Getter(this);
 
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  double get redirectEnd => blink.Native_PerformanceResourceTiming_redirectEnd_Getter(this);
+  double get redirectEnd => _blink.Native_PerformanceResourceTiming_redirectEnd_Getter(this);
 
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  double get redirectStart => blink.Native_PerformanceResourceTiming_redirectStart_Getter(this);
+  double get redirectStart => _blink.Native_PerformanceResourceTiming_redirectStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get requestStart => blink.Native_PerformanceResourceTiming_requestStart_Getter(this);
+  double get requestStart => _blink.Native_PerformanceResourceTiming_requestStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseEnd => blink.Native_PerformanceResourceTiming_responseEnd_Getter(this);
+  double get responseEnd => _blink.Native_PerformanceResourceTiming_responseEnd_Getter(this);
 
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseStart => blink.Native_PerformanceResourceTiming_responseStart_Getter(this);
+  double get responseStart => _blink.Native_PerformanceResourceTiming_responseStart_Getter(this);
 
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  double get secureConnectionStart => blink.Native_PerformanceResourceTiming_secureConnectionStart_Getter(this);
+  double get secureConnectionStart => _blink.Native_PerformanceResourceTiming_secureConnectionStart_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23166,87 +23166,87 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable()
-  int get connectEnd => blink.Native_PerformanceTiming_connectEnd_Getter(this);
+  int get connectEnd => _blink.Native_PerformanceTiming_connectEnd_Getter(this);
 
   @DomName('PerformanceTiming.connectStart')
   @DocsEditable()
-  int get connectStart => blink.Native_PerformanceTiming_connectStart_Getter(this);
+  int get connectStart => _blink.Native_PerformanceTiming_connectStart_Getter(this);
 
   @DomName('PerformanceTiming.domComplete')
   @DocsEditable()
-  int get domComplete => blink.Native_PerformanceTiming_domComplete_Getter(this);
+  int get domComplete => _blink.Native_PerformanceTiming_domComplete_Getter(this);
 
   @DomName('PerformanceTiming.domContentLoadedEventEnd')
   @DocsEditable()
-  int get domContentLoadedEventEnd => blink.Native_PerformanceTiming_domContentLoadedEventEnd_Getter(this);
+  int get domContentLoadedEventEnd => _blink.Native_PerformanceTiming_domContentLoadedEventEnd_Getter(this);
 
   @DomName('PerformanceTiming.domContentLoadedEventStart')
   @DocsEditable()
-  int get domContentLoadedEventStart => blink.Native_PerformanceTiming_domContentLoadedEventStart_Getter(this);
+  int get domContentLoadedEventStart => _blink.Native_PerformanceTiming_domContentLoadedEventStart_Getter(this);
 
   @DomName('PerformanceTiming.domInteractive')
   @DocsEditable()
-  int get domInteractive => blink.Native_PerformanceTiming_domInteractive_Getter(this);
+  int get domInteractive => _blink.Native_PerformanceTiming_domInteractive_Getter(this);
 
   @DomName('PerformanceTiming.domLoading')
   @DocsEditable()
-  int get domLoading => blink.Native_PerformanceTiming_domLoading_Getter(this);
+  int get domLoading => _blink.Native_PerformanceTiming_domLoading_Getter(this);
 
   @DomName('PerformanceTiming.domainLookupEnd')
   @DocsEditable()
-  int get domainLookupEnd => blink.Native_PerformanceTiming_domainLookupEnd_Getter(this);
+  int get domainLookupEnd => _blink.Native_PerformanceTiming_domainLookupEnd_Getter(this);
 
   @DomName('PerformanceTiming.domainLookupStart')
   @DocsEditable()
-  int get domainLookupStart => blink.Native_PerformanceTiming_domainLookupStart_Getter(this);
+  int get domainLookupStart => _blink.Native_PerformanceTiming_domainLookupStart_Getter(this);
 
   @DomName('PerformanceTiming.fetchStart')
   @DocsEditable()
-  int get fetchStart => blink.Native_PerformanceTiming_fetchStart_Getter(this);
+  int get fetchStart => _blink.Native_PerformanceTiming_fetchStart_Getter(this);
 
   @DomName('PerformanceTiming.loadEventEnd')
   @DocsEditable()
-  int get loadEventEnd => blink.Native_PerformanceTiming_loadEventEnd_Getter(this);
+  int get loadEventEnd => _blink.Native_PerformanceTiming_loadEventEnd_Getter(this);
 
   @DomName('PerformanceTiming.loadEventStart')
   @DocsEditable()
-  int get loadEventStart => blink.Native_PerformanceTiming_loadEventStart_Getter(this);
+  int get loadEventStart => _blink.Native_PerformanceTiming_loadEventStart_Getter(this);
 
   @DomName('PerformanceTiming.navigationStart')
   @DocsEditable()
-  int get navigationStart => blink.Native_PerformanceTiming_navigationStart_Getter(this);
+  int get navigationStart => _blink.Native_PerformanceTiming_navigationStart_Getter(this);
 
   @DomName('PerformanceTiming.redirectEnd')
   @DocsEditable()
-  int get redirectEnd => blink.Native_PerformanceTiming_redirectEnd_Getter(this);
+  int get redirectEnd => _blink.Native_PerformanceTiming_redirectEnd_Getter(this);
 
   @DomName('PerformanceTiming.redirectStart')
   @DocsEditable()
-  int get redirectStart => blink.Native_PerformanceTiming_redirectStart_Getter(this);
+  int get redirectStart => _blink.Native_PerformanceTiming_redirectStart_Getter(this);
 
   @DomName('PerformanceTiming.requestStart')
   @DocsEditable()
-  int get requestStart => blink.Native_PerformanceTiming_requestStart_Getter(this);
+  int get requestStart => _blink.Native_PerformanceTiming_requestStart_Getter(this);
 
   @DomName('PerformanceTiming.responseEnd')
   @DocsEditable()
-  int get responseEnd => blink.Native_PerformanceTiming_responseEnd_Getter(this);
+  int get responseEnd => _blink.Native_PerformanceTiming_responseEnd_Getter(this);
 
   @DomName('PerformanceTiming.responseStart')
   @DocsEditable()
-  int get responseStart => blink.Native_PerformanceTiming_responseStart_Getter(this);
+  int get responseStart => _blink.Native_PerformanceTiming_responseStart_Getter(this);
 
   @DomName('PerformanceTiming.secureConnectionStart')
   @DocsEditable()
-  int get secureConnectionStart => blink.Native_PerformanceTiming_secureConnectionStart_Getter(this);
+  int get secureConnectionStart => _blink.Native_PerformanceTiming_secureConnectionStart_Getter(this);
 
   @DomName('PerformanceTiming.unloadEventEnd')
   @DocsEditable()
-  int get unloadEventEnd => blink.Native_PerformanceTiming_unloadEventEnd_Getter(this);
+  int get unloadEventEnd => _blink.Native_PerformanceTiming_unloadEventEnd_Getter(this);
 
   @DomName('PerformanceTiming.unloadEventStart')
   @DocsEditable()
-  int get unloadEventStart => blink.Native_PerformanceTiming_unloadEventStart_Getter(this);
+  int get unloadEventStart => _blink.Native_PerformanceTiming_unloadEventStart_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23266,82 +23266,82 @@ class Player extends NativeFieldWrapperClass2 {
   @DomName('Player.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  num get currentTime => blink.Native_Player_currentTime_Getter(this);
+  num get currentTime => _blink.Native_Player_currentTime_Getter(this);
 
   @DomName('Player.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTime(num value) => blink.Native_Player_currentTime_Setter(this, value);
+  void set currentTime(num value) => _blink.Native_Player_currentTime_Setter(this, value);
 
   @DomName('Player.finished')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get finished => blink.Native_Player_finished_Getter(this);
+  bool get finished => _blink.Native_Player_finished_Getter(this);
 
   @DomName('Player.paused')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get paused => blink.Native_Player_paused_Getter(this);
+  bool get paused => _blink.Native_Player_paused_Getter(this);
 
   @DomName('Player.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  num get playbackRate => blink.Native_Player_playbackRate_Getter(this);
+  num get playbackRate => _blink.Native_Player_playbackRate_Getter(this);
 
   @DomName('Player.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => blink.Native_Player_playbackRate_Setter(this, value);
+  void set playbackRate(num value) => _blink.Native_Player_playbackRate_Setter(this, value);
 
   @DomName('Player.source')
   @DocsEditable()
   @Experimental() // untriaged
-  TimedItem get source => blink.Native_Player_source_Getter(this);
+  TimedItem get source => _blink.Native_Player_source_Getter(this);
 
   @DomName('Player.source')
   @DocsEditable()
   @Experimental() // untriaged
-  void set source(TimedItem value) => blink.Native_Player_source_Setter(this, value);
+  void set source(TimedItem value) => _blink.Native_Player_source_Setter(this, value);
 
   @DomName('Player.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  num get startTime => blink.Native_Player_startTime_Getter(this);
+  num get startTime => _blink.Native_Player_startTime_Getter(this);
 
   @DomName('Player.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set startTime(num value) => blink.Native_Player_startTime_Setter(this, value);
+  void set startTime(num value) => _blink.Native_Player_startTime_Setter(this, value);
 
   @DomName('Player.timeLag')
   @DocsEditable()
   @Experimental() // untriaged
-  double get timeLag => blink.Native_Player_timeLag_Getter(this);
+  double get timeLag => _blink.Native_Player_timeLag_Getter(this);
 
   @DomName('Player.cancel')
   @DocsEditable()
   @Experimental() // untriaged
-  void cancel() => blink.Native_Player_cancel_Callback(this);
+  void cancel() => _blink.Native_Player_cancel_Callback(this);
 
   @DomName('Player.finish')
   @DocsEditable()
   @Experimental() // untriaged
-  void finish() => blink.Native_Player_finish_Callback(this);
+  void finish() => _blink.Native_Player_finish_Callback(this);
 
   @DomName('Player.pause')
   @DocsEditable()
   @Experimental() // untriaged
-  void pause() => blink.Native_Player_pause_Callback(this);
+  void pause() => _blink.Native_Player_pause_Callback(this);
 
   @DomName('Player.play')
   @DocsEditable()
   @Experimental() // untriaged
-  void play() => blink.Native_Player_play_Callback(this);
+  void play() => _blink.Native_Player_play_Callback(this);
 
   @DomName('Player.reverse')
   @DocsEditable()
   @Experimental() // untriaged
-  void reverse() => blink.Native_Player_reverse_Callback(this);
+  void reverse() => _blink.Native_Player_reverse_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23360,31 +23360,31 @@ class Plugin extends NativeFieldWrapperClass2 {
 
   @DomName('Plugin.description')
   @DocsEditable()
-  String get description => blink.Native_Plugin_description_Getter(this);
+  String get description => _blink.Native_Plugin_description_Getter(this);
 
   @DomName('Plugin.filename')
   @DocsEditable()
-  String get filename => blink.Native_Plugin_filename_Getter(this);
+  String get filename => _blink.Native_Plugin_filename_Getter(this);
 
   @DomName('Plugin.length')
   @DocsEditable()
-  int get length => blink.Native_Plugin_length_Getter(this);
+  int get length => _blink.Native_Plugin_length_Getter(this);
 
   @DomName('Plugin.name')
   @DocsEditable()
-  String get name => blink.Native_Plugin_name_Getter(this);
+  String get name => _blink.Native_Plugin_name_Getter(this);
 
   @DomName('Plugin.__getter__')
   @DocsEditable()
-  MimeType __getter__(String name) => blink.Native_Plugin___getter___Callback(this, name);
+  MimeType __getter__(String name) => _blink.Native_Plugin___getter___Callback(this, name);
 
   @DomName('Plugin.item')
   @DocsEditable()
-  MimeType item(int index) => blink.Native_Plugin_item_Callback(this, index);
+  MimeType item(int index) => _blink.Native_Plugin_item_Callback(this, index);
 
   @DomName('Plugin.namedItem')
   @DocsEditable()
-  MimeType namedItem(String name) => blink.Native_Plugin_namedItem_Callback(this, name);
+  MimeType namedItem(String name) => _blink.Native_Plugin_namedItem_Callback(this, name);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23403,15 +23403,15 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
 
   @DomName('PluginArray.length')
   @DocsEditable()
-  int get length => blink.Native_PluginArray_length_Getter(this);
+  int get length => _blink.Native_PluginArray_length_Getter(this);
 
   Plugin operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_PluginArray_NativeIndexed_Getter(this, index);
+    return _blink.Native_PluginArray_NativeIndexed_Getter(this, index);
   }
 
-  Plugin _nativeIndexedGetter(int index) => blink.Native_PluginArray_NativeIndexed_Getter(this, index);
+  Plugin _nativeIndexedGetter(int index) => _blink.Native_PluginArray_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23453,19 +23453,19 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
 
   @DomName('PluginArray.__getter__')
   @DocsEditable()
-  Plugin __getter__(String name) => blink.Native_PluginArray___getter___Callback(this, name);
+  Plugin __getter__(String name) => _blink.Native_PluginArray___getter___Callback(this, name);
 
   @DomName('PluginArray.item')
   @DocsEditable()
-  Plugin item(int index) => blink.Native_PluginArray_item_Callback(this, index);
+  Plugin item(int index) => _blink.Native_PluginArray_item_Callback(this, index);
 
   @DomName('PluginArray.namedItem')
   @DocsEditable()
-  Plugin namedItem(String name) => blink.Native_PluginArray_namedItem_Callback(this, name);
+  Plugin namedItem(String name) => _blink.Native_PluginArray_namedItem_Callback(this, name);
 
   @DomName('PluginArray.refresh')
   @DocsEditable()
-  void refresh(bool reload) => blink.Native_PluginArray_refresh_Callback(this, reload);
+  void refresh(bool reload) => _blink.Native_PluginArray_refresh_Callback(this, reload);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23487,7 +23487,7 @@ class PopStateEvent extends Event {
 
   @DomName('PopStateEvent.state')
   @DocsEditable()
-  Object get state => blink.Native_PopStateEvent_state_Getter(this);
+  Object get state => _blink.Native_PopStateEvent_state_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23528,11 +23528,11 @@ class PositionError extends NativeFieldWrapperClass2 {
 
   @DomName('PositionError.code')
   @DocsEditable()
-  int get code => blink.Native_PositionError_code_Getter(this);
+  int get code => _blink.Native_PositionError_code_Getter(this);
 
   @DomName('PositionError.message')
   @DocsEditable()
-  String get message => blink.Native_PositionError_message_Getter(this);
+  String get message => _blink.Native_PositionError_message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23586,11 +23586,11 @@ class ProcessingInstruction extends CharacterData {
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable()
   @Experimental() // non-standard
-  StyleSheet get sheet => blink.Native_ProcessingInstruction_sheet_Getter(this);
+  StyleSheet get sheet => _blink.Native_ProcessingInstruction_sheet_Getter(this);
 
   @DomName('ProcessingInstruction.target')
   @DocsEditable()
-  String get target => blink.Native_ProcessingInstruction_target_Getter(this);
+  String get target => _blink.Native_ProcessingInstruction_target_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23626,27 +23626,27 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLProgressElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLProgressElement_labels_Getter(this);
 
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
-  num get max => blink.Native_HTMLProgressElement_max_Getter(this);
+  num get max => _blink.Native_HTMLProgressElement_max_Getter(this);
 
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
-  void set max(num value) => blink.Native_HTMLProgressElement_max_Setter(this, value);
+  void set max(num value) => _blink.Native_HTMLProgressElement_max_Setter(this, value);
 
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  double get position => blink.Native_HTMLProgressElement_position_Getter(this);
+  double get position => _blink.Native_HTMLProgressElement_position_Getter(this);
 
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
-  num get value => blink.Native_HTMLProgressElement_value_Getter(this);
+  num get value => _blink.Native_HTMLProgressElement_value_Getter(this);
 
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
-  void set value(num value) => blink.Native_HTMLProgressElement_value_Setter(this, value);
+  void set value(num value) => _blink.Native_HTMLProgressElement_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23664,15 +23664,15 @@ class ProgressEvent extends Event {
 
   @DomName('ProgressEvent.lengthComputable')
   @DocsEditable()
-  bool get lengthComputable => blink.Native_ProgressEvent_lengthComputable_Getter(this);
+  bool get lengthComputable => _blink.Native_ProgressEvent_lengthComputable_Getter(this);
 
   @DomName('ProgressEvent.loaded')
   @DocsEditable()
-  int get loaded => blink.Native_ProgressEvent_loaded_Getter(this);
+  int get loaded => _blink.Native_ProgressEvent_loaded_Getter(this);
 
   @DomName('ProgressEvent.total')
   @DocsEditable()
-  int get total => blink.Native_ProgressEvent_total_Getter(this);
+  int get total => _blink.Native_ProgressEvent_total_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23700,11 +23700,11 @@ class QuoteElement extends HtmlElement {
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
-  String get cite => blink.Native_HTMLQuoteElement_cite_Getter(this);
+  String get cite => _blink.Native_HTMLQuoteElement_cite_Getter(this);
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
-  void set cite(String value) => blink.Native_HTMLQuoteElement_cite_Setter(this, value);
+  void set cite(String value) => _blink.Native_HTMLQuoteElement_cite_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23795,120 +23795,120 @@ class Range extends NativeFieldWrapperClass2 {
 
   @DomName('Range.collapsed')
   @DocsEditable()
-  bool get collapsed => blink.Native_Range_collapsed_Getter(this);
+  bool get collapsed => _blink.Native_Range_collapsed_Getter(this);
 
   @DomName('Range.commonAncestorContainer')
   @DocsEditable()
-  Node get commonAncestorContainer => blink.Native_Range_commonAncestorContainer_Getter(this);
+  Node get commonAncestorContainer => _blink.Native_Range_commonAncestorContainer_Getter(this);
 
   @DomName('Range.endContainer')
   @DocsEditable()
-  Node get endContainer => blink.Native_Range_endContainer_Getter(this);
+  Node get endContainer => _blink.Native_Range_endContainer_Getter(this);
 
   @DomName('Range.endOffset')
   @DocsEditable()
-  int get endOffset => blink.Native_Range_endOffset_Getter(this);
+  int get endOffset => _blink.Native_Range_endOffset_Getter(this);
 
   @DomName('Range.startContainer')
   @DocsEditable()
-  Node get startContainer => blink.Native_Range_startContainer_Getter(this);
+  Node get startContainer => _blink.Native_Range_startContainer_Getter(this);
 
   @DomName('Range.startOffset')
   @DocsEditable()
-  int get startOffset => blink.Native_Range_startOffset_Getter(this);
+  int get startOffset => _blink.Native_Range_startOffset_Getter(this);
 
   @DomName('Range.cloneContents')
   @DocsEditable()
-  DocumentFragment cloneContents() => blink.Native_Range_cloneContents_Callback(this);
+  DocumentFragment cloneContents() => _blink.Native_Range_cloneContents_Callback(this);
 
   @DomName('Range.cloneRange')
   @DocsEditable()
-  Range cloneRange() => blink.Native_Range_cloneRange_Callback(this);
+  Range cloneRange() => _blink.Native_Range_cloneRange_Callback(this);
 
   @DomName('Range.collapse')
   @DocsEditable()
-  void collapse(bool toStart) => blink.Native_Range_collapse_Callback(this, toStart);
+  void collapse(bool toStart) => _blink.Native_Range_collapse_Callback(this, toStart);
 
   @DomName('Range.comparePoint')
   @DocsEditable()
-  int comparePoint(Node refNode, int offset) => blink.Native_Range_comparePoint_Callback(this, refNode, offset);
+  int comparePoint(Node refNode, int offset) => _blink.Native_Range_comparePoint_Callback(this, refNode, offset);
 
   @DomName('Range.createContextualFragment')
   @DocsEditable()
-  DocumentFragment createContextualFragment(String html) => blink.Native_Range_createContextualFragment_Callback(this, html);
+  DocumentFragment createContextualFragment(String html) => _blink.Native_Range_createContextualFragment_Callback(this, html);
 
   @DomName('Range.deleteContents')
   @DocsEditable()
-  void deleteContents() => blink.Native_Range_deleteContents_Callback(this);
+  void deleteContents() => _blink.Native_Range_deleteContents_Callback(this);
 
   @DomName('Range.detach')
   @DocsEditable()
-  void detach() => blink.Native_Range_detach_Callback(this);
+  void detach() => _blink.Native_Range_detach_Callback(this);
 
   @DomName('Range.expand')
   @DocsEditable()
   @Experimental() // non-standard
-  void expand(String unit) => blink.Native_Range_expand_Callback(this, unit);
+  void expand(String unit) => _blink.Native_Range_expand_Callback(this, unit);
 
   @DomName('Range.extractContents')
   @DocsEditable()
-  DocumentFragment extractContents() => blink.Native_Range_extractContents_Callback(this);
+  DocumentFragment extractContents() => _blink.Native_Range_extractContents_Callback(this);
 
   @DomName('Range.getBoundingClientRect')
   @DocsEditable()
-  Rectangle getBoundingClientRect() => blink.Native_Range_getBoundingClientRect_Callback(this);
+  Rectangle getBoundingClientRect() => _blink.Native_Range_getBoundingClientRect_Callback(this);
 
   @DomName('Range.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => blink.Native_Range_getClientRects_Callback(this);
+  List<Rectangle> getClientRects() => _blink.Native_Range_getClientRects_Callback(this);
 
   @DomName('Range.insertNode')
   @DocsEditable()
-  void insertNode(Node newNode) => blink.Native_Range_insertNode_Callback(this, newNode);
+  void insertNode(Node newNode) => _blink.Native_Range_insertNode_Callback(this, newNode);
 
   @DomName('Range.isPointInRange')
   @DocsEditable()
-  bool isPointInRange(Node refNode, int offset) => blink.Native_Range_isPointInRange_Callback(this, refNode, offset);
+  bool isPointInRange(Node refNode, int offset) => _blink.Native_Range_isPointInRange_Callback(this, refNode, offset);
 
   @DomName('Range.selectNode')
   @DocsEditable()
-  void selectNode(Node refNode) => blink.Native_Range_selectNode_Callback(this, refNode);
+  void selectNode(Node refNode) => _blink.Native_Range_selectNode_Callback(this, refNode);
 
   @DomName('Range.selectNodeContents')
   @DocsEditable()
-  void selectNodeContents(Node refNode) => blink.Native_Range_selectNodeContents_Callback(this, refNode);
+  void selectNodeContents(Node refNode) => _blink.Native_Range_selectNodeContents_Callback(this, refNode);
 
   @DomName('Range.setEnd')
   @DocsEditable()
-  void setEnd(Node refNode, int offset) => blink.Native_Range_setEnd_Callback(this, refNode, offset);
+  void setEnd(Node refNode, int offset) => _blink.Native_Range_setEnd_Callback(this, refNode, offset);
 
   @DomName('Range.setEndAfter')
   @DocsEditable()
-  void setEndAfter(Node refNode) => blink.Native_Range_setEndAfter_Callback(this, refNode);
+  void setEndAfter(Node refNode) => _blink.Native_Range_setEndAfter_Callback(this, refNode);
 
   @DomName('Range.setEndBefore')
   @DocsEditable()
-  void setEndBefore(Node refNode) => blink.Native_Range_setEndBefore_Callback(this, refNode);
+  void setEndBefore(Node refNode) => _blink.Native_Range_setEndBefore_Callback(this, refNode);
 
   @DomName('Range.setStart')
   @DocsEditable()
-  void setStart(Node refNode, int offset) => blink.Native_Range_setStart_Callback(this, refNode, offset);
+  void setStart(Node refNode, int offset) => _blink.Native_Range_setStart_Callback(this, refNode, offset);
 
   @DomName('Range.setStartAfter')
   @DocsEditable()
-  void setStartAfter(Node refNode) => blink.Native_Range_setStartAfter_Callback(this, refNode);
+  void setStartAfter(Node refNode) => _blink.Native_Range_setStartAfter_Callback(this, refNode);
 
   @DomName('Range.setStartBefore')
   @DocsEditable()
-  void setStartBefore(Node refNode) => blink.Native_Range_setStartBefore_Callback(this, refNode);
+  void setStartBefore(Node refNode) => _blink.Native_Range_setStartBefore_Callback(this, refNode);
 
   @DomName('Range.surroundContents')
   @DocsEditable()
-  void surroundContents(Node newParent) => blink.Native_Range_surroundContents_Callback(this, newParent);
+  void surroundContents(Node newParent) => _blink.Native_Range_surroundContents_Callback(this, newParent);
 
   @DomName('Range.toString')
   @DocsEditable()
-  String toString() => blink.Native_Range_toString_Callback(this);
+  String toString() => _blink.Native_Range_toString_Callback(this);
 
 
   /**
@@ -23946,7 +23946,7 @@ class ResourceProgressEvent extends ProgressEvent {
 
   @DomName('ResourceProgressEvent.url')
   @DocsEditable()
-  String get url => blink.Native_ResourceProgressEvent_url_Getter(this);
+  String get url => _blink.Native_ResourceProgressEvent_url_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24006,61 +24006,61 @@ class RtcDataChannel extends EventTarget {
 
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
-  String get binaryType => blink.Native_RTCDataChannel_binaryType_Getter(this);
+  String get binaryType => _blink.Native_RTCDataChannel_binaryType_Getter(this);
 
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => blink.Native_RTCDataChannel_binaryType_Setter(this, value);
+  void set binaryType(String value) => _blink.Native_RTCDataChannel_binaryType_Setter(this, value);
 
   @DomName('RTCDataChannel.bufferedAmount')
   @DocsEditable()
-  int get bufferedAmount => blink.Native_RTCDataChannel_bufferedAmount_Getter(this);
+  int get bufferedAmount => _blink.Native_RTCDataChannel_bufferedAmount_Getter(this);
 
   @DomName('RTCDataChannel.id')
   @DocsEditable()
   @Experimental() // untriaged
-  int get id => blink.Native_RTCDataChannel_id_Getter(this);
+  int get id => _blink.Native_RTCDataChannel_id_Getter(this);
 
   @DomName('RTCDataChannel.label')
   @DocsEditable()
-  String get label => blink.Native_RTCDataChannel_label_Getter(this);
+  String get label => _blink.Native_RTCDataChannel_label_Getter(this);
 
   @DomName('RTCDataChannel.maxRetransmitTime')
   @DocsEditable()
   @Experimental() // untriaged
-  int get maxRetransmitTime => blink.Native_RTCDataChannel_maxRetransmitTime_Getter(this);
+  int get maxRetransmitTime => _blink.Native_RTCDataChannel_maxRetransmitTime_Getter(this);
 
   @DomName('RTCDataChannel.maxRetransmits')
   @DocsEditable()
   @Experimental() // untriaged
-  int get maxRetransmits => blink.Native_RTCDataChannel_maxRetransmits_Getter(this);
+  int get maxRetransmits => _blink.Native_RTCDataChannel_maxRetransmits_Getter(this);
 
   @DomName('RTCDataChannel.negotiated')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get negotiated => blink.Native_RTCDataChannel_negotiated_Getter(this);
+  bool get negotiated => _blink.Native_RTCDataChannel_negotiated_Getter(this);
 
   @DomName('RTCDataChannel.ordered')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get ordered => blink.Native_RTCDataChannel_ordered_Getter(this);
+  bool get ordered => _blink.Native_RTCDataChannel_ordered_Getter(this);
 
   @DomName('RTCDataChannel.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  String get protocol => blink.Native_RTCDataChannel_protocol_Getter(this);
+  String get protocol => _blink.Native_RTCDataChannel_protocol_Getter(this);
 
   @DomName('RTCDataChannel.readyState')
   @DocsEditable()
-  String get readyState => blink.Native_RTCDataChannel_readyState_Getter(this);
+  String get readyState => _blink.Native_RTCDataChannel_readyState_Getter(this);
 
   @DomName('RTCDataChannel.reliable')
   @DocsEditable()
-  bool get reliable => blink.Native_RTCDataChannel_reliable_Getter(this);
+  bool get reliable => _blink.Native_RTCDataChannel_reliable_Getter(this);
 
   @DomName('RTCDataChannel.close')
   @DocsEditable()
-  void close() => blink.Native_RTCDataChannel_close_Callback(this);
+  void close() => _blink.Native_RTCDataChannel_close_Callback(this);
 
   void send(data) {
     if ((data is TypedData || data == null)) {
@@ -24082,41 +24082,41 @@ class RtcDataChannel extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _send_1(data) => blink.Native_RTCDataChannel__send_1_Callback(this, data);
+  void _send_1(data) => _blink.Native_RTCDataChannel__send_1_Callback(this, data);
 
-  void _send_2(data) => blink.Native_RTCDataChannel__send_2_Callback(this, data);
+  void _send_2(data) => _blink.Native_RTCDataChannel__send_2_Callback(this, data);
 
-  void _send_3(data) => blink.Native_RTCDataChannel__send_3_Callback(this, data);
+  void _send_3(data) => _blink.Native_RTCDataChannel__send_3_Callback(this, data);
 
-  void _send_4(data) => blink.Native_RTCDataChannel__send_4_Callback(this, data);
+  void _send_4(data) => _blink.Native_RTCDataChannel__send_4_Callback(this, data);
 
   @DomName('RTCDataChannel.sendBlob')
   @DocsEditable()
-  void sendBlob(Blob data) => blink.Native_RTCDataChannel_sendBlob_Callback(this, data);
+  void sendBlob(Blob data) => _blink.Native_RTCDataChannel_sendBlob_Callback(this, data);
 
   @DomName('RTCDataChannel.sendByteBuffer')
   @DocsEditable()
-  void sendByteBuffer(ByteBuffer data) => blink.Native_RTCDataChannel_sendByteBuffer_Callback(this, data);
+  void sendByteBuffer(ByteBuffer data) => _blink.Native_RTCDataChannel_sendByteBuffer_Callback(this, data);
 
   @DomName('RTCDataChannel.sendString')
   @DocsEditable()
-  void sendString(String data) => blink.Native_RTCDataChannel_sendString_Callback(this, data);
+  void sendString(String data) => _blink.Native_RTCDataChannel_sendString_Callback(this, data);
 
   @DomName('RTCDataChannel.sendTypedData')
   @DocsEditable()
-  void sendTypedData(TypedData data) => blink.Native_RTCDataChannel_sendTypedData_Callback(this, data);
+  void sendTypedData(TypedData data) => _blink.Native_RTCDataChannel_sendTypedData_Callback(this, data);
 
   @DomName('RTCDataChannel.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCDataChannel_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDataChannel_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('RTCDataChannel.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_RTCDataChannel_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_RTCDataChannel_dispatchEvent_Callback(this, event);
 
   @DomName('RTCDataChannel.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCDataChannel_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDataChannel_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `close` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onclose')
@@ -24156,7 +24156,7 @@ class RtcDataChannelEvent extends Event {
 
   @DomName('RTCDataChannelEvent.channel')
   @DocsEditable()
-  RtcDataChannel get channel => blink.Native_RTCDataChannelEvent_channel_Getter(this);
+  RtcDataChannel get channel => _blink.Native_RTCDataChannelEvent_channel_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24186,23 +24186,23 @@ class RtcDtmfSender extends EventTarget {
 
   @DomName('RTCDTMFSender.canInsertDTMF')
   @DocsEditable()
-  bool get canInsertDtmf => blink.Native_RTCDTMFSender_canInsertDTMF_Getter(this);
+  bool get canInsertDtmf => _blink.Native_RTCDTMFSender_canInsertDTMF_Getter(this);
 
   @DomName('RTCDTMFSender.duration')
   @DocsEditable()
-  int get duration => blink.Native_RTCDTMFSender_duration_Getter(this);
+  int get duration => _blink.Native_RTCDTMFSender_duration_Getter(this);
 
   @DomName('RTCDTMFSender.interToneGap')
   @DocsEditable()
-  int get interToneGap => blink.Native_RTCDTMFSender_interToneGap_Getter(this);
+  int get interToneGap => _blink.Native_RTCDTMFSender_interToneGap_Getter(this);
 
   @DomName('RTCDTMFSender.toneBuffer')
   @DocsEditable()
-  String get toneBuffer => blink.Native_RTCDTMFSender_toneBuffer_Getter(this);
+  String get toneBuffer => _blink.Native_RTCDTMFSender_toneBuffer_Getter(this);
 
   @DomName('RTCDTMFSender.track')
   @DocsEditable()
-  MediaStreamTrack get track => blink.Native_RTCDTMFSender_track_Getter(this);
+  MediaStreamTrack get track => _blink.Native_RTCDTMFSender_track_Getter(this);
 
   void insertDtmf(String tones, [int duration, int interToneGap]) {
     if (interToneGap != null) {
@@ -24217,23 +24217,23 @@ class RtcDtmfSender extends EventTarget {
     return;
   }
 
-  void _insertDTMF_1(tones, duration, interToneGap) => blink.Native_RTCDTMFSender__insertDTMF_1_Callback(this, tones, duration, interToneGap);
+  void _insertDTMF_1(tones, duration, interToneGap) => _blink.Native_RTCDTMFSender__insertDTMF_1_Callback(this, tones, duration, interToneGap);
 
-  void _insertDTMF_2(tones, duration) => blink.Native_RTCDTMFSender__insertDTMF_2_Callback(this, tones, duration);
+  void _insertDTMF_2(tones, duration) => _blink.Native_RTCDTMFSender__insertDTMF_2_Callback(this, tones, duration);
 
-  void _insertDTMF_3(tones) => blink.Native_RTCDTMFSender__insertDTMF_3_Callback(this, tones);
+  void _insertDTMF_3(tones) => _blink.Native_RTCDTMFSender__insertDTMF_3_Callback(this, tones);
 
   @DomName('RTCDTMFSender.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCDTMFSender_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDTMFSender_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('RTCDTMFSender.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_RTCDTMFSender_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_RTCDTMFSender_dispatchEvent_Callback(this, event);
 
   @DomName('RTCDTMFSender.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCDTMFSender_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDTMFSender_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   @DomName('RTCDTMFSender.ontonechange')
@@ -24258,7 +24258,7 @@ class RtcDtmfToneChangeEvent extends Event {
 
   @DomName('RTCDTMFToneChangeEvent.tone')
   @DocsEditable()
-  String get tone => blink.Native_RTCDTMFToneChangeEvent_tone_Getter(this);
+  String get tone => _blink.Native_RTCDTMFToneChangeEvent_tone_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24284,19 +24284,19 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static RtcIceCandidate _create_1(dictionary) => blink.Native_RTCIceCandidate__create_1constructorCallback(dictionary);
+  static RtcIceCandidate _create_1(dictionary) => _blink.Native_RTCIceCandidate__create_1constructorCallback(dictionary);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
-  String get candidate => blink.Native_RTCIceCandidate_candidate_Getter(this);
+  String get candidate => _blink.Native_RTCIceCandidate_candidate_Getter(this);
 
   @DomName('RTCIceCandidate.sdpMLineIndex')
   @DocsEditable()
-  int get sdpMLineIndex => blink.Native_RTCIceCandidate_sdpMLineIndex_Getter(this);
+  int get sdpMLineIndex => _blink.Native_RTCIceCandidate_sdpMLineIndex_Getter(this);
 
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable()
-  String get sdpMid => blink.Native_RTCIceCandidate_sdpMid_Getter(this);
+  String get sdpMid => _blink.Native_RTCIceCandidate_sdpMid_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24316,7 +24316,7 @@ class RtcIceCandidateEvent extends Event {
 
   @DomName('RTCIceCandidateEvent.candidate')
   @DocsEditable()
-  RtcIceCandidate get candidate => blink.Native_RTCIceCandidateEvent_candidate_Getter(this);
+  RtcIceCandidate get candidate => _blink.Native_RTCIceCandidateEvent_candidate_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -24437,79 +24437,79 @@ class RtcPeerConnection extends EventTarget {
   }
 
   @DocsEditable()
-  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => blink.Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints);
+  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => _blink.Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints);
 
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
-  String get iceConnectionState => blink.Native_RTCPeerConnection_iceConnectionState_Getter(this);
+  String get iceConnectionState => _blink.Native_RTCPeerConnection_iceConnectionState_Getter(this);
 
   @DomName('RTCPeerConnection.iceGatheringState')
   @DocsEditable()
-  String get iceGatheringState => blink.Native_RTCPeerConnection_iceGatheringState_Getter(this);
+  String get iceGatheringState => _blink.Native_RTCPeerConnection_iceGatheringState_Getter(this);
 
   @DomName('RTCPeerConnection.localDescription')
   @DocsEditable()
-  RtcSessionDescription get localDescription => blink.Native_RTCPeerConnection_localDescription_Getter(this);
+  RtcSessionDescription get localDescription => _blink.Native_RTCPeerConnection_localDescription_Getter(this);
 
   @DomName('RTCPeerConnection.remoteDescription')
   @DocsEditable()
-  RtcSessionDescription get remoteDescription => blink.Native_RTCPeerConnection_remoteDescription_Getter(this);
+  RtcSessionDescription get remoteDescription => _blink.Native_RTCPeerConnection_remoteDescription_Getter(this);
 
   @DomName('RTCPeerConnection.signalingState')
   @DocsEditable()
-  String get signalingState => blink.Native_RTCPeerConnection_signalingState_Getter(this);
+  String get signalingState => _blink.Native_RTCPeerConnection_signalingState_Getter(this);
 
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
-  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => blink.Native_RTCPeerConnection_addIceCandidate_Callback(this, candidate, successCallback, failureCallback);
+  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => _blink.Native_RTCPeerConnection_addIceCandidate_Callback(this, candidate, successCallback, failureCallback);
 
   @DomName('RTCPeerConnection.addStream')
   @DocsEditable()
-  void addStream(MediaStream stream, [Map mediaConstraints]) => blink.Native_RTCPeerConnection_addStream_Callback(this, stream, mediaConstraints);
+  void addStream(MediaStream stream, [Map mediaConstraints]) => _blink.Native_RTCPeerConnection_addStream_Callback(this, stream, mediaConstraints);
 
   @DomName('RTCPeerConnection.close')
   @DocsEditable()
-  void close() => blink.Native_RTCPeerConnection_close_Callback(this);
+  void close() => _blink.Native_RTCPeerConnection_close_Callback(this);
 
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable()
-  void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) => blink.Native_RTCPeerConnection_createAnswer_Callback(this, successCallback, failureCallback, mediaConstraints);
+  void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) => _blink.Native_RTCPeerConnection_createAnswer_Callback(this, successCallback, failureCallback, mediaConstraints);
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable()
-  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => blink.Native_RTCPeerConnection_createDTMFSender_Callback(this, track);
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => _blink.Native_RTCPeerConnection_createDTMFSender_Callback(this, track);
 
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable()
-  RtcDataChannel createDataChannel(String label, [Map options]) => blink.Native_RTCPeerConnection_createDataChannel_Callback(this, label, options);
+  RtcDataChannel createDataChannel(String label, [Map options]) => _blink.Native_RTCPeerConnection_createDataChannel_Callback(this, label, options);
 
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable()
-  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) => blink.Native_RTCPeerConnection_createOffer_Callback(this, successCallback, failureCallback, mediaConstraints);
+  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) => _blink.Native_RTCPeerConnection_createOffer_Callback(this, successCallback, failureCallback, mediaConstraints);
 
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
-  List<MediaStream> getLocalStreams() => blink.Native_RTCPeerConnection_getLocalStreams_Callback(this);
+  List<MediaStream> getLocalStreams() => _blink.Native_RTCPeerConnection_getLocalStreams_Callback(this);
 
   @DomName('RTCPeerConnection.getRemoteStreams')
   @DocsEditable()
-  List<MediaStream> getRemoteStreams() => blink.Native_RTCPeerConnection_getRemoteStreams_Callback(this);
+  List<MediaStream> getRemoteStreams() => _blink.Native_RTCPeerConnection_getRemoteStreams_Callback(this);
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => blink.Native_RTCPeerConnection_getStats_Callback(this, successCallback, selector);
+  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => _blink.Native_RTCPeerConnection_getStats_Callback(this, successCallback, selector);
 
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
-  MediaStream getStreamById(String streamId) => blink.Native_RTCPeerConnection_getStreamById_Callback(this, streamId);
+  MediaStream getStreamById(String streamId) => _blink.Native_RTCPeerConnection_getStreamById_Callback(this, streamId);
 
   @DomName('RTCPeerConnection.removeStream')
   @DocsEditable()
-  void removeStream(MediaStream stream) => blink.Native_RTCPeerConnection_removeStream_Callback(this, stream);
+  void removeStream(MediaStream stream) => _blink.Native_RTCPeerConnection_removeStream_Callback(this, stream);
 
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable()
-  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => blink.Native_RTCPeerConnection_setLocalDescription_Callback(this, description, successCallback, failureCallback);
+  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.Native_RTCPeerConnection_setLocalDescription_Callback(this, description, successCallback, failureCallback);
 
   Future setLocalDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -24521,7 +24521,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable()
-  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => blink.Native_RTCPeerConnection_setRemoteDescription_Callback(this, description, successCallback, failureCallback);
+  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.Native_RTCPeerConnection_setRemoteDescription_Callback(this, description, successCallback, failureCallback);
 
   Future setRemoteDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -24533,19 +24533,19 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable()
-  void updateIce([Map configuration, Map mediaConstraints]) => blink.Native_RTCPeerConnection_updateIce_Callback(this, configuration, mediaConstraints);
+  void updateIce([Map configuration, Map mediaConstraints]) => _blink.Native_RTCPeerConnection_updateIce_Callback(this, configuration, mediaConstraints);
 
   @DomName('RTCPeerConnection.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCPeerConnection_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCPeerConnection_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_RTCPeerConnection_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_RTCPeerConnection_dispatchEvent_Callback(this, event);
 
   @DomName('RTCPeerConnection.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_RTCPeerConnection_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCPeerConnection_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onaddstream')
@@ -24606,23 +24606,23 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static RtcSessionDescription _create_1(descriptionInitDict) => blink.Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict);
+  static RtcSessionDescription _create_1(descriptionInitDict) => _blink.Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
-  String get sdp => blink.Native_RTCSessionDescription_sdp_Getter(this);
+  String get sdp => _blink.Native_RTCSessionDescription_sdp_Getter(this);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
-  void set sdp(String value) => blink.Native_RTCSessionDescription_sdp_Setter(this, value);
+  void set sdp(String value) => _blink.Native_RTCSessionDescription_sdp_Setter(this, value);
 
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
-  String get type => blink.Native_RTCSessionDescription_type_Getter(this);
+  String get type => _blink.Native_RTCSessionDescription_type_Getter(this);
 
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_RTCSessionDescription_type_Setter(this, value);
+  void set type(String value) => _blink.Native_RTCSessionDescription_type_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24642,31 +24642,31 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
 
   @DomName('RTCStatsReport.id')
   @DocsEditable()
-  String get id => blink.Native_RTCStatsReport_id_Getter(this);
+  String get id => _blink.Native_RTCStatsReport_id_Getter(this);
 
   @DomName('RTCStatsReport.local')
   @DocsEditable()
-  RtcStatsReport get local => blink.Native_RTCStatsReport_local_Getter(this);
+  RtcStatsReport get local => _blink.Native_RTCStatsReport_local_Getter(this);
 
   @DomName('RTCStatsReport.remote')
   @DocsEditable()
-  RtcStatsReport get remote => blink.Native_RTCStatsReport_remote_Getter(this);
+  RtcStatsReport get remote => _blink.Native_RTCStatsReport_remote_Getter(this);
 
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable()
-  DateTime get timestamp => blink.Native_RTCStatsReport_timestamp_Getter(this);
+  DateTime get timestamp => _blink.Native_RTCStatsReport_timestamp_Getter(this);
 
   @DomName('RTCStatsReport.type')
   @DocsEditable()
-  String get type => blink.Native_RTCStatsReport_type_Getter(this);
+  String get type => _blink.Native_RTCStatsReport_type_Getter(this);
 
   @DomName('RTCStatsReport.names')
   @DocsEditable()
-  List<String> names() => blink.Native_RTCStatsReport_names_Callback(this);
+  List<String> names() => _blink.Native_RTCStatsReport_names_Callback(this);
 
   @DomName('RTCStatsReport.stat')
   @DocsEditable()
-  String stat(String name) => blink.Native_RTCStatsReport_stat_Callback(this, name);
+  String stat(String name) => _blink.Native_RTCStatsReport_stat_Callback(this, name);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24686,15 +24686,15 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
 
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
-  RtcStatsReport __getter__(String name) => blink.Native_RTCStatsResponse___getter___Callback(this, name);
+  RtcStatsReport __getter__(String name) => _blink.Native_RTCStatsResponse___getter___Callback(this, name);
 
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable()
-  RtcStatsReport namedItem(String name) => blink.Native_RTCStatsResponse_namedItem_Callback(this, name);
+  RtcStatsReport namedItem(String name) => _blink.Native_RTCStatsResponse_namedItem_Callback(this, name);
 
   @DomName('RTCStatsResponse.result')
   @DocsEditable()
-  List<RtcStatsReport> result() => blink.Native_RTCStatsResponse_result_Callback(this);
+  List<RtcStatsReport> result() => _blink.Native_RTCStatsResponse_result_Callback(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -24717,42 +24717,42 @@ class Screen extends EventTarget {
 
   @DomName('Screen.availHeight')
   @DocsEditable()
-  int get _availHeight => blink.Native_Screen_availHeight_Getter(this);
+  int get _availHeight => _blink.Native_Screen_availHeight_Getter(this);
 
   @DomName('Screen.availLeft')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get _availLeft => blink.Native_Screen_availLeft_Getter(this);
+  int get _availLeft => _blink.Native_Screen_availLeft_Getter(this);
 
   @DomName('Screen.availTop')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get _availTop => blink.Native_Screen_availTop_Getter(this);
+  int get _availTop => _blink.Native_Screen_availTop_Getter(this);
 
   @DomName('Screen.availWidth')
   @DocsEditable()
-  int get _availWidth => blink.Native_Screen_availWidth_Getter(this);
+  int get _availWidth => _blink.Native_Screen_availWidth_Getter(this);
 
   @DomName('Screen.colorDepth')
   @DocsEditable()
-  int get colorDepth => blink.Native_Screen_colorDepth_Getter(this);
+  int get colorDepth => _blink.Native_Screen_colorDepth_Getter(this);
 
   @DomName('Screen.height')
   @DocsEditable()
-  int get height => blink.Native_Screen_height_Getter(this);
+  int get height => _blink.Native_Screen_height_Getter(this);
 
   @DomName('Screen.orientation')
   @DocsEditable()
   @Experimental() // untriaged
-  String get orientation => blink.Native_Screen_orientation_Getter(this);
+  String get orientation => _blink.Native_Screen_orientation_Getter(this);
 
   @DomName('Screen.pixelDepth')
   @DocsEditable()
-  int get pixelDepth => blink.Native_Screen_pixelDepth_Getter(this);
+  int get pixelDepth => _blink.Native_Screen_pixelDepth_Getter(this);
 
   @DomName('Screen.width')
   @DocsEditable()
-  int get width => blink.Native_Screen_width_Getter(this);
+  int get width => _blink.Native_Screen_width_Getter(this);
 
   bool lockOrientation(orientation_OR_orientations) {
     if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
@@ -24764,29 +24764,29 @@ class Screen extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  bool _lockOrientation_1(orientation_OR_orientations) => blink.Native_Screen__lockOrientation_1_Callback(this, orientation_OR_orientations);
+  bool _lockOrientation_1(orientation_OR_orientations) => _blink.Native_Screen__lockOrientation_1_Callback(this, orientation_OR_orientations);
 
-  bool _lockOrientation_2(orientation_OR_orientations) => blink.Native_Screen__lockOrientation_2_Callback(this, orientation_OR_orientations);
+  bool _lockOrientation_2(orientation_OR_orientations) => _blink.Native_Screen__lockOrientation_2_Callback(this, orientation_OR_orientations);
 
   @DomName('Screen.unlockOrientation')
   @DocsEditable()
   @Experimental() // untriaged
-  void unlockOrientation() => blink.Native_Screen_unlockOrientation_Callback(this);
+  void unlockOrientation() => _blink.Native_Screen_unlockOrientation_Callback(this);
 
   @DomName('Screen.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Screen_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Screen_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Screen.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_Screen_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Screen_dispatchEvent_Callback(this, event);
 
   @DomName('Screen.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Screen_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Screen_removeEventListener_Callback(this, type, listener, useCapture);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24813,67 +24813,67 @@ class ScriptElement extends HtmlElement {
 
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
-  bool get async => blink.Native_HTMLScriptElement_async_Getter(this);
+  bool get async => _blink.Native_HTMLScriptElement_async_Getter(this);
 
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
-  void set async(bool value) => blink.Native_HTMLScriptElement_async_Setter(this, value);
+  void set async(bool value) => _blink.Native_HTMLScriptElement_async_Setter(this, value);
 
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
-  String get charset => blink.Native_HTMLScriptElement_charset_Getter(this);
+  String get charset => _blink.Native_HTMLScriptElement_charset_Getter(this);
 
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
-  void set charset(String value) => blink.Native_HTMLScriptElement_charset_Setter(this, value);
+  void set charset(String value) => _blink.Native_HTMLScriptElement_charset_Setter(this, value);
 
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
   @Experimental()
-  String get crossOrigin => blink.Native_HTMLScriptElement_crossOrigin_Getter(this);
+  String get crossOrigin => _blink.Native_HTMLScriptElement_crossOrigin_Getter(this);
 
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
   @Experimental()
-  void set crossOrigin(String value) => blink.Native_HTMLScriptElement_crossOrigin_Setter(this, value);
+  void set crossOrigin(String value) => _blink.Native_HTMLScriptElement_crossOrigin_Setter(this, value);
 
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
-  bool get defer => blink.Native_HTMLScriptElement_defer_Getter(this);
+  bool get defer => _blink.Native_HTMLScriptElement_defer_Getter(this);
 
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
-  void set defer(bool value) => blink.Native_HTMLScriptElement_defer_Setter(this, value);
+  void set defer(bool value) => _blink.Native_HTMLScriptElement_defer_Setter(this, value);
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
   @Experimental()
-  String get nonce => blink.Native_HTMLScriptElement_nonce_Getter(this);
+  String get nonce => _blink.Native_HTMLScriptElement_nonce_Getter(this);
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
   @Experimental()
-  void set nonce(String value) => blink.Native_HTMLScriptElement_nonce_Setter(this, value);
+  void set nonce(String value) => _blink.Native_HTMLScriptElement_nonce_Setter(this, value);
 
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLScriptElement_src_Getter(this);
+  String get src => _blink.Native_HTMLScriptElement_src_Getter(this);
 
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLScriptElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLScriptElement_src_Setter(this, value);
 
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLScriptElement_type_Getter(this);
+  String get type => _blink.Native_HTMLScriptElement_type_Getter(this);
 
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLScriptElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLScriptElement_type_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24893,44 +24893,44 @@ class SecurityPolicyViolationEvent extends Event {
 
   @DomName('SecurityPolicyViolationEvent.blockedURI')
   @DocsEditable()
-  String get blockedUri => blink.Native_SecurityPolicyViolationEvent_blockedURI_Getter(this);
+  String get blockedUri => _blink.Native_SecurityPolicyViolationEvent_blockedURI_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.columnNumber')
   @DocsEditable()
-  int get columnNumber => blink.Native_SecurityPolicyViolationEvent_columnNumber_Getter(this);
+  int get columnNumber => _blink.Native_SecurityPolicyViolationEvent_columnNumber_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.documentURI')
   @DocsEditable()
-  String get documentUri => blink.Native_SecurityPolicyViolationEvent_documentURI_Getter(this);
+  String get documentUri => _blink.Native_SecurityPolicyViolationEvent_documentURI_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.effectiveDirective')
   @DocsEditable()
-  String get effectiveDirective => blink.Native_SecurityPolicyViolationEvent_effectiveDirective_Getter(this);
+  String get effectiveDirective => _blink.Native_SecurityPolicyViolationEvent_effectiveDirective_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.lineNumber')
   @DocsEditable()
-  int get lineNumber => blink.Native_SecurityPolicyViolationEvent_lineNumber_Getter(this);
+  int get lineNumber => _blink.Native_SecurityPolicyViolationEvent_lineNumber_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.originalPolicy')
   @DocsEditable()
-  String get originalPolicy => blink.Native_SecurityPolicyViolationEvent_originalPolicy_Getter(this);
+  String get originalPolicy => _blink.Native_SecurityPolicyViolationEvent_originalPolicy_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.referrer')
   @DocsEditable()
-  String get referrer => blink.Native_SecurityPolicyViolationEvent_referrer_Getter(this);
+  String get referrer => _blink.Native_SecurityPolicyViolationEvent_referrer_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.sourceFile')
   @DocsEditable()
-  String get sourceFile => blink.Native_SecurityPolicyViolationEvent_sourceFile_Getter(this);
+  String get sourceFile => _blink.Native_SecurityPolicyViolationEvent_sourceFile_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.statusCode')
   @DocsEditable()
   @Experimental() // untriaged
-  int get statusCode => blink.Native_SecurityPolicyViolationEvent_statusCode_Getter(this);
+  int get statusCode => _blink.Native_SecurityPolicyViolationEvent_statusCode_Getter(this);
 
   @DomName('SecurityPolicyViolationEvent.violatedDirective')
   @DocsEditable()
-  String get violatedDirective => blink.Native_SecurityPolicyViolationEvent_violatedDirective_Getter(this);
+  String get violatedDirective => _blink.Native_SecurityPolicyViolationEvent_violatedDirective_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24955,120 +24955,120 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
-  bool get autofocus => blink.Native_HTMLSelectElement_autofocus_Getter(this);
+  bool get autofocus => _blink.Native_HTMLSelectElement_autofocus_Getter(this);
 
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => blink.Native_HTMLSelectElement_autofocus_Setter(this, value);
+  void set autofocus(bool value) => _blink.Native_HTMLSelectElement_autofocus_Setter(this, value);
 
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLSelectElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLSelectElement_disabled_Getter(this);
 
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLSelectElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLSelectElement_disabled_Setter(this, value);
 
   @DomName('HTMLSelectElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLSelectElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLSelectElement_form_Getter(this);
 
   @DomName('HTMLSelectElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLSelectElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLSelectElement_labels_Getter(this);
 
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
-  int get length => blink.Native_HTMLSelectElement_length_Getter(this);
+  int get length => _blink.Native_HTMLSelectElement_length_Getter(this);
 
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
-  void set length(int value) => blink.Native_HTMLSelectElement_length_Setter(this, value);
+  void set length(int value) => _blink.Native_HTMLSelectElement_length_Setter(this, value);
 
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
-  bool get multiple => blink.Native_HTMLSelectElement_multiple_Getter(this);
+  bool get multiple => _blink.Native_HTMLSelectElement_multiple_Getter(this);
 
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => blink.Native_HTMLSelectElement_multiple_Setter(this, value);
+  void set multiple(bool value) => _blink.Native_HTMLSelectElement_multiple_Setter(this, value);
 
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLSelectElement_name_Getter(this);
+  String get name => _blink.Native_HTMLSelectElement_name_Getter(this);
 
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLSelectElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLSelectElement_name_Setter(this, value);
 
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
-  bool get required => blink.Native_HTMLSelectElement_required_Getter(this);
+  bool get required => _blink.Native_HTMLSelectElement_required_Getter(this);
 
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
-  void set required(bool value) => blink.Native_HTMLSelectElement_required_Setter(this, value);
+  void set required(bool value) => _blink.Native_HTMLSelectElement_required_Setter(this, value);
 
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
-  int get selectedIndex => blink.Native_HTMLSelectElement_selectedIndex_Getter(this);
+  int get selectedIndex => _blink.Native_HTMLSelectElement_selectedIndex_Getter(this);
 
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
-  void set selectedIndex(int value) => blink.Native_HTMLSelectElement_selectedIndex_Setter(this, value);
+  void set selectedIndex(int value) => _blink.Native_HTMLSelectElement_selectedIndex_Setter(this, value);
 
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
-  int get size => blink.Native_HTMLSelectElement_size_Getter(this);
+  int get size => _blink.Native_HTMLSelectElement_size_Getter(this);
 
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
-  void set size(int value) => blink.Native_HTMLSelectElement_size_Setter(this, value);
+  void set size(int value) => _blink.Native_HTMLSelectElement_size_Setter(this, value);
 
   @DomName('HTMLSelectElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLSelectElement_type_Getter(this);
+  String get type => _blink.Native_HTMLSelectElement_type_Getter(this);
 
   @DomName('HTMLSelectElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLSelectElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLSelectElement_validationMessage_Getter(this);
 
   @DomName('HTMLSelectElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLSelectElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLSelectElement_validity_Getter(this);
 
   @DomName('HTMLSelectElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLSelectElement_value_Getter(this);
+  String get value => _blink.Native_HTMLSelectElement_value_Getter(this);
 
   @DomName('HTMLSelectElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLSelectElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLSelectElement_value_Setter(this, value);
 
   @DomName('HTMLSelectElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLSelectElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLSelectElement_willValidate_Getter(this);
 
   @DomName('HTMLSelectElement.__setter__')
   @DocsEditable()
-  void __setter__(int index, OptionElement value) => blink.Native_HTMLSelectElement___setter___Callback(this, index, value);
+  void __setter__(int index, OptionElement value) => _blink.Native_HTMLSelectElement___setter___Callback(this, index, value);
 
   @DomName('HTMLSelectElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLSelectElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLSelectElement_checkValidity_Callback(this);
 
   @DomName('HTMLSelectElement.item')
   @DocsEditable()
-  Element item(int index) => blink.Native_HTMLSelectElement_item_Callback(this, index);
+  Element item(int index) => _blink.Native_HTMLSelectElement_item_Callback(this, index);
 
   @DomName('HTMLSelectElement.namedItem')
   @DocsEditable()
-  Element namedItem(String name) => blink.Native_HTMLSelectElement_namedItem_Callback(this, name);
+  Element namedItem(String name) => _blink.Native_HTMLSelectElement_namedItem_Callback(this, name);
 
   @DomName('HTMLSelectElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLSelectElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLSelectElement_setCustomValidity_Callback(this, error);
 
 
   // Override default options, since IE returns SelectElement itself and it
@@ -25104,117 +25104,117 @@ class Selection extends NativeFieldWrapperClass2 {
 
   @DomName('Selection.anchorNode')
   @DocsEditable()
-  Node get anchorNode => blink.Native_Selection_anchorNode_Getter(this);
+  Node get anchorNode => _blink.Native_Selection_anchorNode_Getter(this);
 
   @DomName('Selection.anchorOffset')
   @DocsEditable()
-  int get anchorOffset => blink.Native_Selection_anchorOffset_Getter(this);
+  int get anchorOffset => _blink.Native_Selection_anchorOffset_Getter(this);
 
   @DomName('Selection.baseNode')
   @DocsEditable()
   @Experimental() // non-standard
-  Node get baseNode => blink.Native_Selection_baseNode_Getter(this);
+  Node get baseNode => _blink.Native_Selection_baseNode_Getter(this);
 
   @DomName('Selection.baseOffset')
   @DocsEditable()
   @Experimental() // non-standard
-  int get baseOffset => blink.Native_Selection_baseOffset_Getter(this);
+  int get baseOffset => _blink.Native_Selection_baseOffset_Getter(this);
 
   @DomName('Selection.extentNode')
   @DocsEditable()
   @Experimental() // non-standard
-  Node get extentNode => blink.Native_Selection_extentNode_Getter(this);
+  Node get extentNode => _blink.Native_Selection_extentNode_Getter(this);
 
   @DomName('Selection.extentOffset')
   @DocsEditable()
   @Experimental() // non-standard
-  int get extentOffset => blink.Native_Selection_extentOffset_Getter(this);
+  int get extentOffset => _blink.Native_Selection_extentOffset_Getter(this);
 
   @DomName('Selection.focusNode')
   @DocsEditable()
-  Node get focusNode => blink.Native_Selection_focusNode_Getter(this);
+  Node get focusNode => _blink.Native_Selection_focusNode_Getter(this);
 
   @DomName('Selection.focusOffset')
   @DocsEditable()
-  int get focusOffset => blink.Native_Selection_focusOffset_Getter(this);
+  int get focusOffset => _blink.Native_Selection_focusOffset_Getter(this);
 
   @DomName('Selection.isCollapsed')
   @DocsEditable()
-  bool get isCollapsed => blink.Native_Selection_isCollapsed_Getter(this);
+  bool get isCollapsed => _blink.Native_Selection_isCollapsed_Getter(this);
 
   @DomName('Selection.rangeCount')
   @DocsEditable()
-  int get rangeCount => blink.Native_Selection_rangeCount_Getter(this);
+  int get rangeCount => _blink.Native_Selection_rangeCount_Getter(this);
 
   @DomName('Selection.type')
   @DocsEditable()
   @Experimental() // non-standard
-  String get type => blink.Native_Selection_type_Getter(this);
+  String get type => _blink.Native_Selection_type_Getter(this);
 
   @DomName('Selection.addRange')
   @DocsEditable()
-  void addRange(Range range) => blink.Native_Selection_addRange_Callback(this, range);
+  void addRange(Range range) => _blink.Native_Selection_addRange_Callback(this, range);
 
   @DomName('Selection.collapse')
   @DocsEditable()
-  void collapse(Node node, int index) => blink.Native_Selection_collapse_Callback(this, node, index);
+  void collapse(Node node, int index) => _blink.Native_Selection_collapse_Callback(this, node, index);
 
   @DomName('Selection.collapseToEnd')
   @DocsEditable()
-  void collapseToEnd() => blink.Native_Selection_collapseToEnd_Callback(this);
+  void collapseToEnd() => _blink.Native_Selection_collapseToEnd_Callback(this);
 
   @DomName('Selection.collapseToStart')
   @DocsEditable()
-  void collapseToStart() => blink.Native_Selection_collapseToStart_Callback(this);
+  void collapseToStart() => _blink.Native_Selection_collapseToStart_Callback(this);
 
   @DomName('Selection.containsNode')
   @DocsEditable()
   @Experimental() // non-standard
-  bool containsNode(Node node, bool allowPartial) => blink.Native_Selection_containsNode_Callback(this, node, allowPartial);
+  bool containsNode(Node node, bool allowPartial) => _blink.Native_Selection_containsNode_Callback(this, node, allowPartial);
 
   @DomName('Selection.deleteFromDocument')
   @DocsEditable()
-  void deleteFromDocument() => blink.Native_Selection_deleteFromDocument_Callback(this);
+  void deleteFromDocument() => _blink.Native_Selection_deleteFromDocument_Callback(this);
 
   @DomName('Selection.empty')
   @DocsEditable()
   @Experimental() // non-standard
-  void empty() => blink.Native_Selection_empty_Callback(this);
+  void empty() => _blink.Native_Selection_empty_Callback(this);
 
   @DomName('Selection.extend')
   @DocsEditable()
-  void extend(Node node, int offset) => blink.Native_Selection_extend_Callback(this, node, offset);
+  void extend(Node node, int offset) => _blink.Native_Selection_extend_Callback(this, node, offset);
 
   @DomName('Selection.getRangeAt')
   @DocsEditable()
-  Range getRangeAt(int index) => blink.Native_Selection_getRangeAt_Callback(this, index);
+  Range getRangeAt(int index) => _blink.Native_Selection_getRangeAt_Callback(this, index);
 
   @DomName('Selection.modify')
   @DocsEditable()
   @Experimental() // non-standard
-  void modify(String alter, String direction, String granularity) => blink.Native_Selection_modify_Callback(this, alter, direction, granularity);
+  void modify(String alter, String direction, String granularity) => _blink.Native_Selection_modify_Callback(this, alter, direction, granularity);
 
   @DomName('Selection.removeAllRanges')
   @DocsEditable()
-  void removeAllRanges() => blink.Native_Selection_removeAllRanges_Callback(this);
+  void removeAllRanges() => _blink.Native_Selection_removeAllRanges_Callback(this);
 
   @DomName('Selection.selectAllChildren')
   @DocsEditable()
-  void selectAllChildren(Node node) => blink.Native_Selection_selectAllChildren_Callback(this, node);
+  void selectAllChildren(Node node) => _blink.Native_Selection_selectAllChildren_Callback(this, node);
 
   @DomName('Selection.setBaseAndExtent')
   @DocsEditable()
   @Experimental() // non-standard
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) => blink.Native_Selection_setBaseAndExtent_Callback(this, baseNode, baseOffset, extentNode, extentOffset);
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) => _blink.Native_Selection_setBaseAndExtent_Callback(this, baseNode, baseOffset, extentNode, extentOffset);
 
   @DomName('Selection.setPosition')
   @DocsEditable()
   @Experimental() // non-standard
-  void setPosition(Node node, int offset) => blink.Native_Selection_setPosition_Callback(this, node, offset);
+  void setPosition(Node node, int offset) => _blink.Native_Selection_setPosition_Callback(this, node, offset);
 
   @DomName('Selection.toString')
   @DocsEditable()
-  String toString() => blink.Native_Selection_toString_Callback(this);
+  String toString() => _blink.Native_Selection_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25278,16 +25278,16 @@ class ShadowElement extends HtmlElement {
 
   @DomName('HTMLShadowElement.resetStyleInheritance')
   @DocsEditable()
-  bool get resetStyleInheritance => blink.Native_HTMLShadowElement_resetStyleInheritance_Getter(this);
+  bool get resetStyleInheritance => _blink.Native_HTMLShadowElement_resetStyleInheritance_Getter(this);
 
   @DomName('HTMLShadowElement.resetStyleInheritance')
   @DocsEditable()
-  void set resetStyleInheritance(bool value) => blink.Native_HTMLShadowElement_resetStyleInheritance_Setter(this, value);
+  void set resetStyleInheritance(bool value) => _blink.Native_HTMLShadowElement_resetStyleInheritance_Setter(this, value);
 
   @DomName('HTMLShadowElement.getDistributedNodes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDistributedNodes() => blink.Native_HTMLShadowElement_getDistributedNodes_Callback(this);
+  List<Node> getDistributedNodes() => _blink.Native_HTMLShadowElement_getDistributedNodes_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25307,70 +25307,70 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.activeElement')
   @DocsEditable()
-  Element get activeElement => blink.Native_ShadowRoot_activeElement_Getter(this);
+  Element get activeElement => _blink.Native_ShadowRoot_activeElement_Getter(this);
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  bool get applyAuthorStyles => blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
+  bool get applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  void set applyAuthorStyles(bool value) => blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
+  void set applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get host => blink.Native_ShadowRoot_host_Getter(this);
+  Element get host => _blink.Native_ShadowRoot_host_Getter(this);
 
   @DomName('ShadowRoot.innerHTML')
   @DocsEditable()
-  String get innerHtml => blink.Native_ShadowRoot_innerHTML_Getter(this);
+  String get innerHtml => _blink.Native_ShadowRoot_innerHTML_Getter(this);
 
   @DomName('ShadowRoot.innerHTML')
   @DocsEditable()
-  void set innerHtml(String value) => blink.Native_ShadowRoot_innerHTML_Setter(this, value);
+  void set innerHtml(String value) => _blink.Native_ShadowRoot_innerHTML_Setter(this, value);
 
   @DomName('ShadowRoot.olderShadowRoot')
   @DocsEditable()
   @Experimental() // untriaged
-  ShadowRoot get olderShadowRoot => blink.Native_ShadowRoot_olderShadowRoot_Getter(this);
+  ShadowRoot get olderShadowRoot => _blink.Native_ShadowRoot_olderShadowRoot_Getter(this);
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  bool get resetStyleInheritance => blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
+  bool get resetStyleInheritance => _blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  void set resetStyleInheritance(bool value) => blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
+  void set resetStyleInheritance(bool value) => _blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
 
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
   @Experimental() // untriaged
-  List<StyleSheet> get styleSheets => blink.Native_ShadowRoot_styleSheets_Getter(this);
+  List<StyleSheet> get styleSheets => _blink.Native_ShadowRoot_styleSheets_Getter(this);
 
   @DomName('ShadowRoot.cloneNode')
   @DocsEditable()
-  Node clone(bool deep) => blink.Native_ShadowRoot_cloneNode_Callback(this, deep);
+  Node clone(bool deep) => _blink.Native_ShadowRoot_cloneNode_Callback(this, deep);
 
   @DomName('ShadowRoot.elementFromPoint')
   @DocsEditable()
-  Element elementFromPoint(int x, int y) => blink.Native_ShadowRoot_elementFromPoint_Callback(this, x, y);
+  Element elementFromPoint(int x, int y) => _blink.Native_ShadowRoot_elementFromPoint_Callback(this, x, y);
 
   @DomName('ShadowRoot.getElementById')
   @DocsEditable()
-  Element getElementById(String elementId) => blink.Native_ShadowRoot_getElementById_Callback(this, elementId);
+  Element getElementById(String elementId) => _blink.Native_ShadowRoot_getElementById_Callback(this, elementId);
 
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String className) => blink.Native_ShadowRoot_getElementsByClassName_Callback(this, className);
+  List<Node> getElementsByClassName(String className) => _blink.Native_ShadowRoot_getElementsByClassName_Callback(this, className);
 
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String tagName) => blink.Native_ShadowRoot_getElementsByTagName_Callback(this, tagName);
+  List<Node> getElementsByTagName(String tagName) => _blink.Native_ShadowRoot_getElementsByTagName_Callback(this, tagName);
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable()
-  Selection getSelection() => blink.Native_ShadowRoot_getSelection_Callback(this);
+  Selection getSelection() => _blink.Native_ShadowRoot_getSelection_Callback(this);
 
   static final bool supported = true;
 }
@@ -25401,31 +25401,31 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   }
 
   @DocsEditable()
-  static SharedWorker _create_1(scriptURL, name) => blink.Native_SharedWorker__create_1constructorCallback(scriptURL, name);
+  static SharedWorker _create_1(scriptURL, name) => _blink.Native_SharedWorker__create_1constructorCallback(scriptURL, name);
 
   @DomName('SharedWorker.port')
   @DocsEditable()
-  MessagePort get port => blink.Native_SharedWorker_port_Getter(this);
+  MessagePort get port => _blink.Native_SharedWorker_port_Getter(this);
 
   @DomName('SharedWorker.workerStart')
   @DocsEditable()
   @Experimental() // untriaged
-  double get workerStart => blink.Native_SharedWorker_workerStart_Getter(this);
+  double get workerStart => _blink.Native_SharedWorker_workerStart_Getter(this);
 
   @DomName('SharedWorker.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SharedWorker_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SharedWorker_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SharedWorker.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_SharedWorker_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SharedWorker_dispatchEvent_Callback(this, event);
 
   @DomName('SharedWorker.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SharedWorker_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SharedWorker_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -25461,7 +25461,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
-  String get name => blink.Native_SharedWorkerGlobalScope_name_Getter(this);
+  String get name => _blink.Native_SharedWorkerGlobalScope_name_Getter(this);
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   @DomName('SharedWorkerGlobalScope.onconnect')
@@ -25488,58 +25488,58 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  num get appendWindowEnd => blink.Native_SourceBuffer_appendWindowEnd_Getter(this);
+  num get appendWindowEnd => _blink.Native_SourceBuffer_appendWindowEnd_Getter(this);
 
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowEnd(num value) => blink.Native_SourceBuffer_appendWindowEnd_Setter(this, value);
+  void set appendWindowEnd(num value) => _blink.Native_SourceBuffer_appendWindowEnd_Setter(this, value);
 
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
   @Experimental() // untriaged
-  num get appendWindowStart => blink.Native_SourceBuffer_appendWindowStart_Getter(this);
+  num get appendWindowStart => _blink.Native_SourceBuffer_appendWindowStart_Getter(this);
 
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowStart(num value) => blink.Native_SourceBuffer_appendWindowStart_Setter(this, value);
+  void set appendWindowStart(num value) => _blink.Native_SourceBuffer_appendWindowStart_Setter(this, value);
 
   @DomName('SourceBuffer.buffered')
   @DocsEditable()
-  TimeRanges get buffered => blink.Native_SourceBuffer_buffered_Getter(this);
+  TimeRanges get buffered => _blink.Native_SourceBuffer_buffered_Getter(this);
 
   @DomName('SourceBuffer.mode')
   @DocsEditable()
   @Experimental() // untriaged
-  String get mode => blink.Native_SourceBuffer_mode_Getter(this);
+  String get mode => _blink.Native_SourceBuffer_mode_Getter(this);
 
   @DomName('SourceBuffer.mode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set mode(String value) => blink.Native_SourceBuffer_mode_Setter(this, value);
+  void set mode(String value) => _blink.Native_SourceBuffer_mode_Setter(this, value);
 
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
-  num get timestampOffset => blink.Native_SourceBuffer_timestampOffset_Getter(this);
+  num get timestampOffset => _blink.Native_SourceBuffer_timestampOffset_Getter(this);
 
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
-  void set timestampOffset(num value) => blink.Native_SourceBuffer_timestampOffset_Setter(this, value);
+  void set timestampOffset(num value) => _blink.Native_SourceBuffer_timestampOffset_Setter(this, value);
 
   @DomName('SourceBuffer.updating')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get updating => blink.Native_SourceBuffer_updating_Getter(this);
+  bool get updating => _blink.Native_SourceBuffer_updating_Getter(this);
 
   @DomName('SourceBuffer.abort')
   @DocsEditable()
-  void abort() => blink.Native_SourceBuffer_abort_Callback(this);
+  void abort() => _blink.Native_SourceBuffer_abort_Callback(this);
 
   @DomName('SourceBuffer.appendBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void appendBuffer(ByteBuffer data) => blink.Native_SourceBuffer_appendBuffer_Callback(this, data);
+  void appendBuffer(ByteBuffer data) => _blink.Native_SourceBuffer_appendBuffer_Callback(this, data);
 
   void appendStream(FileStream stream, [int maxSize]) {
     if (maxSize != null) {
@@ -25550,34 +25550,34 @@ class SourceBuffer extends EventTarget {
     return;
   }
 
-  void _appendStream_1(stream, maxSize) => blink.Native_SourceBuffer__appendStream_1_Callback(this, stream, maxSize);
+  void _appendStream_1(stream, maxSize) => _blink.Native_SourceBuffer__appendStream_1_Callback(this, stream, maxSize);
 
-  void _appendStream_2(stream) => blink.Native_SourceBuffer__appendStream_2_Callback(this, stream);
+  void _appendStream_2(stream) => _blink.Native_SourceBuffer__appendStream_2_Callback(this, stream);
 
   @DomName('SourceBuffer.appendTypedData')
   @DocsEditable()
   @Experimental() // untriaged
-  void appendTypedData(TypedData data) => blink.Native_SourceBuffer_appendTypedData_Callback(this, data);
+  void appendTypedData(TypedData data) => _blink.Native_SourceBuffer_appendTypedData_Callback(this, data);
 
   @DomName('SourceBuffer.remove')
   @DocsEditable()
   @Experimental() // untriaged
-  void remove(num start, num end) => blink.Native_SourceBuffer_remove_Callback(this, start, end);
+  void remove(num start, num end) => _blink.Native_SourceBuffer_remove_Callback(this, start, end);
 
   @DomName('SourceBuffer.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SourceBuffer_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBuffer_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SourceBuffer.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_SourceBuffer_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SourceBuffer_dispatchEvent_Callback(this, event);
 
   @DomName('SourceBuffer.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SourceBuffer_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBuffer_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25597,15 +25597,15 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   @DomName('SourceBufferList.length')
   @DocsEditable()
-  int get length => blink.Native_SourceBufferList_length_Getter(this);
+  int get length => _blink.Native_SourceBufferList_length_Getter(this);
 
   SourceBuffer operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_SourceBufferList_NativeIndexed_Getter(this, index);
+    return _blink.Native_SourceBufferList_NativeIndexed_Getter(this, index);
   }
 
-  SourceBuffer _nativeIndexedGetter(int index) => blink.Native_SourceBufferList_NativeIndexed_Getter(this, index);
+  SourceBuffer _nativeIndexedGetter(int index) => _blink.Native_SourceBufferList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -25647,19 +25647,19 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   @DomName('SourceBufferList.item')
   @DocsEditable()
-  SourceBuffer item(int index) => blink.Native_SourceBufferList_item_Callback(this, index);
+  SourceBuffer item(int index) => _blink.Native_SourceBufferList_item_Callback(this, index);
 
   @DomName('SourceBufferList.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SourceBufferList_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBufferList_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SourceBufferList.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_SourceBufferList_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SourceBufferList_dispatchEvent_Callback(this, event);
 
   @DomName('SourceBufferList.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SourceBufferList_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBufferList_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25687,27 +25687,27 @@ class SourceElement extends HtmlElement {
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
-  String get media => blink.Native_HTMLSourceElement_media_Getter(this);
+  String get media => _blink.Native_HTMLSourceElement_media_Getter(this);
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
-  void set media(String value) => blink.Native_HTMLSourceElement_media_Setter(this, value);
+  void set media(String value) => _blink.Native_HTMLSourceElement_media_Setter(this, value);
 
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLSourceElement_src_Getter(this);
+  String get src => _blink.Native_HTMLSourceElement_src_Getter(this);
 
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLSourceElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLSourceElement_src_Setter(this, value);
 
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLSourceElement_type_Getter(this);
+  String get type => _blink.Native_HTMLSourceElement_type_Getter(this);
 
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLSourceElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLSourceElement_type_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25727,22 +25727,22 @@ class SourceInfo extends NativeFieldWrapperClass2 {
   @DomName('SourceInfo.facing')
   @DocsEditable()
   @Experimental() // untriaged
-  String get facing => blink.Native_SourceInfo_facing_Getter(this);
+  String get facing => _blink.Native_SourceInfo_facing_Getter(this);
 
   @DomName('SourceInfo.id')
   @DocsEditable()
   @Experimental() // untriaged
-  String get id => blink.Native_SourceInfo_id_Getter(this);
+  String get id => _blink.Native_SourceInfo_id_Getter(this);
 
   @DomName('SourceInfo.kind')
   @DocsEditable()
   @Experimental() // untriaged
-  String get kind => blink.Native_SourceInfo_kind_Getter(this);
+  String get kind => _blink.Native_SourceInfo_kind_Getter(this);
 
   @DomName('SourceInfo.label')
   @DocsEditable()
   @Experimental() // untriaged
-  String get label => blink.Native_SourceInfo_label_Getter(this);
+  String get label => _blink.Native_SourceInfo_label_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25791,23 +25791,23 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static SpeechGrammar _create_1() => blink.Native_SpeechGrammar__create_1constructorCallback();
+  static SpeechGrammar _create_1() => _blink.Native_SpeechGrammar__create_1constructorCallback();
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
-  String get src => blink.Native_SpeechGrammar_src_Getter(this);
+  String get src => _blink.Native_SpeechGrammar_src_Getter(this);
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_SpeechGrammar_src_Setter(this, value);
+  void set src(String value) => _blink.Native_SpeechGrammar_src_Setter(this, value);
 
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
-  num get weight => blink.Native_SpeechGrammar_weight_Getter(this);
+  num get weight => _blink.Native_SpeechGrammar_weight_Getter(this);
 
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
-  void set weight(num value) => blink.Native_SpeechGrammar_weight_Setter(this, value);
+  void set weight(num value) => _blink.Native_SpeechGrammar_weight_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25832,19 +25832,19 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   }
 
   @DocsEditable()
-  static SpeechGrammarList _create_1() => blink.Native_SpeechGrammarList__create_1constructorCallback();
+  static SpeechGrammarList _create_1() => _blink.Native_SpeechGrammarList__create_1constructorCallback();
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
-  int get length => blink.Native_SpeechGrammarList_length_Getter(this);
+  int get length => _blink.Native_SpeechGrammarList_length_Getter(this);
 
   SpeechGrammar operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_SpeechGrammarList_NativeIndexed_Getter(this, index);
+    return _blink.Native_SpeechGrammarList_NativeIndexed_Getter(this, index);
   }
 
-  SpeechGrammar _nativeIndexedGetter(int index) => blink.Native_SpeechGrammarList_NativeIndexed_Getter(this, index);
+  SpeechGrammar _nativeIndexedGetter(int index) => _blink.Native_SpeechGrammarList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -25893,9 +25893,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
     return;
   }
 
-  void _addFromString_1(string, weight) => blink.Native_SpeechGrammarList__addFromString_1_Callback(this, string, weight);
+  void _addFromString_1(string, weight) => _blink.Native_SpeechGrammarList__addFromString_1_Callback(this, string, weight);
 
-  void _addFromString_2(string) => blink.Native_SpeechGrammarList__addFromString_2_Callback(this, string);
+  void _addFromString_2(string) => _blink.Native_SpeechGrammarList__addFromString_2_Callback(this, string);
 
   void addFromUri(String src, [num weight]) {
     if (weight != null) {
@@ -25906,13 +25906,13 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
     return;
   }
 
-  void _addFromUri_1(src, weight) => blink.Native_SpeechGrammarList__addFromUri_1_Callback(this, src, weight);
+  void _addFromUri_1(src, weight) => _blink.Native_SpeechGrammarList__addFromUri_1_Callback(this, src, weight);
 
-  void _addFromUri_2(src) => blink.Native_SpeechGrammarList__addFromUri_2_Callback(this, src);
+  void _addFromUri_2(src) => _blink.Native_SpeechGrammarList__addFromUri_2_Callback(this, src);
 
   @DomName('SpeechGrammarList.item')
   @DocsEditable()
-  SpeechGrammar item(int index) => blink.Native_SpeechGrammarList_item_Callback(this, index);
+  SpeechGrammar item(int index) => _blink.Native_SpeechGrammarList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25932,7 +25932,7 @@ class SpeechInputEvent extends Event {
 
   @DomName('SpeechInputEvent.results')
   @DocsEditable()
-  List<SpeechInputResult> get results => blink.Native_SpeechInputEvent_results_Getter(this);
+  List<SpeechInputResult> get results => _blink.Native_SpeechInputEvent_results_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25952,11 +25952,11 @@ class SpeechInputResult extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable()
-  double get confidence => blink.Native_SpeechInputResult_confidence_Getter(this);
+  double get confidence => _blink.Native_SpeechInputResult_confidence_Getter(this);
 
   @DomName('SpeechInputResult.utterance')
   @DocsEditable()
-  String get utterance => blink.Native_SpeechInputResult_utterance_Getter(this);
+  String get utterance => _blink.Native_SpeechInputResult_utterance_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26092,74 +26092,74 @@ class SpeechRecognition extends EventTarget {
   }
 
   @DocsEditable()
-  static SpeechRecognition _create_1() => blink.Native_SpeechRecognition__create_1constructorCallback();
+  static SpeechRecognition _create_1() => _blink.Native_SpeechRecognition__create_1constructorCallback();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SpeechRecognition.continuous')
   @DocsEditable()
-  bool get continuous => blink.Native_SpeechRecognition_continuous_Getter(this);
+  bool get continuous => _blink.Native_SpeechRecognition_continuous_Getter(this);
 
   @DomName('SpeechRecognition.continuous')
   @DocsEditable()
-  void set continuous(bool value) => blink.Native_SpeechRecognition_continuous_Setter(this, value);
+  void set continuous(bool value) => _blink.Native_SpeechRecognition_continuous_Setter(this, value);
 
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
-  SpeechGrammarList get grammars => blink.Native_SpeechRecognition_grammars_Getter(this);
+  SpeechGrammarList get grammars => _blink.Native_SpeechRecognition_grammars_Getter(this);
 
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
-  void set grammars(SpeechGrammarList value) => blink.Native_SpeechRecognition_grammars_Setter(this, value);
+  void set grammars(SpeechGrammarList value) => _blink.Native_SpeechRecognition_grammars_Setter(this, value);
 
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
-  bool get interimResults => blink.Native_SpeechRecognition_interimResults_Getter(this);
+  bool get interimResults => _blink.Native_SpeechRecognition_interimResults_Getter(this);
 
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
-  void set interimResults(bool value) => blink.Native_SpeechRecognition_interimResults_Setter(this, value);
+  void set interimResults(bool value) => _blink.Native_SpeechRecognition_interimResults_Setter(this, value);
 
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
-  String get lang => blink.Native_SpeechRecognition_lang_Getter(this);
+  String get lang => _blink.Native_SpeechRecognition_lang_Getter(this);
 
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
-  void set lang(String value) => blink.Native_SpeechRecognition_lang_Setter(this, value);
+  void set lang(String value) => _blink.Native_SpeechRecognition_lang_Setter(this, value);
 
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
-  int get maxAlternatives => blink.Native_SpeechRecognition_maxAlternatives_Getter(this);
+  int get maxAlternatives => _blink.Native_SpeechRecognition_maxAlternatives_Getter(this);
 
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
-  void set maxAlternatives(int value) => blink.Native_SpeechRecognition_maxAlternatives_Setter(this, value);
+  void set maxAlternatives(int value) => _blink.Native_SpeechRecognition_maxAlternatives_Setter(this, value);
 
   @DomName('SpeechRecognition.abort')
   @DocsEditable()
-  void abort() => blink.Native_SpeechRecognition_abort_Callback(this);
+  void abort() => _blink.Native_SpeechRecognition_abort_Callback(this);
 
   @DomName('SpeechRecognition.start')
   @DocsEditable()
-  void start() => blink.Native_SpeechRecognition_start_Callback(this);
+  void start() => _blink.Native_SpeechRecognition_start_Callback(this);
 
   @DomName('SpeechRecognition.stop')
   @DocsEditable()
-  void stop() => blink.Native_SpeechRecognition_stop_Callback(this);
+  void stop() => _blink.Native_SpeechRecognition_stop_Callback(this);
 
   @DomName('SpeechRecognition.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechRecognition_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechRecognition_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SpeechRecognition.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_SpeechRecognition_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SpeechRecognition_dispatchEvent_Callback(this, event);
 
   @DomName('SpeechRecognition.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechRecognition_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechRecognition_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `audioend` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onaudioend')
@@ -26235,11 +26235,11 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  double get confidence => blink.Native_SpeechRecognitionAlternative_confidence_Getter(this);
+  double get confidence => _blink.Native_SpeechRecognitionAlternative_confidence_Getter(this);
 
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
-  String get transcript => blink.Native_SpeechRecognitionAlternative_transcript_Getter(this);
+  String get transcript => _blink.Native_SpeechRecognitionAlternative_transcript_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26260,11 +26260,11 @@ class SpeechRecognitionError extends Event {
 
   @DomName('SpeechRecognitionError.error')
   @DocsEditable()
-  String get error => blink.Native_SpeechRecognitionError_error_Getter(this);
+  String get error => _blink.Native_SpeechRecognitionError_error_Getter(this);
 
   @DomName('SpeechRecognitionError.message')
   @DocsEditable()
-  String get message => blink.Native_SpeechRecognitionError_message_Getter(this);
+  String get message => _blink.Native_SpeechRecognitionError_message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26285,19 +26285,19 @@ class SpeechRecognitionEvent extends Event {
 
   @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable()
-  Document get emma => blink.Native_SpeechRecognitionEvent_emma_Getter(this);
+  Document get emma => _blink.Native_SpeechRecognitionEvent_emma_Getter(this);
 
   @DomName('SpeechRecognitionEvent.interpretation')
   @DocsEditable()
-  Document get interpretation => blink.Native_SpeechRecognitionEvent_interpretation_Getter(this);
+  Document get interpretation => _blink.Native_SpeechRecognitionEvent_interpretation_Getter(this);
 
   @DomName('SpeechRecognitionEvent.resultIndex')
   @DocsEditable()
-  int get resultIndex => blink.Native_SpeechRecognitionEvent_resultIndex_Getter(this);
+  int get resultIndex => _blink.Native_SpeechRecognitionEvent_resultIndex_Getter(this);
 
   @DomName('SpeechRecognitionEvent.results')
   @DocsEditable()
-  List<SpeechRecognitionResult> get results => blink.Native_SpeechRecognitionEvent_results_Getter(this);
+  List<SpeechRecognitionResult> get results => _blink.Native_SpeechRecognitionEvent_results_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26318,15 +26318,15 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable()
-  bool get isFinal => blink.Native_SpeechRecognitionResult_isFinal_Getter(this);
+  bool get isFinal => _blink.Native_SpeechRecognitionResult_isFinal_Getter(this);
 
   @DomName('SpeechRecognitionResult.length')
   @DocsEditable()
-  int get length => blink.Native_SpeechRecognitionResult_length_Getter(this);
+  int get length => _blink.Native_SpeechRecognitionResult_length_Getter(this);
 
   @DomName('SpeechRecognitionResult.item')
   @DocsEditable()
-  SpeechRecognitionAlternative item(int index) => blink.Native_SpeechRecognitionResult_item_Callback(this, index);
+  SpeechRecognitionAlternative item(int index) => _blink.Native_SpeechRecognitionResult_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26346,50 +26346,50 @@ class SpeechSynthesis extends EventTarget {
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable()
-  bool get paused => blink.Native_SpeechSynthesis_paused_Getter(this);
+  bool get paused => _blink.Native_SpeechSynthesis_paused_Getter(this);
 
   @DomName('SpeechSynthesis.pending')
   @DocsEditable()
-  bool get pending => blink.Native_SpeechSynthesis_pending_Getter(this);
+  bool get pending => _blink.Native_SpeechSynthesis_pending_Getter(this);
 
   @DomName('SpeechSynthesis.speaking')
   @DocsEditable()
-  bool get speaking => blink.Native_SpeechSynthesis_speaking_Getter(this);
+  bool get speaking => _blink.Native_SpeechSynthesis_speaking_Getter(this);
 
   @DomName('SpeechSynthesis.cancel')
   @DocsEditable()
-  void cancel() => blink.Native_SpeechSynthesis_cancel_Callback(this);
+  void cancel() => _blink.Native_SpeechSynthesis_cancel_Callback(this);
 
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable()
-  List<SpeechSynthesisVoice> getVoices() => blink.Native_SpeechSynthesis_getVoices_Callback(this);
+  List<SpeechSynthesisVoice> getVoices() => _blink.Native_SpeechSynthesis_getVoices_Callback(this);
 
   @DomName('SpeechSynthesis.pause')
   @DocsEditable()
-  void pause() => blink.Native_SpeechSynthesis_pause_Callback(this);
+  void pause() => _blink.Native_SpeechSynthesis_pause_Callback(this);
 
   @DomName('SpeechSynthesis.resume')
   @DocsEditable()
-  void resume() => blink.Native_SpeechSynthesis_resume_Callback(this);
+  void resume() => _blink.Native_SpeechSynthesis_resume_Callback(this);
 
   @DomName('SpeechSynthesis.speak')
   @DocsEditable()
-  void speak(SpeechSynthesisUtterance utterance) => blink.Native_SpeechSynthesis_speak_Callback(this, utterance);
+  void speak(SpeechSynthesisUtterance utterance) => _blink.Native_SpeechSynthesis_speak_Callback(this, utterance);
 
   @DomName('SpeechSynthesis.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechSynthesis_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesis_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SpeechSynthesis.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_SpeechSynthesis_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SpeechSynthesis_dispatchEvent_Callback(this, event);
 
   @DomName('SpeechSynthesis.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechSynthesis_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesis_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26409,15 +26409,15 @@ class SpeechSynthesisEvent extends Event {
 
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable()
-  int get charIndex => blink.Native_SpeechSynthesisEvent_charIndex_Getter(this);
+  int get charIndex => _blink.Native_SpeechSynthesisEvent_charIndex_Getter(this);
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => blink.Native_SpeechSynthesisEvent_elapsedTime_Getter(this);
+  double get elapsedTime => _blink.Native_SpeechSynthesisEvent_elapsedTime_Getter(this);
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
-  String get name => blink.Native_SpeechSynthesisEvent_name_Getter(this);
+  String get name => _blink.Native_SpeechSynthesisEvent_name_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26512,70 +26512,70 @@ class SpeechSynthesisUtterance extends EventTarget {
   }
 
   @DocsEditable()
-  static SpeechSynthesisUtterance _create_1(text) => blink.Native_SpeechSynthesisUtterance__create_1constructorCallback(text);
+  static SpeechSynthesisUtterance _create_1(text) => _blink.Native_SpeechSynthesisUtterance__create_1constructorCallback(text);
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
-  String get lang => blink.Native_SpeechSynthesisUtterance_lang_Getter(this);
+  String get lang => _blink.Native_SpeechSynthesisUtterance_lang_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
-  void set lang(String value) => blink.Native_SpeechSynthesisUtterance_lang_Setter(this, value);
+  void set lang(String value) => _blink.Native_SpeechSynthesisUtterance_lang_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
-  num get pitch => blink.Native_SpeechSynthesisUtterance_pitch_Getter(this);
+  num get pitch => _blink.Native_SpeechSynthesisUtterance_pitch_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
-  void set pitch(num value) => blink.Native_SpeechSynthesisUtterance_pitch_Setter(this, value);
+  void set pitch(num value) => _blink.Native_SpeechSynthesisUtterance_pitch_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
-  num get rate => blink.Native_SpeechSynthesisUtterance_rate_Getter(this);
+  num get rate => _blink.Native_SpeechSynthesisUtterance_rate_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
-  void set rate(num value) => blink.Native_SpeechSynthesisUtterance_rate_Setter(this, value);
+  void set rate(num value) => _blink.Native_SpeechSynthesisUtterance_rate_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
-  String get text => blink.Native_SpeechSynthesisUtterance_text_Getter(this);
+  String get text => _blink.Native_SpeechSynthesisUtterance_text_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
-  void set text(String value) => blink.Native_SpeechSynthesisUtterance_text_Setter(this, value);
+  void set text(String value) => _blink.Native_SpeechSynthesisUtterance_text_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
-  SpeechSynthesisVoice get voice => blink.Native_SpeechSynthesisUtterance_voice_Getter(this);
+  SpeechSynthesisVoice get voice => _blink.Native_SpeechSynthesisUtterance_voice_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
-  void set voice(SpeechSynthesisVoice value) => blink.Native_SpeechSynthesisUtterance_voice_Setter(this, value);
+  void set voice(SpeechSynthesisVoice value) => _blink.Native_SpeechSynthesisUtterance_voice_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
-  num get volume => blink.Native_SpeechSynthesisUtterance_volume_Getter(this);
+  num get volume => _blink.Native_SpeechSynthesisUtterance_volume_Getter(this);
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
-  void set volume(num value) => blink.Native_SpeechSynthesisUtterance_volume_Setter(this, value);
+  void set volume(num value) => _blink.Native_SpeechSynthesisUtterance_volume_Setter(this, value);
 
   @DomName('SpeechSynthesisUtterance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechSynthesisUtterance_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesisUtterance_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SpeechSynthesisUtterance.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_SpeechSynthesisUtterance_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_SpeechSynthesisUtterance_dispatchEvent_Callback(this, event);
 
   @DomName('SpeechSynthesisUtterance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_SpeechSynthesisUtterance_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesisUtterance_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onboundary')
@@ -26630,23 +26630,23 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable()
-  bool get defaultValue => blink.Native_SpeechSynthesisVoice_default_Getter(this);
+  bool get defaultValue => _blink.Native_SpeechSynthesisVoice_default_Getter(this);
 
   @DomName('SpeechSynthesisVoice.lang')
   @DocsEditable()
-  String get lang => blink.Native_SpeechSynthesisVoice_lang_Getter(this);
+  String get lang => _blink.Native_SpeechSynthesisVoice_lang_Getter(this);
 
   @DomName('SpeechSynthesisVoice.localService')
   @DocsEditable()
-  bool get localService => blink.Native_SpeechSynthesisVoice_localService_Getter(this);
+  bool get localService => _blink.Native_SpeechSynthesisVoice_localService_Getter(this);
 
   @DomName('SpeechSynthesisVoice.name')
   @DocsEditable()
-  String get name => blink.Native_SpeechSynthesisVoice_name_Getter(this);
+  String get name => _blink.Native_SpeechSynthesisVoice_name_Getter(this);
 
   @DomName('SpeechSynthesisVoice.voiceURI')
   @DocsEditable()
-  String get voiceUri => blink.Native_SpeechSynthesisVoice_voiceURI_Getter(this);
+  String get voiceUri => _blink.Native_SpeechSynthesisVoice_voiceURI_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26741,7 +26741,7 @@ class Storage extends NativeFieldWrapperClass2
 
   @DomName('Storage.length')
   @DocsEditable()
-  int get _length => blink.Native_Storage_length_Getter(this);
+  int get _length => _blink.Native_Storage_length_Getter(this);
 
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -26753,9 +26753,9 @@ class Storage extends NativeFieldWrapperClass2
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  bool ___delete___1(index_OR_name) => blink.Native_Storage____delete___1_Callback(this, index_OR_name);
+  bool ___delete___1(index_OR_name) => _blink.Native_Storage____delete___1_Callback(this, index_OR_name);
 
-  bool ___delete___2(index_OR_name) => blink.Native_Storage____delete___2_Callback(this, index_OR_name);
+  bool ___delete___2(index_OR_name) => _blink.Native_Storage____delete___2_Callback(this, index_OR_name);
 
   String __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -26767,9 +26767,9 @@ class Storage extends NativeFieldWrapperClass2
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  String ___getter___1(index_OR_name) => blink.Native_Storage____getter___1_Callback(this, index_OR_name);
+  String ___getter___1(index_OR_name) => _blink.Native_Storage____getter___1_Callback(this, index_OR_name);
 
-  String ___getter___2(index_OR_name) => blink.Native_Storage____getter___2_Callback(this, index_OR_name);
+  String ___getter___2(index_OR_name) => _blink.Native_Storage____getter___2_Callback(this, index_OR_name);
 
   void __setter__(index_OR_name, String value) {
     if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
@@ -26783,29 +26783,29 @@ class Storage extends NativeFieldWrapperClass2
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void ___setter___1(index_OR_name, value) => blink.Native_Storage____setter___1_Callback(this, index_OR_name, value);
+  void ___setter___1(index_OR_name, value) => _blink.Native_Storage____setter___1_Callback(this, index_OR_name, value);
 
-  void ___setter___2(index_OR_name, value) => blink.Native_Storage____setter___2_Callback(this, index_OR_name, value);
+  void ___setter___2(index_OR_name, value) => _blink.Native_Storage____setter___2_Callback(this, index_OR_name, value);
 
   @DomName('Storage.clear')
   @DocsEditable()
-  void _clear() => blink.Native_Storage_clear_Callback(this);
+  void _clear() => _blink.Native_Storage_clear_Callback(this);
 
   @DomName('Storage.getItem')
   @DocsEditable()
-  String _getItem(String key) => blink.Native_Storage_getItem_Callback(this, key);
+  String _getItem(String key) => _blink.Native_Storage_getItem_Callback(this, key);
 
   @DomName('Storage.key')
   @DocsEditable()
-  String _key(int index) => blink.Native_Storage_key_Callback(this, index);
+  String _key(int index) => _blink.Native_Storage_key_Callback(this, index);
 
   @DomName('Storage.removeItem')
   @DocsEditable()
-  void _removeItem(String key) => blink.Native_Storage_removeItem_Callback(this, key);
+  void _removeItem(String key) => _blink.Native_Storage_removeItem_Callback(this, key);
 
   @DomName('Storage.setItem')
   @DocsEditable()
-  void _setItem(String key, String data) => blink.Native_Storage_setItem_Callback(this, key, data);
+  void _setItem(String key, String data) => _blink.Native_Storage_setItem_Callback(this, key, data);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26843,27 +26843,27 @@ class StorageEvent extends Event {
 
   @DomName('StorageEvent.key')
   @DocsEditable()
-  String get key => blink.Native_StorageEvent_key_Getter(this);
+  String get key => _blink.Native_StorageEvent_key_Getter(this);
 
   @DomName('StorageEvent.newValue')
   @DocsEditable()
-  String get newValue => blink.Native_StorageEvent_newValue_Getter(this);
+  String get newValue => _blink.Native_StorageEvent_newValue_Getter(this);
 
   @DomName('StorageEvent.oldValue')
   @DocsEditable()
-  String get oldValue => blink.Native_StorageEvent_oldValue_Getter(this);
+  String get oldValue => _blink.Native_StorageEvent_oldValue_Getter(this);
 
   @DomName('StorageEvent.storageArea')
   @DocsEditable()
-  Storage get storageArea => blink.Native_StorageEvent_storageArea_Getter(this);
+  Storage get storageArea => _blink.Native_StorageEvent_storageArea_Getter(this);
 
   @DomName('StorageEvent.url')
   @DocsEditable()
-  String get url => blink.Native_StorageEvent_url_Getter(this);
+  String get url => _blink.Native_StorageEvent_url_Getter(this);
 
   @DomName('StorageEvent.initStorageEvent')
   @DocsEditable()
-  void _initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) => blink.Native_StorageEvent_initStorageEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
+  void _initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) => _blink.Native_StorageEvent_initStorageEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26884,12 +26884,12 @@ class StorageInfo extends NativeFieldWrapperClass2 {
   @DomName('StorageInfo.quota')
   @DocsEditable()
   @Experimental() // untriaged
-  int get quota => blink.Native_StorageInfo_quota_Getter(this);
+  int get quota => _blink.Native_StorageInfo_quota_Getter(this);
 
   @DomName('StorageInfo.usage')
   @DocsEditable()
   @Experimental() // untriaged
-  int get usage => blink.Native_StorageInfo_usage_Getter(this);
+  int get usage => _blink.Native_StorageInfo_usage_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26910,7 +26910,7 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get supportedTypes => blink.Native_StorageQuota_supportedTypes_Getter(this);
+  List<String> get supportedTypes => _blink.Native_StorageQuota_supportedTypes_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26971,39 +26971,39 @@ class StyleElement extends HtmlElement {
 
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLStyleElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLStyleElement_disabled_Getter(this);
 
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLStyleElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLStyleElement_disabled_Setter(this, value);
 
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
-  String get media => blink.Native_HTMLStyleElement_media_Getter(this);
+  String get media => _blink.Native_HTMLStyleElement_media_Getter(this);
 
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
-  void set media(String value) => blink.Native_HTMLStyleElement_media_Setter(this, value);
+  void set media(String value) => _blink.Native_HTMLStyleElement_media_Setter(this, value);
 
   @DomName('HTMLStyleElement.scoped')
   @DocsEditable()
-  bool get scoped => blink.Native_HTMLStyleElement_scoped_Getter(this);
+  bool get scoped => _blink.Native_HTMLStyleElement_scoped_Getter(this);
 
   @DomName('HTMLStyleElement.scoped')
   @DocsEditable()
-  void set scoped(bool value) => blink.Native_HTMLStyleElement_scoped_Setter(this, value);
+  void set scoped(bool value) => _blink.Native_HTMLStyleElement_scoped_Setter(this, value);
 
   @DomName('HTMLStyleElement.sheet')
   @DocsEditable()
-  StyleSheet get sheet => blink.Native_HTMLStyleElement_sheet_Getter(this);
+  StyleSheet get sheet => _blink.Native_HTMLStyleElement_sheet_Getter(this);
 
   @DomName('HTMLStyleElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLStyleElement_type_Getter(this);
+  String get type => _blink.Native_HTMLStyleElement_type_Getter(this);
 
   @DomName('HTMLStyleElement.type')
   @DocsEditable()
-  void set type(String value) => blink.Native_HTMLStyleElement_type_Setter(this, value);
+  void set type(String value) => _blink.Native_HTMLStyleElement_type_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27023,11 +27023,11 @@ class StyleMedia extends NativeFieldWrapperClass2 {
 
   @DomName('StyleMedia.type')
   @DocsEditable()
-  String get type => blink.Native_StyleMedia_type_Getter(this);
+  String get type => _blink.Native_StyleMedia_type_Getter(this);
 
   @DomName('StyleMedia.matchMedium')
   @DocsEditable()
-  bool matchMedium(String mediaquery) => blink.Native_StyleMedia_matchMedium_Callback(this, mediaquery);
+  bool matchMedium(String mediaquery) => _blink.Native_StyleMedia_matchMedium_Callback(this, mediaquery);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27045,35 +27045,35 @@ class StyleSheet extends NativeFieldWrapperClass2 {
 
   @DomName('StyleSheet.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_StyleSheet_disabled_Getter(this);
+  bool get disabled => _blink.Native_StyleSheet_disabled_Getter(this);
 
   @DomName('StyleSheet.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_StyleSheet_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_StyleSheet_disabled_Setter(this, value);
 
   @DomName('StyleSheet.href')
   @DocsEditable()
-  String get href => blink.Native_StyleSheet_href_Getter(this);
+  String get href => _blink.Native_StyleSheet_href_Getter(this);
 
   @DomName('StyleSheet.media')
   @DocsEditable()
-  MediaList get media => blink.Native_StyleSheet_media_Getter(this);
+  MediaList get media => _blink.Native_StyleSheet_media_Getter(this);
 
   @DomName('StyleSheet.ownerNode')
   @DocsEditable()
-  Node get ownerNode => blink.Native_StyleSheet_ownerNode_Getter(this);
+  Node get ownerNode => _blink.Native_StyleSheet_ownerNode_Getter(this);
 
   @DomName('StyleSheet.parentStyleSheet')
   @DocsEditable()
-  StyleSheet get parentStyleSheet => blink.Native_StyleSheet_parentStyleSheet_Getter(this);
+  StyleSheet get parentStyleSheet => _blink.Native_StyleSheet_parentStyleSheet_Getter(this);
 
   @DomName('StyleSheet.title')
   @DocsEditable()
-  String get title => blink.Native_StyleSheet_title_Getter(this);
+  String get title => _blink.Native_StyleSheet_title_Getter(this);
 
   @DomName('StyleSheet.type')
   @DocsEditable()
-  String get type => blink.Native_StyleSheet_type_Getter(this);
+  String get type => _blink.Native_StyleSheet_type_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27125,31 +27125,31 @@ class TableCellElement extends HtmlElement {
 
   @DomName('HTMLTableCellElement.cellIndex')
   @DocsEditable()
-  int get cellIndex => blink.Native_HTMLTableCellElement_cellIndex_Getter(this);
+  int get cellIndex => _blink.Native_HTMLTableCellElement_cellIndex_Getter(this);
 
   @DomName('HTMLTableCellElement.colSpan')
   @DocsEditable()
-  int get colSpan => blink.Native_HTMLTableCellElement_colSpan_Getter(this);
+  int get colSpan => _blink.Native_HTMLTableCellElement_colSpan_Getter(this);
 
   @DomName('HTMLTableCellElement.colSpan')
   @DocsEditable()
-  void set colSpan(int value) => blink.Native_HTMLTableCellElement_colSpan_Setter(this, value);
+  void set colSpan(int value) => _blink.Native_HTMLTableCellElement_colSpan_Setter(this, value);
 
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
-  String get headers => blink.Native_HTMLTableCellElement_headers_Getter(this);
+  String get headers => _blink.Native_HTMLTableCellElement_headers_Getter(this);
 
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
-  void set headers(String value) => blink.Native_HTMLTableCellElement_headers_Setter(this, value);
+  void set headers(String value) => _blink.Native_HTMLTableCellElement_headers_Setter(this, value);
 
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
-  int get rowSpan => blink.Native_HTMLTableCellElement_rowSpan_Getter(this);
+  int get rowSpan => _blink.Native_HTMLTableCellElement_rowSpan_Getter(this);
 
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
-  void set rowSpan(int value) => blink.Native_HTMLTableCellElement_rowSpan_Setter(this, value);
+  void set rowSpan(int value) => _blink.Native_HTMLTableCellElement_rowSpan_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27177,11 +27177,11 @@ class TableColElement extends HtmlElement {
 
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
-  int get span => blink.Native_HTMLTableColElement_span_Getter(this);
+  int get span => _blink.Native_HTMLTableColElement_span_Getter(this);
 
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
-  void set span(int value) => blink.Native_HTMLTableColElement_span_Setter(this, value);
+  void set span(int value) => _blink.Native_HTMLTableColElement_span_Setter(this, value);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -27227,71 +27227,71 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
-  TableCaptionElement get caption => blink.Native_HTMLTableElement_caption_Getter(this);
+  TableCaptionElement get caption => _blink.Native_HTMLTableElement_caption_Getter(this);
 
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
-  void set caption(TableCaptionElement value) => blink.Native_HTMLTableElement_caption_Setter(this, value);
+  void set caption(TableCaptionElement value) => _blink.Native_HTMLTableElement_caption_Setter(this, value);
 
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  List<Node> get _rows => blink.Native_HTMLTableElement_rows_Getter(this);
+  List<Node> get _rows => _blink.Native_HTMLTableElement_rows_Getter(this);
 
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  List<Node> get _tBodies => blink.Native_HTMLTableElement_tBodies_Getter(this);
+  List<Node> get _tBodies => _blink.Native_HTMLTableElement_tBodies_Getter(this);
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
-  TableSectionElement get tFoot => blink.Native_HTMLTableElement_tFoot_Getter(this);
+  TableSectionElement get tFoot => _blink.Native_HTMLTableElement_tFoot_Getter(this);
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
-  void set tFoot(TableSectionElement value) => blink.Native_HTMLTableElement_tFoot_Setter(this, value);
+  void set tFoot(TableSectionElement value) => _blink.Native_HTMLTableElement_tFoot_Setter(this, value);
 
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
-  TableSectionElement get tHead => blink.Native_HTMLTableElement_tHead_Getter(this);
+  TableSectionElement get tHead => _blink.Native_HTMLTableElement_tHead_Getter(this);
 
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
-  void set tHead(TableSectionElement value) => blink.Native_HTMLTableElement_tHead_Setter(this, value);
+  void set tHead(TableSectionElement value) => _blink.Native_HTMLTableElement_tHead_Setter(this, value);
 
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable()
-  HtmlElement _createCaption() => blink.Native_HTMLTableElement_createCaption_Callback(this);
+  HtmlElement _createCaption() => _blink.Native_HTMLTableElement_createCaption_Callback(this);
 
   @DomName('HTMLTableElement.createTBody')
   @DocsEditable()
-  HtmlElement _createTBody() => blink.Native_HTMLTableElement_createTBody_Callback(this);
+  HtmlElement _createTBody() => _blink.Native_HTMLTableElement_createTBody_Callback(this);
 
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable()
-  HtmlElement _createTFoot() => blink.Native_HTMLTableElement_createTFoot_Callback(this);
+  HtmlElement _createTFoot() => _blink.Native_HTMLTableElement_createTFoot_Callback(this);
 
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable()
-  HtmlElement _createTHead() => blink.Native_HTMLTableElement_createTHead_Callback(this);
+  HtmlElement _createTHead() => _blink.Native_HTMLTableElement_createTHead_Callback(this);
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable()
-  void deleteCaption() => blink.Native_HTMLTableElement_deleteCaption_Callback(this);
+  void deleteCaption() => _blink.Native_HTMLTableElement_deleteCaption_Callback(this);
 
   @DomName('HTMLTableElement.deleteRow')
   @DocsEditable()
-  void deleteRow(int index) => blink.Native_HTMLTableElement_deleteRow_Callback(this, index);
+  void deleteRow(int index) => _blink.Native_HTMLTableElement_deleteRow_Callback(this, index);
 
   @DomName('HTMLTableElement.deleteTFoot')
   @DocsEditable()
-  void deleteTFoot() => blink.Native_HTMLTableElement_deleteTFoot_Callback(this);
+  void deleteTFoot() => _blink.Native_HTMLTableElement_deleteTFoot_Callback(this);
 
   @DomName('HTMLTableElement.deleteTHead')
   @DocsEditable()
-  void deleteTHead() => blink.Native_HTMLTableElement_deleteTHead_Callback(this);
+  void deleteTHead() => _blink.Native_HTMLTableElement_deleteTHead_Callback(this);
 
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable()
-  HtmlElement _insertRow(int index) => blink.Native_HTMLTableElement_insertRow_Callback(this, index);
+  HtmlElement _insertRow(int index) => _blink.Native_HTMLTableElement_insertRow_Callback(this, index);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27328,23 +27328,23 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  List<Node> get _cells => blink.Native_HTMLTableRowElement_cells_Getter(this);
+  List<Node> get _cells => _blink.Native_HTMLTableRowElement_cells_Getter(this);
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
-  int get rowIndex => blink.Native_HTMLTableRowElement_rowIndex_Getter(this);
+  int get rowIndex => _blink.Native_HTMLTableRowElement_rowIndex_Getter(this);
 
   @DomName('HTMLTableRowElement.sectionRowIndex')
   @DocsEditable()
-  int get sectionRowIndex => blink.Native_HTMLTableRowElement_sectionRowIndex_Getter(this);
+  int get sectionRowIndex => _blink.Native_HTMLTableRowElement_sectionRowIndex_Getter(this);
 
   @DomName('HTMLTableRowElement.deleteCell')
   @DocsEditable()
-  void deleteCell(int index) => blink.Native_HTMLTableRowElement_deleteCell_Callback(this, index);
+  void deleteCell(int index) => _blink.Native_HTMLTableRowElement_deleteCell_Callback(this, index);
 
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable()
-  HtmlElement _insertCell(int index) => blink.Native_HTMLTableRowElement_insertCell_Callback(this, index);
+  HtmlElement _insertCell(int index) => _blink.Native_HTMLTableRowElement_insertCell_Callback(this, index);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27377,15 +27377,15 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  List<Node> get _rows => blink.Native_HTMLTableSectionElement_rows_Getter(this);
+  List<Node> get _rows => _blink.Native_HTMLTableSectionElement_rows_Getter(this);
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
-  void deleteRow(int index) => blink.Native_HTMLTableSectionElement_deleteRow_Callback(this, index);
+  void deleteRow(int index) => _blink.Native_HTMLTableSectionElement_deleteRow_Callback(this, index);
 
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable()
-  HtmlElement _insertRow(int index) => blink.Native_HTMLTableSectionElement_insertRow_Callback(this, index);
+  HtmlElement _insertRow(int index) => _blink.Native_HTMLTableSectionElement_insertRow_Callback(this, index);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27418,7 +27418,7 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable()
-  DocumentFragment get content => blink.Native_HTMLTemplateElement_content_Getter(this);
+  DocumentFragment get content => _blink.Native_HTMLTemplateElement_content_Getter(this);
 
 
   /**
@@ -27452,16 +27452,16 @@ class Text extends CharacterData {
 
   @DomName('Text.wholeText')
   @DocsEditable()
-  String get wholeText => blink.Native_Text_wholeText_Getter(this);
+  String get wholeText => _blink.Native_Text_wholeText_Getter(this);
 
   @DomName('Text.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => blink.Native_Text_getDestinationInsertionPoints_Callback(this);
+  List<Node> getDestinationInsertionPoints() => _blink.Native_Text_getDestinationInsertionPoints_Callback(this);
 
   @DomName('Text.splitText')
   @DocsEditable()
-  Text splitText(int offset) => blink.Native_Text_splitText_Callback(this, offset);
+  Text splitText(int offset) => _blink.Native_Text_splitText_Callback(this, offset);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27489,186 +27489,186 @@ class TextAreaElement extends HtmlElement {
 
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
-  bool get autofocus => blink.Native_HTMLTextAreaElement_autofocus_Getter(this);
+  bool get autofocus => _blink.Native_HTMLTextAreaElement_autofocus_Getter(this);
 
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => blink.Native_HTMLTextAreaElement_autofocus_Setter(this, value);
+  void set autofocus(bool value) => _blink.Native_HTMLTextAreaElement_autofocus_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
-  int get cols => blink.Native_HTMLTextAreaElement_cols_Getter(this);
+  int get cols => _blink.Native_HTMLTextAreaElement_cols_Getter(this);
 
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
-  void set cols(int value) => blink.Native_HTMLTextAreaElement_cols_Setter(this, value);
+  void set cols(int value) => _blink.Native_HTMLTextAreaElement_cols_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
-  String get defaultValue => blink.Native_HTMLTextAreaElement_defaultValue_Getter(this);
+  String get defaultValue => _blink.Native_HTMLTextAreaElement_defaultValue_Getter(this);
 
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => blink.Native_HTMLTextAreaElement_defaultValue_Setter(this, value);
+  void set defaultValue(String value) => _blink.Native_HTMLTextAreaElement_defaultValue_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
   @Experimental()
-  String get dirName => blink.Native_HTMLTextAreaElement_dirName_Getter(this);
+  String get dirName => _blink.Native_HTMLTextAreaElement_dirName_Getter(this);
 
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
   @Experimental()
-  void set dirName(String value) => blink.Native_HTMLTextAreaElement_dirName_Setter(this, value);
+  void set dirName(String value) => _blink.Native_HTMLTextAreaElement_dirName_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
-  bool get disabled => blink.Native_HTMLTextAreaElement_disabled_Getter(this);
+  bool get disabled => _blink.Native_HTMLTextAreaElement_disabled_Getter(this);
 
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => blink.Native_HTMLTextAreaElement_disabled_Setter(this, value);
+  void set disabled(bool value) => _blink.Native_HTMLTextAreaElement_disabled_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.form')
   @DocsEditable()
-  FormElement get form => blink.Native_HTMLTextAreaElement_form_Getter(this);
+  FormElement get form => _blink.Native_HTMLTextAreaElement_form_Getter(this);
 
   @DomName('HTMLTextAreaElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  String get inputMode => blink.Native_HTMLTextAreaElement_inputMode_Getter(this);
+  String get inputMode => _blink.Native_HTMLTextAreaElement_inputMode_Getter(this);
 
   @DomName('HTMLTextAreaElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => blink.Native_HTMLTextAreaElement_inputMode_Setter(this, value);
+  void set inputMode(String value) => _blink.Native_HTMLTextAreaElement_inputMode_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => blink.Native_HTMLTextAreaElement_labels_Getter(this);
+  List<Node> get labels => _blink.Native_HTMLTextAreaElement_labels_Getter(this);
 
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
-  int get maxLength => blink.Native_HTMLTextAreaElement_maxLength_Getter(this);
+  int get maxLength => _blink.Native_HTMLTextAreaElement_maxLength_Getter(this);
 
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => blink.Native_HTMLTextAreaElement_maxLength_Setter(this, value);
+  void set maxLength(int value) => _blink.Native_HTMLTextAreaElement_maxLength_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
-  String get name => blink.Native_HTMLTextAreaElement_name_Getter(this);
+  String get name => _blink.Native_HTMLTextAreaElement_name_Getter(this);
 
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_HTMLTextAreaElement_name_Setter(this, value);
+  void set name(String value) => _blink.Native_HTMLTextAreaElement_name_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
-  String get placeholder => blink.Native_HTMLTextAreaElement_placeholder_Getter(this);
+  String get placeholder => _blink.Native_HTMLTextAreaElement_placeholder_Getter(this);
 
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => blink.Native_HTMLTextAreaElement_placeholder_Setter(this, value);
+  void set placeholder(String value) => _blink.Native_HTMLTextAreaElement_placeholder_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
-  bool get readOnly => blink.Native_HTMLTextAreaElement_readOnly_Getter(this);
+  bool get readOnly => _blink.Native_HTMLTextAreaElement_readOnly_Getter(this);
 
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => blink.Native_HTMLTextAreaElement_readOnly_Setter(this, value);
+  void set readOnly(bool value) => _blink.Native_HTMLTextAreaElement_readOnly_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
-  bool get required => blink.Native_HTMLTextAreaElement_required_Getter(this);
+  bool get required => _blink.Native_HTMLTextAreaElement_required_Getter(this);
 
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
-  void set required(bool value) => blink.Native_HTMLTextAreaElement_required_Setter(this, value);
+  void set required(bool value) => _blink.Native_HTMLTextAreaElement_required_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
-  int get rows => blink.Native_HTMLTextAreaElement_rows_Getter(this);
+  int get rows => _blink.Native_HTMLTextAreaElement_rows_Getter(this);
 
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
-  void set rows(int value) => blink.Native_HTMLTextAreaElement_rows_Setter(this, value);
+  void set rows(int value) => _blink.Native_HTMLTextAreaElement_rows_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
-  String get selectionDirection => blink.Native_HTMLTextAreaElement_selectionDirection_Getter(this);
+  String get selectionDirection => _blink.Native_HTMLTextAreaElement_selectionDirection_Getter(this);
 
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => blink.Native_HTMLTextAreaElement_selectionDirection_Setter(this, value);
+  void set selectionDirection(String value) => _blink.Native_HTMLTextAreaElement_selectionDirection_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
-  int get selectionEnd => blink.Native_HTMLTextAreaElement_selectionEnd_Getter(this);
+  int get selectionEnd => _blink.Native_HTMLTextAreaElement_selectionEnd_Getter(this);
 
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => blink.Native_HTMLTextAreaElement_selectionEnd_Setter(this, value);
+  void set selectionEnd(int value) => _blink.Native_HTMLTextAreaElement_selectionEnd_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
-  int get selectionStart => blink.Native_HTMLTextAreaElement_selectionStart_Getter(this);
+  int get selectionStart => _blink.Native_HTMLTextAreaElement_selectionStart_Getter(this);
 
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => blink.Native_HTMLTextAreaElement_selectionStart_Setter(this, value);
+  void set selectionStart(int value) => _blink.Native_HTMLTextAreaElement_selectionStart_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.textLength')
   @DocsEditable()
-  int get textLength => blink.Native_HTMLTextAreaElement_textLength_Getter(this);
+  int get textLength => _blink.Native_HTMLTextAreaElement_textLength_Getter(this);
 
   @DomName('HTMLTextAreaElement.type')
   @DocsEditable()
-  String get type => blink.Native_HTMLTextAreaElement_type_Getter(this);
+  String get type => _blink.Native_HTMLTextAreaElement_type_Getter(this);
 
   @DomName('HTMLTextAreaElement.validationMessage')
   @DocsEditable()
-  String get validationMessage => blink.Native_HTMLTextAreaElement_validationMessage_Getter(this);
+  String get validationMessage => _blink.Native_HTMLTextAreaElement_validationMessage_Getter(this);
 
   @DomName('HTMLTextAreaElement.validity')
   @DocsEditable()
-  ValidityState get validity => blink.Native_HTMLTextAreaElement_validity_Getter(this);
+  ValidityState get validity => _blink.Native_HTMLTextAreaElement_validity_Getter(this);
 
   @DomName('HTMLTextAreaElement.value')
   @DocsEditable()
-  String get value => blink.Native_HTMLTextAreaElement_value_Getter(this);
+  String get value => _blink.Native_HTMLTextAreaElement_value_Getter(this);
 
   @DomName('HTMLTextAreaElement.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_HTMLTextAreaElement_value_Setter(this, value);
+  void set value(String value) => _blink.Native_HTMLTextAreaElement_value_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.willValidate')
   @DocsEditable()
-  bool get willValidate => blink.Native_HTMLTextAreaElement_willValidate_Getter(this);
+  bool get willValidate => _blink.Native_HTMLTextAreaElement_willValidate_Getter(this);
 
   @DomName('HTMLTextAreaElement.wrap')
   @DocsEditable()
-  String get wrap => blink.Native_HTMLTextAreaElement_wrap_Getter(this);
+  String get wrap => _blink.Native_HTMLTextAreaElement_wrap_Getter(this);
 
   @DomName('HTMLTextAreaElement.wrap')
   @DocsEditable()
-  void set wrap(String value) => blink.Native_HTMLTextAreaElement_wrap_Setter(this, value);
+  void set wrap(String value) => _blink.Native_HTMLTextAreaElement_wrap_Setter(this, value);
 
   @DomName('HTMLTextAreaElement.checkValidity')
   @DocsEditable()
-  bool checkValidity() => blink.Native_HTMLTextAreaElement_checkValidity_Callback(this);
+  bool checkValidity() => _blink.Native_HTMLTextAreaElement_checkValidity_Callback(this);
 
   @DomName('HTMLTextAreaElement.select')
   @DocsEditable()
-  void select() => blink.Native_HTMLTextAreaElement_select_Callback(this);
+  void select() => _blink.Native_HTMLTextAreaElement_select_Callback(this);
 
   @DomName('HTMLTextAreaElement.setCustomValidity')
   @DocsEditable()
-  void setCustomValidity(String error) => blink.Native_HTMLTextAreaElement_setCustomValidity_Callback(this, error);
+  void setCustomValidity(String error) => _blink.Native_HTMLTextAreaElement_setCustomValidity_Callback(this, error);
 
   void setRangeText(String replacement, {int start, int end, String selectionMode}) {
     if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
@@ -27682,9 +27682,9 @@ class TextAreaElement extends HtmlElement {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _setRangeText_1(replacement) => blink.Native_HTMLTextAreaElement__setRangeText_1_Callback(this, replacement);
+  void _setRangeText_1(replacement) => _blink.Native_HTMLTextAreaElement__setRangeText_1_Callback(this, replacement);
 
-  void _setRangeText_2(replacement, start, end, selectionMode) => blink.Native_HTMLTextAreaElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+  void _setRangeText_2(replacement, start, end, selectionMode) => _blink.Native_HTMLTextAreaElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
 
   void setSelectionRange(int start, int end, [String direction]) {
     if (direction != null) {
@@ -27695,9 +27695,9 @@ class TextAreaElement extends HtmlElement {
     return;
   }
 
-  void _setSelectionRange_1(start, end, direction) => blink.Native_HTMLTextAreaElement__setSelectionRange_1_Callback(this, start, end, direction);
+  void _setSelectionRange_1(start, end, direction) => _blink.Native_HTMLTextAreaElement__setSelectionRange_1_Callback(this, start, end, direction);
 
-  void _setSelectionRange_2(start, end) => blink.Native_HTMLTextAreaElement__setSelectionRange_2_Callback(this, start, end);
+  void _setSelectionRange_2(start, end) => _blink.Native_HTMLTextAreaElement__setSelectionRange_2_Callback(this, start, end);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -27724,11 +27724,11 @@ class TextEvent extends UIEvent {
 
   @DomName('TextEvent.data')
   @DocsEditable()
-  String get data => blink.Native_TextEvent_data_Getter(this);
+  String get data => _blink.Native_TextEvent_data_Getter(this);
 
   @DomName('TextEvent.initTextEvent')
   @DocsEditable()
-  void _initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => blink.Native_TextEvent_initTextEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+  void _initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => _blink.Native_TextEvent_initTextEvent_Callback(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27746,7 +27746,7 @@ class TextMetrics extends NativeFieldWrapperClass2 {
 
   @DomName('TextMetrics.width')
   @DocsEditable()
-  double get width => blink.Native_TextMetrics_width_Getter(this);
+  double get width => _blink.Native_TextMetrics_width_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27776,71 +27776,71 @@ class TextTrack extends EventTarget {
 
   @DomName('TextTrack.activeCues')
   @DocsEditable()
-  TextTrackCueList get activeCues => blink.Native_TextTrack_activeCues_Getter(this);
+  TextTrackCueList get activeCues => _blink.Native_TextTrack_activeCues_Getter(this);
 
   @DomName('TextTrack.cues')
   @DocsEditable()
-  TextTrackCueList get cues => blink.Native_TextTrack_cues_Getter(this);
+  TextTrackCueList get cues => _blink.Native_TextTrack_cues_Getter(this);
 
   @DomName('TextTrack.id')
   @DocsEditable()
   @Experimental() // untriaged
-  String get id => blink.Native_TextTrack_id_Getter(this);
+  String get id => _blink.Native_TextTrack_id_Getter(this);
 
   @DomName('TextTrack.kind')
   @DocsEditable()
-  String get kind => blink.Native_TextTrack_kind_Getter(this);
+  String get kind => _blink.Native_TextTrack_kind_Getter(this);
 
   @DomName('TextTrack.label')
   @DocsEditable()
-  String get label => blink.Native_TextTrack_label_Getter(this);
+  String get label => _blink.Native_TextTrack_label_Getter(this);
 
   @DomName('TextTrack.language')
   @DocsEditable()
-  String get language => blink.Native_TextTrack_language_Getter(this);
+  String get language => _blink.Native_TextTrack_language_Getter(this);
 
   @DomName('TextTrack.mode')
   @DocsEditable()
-  String get mode => blink.Native_TextTrack_mode_Getter(this);
+  String get mode => _blink.Native_TextTrack_mode_Getter(this);
 
   @DomName('TextTrack.mode')
   @DocsEditable()
-  void set mode(String value) => blink.Native_TextTrack_mode_Setter(this, value);
+  void set mode(String value) => _blink.Native_TextTrack_mode_Setter(this, value);
 
   @DomName('TextTrack.regions')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegionList get regions => blink.Native_TextTrack_regions_Getter(this);
+  VttRegionList get regions => _blink.Native_TextTrack_regions_Getter(this);
 
   @DomName('TextTrack.addCue')
   @DocsEditable()
-  void addCue(TextTrackCue cue) => blink.Native_TextTrack_addCue_Callback(this, cue);
+  void addCue(TextTrackCue cue) => _blink.Native_TextTrack_addCue_Callback(this, cue);
 
   @DomName('TextTrack.addRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  void addRegion(VttRegion region) => blink.Native_TextTrack_addRegion_Callback(this, region);
+  void addRegion(VttRegion region) => _blink.Native_TextTrack_addRegion_Callback(this, region);
 
   @DomName('TextTrack.removeCue')
   @DocsEditable()
-  void removeCue(TextTrackCue cue) => blink.Native_TextTrack_removeCue_Callback(this, cue);
+  void removeCue(TextTrackCue cue) => _blink.Native_TextTrack_removeCue_Callback(this, cue);
 
   @DomName('TextTrack.removeRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeRegion(VttRegion region) => blink.Native_TextTrack_removeRegion_Callback(this, region);
+  void removeRegion(VttRegion region) => _blink.Native_TextTrack_removeRegion_Callback(this, region);
 
   @DomName('TextTrack.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrack_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrack_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('TextTrack.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_TextTrack_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_TextTrack_dispatchEvent_Callback(this, event);
 
   @DomName('TextTrack.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrack_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrack_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `cuechange` events handled by this [TextTrack].
   @DomName('TextTrack.oncuechange')
@@ -27885,51 +27885,51 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
-  num get endTime => blink.Native_TextTrackCue_endTime_Getter(this);
+  num get endTime => _blink.Native_TextTrackCue_endTime_Getter(this);
 
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
-  void set endTime(num value) => blink.Native_TextTrackCue_endTime_Setter(this, value);
+  void set endTime(num value) => _blink.Native_TextTrackCue_endTime_Setter(this, value);
 
   @DomName('TextTrackCue.id')
   @DocsEditable()
-  String get id => blink.Native_TextTrackCue_id_Getter(this);
+  String get id => _blink.Native_TextTrackCue_id_Getter(this);
 
   @DomName('TextTrackCue.id')
   @DocsEditable()
-  void set id(String value) => blink.Native_TextTrackCue_id_Setter(this, value);
+  void set id(String value) => _blink.Native_TextTrackCue_id_Setter(this, value);
 
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
-  bool get pauseOnExit => blink.Native_TextTrackCue_pauseOnExit_Getter(this);
+  bool get pauseOnExit => _blink.Native_TextTrackCue_pauseOnExit_Getter(this);
 
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
-  void set pauseOnExit(bool value) => blink.Native_TextTrackCue_pauseOnExit_Setter(this, value);
+  void set pauseOnExit(bool value) => _blink.Native_TextTrackCue_pauseOnExit_Setter(this, value);
 
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
-  num get startTime => blink.Native_TextTrackCue_startTime_Getter(this);
+  num get startTime => _blink.Native_TextTrackCue_startTime_Getter(this);
 
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
-  void set startTime(num value) => blink.Native_TextTrackCue_startTime_Setter(this, value);
+  void set startTime(num value) => _blink.Native_TextTrackCue_startTime_Setter(this, value);
 
   @DomName('TextTrackCue.track')
   @DocsEditable()
-  TextTrack get track => blink.Native_TextTrackCue_track_Getter(this);
+  TextTrack get track => _blink.Native_TextTrackCue_track_Getter(this);
 
   @DomName('TextTrackCue.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrackCue_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackCue_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('TextTrackCue.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_TextTrackCue_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_TextTrackCue_dispatchEvent_Callback(this, event);
 
   @DomName('TextTrackCue.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrackCue_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackCue_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `enter` events handled by this [TextTrackCue].
   @DomName('TextTrackCue.onenter')
@@ -27959,15 +27959,15 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
-  int get length => blink.Native_TextTrackCueList_length_Getter(this);
+  int get length => _blink.Native_TextTrackCueList_length_Getter(this);
 
   TextTrackCue operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_TextTrackCueList_NativeIndexed_Getter(this, index);
+    return _blink.Native_TextTrackCueList_NativeIndexed_Getter(this, index);
   }
 
-  TextTrackCue _nativeIndexedGetter(int index) => blink.Native_TextTrackCueList_NativeIndexed_Getter(this, index);
+  TextTrackCue _nativeIndexedGetter(int index) => _blink.Native_TextTrackCueList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -28009,11 +28009,11 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
 
   @DomName('TextTrackCueList.getCueById')
   @DocsEditable()
-  TextTrackCue getCueById(String id) => blink.Native_TextTrackCueList_getCueById_Callback(this, id);
+  TextTrackCue getCueById(String id) => _blink.Native_TextTrackCueList_getCueById_Callback(this, id);
 
   @DomName('TextTrackCueList.item')
   @DocsEditable()
-  TextTrackCue item(int index) => blink.Native_TextTrackCueList_item_Callback(this, index);
+  TextTrackCue item(int index) => _blink.Native_TextTrackCueList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28048,15 +28048,15 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   @DomName('TextTrackList.length')
   @DocsEditable()
-  int get length => blink.Native_TextTrackList_length_Getter(this);
+  int get length => _blink.Native_TextTrackList_length_Getter(this);
 
   TextTrack operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_TextTrackList_NativeIndexed_Getter(this, index);
+    return _blink.Native_TextTrackList_NativeIndexed_Getter(this, index);
   }
 
-  TextTrack _nativeIndexedGetter(int index) => blink.Native_TextTrackList_NativeIndexed_Getter(this, index);
+  TextTrack _nativeIndexedGetter(int index) => _blink.Native_TextTrackList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -28099,23 +28099,23 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DomName('TextTrackList.getTrackById')
   @DocsEditable()
   @Experimental() // untriaged
-  TextTrack getTrackById(String id) => blink.Native_TextTrackList_getTrackById_Callback(this, id);
+  TextTrack getTrackById(String id) => _blink.Native_TextTrackList_getTrackById_Callback(this, id);
 
   @DomName('TextTrackList.item')
   @DocsEditable()
-  TextTrack item(int index) => blink.Native_TextTrackList_item_Callback(this, index);
+  TextTrack item(int index) => _blink.Native_TextTrackList_item_Callback(this, index);
 
   @DomName('TextTrackList.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrackList_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackList_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('TextTrackList.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_TextTrackList_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_TextTrackList_dispatchEvent_Callback(this, event);
 
   @DomName('TextTrackList.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_TextTrackList_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackList_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `addtrack` events handled by this [TextTrackList].
   @DomName('TextTrackList.onaddtrack')
@@ -28144,15 +28144,15 @@ class TimeRanges extends NativeFieldWrapperClass2 {
 
   @DomName('TimeRanges.length')
   @DocsEditable()
-  int get length => blink.Native_TimeRanges_length_Getter(this);
+  int get length => _blink.Native_TimeRanges_length_Getter(this);
 
   @DomName('TimeRanges.end')
   @DocsEditable()
-  double end(int index) => blink.Native_TimeRanges_end_Callback(this, index);
+  double end(int index) => _blink.Native_TimeRanges_end_Callback(this, index);
 
   @DomName('TimeRanges.start')
   @DocsEditable()
-  double start(int index) => blink.Native_TimeRanges_start_Callback(this, index);
+  double start(int index) => _blink.Native_TimeRanges_start_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28172,42 +28172,42 @@ class TimedItem extends NativeFieldWrapperClass2 {
   @DomName('TimedItem.activeDuration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get activeDuration => blink.Native_TimedItem_activeDuration_Getter(this);
+  double get activeDuration => _blink.Native_TimedItem_activeDuration_Getter(this);
 
   @DomName('TimedItem.currentIteration')
   @DocsEditable()
   @Experimental() // untriaged
-  int get currentIteration => blink.Native_TimedItem_currentIteration_Getter(this);
+  int get currentIteration => _blink.Native_TimedItem_currentIteration_Getter(this);
 
   @DomName('TimedItem.duration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get duration => blink.Native_TimedItem_duration_Getter(this);
+  double get duration => _blink.Native_TimedItem_duration_Getter(this);
 
   @DomName('TimedItem.endTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get endTime => blink.Native_TimedItem_endTime_Getter(this);
+  double get endTime => _blink.Native_TimedItem_endTime_Getter(this);
 
   @DomName('TimedItem.localTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get localTime => blink.Native_TimedItem_localTime_Getter(this);
+  double get localTime => _blink.Native_TimedItem_localTime_Getter(this);
 
   @DomName('TimedItem.player')
   @DocsEditable()
   @Experimental() // untriaged
-  Player get player => blink.Native_TimedItem_player_Getter(this);
+  Player get player => _blink.Native_TimedItem_player_Getter(this);
 
   @DomName('TimedItem.specified')
   @DocsEditable()
   @Experimental() // untriaged
-  Timing get specified => blink.Native_TimedItem_specified_Getter(this);
+  Timing get specified => _blink.Native_TimedItem_specified_Getter(this);
 
   @DomName('TimedItem.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get startTime => blink.Native_TimedItem_startTime_Getter(this);
+  double get startTime => _blink.Native_TimedItem_startTime_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28227,7 +28227,7 @@ class Timeline extends NativeFieldWrapperClass2 {
   @DomName('Timeline.play')
   @DocsEditable()
   @Experimental() // untriaged
-  Player play(TimedItem source) => blink.Native_Timeline_play_Callback(this, source);
+  Player play(TimedItem source) => _blink.Native_Timeline_play_Callback(this, source);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28256,87 +28256,87 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.delay')
   @DocsEditable()
   @Experimental() // untriaged
-  num get delay => blink.Native_Timing_delay_Getter(this);
+  num get delay => _blink.Native_Timing_delay_Getter(this);
 
   @DomName('Timing.delay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set delay(num value) => blink.Native_Timing_delay_Setter(this, value);
+  void set delay(num value) => _blink.Native_Timing_delay_Setter(this, value);
 
   @DomName('Timing.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  String get direction => blink.Native_Timing_direction_Getter(this);
+  String get direction => _blink.Native_Timing_direction_Getter(this);
 
   @DomName('Timing.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  void set direction(String value) => blink.Native_Timing_direction_Setter(this, value);
+  void set direction(String value) => _blink.Native_Timing_direction_Setter(this, value);
 
   @DomName('Timing.easing')
   @DocsEditable()
   @Experimental() // untriaged
-  String get easing => blink.Native_Timing_easing_Getter(this);
+  String get easing => _blink.Native_Timing_easing_Getter(this);
 
   @DomName('Timing.easing')
   @DocsEditable()
   @Experimental() // untriaged
-  void set easing(String value) => blink.Native_Timing_easing_Setter(this, value);
+  void set easing(String value) => _blink.Native_Timing_easing_Setter(this, value);
 
   @DomName('Timing.endDelay')
   @DocsEditable()
   @Experimental() // untriaged
-  num get endDelay => blink.Native_Timing_endDelay_Getter(this);
+  num get endDelay => _blink.Native_Timing_endDelay_Getter(this);
 
   @DomName('Timing.endDelay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set endDelay(num value) => blink.Native_Timing_endDelay_Setter(this, value);
+  void set endDelay(num value) => _blink.Native_Timing_endDelay_Setter(this, value);
 
   @DomName('Timing.fill')
   @DocsEditable()
   @Experimental() // untriaged
-  String get fill => blink.Native_Timing_fill_Getter(this);
+  String get fill => _blink.Native_Timing_fill_Getter(this);
 
   @DomName('Timing.fill')
   @DocsEditable()
   @Experimental() // untriaged
-  void set fill(String value) => blink.Native_Timing_fill_Setter(this, value);
+  void set fill(String value) => _blink.Native_Timing_fill_Setter(this, value);
 
   @DomName('Timing.iterationStart')
   @DocsEditable()
   @Experimental() // untriaged
-  num get iterationStart => blink.Native_Timing_iterationStart_Getter(this);
+  num get iterationStart => _blink.Native_Timing_iterationStart_Getter(this);
 
   @DomName('Timing.iterationStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterationStart(num value) => blink.Native_Timing_iterationStart_Setter(this, value);
+  void set iterationStart(num value) => _blink.Native_Timing_iterationStart_Setter(this, value);
 
   @DomName('Timing.iterations')
   @DocsEditable()
   @Experimental() // untriaged
-  num get iterations => blink.Native_Timing_iterations_Getter(this);
+  num get iterations => _blink.Native_Timing_iterations_Getter(this);
 
   @DomName('Timing.iterations')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterations(num value) => blink.Native_Timing_iterations_Setter(this, value);
+  void set iterations(num value) => _blink.Native_Timing_iterations_Setter(this, value);
 
   @DomName('Timing.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  num get playbackRate => blink.Native_Timing_playbackRate_Getter(this);
+  num get playbackRate => _blink.Native_Timing_playbackRate_Getter(this);
 
   @DomName('Timing.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => blink.Native_Timing_playbackRate_Setter(this, value);
+  void set playbackRate(num value) => _blink.Native_Timing_playbackRate_Setter(this, value);
 
   @DomName('Timing.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(String name, num duration) => blink.Native_Timing___setter___Callback(this, name, duration);
+  void __setter__(String name, num duration) => _blink.Native_Timing___setter___Callback(this, name, duration);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28378,63 +28378,63 @@ class Touch extends NativeFieldWrapperClass2 {
 
   @DomName('Touch.clientX')
   @DocsEditable()
-  int get _clientX => blink.Native_Touch_clientX_Getter(this);
+  int get _clientX => _blink.Native_Touch_clientX_Getter(this);
 
   @DomName('Touch.clientY')
   @DocsEditable()
-  int get _clientY => blink.Native_Touch_clientY_Getter(this);
+  int get _clientY => _blink.Native_Touch_clientY_Getter(this);
 
   @DomName('Touch.identifier')
   @DocsEditable()
-  int get identifier => blink.Native_Touch_identifier_Getter(this);
+  int get identifier => _blink.Native_Touch_identifier_Getter(this);
 
   @DomName('Touch.pageX')
   @DocsEditable()
-  int get _pageX => blink.Native_Touch_pageX_Getter(this);
+  int get _pageX => _blink.Native_Touch_pageX_Getter(this);
 
   @DomName('Touch.pageY')
   @DocsEditable()
-  int get _pageY => blink.Native_Touch_pageY_Getter(this);
+  int get _pageY => _blink.Native_Touch_pageY_Getter(this);
 
   @DomName('Touch.screenX')
   @DocsEditable()
-  int get _screenX => blink.Native_Touch_screenX_Getter(this);
+  int get _screenX => _blink.Native_Touch_screenX_Getter(this);
 
   @DomName('Touch.screenY')
   @DocsEditable()
-  int get _screenY => blink.Native_Touch_screenY_Getter(this);
+  int get _screenY => _blink.Native_Touch_screenY_Getter(this);
 
   @DomName('Touch.target')
   @DocsEditable()
-  EventTarget get target => blink.Native_Touch_target_Getter(this);
+  EventTarget get target => _blink.Native_Touch_target_Getter(this);
 
   @DomName('Touch.webkitForce')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  double get force => blink.Native_Touch_webkitForce_Getter(this);
+  double get force => _blink.Native_Touch_webkitForce_Getter(this);
 
   @DomName('Touch.webkitRadiusX')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusX => blink.Native_Touch_webkitRadiusX_Getter(this);
+  int get radiusX => _blink.Native_Touch_webkitRadiusX_Getter(this);
 
   @DomName('Touch.webkitRadiusY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusY => blink.Native_Touch_webkitRadiusY_Getter(this);
+  int get radiusY => _blink.Native_Touch_webkitRadiusY_Getter(this);
 
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  double get rotationAngle => blink.Native_Touch_webkitRotationAngle_Getter(this);
+  double get rotationAngle => _blink.Native_Touch_webkitRotationAngle_Getter(this);
 
 
   @DomName('Touch.clientX')
@@ -28478,35 +28478,35 @@ class TouchEvent extends UIEvent {
 
   @DomName('TouchEvent.altKey')
   @DocsEditable()
-  bool get altKey => blink.Native_TouchEvent_altKey_Getter(this);
+  bool get altKey => _blink.Native_TouchEvent_altKey_Getter(this);
 
   @DomName('TouchEvent.changedTouches')
   @DocsEditable()
-  TouchList get changedTouches => blink.Native_TouchEvent_changedTouches_Getter(this);
+  TouchList get changedTouches => _blink.Native_TouchEvent_changedTouches_Getter(this);
 
   @DomName('TouchEvent.ctrlKey')
   @DocsEditable()
-  bool get ctrlKey => blink.Native_TouchEvent_ctrlKey_Getter(this);
+  bool get ctrlKey => _blink.Native_TouchEvent_ctrlKey_Getter(this);
 
   @DomName('TouchEvent.metaKey')
   @DocsEditable()
-  bool get metaKey => blink.Native_TouchEvent_metaKey_Getter(this);
+  bool get metaKey => _blink.Native_TouchEvent_metaKey_Getter(this);
 
   @DomName('TouchEvent.shiftKey')
   @DocsEditable()
-  bool get shiftKey => blink.Native_TouchEvent_shiftKey_Getter(this);
+  bool get shiftKey => _blink.Native_TouchEvent_shiftKey_Getter(this);
 
   @DomName('TouchEvent.targetTouches')
   @DocsEditable()
-  TouchList get targetTouches => blink.Native_TouchEvent_targetTouches_Getter(this);
+  TouchList get targetTouches => _blink.Native_TouchEvent_targetTouches_Getter(this);
 
   @DomName('TouchEvent.touches')
   @DocsEditable()
-  TouchList get touches => blink.Native_TouchEvent_touches_Getter(this);
+  TouchList get touches => _blink.Native_TouchEvent_touches_Getter(this);
 
   @DomName('TouchEvent.initTouchEvent')
   @DocsEditable()
-  void _initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => blink.Native_TouchEvent_initTouchEvent_Callback(this, touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+  void _initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _blink.Native_TouchEvent_initTouchEvent_Callback(this, touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
 
 
   /**
@@ -28541,15 +28541,15 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
 
   @DomName('TouchList.length')
   @DocsEditable()
-  int get length => blink.Native_TouchList_length_Getter(this);
+  int get length => _blink.Native_TouchList_length_Getter(this);
 
   Touch operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_TouchList_NativeIndexed_Getter(this, index);
+    return _blink.Native_TouchList_NativeIndexed_Getter(this, index);
   }
 
-  Touch _nativeIndexedGetter(int index) => blink.Native_TouchList_NativeIndexed_Getter(this, index);
+  Touch _nativeIndexedGetter(int index) => _blink.Native_TouchList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -28591,7 +28591,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
 
   @DomName('TouchList.item')
   @DocsEditable()
-  Touch item(int index) => blink.Native_TouchList_item_Callback(this, index);
+  Touch item(int index) => _blink.Native_TouchList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28643,51 +28643,51 @@ class TrackElement extends HtmlElement {
 
   @DomName('HTMLTrackElement.default')
   @DocsEditable()
-  bool get defaultValue => blink.Native_HTMLTrackElement_default_Getter(this);
+  bool get defaultValue => _blink.Native_HTMLTrackElement_default_Getter(this);
 
   @DomName('HTMLTrackElement.default')
   @DocsEditable()
-  void set defaultValue(bool value) => blink.Native_HTMLTrackElement_default_Setter(this, value);
+  void set defaultValue(bool value) => _blink.Native_HTMLTrackElement_default_Setter(this, value);
 
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
-  String get kind => blink.Native_HTMLTrackElement_kind_Getter(this);
+  String get kind => _blink.Native_HTMLTrackElement_kind_Getter(this);
 
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
-  void set kind(String value) => blink.Native_HTMLTrackElement_kind_Setter(this, value);
+  void set kind(String value) => _blink.Native_HTMLTrackElement_kind_Setter(this, value);
 
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
-  String get label => blink.Native_HTMLTrackElement_label_Getter(this);
+  String get label => _blink.Native_HTMLTrackElement_label_Getter(this);
 
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
-  void set label(String value) => blink.Native_HTMLTrackElement_label_Setter(this, value);
+  void set label(String value) => _blink.Native_HTMLTrackElement_label_Setter(this, value);
 
   @DomName('HTMLTrackElement.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_HTMLTrackElement_readyState_Getter(this);
+  int get readyState => _blink.Native_HTMLTrackElement_readyState_Getter(this);
 
   @DomName('HTMLTrackElement.src')
   @DocsEditable()
-  String get src => blink.Native_HTMLTrackElement_src_Getter(this);
+  String get src => _blink.Native_HTMLTrackElement_src_Getter(this);
 
   @DomName('HTMLTrackElement.src')
   @DocsEditable()
-  void set src(String value) => blink.Native_HTMLTrackElement_src_Setter(this, value);
+  void set src(String value) => _blink.Native_HTMLTrackElement_src_Setter(this, value);
 
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
-  String get srclang => blink.Native_HTMLTrackElement_srclang_Getter(this);
+  String get srclang => _blink.Native_HTMLTrackElement_srclang_Getter(this);
 
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
-  void set srclang(String value) => blink.Native_HTMLTrackElement_srclang_Setter(this, value);
+  void set srclang(String value) => _blink.Native_HTMLTrackElement_srclang_Setter(this, value);
 
   @DomName('HTMLTrackElement.track')
   @DocsEditable()
-  TextTrack get track => blink.Native_HTMLTrackElement_track_Getter(this);
+  TextTrack get track => _blink.Native_HTMLTrackElement_track_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28706,7 +28706,7 @@ class TrackEvent extends Event {
 
   @DomName('TrackEvent.track')
   @DocsEditable()
-  Object get track => blink.Native_TrackEvent_track_Getter(this);
+  Object get track => _blink.Native_TrackEvent_track_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28724,15 +28724,15 @@ class TransitionEvent extends Event {
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => blink.Native_TransitionEvent_elapsedTime_Getter(this);
+  double get elapsedTime => _blink.Native_TransitionEvent_elapsedTime_Getter(this);
 
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
-  String get propertyName => blink.Native_TransitionEvent_propertyName_Getter(this);
+  String get propertyName => _blink.Native_TransitionEvent_propertyName_Getter(this);
 
   @DomName('TransitionEvent.pseudoElement')
   @DocsEditable()
-  String get pseudoElement => blink.Native_TransitionEvent_pseudoElement_Getter(this);
+  String get pseudoElement => _blink.Native_TransitionEvent_pseudoElement_Getter(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28751,51 +28751,51 @@ class TreeWalker extends NativeFieldWrapperClass2 {
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
-  Node get currentNode => blink.Native_TreeWalker_currentNode_Getter(this);
+  Node get currentNode => _blink.Native_TreeWalker_currentNode_Getter(this);
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
-  void set currentNode(Node value) => blink.Native_TreeWalker_currentNode_Setter(this, value);
+  void set currentNode(Node value) => _blink.Native_TreeWalker_currentNode_Setter(this, value);
 
   @DomName('TreeWalker.filter')
   @DocsEditable()
-  NodeFilter get filter => blink.Native_TreeWalker_filter_Getter(this);
+  NodeFilter get filter => _blink.Native_TreeWalker_filter_Getter(this);
 
   @DomName('TreeWalker.root')
   @DocsEditable()
-  Node get root => blink.Native_TreeWalker_root_Getter(this);
+  Node get root => _blink.Native_TreeWalker_root_Getter(this);
 
   @DomName('TreeWalker.whatToShow')
   @DocsEditable()
-  int get whatToShow => blink.Native_TreeWalker_whatToShow_Getter(this);
+  int get whatToShow => _blink.Native_TreeWalker_whatToShow_Getter(this);
 
   @DomName('TreeWalker.firstChild')
   @DocsEditable()
-  Node firstChild() => blink.Native_TreeWalker_firstChild_Callback(this);
+  Node firstChild() => _blink.Native_TreeWalker_firstChild_Callback(this);
 
   @DomName('TreeWalker.lastChild')
   @DocsEditable()
-  Node lastChild() => blink.Native_TreeWalker_lastChild_Callback(this);
+  Node lastChild() => _blink.Native_TreeWalker_lastChild_Callback(this);
 
   @DomName('TreeWalker.nextNode')
   @DocsEditable()
-  Node nextNode() => blink.Native_TreeWalker_nextNode_Callback(this);
+  Node nextNode() => _blink.Native_TreeWalker_nextNode_Callback(this);
 
   @DomName('TreeWalker.nextSibling')
   @DocsEditable()
-  Node nextSibling() => blink.Native_TreeWalker_nextSibling_Callback(this);
+  Node nextSibling() => _blink.Native_TreeWalker_nextSibling_Callback(this);
 
   @DomName('TreeWalker.parentNode')
   @DocsEditable()
-  Node parentNode() => blink.Native_TreeWalker_parentNode_Callback(this);
+  Node parentNode() => _blink.Native_TreeWalker_parentNode_Callback(this);
 
   @DomName('TreeWalker.previousNode')
   @DocsEditable()
-  Node previousNode() => blink.Native_TreeWalker_previousNode_Callback(this);
+  Node previousNode() => _blink.Native_TreeWalker_previousNode_Callback(this);
 
   @DomName('TreeWalker.previousSibling')
   @DocsEditable()
-  Node previousSibling() => blink.Native_TreeWalker_previousSibling_Callback(this);
+  Node previousSibling() => _blink.Native_TreeWalker_previousSibling_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28829,53 +28829,53 @@ class UIEvent extends Event {
   @DomName('UIEvent.charCode')
   @DocsEditable()
   @Unstable()
-  int get _charCode => blink.Native_UIEvent_charCode_Getter(this);
+  int get _charCode => _blink.Native_UIEvent_charCode_Getter(this);
 
   @DomName('UIEvent.detail')
   @DocsEditable()
-  int get detail => blink.Native_UIEvent_detail_Getter(this);
+  int get detail => _blink.Native_UIEvent_detail_Getter(this);
 
   @DomName('UIEvent.keyCode')
   @DocsEditable()
   @Unstable()
-  int get _keyCode => blink.Native_UIEvent_keyCode_Getter(this);
+  int get _keyCode => _blink.Native_UIEvent_keyCode_Getter(this);
 
   @DomName('UIEvent.layerX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get _layerX => blink.Native_UIEvent_layerX_Getter(this);
+  int get _layerX => _blink.Native_UIEvent_layerX_Getter(this);
 
   @DomName('UIEvent.layerY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get _layerY => blink.Native_UIEvent_layerY_Getter(this);
+  int get _layerY => _blink.Native_UIEvent_layerY_Getter(this);
 
   @DomName('UIEvent.pageX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get _pageX => blink.Native_UIEvent_pageX_Getter(this);
+  int get _pageX => _blink.Native_UIEvent_pageX_Getter(this);
 
   @DomName('UIEvent.pageY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get _pageY => blink.Native_UIEvent_pageY_Getter(this);
+  int get _pageY => _blink.Native_UIEvent_pageY_Getter(this);
 
   @DomName('UIEvent.view')
   @DocsEditable()
-  WindowBase get view => blink.Native_UIEvent_view_Getter(this);
+  WindowBase get view => _blink.Native_UIEvent_view_Getter(this);
 
   @DomName('UIEvent.which')
   @DocsEditable()
   @Unstable()
-  int get which => blink.Native_UIEvent_which_Getter(this);
+  int get which => _blink.Native_UIEvent_which_Getter(this);
 
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
-  void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) => blink.Native_UIEvent_initUIEvent_Callback(this, type, canBubble, cancelable, view, detail);
+  void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) => _blink.Native_UIEvent_initUIEvent_Callback(this, type, canBubble, cancelable, view, detail);
 
 
   @DomName('UIEvent.layerX')
@@ -28946,7 +28946,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL._createObjectUrlFromWebKitSource')
   @DocsEditable()
   @Experimental() // untriaged
-  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) => blink.Native_URL__createObjectUrlFromWebKitSource_Callback(source);
+  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) => _blink.Native_URL__createObjectUrlFromWebKitSource_Callback(source);
 
   static String createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
@@ -28964,139 +28964,139 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  static String _createObjectURL_1(blob_OR_source_OR_stream) => blink.Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
+  static String _createObjectURL_1(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
 
-  static String _createObjectURL_2(blob_OR_source_OR_stream) => blink.Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
+  static String _createObjectURL_2(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
 
-  static String _createObjectURL_3(blob_OR_source_OR_stream) => blink.Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
+  static String _createObjectURL_3(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
 
-  static String _createObjectURL_4(blob_OR_source_OR_stream) => blink.Native_URL__createObjectURL_4_Callback(blob_OR_source_OR_stream);
+  static String _createObjectURL_4(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_4_Callback(blob_OR_source_OR_stream);
 
   @DomName('URL.createObjectUrlFromBlob')
   @DocsEditable()
-  static String createObjectUrlFromBlob(Blob blob) => blink.Native_URL_createObjectUrlFromBlob_Callback(blob);
+  static String createObjectUrlFromBlob(Blob blob) => _blink.Native_URL_createObjectUrlFromBlob_Callback(blob);
 
   @DomName('URL.createObjectUrlFromSource')
   @DocsEditable()
-  static String createObjectUrlFromSource(MediaSource source) => blink.Native_URL_createObjectUrlFromSource_Callback(source);
+  static String createObjectUrlFromSource(MediaSource source) => _blink.Native_URL_createObjectUrlFromSource_Callback(source);
 
   @DomName('URL.createObjectUrlFromStream')
   @DocsEditable()
-  static String createObjectUrlFromStream(MediaStream stream) => blink.Native_URL_createObjectUrlFromStream_Callback(stream);
+  static String createObjectUrlFromStream(MediaStream stream) => _blink.Native_URL_createObjectUrlFromStream_Callback(stream);
 
   @DomName('URL.revokeObjectURL')
   @DocsEditable()
-  static void revokeObjectUrl(String url) => blink.Native_URL_revokeObjectURL_Callback(url);
+  static void revokeObjectUrl(String url) => _blink.Native_URL_revokeObjectURL_Callback(url);
 
   @DomName('URL.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hash => blink.Native_URL_hash_Getter(this);
+  String get hash => _blink.Native_URL_hash_Getter(this);
 
   @DomName('URL.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value) => blink.Native_URL_hash_Setter(this, value);
+  void set hash(String value) => _blink.Native_URL_hash_Setter(this, value);
 
   @DomName('URL.host')
   @DocsEditable()
   @Experimental() // untriaged
-  String get host => blink.Native_URL_host_Getter(this);
+  String get host => _blink.Native_URL_host_Getter(this);
 
   @DomName('URL.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value) => blink.Native_URL_host_Setter(this, value);
+  void set host(String value) => _blink.Native_URL_host_Setter(this, value);
 
   @DomName('URL.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hostname => blink.Native_URL_hostname_Getter(this);
+  String get hostname => _blink.Native_URL_hostname_Getter(this);
 
   @DomName('URL.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value) => blink.Native_URL_hostname_Setter(this, value);
+  void set hostname(String value) => _blink.Native_URL_hostname_Setter(this, value);
 
   @DomName('URL.href')
   @DocsEditable()
   @Experimental() // untriaged
-  String get href => blink.Native_URL_href_Getter(this);
+  String get href => _blink.Native_URL_href_Getter(this);
 
   @DomName('URL.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value) => blink.Native_URL_href_Setter(this, value);
+  void set href(String value) => _blink.Native_URL_href_Setter(this, value);
 
   @DomName('URL.origin')
   @DocsEditable()
   @Experimental() // untriaged
-  String get origin => blink.Native_URL_origin_Getter(this);
+  String get origin => _blink.Native_URL_origin_Getter(this);
 
   @DomName('URL.password')
   @DocsEditable()
   @Experimental() // untriaged
-  String get password => blink.Native_URL_password_Getter(this);
+  String get password => _blink.Native_URL_password_Getter(this);
 
   @DomName('URL.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => blink.Native_URL_password_Setter(this, value);
+  void set password(String value) => _blink.Native_URL_password_Setter(this, value);
 
   @DomName('URL.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get pathname => blink.Native_URL_pathname_Getter(this);
+  String get pathname => _blink.Native_URL_pathname_Getter(this);
 
   @DomName('URL.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value) => blink.Native_URL_pathname_Setter(this, value);
+  void set pathname(String value) => _blink.Native_URL_pathname_Setter(this, value);
 
   @DomName('URL.port')
   @DocsEditable()
   @Experimental() // untriaged
-  String get port => blink.Native_URL_port_Getter(this);
+  String get port => _blink.Native_URL_port_Getter(this);
 
   @DomName('URL.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value) => blink.Native_URL_port_Setter(this, value);
+  void set port(String value) => _blink.Native_URL_port_Setter(this, value);
 
   @DomName('URL.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  String get protocol => blink.Native_URL_protocol_Getter(this);
+  String get protocol => _blink.Native_URL_protocol_Getter(this);
 
   @DomName('URL.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value) => blink.Native_URL_protocol_Setter(this, value);
+  void set protocol(String value) => _blink.Native_URL_protocol_Setter(this, value);
 
   @DomName('URL.search')
   @DocsEditable()
   @Experimental() // untriaged
-  String get search => blink.Native_URL_search_Getter(this);
+  String get search => _blink.Native_URL_search_Getter(this);
 
   @DomName('URL.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value) => blink.Native_URL_search_Setter(this, value);
+  void set search(String value) => _blink.Native_URL_search_Setter(this, value);
 
   @DomName('URL.username')
   @DocsEditable()
   @Experimental() // untriaged
-  String get username => blink.Native_URL_username_Getter(this);
+  String get username => _blink.Native_URL_username_Getter(this);
 
   @DomName('URL.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => blink.Native_URL_username_Setter(this, value);
+  void set username(String value) => _blink.Native_URL_username_Setter(this, value);
 
   @DomName('URL.toString')
   @DocsEditable()
   @Experimental() // untriaged
-  String toString() => blink.Native_URL_toString_Callback(this);
+  String toString() => _blink.Native_URL_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29116,112 +29116,112 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hash => blink.Native_URLUtils_hash_Getter(this);
+  String get hash => _blink.Native_URLUtils_hash_Getter(this);
 
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value) => blink.Native_URLUtils_hash_Setter(this, value);
+  void set hash(String value) => _blink.Native_URLUtils_hash_Setter(this, value);
 
   @DomName('URLUtils.host')
   @DocsEditable()
   @Experimental() // untriaged
-  String get host => blink.Native_URLUtils_host_Getter(this);
+  String get host => _blink.Native_URLUtils_host_Getter(this);
 
   @DomName('URLUtils.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value) => blink.Native_URLUtils_host_Setter(this, value);
+  void set host(String value) => _blink.Native_URLUtils_host_Setter(this, value);
 
   @DomName('URLUtils.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hostname => blink.Native_URLUtils_hostname_Getter(this);
+  String get hostname => _blink.Native_URLUtils_hostname_Getter(this);
 
   @DomName('URLUtils.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value) => blink.Native_URLUtils_hostname_Setter(this, value);
+  void set hostname(String value) => _blink.Native_URLUtils_hostname_Setter(this, value);
 
   @DomName('URLUtils.href')
   @DocsEditable()
   @Experimental() // untriaged
-  String get href => blink.Native_URLUtils_href_Getter(this);
+  String get href => _blink.Native_URLUtils_href_Getter(this);
 
   @DomName('URLUtils.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value) => blink.Native_URLUtils_href_Setter(this, value);
+  void set href(String value) => _blink.Native_URLUtils_href_Setter(this, value);
 
   @DomName('URLUtils.origin')
   @DocsEditable()
   @Experimental() // untriaged
-  String get origin => blink.Native_URLUtils_origin_Getter(this);
+  String get origin => _blink.Native_URLUtils_origin_Getter(this);
 
   @DomName('URLUtils.password')
   @DocsEditable()
   @Experimental() // untriaged
-  String get password => blink.Native_URLUtils_password_Getter(this);
+  String get password => _blink.Native_URLUtils_password_Getter(this);
 
   @DomName('URLUtils.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => blink.Native_URLUtils_password_Setter(this, value);
+  void set password(String value) => _blink.Native_URLUtils_password_Setter(this, value);
 
   @DomName('URLUtils.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get pathname => blink.Native_URLUtils_pathname_Getter(this);
+  String get pathname => _blink.Native_URLUtils_pathname_Getter(this);
 
   @DomName('URLUtils.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value) => blink.Native_URLUtils_pathname_Setter(this, value);
+  void set pathname(String value) => _blink.Native_URLUtils_pathname_Setter(this, value);
 
   @DomName('URLUtils.port')
   @DocsEditable()
   @Experimental() // untriaged
-  String get port => blink.Native_URLUtils_port_Getter(this);
+  String get port => _blink.Native_URLUtils_port_Getter(this);
 
   @DomName('URLUtils.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value) => blink.Native_URLUtils_port_Setter(this, value);
+  void set port(String value) => _blink.Native_URLUtils_port_Setter(this, value);
 
   @DomName('URLUtils.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  String get protocol => blink.Native_URLUtils_protocol_Getter(this);
+  String get protocol => _blink.Native_URLUtils_protocol_Getter(this);
 
   @DomName('URLUtils.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value) => blink.Native_URLUtils_protocol_Setter(this, value);
+  void set protocol(String value) => _blink.Native_URLUtils_protocol_Setter(this, value);
 
   @DomName('URLUtils.search')
   @DocsEditable()
   @Experimental() // untriaged
-  String get search => blink.Native_URLUtils_search_Getter(this);
+  String get search => _blink.Native_URLUtils_search_Getter(this);
 
   @DomName('URLUtils.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value) => blink.Native_URLUtils_search_Setter(this, value);
+  void set search(String value) => _blink.Native_URLUtils_search_Setter(this, value);
 
   @DomName('URLUtils.username')
   @DocsEditable()
   @Experimental() // untriaged
-  String get username => blink.Native_URLUtils_username_Getter(this);
+  String get username => _blink.Native_URLUtils_username_Getter(this);
 
   @DomName('URLUtils.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => blink.Native_URLUtils_username_Setter(this, value);
+  void set username(String value) => _blink.Native_URLUtils_username_Setter(this, value);
 
   @DomName('URLUtils.toString')
   @DocsEditable()
   @Experimental() // untriaged
-  String toString() => blink.Native_URLUtils_toString_Callback(this);
+  String toString() => _blink.Native_URLUtils_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29241,47 +29241,47 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   @DomName('URLUtilsReadOnly.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hash => blink.Native_URLUtilsReadOnly_hash_Getter(this);
+  String get hash => _blink.Native_URLUtilsReadOnly_hash_Getter(this);
 
   @DomName('URLUtilsReadOnly.host')
   @DocsEditable()
   @Experimental() // untriaged
-  String get host => blink.Native_URLUtilsReadOnly_host_Getter(this);
+  String get host => _blink.Native_URLUtilsReadOnly_host_Getter(this);
 
   @DomName('URLUtilsReadOnly.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get hostname => blink.Native_URLUtilsReadOnly_hostname_Getter(this);
+  String get hostname => _blink.Native_URLUtilsReadOnly_hostname_Getter(this);
 
   @DomName('URLUtilsReadOnly.href')
   @DocsEditable()
   @Experimental() // untriaged
-  String get href => blink.Native_URLUtilsReadOnly_href_Getter(this);
+  String get href => _blink.Native_URLUtilsReadOnly_href_Getter(this);
 
   @DomName('URLUtilsReadOnly.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  String get pathname => blink.Native_URLUtilsReadOnly_pathname_Getter(this);
+  String get pathname => _blink.Native_URLUtilsReadOnly_pathname_Getter(this);
 
   @DomName('URLUtilsReadOnly.port')
   @DocsEditable()
   @Experimental() // untriaged
-  String get port => blink.Native_URLUtilsReadOnly_port_Getter(this);
+  String get port => _blink.Native_URLUtilsReadOnly_port_Getter(this);
 
   @DomName('URLUtilsReadOnly.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  String get protocol => blink.Native_URLUtilsReadOnly_protocol_Getter(this);
+  String get protocol => _blink.Native_URLUtilsReadOnly_protocol_Getter(this);
 
   @DomName('URLUtilsReadOnly.search')
   @DocsEditable()
   @Experimental() // untriaged
-  String get search => blink.Native_URLUtilsReadOnly_search_Getter(this);
+  String get search => _blink.Native_URLUtilsReadOnly_search_Getter(this);
 
   @DomName('URLUtilsReadOnly.toString')
   @DocsEditable()
   @Experimental() // untriaged
-  String toString() => blink.Native_URLUtilsReadOnly_toString_Callback(this);
+  String toString() => _blink.Native_URLUtilsReadOnly_toString_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29299,43 +29299,43 @@ class ValidityState extends NativeFieldWrapperClass2 {
 
   @DomName('ValidityState.badInput')
   @DocsEditable()
-  bool get badInput => blink.Native_ValidityState_badInput_Getter(this);
+  bool get badInput => _blink.Native_ValidityState_badInput_Getter(this);
 
   @DomName('ValidityState.customError')
   @DocsEditable()
-  bool get customError => blink.Native_ValidityState_customError_Getter(this);
+  bool get customError => _blink.Native_ValidityState_customError_Getter(this);
 
   @DomName('ValidityState.patternMismatch')
   @DocsEditable()
-  bool get patternMismatch => blink.Native_ValidityState_patternMismatch_Getter(this);
+  bool get patternMismatch => _blink.Native_ValidityState_patternMismatch_Getter(this);
 
   @DomName('ValidityState.rangeOverflow')
   @DocsEditable()
-  bool get rangeOverflow => blink.Native_ValidityState_rangeOverflow_Getter(this);
+  bool get rangeOverflow => _blink.Native_ValidityState_rangeOverflow_Getter(this);
 
   @DomName('ValidityState.rangeUnderflow')
   @DocsEditable()
-  bool get rangeUnderflow => blink.Native_ValidityState_rangeUnderflow_Getter(this);
+  bool get rangeUnderflow => _blink.Native_ValidityState_rangeUnderflow_Getter(this);
 
   @DomName('ValidityState.stepMismatch')
   @DocsEditable()
-  bool get stepMismatch => blink.Native_ValidityState_stepMismatch_Getter(this);
+  bool get stepMismatch => _blink.Native_ValidityState_stepMismatch_Getter(this);
 
   @DomName('ValidityState.tooLong')
   @DocsEditable()
-  bool get tooLong => blink.Native_ValidityState_tooLong_Getter(this);
+  bool get tooLong => _blink.Native_ValidityState_tooLong_Getter(this);
 
   @DomName('ValidityState.typeMismatch')
   @DocsEditable()
-  bool get typeMismatch => blink.Native_ValidityState_typeMismatch_Getter(this);
+  bool get typeMismatch => _blink.Native_ValidityState_typeMismatch_Getter(this);
 
   @DomName('ValidityState.valid')
   @DocsEditable()
-  bool get valid => blink.Native_ValidityState_valid_Getter(this);
+  bool get valid => _blink.Native_ValidityState_valid_Getter(this);
 
   @DomName('ValidityState.valueMissing')
   @DocsEditable()
-  bool get valueMissing => blink.Native_ValidityState_valueMissing_Getter(this);
+  bool get valueMissing => _blink.Native_ValidityState_valueMissing_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29360,54 +29360,54 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
-  int get height => blink.Native_HTMLVideoElement_height_Getter(this);
+  int get height => _blink.Native_HTMLVideoElement_height_Getter(this);
 
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
-  void set height(int value) => blink.Native_HTMLVideoElement_height_Setter(this, value);
+  void set height(int value) => _blink.Native_HTMLVideoElement_height_Setter(this, value);
 
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
-  String get poster => blink.Native_HTMLVideoElement_poster_Getter(this);
+  String get poster => _blink.Native_HTMLVideoElement_poster_Getter(this);
 
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
-  void set poster(String value) => blink.Native_HTMLVideoElement_poster_Setter(this, value);
+  void set poster(String value) => _blink.Native_HTMLVideoElement_poster_Setter(this, value);
 
   @DomName('HTMLVideoElement.videoHeight')
   @DocsEditable()
-  int get videoHeight => blink.Native_HTMLVideoElement_videoHeight_Getter(this);
+  int get videoHeight => _blink.Native_HTMLVideoElement_videoHeight_Getter(this);
 
   @DomName('HTMLVideoElement.videoWidth')
   @DocsEditable()
-  int get videoWidth => blink.Native_HTMLVideoElement_videoWidth_Getter(this);
+  int get videoWidth => _blink.Native_HTMLVideoElement_videoWidth_Getter(this);
 
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get decodedFrameCount => blink.Native_HTMLVideoElement_webkitDecodedFrameCount_Getter(this);
+  int get decodedFrameCount => _blink.Native_HTMLVideoElement_webkitDecodedFrameCount_Getter(this);
 
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get droppedFrameCount => blink.Native_HTMLVideoElement_webkitDroppedFrameCount_Getter(this);
+  int get droppedFrameCount => _blink.Native_HTMLVideoElement_webkitDroppedFrameCount_Getter(this);
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
-  int get width => blink.Native_HTMLVideoElement_width_Getter(this);
+  int get width => _blink.Native_HTMLVideoElement_width_Getter(this);
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
-  void set width(int value) => blink.Native_HTMLVideoElement_width_Setter(this, value);
+  void set width(int value) => _blink.Native_HTMLVideoElement_width_Setter(this, value);
 
   @DomName('HTMLVideoElement.getVideoPlaybackQuality')
   @DocsEditable()
   @Experimental() // untriaged
-  VideoPlaybackQuality getVideoPlaybackQuality() => blink.Native_HTMLVideoElement_getVideoPlaybackQuality_Callback(this);
+  VideoPlaybackQuality getVideoPlaybackQuality() => _blink.Native_HTMLVideoElement_getVideoPlaybackQuality_Callback(this);
 
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   @DocsEditable()
@@ -29415,7 +29415,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  void enterFullscreen() => blink.Native_HTMLVideoElement_webkitEnterFullscreen_Callback(this);
+  void enterFullscreen() => _blink.Native_HTMLVideoElement_webkitEnterFullscreen_Callback(this);
 
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   @DocsEditable()
@@ -29423,7 +29423,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  void exitFullscreen() => blink.Native_HTMLVideoElement_webkitExitFullscreen_Callback(this);
+  void exitFullscreen() => _blink.Native_HTMLVideoElement_webkitExitFullscreen_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29443,22 +29443,22 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   @DomName('VideoPlaybackQuality.corruptedVideoFrames')
   @DocsEditable()
   @Experimental() // untriaged
-  int get corruptedVideoFrames => blink.Native_VideoPlaybackQuality_corruptedVideoFrames_Getter(this);
+  int get corruptedVideoFrames => _blink.Native_VideoPlaybackQuality_corruptedVideoFrames_Getter(this);
 
   @DomName('VideoPlaybackQuality.creationTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get creationTime => blink.Native_VideoPlaybackQuality_creationTime_Getter(this);
+  double get creationTime => _blink.Native_VideoPlaybackQuality_creationTime_Getter(this);
 
   @DomName('VideoPlaybackQuality.droppedVideoFrames')
   @DocsEditable()
   @Experimental() // untriaged
-  int get droppedVideoFrames => blink.Native_VideoPlaybackQuality_droppedVideoFrames_Getter(this);
+  int get droppedVideoFrames => _blink.Native_VideoPlaybackQuality_droppedVideoFrames_Getter(this);
 
   @DomName('VideoPlaybackQuality.totalVideoFrames')
   @DocsEditable()
   @Experimental() // untriaged
-  int get totalVideoFrames => blink.Native_VideoPlaybackQuality_totalVideoFrames_Getter(this);
+  int get totalVideoFrames => _blink.Native_VideoPlaybackQuality_totalVideoFrames_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29493,92 +29493,92 @@ class VttCue extends TextTrackCue {
   }
 
   @DocsEditable()
-  static VttCue _create_1(startTime, endTime, text) => blink.Native_VTTCue__create_1constructorCallback(startTime, endTime, text);
+  static VttCue _create_1(startTime, endTime, text) => _blink.Native_VTTCue__create_1constructorCallback(startTime, endTime, text);
 
   @DomName('VTTCue.align')
   @DocsEditable()
   @Experimental() // untriaged
-  String get align => blink.Native_VTTCue_align_Getter(this);
+  String get align => _blink.Native_VTTCue_align_Getter(this);
 
   @DomName('VTTCue.align')
   @DocsEditable()
   @Experimental() // untriaged
-  void set align(String value) => blink.Native_VTTCue_align_Setter(this, value);
+  void set align(String value) => _blink.Native_VTTCue_align_Setter(this, value);
 
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  int get line => blink.Native_VTTCue_line_Getter(this);
+  int get line => _blink.Native_VTTCue_line_Getter(this);
 
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  void set line(int value) => blink.Native_VTTCue_line_Setter(this, value);
+  void set line(int value) => _blink.Native_VTTCue_line_Setter(this, value);
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  int get position => blink.Native_VTTCue_position_Getter(this);
+  int get position => _blink.Native_VTTCue_position_Getter(this);
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  void set position(int value) => blink.Native_VTTCue_position_Setter(this, value);
+  void set position(int value) => _blink.Native_VTTCue_position_Setter(this, value);
 
   @DomName('VTTCue.regionId')
   @DocsEditable()
   @Experimental() // untriaged
-  String get regionId => blink.Native_VTTCue_regionId_Getter(this);
+  String get regionId => _blink.Native_VTTCue_regionId_Getter(this);
 
   @DomName('VTTCue.regionId')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionId(String value) => blink.Native_VTTCue_regionId_Setter(this, value);
+  void set regionId(String value) => _blink.Native_VTTCue_regionId_Setter(this, value);
 
   @DomName('VTTCue.size')
   @DocsEditable()
   @Experimental() // untriaged
-  int get size => blink.Native_VTTCue_size_Getter(this);
+  int get size => _blink.Native_VTTCue_size_Getter(this);
 
   @DomName('VTTCue.size')
   @DocsEditable()
   @Experimental() // untriaged
-  void set size(int value) => blink.Native_VTTCue_size_Setter(this, value);
+  void set size(int value) => _blink.Native_VTTCue_size_Setter(this, value);
 
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get snapToLines => blink.Native_VTTCue_snapToLines_Getter(this);
+  bool get snapToLines => _blink.Native_VTTCue_snapToLines_Getter(this);
 
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
   @Experimental() // untriaged
-  void set snapToLines(bool value) => blink.Native_VTTCue_snapToLines_Setter(this, value);
+  void set snapToLines(bool value) => _blink.Native_VTTCue_snapToLines_Setter(this, value);
 
   @DomName('VTTCue.text')
   @DocsEditable()
   @Experimental() // untriaged
-  String get text => blink.Native_VTTCue_text_Getter(this);
+  String get text => _blink.Native_VTTCue_text_Getter(this);
 
   @DomName('VTTCue.text')
   @DocsEditable()
   @Experimental() // untriaged
-  void set text(String value) => blink.Native_VTTCue_text_Setter(this, value);
+  void set text(String value) => _blink.Native_VTTCue_text_Setter(this, value);
 
   @DomName('VTTCue.vertical')
   @DocsEditable()
   @Experimental() // untriaged
-  String get vertical => blink.Native_VTTCue_vertical_Getter(this);
+  String get vertical => _blink.Native_VTTCue_vertical_Getter(this);
 
   @DomName('VTTCue.vertical')
   @DocsEditable()
   @Experimental() // untriaged
-  void set vertical(String value) => blink.Native_VTTCue_vertical_Setter(this, value);
+  void set vertical(String value) => _blink.Native_VTTCue_vertical_Setter(this, value);
 
   @DomName('VTTCue.getCueAsHTML')
   @DocsEditable()
   @Experimental() // untriaged
-  DocumentFragment getCueAsHtml() => blink.Native_VTTCue_getCueAsHTML_Callback(this);
+  DocumentFragment getCueAsHtml() => _blink.Native_VTTCue_getCueAsHTML_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29602,92 +29602,92 @@ class VttRegion extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static VttRegion _create_1() => blink.Native_VTTRegion__create_1constructorCallback();
+  static VttRegion _create_1() => _blink.Native_VTTRegion__create_1constructorCallback();
 
   @DomName('VTTRegion.height')
   @DocsEditable()
   @Experimental() // untriaged
-  int get height => blink.Native_VTTRegion_height_Getter(this);
+  int get height => _blink.Native_VTTRegion_height_Getter(this);
 
   @DomName('VTTRegion.height')
   @DocsEditable()
   @Experimental() // untriaged
-  void set height(int value) => blink.Native_VTTRegion_height_Setter(this, value);
+  void set height(int value) => _blink.Native_VTTRegion_height_Setter(this, value);
 
   @DomName('VTTRegion.id')
   @DocsEditable()
   @Experimental() // untriaged
-  String get id => blink.Native_VTTRegion_id_Getter(this);
+  String get id => _blink.Native_VTTRegion_id_Getter(this);
 
   @DomName('VTTRegion.id')
   @DocsEditable()
   @Experimental() // untriaged
-  void set id(String value) => blink.Native_VTTRegion_id_Setter(this, value);
+  void set id(String value) => _blink.Native_VTTRegion_id_Setter(this, value);
 
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  num get regionAnchorX => blink.Native_VTTRegion_regionAnchorX_Getter(this);
+  num get regionAnchorX => _blink.Native_VTTRegion_regionAnchorX_Getter(this);
 
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorX(num value) => blink.Native_VTTRegion_regionAnchorX_Setter(this, value);
+  void set regionAnchorX(num value) => _blink.Native_VTTRegion_regionAnchorX_Setter(this, value);
 
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  num get regionAnchorY => blink.Native_VTTRegion_regionAnchorY_Getter(this);
+  num get regionAnchorY => _blink.Native_VTTRegion_regionAnchorY_Getter(this);
 
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorY(num value) => blink.Native_VTTRegion_regionAnchorY_Setter(this, value);
+  void set regionAnchorY(num value) => _blink.Native_VTTRegion_regionAnchorY_Setter(this, value);
 
   @DomName('VTTRegion.scroll')
   @DocsEditable()
   @Experimental() // untriaged
-  String get scroll => blink.Native_VTTRegion_scroll_Getter(this);
+  String get scroll => _blink.Native_VTTRegion_scroll_Getter(this);
 
   @DomName('VTTRegion.scroll')
   @DocsEditable()
   @Experimental() // untriaged
-  void set scroll(String value) => blink.Native_VTTRegion_scroll_Setter(this, value);
+  void set scroll(String value) => _blink.Native_VTTRegion_scroll_Setter(this, value);
 
   @DomName('VTTRegion.track')
   @DocsEditable()
   @Experimental() // untriaged
-  TextTrack get track => blink.Native_VTTRegion_track_Getter(this);
+  TextTrack get track => _blink.Native_VTTRegion_track_Getter(this);
 
   @DomName('VTTRegion.viewportAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  num get viewportAnchorX => blink.Native_VTTRegion_viewportAnchorX_Getter(this);
+  num get viewportAnchorX => _blink.Native_VTTRegion_viewportAnchorX_Getter(this);
 
   @DomName('VTTRegion.viewportAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorX(num value) => blink.Native_VTTRegion_viewportAnchorX_Setter(this, value);
+  void set viewportAnchorX(num value) => _blink.Native_VTTRegion_viewportAnchorX_Setter(this, value);
 
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  num get viewportAnchorY => blink.Native_VTTRegion_viewportAnchorY_Getter(this);
+  num get viewportAnchorY => _blink.Native_VTTRegion_viewportAnchorY_Getter(this);
 
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorY(num value) => blink.Native_VTTRegion_viewportAnchorY_Setter(this, value);
+  void set viewportAnchorY(num value) => _blink.Native_VTTRegion_viewportAnchorY_Setter(this, value);
 
   @DomName('VTTRegion.width')
   @DocsEditable()
   @Experimental() // untriaged
-  num get width => blink.Native_VTTRegion_width_Getter(this);
+  num get width => _blink.Native_VTTRegion_width_Getter(this);
 
   @DomName('VTTRegion.width')
   @DocsEditable()
   @Experimental() // untriaged
-  void set width(num value) => blink.Native_VTTRegion_width_Setter(this, value);
+  void set width(num value) => _blink.Native_VTTRegion_width_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29707,17 +29707,17 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   @DomName('VTTRegionList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => blink.Native_VTTRegionList_length_Getter(this);
+  int get length => _blink.Native_VTTRegionList_length_Getter(this);
 
   @DomName('VTTRegionList.getRegionById')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion getRegionById(String id) => blink.Native_VTTRegionList_getRegionById_Callback(this, id);
+  VttRegion getRegionById(String id) => _blink.Native_VTTRegionList_getRegionById_Callback(this, id);
 
   @DomName('VTTRegionList.item')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion item(int index) => blink.Native_VTTRegionList_item_Callback(this, index);
+  VttRegion item(int index) => _blink.Native_VTTRegionList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29828,13 +29828,13 @@ class WebSocket extends EventTarget {
   }
 
   @DocsEditable()
-  static WebSocket _create_1(url) => blink.Native_WebSocket__create_1constructorCallback(url);
+  static WebSocket _create_1(url) => _blink.Native_WebSocket__create_1constructorCallback(url);
 
   @DocsEditable()
-  static WebSocket _create_2(url, protocol_OR_protocols) => blink.Native_WebSocket__create_2constructorCallback(url, protocol_OR_protocols);
+  static WebSocket _create_2(url, protocol_OR_protocols) => _blink.Native_WebSocket__create_2constructorCallback(url, protocol_OR_protocols);
 
   @DocsEditable()
-  static WebSocket _create_3(url, protocol_OR_protocols) => blink.Native_WebSocket__create_3constructorCallback(url, protocol_OR_protocols);
+  static WebSocket _create_3(url, protocol_OR_protocols) => _blink.Native_WebSocket__create_3constructorCallback(url, protocol_OR_protocols);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29857,31 +29857,31 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.binaryType')
   @DocsEditable()
-  String get binaryType => blink.Native_WebSocket_binaryType_Getter(this);
+  String get binaryType => _blink.Native_WebSocket_binaryType_Getter(this);
 
   @DomName('WebSocket.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => blink.Native_WebSocket_binaryType_Setter(this, value);
+  void set binaryType(String value) => _blink.Native_WebSocket_binaryType_Setter(this, value);
 
   @DomName('WebSocket.bufferedAmount')
   @DocsEditable()
-  int get bufferedAmount => blink.Native_WebSocket_bufferedAmount_Getter(this);
+  int get bufferedAmount => _blink.Native_WebSocket_bufferedAmount_Getter(this);
 
   @DomName('WebSocket.extensions')
   @DocsEditable()
-  String get extensions => blink.Native_WebSocket_extensions_Getter(this);
+  String get extensions => _blink.Native_WebSocket_extensions_Getter(this);
 
   @DomName('WebSocket.protocol')
   @DocsEditable()
-  String get protocol => blink.Native_WebSocket_protocol_Getter(this);
+  String get protocol => _blink.Native_WebSocket_protocol_Getter(this);
 
   @DomName('WebSocket.readyState')
   @DocsEditable()
-  int get readyState => blink.Native_WebSocket_readyState_Getter(this);
+  int get readyState => _blink.Native_WebSocket_readyState_Getter(this);
 
   @DomName('WebSocket.url')
   @DocsEditable()
-  String get url => blink.Native_WebSocket_url_Getter(this);
+  String get url => _blink.Native_WebSocket_url_Getter(this);
 
   void close([int code, String reason]) {
     if (reason != null) {
@@ -29896,11 +29896,11 @@ class WebSocket extends EventTarget {
     return;
   }
 
-  void _close_1(code, reason) => blink.Native_WebSocket__close_1_Callback(this, code, reason);
+  void _close_1(code, reason) => _blink.Native_WebSocket__close_1_Callback(this, code, reason);
 
-  void _close_2(code) => blink.Native_WebSocket__close_2_Callback(this, code);
+  void _close_2(code) => _blink.Native_WebSocket__close_2_Callback(this, code);
 
-  void _close_3() => blink.Native_WebSocket__close_3_Callback(this);
+  void _close_3() => _blink.Native_WebSocket__close_3_Callback(this);
 
   /**
    * Transmit data to the server over this connection.
@@ -29911,35 +29911,35 @@ class WebSocket extends EventTarget {
    */
   @DomName('WebSocket.send')
   @DocsEditable()
-  void send(data) => blink.Native_WebSocket_send_Callback(this, data);
+  void send(data) => _blink.Native_WebSocket_send_Callback(this, data);
 
   @DomName('WebSocket.sendBlob')
   @DocsEditable()
-  void sendBlob(Blob data) => blink.Native_WebSocket_sendBlob_Callback(this, data);
+  void sendBlob(Blob data) => _blink.Native_WebSocket_sendBlob_Callback(this, data);
 
   @DomName('WebSocket.sendByteBuffer')
   @DocsEditable()
-  void sendByteBuffer(ByteBuffer data) => blink.Native_WebSocket_sendByteBuffer_Callback(this, data);
+  void sendByteBuffer(ByteBuffer data) => _blink.Native_WebSocket_sendByteBuffer_Callback(this, data);
 
   @DomName('WebSocket.sendString')
   @DocsEditable()
-  void sendString(String data) => blink.Native_WebSocket_sendString_Callback(this, data);
+  void sendString(String data) => _blink.Native_WebSocket_sendString_Callback(this, data);
 
   @DomName('WebSocket.sendTypedData')
   @DocsEditable()
-  void sendTypedData(TypedData data) => blink.Native_WebSocket_sendTypedData_Callback(this, data);
+  void sendTypedData(TypedData data) => _blink.Native_WebSocket_sendTypedData_Callback(this, data);
 
   @DomName('WebSocket.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_WebSocket_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WebSocket_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('WebSocket.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_WebSocket_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_WebSocket_dispatchEvent_Callback(this, event);
 
   @DomName('WebSocket.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_WebSocket_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WebSocket_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `close` events handled by this [WebSocket].
   @DomName('WebSocket.onclose')
@@ -30018,44 +30018,44 @@ class WheelEvent extends MouseEvent {
 
   @DomName('WheelEvent.deltaMode')
   @DocsEditable()
-  int get deltaMode => blink.Native_WheelEvent_deltaMode_Getter(this);
+  int get deltaMode => _blink.Native_WheelEvent_deltaMode_Getter(this);
 
   @DomName('WheelEvent.deltaX')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _deltaX => blink.Native_WheelEvent_deltaX_Getter(this);
+  double get _deltaX => _blink.Native_WheelEvent_deltaX_Getter(this);
 
   @DomName('WheelEvent.deltaY')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _deltaY => blink.Native_WheelEvent_deltaY_Getter(this);
+  double get _deltaY => _blink.Native_WheelEvent_deltaY_Getter(this);
 
   @DomName('WheelEvent.deltaZ')
   @DocsEditable()
   @Experimental() // untriaged
-  double get deltaZ => blink.Native_WheelEvent_deltaZ_Getter(this);
+  double get deltaZ => _blink.Native_WheelEvent_deltaZ_Getter(this);
 
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get directionInvertedFromDevice => blink.Native_WheelEvent_webkitDirectionInvertedFromDevice_Getter(this);
+  bool get directionInvertedFromDevice => _blink.Native_WheelEvent_webkitDirectionInvertedFromDevice_Getter(this);
 
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable()
   @Experimental() // non-standard
-  int get wheelDeltaX => blink.Native_WheelEvent_wheelDeltaX_Getter(this);
+  int get wheelDeltaX => _blink.Native_WheelEvent_wheelDeltaX_Getter(this);
 
   @DomName('WheelEvent.wheelDeltaY')
   @DocsEditable()
   @Experimental() // non-standard
-  int get wheelDeltaY => blink.Native_WheelEvent_wheelDeltaY_Getter(this);
+  int get wheelDeltaY => _blink.Native_WheelEvent_wheelDeltaY_Getter(this);
 
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable()
   @Experimental()
-  void _initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => blink.Native_WheelEvent_initWebKitWheelEvent_Callback(this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+  void _initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _blink.Native_WheelEvent_initWebKitWheelEvent_Callback(this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
 
 
   /**
@@ -30429,7 +30429,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.CSS')
   @DocsEditable()
-  Css get css => blink.Native_Window_CSS_Getter(this);
+  Css get css => _blink.Native_Window_CSS_Getter(this);
 
   /**
    * The application cache for this window.
@@ -30444,15 +30444,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.applicationCache')
   @DocsEditable()
-  ApplicationCache get applicationCache => blink.Native_Window_applicationCache_Getter(this);
+  ApplicationCache get applicationCache => _blink.Native_Window_applicationCache_Getter(this);
 
   @DomName('Window.closed')
   @DocsEditable()
-  bool get closed => blink.Native_Window_closed_Getter(this);
+  bool get closed => _blink.Native_Window_closed_Getter(this);
 
   @DomName('Window.console')
   @DocsEditable()
-  Console get console => blink.Native_Window_console_Getter(this);
+  Console get console => _blink.Native_Window_console_Getter(this);
 
   /**
    * Entrypoint for the browser's cryptographic functions.
@@ -30465,31 +30465,31 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // http://www.w3.org/TR/WebCryptoAPI/
   @Experimental()
-  Crypto get crypto => blink.Native_Window_crypto_Getter(this);
+  Crypto get crypto => _blink.Native_Window_crypto_Getter(this);
 
   /// *Deprecated*.
   @DomName('Window.defaultStatus')
   @DocsEditable()
   @Experimental() // non-standard
-  String get defaultStatus => blink.Native_Window_defaultStatus_Getter(this);
+  String get defaultStatus => _blink.Native_Window_defaultStatus_Getter(this);
 
   /// *Deprecated*.
   @DomName('Window.defaultStatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultStatus(String value) => blink.Native_Window_defaultStatus_Setter(this, value);
+  void set defaultStatus(String value) => _blink.Native_Window_defaultStatus_Setter(this, value);
 
   /// *Deprecated*.
   @DomName('Window.defaultstatus')
   @DocsEditable()
   @Experimental() // non-standard
-  String get defaultstatus => blink.Native_Window_defaultstatus_Getter(this);
+  String get defaultstatus => _blink.Native_Window_defaultstatus_Getter(this);
 
   /// *Deprecated*.
   @DomName('Window.defaultstatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultstatus(String value) => blink.Native_Window_defaultstatus_Setter(this, value);
+  void set defaultstatus(String value) => _blink.Native_Window_defaultstatus_Setter(this, value);
 
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -30507,11 +30507,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  double get devicePixelRatio => blink.Native_Window_devicePixelRatio_Getter(this);
+  double get devicePixelRatio => _blink.Native_Window_devicePixelRatio_Getter(this);
 
   @DomName('Window.document')
   @DocsEditable()
-  Document get document => blink.Native_Window_document_Getter(this);
+  Document get document => _blink.Native_Window_document_Getter(this);
 
   /**
    * The current session history for this window's newest document.
@@ -30524,7 +30524,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.history')
   @DocsEditable()
-  History get history => blink.Native_Window_history_Getter(this);
+  History get history => _blink.Native_Window_history_Getter(this);
 
   @DomName('Window.indexedDB')
   @DocsEditable()
@@ -30532,7 +30532,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
-  IdbFactory get indexedDB => blink.Native_Window_indexedDB_Getter(this);
+  IdbFactory get indexedDB => _blink.Native_Window_indexedDB_Getter(this);
 
   /**
    * The height of the viewport including scrollbars.
@@ -30545,7 +30545,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.innerHeight')
   @DocsEditable()
-  int get innerHeight => blink.Native_Window_innerHeight_Getter(this);
+  int get innerHeight => _blink.Native_Window_innerHeight_Getter(this);
 
   /**
    * The width of the viewport including scrollbars.
@@ -30558,7 +30558,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.innerWidth')
   @DocsEditable()
-  int get innerWidth => blink.Native_Window_innerWidth_Getter(this);
+  int get innerWidth => _blink.Native_Window_innerWidth_Getter(this);
 
   /**
    * Storage for this window that persists across sessions.
@@ -30575,11 +30575,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.localStorage')
   @DocsEditable()
-  Storage get localStorage => blink.Native_Window_localStorage_Getter(this);
+  Storage get localStorage => _blink.Native_Window_localStorage_Getter(this);
 
   @DomName('Window.location')
   @DocsEditable()
-  Location get location => blink.Native_Window_location_Getter(this);
+  Location get location => _blink.Native_Window_location_Getter(this);
 
   /**
    * This window's location bar, which displays the URL.
@@ -30592,7 +30592,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.locationbar')
   @DocsEditable()
-  BarProp get locationbar => blink.Native_Window_locationbar_Getter(this);
+  BarProp get locationbar => _blink.Native_Window_locationbar_Getter(this);
 
   /**
    * This window's menu bar, which displays menu commands.
@@ -30605,7 +30605,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.menubar')
   @DocsEditable()
-  BarProp get menubar => blink.Native_Window_menubar_Getter(this);
+  BarProp get menubar => _blink.Native_Window_menubar_Getter(this);
 
   /**
    * The name of this window.
@@ -30618,7 +30618,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.name')
   @DocsEditable()
-  String get name => blink.Native_Window_name_Getter(this);
+  String get name => _blink.Native_Window_name_Getter(this);
 
   /**
    * The name of this window.
@@ -30631,7 +30631,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.name')
   @DocsEditable()
-  void set name(String value) => blink.Native_Window_name_Setter(this, value);
+  void set name(String value) => _blink.Native_Window_name_Setter(this, value);
 
   /**
    * The user agent accessing this window.
@@ -30644,7 +30644,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.navigator')
   @DocsEditable()
-  Navigator get navigator => blink.Native_Window_navigator_Getter(this);
+  Navigator get navigator => _blink.Native_Window_navigator_Getter(this);
 
   /**
    * Whether objects are drawn offscreen before being displayed.
@@ -30658,20 +30658,20 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
   @Experimental() // non-standard
-  bool get offscreenBuffering => blink.Native_Window_offscreenBuffering_Getter(this);
+  bool get offscreenBuffering => _blink.Native_Window_offscreenBuffering_Getter(this);
 
   @DomName('Window.opener')
   @DocsEditable()
-  WindowBase get opener => blink.Native_Window_opener_Getter(this);
+  WindowBase get opener => _blink.Native_Window_opener_Getter(this);
 
   @DomName('Window.opener')
   @DocsEditable()
-  void set opener(Window value) => blink.Native_Window_opener_Setter(this, value);
+  void set opener(Window value) => _blink.Native_Window_opener_Setter(this, value);
 
   @DomName('Window.orientation')
   @DocsEditable()
   @Experimental() // untriaged
-  int get orientation => blink.Native_Window_orientation_Getter(this);
+  int get orientation => _blink.Native_Window_orientation_Getter(this);
 
   /**
    * The height of this window including all user interface elements.
@@ -30684,7 +30684,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.outerHeight')
   @DocsEditable()
-  int get outerHeight => blink.Native_Window_outerHeight_Getter(this);
+  int get outerHeight => _blink.Native_Window_outerHeight_Getter(this);
 
   /**
    * The width of the window including all user interface elements.
@@ -30697,7 +30697,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.outerWidth')
   @DocsEditable()
-  int get outerWidth => blink.Native_Window_outerWidth_Getter(this);
+  int get outerWidth => _blink.Native_Window_outerWidth_Getter(this);
 
   /**
    * The distance this window has been scrolled horizontally.
@@ -30713,7 +30713,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  int get pageXOffset => blink.Native_Window_pageXOffset_Getter(this);
+  int get pageXOffset => _blink.Native_Window_pageXOffset_Getter(this);
 
   /**
    * The distance this window has been scrolled vertically.
@@ -30729,11 +30729,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  int get pageYOffset => blink.Native_Window_pageYOffset_Getter(this);
+  int get pageYOffset => _blink.Native_Window_pageYOffset_Getter(this);
 
   @DomName('Window.parent')
   @DocsEditable()
-  WindowBase get parent => blink.Native_Window_parent_Getter(this);
+  WindowBase get parent => _blink.Native_Window_parent_Getter(this);
 
   /**
    * Timing and navigation data for this window.
@@ -30751,7 +30751,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
-  Performance get performance => blink.Native_Window_performance_Getter(this);
+  Performance get performance => _blink.Native_Window_performance_Getter(this);
 
   /**
    * Information about the screen displaying this window.
@@ -30763,7 +30763,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.screen')
   @DocsEditable()
-  Screen get screen => blink.Native_Window_screen_Getter(this);
+  Screen get screen => _blink.Native_Window_screen_Getter(this);
 
   /**
    * The distance from the left side of the screen to the left side of this
@@ -30776,7 +30776,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.screenLeft')
   @DocsEditable()
-  int get screenLeft => blink.Native_Window_screenLeft_Getter(this);
+  int get screenLeft => _blink.Native_Window_screenLeft_Getter(this);
 
   /**
    * The distance from the top of the screen to the top of this window.
@@ -30788,7 +30788,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.screenTop')
   @DocsEditable()
-  int get screenTop => blink.Native_Window_screenTop_Getter(this);
+  int get screenTop => _blink.Native_Window_screenTop_Getter(this);
 
   /**
    * The distance from the left side of the screen to the mouse pointer.
@@ -30800,7 +30800,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.screenX')
   @DocsEditable()
-  int get screenX => blink.Native_Window_screenX_Getter(this);
+  int get screenX => _blink.Native_Window_screenX_Getter(this);
 
   /**
    * The distance from the top of the screen to the mouse pointer.
@@ -30812,15 +30812,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.screenY')
   @DocsEditable()
-  int get screenY => blink.Native_Window_screenY_Getter(this);
+  int get screenY => _blink.Native_Window_screenY_Getter(this);
 
   @DomName('Window.scrollX')
   @DocsEditable()
-  int get scrollX => blink.Native_Window_scrollX_Getter(this);
+  int get scrollX => _blink.Native_Window_scrollX_Getter(this);
 
   @DomName('Window.scrollY')
   @DocsEditable()
-  int get scrollY => blink.Native_Window_scrollY_Getter(this);
+  int get scrollY => _blink.Native_Window_scrollY_Getter(this);
 
   /**
    * This window's scroll bars.
@@ -30833,7 +30833,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollbars')
   @DocsEditable()
-  BarProp get scrollbars => blink.Native_Window_scrollbars_Getter(this);
+  BarProp get scrollbars => _blink.Native_Window_scrollbars_Getter(this);
 
   /**
    * The current window.
@@ -30845,7 +30845,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.self')
   @DocsEditable()
-  WindowBase get self => blink.Native_Window_self_Getter(this);
+  WindowBase get self => _blink.Native_Window_self_Getter(this);
 
   /**
    * Storage for this window that is cleared when this session ends.
@@ -30862,7 +30862,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.sessionStorage')
   @DocsEditable()
-  Storage get sessionStorage => blink.Native_Window_sessionStorage_Getter(this);
+  Storage get sessionStorage => _blink.Native_Window_sessionStorage_Getter(this);
 
   /**
    * Access to speech synthesis in the browser.
@@ -30877,17 +30877,17 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
   @Experimental()
-  SpeechSynthesis get speechSynthesis => blink.Native_Window_speechSynthesis_Getter(this);
+  SpeechSynthesis get speechSynthesis => _blink.Native_Window_speechSynthesis_Getter(this);
 
   /// *Deprecated*.
   @DomName('Window.status')
   @DocsEditable()
-  String get status => blink.Native_Window_status_Getter(this);
+  String get status => _blink.Native_Window_status_Getter(this);
 
   /// *Deprecated*.
   @DomName('Window.status')
   @DocsEditable()
-  void set status(String value) => blink.Native_Window_status_Setter(this, value);
+  void set status(String value) => _blink.Native_Window_status_Setter(this, value);
 
   /**
    * This window's status bar.
@@ -30900,7 +30900,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.statusbar')
   @DocsEditable()
-  BarProp get statusbar => blink.Native_Window_statusbar_Getter(this);
+  BarProp get statusbar => _blink.Native_Window_statusbar_Getter(this);
 
   /**
    * Access to CSS media queries.
@@ -30915,7 +30915,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
   @Experimental() // nonstandard
-  StyleMedia get styleMedia => blink.Native_Window_styleMedia_Getter(this);
+  StyleMedia get styleMedia => _blink.Native_Window_styleMedia_Getter(this);
 
   /**
    * This window's tool bar.
@@ -30928,11 +30928,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.toolbar')
   @DocsEditable()
-  BarProp get toolbar => blink.Native_Window_toolbar_Getter(this);
+  BarProp get toolbar => _blink.Native_Window_toolbar_Getter(this);
 
   @DomName('Window.top')
   @DocsEditable()
-  WindowBase get top => blink.Native_Window_top_Getter(this);
+  WindowBase get top => _blink.Native_Window_top_Getter(this);
 
   /**
    * The current window.
@@ -30944,7 +30944,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.window')
   @DocsEditable()
-  WindowBase get window => blink.Native_Window_window_Getter(this);
+  WindowBase get window => _blink.Native_Window_window_Getter(this);
 
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -30956,9 +30956,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  WindowBase ___getter___1(index_OR_name) => blink.Native_Window____getter___1_Callback(this, index_OR_name);
+  WindowBase ___getter___1(index_OR_name) => _blink.Native_Window____getter___1_Callback(this, index_OR_name);
 
-  WindowBase ___getter___2(index_OR_name) => blink.Native_Window____getter___2_Callback(this, index_OR_name);
+  WindowBase ___getter___2(index_OR_name) => _blink.Native_Window____getter___2_Callback(this, index_OR_name);
 
   /**
    * Displays a modal alert to the user.
@@ -30971,15 +30971,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.alert')
   @DocsEditable()
-  void alert(String message) => blink.Native_Window_alert_Callback(this, message);
+  void alert(String message) => _blink.Native_Window_alert_Callback(this, message);
 
   @DomName('Window.cancelAnimationFrame')
   @DocsEditable()
-  void cancelAnimationFrame(int id) => blink.Native_Window_cancelAnimationFrame_Callback(this, id);
+  void cancelAnimationFrame(int id) => _blink.Native_Window_cancelAnimationFrame_Callback(this, id);
 
   @DomName('Window.close')
   @DocsEditable()
-  void close() => blink.Native_Window_close_Callback(this);
+  void close() => _blink.Native_Window_close_Callback(this);
 
   /**
    * Displays a modal OK/Cancel prompt to the user.
@@ -30992,7 +30992,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.confirm')
   @DocsEditable()
-  bool confirm(String message) => blink.Native_Window_confirm_Callback(this, message);
+  bool confirm(String message) => _blink.Native_Window_confirm_Callback(this, message);
 
   /**
    * Finds text in this window.
@@ -31005,11 +31005,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.find')
   @DocsEditable()
   @Experimental() // non-standard
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) => blink.Native_Window_find_Callback(this, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) => _blink.Native_Window_find_Callback(this, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
 
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => blink.Native_Window_getComputedStyle_Callback(this, element, pseudoElement);
+  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => _blink.Native_Window_getComputedStyle_Callback(this, element, pseudoElement);
 
   /**
    * Returns all CSS rules that apply to the element's pseudo-element.
@@ -31017,7 +31017,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => blink.Native_Window_getMatchedCSSRules_Callback(this, element, pseudoElement);
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => _blink.Native_Window_getMatchedCSSRules_Callback(this, element, pseudoElement);
 
   /**
    * Returns the currently selected text.
@@ -31030,7 +31030,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.getSelection')
   @DocsEditable()
-  Selection getSelection() => blink.Native_Window_getSelection_Callback(this);
+  Selection getSelection() => _blink.Native_Window_getSelection_Callback(this);
 
   /**
    * Returns a list of media queries for the given query string.
@@ -31045,7 +31045,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.matchMedia')
   @DocsEditable()
-  MediaQueryList matchMedia(String query) => blink.Native_Window_matchMedia_Callback(this, query);
+  MediaQueryList matchMedia(String query) => _blink.Native_Window_matchMedia_Callback(this, query);
 
   /**
    * Moves this window.
@@ -31061,15 +31061,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.moveBy')
   @DocsEditable()
-  void moveBy(num x, num y) => blink.Native_Window_moveBy_Callback(this, x, y);
+  void moveBy(num x, num y) => _blink.Native_Window_moveBy_Callback(this, x, y);
 
   @DomName('Window.moveTo')
   @DocsEditable()
-  void _moveTo(num x, num y) => blink.Native_Window_moveTo_Callback(this, x, y);
+  void _moveTo(num x, num y) => _blink.Native_Window_moveTo_Callback(this, x, y);
 
   @DomName('Window.open')
   @DocsEditable()
-  WindowBase open(String url, String name, [String options]) => blink.Native_Window_open_Callback(this, url, name, options);
+  WindowBase open(String url, String name, [String options]) => _blink.Native_Window_open_Callback(this, url, name, options);
 
   /// *Deprecated.*
   @DomName('Window.openDatabase')
@@ -31079,11 +31079,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @Experimental()
   // http://www.w3.org/TR/webdatabase/
   @Experimental() // deprecated
-  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => blink.Native_Window_openDatabase_Callback(this, name, version, displayName, estimatedSize, creationCallback);
+  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => _blink.Native_Window_openDatabase_Callback(this, name, version, displayName, estimatedSize, creationCallback);
 
   @DomName('Window.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> messagePorts]) => blink.Native_Window_postMessage_Callback(this, message, targetOrigin, messagePorts);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> messagePorts]) => _blink.Native_Window_postMessage_Callback(this, message, targetOrigin, messagePorts);
 
   /**
    * Opens the print dialog for this window.
@@ -31095,11 +31095,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.print')
   @DocsEditable()
-  void print() => blink.Native_Window_print_Callback(this);
+  void print() => _blink.Native_Window_print_Callback(this);
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => blink.Native_Window_requestAnimationFrame_Callback(this, callback);
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => _blink.Native_Window_requestAnimationFrame_Callback(this, callback);
 
   /**
    * Resizes this window by an offset.
@@ -31111,7 +31111,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.resizeBy')
   @DocsEditable()
-  void resizeBy(num x, num y) => blink.Native_Window_resizeBy_Callback(this, x, y);
+  void resizeBy(num x, num y) => _blink.Native_Window_resizeBy_Callback(this, x, y);
 
   /**
    * Resizes this window to a specific width and height.
@@ -31123,7 +31123,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.resizeTo')
   @DocsEditable()
-  void resizeTo(num width, num height) => blink.Native_Window_resizeTo_Callback(this, width, height);
+  void resizeTo(num width, num height) => _blink.Native_Window_resizeTo_Callback(this, width, height);
 
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -31137,7 +31137,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void scroll(int x, int y, [Map scrollOptions]) => blink.Native_Window_scroll_Callback(this, x, y, scrollOptions);
+  void scroll(int x, int y, [Map scrollOptions]) => _blink.Native_Window_scroll_Callback(this, x, y, scrollOptions);
 
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -31149,7 +31149,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void scrollBy(int x, int y, [Map scrollOptions]) => blink.Native_Window_scrollBy_Callback(this, x, y, scrollOptions);
+  void scrollBy(int x, int y, [Map scrollOptions]) => _blink.Native_Window_scrollBy_Callback(this, x, y, scrollOptions);
 
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -31163,7 +31163,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void scrollTo(int x, int y, [Map scrollOptions]) => blink.Native_Window_scrollTo_Callback(this, x, y, scrollOptions);
+  void scrollTo(int x, int y, [Map scrollOptions]) => _blink.Native_Window_scrollTo_Callback(this, x, y, scrollOptions);
 
   /**
    * Opens a new page as a modal dialog.
@@ -31176,7 +31176,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.showModalDialog')
   @DocsEditable()
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => blink.Native_Window_showModalDialog_Callback(this, url, dialogArgs, featureArgs);
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => _blink.Native_Window_showModalDialog_Callback(this, url, dialogArgs, featureArgs);
 
   /**
    * Stops the window from loading.
@@ -31189,11 +31189,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.stop')
   @DocsEditable()
-  void stop() => blink.Native_Window_stop_Callback(this);
+  void stop() => _blink.Native_Window_stop_Callback(this);
 
   @DomName('Window.toString')
   @DocsEditable()
-  String toString() => blink.Native_Window_toString_Callback(this);
+  String toString() => _blink.Native_Window_toString_Callback(this);
 
   @DomName('Window.webkitConvertPointFromNodeToPage')
   @DocsEditable()
@@ -31201,7 +31201,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
-  _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) => blink.Native_Window_webkitConvertPointFromNodeToPage_Callback(this, node, p);
+  _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) => _blink.Native_Window_webkitConvertPointFromNodeToPage_Callback(this, node, p);
 
   @DomName('Window.webkitConvertPointFromPageToNode')
   @DocsEditable()
@@ -31209,14 +31209,14 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
-  _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) => blink.Native_Window_webkitConvertPointFromPageToNode_Callback(this, node, p);
+  _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) => _blink.Native_Window_webkitConvertPointFromPageToNode_Callback(this, node, p);
 
   @DomName('Window.webkitRequestFileSystem')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
-  void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_Window_webkitRequestFileSystem_Callback(this, type, size, successCallback, errorCallback);
+  void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_Window_webkitRequestFileSystem_Callback(this, type, size, successCallback, errorCallback);
 
   Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
@@ -31240,7 +31240,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_Window_webkitResolveLocalFileSystemURL_Callback(this, url, successCallback, errorCallback);
+  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_Window_webkitResolveLocalFileSystemURL_Callback(this, url, successCallback, errorCallback);
 
   Future<Entry> resolveLocalFileSystemUrl(String url) {
     var completer = new Completer<Entry>();
@@ -31252,39 +31252,39 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Window_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Window_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Window.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) => blink.Native_Window_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Window_dispatchEvent_Callback(this, event);
 
   @DomName('Window.removeEventListener')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Window_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Window_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Window.atob')
   @DocsEditable()
-  String atob(String string) => blink.Native_Window_atob_Callback(this, string);
+  String atob(String string) => _blink.Native_Window_atob_Callback(this, string);
 
   @DomName('Window.btoa')
   @DocsEditable()
-  String btoa(String string) => blink.Native_Window_btoa_Callback(this, string);
+  String btoa(String string) => _blink.Native_Window_btoa_Callback(this, string);
 
   @DomName('Window.clearInterval')
   @DocsEditable()
-  void _clearInterval(int handle) => blink.Native_Window_clearInterval_Callback(this, handle);
+  void _clearInterval(int handle) => _blink.Native_Window_clearInterval_Callback(this, handle);
 
   @DomName('Window.clearTimeout')
   @DocsEditable()
-  void _clearTimeout(int handle) => blink.Native_Window_clearTimeout_Callback(this, handle);
+  void _clearTimeout(int handle) => _blink.Native_Window_clearTimeout_Callback(this, handle);
 
   @DomName('Window.setInterval')
   @DocsEditable()
-  int _setInterval(Object handler, int timeout) => blink.Native_Window_setInterval_Callback(this, handler, timeout);
+  int _setInterval(Object handler, int timeout) => _blink.Native_Window_setInterval_Callback(this, handler, timeout);
 
   @DomName('Window.setTimeout')
   @DocsEditable()
-  int _setTimeout(Object handler, int timeout) => blink.Native_Window_setTimeout_Callback(this, handler, timeout);
+  int _setTimeout(Object handler, int timeout) => _blink.Native_Window_setTimeout_Callback(this, handler, timeout);
 
   /// Stream of `contentloaded` events handled by this [Window].
   @DomName('Window.onDOMContentLoaded')
@@ -31655,12 +31655,12 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
   @DomName('WindowBase64.atob')
   @DocsEditable()
   @Experimental() // untriaged
-  String atob(String string) => blink.Native_WindowBase64_atob_Callback(this, string);
+  String atob(String string) => _blink.Native_WindowBase64_atob_Callback(this, string);
 
   @DomName('WindowBase64.btoa')
   @DocsEditable()
   @Experimental() // untriaged
-  String btoa(String string) => blink.Native_WindowBase64_btoa_Callback(this, string);
+  String btoa(String string) => _blink.Native_WindowBase64_btoa_Callback(this, string);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31792,33 +31792,33 @@ class Worker extends EventTarget implements AbstractWorker {
   }
 
   @DocsEditable()
-  static Worker _create_1(scriptUrl) => blink.Native_Worker__create_1constructorCallback(scriptUrl);
+  static Worker _create_1(scriptUrl) => _blink.Native_Worker__create_1constructorCallback(scriptUrl);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> messagePorts]) => blink.Native_Worker_postMessage_Callback(this, message, messagePorts);
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> messagePorts]) => _blink.Native_Worker_postMessage_Callback(this, message, messagePorts);
 
   @DomName('Worker.terminate')
   @DocsEditable()
-  void terminate() => blink.Native_Worker_terminate_Callback(this);
+  void terminate() => _blink.Native_Worker_terminate_Callback(this);
 
   @DomName('Worker.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Worker_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Worker_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('Worker.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_Worker_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_Worker_dispatchEvent_Callback(this, event);
 
   @DomName('Worker.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_Worker_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Worker_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `error` events handled by this [Worker].
   @DomName('Worker.onerror')
@@ -31864,7 +31864,7 @@ class WorkerCrypto extends NativeFieldWrapperClass2 {
   @DomName('WorkerCrypto.getRandomValues')
   @DocsEditable()
   @Experimental() // untriaged
-  TypedData getRandomValues(TypedData array) => blink.Native_WorkerCrypto_getRandomValues_Callback(this, array);
+  TypedData getRandomValues(TypedData array) => _blink.Native_WorkerCrypto_getRandomValues_Callback(this, array);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31905,37 +31905,37 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.console')
   @DocsEditable()
   @Experimental() // untriaged
-  WorkerConsole get console => blink.Native_WorkerGlobalScope_console_Getter(this);
+  WorkerConsole get console => _blink.Native_WorkerGlobalScope_console_Getter(this);
 
   @DomName('WorkerGlobalScope.crypto')
   @DocsEditable()
   @Experimental() // untriaged
-  WorkerCrypto get crypto => blink.Native_WorkerGlobalScope_crypto_Getter(this);
+  WorkerCrypto get crypto => _blink.Native_WorkerGlobalScope_crypto_Getter(this);
 
   @DomName('WorkerGlobalScope.indexedDB')
   @DocsEditable()
   @Experimental() // untriaged
-  IdbFactory get indexedDB => blink.Native_WorkerGlobalScope_indexedDB_Getter(this);
+  IdbFactory get indexedDB => _blink.Native_WorkerGlobalScope_indexedDB_Getter(this);
 
   @DomName('WorkerGlobalScope.location')
   @DocsEditable()
   @Experimental() // untriaged
-  _WorkerLocation get location => blink.Native_WorkerGlobalScope_location_Getter(this);
+  _WorkerLocation get location => _blink.Native_WorkerGlobalScope_location_Getter(this);
 
   @DomName('WorkerGlobalScope.navigator')
   @DocsEditable()
   @Experimental() // untriaged
-  _WorkerNavigator get navigator => blink.Native_WorkerGlobalScope_navigator_Getter(this);
+  _WorkerNavigator get navigator => _blink.Native_WorkerGlobalScope_navigator_Getter(this);
 
   @DomName('WorkerGlobalScope.performance')
   @DocsEditable()
   @Experimental() // untriaged
-  WorkerPerformance get performance => blink.Native_WorkerGlobalScope_performance_Getter(this);
+  WorkerPerformance get performance => _blink.Native_WorkerGlobalScope_performance_Getter(this);
 
   @DomName('WorkerGlobalScope.self')
   @DocsEditable()
   @Experimental() // untriaged
-  WorkerGlobalScope get self => blink.Native_WorkerGlobalScope_self_Getter(this);
+  WorkerGlobalScope get self => _blink.Native_WorkerGlobalScope_self_Getter(this);
 
   @DomName('WorkerGlobalScope.webkitNotifications')
   @DocsEditable()
@@ -31943,27 +31943,27 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _NotificationCenter get _webkitNotifications => blink.Native_WorkerGlobalScope_webkitNotifications_Getter(this);
+  _NotificationCenter get _webkitNotifications => _blink.Native_WorkerGlobalScope_webkitNotifications_Getter(this);
 
   @DomName('WorkerGlobalScope.close')
   @DocsEditable()
   @Experimental() // untriaged
-  void close() => blink.Native_WorkerGlobalScope_close_Callback(this);
+  void close() => _blink.Native_WorkerGlobalScope_close_Callback(this);
 
   @DomName('WorkerGlobalScope.openDatabase')
   @DocsEditable()
   @Experimental() // untriaged
-  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => blink.Native_WorkerGlobalScope_openDatabase_Callback(this, name, version, displayName, estimatedSize, creationCallback);
+  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => _blink.Native_WorkerGlobalScope_openDatabase_Callback(this, name, version, displayName, estimatedSize, creationCallback);
 
   @DomName('WorkerGlobalScope.openDatabaseSync')
   @DocsEditable()
   @Experimental() // untriaged
-  _DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => blink.Native_WorkerGlobalScope_openDatabaseSync_Callback(this, name, version, displayName, estimatedSize, creationCallback);
+  _DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) => _blink.Native_WorkerGlobalScope_openDatabaseSync_Callback(this, name, version, displayName, estimatedSize, creationCallback);
 
   @DomName('WorkerGlobalScope.webkitRequestFileSystem')
   @DocsEditable()
   @Experimental() // untriaged
-  void _webkitRequestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) => blink.Native_WorkerGlobalScope_webkitRequestFileSystem_Callback(this, type, size, successCallback, errorCallback);
+  void _webkitRequestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) => _blink.Native_WorkerGlobalScope_webkitRequestFileSystem_Callback(this, type, size, successCallback, errorCallback);
 
   Future<FileSystem> webkitRequestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
@@ -31979,7 +31979,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _DOMFileSystemSync requestFileSystemSync(int type, int size) => blink.Native_WorkerGlobalScope_webkitRequestFileSystemSync_Callback(this, type, size);
+  _DOMFileSystemSync requestFileSystemSync(int type, int size) => _blink.Native_WorkerGlobalScope_webkitRequestFileSystemSync_Callback(this, type, size);
 
   @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable()
@@ -31987,12 +31987,12 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _EntrySync resolveLocalFileSystemSyncUrl(String url) => blink.Native_WorkerGlobalScope_webkitResolveLocalFileSystemSyncURL_Callback(this, url);
+  _EntrySync resolveLocalFileSystemSyncUrl(String url) => _blink.Native_WorkerGlobalScope_webkitResolveLocalFileSystemSyncURL_Callback(this, url);
 
   @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemURL')
   @DocsEditable()
   @Experimental() // untriaged
-  void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) => blink.Native_WorkerGlobalScope_webkitResolveLocalFileSystemURL_Callback(this, url, successCallback, errorCallback);
+  void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) => _blink.Native_WorkerGlobalScope_webkitResolveLocalFileSystemURL_Callback(this, url, successCallback, errorCallback);
 
   Future<Entry> webkitResolveLocalFileSystemUrl(String url) {
     var completer = new Completer<Entry>();
@@ -32005,47 +32005,47 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_WorkerGlobalScope_addEventListener_Callback(this, type, listener, useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WorkerGlobalScope_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('WorkerGlobalScope.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) => blink.Native_WorkerGlobalScope_dispatchEvent_Callback(this, event);
+  bool dispatchEvent(Event event) => _blink.Native_WorkerGlobalScope_dispatchEvent_Callback(this, event);
 
   @DomName('WorkerGlobalScope.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => blink.Native_WorkerGlobalScope_removeEventListener_Callback(this, type, listener, useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WorkerGlobalScope_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('WorkerGlobalScope.atob')
   @DocsEditable()
   @Experimental() // untriaged
-  String atob(String string) => blink.Native_WorkerGlobalScope_atob_Callback(this, string);
+  String atob(String string) => _blink.Native_WorkerGlobalScope_atob_Callback(this, string);
 
   @DomName('WorkerGlobalScope.btoa')
   @DocsEditable()
   @Experimental() // untriaged
-  String btoa(String string) => blink.Native_WorkerGlobalScope_btoa_Callback(this, string);
+  String btoa(String string) => _blink.Native_WorkerGlobalScope_btoa_Callback(this, string);
 
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearInterval(int handle) => blink.Native_WorkerGlobalScope_clearInterval_Callback(this, handle);
+  void _clearInterval(int handle) => _blink.Native_WorkerGlobalScope_clearInterval_Callback(this, handle);
 
   @DomName('WorkerGlobalScope.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearTimeout(int handle) => blink.Native_WorkerGlobalScope_clearTimeout_Callback(this, handle);
+  void _clearTimeout(int handle) => _blink.Native_WorkerGlobalScope_clearTimeout_Callback(this, handle);
 
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setInterval(Object handler, int timeout) => blink.Native_WorkerGlobalScope_setInterval_Callback(this, handler, timeout);
+  int _setInterval(Object handler, int timeout) => _blink.Native_WorkerGlobalScope_setInterval_Callback(this, handler, timeout);
 
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setTimeout(Object handler, int timeout) => blink.Native_WorkerGlobalScope_setTimeout_Callback(this, handler, timeout);
+  int _setTimeout(Object handler, int timeout) => _blink.Native_WorkerGlobalScope_setTimeout_Callback(this, handler, timeout);
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -32071,7 +32071,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  double now() => blink.Native_WorkerPerformance_now_Callback(this);
+  double now() => _blink.Native_WorkerPerformance_now_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32096,19 +32096,19 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static XPathEvaluator _create_1() => blink.Native_XPathEvaluator__create_1constructorCallback();
+  static XPathEvaluator _create_1() => _blink.Native_XPathEvaluator__create_1constructorCallback();
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
-  XPathExpression createExpression(String expression, XPathNSResolver resolver) => blink.Native_XPathEvaluator_createExpression_Callback(this, expression, resolver);
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) => _blink.Native_XPathEvaluator_createExpression_Callback(this, expression, resolver);
 
   @DomName('XPathEvaluator.createNSResolver')
   @DocsEditable()
-  XPathNSResolver createNSResolver(Node nodeResolver) => blink.Native_XPathEvaluator_createNSResolver_Callback(this, nodeResolver);
+  XPathNSResolver createNSResolver(Node nodeResolver) => _blink.Native_XPathEvaluator_createNSResolver_Callback(this, nodeResolver);
 
   @DomName('XPathEvaluator.evaluate')
   @DocsEditable()
-  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) => blink.Native_XPathEvaluator_evaluate_Callback(this, expression, contextNode, resolver, type, inResult);
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) => _blink.Native_XPathEvaluator_evaluate_Callback(this, expression, contextNode, resolver, type, inResult);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32128,7 +32128,7 @@ class XPathExpression extends NativeFieldWrapperClass2 {
 
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
-  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) => blink.Native_XPathExpression_evaluate_Callback(this, contextNode, type, inResult);
+  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) => _blink.Native_XPathExpression_evaluate_Callback(this, contextNode, type, inResult);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32148,7 +32148,7 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
 
   @DomName('XPathNSResolver.lookupNamespaceURI')
   @DocsEditable()
-  String lookupNamespaceUri(String prefix) => blink.Native_XPathNSResolver_lookupNamespaceURI_Callback(this, prefix);
+  String lookupNamespaceUri(String prefix) => _blink.Native_XPathNSResolver_lookupNamespaceURI_Callback(this, prefix);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32208,39 +32208,39 @@ class XPathResult extends NativeFieldWrapperClass2 {
 
   @DomName('XPathResult.booleanValue')
   @DocsEditable()
-  bool get booleanValue => blink.Native_XPathResult_booleanValue_Getter(this);
+  bool get booleanValue => _blink.Native_XPathResult_booleanValue_Getter(this);
 
   @DomName('XPathResult.invalidIteratorState')
   @DocsEditable()
-  bool get invalidIteratorState => blink.Native_XPathResult_invalidIteratorState_Getter(this);
+  bool get invalidIteratorState => _blink.Native_XPathResult_invalidIteratorState_Getter(this);
 
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  double get numberValue => blink.Native_XPathResult_numberValue_Getter(this);
+  double get numberValue => _blink.Native_XPathResult_numberValue_Getter(this);
 
   @DomName('XPathResult.resultType')
   @DocsEditable()
-  int get resultType => blink.Native_XPathResult_resultType_Getter(this);
+  int get resultType => _blink.Native_XPathResult_resultType_Getter(this);
 
   @DomName('XPathResult.singleNodeValue')
   @DocsEditable()
-  Node get singleNodeValue => blink.Native_XPathResult_singleNodeValue_Getter(this);
+  Node get singleNodeValue => _blink.Native_XPathResult_singleNodeValue_Getter(this);
 
   @DomName('XPathResult.snapshotLength')
   @DocsEditable()
-  int get snapshotLength => blink.Native_XPathResult_snapshotLength_Getter(this);
+  int get snapshotLength => _blink.Native_XPathResult_snapshotLength_Getter(this);
 
   @DomName('XPathResult.stringValue')
   @DocsEditable()
-  String get stringValue => blink.Native_XPathResult_stringValue_Getter(this);
+  String get stringValue => _blink.Native_XPathResult_stringValue_Getter(this);
 
   @DomName('XPathResult.iterateNext')
   @DocsEditable()
-  Node iterateNext() => blink.Native_XPathResult_iterateNext_Callback(this);
+  Node iterateNext() => _blink.Native_XPathResult_iterateNext_Callback(this);
 
   @DomName('XPathResult.snapshotItem')
   @DocsEditable()
-  Node snapshotItem(int index) => blink.Native_XPathResult_snapshotItem_Callback(this, index);
+  Node snapshotItem(int index) => _blink.Native_XPathResult_snapshotItem_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32280,11 +32280,11 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static XmlSerializer _create_1() => blink.Native_XMLSerializer__create_1constructorCallback();
+  static XmlSerializer _create_1() => _blink.Native_XMLSerializer__create_1constructorCallback();
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
-  String serializeToString(Node node) => blink.Native_XMLSerializer_serializeToString_Callback(this, node);
+  String serializeToString(Node node) => _blink.Native_XMLSerializer_serializeToString_Callback(this, node);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32311,42 +32311,42 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static XsltProcessor _create_1() => blink.Native_XSLTProcessor__create_1constructorCallback();
+  static XsltProcessor _create_1() => _blink.Native_XSLTProcessor__create_1constructorCallback();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('XSLTProcessor.clearParameters')
   @DocsEditable()
-  void clearParameters() => blink.Native_XSLTProcessor_clearParameters_Callback(this);
+  void clearParameters() => _blink.Native_XSLTProcessor_clearParameters_Callback(this);
 
   @DomName('XSLTProcessor.getParameter')
   @DocsEditable()
-  String getParameter(String namespaceURI, String localName) => blink.Native_XSLTProcessor_getParameter_Callback(this, namespaceURI, localName);
+  String getParameter(String namespaceURI, String localName) => _blink.Native_XSLTProcessor_getParameter_Callback(this, namespaceURI, localName);
 
   @DomName('XSLTProcessor.importStylesheet')
   @DocsEditable()
-  void importStylesheet(Node stylesheet) => blink.Native_XSLTProcessor_importStylesheet_Callback(this, stylesheet);
+  void importStylesheet(Node stylesheet) => _blink.Native_XSLTProcessor_importStylesheet_Callback(this, stylesheet);
 
   @DomName('XSLTProcessor.removeParameter')
   @DocsEditable()
-  void removeParameter(String namespaceURI, String localName) => blink.Native_XSLTProcessor_removeParameter_Callback(this, namespaceURI, localName);
+  void removeParameter(String namespaceURI, String localName) => _blink.Native_XSLTProcessor_removeParameter_Callback(this, namespaceURI, localName);
 
   @DomName('XSLTProcessor.reset')
   @DocsEditable()
-  void reset() => blink.Native_XSLTProcessor_reset_Callback(this);
+  void reset() => _blink.Native_XSLTProcessor_reset_Callback(this);
 
   @DomName('XSLTProcessor.setParameter')
   @DocsEditable()
-  void setParameter(String namespaceURI, String localName, String value) => blink.Native_XSLTProcessor_setParameter_Callback(this, namespaceURI, localName, value);
+  void setParameter(String namespaceURI, String localName, String value) => _blink.Native_XSLTProcessor_setParameter_Callback(this, namespaceURI, localName, value);
 
   @DomName('XSLTProcessor.transformToDocument')
   @DocsEditable()
-  Document transformToDocument(Node source) => blink.Native_XSLTProcessor_transformToDocument_Callback(this, source);
+  Document transformToDocument(Node source) => _blink.Native_XSLTProcessor_transformToDocument_Callback(this, source);
 
   @DomName('XSLTProcessor.transformToFragment')
   @DocsEditable()
-  DocumentFragment transformToFragment(Node source, Document docVal) => blink.Native_XSLTProcessor_transformToFragment_Callback(this, source, docVal);
+  DocumentFragment transformToFragment(Node source, Document docVal) => _blink.Native_XSLTProcessor_transformToFragment_Callback(this, source, docVal);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32365,24 +32365,24 @@ class _Attr extends Node {
   @DomName('Attr.localName')
   @DocsEditable()
   @Experimental() // untriaged
-  String get _localName => blink.Native_Attr_localName_Getter(this);
+  String get _localName => _blink.Native_Attr_localName_Getter(this);
 
   @DomName('Attr.name')
   @DocsEditable()
-  String get name => blink.Native_Attr_name_Getter(this);
+  String get name => _blink.Native_Attr_name_Getter(this);
 
   @DomName('Attr.namespaceURI')
   @DocsEditable()
   @Experimental() // untriaged
-  String get _namespaceUri => blink.Native_Attr_namespaceURI_Getter(this);
+  String get _namespaceUri => _blink.Native_Attr_namespaceURI_Getter(this);
 
   @DomName('Attr.value')
   @DocsEditable()
-  String get value => blink.Native_Attr_value_Getter(this);
+  String get value => _blink.Native_Attr_value_Getter(this);
 
   @DomName('Attr.value')
   @DocsEditable()
-  void set value(String value) => blink.Native_Attr_value_Setter(this, value);
+  void set value(String value) => _blink.Native_Attr_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32536,27 +32536,27 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
 
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  double get bottom => blink.Native_ClientRect_bottom_Getter(this);
+  double get bottom => _blink.Native_ClientRect_bottom_Getter(this);
 
   @DomName('ClientRect.height')
   @DocsEditable()
-  double get height => blink.Native_ClientRect_height_Getter(this);
+  double get height => _blink.Native_ClientRect_height_Getter(this);
 
   @DomName('ClientRect.left')
   @DocsEditable()
-  double get left => blink.Native_ClientRect_left_Getter(this);
+  double get left => _blink.Native_ClientRect_left_Getter(this);
 
   @DomName('ClientRect.right')
   @DocsEditable()
-  double get right => blink.Native_ClientRect_right_Getter(this);
+  double get right => _blink.Native_ClientRect_right_Getter(this);
 
   @DomName('ClientRect.top')
   @DocsEditable()
-  double get top => blink.Native_ClientRect_top_Getter(this);
+  double get top => _blink.Native_ClientRect_top_Getter(this);
 
   @DomName('ClientRect.width')
   @DocsEditable()
-  double get width => blink.Native_ClientRect_width_Getter(this);
+  double get width => _blink.Native_ClientRect_width_Getter(this);
 }
 
 /**
@@ -32610,15 +32610,15 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
 
   @DomName('ClientRectList.length')
   @DocsEditable()
-  int get length => blink.Native_ClientRectList_length_Getter(this);
+  int get length => _blink.Native_ClientRectList_length_Getter(this);
 
   Rectangle operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_ClientRectList_NativeIndexed_Getter(this, index);
+    return _blink.Native_ClientRectList_NativeIndexed_Getter(this, index);
   }
 
-  Rectangle _nativeIndexedGetter(int index) => blink.Native_ClientRectList_NativeIndexed_Getter(this, index);
+  Rectangle _nativeIndexedGetter(int index) => _blink.Native_ClientRectList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -32660,7 +32660,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
 
   @DomName('ClientRectList.item')
   @DocsEditable()
-  Rectangle item(int index) => blink.Native_ClientRectList_item_Callback(this, index);
+  Rectangle item(int index) => _blink.Native_ClientRectList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32694,15 +32694,15 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
-  int get length => blink.Native_CSSRuleList_length_Getter(this);
+  int get length => _blink.Native_CSSRuleList_length_Getter(this);
 
   CssRule operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_CSSRuleList_NativeIndexed_Getter(this, index);
+    return _blink.Native_CSSRuleList_NativeIndexed_Getter(this, index);
   }
 
-  CssRule _nativeIndexedGetter(int index) => blink.Native_CSSRuleList_NativeIndexed_Getter(this, index);
+  CssRule _nativeIndexedGetter(int index) => _blink.Native_CSSRuleList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -32744,7 +32744,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
 
   @DomName('CSSRuleList.item')
   @DocsEditable()
-  CssRule item(int index) => blink.Native_CSSRuleList_item_Callback(this, index);
+  CssRule item(int index) => _blink.Native_CSSRuleList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32764,15 +32764,15 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   @DomName('CSSValueList.length')
   @DocsEditable()
-  int get length => blink.Native_CSSValueList_length_Getter(this);
+  int get length => _blink.Native_CSSValueList_length_Getter(this);
 
   _CSSValue operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_CSSValueList_NativeIndexed_Getter(this, index);
+    return _blink.Native_CSSValueList_NativeIndexed_Getter(this, index);
   }
 
-  _CSSValue _nativeIndexedGetter(int index) => blink.Native_CSSValueList_NativeIndexed_Getter(this, index);
+  _CSSValue _nativeIndexedGetter(int index) => _blink.Native_CSSValueList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -32814,7 +32814,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   @DomName('CSSValueList.item')
   @DocsEditable()
-  _CSSValue item(int index) => blink.Native_CSSValueList_item_Callback(this, index);
+  _CSSValue item(int index) => _blink.Native_CSSValueList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32924,26 +32924,26 @@ class _DomPoint extends NativeFieldWrapperClass2 {
   factory _DomPoint(num x, num y) => _create(x, y);
 
   @DocsEditable()
-  static _DomPoint _create(x, y) => blink.Native_WebKitPoint_constructorCallback(x, y);
+  static _DomPoint _create(x, y) => _blink.Native_WebKitPoint_constructorCallback(x, y);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('WebKitPoint.x')
   @DocsEditable()
-  num get x => blink.Native_WebKitPoint_x_Getter(this);
+  num get x => _blink.Native_WebKitPoint_x_Getter(this);
 
   @DomName('WebKitPoint.x')
   @DocsEditable()
-  void set x(num value) => blink.Native_WebKitPoint_x_Setter(this, value);
+  void set x(num value) => _blink.Native_WebKitPoint_x_Setter(this, value);
 
   @DomName('WebKitPoint.y')
   @DocsEditable()
-  num get y => blink.Native_WebKitPoint_y_Getter(this);
+  num get y => _blink.Native_WebKitPoint_y_Getter(this);
 
   @DomName('WebKitPoint.y')
   @DocsEditable()
-  void set y(num value) => blink.Native_WebKitPoint_y_Setter(this, value);
+  void set y(num value) => _blink.Native_WebKitPoint_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33000,7 +33000,7 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static _FileReaderSync _create_1() => blink.Native_FileReaderSync__create_1constructorCallback();
+  static _FileReaderSync _create_1() => _blink.Native_FileReaderSync__create_1constructorCallback();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33036,15 +33036,15 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 
   @DomName('GamepadList.length')
   @DocsEditable()
-  int get length => blink.Native_GamepadList_length_Getter(this);
+  int get length => _blink.Native_GamepadList_length_Getter(this);
 
   Gamepad operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_GamepadList_NativeIndexed_Getter(this, index);
+    return _blink.Native_GamepadList_NativeIndexed_Getter(this, index);
   }
 
-  Gamepad _nativeIndexedGetter(int index) => blink.Native_GamepadList_NativeIndexed_Getter(this, index);
+  Gamepad _nativeIndexedGetter(int index) => _blink.Native_GamepadList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -33086,7 +33086,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 
   @DomName('GamepadList.item')
   @DocsEditable()
-  Gamepad item(int index) => blink.Native_GamepadList_item_Callback(this, index);
+  Gamepad item(int index) => _blink.Native_GamepadList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33106,7 +33106,7 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
-  Element _item(int index) => blink.Native_HTMLAllCollection_item_Callback(this, index);
+  Element _item(int index) => _blink.Native_HTMLAllCollection_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33283,15 +33283,15 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
-  int get length => blink.Native_NamedNodeMap_length_Getter(this);
+  int get length => _blink.Native_NamedNodeMap_length_Getter(this);
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_NamedNodeMap_NativeIndexed_Getter(this, index);
+    return _blink.Native_NamedNodeMap_NativeIndexed_Getter(this, index);
   }
 
-  Node _nativeIndexedGetter(int index) => blink.Native_NamedNodeMap_NativeIndexed_Getter(this, index);
+  Node _nativeIndexedGetter(int index) => _blink.Native_NamedNodeMap_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -33333,35 +33333,35 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
 
   @DomName('NamedNodeMap.__getter__')
   @DocsEditable()
-  Node __getter__(String name) => blink.Native_NamedNodeMap___getter___Callback(this, name);
+  Node __getter__(String name) => _blink.Native_NamedNodeMap___getter___Callback(this, name);
 
   @DomName('NamedNodeMap.getNamedItem')
   @DocsEditable()
-  Node getNamedItem(String name) => blink.Native_NamedNodeMap_getNamedItem_Callback(this, name);
+  Node getNamedItem(String name) => _blink.Native_NamedNodeMap_getNamedItem_Callback(this, name);
 
   @DomName('NamedNodeMap.getNamedItemNS')
   @DocsEditable()
-  Node getNamedItemNS(String namespaceURI, String localName) => blink.Native_NamedNodeMap_getNamedItemNS_Callback(this, namespaceURI, localName);
+  Node getNamedItemNS(String namespaceURI, String localName) => _blink.Native_NamedNodeMap_getNamedItemNS_Callback(this, namespaceURI, localName);
 
   @DomName('NamedNodeMap.item')
   @DocsEditable()
-  Node item(int index) => blink.Native_NamedNodeMap_item_Callback(this, index);
+  Node item(int index) => _blink.Native_NamedNodeMap_item_Callback(this, index);
 
   @DomName('NamedNodeMap.removeNamedItem')
   @DocsEditable()
-  Node removeNamedItem(String name) => blink.Native_NamedNodeMap_removeNamedItem_Callback(this, name);
+  Node removeNamedItem(String name) => _blink.Native_NamedNodeMap_removeNamedItem_Callback(this, name);
 
   @DomName('NamedNodeMap.removeNamedItemNS')
   @DocsEditable()
-  Node removeNamedItemNS(String namespaceURI, String localName) => blink.Native_NamedNodeMap_removeNamedItemNS_Callback(this, namespaceURI, localName);
+  Node removeNamedItemNS(String namespaceURI, String localName) => _blink.Native_NamedNodeMap_removeNamedItemNS_Callback(this, namespaceURI, localName);
 
   @DomName('NamedNodeMap.setNamedItem')
   @DocsEditable()
-  Node setNamedItem(Node node) => blink.Native_NamedNodeMap_setNamedItem_Callback(this, node);
+  Node setNamedItem(Node node) => _blink.Native_NamedNodeMap_setNamedItem_Callback(this, node);
 
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable()
-  Node setNamedItemNS(Node node) => blink.Native_NamedNodeMap_setNamedItemNS_Callback(this, node);
+  Node setNamedItemNS(Node node) => _blink.Native_NamedNodeMap_setNamedItemNS_Callback(this, node);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33492,15 +33492,15 @@ class _SpeechInputResultList extends NativeFieldWrapperClass2 with ListMixin<Spe
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable()
-  int get length => blink.Native_SpeechInputResultList_length_Getter(this);
+  int get length => _blink.Native_SpeechInputResultList_length_Getter(this);
 
   SpeechInputResult operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_SpeechInputResultList_NativeIndexed_Getter(this, index);
+    return _blink.Native_SpeechInputResultList_NativeIndexed_Getter(this, index);
   }
 
-  SpeechInputResult _nativeIndexedGetter(int index) => blink.Native_SpeechInputResultList_NativeIndexed_Getter(this, index);
+  SpeechInputResult _nativeIndexedGetter(int index) => _blink.Native_SpeechInputResultList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -33542,7 +33542,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass2 with ListMixin<Spe
 
   @DomName('SpeechInputResultList.item')
   @DocsEditable()
-  SpeechInputResult item(int index) => blink.Native_SpeechInputResultList_item_Callback(this, index);
+  SpeechInputResult item(int index) => _blink.Native_SpeechInputResultList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33562,15 +33562,15 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
-  int get length => blink.Native_SpeechRecognitionResultList_length_Getter(this);
+  int get length => _blink.Native_SpeechRecognitionResultList_length_Getter(this);
 
   SpeechRecognitionResult operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_SpeechRecognitionResultList_NativeIndexed_Getter(this, index);
+    return _blink.Native_SpeechRecognitionResultList_NativeIndexed_Getter(this, index);
   }
 
-  SpeechRecognitionResult _nativeIndexedGetter(int index) => blink.Native_SpeechRecognitionResultList_NativeIndexed_Getter(this, index);
+  SpeechRecognitionResult _nativeIndexedGetter(int index) => _blink.Native_SpeechRecognitionResultList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -33612,7 +33612,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 
   @DomName('SpeechRecognitionResultList.item')
   @DocsEditable()
-  SpeechRecognitionResult item(int index) => blink.Native_SpeechRecognitionResultList_item_Callback(this, index);
+  SpeechRecognitionResult item(int index) => _blink.Native_SpeechRecognitionResultList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33630,15 +33630,15 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 
   @DomName('StyleSheetList.length')
   @DocsEditable()
-  int get length => blink.Native_StyleSheetList_length_Getter(this);
+  int get length => _blink.Native_StyleSheetList_length_Getter(this);
 
   StyleSheet operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return blink.Native_StyleSheetList_NativeIndexed_Getter(this, index);
+    return _blink.Native_StyleSheetList_NativeIndexed_Getter(this, index);
   }
 
-  StyleSheet _nativeIndexedGetter(int index) => blink.Native_StyleSheetList_NativeIndexed_Getter(this, index);
+  StyleSheet _nativeIndexedGetter(int index) => _blink.Native_StyleSheetList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -33680,11 +33680,11 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 
   @DomName('StyleSheetList.__getter__')
   @DocsEditable()
-  CssStyleSheet __getter__(String name) => blink.Native_StyleSheetList___getter___Callback(this, name);
+  CssStyleSheet __getter__(String name) => _blink.Native_StyleSheetList___getter___Callback(this, name);
 
   @DomName('StyleSheetList.item')
   @DocsEditable()
-  StyleSheet item(int index) => blink.Native_StyleSheetList_item_Callback(this, index);
+  StyleSheet item(int index) => _blink.Native_StyleSheetList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33743,7 +33743,7 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   }
 
   @DocsEditable()
-  static _WebKitCSSMatrix _create_1(cssValue) => blink.Native_WebKitCSSMatrix__create_1constructorCallback(cssValue);
+  static _WebKitCSSMatrix _create_1(cssValue) => _blink.Native_WebKitCSSMatrix__create_1constructorCallback(cssValue);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33783,7 +33783,7 @@ abstract class _WebKitMediaSource extends EventTarget {
   }
 
   @DocsEditable()
-  static _WebKitMediaSource _create_1() => blink.Native_WebKitMediaSource__create_1constructorCallback();
+  static _WebKitMediaSource _create_1() => _blink.Native_WebKitMediaSource__create_1constructorCallback();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33833,7 +33833,7 @@ abstract class _WebKitSourceBufferList extends EventTarget {
   @DomName('WebKitSourceBufferList.item')
   @DocsEditable()
   @Experimental() // untriaged
-  _WebKitSourceBuffer _item(int index) => blink.Native_WebKitSourceBufferList_item_Callback(this, index);
+  _WebKitSourceBuffer _item(int index) => _blink.Native_WebKitSourceBufferList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33853,22 +33853,22 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearInterval(int handle) => blink.Native_WindowTimers_clearInterval_Callback(this, handle);
+  void _clearInterval(int handle) => _blink.Native_WindowTimers_clearInterval_Callback(this, handle);
 
   @DomName('WindowTimers.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearTimeout(int handle) => blink.Native_WindowTimers_clearTimeout_Callback(this, handle);
+  void _clearTimeout(int handle) => _blink.Native_WindowTimers_clearTimeout_Callback(this, handle);
 
   @DomName('WindowTimers.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setInterval(Object handler, int timeout) => blink.Native_WindowTimers_setInterval_Callback(this, handler, timeout);
+  int _setInterval(Object handler, int timeout) => _blink.Native_WindowTimers_setInterval_Callback(this, handler, timeout);
 
   @DomName('WindowTimers.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setTimeout(Object handler, int timeout) => blink.Native_WindowTimers_setTimeout_Callback(this, handler, timeout);
+  int _setTimeout(Object handler, int timeout) => _blink.Native_WindowTimers_setTimeout_Callback(this, handler, timeout);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38459,11 +38459,11 @@ class _Utils {
     return element;
   }
 
-  static window() => blink.Native_Utils_window();
-  static forwardingPrint(String message) => blink.Native_Utils_forwardingPrint(message);
+  static window() => _blink.Native_Utils_window();
+  static forwardingPrint(String message) => _blink.Native_Utils_forwardingPrint(message);
   // TODO(vsm): Make this API compatible with spawnUri.  It should also
   // return a Future<Isolate>.
-  static spawnDomUri(String uri) => blink.Native_Utils_spawnDomUri(uri);
+  static spawnDomUri(String uri) => _blink.Native_Utils_spawnDomUri(uri);
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
@@ -38765,16 +38765,16 @@ class _Utils {
   }
 
   static void _register(Document document, String tag, Type customType,
-    String extendsTagName) => blink.Native_Utils_register(document, tag, customType, extendsTagName);
+    String extendsTagName) => _blink.Native_Utils_register(document, tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
-    blink.Native_Utils_createElement(document, tagName);
+    _blink.Native_Utils_createElement(document, tagName);
 
   static void initializeCustomElement(HtmlElement element) =>
-    blink.Native_Utils_initializeCustomElement(element);
+    _blink.Native_Utils_initializeCustomElement(element);
 
   static void changeElementWrapper(HtmlElement element, Type type) =>
-    blink.Native_Utils_changeElementWrapper(element, type);
+    _blink.Native_Utils_changeElementWrapper(element, type);
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
@@ -38782,17 +38782,17 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  HistoryBase get history => blink.Native_DOMWindowCrossFrame_get_history(this);
-  LocationBase get location => blink.Native_DOMWindowCrossFrame_get_location(this);
-  bool get closed => blink.Native_DOMWindowCrossFrame_get_closed(this);
-  WindowBase get opener => blink.Native_DOMWindowCrossFrame_get_opener(this);
-  WindowBase get parent => blink.Native_DOMWindowCrossFrame_get_parent(this);
-  WindowBase get top => blink.Native_DOMWindowCrossFrame_get_top(this);
+  HistoryBase get history => _blink.Native_DOMWindowCrossFrame_get_history(this);
+  LocationBase get location => _blink.Native_DOMWindowCrossFrame_get_location(this);
+  bool get closed => _blink.Native_DOMWindowCrossFrame_get_closed(this);
+  WindowBase get opener => _blink.Native_DOMWindowCrossFrame_get_opener(this);
+  WindowBase get parent => _blink.Native_DOMWindowCrossFrame_get_parent(this);
+  WindowBase get top => _blink.Native_DOMWindowCrossFrame_get_top(this);
 
   // Methods.
-  void close() => blink.Native_DOMWindowCrossFrame_close(this);
+  void close() => _blink.Native_DOMWindowCrossFrame_close(this);
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) =>
-    blink.Native_DOMWindowCrossFrame_postMessage(this, message, targetOrigin, messagePorts);
+    _blink.Native_DOMWindowCrossFrame_postMessage(this, message, targetOrigin, messagePorts);
 
   // Implementation support.
   String get typeName => "Window";
@@ -38817,9 +38817,9 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => blink.Native_HistoryCrossFrame_back(this);
-  void forward() => blink.Native_HistoryCrossFrame_forward(this);
-  void go(int distance) => blink.Native_HistoryCrossFrame_go(this, distance);
+  void back() => _blink.Native_HistoryCrossFrame_back(this);
+  void forward() => _blink.Native_HistoryCrossFrame_forward(this);
+  void go(int distance) => _blink.Native_HistoryCrossFrame_go(this, distance);
 
   // Implementation support.
   String get typeName => "History";
@@ -38829,7 +38829,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   _LocationCrossFrame.internal();
 
   // Fields.
-  void set href(String h) => blink.Native_LocationCrossFrame_set_href(this, h);
+  void set href(String h) => _blink.Native_LocationCrossFrame_set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";
@@ -38839,14 +38839,14 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
-  bool containsKey(String key) => blink.Native_DOMStringMap_containsKey(this, key);
-  String operator [](String key) => blink.Native_DOMStringMap_item(this, key);
-  void operator []=(String key, String value) => blink.Native_DOMStringMap_setItem(this, key, value);
+  bool containsKey(String key) => _blink.Native_DOMStringMap_containsKey(this, key);
+  String operator [](String key) => _blink.Native_DOMStringMap_item(this, key);
+  void operator []=(String key, String value) => _blink.Native_DOMStringMap_setItem(this, key, value);
   String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
-  String remove(String key) => blink.Native_DOMStringMap_remove(this, key);
+  String remove(String key) => _blink.Native_DOMStringMap_remove(this, key);
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Iterable<String> get keys => blink.Native_DOMStringMap_get_keys(this, keys);
+  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this, keys);
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
