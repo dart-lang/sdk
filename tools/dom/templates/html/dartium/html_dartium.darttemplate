@@ -139,3 +139,23 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Plumb arguments and return value through.
   return _Utils.spawnDomUri(uri.toString());
 }
+$if DART_USE_BLINK
+// FIXME: This should be generated.
+const _typeMap = const {
+  'EventTarget': EventTarget,
+  'Window': Window,
+  'Element': Element,
+  'Console': Console,
+  'Node': Node,
+  'Document': Document,
+  'HTMLElement': HtmlElement,
+  'HTMLCanvasElement': CanvasElement,
+  'HTMLDocument': HtmlDocument,
+};
+
+Type _getType(String key) {
+  if (!_typeMap.containsKey(key))
+    return null;
+  return _typeMap[key];
+}
+$endif
