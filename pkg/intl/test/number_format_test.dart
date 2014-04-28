@@ -94,4 +94,27 @@ main() {
       expect(formatted, x);
     }
   });
+
+  test('Explicit currency name', () {
+    var amount = 1000000.32;
+    var usConvention = new NumberFormat.currencyPattern('en_US', '€');
+    var formatted = usConvention.format(amount);
+    expect(formatted, '€1,000,000.32');
+    var swissConvention = new NumberFormat.currencyPattern('de_CH', r'$');
+    formatted = swissConvention.format(amount);
+    var nbsp = new String.fromCharCode(0xa0);
+    expect(formatted, r"$" + nbsp + "1'000'000.32");
+
+    /// Verify we can leave off the currency and it gets filled in.
+    var plainSwiss = new NumberFormat.currencyPattern('de_CH');
+    formatted = plainSwiss.format(amount);
+    expect(formatted, r"CHF" + nbsp + "1'000'000.32");
+
+    // Verify that we can pass null in order to specify the currency symbol
+    // but use the default locale.
+    var defaultLocale = new NumberFormat.currencyPattern(null, 'Smurfs');
+    formatted = defaultLocale.format(amount);
+    // We don't know what the exact format will be, but it should have Smurfs.
+    expect(formatted.contains('Smurfs'), isTrue);
+  });
 }

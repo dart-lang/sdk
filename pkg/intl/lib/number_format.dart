@@ -75,6 +75,9 @@ class NumberFormat {
   /** Caches the symbols used for our locale. */
   NumberSymbols _symbols;
 
+  /** The name (or symbol) of the currency to print. */
+  String currencyName;
+
   /**
    * Transient internal state in which to build up the result of the format
    * operation. We can have this be just an instance variable because Dart is
@@ -104,16 +107,20 @@ class NumberFormat {
     this._forPattern(locale, (x) => x.SCIENTIFIC_PATTERN);
 
   /** Create a number format that prints as CURRENCY_PATTERN. */
-  NumberFormat.currencyPattern([String locale]) :
-    this._forPattern(locale, (x) => x.CURRENCY_PATTERN);
+  NumberFormat.currencyPattern([String locale, String currency]) :
+    this._forPattern(locale, (x) => x.CURRENCY_PATTERN, currency);
 
   /**
    * Create a number format that prints in a pattern we get from
    * the [getPattern] function using the locale [locale].
    */
-  NumberFormat._forPattern(String locale, Function getPattern) :
-      _locale = Intl.verifiedLocale(locale, localeExists) {
+  NumberFormat._forPattern(String locale, Function getPattern,
+      [this.currencyName]) :
+        _locale = Intl.verifiedLocale(locale, localeExists) {
     _symbols = numberFormatSymbols[_locale];
+    if (currencyName == null) {
+      currencyName = _symbols.DEF_CURRENCY_CODE;
+    }
     _setPattern(getPattern(_symbols));
   }
 
@@ -364,7 +371,8 @@ class NumberFormat {
     if (newPattern == null) return;
     // Make spaces non-breaking
     _pattern = newPattern.replaceAll(' ', '\u00a0');
-    var parser = new _NumberFormatParser(this, newPattern);
+    var parser =
+        new _NumberFormatParser(this, newPattern, currencyName);
     parser.parse();
   }
 
@@ -401,12 +409,16 @@ class _NumberFormatParser {
   /** The pattern we are parsing. */
   final _StringIterator pattern;
 
+  /** We can be passed a specific currency symbol, regardless of the locale. */
+  String currencyName;
+
   /**
    * Create a new [_NumberFormatParser] for a particular [NumberFormat] and
    * [input] pattern.
    */
-  _NumberFormatParser(this.format, input) : pattern = _iterator(input) {
-    pattern.moveNext();
+  _NumberFormatParser(this.format, input, this.currencyName) :
+    pattern = _iterator(input) {
+        pattern.moveNext();
   }
 
   /** The [NumberSymbols] for the locale in which our [format] prints. */
@@ -486,7 +498,7 @@ class _NumberFormatParser {
           return false;
         case _PATTERN_CURRENCY_SIGN:
           // TODO(alanknight): Handle the local/global/portable currency signs
-          affix.write(symbols.DEF_CURRENCY_CODE);
+          affix.write(currencyName);
           break;
         case _PATTERN_PERCENT:
           if (format._multiplier != 1) {
