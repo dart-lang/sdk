@@ -45,17 +45,19 @@ Assembler::Assembler(bool use_far_branches)
     patchable_pool_entries_.Add(kNotPatchable);
     object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
 
+    const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
+
     if (StubCode::UpdateStoreBuffer_entry() != NULL) {
       FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
     } else {
-      object_pool_.Add(Object::null_object(), Heap::kOld);
+      object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
     if (StubCode::CallToRuntime_entry() != NULL) {
       FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
     } else {
-      object_pool_.Add(Object::null_object(), Heap::kOld);
+      object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
@@ -65,7 +67,7 @@ Assembler::Assembler(bool use_far_branches)
           FindExternalLabel(&StubCode::BreakpointRuntimeLabel(), kNotPatchable);
       ASSERT(index == kBreakpointRuntimeCPIndex);
     } else {
-      object_pool_.Add(Object::null_object(), Heap::kOld);
+      object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
   }
