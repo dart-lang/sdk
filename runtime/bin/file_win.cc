@@ -461,11 +461,6 @@ char* File::LinkTarget(const char* pathname) {
 }
 
 
-static int64_t TimespecToMilliseconds(const struct timespec& t) {
-  return t.tv_sec * 1000 + t.tv_nsec / 1000000;
-}
-
-
 void File::Stat(const char* name, int64_t* data) {
   File::Type type = GetType(name, false);
   data[kType] = type;
