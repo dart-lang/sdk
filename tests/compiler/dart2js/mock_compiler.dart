@@ -66,6 +66,7 @@ const String DEFAULT_HELPERLIB = r'''
     factory LinkedHashMap._literal(elements) => null;
   }
   class ConstantMap {}
+  class ConstantStringMap {}
   class TypeImpl {}
   S() {}
   throwCyclicInit() {}
