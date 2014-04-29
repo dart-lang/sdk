@@ -420,8 +420,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  socket = TEMP_FAILURE_RETRY(accept4(
-      fd, &clientaddr, &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC));
+  socket = TEMP_FAILURE_RETRY(accept(fd, &clientaddr, &addrlen));
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an
@@ -430,6 +429,9 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       ASSERT(kTemporaryFailure != -1);
       socket = kTemporaryFailure;
     }
+  } else {
+    FDUtils::SetNonBlocking(socket);
+    FDUtils::SetCloseOnExec(socket);
   }
   return socket;
 }
