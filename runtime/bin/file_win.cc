@@ -461,6 +461,11 @@ char* File::LinkTarget(const char* pathname) {
 }
 
 
+static int64_t TimespecToMilliseconds(const struct timespec& t) {
+  return t.tv_sec * 1000 + t.tv_nsec / 1000000;
+}
+
+
 void File::Stat(const char* name, int64_t* data) {
   File::Type type = GetType(name, false);
   data[kType] = type;
@@ -470,9 +475,9 @@ void File::Stat(const char* name, int64_t* data) {
     int stat_status = _wstat64(system_name, &st);
     free(const_cast<wchar_t*>(system_name));
     if (stat_status == 0) {
-      data[kCreatedTime] = st.st_ctime;
-      data[kModifiedTime] = st.st_mtime;
-      data[kAccessedTime] = st.st_atime;
+      data[kCreatedTime] = st.st_ctime * 1000;
+      data[kModifiedTime] = st.st_mtime * 1000;
+      data[kAccessedTime] = st.st_atime * 1000;
       data[kMode] = st.st_mode;
       data[kSize] = st.st_size;
     } else {
