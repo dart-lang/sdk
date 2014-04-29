@@ -379,8 +379,143 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of arrays.
+// Input parameters:
+//   LR: return address.
+//   R2: array length as Smi.
+//   R1: array element type (either NULL or an instantiated type).
+// NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
+// The newly allocated object is returned in R0.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
-  __ Stop("GenerateAllocateArrayStub");
+  Label slow_case;
+  if (FLAG_inline_alloc) {
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+    // Assert that length is a Smi.
+    __ tsti(R2, kSmiTagMask);
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, NE);
+    }
+    __ LoadFieldFromOffset(R8, CTX, Context::isolate_offset());
+    __ LoadFromOffset(R8, R8, Isolate::heap_offset());
+    __ LoadFromOffset(R8, R8, Heap::new_space_offset());
+
+    // Calculate and align allocation size.
+    // Load new object start and calculate next object start.
+    // R1: array element type.
+    // R2: array length as Smi.
+    // R8: points to new space object.
+    __ LoadFromOffset(R0, R8, Scavenger::top_offset());
+    intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+    __ LoadImmediate(R3, fixed_size, kNoPP);
+    __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
+    ASSERT(kSmiTagShift == 1);
+    __ andi(R3, R3, ~(kObjectAlignment - 1));
+    __ add(R7, R3, Operand(R0));
+
+    // Check if the allocation fits into the remaining space.
+    // R0: potential new object start.
+    // R1: array element type.
+    // R2: array length as Smi.
+    // R3: array size.
+    // R7: potential next object start.
+    // R8: points to new space object.
+    __ LoadFromOffset(TMP, R8, Scavenger::end_offset());
+    __ CompareRegisters(R7, TMP);
+    __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    // R0: potential new object start.
+    // R3: array size.
+    // R7: potential next object start.
+    // R8: Points to new space object.
+    __ StoreToOffset(R7, R8, Scavenger::top_offset());
+    __ add(R0, R0, Operand(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(kArrayCid, R3, R8, kNoPP);
+
+    // R0: new object start as a tagged pointer.
+    // R1: array element type.
+    // R2: array length as Smi.
+    // R3: array size.
+    // R7: new object end address.
+
+    // Store the type argument field.
+    __ StoreIntoObjectNoBarrier(
+        R0,
+        FieldAddress(R0, Array::type_arguments_offset()),
+        R1);
+
+    // Set the length field.
+    __ StoreIntoObjectNoBarrier(
+        R0,
+        FieldAddress(R0, Array::length_offset()),
+        R2);
+
+    // Calculate the size tag.
+    // R0: new object start as a tagged pointer.
+    // R2: array length as Smi.
+    // R3: array size.
+    // R7: new object end address.
+    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag, kNoPP);
+    // If no size tag overflow, shift R1 left, else set R1 to zero.
+    __ Lsl(TMP, R3, shift);
+    __ csel(R1, TMP, R1, LS);
+    __ csel(R1, ZR, R1, HI);
+
+    // Get the class index and insert it into the tags.
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(kArrayCid), kNoPP);
+    __ orr(R1, R1, Operand(TMP));
+    __ StoreFieldToOffset(R1, R0, Array::tags_offset());
+
+    // Initialize all array elements to raw_null.
+    // R0: new object start as a tagged pointer.
+    // R7: new object end address.
+    // R2: array length as Smi.
+    __ AddImmediate(R1, R0, Array::data_offset() - kHeapObjectTag, kNoPP);
+    // R1: iterator which initially points to the start of the variable
+    // data area to be initialized.
+    __ LoadObject(TMP, Object::null_object(), PP);
+    Label loop, done;
+    __ Bind(&loop);
+    // TODO(cshapiro): StoreIntoObjectNoBarrier
+    __ CompareRegisters(R1, R7);
+    __ b(&done, CS);
+    __ str(TMP, Address(R1));  // Store if unsigned lower.
+    __ AddImmediate(R1, R1, kWordSize, kNoPP);
+    __ b(&loop);  // Loop until R1 == R7.
+    __ Bind(&done);
+
+    // Done allocating and initializing the array.
+    // R0: new object.
+    // R2: array length as Smi (preserved for the caller.)
+    __ ret();
+  }
+
+  // Unable to allocate the array using the fast inline code, just call
+  // into the runtime.
+  __ Bind(&slow_case);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadObject(TMP, Object::null_object(), PP);
+  // Setup space on stack for return value.
+  // Push array length as Smi and element type.
+  __ Push(TMP);
+  __ Push(R2);
+  __ Push(R1);
+  __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
+  // Pop arguments; result is popped in IP.
+  __ Pop(R1);
+  __ Pop(R2);
+  __ Pop(TMP);
+  __ mov(R0, TMP);
+  __ LeaveStubFrame();
+  __ ret();
 }
 
 
@@ -535,8 +670,126 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of contexts.
+// Input:
+//   R1: number of context variables.
+// Output:
+//   R0: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ Stop("GenerateAllocateContextStub");
+  if (FLAG_inline_alloc) {
+    const Class& context_class = Class::ZoneHandle(Object::context_class());
+    Label slow_case;
+    Heap* heap = Isolate::Current()->heap();
+    // First compute the rounded instance size.
+    // R1: number of context variables.
+    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size, kNoPP);
+    __ add(R2, R2, Operand(R1, LSL, 3));
+    ASSERT(kSmiTagShift == 1);
+    __ andi(R2, R2, ~(kObjectAlignment - 1));
+
+    // Now allocate the object.
+    // R1: number of context variables.
+    // R2: object size.
+    __ LoadImmediate(R5, heap->TopAddress(), kNoPP);
+    __ ldr(R0, Address(R5));
+    __ add(R3, R2, Operand(R0));
+    // Check if the allocation fits into the remaining space.
+    // R0: potential new object.
+    // R1: number of context variables.
+    // R2: object size.
+    // R3: potential next object start.
+    __ LoadImmediate(TMP, heap->EndAddress(), kNoPP);
+    __ ldr(TMP, Address(TMP));
+    __ CompareRegisters(R3, TMP);
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    }
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: object size.
+    // R3: next object start.
+    __ str(R3, Address(R5));
+    __ add(R0, R0, Operand(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(context_class.id(), R2, R5, kNoPP);
+
+    // Calculate the size tag.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: object size.
+    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
+    // If no size tag overflow, shift R2 left, else set R2 to zero.
+    __ Lsl(TMP, R2, shift);
+    __ csel(R2, TMP, R2, LS);
+    __ csel(R2, ZR, R2, HI);
+
+    // Get the class index and insert it into the tags.
+    // R2: size and bit tags.
+    __ LoadImmediate(
+        TMP, RawObject::ClassIdTag::encode(context_class.id()), kNoPP);
+    __ orr(R2, R2, Operand(TMP));
+    __ StoreFieldToOffset(R2, R0, Context::tags_offset());
+
+    // Setup up number of context variables field.
+    // R0: new object.
+    // R1: number of context variables as integer value (not object).
+    __ StoreFieldToOffset(R1, R0, Context::num_variables_offset());
+
+    // Setup isolate field.
+    // Load Isolate pointer from Context structure into R2.
+    // R0: new object.
+    // R1: number of context variables.
+    __ LoadFieldFromOffset(R2, CTX, Context::isolate_offset());
+    // R2: isolate, not an object.
+    __ StoreFieldToOffset(R2, R0, Context::isolate_offset());
+
+    // Setup the parent field.
+    // R0: new object.
+    // R1: number of context variables.
+    __ LoadObject(R2, Object::null_object(), PP);
+    __ StoreFieldToOffset(R2, R0, Context::parent_offset());
+
+    // Initialize the context variables.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: raw null.
+    Label loop, done;
+    __ AddImmediate(
+        R3, R0, Context::variable_offset(0) - kHeapObjectTag, kNoPP);
+    __ Bind(&loop);
+    __ subs(R1, R1, Operand(1));
+    __ b(&done, MI);
+    __ str(R2, Address(R3, R1, UXTX, Address::Scaled));
+    __ b(&loop, NE);  // Loop if R1 not zero.
+    __ Bind(&done);
+
+    // Done allocating and initializing the context.
+    // R0: new object.
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ LoadObject(R2, Object::null_object(), PP);
+  __ SmiTag(R1);
+  __ Push(R2);
+  __ Push(R1);
+  __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
+  __ Drop(1);  // Pop number of context variables argument.
+  __ Pop(R0);  // Pop the new context object.
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame();
+  __ ret();
 }
 
 
@@ -978,7 +1231,9 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  __ Stop("GenerateThreeArgsCheckInlineCacheStub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 3, kInlineCacheMissHandlerThreeArgsRuntimeEntry);
 }
 
 

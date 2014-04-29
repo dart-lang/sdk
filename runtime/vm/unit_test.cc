@@ -48,8 +48,6 @@ void TestCaseBase::RunAll() {
   }
 }
 
-// TODO(zra): Remove when tests that need these functions are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -144,7 +142,6 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
-#endif
 
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));

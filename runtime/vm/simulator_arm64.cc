@@ -896,7 +896,11 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
     set_register(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      SetCFlag(CarryFromX(rn_val, imm));
+      if (addition) {
+        SetCFlag(CarryFromX(rn_val, imm));
+      } else {
+        SetCFlag(!BorrowFromX(rn_val, imm));
+      }
       SetVFlag(OverflowFromX(alu_out, rn_val, imm, addition));
     }
   } else {
@@ -906,7 +910,11 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      SetCFlag(CarryFromW(rn_val, imm));
+      if (addition) {
+        SetCFlag(CarryFromW(rn_val, imm));
+      } else {
+        SetCFlag(!BorrowFromW(rn_val, imm));
+      }
       SetVFlag(OverflowFromW(alu_out, rn_val, imm, addition));
     }
   }
@@ -1602,7 +1610,11 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
     set_register(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      SetCFlag(CarryFromX(rn_val, rm_val));
+      if (subtract) {
+        SetCFlag(!BorrowFromX(rn_val, rm_val));
+      } else {
+        SetCFlag(CarryFromX(rn_val, rm_val));
+      }
       SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, !subtract));
     }
   } else {
@@ -1618,7 +1630,11 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      SetCFlag(CarryFromW(rn_val, rm_val32));
+      if (subtract) {
+        SetCFlag(!BorrowFromW(rn_val, rm_val32));
+      } else {
+        SetCFlag(CarryFromW(rn_val, rm_val32));
+      }
       SetVFlag(OverflowFromW(alu_out, rn_val, rm_val32, !subtract));
     }
   }

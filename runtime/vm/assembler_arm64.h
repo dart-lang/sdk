@@ -784,6 +784,12 @@ class Assembler : public ValueObject {
                              Register pp,
                              Heap::Space space = Heap::kNew);
 
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     Register size_reg,
+                                     Register temp_reg,
+                                     Register pp,
+                                     Heap::Space space = Heap::kNew);
+
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
 

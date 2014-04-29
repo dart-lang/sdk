@@ -4,7 +4,6 @@
 
 // TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
@@ -104,5 +103,3 @@ TEST_CASE(EvalExpression) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(TARGET_ARCH_ARM64)

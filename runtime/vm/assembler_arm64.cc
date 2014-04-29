@@ -957,6 +957,57 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
   }
 }
 
+
+void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
+                                              Register size_reg,
+                                              Register temp_reg,
+                                              Register pp,
+                                              Heap::Space space) {
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(temp_reg != TMP);
+  ASSERT(cid > 0);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  if (cid < kNumPredefinedCids) {
+    const uword class_heap_stats_table_address =
+        class_table->PredefinedClassHeapStatsTableAddress();
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const uword size_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_size_since_gc_old_space_offset();
+    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset, pp);
+    const Address& count_address = Address(temp_reg, count_field_offset);
+    const Address& size_address = Address(temp_reg, size_field_offset);
+    ldr(TMP, count_address);
+    AddImmediate(TMP, TMP, 1, pp);
+    str(TMP, count_address);
+    ldr(TMP, size_address);
+    add(TMP, TMP, Operand(size_reg));
+    str(TMP, size_address);
+  } else {
+    ASSERT(temp_reg != kNoRegister);
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const uword size_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_size_since_gc_old_space_offset();
+    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress(), pp);
+    ldr(temp_reg, Address(temp_reg));
+    AddImmediate(temp_reg, temp_reg, class_offset, pp);
+    ldr(TMP, Address(temp_reg, count_field_offset));
+    AddImmediate(TMP, TMP, 1, pp);
+    str(TMP, Address(temp_reg, count_field_offset));
+    ldr(TMP, Address(temp_reg, size_field_offset));
+    add(TMP, TMP, Operand(size_reg));
+    str(TMP, Address(temp_reg, size_field_offset));
+  }
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64
