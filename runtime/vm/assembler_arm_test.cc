@@ -680,14 +680,25 @@ ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
-  __ Push(R4);
-  __ mov(IP, ShifterOperand(R0));
-  __ mul(R4, R2, R1);
-  __ umull(R0, R1, R2, IP);
-  __ mla(R2, IP, R3, R4);
-  __ add(R1, R2, ShifterOperand(R1));
-  __ Pop(R4);
+#if defined(USING_SIMULATOR)
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  HostCPUFeatures::set_arm_version(ARMv7);
+#endif
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ Push(R4);
+    __ mov(IP, ShifterOperand(R0));
+    __ mul(R4, R2, R1);
+    __ umull(R0, R1, R2, IP);
+    __ mla(R2, IP, R3, R4);
+    __ add(R1, R2, ShifterOperand(R1));
+    __ Pop(R4);
+  } else {
+    __ LoadImmediate(R0, 6);
+  }
   __ bx(LR);
+#if defined(USING_SIMULATOR)
+  HostCPUFeatures::set_arm_version(version);
+#endif
 }
 
 
@@ -700,8 +711,19 @@ ASSEMBLER_TEST_RUN(Multiply64To64, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
-  __ smull(R0, R1, R0, R2);
+#if defined(USING_SIMULATOR)
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  HostCPUFeatures::set_arm_version(ARMv7);
+#endif
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ smull(R0, R1, R0, R2);
+  } else {
+    __ LoadImmediate(R0, 6);
+  }
   __ bx(LR);
+#if defined(USING_SIMULATOR)
+  HostCPUFeatures::set_arm_version(version);
+#endif
 }
 
 
@@ -714,8 +736,19 @@ ASSEMBLER_TEST_RUN(Multiply32To64, test) {
 
 
 ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
-  __ smlal(R0, R1, R0, R2);
+#if defined(USING_SIMULATOR)
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  HostCPUFeatures::set_arm_version(ARMv7);
+#endif
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ smlal(R0, R1, R0, R2);
+  } else {
+    __ LoadImmediate(R0, 3);
+  }
   __ bx(LR);
+#if defined(USING_SIMULATOR)
+  HostCPUFeatures::set_arm_version(version);
+#endif
 }
 
 
@@ -3783,6 +3816,100 @@ ASSEMBLER_TEST_RUN(Vnegqs, test) {
   typedef float (*Vnegqs)();
   float res = EXECUTE_TEST_CODE_FLOAT(Vnegqs, test->entry());
   EXPECT_FLOAT_EQ(2.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(MultCheckOverflow, assembler) {
+  // Both positive, no overflow
+  Label overflow1, test1;
+  __ LoadImmediate(R0, 42);
+  __ LoadImmediate(R1, 0xff);
+  __ LoadImmediate(R2, 0xf0);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &overflow1);
+  __ b(&test1);
+  __ Bind(&overflow1);
+  __ LoadImmediate(R0, 1);
+  __ Ret();
+
+
+  // Left negative no overflow.
+  __ Bind(&test1);
+  Label overflow2, test2;
+  __ LoadImmediate(R1, -0xff);
+  __ LoadImmediate(R2, 0xf0);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &overflow2);
+  __ b(&test2);
+  __ Bind(&overflow2);
+  __ LoadImmediate(R0, 2);
+  __ Ret();
+
+  // Right negative no overflow
+  Label overflow3, test3;
+  __ Bind(&test2);
+  __ LoadImmediate(R1, 0xff);
+  __ LoadImmediate(R2, -0xf0);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &overflow3);
+  __ b(&test3);
+  __ Bind(&overflow3);
+  __ LoadImmediate(R0, 3);
+  __ Ret();
+
+  // Both negative no overflow.
+  Label overflow4, test4;
+  __ Bind(&test3);
+  __ LoadImmediate(R1, -0xff);
+  __ LoadImmediate(R2, -0xf0);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &overflow4);
+  __ b(&test4);
+  __ Bind(&overflow4);
+  __ LoadImmediate(R0, 4);
+  __ Ret();
+
+  // Both positive with overflow.
+  Label test5;
+  __ Bind(&test4);
+  __ LoadImmediate(R1, 0x0fffffff);
+  __ LoadImmediate(R2, 0xffff);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &test5);
+  __ LoadImmediate(R0, 5);
+  __ Ret();
+
+  // left negative with overflow.
+  Label test6;
+  __ Bind(&test5);
+  __ LoadImmediate(R1, -0x0fffffff);
+  __ LoadImmediate(R2, 0xffff);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &test6);
+  __ LoadImmediate(R0, 6);
+  __ Ret();
+
+  // right negative with overflow.
+  Label test7;
+  __ Bind(&test6);
+  __ LoadImmediate(R1, 0x0fffffff);
+  __ LoadImmediate(R2, -0xffff);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &test7);
+  __ LoadImmediate(R0, 7);
+  __ Ret();
+
+  // both negative with overflow.
+  Label test8;
+  __ Bind(&test7);
+  __ LoadImmediate(R1, -0x0fffffff);
+  __ LoadImmediate(R2, -0xffff);
+  __ CheckMultSignedOverflow(R1, R2, R3, D0, D1, &test8);
+  __ LoadImmediate(R0, 8);
+  __ Ret();
+
+  __ Bind(&test8);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(MultCheckOverflow, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 

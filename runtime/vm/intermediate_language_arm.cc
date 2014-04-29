@@ -7,6 +7,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
@@ -2887,6 +2888,11 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
       (op_kind() == Token::kSHR)) {
     summary->AddTemp(Location::RequiresRegister());
   }
+  if (op_kind() == Token::kMUL) {
+    if (TargetCPUFeatures::arm_version() != ARMv7) {
+      summary->AddTemp(Location::RequiresFpuRegister());
+    }
+  }
   // We make use of 3-operand instructions by not requiring result register
   // to be identical to first input register as on Intel.
   summary->set_out(0, Location::RequiresRegister());
@@ -2940,13 +2946,25 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           if (value == 2) {
             __ mov(IP, ShifterOperand(left, ASR, 31));  // IP = sign of left.
             __ mov(result, ShifterOperand(left, LSL, 1));
+            // IP: result bits 32..63.
+            __ cmp(IP, ShifterOperand(result, ASR, 31));
+            __ b(deopt, NE);
           } else {
-            __ LoadImmediate(IP, value);
-            __ smull(result, IP, left, IP);
+            if (TargetCPUFeatures::arm_version() == ARMv7) {
+              __ LoadImmediate(IP, value);
+              __ smull(result, IP, left, IP);
+              // IP: result bits 32..63.
+              __ cmp(IP, ShifterOperand(result, ASR, 31));
+              __ b(deopt, NE);
+            } else {
+              const QRegister qtmp = locs()->temp(0).fpu_reg();
+              const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+              const DRegister dtmp1 = OddDRegisterOf(qtmp);
+              __ LoadImmediate(IP, value);
+              __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
+              __ mul(result, left, IP);
+            }
           }
-          // IP: result bits 32..63.
-          __ cmp(IP, ShifterOperand(result, ASR, 31));
-          __ b(deopt, NE);
         }
         break;
       }
@@ -3070,10 +3088,18 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ mul(result, IP, right);
       } else {
-        __ smull(result, IP, IP, right);
-        // IP: result bits 32..63.
-        __ cmp(IP, ShifterOperand(result, ASR, 31));
-        __ b(deopt, NE);
+        if (TargetCPUFeatures::arm_version() == ARMv7) {
+          __ smull(result, IP, IP, right);
+          // IP: result bits 32..63.
+          __ cmp(IP, ShifterOperand(result, ASR, 31));
+          __ b(deopt, NE);
+        } else {
+          const QRegister qtmp = locs()->temp(0).fpu_reg();
+          const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+          const DRegister dtmp1 = OddDRegisterOf(qtmp);
+          __ CheckMultSignedOverflow(IP, right, result, dtmp0, dtmp1, deopt);
+          __ mul(result, IP, right);
+        }
       }
       break;
     }

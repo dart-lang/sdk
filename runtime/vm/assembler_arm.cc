@@ -416,20 +416,33 @@ void Assembler::muls(Register rd, Register rn,
 
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
-  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-  EmitMulOp(cond, B21, ra, rd, rn, rm);
+  // rd <- ra + rn * rm.
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+    EmitMulOp(cond, B21, ra, rd, rn, rm);
+  } else {
+    mul(IP, rn, rm, cond);
+    add(rd, ra, ShifterOperand(IP), cond);
+  }
 }
 
 
 void Assembler::mls(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
-  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-  EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
+  // rd <- ra - rn * rm.
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+    EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
+  } else {
+    mul(IP, rn, rm, cond);
+    sub(rd, ra, ShifterOperand(IP), cond);
+  }
 }
 
 
 void Assembler::smull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
@@ -437,6 +450,7 @@ void Assembler::smull(Register rd_lo, Register rd_hi,
 
 void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
 }
@@ -444,6 +458,7 @@ void Assembler::umull(Register rd_lo, Register rd_hi,
 
 void Assembler::smlal(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B22 | B21, rd_lo, rd_hi, rn, rm);
 }
@@ -451,6 +466,7 @@ void Assembler::smlal(Register rd_lo, Register rd_hi,
 
 void Assembler::umlal(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
 }
@@ -2578,6 +2594,60 @@ void Assembler::IntegerDivide(Register result, Register left, Register right,
     vcvtid(stmpr, tmpr);
     vmovrs(result, stmpr);
   }
+}
+
+
+// If we aren't on ARMv7, there is no smull, and we have to check for overflow
+// manually.
+void Assembler::CheckMultSignedOverflow(Register left,
+                                        Register right,
+                                        Register tmp,
+                                        DRegister dtmp0, DRegister dtmp1,
+                                        Label* overflow) {
+  Label done, left_neg, left_pos_right_neg, left_neg_right_pos;
+
+  CompareImmediate(left, 0);
+  b(&left_neg, LT);
+  b(&done, EQ);
+  CompareImmediate(right, 0);
+  b(&left_pos_right_neg, LT);
+  b(&done, EQ);
+
+  // Both positive.
+  LoadImmediate(tmp, INT_MAX);
+  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
+  cmp(tmp, ShifterOperand(right));
+  b(overflow, LT);
+  b(&done);
+
+  // left positive, right non-positive.
+  Bind(&left_pos_right_neg);
+  LoadImmediate(tmp, INT_MIN);
+  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
+  cmp(tmp, ShifterOperand(right));
+  b(overflow, GT);
+  b(&done);
+
+  Bind(&left_neg);
+  CompareImmediate(right, 0);
+  b(&left_neg_right_pos, GT);
+  b(&done, EQ);
+
+  // both negative.
+  LoadImmediate(tmp, INT_MAX);
+  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
+  cmp(tmp, ShifterOperand(right));
+  b(overflow, GT);
+  b(&done);
+
+  // left non-positive, right positive.
+  Bind(&left_neg_right_pos);
+  LoadImmediate(tmp, INT_MIN);
+  IntegerDivide(tmp, tmp, right, dtmp0, dtmp1);
+  cmp(tmp, ShifterOperand(left));
+  b(overflow, GT);
+
+  Bind(&done);
 }
 
 

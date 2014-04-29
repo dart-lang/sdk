@@ -593,6 +593,13 @@ class Assembler : public ValueObject {
   void IntegerDivide(Register result, Register left, Register right,
                      DRegister tmpl, DRegister tmpr);
 
+  // If we aren't on ARMv7, there is no smull.
+  void CheckMultSignedOverflow(Register left,
+                               Register right,
+                               Register tmp,
+                               DRegister dtmp0, DRegister dtmp1,
+                               Label* overflow);
+
   // Load and Store. May clobber IP.
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);

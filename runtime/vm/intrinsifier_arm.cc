@@ -8,6 +8,7 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -623,9 +624,16 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
   __ SmiUntag(R0);  // untags R6. only want result shifted by one
 
-  __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
-  __ cmp(IP, ShifterOperand(R0, ASR, 31));
-  __ bx(LR, EQ);
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
+    __ cmp(IP, ShifterOperand(R0, ASR, 31));
+    __ bx(LR, EQ);
+  } else {
+    __ CheckMultSignedOverflow(R0, R1, IP, D0, D1, &fall_through);
+    __ mul(R0, R0, R1);
+    __ Ret();
+  }
+
   __ Bind(&fall_through);  // Fall through on overflow.
 }
 
@@ -1306,44 +1314,47 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
 void Intrinsifier::Random_nextState(Assembler* assembler) {
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  ASSERT(!math_lib.IsNull());
-  const Class& random_class = Class::Handle(
-      math_lib.LookupClassAllowPrivate(Symbols::_Random()));
-  ASSERT(!random_class.IsNull());
-  const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
-  ASSERT(!state_field.IsNull());
-  const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
-  ASSERT(!random_A_field.IsNull());
-  ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
-  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
-  // 'a_int_value' is a mask.
-  ASSERT(Utils::IsUint(32, a_int_value));
-  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
+  // No 32x32 -> 64 bit multiply/accumulate on ARMv5 or ARMv6.
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    const Library& math_lib = Library::Handle(Library::MathLibrary());
+    ASSERT(!math_lib.IsNull());
+    const Class& random_class = Class::Handle(
+        math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+    ASSERT(!random_class.IsNull());
+    const Field& state_field = Field::ZoneHandle(
+        random_class.LookupInstanceField(Symbols::_state()));
+    ASSERT(!state_field.IsNull());
+    const Field& random_A_field = Field::ZoneHandle(
+        random_class.LookupStaticField(Symbols::_A()));
+    ASSERT(!random_A_field.IsNull());
+    ASSERT(random_A_field.is_const());
+    const Instance& a_value = Instance::Handle(random_A_field.value());
+    const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+    // 'a_int_value' is a mask.
+    ASSERT(Utils::IsUint(32, a_int_value));
+    int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
-  // Addresses of _state[0] and _state[1].
+    __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
+    __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+    // Addresses of _state[0] and _state[1].
 
-  const int64_t disp_0 =
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+    const int64_t disp_0 =
+        FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
 
-  const int64_t disp_1 =
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid) +
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+    const int64_t disp_1 =
+        FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid) +
+        FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
 
-  __ LoadImmediate(R0, a_int32_value);
-  __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
-  __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
-  __ mov(R6, ShifterOperand(0));  // Zero extend unsigned _state[kSTATE_HI].
-  // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
-  __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
-  __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
-  __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
-  __ Ret();
+    __ LoadImmediate(R0, a_int32_value);
+    __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
+    __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
+    __ mov(R6, ShifterOperand(0));  // Zero extend unsigned _state[kSTATE_HI].
+    // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
+    __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
+    __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
+    __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
+    __ Ret();
+  }
 }
 
 
