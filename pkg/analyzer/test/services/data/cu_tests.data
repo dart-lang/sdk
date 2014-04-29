@@ -271,3 +271,7 @@ class Bar {
   @meta
   int bar() => 42;
 }
+>>>
+import 'a.dart' deferred as a;
+<<<
+import 'a.dart' deferred as a;

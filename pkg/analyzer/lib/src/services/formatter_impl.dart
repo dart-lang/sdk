@@ -946,6 +946,7 @@ class SourceVisitor implements AstVisitor {
     token(node.keyword);
     nonBreakingSpace();
     visit(node.uri);
+    token(node.deferredToken, precededBy: space);
     token(node.asToken, precededBy: space, followedBy: space);
     allowContinuedLines((){
       visit(node.prefix);
