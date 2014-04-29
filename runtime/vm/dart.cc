@@ -217,6 +217,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   ObjectIdRing::Init(isolate);
   ObjectStore::Init(isolate);
 
+  // Setup for profiling.
+  Profiler::InitProfilingForIsolate(isolate);
+
   if (snapshot_buffer == NULL) {
     const Error& error = Error::Handle(Object::Init(isolate));
     if (!error.IsNull()) {
@@ -259,8 +262,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->class_table()->Print();
   }
 
-  // Setup for profiling.
-  Profiler::InitProfilingForIsolate(isolate);
 
   Service::SendIsolateStartupMessage();
   // Create tag table.

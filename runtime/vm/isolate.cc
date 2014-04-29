@@ -383,6 +383,7 @@ void Isolate::SetCurrent(Isolate* current) {
 #if defined(DEBUG)
     CheckForDuplicateThreadState(thread_state);
 #endif
+    ASSERT(thread_state != NULL);
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
     current->set_vm_tag(VMTag::kVMTagId);

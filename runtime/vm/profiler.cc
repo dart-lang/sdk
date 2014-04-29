@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 DEFINE_FLAG(charp, profile_dir, NULL,
             "Enable writing profile data into specified directory.");
 DEFINE_FLAG(int, profile_period, 1000,
-            "Time between profiler samples in microseconds. Minimum 250.");
+            "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 DEFINE_FLAG(bool, profile_verify_stack_walk, false,
@@ -81,7 +81,7 @@ void Profiler::SetSampleDepth(intptr_t depth) {
 
 
 void Profiler::SetSamplePeriod(intptr_t period) {
-  const int kMinimumProfilePeriod = 250;
+  const int kMinimumProfilePeriod = 50;
   if (period < kMinimumProfilePeriod) {
     FLAG_profile_period = kMinimumProfilePeriod;
   } else {
@@ -94,6 +94,7 @@ void Profiler::InitProfilingForIsolate(Isolate* isolate, bool shared_buffer) {
   if (!FLAG_profile) {
     return;
   }
+  ASSERT(isolate == Isolate::Current());
   ASSERT(isolate != NULL);
   ASSERT(sample_buffer_ != NULL);
   {
@@ -110,6 +111,7 @@ void Profiler::InitProfilingForIsolate(Isolate* isolate, bool shared_buffer) {
       OS::Print("Profiler Setup %p %s\n", isolate, isolate->name());
     }
   }
+  BeginExecution(isolate);
 }
 
 
@@ -1688,7 +1690,6 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
   ASSERT(isolate != Dart::vm_isolate());
-  ASSERT(isolate->stub_code() != NULL);
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
   counters->Increment(isolate->vm_tag());
@@ -1717,7 +1718,8 @@ void Profiler::RecordSampleInterruptCallback(
                                           state.pc, state.fp, state.sp);
     stackWalker.walk(isolate->heap());
   } else {
-    if (isolate->top_exit_frame_info() != 0) {
+    if ((isolate->top_exit_frame_info() != 0) &&
+        (isolate->stub_code() != NULL)) {
       ProfilerDartStackWalker stackWalker(sample);
       stackWalker.walk();
     } else {
