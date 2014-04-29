@@ -7,7 +7,7 @@
 </head>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="css/shared.css" />
+    <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
@@ -156,7 +156,7 @@
               <div style="position: relative;display: inline">
                 {{row.columns[0]}}
               </div>
-              <function-ref ref="{{ row.code.function }}"></function-ref>
+              <code-ref ref="{{ row.code }}"></code-ref>
             </td>
             <td class="{{ coloring(row) }}" style="position: relative">
               {{row.columns[1]}}

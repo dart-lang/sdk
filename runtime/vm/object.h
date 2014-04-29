@@ -2964,6 +2964,8 @@ class PcDescriptors : public Object {
 
   static void PrintHeaderString();
 
+  void PrintToJSONObject(JSONObject* jsobj) const;
+
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 

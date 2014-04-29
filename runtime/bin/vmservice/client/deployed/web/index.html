@@ -616,6 +616,52 @@
 </polymer-element><polymer-element name="code-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <style>
+      div.flex-row:hover {
+        background-color: #FFF3E3;
+      }
+
+      .highlight {
+        background-color: #FFF3E3;
+      }
+
+      .tooltip {
+        display: block;
+        position: absolute;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+      }
+
+      .flex-row:hover .tooltip {
+        display: block;
+        position: absolute;
+        top: 100%;
+        visibility: visible;
+        z-index: 999;
+        width: auto;
+        min-width: 400px;
+        color: #ffffff;
+        background-color: #FFF3E3;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+        opacity: 1;
+      }
+
+      .descriptor-address {
+        color: #0489c3;
+      }
+
+      .snippet {
+        text-align: center;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+    </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
@@ -663,11 +709,54 @@
         </div>
       </template>
       <template repeat="{{ instruction in code.instructions }}">
-        <div class="flex-row">
-          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
-          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
-          <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedAddress() }}</div>
-          <div class="flex-item-fixed-6-12 monospace">{{ instruction.human }}</div>
+        <div class="flex-row" on-mouseover="{{ mouseOver }}" on-mouseout="{{ mouseOut }}" data-jump-target="{{ instruction.jumpTarget.address }}" id="addr-{{ instruction.address }}" style="position: relative">
+          <template if="{{ instruction.isComment }}">
+            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
+            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
+            <div class="flex-item-fixed-8-12 monospace">{{ instruction.human }}</div>
+          </template>
+          <template if="{{ !instruction.isComment }}">
+            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
+            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
+            <template if="{{ instruction.hasDescriptors }}">
+              <div class="flex-item-fixed-2-12 monospace descriptor-address">
+                <div class="tooltip">
+                  <template repeat="{{ descriptor in instruction.descriptors }}">
+                    <div class="memberList">
+                      <div class="memberItem">
+                       <div class="memberName">Kind</div>
+                       <div class="memberValue">{{ descriptor.kind }}</div>
+                      </div>
+                      <div class="memberItem">
+                       <div class="memberName">Deoptimization ID</div>
+                       <div class="memberValue">{{ descriptor.formattedDeoptId() }}</div>
+                      </div>
+                      <template if="{{ descriptor.script != null }}">
+                        <div class="memberItem">
+                         <div class="memberName">Script</div>
+                         <div class="memberValue"><script-ref ref="{{ descriptor.script }}" pos="{{ descriptor.tokenPos }}"></script-ref></div>
+                        </div>
+                      </template>
+                    </div>
+                    <template if="{{ descriptor.script != null }}">
+                      <div class="snippet monospace">
+                        <span>{{ descriptor.formattedLine }}</span>
+                      </div>
+                    </template>
+                  </template>
+                </div>
+                {{ instruction.formattedAddress() }}
+              </div>
+            </template>
+            <template if="{{ !instruction.hasDescriptors }}">
+              <div class="flex-item-fixed-2-12 monospace">
+                {{ instruction.formattedAddress() }}
+              </div>
+            </template>
+            <div class="flex-item-fixed-6-12 monospace">
+              {{ instruction.human }}
+            </div>
+          </template>
         </div>
       </template>
     </div>
@@ -728,7 +817,6 @@
 <polymer-element name="field-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
-
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
@@ -1753,7 +1841,7 @@
               <div style="position: relative;display: inline">
                 {{row.columns[0]}}
               </div>
-              <function-ref ref="{{ row.code.function }}"></function-ref>
+              <code-ref ref="{{ row.code }}"></code-ref>
             </td>
             <td class="{{ coloring(row) }}" style="position: relative">
               {{row.columns[1]}}

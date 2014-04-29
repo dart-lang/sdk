@@ -4,6 +4,7 @@
 
 library code_view_element;
 
+import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -18,14 +19,41 @@ class CodeViewElement extends ObservatoryElement {
     if (code == null) {
       return;
     }
-    code.load();
+    code.load().then((Code c) {
+      c.loadScript();
+    });
   }
 
   void refresh(var done) {
     code.reload().whenComplete(done);
   }
 
-  String get cssPanelClass {
-    return 'panel panel-success';
+  Element _findJumpTarget(Node target) {
+    var jumpTarget = target.attributes['data-jump-target'];
+    if (jumpTarget == '') {
+      return null;
+    }
+    var address = int.parse(jumpTarget);
+    var node = shadowRoot.querySelector('#addr-$address');
+    if (node == null) {
+      return null;
+    }
+    return node;
+  }
+
+  void mouseOver(Event e, var detail, Node target) {
+    var jt = _findJumpTarget(target);
+    if (jt == null) {
+      return;
+    }
+    jt.classes.add('highlight');
+  }
+
+  void mouseOut(Event e, var detail, Node target) {
+    var jt = _findJumpTarget(target);
+    if (jt == null) {
+      return;
+    }
+    jt.classes.remove('highlight');
   }
 }

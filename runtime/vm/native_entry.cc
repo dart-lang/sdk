@@ -44,7 +44,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
 
 
 const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
-                                                uword pc) {
+                                                   uword pc) {
   if (library.native_entry_symbol_resolver() == 0) {
     // Cannot reverse lookup native entries.
     return NULL;

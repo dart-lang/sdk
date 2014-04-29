@@ -10035,8 +10035,27 @@ const char* PcDescriptors::ToCString() const {
 }
 
 
+void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
+  jsobj->AddProperty("type", JSONType(false));
+  // TODO(johnmccutchan): Generate a valid ID.
+  // PcDescriptors hang off a Code object but do not have a back reference to
+  // generate an ID. Currently we only print PcDescriptors inline with a Code.
+  jsobj->AddProperty("id", "");
+  JSONArray members(jsobj, "members");
+  for (intptr_t i = 0; i < Length(); i++) {
+    JSONObject descriptor(&members);
+    descriptor.AddPropertyF("pc", "%" Px "", PC(i));
+    descriptor.AddProperty("kind", KindAsStr(i));
+    descriptor.AddProperty("deoptId", DeoptId(i));
+    descriptor.AddProperty("tokenPos", TokenPos(i));
+    descriptor.AddProperty("tryIndex", TryIndex(i));
+  }
+}
+
+
 void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  PrintToJSONObject(&jsobj);
 }
 
 
@@ -11633,11 +11652,18 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   const Array& array = Array::Handle(ObjectPool());
   jsobj.AddProperty("object_pool", array);
-  JSONArray jsarr(&jsobj, "disassembly");
-  if (is_alive()) {
-    // Only disassemble alive code objects.
-    DisassembleToJSONStream formatter(jsarr);
-    Disassemble(&formatter);
+  {
+    JSONArray jsarr(&jsobj, "disassembly");
+    if (is_alive()) {
+      // Only disassemble alive code objects.
+      DisassembleToJSONStream formatter(jsarr);
+      Disassemble(&formatter);
+    }
+  }
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  if (!descriptors.IsNull()) {
+    JSONObject desc(&jsobj, "descriptors");
+    descriptors.PrintToJSONObject(&desc);
   }
 }
 
@@ -13420,6 +13446,10 @@ const char* AbstractType::ToCString() const {
 
 
 void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  if (IsNull()) {
+    Instance::PrintToJSONStream(stream, ref);
+    return;
+  }
   UNREACHABLE();
 }
 
