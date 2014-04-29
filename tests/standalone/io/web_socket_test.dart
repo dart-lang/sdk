@@ -12,8 +12,11 @@ import "dart:io";
 import "dart:typed_data";
 
 import "package:async_helper/async_helper.dart";
+import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
+
+const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 const String CERT_NAME = 'localhost_cert';
 const String HOST_NAME = 'localhost';
@@ -383,6 +386,42 @@ class SecurityConfiguration {
     });
   }
 
+  testFromSocket() {
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.equals('Upgrade', request.headers.value(HttpHeaders.CONNECTION));
+        Expect.equals('websocket', request.headers.value(HttpHeaders.UPGRADE));
+
+        var key = request.headers.value('Sec-WebSocket-Key');
+        var sha1 = new SHA1()..add("$key$WEB_SOCKET_GUID".codeUnits);
+        var accept = CryptoUtils.bytesToBase64(sha1.close());
+        request.response
+            ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
+            ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
+            ..headers.add(HttpHeaders.UPGRADE, "websocket")
+            ..headers.add("Sec-WebSocket-Accept", accept);
+        request.response.contentLength = 0;
+        return request.response.detachSocket()
+            .then((socket) => new WebSocket.fromUpgradedSocket(socket))
+            .then((websocket) {
+          websocket.add("Hello");
+          websocket.close();
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+
+      var client = new HttpClient();
+      var completer = new Completer();
+      WebSocket.connect(url).then((websocket) {
+        return websocket.listen((message) {
+          Expect.equals("Hello", message);
+          websocket.close();
+        }).asFuture();
+      }).then((_) => server.close());
+    });
+  }
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null);
     testRequestResponseClientCloses(2, 3001, null);
@@ -403,6 +442,7 @@ class SecurityConfiguration {
     testUsePOST();
     testConnections(10, 3002, "Got tired");
     testIndividualUpgrade(5);
+    testFromSocket();
   }
 }
 

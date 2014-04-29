@@ -134,6 +134,25 @@ abstract class WebSocket implements Stream, StreamSink {
       _WebSocketImpl.connect(url, protocols);
 
   /**
+   * Creates a WebSocket from an already-upgraded socket.
+   *
+   * The initial WebSocket handshake must have occurred prior to this call. A
+   * WebSocket client can automatically perform the handshake using
+   * [WebSocket.connect], while a server can do so using
+   * [WebSocketTransformer.upgrade]. To manually upgrade an [HttpRequest],
+   * [HttpRequest.detachSocket] may be called.
+   *
+   * [protocol] should be the protocol negotiated by this handshake, if any.
+   *
+   * If [serverSide] is `false`, the WebSocket will act as the client and mask
+   * the messages it sends. If it's `true`, it will act as the server and will
+   * not mask its messages.
+   */
+  factory WebSocket.fromUpgradedSocket(Socket socket, {String protocol,
+        bool serverSide: true}) =>
+      new _WebSocketImpl._fromSocket(socket, protocol, serverSide);
+
+  /**
    * Returns the current state of the connection.
    */
   int get readyState;
