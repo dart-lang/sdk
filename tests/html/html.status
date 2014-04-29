@@ -375,7 +375,7 @@ performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
-[ $runtime == ff && $system == windows ]
+[ $runtime == ff ]
 messageevent_test: RuntimeError # Issue 15651
 serialized_script_value_test: RuntimeError # Issue 15651
 client_rect_test: Fail # Issue 16890
