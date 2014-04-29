@@ -458,7 +458,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     } else {
       handle = reinterpret_cast<PersistentHandle*>(AllocateScopedHandle());
     }
-    handle->set_raw(NULL);
+    handle->set_raw(Object::null());
     return handle;
   }
 
@@ -529,11 +529,12 @@ class FinalizablePersistentHandles
     if (free_list_ != NULL) {
       handle = free_list_;
       free_list_ = handle->Next();
+      handle->set_raw(Object::null());
     } else {
       handle = reinterpret_cast<FinalizablePersistentHandle*>(
           AllocateScopedHandle());
+      handle->Clear();
     }
-    handle->Clear();
     return handle;
   }
 
