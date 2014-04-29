@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
 import 'log.dart';
+import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase.dart';
 import 'transform_node.dart';
@@ -43,21 +44,25 @@ class PhaseInput {
 
   /// The streams exposed by this input.
   final _streams = new NodeStreams();
-  Stream get onDone => _streams.onDone;
+  Stream get onStatusChange => _streams.onStatusChange;
   Stream<AssetNode> get onAsset => _streams.onAsset;
   Stream<LogEntry> get onLog => _streams.onLog;
 
-  /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => (input.state.isDirty && !input.deferred) ||
-      _transforms.any((transform) => transform.isDirty);
+  /// How far along [this] is in processing its assets.
+  NodeStatus get status {
+    var status = input.state.isDirty && !input.deferred ?
+        NodeStatus.MATERIALIZING : NodeStatus.IDLE;
+    return status.dirtier(NodeStatus.dirtiest(
+        _transforms.map((transform) => transform.status)));
+  }
 
   PhaseInput(this._phase, AssetNode input, this._location)
       : _inputForwarder = new AssetForwarder(input) {
     _inputSubscription = input.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
-      } else if (state.isAvailable) {
-        if (!isDirty) _streams.onDoneController.add(null);
+      } else {
+        _streams.changeStatus(status);
       }
     });
   }
@@ -86,9 +91,9 @@ class PhaseInput {
           _phase, transformer, input, _location);
       _transforms.add(transform);
 
-      transform.onDone.listen((_) {
-        if (!isDirty) _streams.onDoneController.add(null);
-      }, onDone: () => _transforms.remove(transform));
+      transform.onStatusChange.listen(
+          (_) => _streams.changeStatus(status),
+          onDone: () => _transforms.remove(transform));
 
       _streams.onAssetPool.add(transform.onAsset);
       _streams.onLogPool.add(transform.onLog);

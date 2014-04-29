@@ -122,7 +122,7 @@ class AssetNode {
   }
 
   AssetNode._(this.id, this._transform, this._origin)
-      : _state = AssetState.DIRTY;
+      : _state = AssetState.RUNNING;
 
   AssetNode._available(Asset asset, this._transform, this._origin)
       : id = asset.id,
@@ -130,7 +130,7 @@ class AssetNode {
         _state = AssetState.AVAILABLE;
 
   AssetNode._lazy(this.id, this._transform, this._origin, this._lazyCallback)
-      : _state = AssetState.DIRTY;
+      : _state = AssetState.RUNNING;
 
   /// If [this] is lazy, force it to generate a concrete asset; otherwise, do
   /// nothing.
@@ -193,7 +193,7 @@ class AssetNodeController {
     }
   }
 
-  /// Marks the node as [AssetState.DIRTY].
+  /// Marks the node as [AssetState.RUNNING].
   void setDirty() {
     assert(node._state != AssetState.REMOVED);
     node._asset = null;
@@ -203,8 +203,8 @@ class AssetNodeController {
     // event while handling another event (e.g. an output is marked lazy, which
     // causes it to be forced, which causes it to be marked dirty).
     if (node._state.isDirty) return;
-    node._state = AssetState.DIRTY;
-    node._stateChangeController.add(AssetState.DIRTY);
+    node._state = AssetState.RUNNING;
+    node._stateChangeController.add(AssetState.RUNNING);
   }
 
   /// Marks the node as [AssetState.REMOVED].
@@ -233,7 +233,7 @@ class AssetNodeController {
     node._stateChangeController.add(AssetState.AVAILABLE);
   }
 
-  /// Marks the node as [AssetState.DIRTY] and lazy.
+  /// Marks the node as [AssetState.RUNNING] and lazy.
   ///
   /// Lazy nodes aren't expected to have their values generated until needed.
   /// Once it's necessary, [callback] will be called. [callback] is guaranteed
@@ -242,10 +242,10 @@ class AssetNodeController {
   /// See also [AssetNodeController.lazy].
   void setLazy(void callback()) {
     assert(node._state != AssetState.REMOVED);
-    node._state = AssetState.DIRTY;
+    node._state = AssetState.RUNNING;
     node._asset = null;
     node._lazyCallback = callback;
-    node._stateChangeController.add(AssetState.DIRTY);
+    node._stateChangeController.add(AssetState.RUNNING);
   }
 
   String toString() => "controller for $node";
@@ -256,7 +256,7 @@ class AssetNodeController {
 class AssetState {
   /// The node has a concrete asset loaded, available, and up-to-date. The asset
   /// is accessible via [AssetNode.asset]. An asset can only be marked available
-  /// again from the [AssetState.DIRTY] state.
+  /// again from the [AssetState.RUNNING] state.
   static final AVAILABLE = const AssetState._("available");
 
   /// The asset is no longer available, possibly for good. A removed asset will
@@ -265,7 +265,7 @@ class AssetState {
 
   /// The asset will exist in the future (unless it's removed), but the concrete
   /// asset is not yet available.
-  static final DIRTY = const AssetState._("dirty");
+  static final RUNNING = const AssetState._("dirty");
 
   /// Whether this state is [AssetState.AVAILABLE].
   bool get isAvailable => this == AssetState.AVAILABLE;
@@ -273,8 +273,8 @@ class AssetState {
   /// Whether this state is [AssetState.REMOVED].
   bool get isRemoved => this == AssetState.REMOVED;
 
-  /// Whether this state is [AssetState.DIRTY].
-  bool get isDirty => this == AssetState.DIRTY;
+  /// Whether this state is [AssetState.RUNNING].
+  bool get isDirty => this == AssetState.RUNNING;
 
   final String name;
 

@@ -14,6 +14,7 @@ import 'declaring_transformer.dart';
 import 'errors.dart';
 import 'lazy_transformer.dart';
 import 'log.dart';
+import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase.dart';
 import 'transform.dart';
@@ -44,9 +45,19 @@ class TransformNode {
   /// The subscription to [phase]'s [Phase.onAsset] stream.
   StreamSubscription<AssetNode> _phaseSubscription;
 
-  /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => _state != _State.NOT_PRIMARY &&
-      _state != _State.APPLIED && _state != _State.DECLARED;
+  /// How far along [this] is in processing its assets.
+  NodeStatus get status {
+    if (_state == _State.NOT_PRIMARY || _state == _State.APPLIED ||
+        _state == _State.DECLARED) {
+      return NodeStatus.IDLE;
+    }
+
+    if (transformer is DeclaringTransformer && _state != _State.DECLARING) {
+      return NodeStatus.MATERIALIZING;
+    } else {
+      return NodeStatus.RUNNING;
+    }
+  }
 
   /// Whether this transform is deferred.
   ///
@@ -83,7 +94,7 @@ class TransformNode {
 
   /// The asset node for this transform.
   final _streams = new NodeStreams();
-  Stream get onDone => _streams.onDone;
+  Stream<NodeStatus> get onStatusChange => _streams.onStatusChange;
   Stream<AssetNode> get onAsset => _streams.onAsset;
   Stream<LogEntry> get onLog => _streams.onLog;
 
@@ -191,14 +202,15 @@ class TransformNode {
       // [forced] should only ever be false for a deferred transform.
       assert(deferred);
 
-      // If we've finished applying, transition to DECLARED, indicating that we
-      // know what outputs [apply] will emit but we're waiting to emit them
-      // concretely until [force] is called. If we're still applying, we'll
-      // transition to DECLARED once we finish.
+      // If we've finished applying, transition to MATERIALIZING, indicating
+      // that we know what outputs [apply] will emit but we're waiting to emit
+      // them concretely until [force] is called. If we're still applying, we'll
+      // transition to MATERIALIZING once we finish.
       if (_state == _State.APPLIED) _state = _State.DECLARED;
       for (var controller in _outputControllers.values) {
         controller.setLazy(force);
       }
+      _emitDeclaredOutputs();
       return;
     }
 
@@ -207,7 +219,10 @@ class TransformNode {
       controller.setDirty();
     }
 
-    if (_state == _State.APPLIED || _state == _State.DECLARED) {
+    if (_state == _State.APPLIED) {
+      if (_declaredOutputs != null) _emitDeclaredOutputs();
+      _apply();
+    } else if (_state == _State.DECLARED) {
       _apply();
     } else {
       _state = _State.NEEDS_APPLY;
@@ -238,14 +253,14 @@ class TransformNode {
             _apply();
           } else {
             _state = _State.DECLARED;
-            _streams.onDoneController.add(null);
+            _streams.changeStatus(NodeStatus.IDLE);
           }
         });
       }
 
       _emitPassThrough();
       _state = _State.NOT_PRIMARY;
-      _streams.onDoneController.add(null);
+      _streams.changeStatus(NodeStatus.IDLE);
     });
   }
 
@@ -273,18 +288,29 @@ class TransformNode {
       }
 
       if (!_declaredOutputs.contains(primary.id)) _emitPassThrough();
-
-      for (var id in _declaredOutputs) {
-        var controller = _forced
-            ? new AssetNodeController(id, this)
-            : new AssetNodeController.lazy(id, force, this);
-        _outputControllers[id] = controller;
-        _streams.onAssetController.add(controller.node);
-      }
+      _emitDeclaredOutputs();
     }).catchError((error, stackTrace) {
       if (_isRemoved) return;
       phase.cascade.reportError(_wrapException(error, stackTrace));
     });
+  }
+
+  /// Emits a dirty asset node for all outputs that were declared by the
+  /// transformer.
+  ///
+  /// This won't emit any outputs for which there already exist output
+  /// controllers. It should only be called for transforms that have declared
+  /// their outputs.
+  void _emitDeclaredOutputs() {
+    assert(_declaredOutputs != null);
+    for (var id in _declaredOutputs) {
+      if (_outputControllers.containsKey(id)) continue;
+      var controller = _forced
+          ? new AssetNodeController(id, this)
+          : new AssetNodeController.lazy(id, force, this);
+      _outputControllers[id] = controller;
+      _streams.onAssetController.add(controller.node);
+    }
   }
 
   /// Applies this transform.
@@ -295,6 +321,7 @@ class TransformNode {
     // may be restarted independently if only a secondary input changes.
     _clearInputSubscriptions();
     _state = _State.APPLYING;
+    _streams.changeStatus(status);
     _runApply().then((hadError) {
       if (_isRemoved) return;
 
@@ -323,7 +350,7 @@ class TransformNode {
       }
 
       _state = _State.APPLIED;
-      _streams.onDoneController.add(null);
+      _streams.changeStatus(NodeStatus.IDLE);
     });
   }
 
@@ -362,7 +389,7 @@ class TransformNode {
     }).then((_) {
       if (deferred && !_forced && !primary.state.isAvailable) {
         _state = _State.DECLARED;
-        _streams.onDoneController.add(null);
+        _streams.changeStatus(NodeStatus.IDLE);
         return false;
       }
 

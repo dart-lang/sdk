@@ -10,9 +10,10 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
-import 'log.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
+import 'log.dart';
+import 'node_status.dart';
 import 'node_streams.dart';
 import 'package_graph.dart';
 import 'phase.dart';
@@ -55,9 +56,9 @@ class AssetCascade {
   /// request inputs from a previous phase.
   final _phases = <Phase>[];
 
-  /// The subscription to the [Phase.onDone] stream of the last [Phase] in
-  /// [_phases].
-  StreamSubscription _phaseOnDoneSubscription;
+  /// The subscription to the [Phase.onStatusChange] stream of the last [Phase]
+  /// in [_phases].
+  StreamSubscription _phaseStatusSubscription;
 
   /// A stream that emits any errors from the cascade or the transformers.
   ///
@@ -67,17 +68,17 @@ class AssetCascade {
   final _errorsController =
       new StreamController<BarbackException>.broadcast(sync: true);
 
-  /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty {
+  /// How far along [this] is in processing its assets.
+  NodeStatus get status {
     // Just check the last phase, since it will check all the previous phases
     // itself.
-    return _phases.last.isDirty;
+    return _phases.last.status;
   }
 
   /// The streams exposed by this cascade.
   final _streams = new NodeStreams();
   Stream<LogEntry> get onLog => _streams.onLog;
-  Stream get onDone => _streams.onDone;
+  Stream<NodeStatus> get onStatusChange => _streams.onStatusChange;
 
   /// Returns all currently-available output assets from this cascade.
   AssetSet get availableOutputs =>
@@ -190,9 +191,9 @@ class AssetCascade {
     }
     _phases.removeRange(transformers.length + 1, _phases.length);
 
-    _phaseOnDoneSubscription.cancel();
-    _phaseOnDoneSubscription = _phases.last.onDone
-        .listen(_streams.onDoneController.add);
+    _phaseStatusSubscription.cancel();
+    _phaseStatusSubscription = _phases.last.onStatusChange
+        .listen(_streams.changeStatus);
   }
 
   /// Force all [LazyTransformer]s' transforms in this cascade to begin
@@ -210,9 +211,9 @@ class AssetCascade {
   /// Add [phase] to the end of [_phases] and watch its streams.
   void _addPhase(Phase phase) {
     _streams.onLogPool.add(phase.onLog);
-    if (_phaseOnDoneSubscription != null) _phaseOnDoneSubscription.cancel();
-    _phaseOnDoneSubscription =
-        phase.onDone.listen(_streams.onDoneController.add);
+    if (_phaseStatusSubscription != null) _phaseStatusSubscription.cancel();
+    _phaseStatusSubscription =
+        phase.onStatusChange.listen(_streams.changeStatus);
 
     _phases.add(phase);
   }

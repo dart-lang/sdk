@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset_cascade.dart';
 import 'asset_node.dart';
 import 'log.dart';
+import 'node_status.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
 import 'transformer_group.dart';
@@ -26,19 +27,16 @@ class GroupRunner {
   /// The phases defined by this group.
   final _phases = new List<Phase>();
 
-  /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty {
+  /// How far along [this] is in processing its assets.
+  NodeStatus get status {
     // Just check the last phase, since it will check all the previous phases
     // itself.
-    return _phases.last.isDirty;
+    return _phases.last.status;
   }
 
-  /// A stream that emits an event whenever [this] is no longer dirty.
-  ///
-  /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDone;
-  Stream _onDone;
+  /// A stream that emits an event every time the group's status changes.
+  Stream<NodeStatus> get onStatusChange => _onStatusChange;
+  Stream _onStatusChange;
 
   /// A stream that emits any new assets emitted by [this].
   ///
@@ -59,7 +57,7 @@ class GroupRunner {
     }
 
     _onAsset = _phases.last.onAsset;
-    _onDone = _phases.last.onDone;
+    _onStatusChange = _phases.last.onStatusChange;
   }
 
   /// Add a phase with [contents] to [this]'s list of phases.

@@ -354,6 +354,24 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a lazy transformer that generates fewer outputs than it declares is "
+      "forced when a declared but ungenerated output is requested", () {
+    initGraph({"app|foo.txt": "no"}, {"app": [
+      [new LazyCheckContentAndRenameTransformer(
+          oldExtension: "txt", oldContent: "yes",
+          newExtension: "out", newContent: "done")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.txt", "yes");
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.out", "done");
+    buildShouldSucceed();
+  });
+
   // Regression tests.
 
   test("a lazy transformer that doesn't apply updates its passed-through asset",

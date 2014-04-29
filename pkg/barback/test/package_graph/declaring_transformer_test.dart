@@ -61,19 +61,96 @@ main() {
     buildShouldSucceed();
   });
 
-  // TODO(nweiz): Enable this test when issue 18226 is fixed.
-  // test("fails to get a consumed asset before apply is finished", () {
-  //   var transformer = new DeclaringRewriteTransformer("blub", "blab")
-  //       ..consumePrimary = true;
-  //   initGraph(["app|foo.blub"], {"app": [[transformer]]});
-  //
-  //   transformer.pauseApply();
-  //   updateSources(["app|foo.blub"]);
-  //   expectNoAsset("app|foo.blub");
-  //
-  //   transformer.resumeApply();
-  //   buildShouldSucceed();
-  // });
+  test("fails to get a consumed asset before apply is finished", () {
+    var transformer = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
+  
+    transformer.pauseApply();
+    updateSources(["app|foo.blub"]);
+    expectNoAsset("app|foo.blub");
+  
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("blocks on getting a declared asset that wasn't generated last run", () {
+    var transformer = new DeclaringCheckContentAndRenameTransformer(
+          oldExtension: "txt", oldContent: "yes",
+          newExtension: "out", newContent: "done");
+    initGraph({"app|foo.txt": "no"}, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    // The transform should remember that foo.out was declared, so it should
+    // expect that it might still be generated even though it wasn't last time.
+    transformer.pauseApply();
+    modifyAsset("app|foo.txt", "yes");
+    updateSources(["app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.out");
+
+    transformer.resumeApply();
+    expectAsset("app|foo.out", "done");
+    buildShouldSucceed();
+  });
+
+  test("doesn't block on on getting an undeclared asset that wasn't generated "
+      "last run", () {
+    var transformer = new DeclaringCheckContentAndRenameTransformer(
+          oldExtension: "txt", oldContent: "yes",
+          newExtension: "out", newContent: "done");
+    initGraph({"app|foo.txt": "no"}, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    transformer.pauseApply();
+    modifyAsset("app|foo.txt", "yes");
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|undeclared.out");
+
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("fails to get a consumed asset before apply is finished when a sibling "
+      "has finished applying", () {
+    var transformer = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    initGraph(["app|foo.blub", "app|foo.txt"], {"app": [[
+      transformer,
+      new RewriteTransformer("txt", "out")
+    ]]});
+  
+    transformer.pauseApply();
+    updateSources(["app|foo.blub", "app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.out");
+    expectNoAsset("app|foo.blub");
+  
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("blocks getting a consumed asset before apply is finished when a "
+      "sibling hasn't finished applying", () {
+    var declaring = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    var eager = new RewriteTransformer("txt", "out");
+    initGraph(["app|foo.blub", "app|foo.txt"], {"app": [[declaring, eager]]});
+  
+    declaring.pauseApply();
+    eager.pauseApply();
+    updateSources(["app|foo.blub", "app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.blub");
+  
+    declaring.resumeApply();
+    eager.resumeApply();
+    expectNoAsset("app|foo.blub");
+    buildShouldSucceed();
+  });
 
   test("waits until apply is finished to get an overwritten asset", () {
     var transformer = new DeclaringRewriteTransformer("blub", "blub");
@@ -143,36 +220,38 @@ main() {
     expect(declaring.numRuns, completion(equals(2)));
   });
 
-  group("with an error in declareOutputs", () {
-    test("still runs apply", () {
-      initGraph(["app|foo.txt"], {"app": [[
-        new DeclaringBadTransformer("app|out.txt",
-            declareError: true, applyError: false)
-      ]]});
-
-      updateSources(["app|foo.txt"]);
-      expectAsset("app|out.txt", "bad out");
-      expectAsset("app|foo.txt", "foo");
-      buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
-    });
-
-    test("waits for apply to complete before passing through the input even if "
-        "consumePrimary was called", () {
-      var transformer = new DeclaringBadTransformer("app|out.txt",
-            declareError: true, applyError: false)..consumePrimary = true;
-      initGraph(["app|foo.txt"], {"app": [[transformer]]});
-
-      transformer.pauseApply();
-      updateSources(["app|foo.txt"]);
-      expectAssetDoesNotComplete("app|out.txt");
-      expectAssetDoesNotComplete("app|foo.txt");
-
-      transformer.resumeApply();
-      expectAsset("app|out.txt", "bad out");
-      expectNoAsset("app|foo.txt");
-      buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
-    });
-  });
+  // TODO(nweiz): Re-enable these when barback is capable of dealing with a
+  // changing [TransformNode.deferred] value.
+  // group("with an error in declareOutputs", () {
+  //   test("still runs apply", () {
+  //     initGraph(["app|foo.txt"], {"app": [[
+  //       new DeclaringBadTransformer("app|out.txt",
+  //           declareError: true, applyError: false)
+  //     ]]});
+  //
+  //     updateSources(["app|foo.txt"]);
+  //     expectAsset("app|out.txt", "bad out");
+  //     expectAsset("app|foo.txt", "foo");
+  //     buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
+  //   });
+  //
+  //   test("waits for apply to complete before passing through the input even if "
+  //       "consumePrimary was called", () {
+  //     var transformer = new DeclaringBadTransformer("app|out.txt",
+  //           declareError: true, applyError: false)..consumePrimary = true;
+  //     initGraph(["app|foo.txt"], {"app": [[transformer]]});
+  //
+  //     transformer.pauseApply();
+  //     updateSources(["app|foo.txt"]);
+  //     expectAssetDoesNotComplete("app|out.txt");
+  //     expectAssetDoesNotComplete("app|foo.txt");
+  //
+  //     transformer.resumeApply();
+  //     expectAsset("app|out.txt", "bad out");
+  //     expectNoAsset("app|foo.txt");
+  //     buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
+  //   });
+  // });
 
   test("with an error in apply still passes through the input", () {
    initGraph(["app|foo.txt"], {"app": [[
