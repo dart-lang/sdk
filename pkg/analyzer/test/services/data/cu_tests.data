@@ -28,12 +28,12 @@ main() {
 /**
  * Y.
  */
-abstract class Y = String;
+abstract class Y = Foo with Bar;
 <<<
 /**
  * Y.
  */
-abstract class Y = String;
+abstract class Y = Foo with Bar;
 >>>
 external void printToConsole(String line);
 <<<
@@ -73,7 +73,7 @@ class Z<@NoInline() Y> {
 typedef void X(y);
 
 @NoInline()
-class Y = X;
+class Y = X with Z;
 
 @NoInline()
 class X {
@@ -118,7 +118,7 @@ class Z<@NoInline() Y> {
 typedef void X(y);
 
 @NoInline()
-class Y = X;
+class Y = X with Z;
 
 @NoInline()
 class X {
