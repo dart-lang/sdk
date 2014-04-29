@@ -962,7 +962,9 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"null\"}", handler.msg());
+  EXPECT_STREQ("{\"type\":\"Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"}",
+               handler.msg());
 
   // Request malformed native code.
   service_msg = EvalF(h_lib, "[port, ['code', 'native%" Px "'], [], []]",
@@ -1213,7 +1215,10 @@ TEST_CASE(Service_Address) {
   service_msg = Eval(lib, "[port, ['address', '7'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"null\"", handler.msg());
+  // TODO(turnidge): Should this be a ServiceException instead?
+  EXPECT_STREQ("{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"}",
+               handler.msg());
 }
 
 

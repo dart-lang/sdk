@@ -158,7 +158,7 @@ class ClassTable {
   }
 
 
-  void AllocationProfilePrintToJSONStream(JSONStream* stream);
+  void AllocationProfilePrintJSON(JSONStream* stream);
   void ResetAllocationAccumulators();
 
  private:

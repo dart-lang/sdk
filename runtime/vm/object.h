@@ -134,11 +134,12 @@ class Symbols;
   /* Object is printed as JSON into stream. If ref is true only a header */    \
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
-  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const;   \
   virtual const char* JSONType(bool ref) const {                               \
     return ref ? "@"#object : ""#object;                                       \
   }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
+ protected:  /* NOLINT */                                                      \
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
@@ -268,10 +269,7 @@ class Object {
     }
   }
 
-  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const {
-    JSONObject jsobj(stream);
-    jsobj.AddProperty("type", JSONType(ref));
-  }
+  void PrintJSON(JSONStream* stream, bool ref = true) const;
 
   virtual const char* JSONType(bool ref) const {
     return IsNull() ? "null" : "Object";
@@ -543,6 +541,12 @@ class Object {
   }
 
   RawObject* raw_;  // The raw object reference.
+
+ protected:
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", JSONType(ref));
+  }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -4173,10 +4177,10 @@ class Instance : public Object {
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class Class;
   friend class Closure;
+  friend class DeferredObject;
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
-  friend class DeferredObject;
 };
 
 

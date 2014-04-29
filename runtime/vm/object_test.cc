@@ -4014,13 +4014,13 @@ class JSONTypeVerifier : public ObjectVisitor {
       return;
     }
     JSONStream js;
-    handle.PrintToJSONStream(&js, false);
+    handle.PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
 };
 
 
-TEST_CASE(PrintToJSONStream) {
+TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   JSONTypeVerifier verifier;

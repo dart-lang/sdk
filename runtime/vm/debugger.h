@@ -48,7 +48,7 @@ class SourceBreakpoint {
   bool IsEnabled() const { return is_enabled_; }
   bool IsResolved() { return is_resolved_; }
 
-  void PrintToJSONStream(JSONStream* stream);
+  void PrintJSON(JSONStream* stream);
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);

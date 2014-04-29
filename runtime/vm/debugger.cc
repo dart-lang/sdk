@@ -135,7 +135,7 @@ void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void SourceBreakpoint::PrintToJSONStream(JSONStream* stream) {
+void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   Isolate* isolate = Isolate::Current();
 
   JSONObject jsobj(stream);

@@ -325,7 +325,7 @@ void ClassTable::ResetCountersNew() {
 }
 
 
-void ClassTable::AllocationProfilePrintToJSONStream(JSONStream* stream) {
+void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Heap* heap = isolate->heap();

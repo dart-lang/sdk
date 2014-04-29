@@ -237,19 +237,19 @@ void JSONStream::PrintfValue(const char* format, ...) {
 
 void JSONStream::PrintValue(const Object& o, bool ref) {
   PrintCommaIfNeeded();
-  o.PrintToJSONStream(this, ref);
+  o.PrintJSON(this, ref);
 }
 
 
 void JSONStream::PrintValue(SourceBreakpoint* bpt) {
   PrintCommaIfNeeded();
-  bpt->PrintToJSONStream(this);
+  bpt->PrintJSON(this);
 }
 
 
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
-  isolate->PrintToJSONStream(this, ref);
+  isolate->PrintJSON(this, ref);
 }
 
 

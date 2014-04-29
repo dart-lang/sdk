@@ -458,7 +458,7 @@ class Isolate : public BaseIsolate {
     return profiler_data_;
   }
 
-  void PrintToJSONStream(JSONStream* stream, bool ref = true);
+  void PrintJSON(JSONStream* stream, bool ref = true);
 
   void set_thread_state(InterruptableThreadState* state) {
     ASSERT((thread_state_ == NULL) || (state == NULL));

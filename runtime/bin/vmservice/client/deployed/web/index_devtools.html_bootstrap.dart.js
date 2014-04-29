@@ -2402,7 +2402,7 @@ if(b>>>0!==b||b>=y.length)return H.e(y,b)
 w=J.UQ(J.U8(y[b]),z.pT)
 if(z.jV)return J.oE(w,x)
 else return J.oE(x,w)},"$2",null,4,0,null,325,[],326,[],"call"],
-$isEH:true}}],["app_bootstrap","file:///usr/local/google/home/johnmccutchan/workspace/dart-repo/dart/runtime/bin/vmservice/client/web/index_devtools.html_bootstrap.dart",,E,{
+$isEH:true}}],["app_bootstrap","file:///Users/turnidge/ws/dart-repo/dart/runtime/bin/vmservice/client/web/index_devtools.html_bootstrap.dart",,E,{
 "^":"",
 De:[function(){$.x2=["package:observatory/src/elements/observatory_element.dart","package:observatory/src/elements/nav_bar.dart","package:observatory/src/elements/breakpoint_list.dart","package:observatory/src/elements/service_ref.dart","package:observatory/src/elements/class_ref.dart","package:observatory/src/elements/curly_block.dart","package:observatory/src/elements/instance_ref.dart","package:observatory/src/elements/eval_box.dart","package:observatory/src/elements/field_ref.dart","package:observatory/src/elements/function_ref.dart","package:observatory/src/elements/library_ref.dart","package:observatory/src/elements/script_ref.dart","package:observatory/src/elements/class_view.dart","package:observatory/src/elements/code_ref.dart","package:observatory/src/elements/code_view.dart","package:observatory/src/elements/collapsible_content.dart","package:observatory/src/elements/error_view.dart","package:observatory/src/elements/eval_link.dart","package:observatory/src/elements/field_view.dart","package:observatory/src/elements/script_inset.dart","package:observatory/src/elements/function_view.dart","package:observatory/src/elements/heap_map.dart","package:observatory/src/elements/isolate_ref.dart","package:observatory/src/elements/isolate_summary.dart","package:observatory/src/elements/isolate_view.dart","package:observatory/src/elements/instance_view.dart","package:observatory/src/elements/json_view.dart","package:observatory/src/elements/library_view.dart","package:observatory/src/elements/sliding_checkbox.dart","package:observatory/src/elements/isolate_profile.dart","package:observatory/src/elements/heap_profile.dart","package:observatory/src/elements/script_view.dart","package:observatory/src/elements/stack_frame.dart","package:observatory/src/elements/stack_trace.dart","package:observatory/src/elements/vm_view.dart","package:observatory/src/elements/service_view.dart","package:observatory/src/elements/response_viewer.dart","package:observatory/src/elements/observatory_application.dart","package:observatory/src/elements/service_exception_view.dart","package:observatory/src/elements/service_error_view.dart","package:observatory/src/elements/vm_ref.dart","main.dart"]
 $.uP=!1
@@ -9366,6 +9366,7 @@ gB:function(a){return this.EV.X5},
 Rz:function(a,b){return this.EV.Rz(0,b)},
 gUQ:function(a){var z=this.EV
 return z.gUQ(z)},
+bu:function(a){return P.vW(this.EV)},
 $isZ0:true}}],["dart.typed_data.implementation","dart:_native_typed_data",,H,{
 "^":"",
 UI:function(a){a.toString
@@ -11112,7 +11113,7 @@ HV:{
 "^":"a;OR<,G1>,iJ,Fl<,O0,kc>,I4<",
 bu:function(a){return"["+this.OR.oc+"] "+this.iJ+": "+this.G1},
 $isHV:true,
-static:{"^":"xO"}}}],["","file:///usr/local/google/home/johnmccutchan/workspace/dart-repo/dart/runtime/bin/vmservice/client/web/main.dart",,F,{
+static:{"^":"xO"}}}],["","file:///Users/turnidge/ws/dart-repo/dart/runtime/bin/vmservice/client/web/main.dart",,F,{
 "^":"",
 E2:[function(){N.Jx("").sOR(C.IF)
 N.Jx("").gSZ().yI(new F.em())
@@ -11129,7 +11130,7 @@ Lb:{
 "^":"Tp:115;",
 $1:[function(a){N.Jx("").To("Initializing Polymer")
 A.Ok()},"$1",null,2,0,null,116,[],"call"],
-$isEH:true}}],["metadata","file:///usr/local/google/home/johnmccutchan/workspace/dart-repo/dart/runtime/bin/vmservice/client/web/packages/$sdk/lib/html/html_common/metadata.dart",,B,{
+$isEH:true}}],["metadata","file:///Users/turnidge/ws/dart-repo/dart/runtime/bin/vmservice/client/web/packages/$sdk/lib/html/html_common/metadata.dart",,B,{
 "^":"",
 jh:{
 "^":"a;T9,Ym",

@@ -302,7 +302,10 @@ TEST_CASE(JSON_JSONStream_DartObject) {
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
-  EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}}]",
+  EXPECT_STREQ("[{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"},"
+               "{\"object_key\":{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"}}]",
                js.ToCString());
 }
 

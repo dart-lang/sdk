@@ -48,6 +48,11 @@ a:hover {
   text-decoration: underline;
 }
 
+em {
+  color: inherit;
+  font-style:italic;
+}
+
 hr {
   margin-top: 20px;
   margin-bottom: 20px;

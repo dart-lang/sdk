@@ -883,7 +883,7 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
-void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
+void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddPropertyF("id", "isolates/%" Pd "",

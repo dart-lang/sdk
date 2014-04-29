@@ -1327,8 +1327,8 @@ class CodeRegionTableCallersBuilder {
 };
 
 
-void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                 bool full, TagOrder tag_order) {
+void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
+                         bool full, TagOrder tag_order) {
   ASSERT(isolate == Isolate::Current());
   // Disable profile interrupts while processing the buffer.
   EndExecution(isolate);
@@ -1463,7 +1463,7 @@ void Profiler::WriteProfile(Isolate* isolate) {
   ASSERT(Isolate::Current() == isolate);
   JSONStream stream(10 * MB);
   intptr_t pid = OS::ProcessId();
-  PrintToJSONStream(isolate, &stream, true, Profiler::kNoTags);
+  PrintJSON(isolate, &stream, true, Profiler::kNoTags);
   const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_profile_dir, pid, isolate->main_port());
