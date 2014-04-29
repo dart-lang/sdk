@@ -681,7 +681,7 @@ class Assembler : public ValueObject {
 
   void BranchLink(const ExternalLabel* label, Register pp) {
     if (Isolate::Current() == Dart::vm_isolate()) {
-      LoadImmediate(TMP, label->address(), kNoRegister);
+      LoadImmediate(TMP, label->address(), kNoPP);
       blr(TMP);
     } else {
       LoadExternalLabel(TMP, label, kNotPatchable, pp);
@@ -781,6 +781,7 @@ class Assembler : public ValueObject {
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
+                             Register pp,
                              Heap::Space space = Heap::kNew);
 
  private:

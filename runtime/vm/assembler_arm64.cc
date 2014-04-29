@@ -401,7 +401,7 @@ bool Assembler::CanLoadObjectFromPool(const Object& object) {
 
 bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
   return !Utils::IsInt(32, imm) &&
-         (pp != kNoRegister) &&
+         (pp != kNoPP) &&
          (Isolate::Current() != Dart::vm_isolate());
 }
 
@@ -441,7 +441,7 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
-  if ((pp != kNoRegister) && (Isolate::Current() != Dart::vm_isolate())) {
+  if ((pp != kNoPP) && (Isolate::Current() != Dart::vm_isolate())) {
     int64_t val_smi_tag = imm & kSmiTagMask;
     imm &= ~kSmiTagMask;  // Mask off the tag bits.
     const int32_t offset = Array::element_offset(FindImmediate(imm));
@@ -611,11 +611,11 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
 void Assembler::LoadFromOffset(
     Register dest, Register base, int32_t offset, OperandSize sz) {
   ASSERT(base != TMP2);
-  if (Address::CanHoldOffset(offset)) {
-    ldr(dest, Address(base, offset), sz);
+  if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
+    ldr(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
     // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoRegister);
+    AddImmediate(TMP2, base, offset, kNoPP);
     ldr(dest, Address(TMP2), sz);
   }
 }
@@ -625,11 +625,11 @@ void Assembler::StoreToOffset(
     Register src, Register base, int32_t offset, OperandSize sz) {
   ASSERT(src != TMP2);
   ASSERT(base != TMP2);
-  if (Address::CanHoldOffset(offset)) {
-    str(src, Address(base, offset), sz);
+  if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
+    str(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
     // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoRegister);
+    AddImmediate(TMP2, base, offset, kNoPP);
     str(src, Address(TMP2), sz);
   }
 }
@@ -761,7 +761,7 @@ void Assembler::CompareClassId(Register object,
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
-  AddImmediate(SP, SP, -frame_space, kNoRegister);
+  AddImmediate(SP, SP, -frame_space, kNoPP);
   if (OS::ActivationFrameAlignment() > 1) {
     mov(TMP, SP);  // SP can't be register operand of andi.
     andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));
@@ -813,7 +813,7 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
   TagAndPushPP();  // Save PP.
 
   // Load the pool pointer.
-  if (new_pp == kNoRegister) {
+  if (new_pp == kNoPP) {
     LoadPoolPointer(PP);
   } else {
     mov(PP, new_pp);
@@ -837,11 +837,11 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   Comment("EnterOsrFrame");
   adr(TMP, -CodeSize());
 
-  AddImmediate(TMP, TMP, -offset, kNoRegister);
+  AddImmediate(TMP, TMP, -offset, kNoPP);
   StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
 
   // Setup pool pointer for this dart function.
-  if (new_pp == kNoRegister) {
+  if (new_pp == kNoPP) {
     LoadPoolPointer(PP);
   } else {
     mov(PP, new_pp);
@@ -923,6 +923,7 @@ void Assembler::LeaveStubFrame() {
 
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
+                                      Register pp,
                                       Heap::Space space) {
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
@@ -936,10 +937,10 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
     const uword count_field_offset = (space == Heap::kNew) ?
       ClassHeapStats::allocated_since_gc_new_space_offset() :
       ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset, PP);
+    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset, pp);
     const Address& count_address = Address(temp_reg, count_field_offset);
     ldr(TMP, count_address);
-    AddImmediate(TMP, TMP, 1, PP);
+    AddImmediate(TMP, TMP, 1, pp);
     str(TMP, count_address);
   } else {
     ASSERT(temp_reg != kNoRegister);
@@ -947,11 +948,11 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
     const uword count_field_offset = (space == Heap::kNew) ?
       ClassHeapStats::allocated_since_gc_new_space_offset() :
       ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress(), PP);
+    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress(), pp);
     ldr(temp_reg, Address(temp_reg));
-    AddImmediate(temp_reg, temp_reg, class_offset, PP);
+    AddImmediate(temp_reg, temp_reg, class_offset, pp);
     ldr(TMP, Address(temp_reg, count_field_offset));
-    AddImmediate(TMP, TMP, 1, PP);
+    AddImmediate(TMP, TMP, 1, pp);
     str(TMP, Address(temp_reg, count_field_offset));
   }
 }

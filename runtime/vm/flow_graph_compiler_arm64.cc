@@ -401,7 +401,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
-  Register new_pp = kNoRegister;
+  Register new_pp = kNoPP;
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
