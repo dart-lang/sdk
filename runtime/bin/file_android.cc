@@ -293,12 +293,6 @@ int64_t File::LengthFromPath(const char* name) {
 }
 
 
-static int64_t TimespecToMilliseconds(const struct timespec& t) {
-  return static_cast<int64_t>(t.tv_sec) * 1000L +
-      static_cast<int64_t>(t.tv_nsec) / 1000000L;
-}
-
-
 void File::Stat(const char* name, int64_t* data) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -311,9 +305,9 @@ void File::Stat(const char* name, int64_t* data) {
     } else {
       data[kType] = kDoesNotExist;
     }
-    data[kCreatedTime] = TimespecToMilliseconds(st.st_ctim);
-    data[kModifiedTime] = TimespecToMilliseconds(st.st_mtim);
-    data[kAccessedTime] = TimespecToMilliseconds(st.st_atim);
+    data[kCreatedTime] = static_cast<int64_t>(st.st_ctime) * 1000;
+    data[kModifiedTime] = static_cast<int64_t>(st.st_mtime) * 1000;
+    data[kAccessedTime] = static_cast<int64_t>(st.st_atime) * 1000;
     data[kMode] = st.st_mode;
     data[kSize] = st.st_size;
   } else {
