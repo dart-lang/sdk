@@ -5487,28 +5487,26 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(RAX));  // Function.
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in R13.
-  intptr_t argument_count = ArgumentCount();
-  __ movq(R13, Address(RSP, (argument_count - 1) * kWordSize));
-
   // Arguments descriptor is expected in R10.
+  intptr_t argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(R10, arguments_descriptor, PP);
 
-  // Load the actual closure function.
-  __ movq(RAX, FieldAddress(R13, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ movq(CTX, FieldAddress(R13, Closure::context_offset()));
-
-  // Load closure function code in RAX.
+  // Function in RAX.
+  ASSERT(locs()->in(0).reg() == RAX);
   __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
 
   // RAX: Function.

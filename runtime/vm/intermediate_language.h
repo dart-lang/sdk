@@ -2851,12 +2851,15 @@ class CurrentContextInstr : public TemplateDefinition<0> {
 };
 
 
-class ClosureCallInstr : public TemplateDefinition<0> {
+class ClosureCallInstr : public TemplateDefinition<1> {
  public:
-  ClosureCallInstr(ClosureCallNode* node,
+  ClosureCallInstr(Value* function,
+                   ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
-        arguments_(arguments) { }
+        arguments_(arguments) {
+    SetInputAt(0, function);
+  }
 
   DECLARE_INSTRUCTION(ClosureCall)
 
@@ -7801,6 +7804,11 @@ class Environment : public ZoneAllocated {
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
+  // Deep copy an environment.  The 'length' parameter may be less than the
+  // environment's length in order to drop values (e.g., passed arguments)
+  // from the copy.
+  Environment* DeepCopy(intptr_t length) const;
+
  private:
   friend class ShallowIterator;
 
@@ -7816,10 +7824,6 @@ class Environment : public ZoneAllocated {
         code_(code),
         outer_(outer) { }
 
-  // Deep copy an environment.  The 'length' parameter may be less than the
-  // environment's length in order to drop values (e.g., passed arguments)
-  // from the copy.
-  Environment* DeepCopy(intptr_t length) const;
 
   GrowableArray<Value*> values_;
   Location* locations_;

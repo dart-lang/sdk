@@ -5900,28 +5900,26 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));  // Function.
+  summary->set_out(0, Location::RegisterLocation(EAX));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in EDI.
-  intptr_t argument_count = ArgumentCount();
-  __ movl(EDI, Address(ESP, (argument_count - 1) * kWordSize));
-
   // Load arguments descriptors.
+  intptr_t argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(EDX, arguments_descriptor);
 
-  // Load the closure function into EAX.
-  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
-
   // EBX: Code (compiled code or lazy compile stub).
+  ASSERT(locs()->in(0).reg() == EAX);
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
 
   // EAX: Function.

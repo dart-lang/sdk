@@ -478,6 +478,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       if (store != NULL) {
         const intptr_t index =
             store->local().BitIndexIn(num_non_copied_params_);
+        if (index >= live_in->length()) continue;  // Skip tmp_locals.
         if (kill->Contains(index)) {
           if (!live_in->Contains(index)) {
             store->mark_dead();
@@ -756,6 +757,15 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
       Environment::From(*env,
                         num_non_copied_params_,
                         Code::Handle(parsed_function_.code()));
+  // TODO(fschneider): Add predicates CanEagerlyDeoptimize and
+  // CanLazilyDeoptimize to instructions to generally deal with instructions
+  // that have pushed arguments and input operands.
+  // Right now, closure calls are the only instructions that have both. They
+  // also don't have an eager deoptimziation point, so the environment attached
+  // here is only used for after the call.
+  if (instr->IsClosureCall()) {
+    deopt_env = deopt_env->DeepCopy(deopt_env->Length() - instr->InputCount());
+  }
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();

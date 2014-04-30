@@ -205,30 +205,28 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(T0));  // Function.
+  summary->set_out(0, Location::RegisterLocation(V0));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in T1.
-  int argument_count = ArgumentCount();
-  __ lw(T1, Address(SP, (argument_count - 1) * kWordSize));
-
   // Load arguments descriptor in S4.
+  int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(S4, arguments_descriptor);
 
-  // Load the closure function in T0.
-  __ lw(T0, FieldAddress(T1, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ lw(CTX, FieldAddress(T1, Closure::context_offset()));
-
   // Load closure function code in T2.
   // S4: arguments descriptor array.
   // S5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  ASSERT(locs()->in(0).reg() == T0);
   __ LoadImmediate(S5, 0);
   __ lw(T2, FieldAddress(T0, Function::code_offset()));
   __ lw(T2, FieldAddress(T2, Code::instructions_offset()));

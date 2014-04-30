@@ -183,29 +183,27 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R0));  // Function.
+  summary->set_out(0, Location::RegisterLocation(R0));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in R1.
-  int argument_count = ArgumentCount();
-  __ ldr(R1, Address(SP, (argument_count - 1) * kWordSize));
-
   // Load arguments descriptor in R4.
+  int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(R4, arguments_descriptor);
 
-  // Load the closure function into R0.
-  __ ldr(R0, FieldAddress(R1, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ ldr(CTX, FieldAddress(R1, Closure::context_offset()));
-
   // R4: Arguments descriptor.
   // R0: Function.
+  ASSERT(locs()->in(0).reg() == R0);
   __ ldr(R2, FieldAddress(R0, Function::code_offset()));
 
   // R2: code.

@@ -858,26 +858,9 @@ class CallSiteInliner : public ValueObject {
     TimerScope timer(FLAG_compiler_stats,
                      &CompilerStats::graphinliner_subst_timer,
                      Isolate::Current());
-
-    // For closure calls: Store context value.
     FlowGraph* callee_graph = call_data->callee_graph;
     TargetEntryInstr* callee_entry =
         callee_graph->graph_entry()->normal_entry();
-    ClosureCallInstr* closure_call = call_data->call->AsClosureCall();
-    if (closure_call != NULL) {
-      // TODO(fschneider): Avoid setting the context, if not needed.
-      Definition* closure =
-          closure_call->PushArgumentAt(0)->value()->definition();
-      Definition* context = new LoadFieldInstr(new Value(closure),
-                                               Closure::context_offset(),
-                                               Type::ZoneHandle());
-      context->set_ssa_temp_index(caller_graph()->alloc_ssa_temp_index());
-      context->InsertAfter(callee_entry);
-      StoreContextInstr* set_context =
-          new StoreContextInstr(new Value(context));
-      set_context->InsertAfter(context);
-    }
-
     // Plug result in the caller graph.
     InlineExitCollector* exit_collector = call_data->exit_collector;
     exit_collector->PrepareGraphs(callee_graph);

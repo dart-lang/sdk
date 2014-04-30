@@ -545,6 +545,13 @@ const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
     ASSERT(cid_ != kIllegalCid);
 
+    // VM internal Function objects don't have a compile-type. Return
+    // dynamic-type in this case.
+    if (cid_ == kFunctionCid) {
+      type_ = &Type::ZoneHandle(Type::DynamicType());
+      return type_;
+    }
+
     const Class& type_class =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
 

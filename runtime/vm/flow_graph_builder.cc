@@ -2377,39 +2377,64 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 }
 
 
-ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
-    ClosureCallNode* node) {
+void EffectGraphVisitor::BuildClosureCall(
+    ClosureCallNode* node, bool result_needed) {
   ValueGraphVisitor for_closure(owner());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
-  PushArgumentInstr* push_closure = PushArgument(for_closure.value());
+
+  LocalVariable* tmp_var = EnterTempLocalScope(for_closure.value());
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
+  Value* closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  PushArgumentInstr* push_closure = PushArgument(closure_val);
   arguments->Add(push_closure);
   BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
   ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
   BuildSaveContext(*owner()->parsed_function()->saved_current_context_var());
-  return new ClosureCallInstr(node, arguments);
+  closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  LoadFieldInstr* context_load = new LoadFieldInstr(closure_val,
+                                                    Closure::context_offset(),
+                                                    AbstractType::ZoneHandle());
+  context_load->set_is_immutable(true);
+  Value* context_val = Bind(context_load);
+  AddInstruction(new StoreContextInstr(context_val));
+  closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  LoadFieldInstr* function_load =
+      new LoadFieldInstr(closure_val,
+                         Closure::function_offset(),
+                         AbstractType::ZoneHandle());
+  function_load->set_is_immutable(true);
+  Value* function_val = Bind(function_load);
+  Definition* closure_call =
+      new ClosureCallInstr(function_val, node, arguments);
+  if (result_needed) {
+    Value* result = Bind(closure_call);
+    Do(new StoreLocalInstr(*tmp_var, result));
+    // Restore context from temp.
+    BuildRestoreContext(
+        *owner()->parsed_function()->saved_current_context_var());
+    ReturnDefinition(ExitTempLocalScope(tmp_var));
+  } else {
+    Do(closure_call);
+    // Restore context from saved location.
+    BuildRestoreContext(
+        *owner()->parsed_function()->saved_current_context_var());
+    Do(ExitTempLocalScope(tmp_var));
+  }
 }
 
 
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Do(BuildClosureCall(node));
-  // Restore context from saved location.
-  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
+  BuildClosureCall(node, false);
 }
 
 
 void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Value* result = Bind(BuildClosureCall(node));
-  // Restore context from temp.
-  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
-  ReturnValue(result);
+  BuildClosureCall(node, true);
 }
 
 
