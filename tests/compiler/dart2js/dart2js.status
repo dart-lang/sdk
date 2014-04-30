@@ -26,6 +26,9 @@ mirrors/library_imports_shown_test: Fail
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 
+[ $checked ]
+deferred_mirrors_test: Pass, Slow
+
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 
