@@ -2656,8 +2656,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     ClassElement cls = node.dartType.element;
-    var arguments = [
-        backend.namer.elementAccess(backend.getImplementationClass(cls))];
+    var arguments = [backend.namer.elementAccess(cls)];
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer.from(typeArguments));
     }

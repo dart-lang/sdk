@@ -416,13 +416,12 @@ class CodeEmitterTask extends CompilerTask {
 
         for (var cls in pendingClasses) finishClass(cls);
       }''', [
-          DEBUG_FAST_OBJECTS, 
+          DEBUG_FAST_OBJECTS,
           backend.hasRetainedMetadata,
           needsMixinSupport,
           backend.isTreeShakingDisabled,
           buildFinishClass(),
           nsmEmitter.buildTrivialNsmHandlers()]);
- 
   }
 
   jsAst.Node optional(bool condition, jsAst.Node node) {
@@ -616,6 +615,18 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write("$isolate = $finishIsolateConstructorName($isolate)$N");
   }
 
+  /// In minified mode we want to keep the name for the most common core types.
+  bool _isNativeTypeNeedingReflectionName(Element element) {
+    if (!element.isClass()) return false;
+    return (element == compiler.intClass ||
+            element == compiler.doubleClass ||
+            element == compiler.numClass ||
+            element == compiler.stringClass ||
+            element == compiler.boolClass ||
+            element == compiler.nullClass ||
+            element == compiler.listClass);
+  }
+
   /// Returns the "reflection name" of an [Element] or [Selector].
   /// The reflection name of a getter 'foo' is 'foo'.
   /// The reflection name of a setter 'foo' is 'foo='.
@@ -629,19 +640,20 @@ class CodeEmitterTask extends CompilerTask {
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, String mangledName) {
     String name = elementOrSelector.name;
-    if (!backend.shouldRetainName(name)) {
-      if (name == '' && elementOrSelector is Element) {
-        // Make sure to retain names of unnamed constructors.
-        if (!backend.isNeededForReflection(elementOrSelector)) return null;
-      } else {
-        return null;
-      }
+    if (backend.shouldRetainName(name) ||
+        elementOrSelector is Element &&
+        // Make sure to retain names of unnamed constructors, and
+        // for common native types.
+        (name == '' && backend.isNeededForReflection(elementOrSelector) ||
+         _isNativeTypeNeedingReflectionName(elementOrSelector))) {
+
+      // TODO(ahe): Enable the next line when I can tell the difference between
+      // an instance method and a global.  They may have the same mangled name.
+      // if (recordedMangledNames.contains(mangledName)) return null;
+      recordedMangledNames.add(mangledName);
+      return getReflectionNameInternal(elementOrSelector, mangledName);
     }
-    // TODO(ahe): Enable the next line when I can tell the difference between
-    // an instance method and a global.  They may have the same mangled name.
-    // if (recordedMangledNames.contains(mangledName)) return null;
-    recordedMangledNames.add(mangledName);
-    return getReflectionNameInternal(elementOrSelector, mangledName);
+    return null;
   }
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
@@ -1142,6 +1154,26 @@ class CodeEmitterTask extends CompilerTask {
     typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
     // rtiNeededClasses now contains only the "empty shells".
     neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
+
+    // TODO(18175, floitsch): remove once issue 18175 is fixed.
+    if (neededClasses.contains(backend.jsIntClass)) {
+      neededClasses.add(compiler.intClass);
+    }
+    if (neededClasses.contains(backend.jsDoubleClass)) {
+      neededClasses.add(compiler.doubleClass);
+    }
+    if (neededClasses.contains(backend.jsNumberClass)) {
+      neededClasses.add(compiler.numClass);
+    }
+    if (neededClasses.contains(backend.jsStringClass)) {
+      neededClasses.add(compiler.stringClass);
+    }
+    if (neededClasses.contains(backend.jsBoolClass)) {
+      neededClasses.add(compiler.boolClass);
+    }
+    if (neededClasses.contains(backend.jsArrayClass)) {
+      neededClasses.add(compiler.listClass);
+    }
 
     // 5. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);

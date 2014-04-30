@@ -45,15 +45,6 @@ class RuntimeTypes {
   Set<ClassElement> allInstantiatedArguments;
   Set<ClassElement> checkedArguments;
 
-  bool isJsNative(Element element) {
-    return (element == compiler.intClass ||
-            element == compiler.boolClass ||
-            element == compiler.numClass ||
-            element == compiler.doubleClass ||
-            element == compiler.stringClass ||
-            element == compiler.listClass);
-  }
-
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
     if (!element.isClass() || !dependency.isClass()) return;
@@ -635,7 +626,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    return namer.elementAccess(backend.getImplementationClass(element));
+    return namer.elementAccess(element);
   }
 
   visit(DartType type) {
@@ -782,9 +773,7 @@ class ArgumentCollector extends DartTypeVisitor {
   }
 
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
-    if (isTypeArgument) {
-      classes.add(backend.getImplementationClass(type.element));
-    }
+    if (isTypeArgument) classes.add(type.element);
     type.visitChildren(this, true);
   }
 
@@ -825,7 +814,7 @@ class FunctionArgumentCollector extends DartTypeVisitor {
 
   visitInterfaceType(InterfaceType type, bool inFunctionType) {
     if (inFunctionType) {
-      classes.add(backend.getImplementationClass(type.element));
+      classes.add(type.element);
     }
     type.visitChildren(this, inFunctionType);
   }

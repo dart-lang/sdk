@@ -3208,8 +3208,7 @@ class SsaBuilder extends ResolvedVisitor {
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
       add(representations);
-      String operator =
-          backend.namer.operatorIs(backend.getImplementationClass(element));
+      String operator = backend.namer.operatorIs(element);
       HInstruction isFieldName = addConstantString(operator);
       HInstruction asFieldName = compiler.world.hasAnySubtype(element)
           ? addConstantString(backend.namer.substitutionName(element))

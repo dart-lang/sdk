@@ -223,7 +223,13 @@ main() {
       (Uri uri) => uri.path.endsWith('mirrors_test.dart'));
   });
   test("Test dart library uri", () {
-    testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
+    testLibraryUri("test",
+                   (Uri uri) {
+                     if (uri == Uri.parse('dart:core')) return true;
+                     // TODO(floitsch): do we want to fake the interceptors to
+                     // be in dart:core?
+                     return (uri == Uri.parse('dart:_interceptors'));
+                   });
   });
   test("Test simple and qualifiedName", () { testNames(mirrors); });
   test("Test reflect type", () { testReflectClass(mirrors); });

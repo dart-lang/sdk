@@ -13,10 +13,9 @@ main() {
   var intMembers = reflect(123).type.instanceMembers;
   Expect.isTrue(intMembers.containsKey(#compareTo));
   Expect.isTrue(intMembers.length > 15);
-  // TODO(karlklose): reenable after fixing dartbug.com/16389
-  // var listMembers = reflect([]).type.instanceMembers;
-  // Expect.isTrue(listMembers.containsKey(#join));
-  // Expect.isTrue(listMembers.length > 15);
+  var listMembers = reflect([]).type.instanceMembers;
+  Expect.isTrue(listMembers.containsKey(#join));
+  Expect.isTrue(listMembers.length > 15);
   var stringMembers = reflect('hest').type.instanceMembers;
   Expect.isTrue(stringMembers.containsKey(#contains));
   Expect.isTrue(stringMembers.length > 15);

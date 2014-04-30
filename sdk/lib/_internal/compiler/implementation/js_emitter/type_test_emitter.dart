@@ -49,7 +49,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
         // Avoid emitting [:$isObject:] on all classes but [Object].
         return;
       }
-      other = backend.getImplementationClass(other);
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
@@ -232,7 +231,8 @@ class TypeTestEmitter extends CodeEmitterHelper {
   Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
     Map<FunctionType, bool> functionTypeMap = new Map<FunctionType, bool>();
     for (FunctionType functionType in checkedFunctionTypes) {
-      int maybeSubtype = compiler.types.computeSubtypeRelation(type, functionType);
+      int maybeSubtype =
+          compiler.types.computeSubtypeRelation(type, functionType);
       if (maybeSubtype == Types.IS_SUBTYPE) {
         functionTypeMap[functionType] = true;
       } else if (maybeSubtype == Types.MAYBE_SUBTYPE) {
@@ -288,8 +288,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
       if (destination != outputUnit) continue;
       // TODO(9556).  The properties added to 'holder' should be generated
       // directly as properties of the class object, not added later.
-      jsAst.Expression holder
-          = namer.elementAccess(backend.getImplementationClass(cls));
+      jsAst.Expression holder = namer.elementAccess(cls);
 
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
@@ -324,7 +323,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     Set<ClassElement> result = new Set<ClassElement>();
     for (ClassElement cls in typeChecks) {
       for (TypeCheck check in typeChecks[cls]) {
-        result.add(backend.getImplementationClass(cls));
+        result.add(cls);
         break;
       }
     }
@@ -352,13 +351,8 @@ class TypeTestEmitter extends CodeEmitterHelper {
     // TODO(karlklose): merge this case with 2 when unifying argument and
     // object checks.
     RuntimeTypes rti = backend.rti;
-    rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
-      // Types that we represent with JS native types (like int and String) do
-      // not need a class definition as we use the interceptor classes instead.
-      if (!rti.isJsNative(c)) {
-        addClassWithSuperclasses(c);
-      }
-    });
+    rti.getRequiredArgumentClasses(backend)
+       .forEach(addClassWithSuperclasses);
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.

@@ -328,6 +328,11 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   class JSDouble extends JSNumber {
   }
   class JSNull {
+    bool operator==(other) => identical(null, other);
+    get hashCode => throw "JSNull.hashCode not implemented.";
+    String toString() => 'Null';
+    Type get runtimeType => Null;
+    noSuchMethod(x) => super.noSuchMethod(x);
   }
   class JSBool {
   }

@@ -27,8 +27,6 @@ class ClassEmitter extends CodeEmitterHelper {
     if (superclass != null) {
       superName = namer.getNameOfClass(superclass);
     }
-    String runtimeName =
-        namer.getPrimitiveInterceptorRuntimeName(classElement);
 
     if (classElement.isMixinApplication) {
       String mixinName = namer.getNameOfClass(computeMixinClass(classElement));
@@ -37,8 +35,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     ClassBuilder builder = new ClassBuilder(namer);
-    emitClassConstructor(classElement, builder, runtimeName,
-                         onlyForRti: onlyForRti);
+    emitClassConstructor(classElement, builder, onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
     emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
     emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
@@ -63,7 +60,6 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassConstructor(ClassElement classElement,
                             ClassBuilder builder,
-                            String runtimeName,
                             {bool onlyForRti: false}) {
     List<String> fields = <String>[];
     if (!onlyForRti && !classElement.isNative()) {
@@ -90,9 +86,8 @@ class ClassEmitter extends CodeEmitterHelper {
             js('function(#) { #; }',
                 [fields,
                  fields.map((name) => js('this.# = #', [name, name]))])));
-    if (runtimeName == null) {
-      runtimeName = constructorName;
-    }
+    // TODO(floitsch): do we actually need the name field?
+    // TODO(floitsch): these should all go through the namer.
 
     task.precompiledFunction.add(
         js.statement(r'''{
@@ -103,7 +98,7 @@ class ClassEmitter extends CodeEmitterHelper {
           if ($desc instanceof Array) $desc = $desc[1];
           #.prototype = $desc;
         }''',
-            [   constructorName, js.string(runtimeName),
+            [   constructorName, js.string(constructorName),
                 constructorName,
                 constructorName, js.string(constructorName),
                 constructorName,
@@ -131,11 +126,6 @@ class ClassEmitter extends CodeEmitterHelper {
       assert(invariant(element, superName == null, message: superName));
     } else {
       assert(invariant(element, superName != null));
-      String nativeName =
-          namer.getPrimitiveInterceptorRuntimeName(element);
-      if (nativeName != null) {
-        builder.nativeName = nativeName;
-      }
       builder.superName = superName;
     }
     var fieldMetadata = [];

@@ -309,6 +309,8 @@ class JSNumber extends Interceptor implements num {
     if (other is !num) throw new ArgumentError(other);
     return JS('bool', '# >= #', this, other);
   }
+
+  Type get runtimeType => num;
 }
 
 /**

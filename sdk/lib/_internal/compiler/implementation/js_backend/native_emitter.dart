@@ -295,7 +295,7 @@ class NativeEmitter {
     String superName = backend.namer.getNameOfClass(superclass);
 
     ClassBuilder builder = new ClassBuilder(backend.namer);
-    emitter.classEmitter.emitClassConstructor(classElement, builder, null);
+    emitter.classEmitter.emitClassConstructor(classElement, builder);
     bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;

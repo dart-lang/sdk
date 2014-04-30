@@ -10,17 +10,31 @@ import 'dart:mirrors';
 
 import 'stringify.dart' show stringify, expect;
 
-import 'intercepted_class_test.dart' show checkClassMirror;
+import 'intercepted_class_test.dart' show checkClassMirrorMethods;
 
-checkObject(object, String name) {
-  checkClassMirror(reflect(object).type, name);
+checkImplements(object, String name) {
+  ClassMirror cls = reflect(object).type;
+  checkClassMirrorMethods(cls);
+
+  List<ClassMirror> superinterfaces = cls.superinterfaces;
+  String symName = 's($name)';
+  for (ClassMirror superinterface in superinterfaces) {
+    print(superinterface.simpleName);
+    if (symName == stringify(superinterface.simpleName)) {
+      checkClassMirrorMethods(superinterface);
+      return;
+    }
+  }
+
+  // TODO(floitsch): use correct fail
+  expect(name, "super interface not found");
 }
 
 main() {
-  checkObject('', 'String');
-  checkObject(1, 'int');
-  checkObject(1.5, 'double');
-  checkObject(true, 'bool');
-  checkObject(false, 'bool');
-  checkObject([], 'List');
+  checkImplements('', 'String');
+  checkImplements(1, 'int');
+  checkImplements(1.5, 'double');
+  checkImplements(true, 'bool');
+  checkImplements(false, 'bool');
+  checkImplements([], 'List');
 }

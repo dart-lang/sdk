@@ -558,6 +558,8 @@ class JavaScriptBackend extends Backend {
         ..add(jsNullClass);
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    validateInterceptorImplementsAllObjectMethods(jsNullClass);
 
     typeVariableClass = compiler.findHelper('TypeVariable');
 
@@ -583,7 +585,7 @@ class JavaScriptBackend extends Backend {
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
-      assert(interceptorMember.getEnclosingClass() != compiler.objectClass);
+      assert(interceptorMember.getEnclosingClass() == interceptorClass);
     });
   }
 
@@ -1110,7 +1112,8 @@ class JavaScriptBackend extends Backend {
     assert(element.name == Compiler.NO_SUCH_METHOD);
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass
-        || classElement == jsInterceptorClass;
+        || classElement == jsInterceptorClass
+        || classElement == jsNullClass;
   }
 
   bool isDefaultEqualityImplementation(Element element) {
@@ -1259,15 +1262,6 @@ class JavaScriptBackend extends Backend {
     for (ClassElement dartClass in implementationClasses.keys) {
       if (element == implementationClasses[dartClass]) {
         return dartClass;
-      }
-    }
-    return element;
-  }
-
-  Element getImplementationClass(Element element) {
-    for (ClassElement dartClass in implementationClasses.keys) {
-      if (element == dartClass) {
-        return implementationClasses[dartClass];
       }
     }
     return element;

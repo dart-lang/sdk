@@ -35,6 +35,7 @@ import 'dart:_js_helper' show
     createUnmangledInvocationMirror,
     getMangledTypeName,
     getMetadata,
+    getRuntimeType,
     hasReflectableProperty,
     runtimeTypeToString,
     setRuntimeTypeInfo,
@@ -538,12 +539,6 @@ TypeMirror reflectClassByMangledName(String mangledName) {
 var classMirrors;
 
 TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
-  int separatorIndex = mangledName.indexOf('/');
-  if (separatorIndex > -1) {
-    // This is an interceptor name, where the first part is the nice name used
-    // for printing the type name.
-    mangledName = mangledName.substring(separatorIndex + 1);
-  }
   if (classMirrors == null) classMirrors = JsCache.allocate();
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
@@ -557,9 +552,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     JsCache.update(classMirrors, mangledName, mirror);
     return mirror;
   }
-  var constructorOrInterceptor =
-      Primitives.getConstructorOrInterceptorToken(mangledName);
-  if (constructorOrInterceptor == null) {
+  var constructor = JS('var', 'init.allClasses[#]', mangledName);
+  if (constructor == null) {
     int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
     if (index != null) {
       mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
@@ -570,9 +564,6 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
   }
-  var constructor = (Primitives.isInterceptorToken(constructorOrInterceptor))
-      ? JS('', '#.constructor', constructorOrInterceptor)
-      : constructorOrInterceptor;
   var descriptor = JS('', '#["@"]', constructor);
   var fields;
   var fieldsMetadata;
@@ -599,7 +590,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     mirror = reflectMixinApplication(mixins, mangledName);
   } else {
     ClassMirror classMirror = new JsClassMirror(
-        symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
+        symbol, mangledName, constructor, fields, fieldsMetadata);
     List typeVariables =
         JS('JSExtendableArray|Null', '#.prototype["<>"]', constructor);
     if (typeVariables == null || typeVariables.length == 0) {
@@ -823,7 +814,12 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   bool get hasReflectee => true;
 
-  ClassMirror get type => reflectType(reflectee.runtimeType);
+  ClassMirror get type {
+    // The spec guarantees that `null` is the singleton instance of the `Null`
+    // class.
+    if (reflectee == null) return reflectClass(Null);
+    return reflectType(getRuntimeType(reflectee));
+  }
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
@@ -1536,7 +1532,7 @@ class JsSyntheticSetterParameter implements ParameterMirror {
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
   final String _mangledName;
-  final _jsConstructorOrInterceptor;
+  final _jsConstructor;
   final String _fieldsDescriptor;
   final List _fieldsMetadata;
   final _jsConstructorCache = JsCache.allocate();
@@ -1562,20 +1558,12 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   JsClassMirror(Symbol simpleName,
                 this._mangledName,
-                this._jsConstructorOrInterceptor,
+                this._jsConstructor,
                 this._fieldsDescriptor,
                 this._fieldsMetadata)
       : super(simpleName);
 
   String get _prettyName => 'ClassMirror';
-
-  get _jsConstructor {
-    if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
-      return JS('', '#.constructor', _jsConstructorOrInterceptor);
-    } else {
-      return _jsConstructorOrInterceptor;
-    }
-  }
 
   Map<Symbol, MethodMirror> get __constructors {
     if (_cachedConstructors != null) return _cachedConstructors;
@@ -1862,16 +1850,12 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   JsLibraryMirror get owner {
     if (_owner == null) {
-      if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
-        _owner = reflectType(Object).owner;
-      } else {
-        for (var list in JsMirrorSystem.librariesByName.values) {
-          for (JsLibraryMirror library in list) {
-            // This will set _owner field on all clasess as a side
-            // effect.  This gives us a fast path to reflect on a
-            // class without parsing reflection data.
-            library.__classes;
-          }
+      for (var list in JsMirrorSystem.librariesByName.values) {
+        for (JsLibraryMirror library in list) {
+          // This will set _owner field on all classes as a side
+          // effect.  This gives us a fast path to reflect on a
+          // class without parsing reflection data.
+          library.__classes;
         }
       }
       if (_owner == null) {
@@ -2282,7 +2266,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
           TypeMirror ownerType = owner;
           JsClassMirror ownerClass = ownerType.originalDeclaration;
           type = new JsFunctionTypeMirror(
-              info.computeFunctionRti(ownerClass._jsConstructorOrInterceptor),
+              info.computeFunctionRti(ownerClass._jsConstructor),
               owner);
         }
         // Constructors aren't reified with their return type.
@@ -2571,6 +2555,12 @@ class JsFunctionTypeMirror extends BrokenClassMirror
         result);
   }
 
+  String _unmangleIfPreserved(String mangled) {
+    String result = unmangleGlobalNameIfPreservedAnyways(mangled);
+    if (result != null) return result;
+    return mangled;
+  }
+
   String toString() {
     if (_cachedToString != null) return _cachedToString;
     var s = "FunctionTypeMirror on '(";
@@ -2578,7 +2568,7 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     if (_hasArguments) {
       for (var argument in _arguments) {
         s += sep;
-        s += runtimeTypeToString(argument);
+        s += _unmangleIfPreserved(runtimeTypeToString(argument));
         sep = ', ';
       }
     }
@@ -2587,7 +2577,7 @@ class JsFunctionTypeMirror extends BrokenClassMirror
       sep = '';
       for (var argument in _optionalArguments) {
         s += sep;
-        s += runtimeTypeToString(argument);
+        s += _unmangleIfPreserved(runtimeTypeToString(argument));
         sep = ', ';
       }
       s += ']';
@@ -2598,7 +2588,8 @@ class JsFunctionTypeMirror extends BrokenClassMirror
       for (var name in extractKeys(_namedArguments)) {
         s += sep;
         s += '$name: ';
-        s += runtimeTypeToString(JS('', '#[#]', _namedArguments, name));
+        s += _unmangleIfPreserved(
+            runtimeTypeToString(JS('', '#[#]', _namedArguments, name)));
         sep = ', ';
       }
       s += '}';
@@ -2607,7 +2598,7 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     if (_isVoid) {
       s += 'void';
     } else if (_hasReturnType) {
-      s += runtimeTypeToString(_returnType);
+      s += _unmangleIfPreserved(runtimeTypeToString(_returnType));
     } else {
       s += 'dynamic';
     }

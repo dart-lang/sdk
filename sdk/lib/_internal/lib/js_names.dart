@@ -97,3 +97,10 @@ String unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS('=Object', 'init.mangledGlobalNames');
   return JsCache.fetch(names, name);
 }
+
+String unmangleAllIdentifiersIfPreservedAnyways(String str) {
+  return JS("String",
+            r"(#).replace(/[^<,> ]+/g,"
+            r"function(m) { return init.mangledGlobalNames[m] || m; })",
+            str);
+}

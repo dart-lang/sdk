@@ -31,7 +31,6 @@ math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/abstract_class_test: RuntimeError # Issue 12826
-mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 14025
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
@@ -97,7 +96,6 @@ mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
-mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_function_type_test: RuntimeError # Issue 12607
@@ -199,10 +197,6 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 [ $runtime == vm ]
 js/*: Skip
 
-[ $compiler == dart2js && $minified ]
-mirrors/intercepted_superclass_test: RuntimeError # Issue 16804
-mirrors/null_test/00: RuntimeError # Issue 16804. Please remove the multi-test comments when this test starts succeeding.
-
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
 async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
@@ -212,7 +206,6 @@ convert/json_lib_test: Fail # Issue 10961
 
 [ $compiler == dart2js && $minified ]
 mirrors/typedef_test/01: Fail # http://dartbug.com/6490
-mirrors/list_constructor_test/none: Fail # http://dartbug.com/15555
 mirrors/mirrors_used_get_name_test: RuntimeError
 mirrors/mirrors_used_get_name2_test: RuntimeError
 

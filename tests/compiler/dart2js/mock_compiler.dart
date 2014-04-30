@@ -179,6 +179,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     get hashCode => throw "JSNull.hashCode not implemented.";
     String toString() => 'Null';
     Type get runtimeType => null;
+    noSuchMethod(x) => super.noSuchMethod(x);
   }
   class JSBool extends Interceptor implements bool {
   }
