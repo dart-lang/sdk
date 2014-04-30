@@ -14,6 +14,8 @@ simple_inferrer_global_field_closure_test: Fail # Issue 16507
 
 logical_expression_test: Fail # Issue 17027
 
+gvn_dynamic_field_get_test: Fail # Issue 18519
+
 mirrors/library_exports_hidden_test: Fail
 mirrors/library_exports_shown_test: Fail
 mirrors/library_imports_hidden_test: Fail
