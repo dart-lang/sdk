@@ -4,6 +4,9 @@
 
 [ $compiler == dart2analyzer ]
 
+LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash # Issue 18549
+LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # Issue 18549
+
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 
 # invalid argument for constant constructor
@@ -134,7 +137,6 @@ LayoutTests/fast/html/article-element_t01: StaticWarning # co19-roll r706: Pleas
 LayoutTests/fast/html/aside-element_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LayoutTests/fast/html/imports/import-events_t01: CompileTimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/html/text-field-input-types_t01: StaticWarning # co19-roll r706: Please triage this failure.
-LayoutTests/fast/innerHTML/innerHTML-svg-read_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LibTest/html/Document/adoptNode_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LibTest/html/Document/childNodes_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LibTest/html/Document/importNode_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
@@ -166,9 +168,6 @@ LibTest/math/Point/operator_addition_A02_t01: StaticWarning # co19-roll r706: Pl
 LibTest/math/Point/operator_mult_A03_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LibTest/math/Point/operator_subtraction_A02_t01: StaticWarning # co19-roll r706: Please triage this failure.
 WebPlatformTest/dom/events/event_constants/constants_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
-WebPlatformTest/dom/events/event_constructors/Event_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
-WebPlatformTest/dom/events/event_constructors/Event_A02_t01: StaticWarning # co19-roll r706: Please triage this failure.
-
 
 LayoutTests/fast/dom/HTMLAnchorElement/anchor-ismap-crash_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-rebase_t01: StaticWarning # co19-roll r722: Please triage this failure.
@@ -190,3 +189,42 @@ LibTest/html/Node/contains_A01_t02: StaticWarning # co19-roll r722: Please triag
 LibTest/html/Node/dispatchEvent_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LibTest/html/Node/nodes_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/script-async-attr_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTableElement/createCaption_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTableElement/insert-row_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/no-form-association_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/clear-transient-without-delivery_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/disconnect-cancel-pending_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/document-fragment-insertion_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/mutation-record-constructor_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/observe-exceptions_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/NodeList/nodelist-reachable_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Range/missing-arguments_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Range/surroundContents-check-boundary-points_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/html/imports/import-element-removed-flag_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/collections/emptyName_A01_t03: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-createElement-namespace_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-createElementNS_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-getElementsByTagName_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-appendChild_t02: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-contains_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-replaceChild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
