@@ -1016,6 +1016,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
+  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ LoadObject(R5, ic_data, PP);
   GenerateDartCall(deopt_id,
                    token_pos,

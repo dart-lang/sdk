@@ -163,7 +163,9 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintICDataHelper(&f, ic_data);
-  OS::Print("%s\n", buffer);
+  OS::Print("%s ", buffer);
+  const Array& a = Array::Handle(ic_data.arguments_descriptor());
+  OS::Print(" arg-desc %" Pd "\n", a.Length());
 }
 
 

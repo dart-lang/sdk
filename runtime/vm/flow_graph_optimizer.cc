@@ -138,9 +138,9 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
-                                             call->argument_names())));
+  const Array& args_desc_array = Array::Handle(
+      ArgumentsDescriptor::New(call->ArgumentCount(), call->argument_names()));
+  ArgumentsDescriptor args_desc(args_desc_array);
   const Class& receiver_class = Class::Handle(
       Isolate::Current()->class_table()->At(class_ids[0]));
   const Function& function = Function::Handle(
@@ -158,7 +158,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ICData& ic_data = ICData::ZoneHandle(ICData::New(
       flow_graph_->parsed_function().function(),
       call->function_name(),
-      Object::empty_array(),  // Dummy argument descriptor.
+      args_desc_array,
       call->deopt_id(),
       class_ids.length()));
   if (class_ids.length() > 1) {
