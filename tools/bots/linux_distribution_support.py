@@ -68,6 +68,23 @@ def SrcSteps(build_info):
   tarfilename = 'dart-%s.tar.gz' % version
   tarfile = os.path.join(builddir, tarfilename)
 
+  with bot.BuildStep('Validating linux system'):
+    print 'Validating that we are on %s' % build_info.builder_tag
+    args = ['uname', '-a']
+    (stdout, stderr, exitcode) = bot_utils.run(args)
+    if exitcode != 0:
+      print "Could not find linux system, exiting"
+      sys.exit(1)
+
+    if build_info.builder_tag == "debian_wheezy":
+      if not "Debian" in stdout:
+        print "Trying to build debian bits on a non debian system"
+        sys.exit(1)
+    if build_info.builder_tag == "ubuntu_precise":
+      if not "Ubuntu" in stdout:
+        print "Trying to build ubuntu bits on a non ubuntu system"
+        sys.exit(1)
+
   with bot.BuildStep('Create src tarball'):
     args = [sys.executable, './tools/create_tarball.py', '--tar_filename',
             tarfile]
