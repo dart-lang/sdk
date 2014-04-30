@@ -5,20 +5,28 @@
 #ifndef VM_CONSTANTS_ARM_H_
 #define VM_CONSTANTS_ARM_H_
 
+#include "platform/globals.h"
 #include "platform/assert.h"
 
 namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
-// TODO(zra): Detect number of registers at runtime by querying /proc/cpuinfo.
+#if defined(__ARM_ARCH_7A__)
 #define VFPv3_D32
+#elif defined(TARGET_ARCH_ARM) && !defined(HOST_ARCH_ARM)
+// If we're running in the simulator, use all 32.
+#define VFPv3_D32
+#else
+#define VFPv3_D16
+#endif
 #if defined(VFPv3_D16) == defined(VFPv3_D32)
 #error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
 #endif
 
 
 enum Register {
+  kNoRegister = -1,
   kFirstFreeCpuRegister = 0,
   R0  =  0,
   R1  =  1,
@@ -43,12 +51,12 @@ enum Register {
   LR  = 14,
   PC  = 15,
   kNumberOfCpuRegisters = 16,
-  kNoRegister = -1,
 };
 
 
 // Values for single-precision floating point registers.
 enum SRegister {
+  kNoSRegister = -1,
   S0  =  0,
   S1  =  1,
   S2  =  2,
@@ -82,12 +90,12 @@ enum SRegister {
   S30 = 30,
   S31 = 31,
   kNumberOfSRegisters = 32,
-  kNoSRegister = -1,
 };
 
 
 // Values for double-precision floating point registers.
 enum DRegister {
+  kNoDRegister = -1,
   D0  =  0,
   D1  =  1,
   D2  =  2,
@@ -106,6 +114,25 @@ enum DRegister {
   D15 = 15,
 #ifdef VFPv3_D16
   kNumberOfDRegisters = 16,
+  // Leaving these defined, but marking them as kNoDRegister to avoid polluting
+  // other parts of the code with #ifdef's. Instead, query kNumberOfDRegisters
+  // to see which registers are valid.
+  D16 = kNoDRegister,
+  D17 = kNoDRegister,
+  D18 = kNoDRegister,
+  D19 = kNoDRegister,
+  D20 = kNoDRegister,
+  D21 = kNoDRegister,
+  D22 = kNoDRegister,
+  D23 = kNoDRegister,
+  D24 = kNoDRegister,
+  D25 = kNoDRegister,
+  D26 = kNoDRegister,
+  D27 = kNoDRegister,
+  D28 = kNoDRegister,
+  D29 = kNoDRegister,
+  D30 = kNoDRegister,
+  D31 = kNoDRegister,
 #else
   D16 = 16,
   D17 = 17,
@@ -126,11 +153,11 @@ enum DRegister {
   kNumberOfDRegisters = 32,
 #endif
   kNumberOfOverlappingDRegisters = 16,
-  kNoDRegister = -1,
 };
 
 
 enum QRegister {
+  kNoQRegister = -1,
   Q0  =  0,
   Q1  =  1,
   Q2  =  2,
@@ -141,6 +168,14 @@ enum QRegister {
   Q7  =  7,
 #ifdef VFPv3_D16
   kNumberOfQRegisters = 8,
+  Q8  = kNoQRegister,
+  Q9  = kNoQRegister,
+  Q10 = kNoQRegister,
+  Q11 = kNoQRegister,
+  Q12 = kNoQRegister,
+  Q13 = kNoQRegister,
+  Q14 = kNoQRegister,
+  Q15 = kNoQRegister,
 #else
   Q8  =  8,
   Q9  =  9,
@@ -152,7 +187,6 @@ enum QRegister {
   Q15 = 15,
   kNumberOfQRegisters = 16,
 #endif
-  kNoQRegister = -1,
 };
 
 
@@ -166,14 +200,16 @@ static inline DRegister OddDRegisterOf(QRegister q) {
 
 
 static inline SRegister EvenSRegisterOf(DRegister d) {
-#ifdef VFPv3_D32
+#if defined(VFPv3_D32)
+  // When we have 32 D registers, the S registers only overlap the first 16.
+  // That is, there are only 32 S registers.
   ASSERT(d < D16);
 #endif
   return static_cast<SRegister>(d * 2);
 }
 
 static inline SRegister OddSRegisterOf(DRegister d) {
-#ifdef VFPv3_D32
+#if defined(VFPv3_D32)
   ASSERT(d < D16);
 #endif
   return static_cast<SRegister>((d * 2) + 1);

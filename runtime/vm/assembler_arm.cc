@@ -901,6 +901,9 @@ void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
 
 
 bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
+  if (TargetCPUFeatures::arm_version() != ARMv7) {
+    return false;
+  }
   uint32_t imm32 = bit_cast<uint32_t, float>(s_imm);
   if (((imm32 & ((1 << 19) - 1)) == 0) &&
       ((((imm32 >> 25) & ((1 << 6) - 1)) == (1 << 5)) ||
@@ -916,6 +919,9 @@ bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
 
 
 bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
+  if (TargetCPUFeatures::arm_version() != ARMv7) {
+    return false;
+  }
   uint64_t imm64 = bit_cast<uint64_t, double>(d_imm);
   if (((imm64 & ((1LL << 48) - 1)) == 0) &&
       ((((imm64 >> 54) & ((1 << 9) - 1)) == (1 << 8)) ||
