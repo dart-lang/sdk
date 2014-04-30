@@ -1508,13 +1508,12 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
                                    Definition::kEffect);
 
   // Insert array length load and bounds check.
-  const bool is_immutable =
-      CheckArrayBoundInstr::IsFixedLengthArrayType(array_cid);
   LoadFieldInstr* length =
       new LoadFieldInstr(new Value(*array),
                          CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-                         Type::ZoneHandle(Type::SmiType()),
-                         is_immutable);
+                         Type::ZoneHandle(Type::SmiType()));
+  length->set_is_immutable(
+      CheckArrayBoundInstr::IsFixedLengthArrayType(array_cid));
   length->set_result_cid(kSmiCid);
   length->set_recognized_kind(
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
@@ -2233,8 +2232,8 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   LoadFieldInstr* load = new LoadFieldInstr(
       new Value(call->ArgumentAt(0)),
       &field,
-      AbstractType::ZoneHandle(field.type()),
-      field.is_final());
+      AbstractType::ZoneHandle(field.type()));
+  load->set_is_immutable(field.is_final());
   if (field.guarded_cid() != kIllegalCid) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
@@ -2262,12 +2261,10 @@ static LoadFieldInstr* BuildLoadStringLength(Definition* str) {
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
   // is because of externalization of strings that affects their class-id.
-  const bool is_immutable = false;
   LoadFieldInstr* load = new LoadFieldInstr(
       new Value(str),
       String::length_offset(),
-      Type::ZoneHandle(Type::SmiType()),
-      is_immutable);
+      Type::ZoneHandle(Type::SmiType()));
   load->set_result_cid(kSmiCid);
   load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
   return load;
@@ -3582,12 +3579,11 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                                    call->env(),
                                    Definition::kEffect);
 
-  const bool is_immutable = true;
   LoadFieldInstr* length =
       new LoadFieldInstr(new Value(*array),
                          CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-                         Type::ZoneHandle(Type::SmiType()),
-                         is_immutable);
+                         Type::ZoneHandle(Type::SmiType()));
+  length->set_is_immutable(true);
   length->set_result_cid(kSmiCid);
   length->set_recognized_kind(
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
@@ -8623,7 +8619,9 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
   ComparisonInstr* comparison = branch->comparison();
   ComparisonInstr* new_comparison =
       comparison->CopyWithNewOperands(new_left, new_right);
-  return new BranchInstr(new_comparison, branch->is_checked());
+  BranchInstr* new_branch = new BranchInstr(new_comparison);
+  new_branch->set_is_checked(branch->is_checked());
+  return new_branch;
 }
 
 

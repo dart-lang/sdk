@@ -854,7 +854,8 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         comp->right(),
         false));  // No number check.
   } else {
-    branch = new BranchInstr(comp, FLAG_enable_type_checks);
+    branch = new BranchInstr(comp);
+    branch->set_is_checked(FLAG_enable_type_checks);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -2939,12 +2940,10 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
         // class-id.
-        const bool is_immutable = false;
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             String::length_offset(),
-            Type::ZoneHandle(Type::SmiType()),
-            is_immutable);
+            Type::ZoneHandle(Type::SmiType()));
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
         if (kind == MethodRecognizer::kStringBaseLength) {
@@ -2966,13 +2965,11 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        const bool is_immutable =
-            (kind != MethodRecognizer::kGrowableArrayLength);
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             OffsetForLengthGetter(kind),
-            Type::ZoneHandle(Type::SmiType()),
-            is_immutable);
+            Type::ZoneHandle(Type::SmiType()));
+        load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
@@ -3104,8 +3101,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
       new StoreInstanceFieldInstr(node->field(),
                                   for_instance.value(),
                                   store_value,
-                                  kEmitStoreBarrier,
-                                  true);  // Maybe initializing store.
+                                  kEmitStoreBarrier);
+  store->set_is_initialization(true);  // Maybe initializing store.
   ReturnDefinition(store);
 }
 

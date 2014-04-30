@@ -2329,9 +2329,9 @@ class ComparisonInstr : public TemplateDefinition<2> {
 
 class BranchInstr : public Instruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false)
+  explicit BranchInstr(ComparisonInstr* comparison)
       : comparison_(comparison),
-        is_checked_(is_checked),
+        is_checked_(false),
         constrained_type_(NULL),
         constant_target_(NULL) {
     ASSERT(comparison->env() == NULL);
@@ -2367,6 +2367,7 @@ class BranchInstr : public Instruction {
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
+  void set_is_checked(bool value) { is_checked_ = value; }
   bool is_checked() const { return is_checked_; }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -2424,7 +2425,7 @@ class BranchInstr : public Instruction {
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
   ComparisonInstr* comparison_;
-  const bool is_checked_;
+  bool is_checked_;
   ConstrainedCompileType* constrained_type_;
   TargetEntryInstr* constant_target_;
 
@@ -3685,12 +3686,11 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
                           Value* value,
-                          StoreBarrierType emit_store_barrier,
-                          bool is_initialization = false)
+                          StoreBarrierType emit_store_barrier)
       : field_(field),
         offset_in_bytes_(field.Offset()),
         emit_store_barrier_(emit_store_barrier),
-        is_initialization_(is_initialization) {
+        is_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
@@ -3698,17 +3698,18 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   StoreInstanceFieldInstr(intptr_t offset_in_bytes,
                           Value* instance,
                           Value* value,
-                          StoreBarrierType emit_store_barrier,
-                          bool is_initialization = false)
+                          StoreBarrierType emit_store_barrier)
       : field_(Field::Handle()),
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
-        is_initialization_(is_initialization) {
+        is_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
+
+  void set_is_initialization(bool value) { is_initialization_ = value; }
 
   enum {
     kInstancePos = 0,
@@ -3763,7 +3764,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   const Field& field_;
   intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
-  const bool is_initialization_;  // Marks stores in the constructor.
+  bool is_initialization_;  // Marks stores in the constructor.
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -4402,12 +4403,11 @@ class LoadFieldInstr : public TemplateDefinition<1> {
  public:
   LoadFieldInstr(Value* instance,
                  intptr_t offset_in_bytes,
-                 const AbstractType& type,
-                 bool immutable = false)
+                 const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
         result_cid_(kDynamicCid),
-        immutable_(immutable),
+        immutable_(false),
         recognized_kind_(MethodRecognizer::kUnknown),
         field_(NULL) {
     ASSERT(offset_in_bytes >= 0);
@@ -4417,18 +4417,19 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   LoadFieldInstr(Value* instance,
                  const Field* field,
-                 const AbstractType& type,
-                 bool immutable = false)
+                 const AbstractType& type)
       : offset_in_bytes_(field->Offset()),
         type_(type),
         result_cid_(kDynamicCid),
-        immutable_(immutable),
+        immutable_(false),
         recognized_kind_(MethodRecognizer::kUnknown),
         field_(field) {
     ASSERT(field->IsZoneHandle());
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, instance);
   }
+
+  void set_is_immutable(bool value) { immutable_ = value; }
 
   Value* instance() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -4480,7 +4481,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
   intptr_t result_cid_;
-  const bool immutable_;
+  bool immutable_;
 
   MethodRecognizer::Kind recognized_kind_;
 
