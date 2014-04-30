@@ -6,6 +6,10 @@
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+# Something is breaking browser_test.dart in the test infrastructure in these tests. Issue 18558.
+LayoutTests/fast/dom/HTMLS*: Skip # Issue 18558
+LayoutTests/fast/dom/HTMLB*: Skip # Issue 18558
+
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: Pass # Issue 14478: This should break.
@@ -195,13 +199,14 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hostname_t01: RuntimeE
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-pathname_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-port_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-protocol_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -226,6 +231,7 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Timeout # co19-roll r722: Ple
 LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Timeout # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLObjectElement/children-changed_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/IFrameElement/paddingEdge_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/addEventListener_A01_t06: RuntimeError # co19-roll r722: Please triage this failure.
@@ -299,6 +305,8 @@ LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError #
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Timeout # co19-roll r722: Please triage this failure.
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout # co19-roll r722: Please triage this failure.
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -312,12 +320,16 @@ WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Timeout # co19-roll r722:
 WebPlatformTest/dom/EventTarget/removeEventListener_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/events/type_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-adoptNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-createElementNS_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-getElementsByTagName_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-importNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-appendChild_t02: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-insertBefore_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -334,17 +346,12 @@ WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t01: RuntimeError # co19-r
 WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttribute_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
 
-
-[ $compiler == none && $mode == debug && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout # co19-roll r706: Please triage this failure
-LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout # co19-roll r706: Please triage this failure
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
 LayoutTests/fast/html/article-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/aside-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LayoutTests/fast/innerHTML/innerHTML-svg-read_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LayoutTests/fast/innerHTML/innerHTML-svg-read_t01: RuntimeError, Pass # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/responseText_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
