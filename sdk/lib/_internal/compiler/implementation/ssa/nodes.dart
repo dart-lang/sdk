@@ -816,7 +816,6 @@ abstract class HInstruction implements Spannable {
 
   bool useGvn() => _useGvn;
   void setUseGvn() { _useGvn = true; }
-  void clearUseGvn() { _useGvn = false; }
 
   bool get isMovable => useGvn();
 
