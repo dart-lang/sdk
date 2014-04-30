@@ -83,4 +83,3 @@ LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623:
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError # co19 issue 675
 LibTest/math/MutableRectangle/boundingBox_A01_t02: RuntimeError # co19 issue 675
 LibTest/math/MutableRectangle/intersection_A01_t01: RuntimeError # co19 issue 675
-

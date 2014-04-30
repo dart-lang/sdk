@@ -112,9 +112,7 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
-WebPlatformTest1/shadow-dom/*: StaticWarning # co19 issue 677
-WebPlatformTest1/html-templates/*: StaticWarning # co19 issue 677
-WebPlatformTest1/custom-elements/*: Pass, StaticWarning # Issue 18095.
+WebPlatformTest/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 #co19 issue 680
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t04: StaticWarning
@@ -168,3 +166,24 @@ LibTest/math/Point/operator_subtraction_A02_t01: StaticWarning # co19-roll r706:
 WebPlatformTest/dom/events/event_constants/constants_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
 WebPlatformTest/dom/events/event_constructors/Event_A01_t01: StaticWarning # co19-roll r706: Please triage this failure.
 WebPlatformTest/dom/events/event_constructors/Event_A02_t01: StaticWarning # co19-roll r706: Please triage this failure.
+
+LayoutTests/fast/dom/HTMLAnchorElement/anchor-ismap-crash_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-rebase_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLBaseElement/href-attribute-resolves-with-respect-to-document_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLDocument/clone-node_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLInputElement/size-attribute_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLabelElement/label-control_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLLinkElement/link-onload-before-page-load_t01: CompileTimeError
+LayoutTests/fast/dom/HTMLLinkElement/link-onload2_t01: CompileTimeError
+LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/IFrameElement/outerHtml_setter_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/Node/childNodes_A01_t02: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/Node/contains_A01_t02: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/Node/dispatchEvent_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LibTest/html/Node/nodes_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: StaticWarning # co19-roll r722: Please triage this failure.
