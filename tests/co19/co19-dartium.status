@@ -108,9 +108,9 @@ LibTest/html/HttpRequestUpload/onError_A01_t02: Timeout # Issue 17758.  Please t
 LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Timeout # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Timeout # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Timeout # Issue 17758.  Please triage this failure.
-WebPlatformTest/dom/events/event_constants/constants_A01_t01: Timeout # Issue 17758.  Please triage this failure.
-WebPlatformTest/dom/events/event_constructors/Event_A01_t01: Timeout # Issue 17758.  Please triage this failure.
-WebPlatformTest/dom/events/event_constructors/Event_A02_t01: Timeout # Issue 17758.  Please triage this failure.
+WebPlatformTest/dom/events/event_constants/constants_A01_t01: Timeout, Pass # Issue 17758.  Please triage this failure.
+WebPlatformTest/dom/events/event_constructors/Event_A01_t01: Timeout, Pass # Issue 17758.  Please triage this failure.
+WebPlatformTest/dom/events/event_constructors/Event_A02_t01: Timeout, Pass # Issue 17758.  Please triage this failure.
 
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/basic_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -283,6 +283,59 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Timeout, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Timeout, Pass # co19-roll r722: Please triage this failure.
 LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError,Pass # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/async-inline-script_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/async-onbeforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/defer-inline-script_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/defer-onbeforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text-changes_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/innerHTML_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTemplateElement/ownerDocumentXHTML_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
+LayoutTests/fast/html/imports/import-element-removed-flag_t01: Timeout # co19-roll r722: Please triage this failure.
+LibTest/collection/ListBase/ListBase_class_A01_t01: Timeout # co19-roll r722: Please triage this failure.
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Timeout # co19-roll r722: Please triage this failure.
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # co19-roll r722: Please triage this failure.
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # co19-roll r722: Please triage this failure.
+LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/Utils/test/asyncTestFail_t02: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/Utils/test/asyncTestTimeout_t01: Timeout # co19-roll r722: Please triage this failure.
+WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/EventTarget/addEventListener_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Timeout # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/EventTarget/removeEventListener_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/events/type_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-adoptNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-createElement_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Document-importNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Element-childElementCount_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-insertBefore_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-isEqualNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/attributes_A04_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/attributes_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A06_t03: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A07_t02: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A07_t03: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A08_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A09_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A09_t02: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t02: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/attributes/setAttribute_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
+
 
 [ $compiler == none && $mode == debug && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout # co19-roll r706: Please triage this failure
@@ -299,6 +352,7 @@ LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Issue 17758.  Please tr
 LibTest/html/HttpRequest/responseText_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/HttpRequest/status_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLTableElement/insert-row_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
