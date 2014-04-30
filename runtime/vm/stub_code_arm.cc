@@ -1456,12 +1456,6 @@ void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
-}
-
-
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // R5: ICData

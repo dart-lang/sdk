@@ -1257,11 +1257,6 @@ void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  __ Stop("GenerateMegamorphicCallStub");
-}
-
-
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
 #if defined(DEBUG)

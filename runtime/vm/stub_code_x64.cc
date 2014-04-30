@@ -1447,14 +1447,6 @@ void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
 }
 
 
-// Megamorphic call is currently implemented as IC call but through a stub
-// that does not check/count function invocations.
-void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
-}
-
-
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // RBX: ICData
