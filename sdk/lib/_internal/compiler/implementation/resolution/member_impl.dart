@@ -12,8 +12,8 @@ class DeclaredMember implements Member {
   final FunctionType functionType;
 
   DeclaredMember(this.name, this.element,
-                    this.declarer,
-                    this.type, this.functionType);
+                 this.declarer,
+                 this.type, this.functionType);
 
   bool get isStatic => !element.isInstanceMember();
 
@@ -24,6 +24,10 @@ class DeclaredMember implements Member {
   bool get isMethod => element.isFunction();
 
   bool get isDeclaredByField => element.isField();
+
+  bool get isAbstract => false;
+
+  Member get implementation => this;
 
   /// Returns this member as inherited from [instance].
   ///
@@ -38,6 +42,10 @@ class DeclaredMember implements Member {
     // as a result of inheritance.
     if (!declarer.isGeneric) return this;
     assert(declarer.element == instance.element);
+    return _newInheritedMember(instance);
+  }
+
+  InheritedMember _newInheritedMember(InterfaceType instance) {
     return new InheritedMember(this, instance);
   }
 
@@ -61,6 +69,9 @@ class DeclaredMember implements Member {
     if (isStatic) {
       sb.write('static ');
     }
+    if (isAbstract) {
+      sb.write('abstract ');
+    }
     if (isGetter) {
       sb.write(type);
       sb.write(' get ');
@@ -74,6 +85,23 @@ class DeclaredMember implements Member {
     } else {
       sb.write(type.getStringAsDeclared('$name'));
     }
+  }
+}
+
+class DeclaredAbstractMember extends DeclaredMember {
+  final DeclaredMember implementation;
+
+  DeclaredAbstractMember(Name name, Element element,
+                         InterfaceType declarer,
+                         DartType type, FunctionType functionType,
+                         this.implementation)
+      : super(name, element, declarer, type, functionType);
+
+  bool get isAbstract => true;
+
+  InheritedMember _newInheritedMember(InterfaceType instance) {
+    return new InheritedAbstractMember(this, instance,
+        implementation != null ? implementation.inheritFrom(instance) : null);
   }
 }
 
@@ -103,6 +131,10 @@ class InheritedMember implements DeclaredMember {
 
   bool get isDeclaredByField => declaration.isDeclaredByField;
 
+  bool get isAbstract => false;
+
+  Member get implementation => this;
+
   DartType get type => declaration.type.substByContext(instance);
 
   FunctionType get functionType {
@@ -117,6 +149,10 @@ class InheritedMember implements DeclaredMember {
       ClassElement contextClass = Types.getClassContext(instance);
       return contextClass == null || contextClass == newInstance.element;
     });
+    return _newInheritedMember(newInstance);
+  }
+
+  InheritedMember _newInheritedMember(InterfaceType newInstance) {
     return new InheritedMember(declaration,
                                instance.substByContext(newInstance));
   }
@@ -138,12 +174,33 @@ class InheritedMember implements DeclaredMember {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
+    printOn(sb, instance);
     return sb.toString();
   }
 }
 
+class InheritedAbstractMember extends InheritedMember {
+  final DeclaredMember implementation;
+
+  InheritedAbstractMember(DeclaredMember declaration,
+                          InterfaceType instance,
+                          this.implementation)
+      : super(declaration, instance);
+
+  bool get isAbstract => true;
+
+  InheritedMember _newInheritedMember(InterfaceType newInstance) {
+    return new InheritedAbstractMember(
+        declaration,
+        instance.substByContext(newInstance),
+        implementation != null
+            ? implementation.inheritFrom(newInstance) : null);
+  }
+}
+
+
 abstract class AbstractSyntheticMember implements MemberSignature {
-  final Set<Member> inheritedMembers;
+  final Setlet<Member> inheritedMembers;
 
   AbstractSyntheticMember(this.inheritedMembers);
 
@@ -159,7 +216,7 @@ class SyntheticMember extends AbstractSyntheticMember {
   final DartType type;
   final FunctionType functionType;
 
-  SyntheticMember(Set<Member> inheritedMembers,
+  SyntheticMember(Setlet<Member> inheritedMembers,
                   this.type,
                   this.functionType)
       : super(inheritedMembers);
@@ -177,7 +234,7 @@ class SyntheticMember extends AbstractSyntheticMember {
 }
 
 class ErroneousMember extends AbstractSyntheticMember {
-  ErroneousMember(Set<Member> inheritedMembers) : super(inheritedMembers);
+  ErroneousMember(Setlet<Member> inheritedMembers) : super(inheritedMembers);
 
   DartType get type => functionType;
 

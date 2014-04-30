@@ -8,6 +8,7 @@ import 'elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
+import '../resolution/class_members.dart' show ClassMemberMixin;
 
 import '../dart2jslib.dart' show invariant,
                                  InterfaceType,
@@ -1908,7 +1909,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 }
 
 abstract class BaseClassElementX extends ElementX
-    with AnalyzableElement, TypeDeclarationElementX<InterfaceType>
+    with AnalyzableElement,
+         TypeDeclarationElementX<InterfaceType>,
+         ClassMemberMixin
     implements ClassElement {
   final int id;
 
@@ -1930,9 +1933,6 @@ abstract class BaseClassElementX extends ElementX
   Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
-
-  Map<Name, Member> classMembers;
-  Map<Name, MemberSignature> interfaceMembers;
 
   BaseClassElementX(String name,
                     Element enclosing,
@@ -2290,18 +2290,6 @@ abstract class BaseClassElementX extends ElementX
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = name;
-  }
-
-  Member lookupClassMember(Name name) => classMembers[name];
-
-  void forEachClassMember(f(Member member)) {
-    classMembers.forEach((_, member) => f(member));
-  }
-
-  MemberSignature lookupInterfaceMember(Name name) => interfaceMembers[name];
-
-  void forEachInterfaceMember(f(MemberSignature member)) {
-    interfaceMembers.forEach((_, member) => f(member));
   }
 
   FunctionType get callType {

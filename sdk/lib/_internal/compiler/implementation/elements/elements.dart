@@ -1136,5 +1136,12 @@ abstract class Member extends MemberSignature {
   /// Returns `true` if this member is a getter or setter implicitly declared
   /// by a field.
   bool get isDeclaredByField;
+
+  /// Returns `true` if this member is abstract.
+  bool get isAbstract;
+
+  /// If abstract, [implementation] points to the overridden concrete member,
+  /// if any. Otherwise [implementation] points to the member itself.
+  Member get implementation;
 }
 
