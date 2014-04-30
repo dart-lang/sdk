@@ -61,6 +61,8 @@ class JSString {
   operator+(other) => null;
 }
 class JSNull {
+  bool operator ==(other) => identical(null, other);
+  int get hashCode => 0;
 }
 class JSBool {
 }
