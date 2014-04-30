@@ -152,7 +152,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset());
+  __ mov(TMP, SP);
+  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
   __ StoreToOffset(CTX, R0, Isolate::top_context_offset());
@@ -236,8 +237,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(R2, 0, kNoPP);
-  __ StoreToOffset(R2, CTX, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(ZR, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
   __ LoadFromOffset(R2, CTX, Isolate::top_context_offset());
@@ -336,8 +336,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(R2, 0, kNoPP);
-  __ StoreToOffset(R2, CTX, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(ZR, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
   __ LoadFromOffset(R2, CTX, Isolate::top_context_offset());

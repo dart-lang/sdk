@@ -405,6 +405,7 @@ Simulator::Simulator() {
   icount_ = 0;
   break_pc_ = NULL;
   break_instr_ = 0;
+  last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
 
   // Setup architecture state.
@@ -2063,6 +2064,41 @@ int64_t Simulator::Call(int64_t entry,
   int64_t return_value;
   return_value = get_register(R0);
   return return_value;
+}
+
+
+void Simulator::Longjmp(uword pc,
+                        uword sp,
+                        uword fp,
+                        RawObject* raw_exception,
+                        RawObject* raw_stacktrace) {
+  // Walk over all setjmp buffers (simulated --> C++ transitions)
+  // and try to find the setjmp associated with the simulated stack pointer.
+  SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
+  while (buf->link() != NULL && buf->link()->sp() <= sp) {
+    buf = buf->link();
+  }
+  ASSERT(buf != NULL);
+
+  // The C++ caller has not cleaned up the stack memory of C++ frames.
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous C++ frames.
+  uword native_sp = buf->native_sp();
+  Isolate* isolate = Isolate::Current();
+  while (isolate->top_resource() != NULL &&
+         (reinterpret_cast<uword>(isolate->top_resource()) < native_sp)) {
+    isolate->top_resource()->~StackResource();
+  }
+
+  // Unwind the C++ stack and continue simulation in the target frame.
+  set_pc(static_cast<int64_t>(pc));
+  set_register(R31, static_cast<int64_t>(sp), R31IsSP);
+  set_register(FP, static_cast<int64_t>(fp));
+
+  ASSERT(raw_exception != Object::null());
+  set_register(kExceptionObjectReg, bit_cast<int64_t>(raw_exception));
+  set_register(kStackTraceObjectReg, bit_cast<int64_t>(raw_stacktrace));
+  buf->Longjmp();
 }
 
 }  // namespace dart

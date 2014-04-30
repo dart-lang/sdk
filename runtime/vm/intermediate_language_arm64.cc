@@ -109,29 +109,27 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R0));  // Function.
+  summary->set_out(0, Location::RegisterLocation(R0));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in R1.
-  int argument_count = ArgumentCount();
-  __ LoadFromOffset(R1, SP, (argument_count - 1) * kWordSize);
-
   // Load arguments descriptor in R4.
+  int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(R4, arguments_descriptor, PP);
 
-  // Load the closure function into R0.
-  __ LoadFieldFromOffset(R0, R1, Closure::function_offset());
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ LoadFieldFromOffset(CTX, R1, Closure::context_offset());
-
   // R4: Arguments descriptor.
   // R0: Function.
+  ASSERT(locs()->in(0).reg() == R0);
   __ LoadFieldFromOffset(R2, R0, Function::code_offset());
 
   // R2: code.
@@ -1425,14 +1423,69 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
 }
 
 
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instantiator_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out(0).reg();
+  ASSERT(instantiator_reg == R0);
+  ASSERT(instantiator_reg == result_reg);
+
+  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    __ CompareObject(instantiator_reg, Object::null_object(), PP);
+    __ b(&type_arguments_instantiated, EQ);
+  }
+
+  __ LoadObject(R2, type_arguments(), PP);
+  __ LoadFieldFromOffset(R2, R2, TypeArguments::instantiations_offset());
+  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag, PP);
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  Label loop, found, slow_case;
+  __ Bind(&loop);
+  __ LoadFromOffset(R1, R2, 0 * kWordSize);  // Cached instantiator.
+  __ CompareRegisters(R1, R0);
+  __ b(&found, EQ);
+  __ AddImmediate(R2, R2, 2 * kWordSize, PP);
+  __ CompareImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator), PP);
+  __ b(&loop, NE);
+  __ b(&slow_case);
+  __ Bind(&found);
+  __ LoadFromOffset(R0, R2, 1 * kWordSize);  // Cached instantiated args.
+  __ b(&type_arguments_instantiated);
+
+  __ Bind(&slow_case);
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(type_arguments(), PP);
+  __ Push(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateRuntimeCall(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                2,
+                                locs());
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+  __ Pop(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
 }
 
 
@@ -1462,13 +1515,29 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
 }
 
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ Push(context_value);
+  compiler->GenerateRuntimeCall(token_pos(),
+                                deopt_id(),
+                                kCloneContextRuntimeEntry,
+                                1,
+                                locs());
+  __ Drop(1);  // Remove argument.
+  __ Pop(result);  // Get result (cloned context).
 }
 
 

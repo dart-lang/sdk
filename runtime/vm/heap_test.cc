@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
@@ -50,6 +49,7 @@ TEST_CASE(LargeSweep) {
   Dart_ExitScope();
   heap->CollectGarbage(Heap::kOld);
 }
+
 
 class ClassHeapStatsTestHelper {
  public:
@@ -209,5 +209,3 @@ TEST_CASE(FindObject) {
 }
 
 }  // namespace dart.
-
-#endif  // !defined(TARGET_ARCH_ARM64)

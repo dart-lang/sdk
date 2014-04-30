@@ -2992,9 +2992,6 @@ TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
-
 TEST_CASE(StackTraceFormat) {
   const char* kScriptChars =
       "void baz() {\n"
@@ -3054,7 +3051,6 @@ TEST_CASE(StackTraceFormat) {
       "#9      main (dart:test-lib:37:24)");
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
@@ -3463,9 +3459,6 @@ TEST_CASE(MirrorReference) {
 }
 
 
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
-
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
@@ -3605,8 +3598,6 @@ TEST_CASE(FindFunctionIndex) {
   EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
-
 
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
@@ -3686,9 +3677,6 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   EXPECT_EQ(bad_invocation_dispatcher_index, -1);
 }
 
-
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
 
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
@@ -3857,6 +3845,9 @@ TEST_CASE(FunctionSourceFingerprint) {
 }
 
 
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+
 TEST_CASE(FunctionWithBreakpointNotInlined) {
   const char* kScriptChars =
       "class A {\n"
@@ -3928,9 +3919,6 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(array.IsArray());
 }
 
-
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(ToUserCString) {
   const char* kScriptChars =
@@ -4026,7 +4014,5 @@ TEST_CASE(PrintJSON) {
   JSONTypeVerifier verifier;
   heap->IterateObjects(&verifier);
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

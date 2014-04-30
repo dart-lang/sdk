@@ -834,9 +834,6 @@ class TestSnapshotWriter : public SnapshotWriter {
 };
 
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
-
 static void GenerateSourceAndCheck(const Script& script) {
   // Check if we are able to generate the source from the token stream.
   // Rescan this source and compare the token stream to see if they are
@@ -2718,7 +2715,5 @@ UNIT_TEST_CASE(PostCObject) {
 
   Dart_ExitScope();
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

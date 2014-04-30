@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
 
 #include "include/dart_debugger_api.h"
 #include "vm/dart_api_impl.h"
@@ -1038,6 +1036,9 @@ TEST_CASE(Service_Scripts) {
 }
 
 
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
+
 TEST_CASE(Service_Coverage) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -1075,6 +1076,8 @@ TEST_CASE(Service_Coverage) {
       "\"kind\":\"script\"},\"hits\":"
       "[5,1,6,1]}", handler.msg());
 }
+
+#endif
 
 
 TEST_CASE(Service_AllocationProfile) {
@@ -1321,6 +1324,10 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   EXPECT_STREQ("beta", handler.msg());
 }
 
+
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
+
 TEST_CASE(Service_Profile) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -1367,6 +1374,6 @@ TEST_CASE(Service_Profile) {
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 }
 
-}  // namespace dart
-
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+}  // namespace dart
