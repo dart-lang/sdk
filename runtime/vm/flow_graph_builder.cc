@@ -717,14 +717,16 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
       context = Bind(new LoadFieldInstr(
-          context, Context::parent_offset(), Type::ZoneHandle()));
+          context, Context::parent_offset(), Type::ZoneHandle(),
+          Scanner::kNoSourcePos));
     }
     Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
     StoreInstanceFieldInstr* store =
         new StoreInstanceFieldInstr(Context::variable_offset(local.index()),
                                     context,
                                     tmp_val,
-                                    kEmitStoreBarrier);
+                                    kEmitStoreBarrier,
+                                    Scanner::kNoSourcePos);
     Do(store);
     return ExitTempLocalScope(tmp_var);
   } else {
@@ -743,11 +745,13 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
       context = Bind(new LoadFieldInstr(
-          context, Context::parent_offset(), Type::ZoneHandle()));
+          context, Context::parent_offset(), Type::ZoneHandle(),
+          Scanner::kNoSourcePos));
     }
     return new LoadFieldInstr(context,
                               Context::variable_offset(local.index()),
-                              local.type());
+                              local.type(),
+                              Scanner::kNoSourcePos);
   } else {
     return new LoadLocalInstr(local);
   }
@@ -2150,8 +2154,8 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
               : kEmitStoreBarrier;
       intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new StoreIndexedInstr(
-          array, index, for_value.value(),
-          emit_store_barrier, index_scale, class_id, deopt_id);
+          array, index, for_value.value(), emit_store_barrier,
+          index_scale, class_id, deopt_id, node->token_pos());
       Do(store);
     }
     ReturnDefinition(ExitTempLocalScope(tmp_var));
@@ -2247,7 +2251,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     Do(new StoreInstanceFieldInstr(Closure::function_offset(),
                                    closure_tmp_val,
                                    func_val,
-                                   kEmitStoreBarrier));
+                                   kEmitStoreBarrier,
+                                   node->token_pos()));
     if (is_implicit) {
       // Create new context containing the receiver.
       const intptr_t kNumContextVariables = 1;  // The receiver.
@@ -2264,14 +2269,16 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
         Do(new StoreInstanceFieldInstr(Context::variable_offset(0),
                                        context_tmp_val,
                                        receiver,
-                                       kEmitStoreBarrier));
+                                       kEmitStoreBarrier,
+                                       node->token_pos()));
         // Store new context in closure.
         closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
         context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
         Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                        closure_tmp_val,
                                        context_tmp_val,
-                                       kEmitStoreBarrier));
+                                       kEmitStoreBarrier,
+                                       node->token_pos()));
         Do(ExitTempLocalScope(context_tmp_var));
       }
     } else {
@@ -2281,7 +2288,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                      closure_tmp_val,
                                      context,
-                                     kEmitStoreBarrier));
+                                     kEmitStoreBarrier,
+                                     node->token_pos()));
     }
     ReturnDefinition(ExitTempLocalScope(closure_tmp_var));
   }
@@ -2398,7 +2406,8 @@ void EffectGraphVisitor::BuildClosureCall(
   closure_val = Bind(new LoadLocalInstr(*tmp_var));
   LoadFieldInstr* context_load = new LoadFieldInstr(closure_val,
                                                     Closure::context_offset(),
-                                                    AbstractType::ZoneHandle());
+                                                    AbstractType::ZoneHandle(),
+                                                    node->token_pos());
   context_load->set_is_immutable(true);
   Value* context_val = Bind(context_load);
   AddInstruction(new StoreContextInstr(context_val));
@@ -2406,7 +2415,8 @@ void EffectGraphVisitor::BuildClosureCall(
   LoadFieldInstr* function_load =
       new LoadFieldInstr(closure_val,
                          Closure::function_offset(),
-                         AbstractType::ZoneHandle());
+                         AbstractType::ZoneHandle(),
+                         node->token_pos());
   function_load->set_is_immutable(true);
   Value* function_val = Bind(function_load);
   Definition* closure_call =
@@ -2621,7 +2631,8 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   return Bind(new LoadFieldInstr(
       instantiator,
       type_arguments_field_offset,
-      Type::ZoneHandle()));  // Not an instance, no type.
+      Type::ZoneHandle(),  // Not an instance, no type.
+      Scanner::kNoSourcePos));
 }
 
 
@@ -2968,7 +2979,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             String::length_offset(),
-            Type::ZoneHandle(Type::SmiType()));
+            Type::ZoneHandle(Type::SmiType()),
+            node->token_pos());
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
         if (kind == MethodRecognizer::kStringBaseLength) {
@@ -2993,7 +3005,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             OffsetForLengthGetter(kind),
-            Type::ZoneHandle(Type::SmiType()));
+            Type::ZoneHandle(Type::SmiType()),
+            node->token_pos());
         load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(kind);
@@ -3010,13 +3023,15 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* data_load = new LoadFieldInstr(
             receiver,
             Array::data_offset(),
-            Type::ZoneHandle(Type::DynamicType()));
+            Type::ZoneHandle(Type::DynamicType()),
+            node->token_pos());
         data_load->set_result_cid(kArrayCid);
         Value* data = Bind(data_load);
         LoadFieldInstr* length_load = new LoadFieldInstr(
             data,
             Array::length_offset(),
-            Type::ZoneHandle(Type::SmiType()));
+            Type::ZoneHandle(Type::SmiType()),
+            node->token_pos());
         length_load->set_result_cid(kSmiCid);
         length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
         return ReturnDefinition(length_load);
@@ -3084,7 +3099,8 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   LoadFieldInstr* load = new LoadFieldInstr(
       for_instance.value(),
       &node->field(),
-      AbstractType::ZoneHandle(node->field().type()));
+      AbstractType::ZoneHandle(node->field().type()),
+      node->token_pos());
   if (node->field().guarded_cid() != kIllegalCid) {
     if (!node->field().is_nullable() ||
         (node->field().guarded_cid() == kNullCid)) {
@@ -3126,7 +3142,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
       new StoreInstanceFieldInstr(node->field(),
                                   for_instance.value(),
                                   store_value,
-                                  kEmitStoreBarrier);
+                                  kEmitStoreBarrier,
+                                  node->token_pos());
   store->set_is_initialization(true);  // Maybe initializing store.
   ReturnDefinition(store);
 }
@@ -3363,7 +3380,8 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
       context = Bind(
           new LoadFieldInstr(context,
                              Context::parent_offset(),
-                             Type::ZoneHandle()));  // Not an instance, no type.
+                             Type::ZoneHandle(),  // Not an instance, no type.
+                             Scanner::kNoSourcePos));
     }
     AddInstruction(new StoreContextInstr(context));
   }
@@ -3408,7 +3426,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       Do(new StoreInstanceFieldInstr(Context::parent_offset(),
                                      tmp_val,
                                      parent_context,
-                                     kEmitStoreBarrier));
+                                     kEmitStoreBarrier,
+                                     Scanner::kNoSourcePos));
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }

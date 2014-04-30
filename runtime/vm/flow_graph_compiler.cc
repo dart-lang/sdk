@@ -40,6 +40,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -273,6 +274,23 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
+
+void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
+  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+    return;
+  }
+  const Function& function =
+      Function::Handle(instr->env()->code().function());
+  const Script& s = Script::Handle(function.script());
+  intptr_t line_nr;
+  intptr_t column_nr;
+  s.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
+  const String& line = String::Handle(s.GetLine(line_nr));
+  assembler()->Comment("Line %" Pd " in '%s':\n           %s",
+      line_nr, function.ToFullyQualifiedCString(), line.ToCString());
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
 
@@ -292,6 +310,9 @@ void FlowGraphCompiler::VisitBlocks() {
       Instruction* instr = it.Current();
       if (FLAG_code_comments &&
           (FLAG_disassemble || FLAG_disassemble_optimized)) {
+        if (FLAG_source_lines) {
+          EmitSourceLine(instr);
+        }
         EmitComment(instr);
       }
       if (instr->IsParallelMove()) {

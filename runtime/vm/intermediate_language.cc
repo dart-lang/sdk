@@ -98,8 +98,9 @@ bool Value::Equals(Value* other) const {
 
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
-                                 const ICData& unary_checks)
-    : unary_checks_(unary_checks), licm_hoisted_(false) {
+                                 const ICData& unary_checks,
+                                 intptr_t token_pos)
+    : unary_checks_(unary_checks), licm_hoisted_(false), token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -3201,9 +3202,11 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t original_deopt_id,
-    MethodRecognizer::Kind recognized_kind)
+    MethodRecognizer::Kind recognized_kind,
+    intptr_t token_pos)
     : inputs_(inputs),
-      recognized_kind_(recognized_kind) {
+      recognized_kind_(recognized_kind),
+      token_pos_(token_pos) {
   ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
   for (intptr_t i = 0; i < inputs_->length(); ++i) {
     ASSERT((*inputs)[i] != NULL);

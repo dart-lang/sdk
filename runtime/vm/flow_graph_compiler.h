@@ -571,6 +571,8 @@ class FlowGraphCompiler : public ValueObject {
     return cls.raw() == list_class_.raw();
   }
 
+  void EmitSourceLine(Instruction* instr);
+
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;

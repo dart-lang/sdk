@@ -1393,7 +1393,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cursor = AppendInstruction(cursor, redefinition);
       if (inlined_variants_[i].cid == kSmiCid) {
         CheckSmiInstr* check_smi =
-            new CheckSmiInstr(new Value(redefinition), call_->deopt_id());
+            new CheckSmiInstr(new Value(redefinition),
+                              call_->deopt_id(),
+                              call_->token_pos());
         check_smi->InheritDeoptTarget(call_);
         cursor = AppendInstruction(cursor, check_smi);
       } else {
@@ -1409,7 +1411,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         CheckClassInstr* check_class =
             new CheckClassInstr(new Value(redefinition),
                                 call_->deopt_id(),
-                                new_checks);
+                                new_checks,
+                                call_->token_pos());
         check_class->InheritDeoptTarget(call_);
         cursor = AppendInstruction(cursor, check_class);
       }

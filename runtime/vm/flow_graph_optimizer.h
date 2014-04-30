@@ -182,7 +182,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                      Instruction* insert_before);
   Instruction* GetCheckClass(Definition* to_check,
                              const ICData& unary_checks,
-                             intptr_t deopt_id);
+                             intptr_t deopt_id,
+                             intptr_t token_pos);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,

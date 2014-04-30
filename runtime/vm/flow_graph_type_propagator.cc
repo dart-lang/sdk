@@ -373,13 +373,15 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   if (check->IsCheckSmi()) {
     check_clone =
         new CheckSmiInstr(assert->value()->Copy(),
-                          assert->env()->deopt_id());
+                          assert->env()->deopt_id(),
+                          check->token_pos());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
         new CheckClassInstr(assert->value()->Copy(),
                             assert->env()->deopt_id(),
-                            check->AsCheckClass()->unary_checks());
+                            check->AsCheckClass()->unary_checks(),
+                            check->token_pos());
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
