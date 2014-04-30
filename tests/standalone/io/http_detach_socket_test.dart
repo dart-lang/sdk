@@ -48,6 +48,38 @@ void testServerDetachSocket() {
   });
 }
 
+void testServerDetachSocketNoWriteHeaders() {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.listen((request) {
+      var response = request.response;
+      response.contentLength = 0;
+      response.detachSocket(writeHeaders: false).then((socket) {
+        Expect.isNotNull(socket);
+        var body = new StringBuffer();
+        socket.listen(
+          (data) => body.write(new String.fromCharCodes(data)),
+          onDone: () => Expect.equals("Some data", body.toString()));
+        socket.write("Test!");
+        socket.close();
+      });
+      server.close();
+    });
+
+    Socket.connect("127.0.0.1", server.port).then((socket) {
+      socket.write("GET / HTTP/1.1\r\n"
+                   "content-length: 0\r\n\r\n"
+                   "Some data");
+      var body = new StringBuffer();
+      socket.listen(
+        (data) => body.write(new String.fromCharCodes(data)),
+        onDone: () {
+          Expect.equals("Test!",body.toString());
+          socket.close();
+        });
+    });
+  });
+}
+
 void testBadServerDetachSocket() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
@@ -115,6 +147,7 @@ void testClientDetachSocket() {
 
 void main() {
   testServerDetachSocket();
+  testServerDetachSocketNoWriteHeaders();
   testBadServerDetachSocket();
   testClientDetachSocket();
 }

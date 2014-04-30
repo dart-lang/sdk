@@ -1128,8 +1128,12 @@ abstract class HttpResponse implements IOSink {
    *
    * This is normally used when a HTTP upgrade request is received
    * and the communication should continue with a different protocol.
+   *
+   * If [writeHeaders] is `true`, the status line and [headers] will be written
+   * to the socket before it's detached. If `false`, the socket is detached
+   * immediately, without any data written to the socket. Default is `true`.
    */
-  Future<Socket> detachSocket();
+  Future<Socket> detachSocket({bool writeHeaders: true});
 
   /**
    * Gets information about the client connection. Returns [:null:] if the
