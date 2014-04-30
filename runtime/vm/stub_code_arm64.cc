@@ -502,18 +502,16 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadObject(TMP, Object::null_object(), PP);
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
-  __ Push(TMP);
+  __ PushObject(Object::null_object(), PP);
   __ Push(R2);
   __ Push(R1);
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   // Pop arguments; result is popped in IP.
   __ Pop(R1);
   __ Pop(R2);
-  __ Pop(TMP);
-  __ mov(R0, TMP);
+  __ Pop(R0);
   __ LeaveStubFrame();
   __ ret();
 }
@@ -779,9 +777,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ LoadObject(R2, Object::null_object(), PP);
   __ SmiTag(R1);
-  __ Push(R2);
+  __ PushObject(Object::null_object(), PP);
   __ Push(R1);
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ Drop(1);  // Pop number of context variables argument.
@@ -1159,12 +1156,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadObject(R0, Object::null_object(), PP);
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
   __ Push(R4);  // Preserve arguments descriptor array.
   __ Push(R5);  // Preserve IC Data.
-  __ Push(R0);  // Setup space on stack for the result (target code object).
+  // Setup space on stack for the result (target code object).
+  __ PushObject(Object::null_object(), PP);
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ LoadFromOffset(TMP, R7, -i * kWordSize);
@@ -1380,18 +1377,109 @@ void StubCode::GenerateDebugStepCheckStub(
 }
 
 
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
+static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
+  ASSERT((1 <= n) && (n <= 3));
+  if (n > 1) {
+    // Get instance type arguments.
+    __ LoadClass(R3, R0);
+    // Compute instance type arguments into R4.
+    Label has_no_type_arguments;
+    __ LoadObject(R4, Object::null_object(), PP);
+    __ LoadFieldFromOffset(
+        R5, R3, Class::type_arguments_field_offset_in_words_offset());
+    __ CompareImmediate(R5, Class::kNoTypeArguments, kNoPP);
+    __ b(&has_no_type_arguments, EQ);
+    __ add(R5, R0, Operand(R5, LSL, 3));
+    __ LoadFieldFromOffset(R4, R5, 0);
+    __ Bind(&has_no_type_arguments);
+  }
+  __ LoadClassId(R3, R0);
+  // R0: instance.
+  // R1: instantiator type arguments or NULL.
+  // R2: SubtypeTestCache.
+  // R3: instance class id.
+  // R4: instance type arguments (null if none), used only if n > 1.
+  __ LoadFieldFromOffset(R2, R2, SubtypeTestCache::cache_offset());
+  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag, kNoPP);
+
+  Label loop, found, not_found, next_iteration;
+  // R2: entry start.
+  // R3: instance class id.
+  // R4: instance type arguments.
+  __ SmiTag(R3);
+  __ Bind(&loop);
+  __ LoadFromOffset(R5, R2, kWordSize * SubtypeTestCache::kInstanceClassId);
+  __ CompareObject(R5, Object::null_object(), PP);
+  __ b(&not_found, EQ);
+  __ CompareRegisters(R5, R3);
+  if (n == 1) {
+    __ b(&found, EQ);
+  } else {
+    __ b(&next_iteration, NE);
+    __ LoadFromOffset(
+        R5, R2, kWordSize * SubtypeTestCache::kInstanceTypeArguments);
+    __ CompareRegisters(R5, R4);
+    if (n == 2) {
+      __ b(&found, EQ);
+    } else {
+      __ b(&next_iteration, NE);
+      __ LoadFromOffset(
+          R5, R2, kWordSize * SubtypeTestCache::kInstantiatorTypeArguments);
+      __ CompareRegisters(R5, R1);
+      __ b(&found, EQ);
+    }
+  }
+  __ Bind(&next_iteration);
+  __ AddImmediate(
+      R2, R2, kWordSize * SubtypeTestCache::kTestEntryLength, kNoPP);
+  __ b(&loop);
+  // Fall through to not found.
+  __ Bind(&not_found);
+  __ LoadObject(R1, Object::null_object(), PP);
+  __ ret();
+
+  __ Bind(&found);
+  __ LoadFromOffset(R1, R2, kWordSize * SubtypeTestCache::kTestResult);
+  __ ret();
+}
+
+
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments or NULL.
+// TOS + 2: instance.
+// TOS + 3: cache array.
+// Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
-  __ Stop("GenerateSubtype1TestCacheStub");
+  GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
 
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  __ Stop("GenerateSubtype2TestCacheStub");
+  GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
 
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments.
+// TOS + 2: instance.
+// TOS + 3: cache array.
+// Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  __ Stop("GenerateSubtype3TestCacheStub");
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 

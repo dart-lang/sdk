@@ -218,13 +218,48 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(bool opt) const {
 
 
 LocationSummary* AssertBooleanInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+static void EmitAssertBoolean(Register reg,
+                              intptr_t token_pos,
+                              intptr_t deopt_id,
+                              LocationSummary* locs,
+                              FlowGraphCompiler* compiler) {
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  ASSERT(locs->always_calls());
+  Label done;
+  __ CompareObject(reg, Bool::True(), PP);
+  __ b(&done, EQ);
+  __ CompareObject(reg, Bool::False(), PP);
+  __ b(&done, EQ);
+
+  __ Push(reg);  // Push the source object.
+  compiler->GenerateRuntimeCall(token_pos,
+                                deopt_id,
+                                kNonBoolTypeErrorRuntimeEntry,
+                                1,
+                                locs);
+  // We should never return here.
+  __ hlt(0);
+  __ Bind(&done);
 }
 
 
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+
+  EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
+  ASSERT(obj == result);
 }
 
 
