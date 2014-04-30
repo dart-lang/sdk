@@ -6,7 +6,7 @@ library dart2js.util.setlet;
 
 import 'dart:collection' show IterableBase;
 
-class Setlet<E> extends IterableBase<E> {
+class Setlet<E> extends IterableBase<E> implements Set<E> {
   static const _MARKER = const _SetletMarker();
   static const CAPACITY = 8;
 
@@ -73,6 +73,90 @@ class Setlet<E> extends IterableBase<E> {
     }
   }
 
+  bool add(E element) {
+    if (_extra == null) {
+      if (_MARKER == _contents) {
+        _contents = element;
+        return true;
+      } else if (_contents == element) {
+        // Do nothing.
+        return false;
+      } else {
+        List list = new List(CAPACITY);
+        list[0] = _contents;
+        list[1] = element;
+        _contents = list;
+        _extra = 2;  // Two elements.
+        return true;
+      }
+    } else if (_MARKER == _extra) {
+      return _contents.add(element);
+    } else {
+      int remaining = _extra;
+      int index = 0;
+      int copyTo, copyFrom;
+      while (remaining > 0 && index < CAPACITY) {
+        var candidate = _contents[index++];
+        if (_MARKER == candidate) {
+          // Keep track of the last range of empty slots in the
+          // list. When we're done we'll move all the elements
+          // after those empty slots down, so that adding an element
+          // after that will preserve the insertion order.
+          if (copyFrom == index - 1) {
+            copyFrom++;
+          } else {
+            copyTo = index - 1;
+            copyFrom = index;
+          }
+          continue;
+        } else if (candidate == element) {
+          return false;
+        }
+        remaining--;
+      }
+      if (index < CAPACITY) {
+        _contents[index] = element;
+        _extra++;
+      } else if (_extra < CAPACITY) {
+        // Move the last elements down into the last empty slots
+        // so that we have empty slots after the last element.
+        while (copyFrom < CAPACITY) {
+          _contents[copyTo++] = _contents[copyFrom++];
+        }
+        // Insert the new element as the last element.
+        _contents[copyTo++] = element;
+        _extra++;
+        // Clear all elements after the new last elements to
+        // make sure we don't keep extra stuff alive.
+        while (copyTo < CAPACITY) _contents[copyTo++] = null;
+      } else {
+        _contents = new Set<E>()..addAll(_contents)..add(element);
+        _extra = _MARKER;
+      }
+      return true;
+    }
+  }
+
+  void addAll(Iterable<E> elements) {
+    elements.forEach((each) => add(each));
+  }
+
+  E lookup(Object element) {
+    if (_extra == null) {
+      return _contents == element ? _contents : null;
+    } else if (_MARKER == _extra) {
+      return _contents.lookup(element);
+    } else {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+        var candidate = _contents[i];
+        if (_MARKER == candidate) continue;
+        if (candidate == element) return candidate;
+        remaining--;
+      }
+      return null;
+    }
+  }
+
   bool remove(E element) {
     if (_extra == null) {
       if (_contents == element) {
@@ -98,68 +182,37 @@ class Setlet<E> extends IterableBase<E> {
     }
   }
 
-  void add(E element) {
+  void removeAll(Iterable<Object> other) {
+    other.forEach(remove);
+  }
+
+  void removeWhere(bool test(E element)) {
     if (_extra == null) {
-      if (_MARKER == _contents) {
-        _contents = element;
-      } else if (_contents == element) {
-        // Do nothing.
-      } else {
-        List list = new List(CAPACITY);
-        list[0] = _contents;
-        list[1] = element;
-        _contents = list;
-        _extra = 2;  // Two elements.
+      if (test(_contents)) {
+        _contents = _MARKER;
       }
     } else if (_MARKER == _extra) {
-      _contents.add(element);
+      _contents.removeWhere(test);
     } else {
-      int remaining = _extra;
-      int index = 0;
-      int copyTo, copyFrom;
-      while (remaining > 0 && index < CAPACITY) {
-        var candidate = _contents[index++];
-        if (_MARKER == candidate) {
-          // Keep track of the last range of empty slots in the
-          // list. When we're done we'll move all the elements
-          // after those empty slots down, so that adding an element
-          // after that will preserve the insertion order.
-          if (copyFrom == index - 1) {
-            copyFrom++;
-          } else {
-            copyTo = index - 1;
-            copyFrom = index;
-          }
-          continue;
-        } else if (candidate == element) {
-          return;
+      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+        var candidate = _contents[i];
+        if (_MARKER == candidate) continue;
+        if (test(candidate)) {
+          _contents[i] = _MARKER;
+          _extra--;
         }
         remaining--;
-      }
-      if (index < CAPACITY) {
-        _contents[index] = element;
-        _extra++;
-      } else if (_extra < CAPACITY) {
-        // Move the last elements down into the last empty slots
-        // so that we have empty slots after the last element.
-        while (copyFrom < CAPACITY) {
-          _contents[copyTo++] = _contents[copyFrom++];
-        }
-        // Insert the new element as the last element.
-        _contents[copyTo++] = element;
-        _extra++;
-        // Clear all elements after the new last elements to
-        // make sure we don't keep extra stuff alive.
-        while (copyTo < CAPACITY) _contents[copyTo++] = null;
-      } else {
-        _contents = new Set<E>()..addAll(_contents)..add(element);
-        _extra = _MARKER;
       }
     }
   }
 
-  void addAll(Iterable<E> elements) {
-    elements.forEach((each) => add(each));
+  void retainWhere(bool test(E element)) {
+    removeWhere((E element) => !test(element));
+  }
+
+  void retainAll(Iterable<Object> elements) {
+    Set set = elements is Set ? elements : elements.toSet();
+    removeWhere((E element) => !set.contains(element));
   }
 
   void forEach(void action(E element)) {
@@ -188,6 +241,14 @@ class Setlet<E> extends IterableBase<E> {
     _contents = _MARKER;
     _extra = null;
   }
+
+  Set<E> union(Set<E> other) => new Set<E>.from(this)..addAll(other);
+
+  Setlet<E> intersection(Set<E> other) =>
+      new Setlet<E>.from(this.where((e) => other.contains(e)));
+
+  Setlet<E> difference(Set<E> other) =>
+      new Setlet<E>.from(this.where((e) => !other.contains(e)));
 }
 
 class _SetletMarker {
