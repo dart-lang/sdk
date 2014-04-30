@@ -79,7 +79,7 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   // T2: allocation size.
   {
     Label overflow, done;
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     const Class& cls = Class::Handle(isolate->object_store()->array_class());
 
     __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
@@ -506,7 +506,7 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
                              &size_tag_overflow);                              \
     __ b(&done);                                                               \
     __ delay_slot()->sll(T2, T2,                                               \
-        RawObject::kSizeTagBit - kObjectAlignmentLog2);                        \
+        RawObject::kSizeTagPos - kObjectAlignmentLog2);                        \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
     __ mov(T2, ZR);                                                            \
@@ -1604,7 +1604,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // T2: allocation size.
   {
     Label overflow, done;
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     const Class& cls =
         Class::Handle(isolate->object_store()->one_byte_string_class());
 

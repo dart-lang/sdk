@@ -3673,33 +3673,33 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-RawFunction* Class::CheckFunctionType(const Function& func, intptr_t type) {
-  if (type == kInstance) {
+RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
+  if (kind == kInstance) {
     if (func.IsDynamicFunction()) {
       return func.raw();
     }
-  } else if (type == kStatic) {
+  } else if (kind == kStatic) {
     if (func.IsStaticFunction()) {
       return func.raw();
     }
-  } else if (type == kConstructor) {
+  } else if (kind == kConstructor) {
     if (func.IsConstructor()) {
       ASSERT(!func.is_static());
       return func.raw();
     }
-  } else if (type == kFactory) {
+  } else if (kind == kFactory) {
     if (func.IsFactory()) {
       ASSERT(func.is_static());
       return func.raw();
     }
-  } else if (type == kAny) {
+  } else if (kind == kAny) {
     return func.raw();
   }
   return Function::null();
 }
 
 
-RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
+RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -3717,7 +3717,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       if (function.name() == name.raw()) {
-        return CheckFunctionType(function, type);
+        return CheckFunctionType(function, kind);
       }
     }
   } else {
@@ -3727,7 +3727,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
       function ^= funcs.At(i);
       function_name ^= function.name();
       if (function_name.Equals(name)) {
-        return CheckFunctionType(function, type);
+        return CheckFunctionType(function, kind);
       }
     }
   }
@@ -3737,7 +3737,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
 
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
-                                               intptr_t type) const {
+                                               MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -3755,7 +3755,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
     function ^= funcs.At(i);
     function_name ^= function.name();
     if (String::EqualsIgnoringPrivateKey(function_name, name)) {
-      return CheckFunctionType(function, type);
+      return CheckFunctionType(function, kind);
     }
   }
   // No function found.
@@ -3842,7 +3842,7 @@ RawField* Class::LookupField(const String& name) const {
 }
 
 
-RawField* Class::LookupField(const String& name, intptr_t type) const {
+RawField* Class::LookupField(const String& name, MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
@@ -3860,15 +3860,15 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-      if (type == kInstance) {
+      if (kind == kInstance) {
         if (!field.is_static()) {
           return field.raw();
         }
-      } else if (type == kStatic) {
+      } else if (kind == kStatic) {
         if (field.is_static()) {
           return field.raw();
         }
-      } else if (type == kAny) {
+      } else if (kind == kAny) {
         return field.raw();
       }
       return Field::null();

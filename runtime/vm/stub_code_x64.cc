@@ -635,7 +635,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ andq(RBX, Immediate(-kObjectAlignment));
       __ cmpq(RBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ shlq(RBX, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
@@ -896,7 +896,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ andq(R13, Immediate(-kObjectAlignment));
       __ cmpq(R13, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(R13, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ shlq(R13, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);

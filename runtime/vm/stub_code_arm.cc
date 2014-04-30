@@ -674,7 +674,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R2: array length as Smi.
     // R3: array size.
     // R7: new object end address.
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag);
     // If no size tag overflow, shift R1 left, else set R1 to zero.
     __ mov(R1, ShifterOperand(R3, LSL, shift), LS);
@@ -907,7 +907,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R0: new object.
     // R1: number of context variables.
     // R2: object size.
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
     // If no size tag overflow, shift R2 left, else set R2 to zero.
     __ mov(R2, ShifterOperand(R2, LSL, shift), LS);

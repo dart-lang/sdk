@@ -2601,10 +2601,10 @@ void Assembler::EmitGenericShift(int rm,
 
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagBit / kBitsPerByte;
+      RawObject::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 

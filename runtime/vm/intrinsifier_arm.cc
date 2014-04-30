@@ -79,7 +79,7 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     const Class& cls = Class::Handle(isolate->object_store()->array_class());
 
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
@@ -499,7 +499,7 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
   {                                                                            \
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);                  \
     __ mov(R2, ShifterOperand(R2, LSL,                                         \
-        RawObject::kSizeTagBit - kObjectAlignmentLog2), LS);                   \
+        RawObject::kSizeTagPos - kObjectAlignmentLog2), LS);                   \
     __ mov(R2, ShifterOperand(0), HI);                                         \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
@@ -1531,7 +1531,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     const Class& cls =
         Class::Handle(isolate->object_store()->one_byte_string_class());
 

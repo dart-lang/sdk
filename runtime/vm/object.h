@@ -1117,20 +1117,20 @@ class Class : public Object {
   void set_cha_codes(const Array& value) const;
 
  private:
-  enum {
+  enum MemberKind {
     kAny = 0,
     kStatic,
     kInstance,
     kConstructor,
     kFactory,
   };
-  enum {
+  enum StateBits {
     kConstBit = 0,
     kImplementedBit = 1,
     kTypeFinalizedBit = 2,
-    kClassFinalizedBits = 3,
+    kClassFinalizedPos = 3,
     kClassFinalizedSize = 2,
-    kAbstractBit = 5,
+    kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
     kPatchBit = 6,
     kSynthesizedClassBit = 7,
     kMarkedForParsingBit = 8,
@@ -1143,7 +1143,7 @@ class Class : public Object {
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
   class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
-      kClassFinalizedBits, kClassFinalizedSize> {};  // NOLINT
+      kClassFinalizedPos, kClassFinalizedSize> {};  // NOLINT
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class PatchBit : public BitField<bool, kPatchBit, 1> {};
   class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
@@ -1190,11 +1190,11 @@ class Class : public Object {
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
 
-  static RawFunction* CheckFunctionType(const Function& func, intptr_t type);
-  RawFunction* LookupFunction(const String& name, intptr_t type) const;
+  static RawFunction* CheckFunctionType(const Function& func, MemberKind kind);
+  RawFunction* LookupFunction(const String& name, MemberKind kind) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name,
-                                          intptr_t type) const;
-  RawField* LookupField(const String& name, intptr_t type) const;
+                                          MemberKind kind) const;
+  RawField* LookupField(const String& name, MemberKind kind) const;
 
   RawFunction* LookupAccessorFunction(const char* prefix,
                                       intptr_t prefix_length,
@@ -1946,9 +1946,9 @@ class Function : public Object {
 
  private:
   enum KindTagBits {
-    kKindTagBit = 0,
+    kKindTagPos = 0,
     kKindTagSize = 4,
-    kStaticBit = 4,
+    kStaticBit = kKindTagPos + kKindTagSize,  // = 4
     kConstBit = 5,
     kAbstractBit = 6,
     kVisibleBit = 7,
@@ -1962,7 +1962,7 @@ class Function : public Object {
     kAllowsHoistingCheckClassBit = 15,
   };
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
+    public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};

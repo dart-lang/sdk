@@ -2485,7 +2485,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Calculate the size tag and write tags.
     intptr_t size_tag = (instance_size > RawObject::SizeTag::kMaxSizeTag)
-        ? 0 : instance_size << (RawObject::kSizeTagBit - kObjectAlignmentLog2);
+        ? 0 : instance_size << (RawObject::kSizeTagPos - kObjectAlignmentLog2);
 
     intptr_t tags = size_tag | RawObject::ClassIdTag::encode(kContextCid);
     __ movl(FieldAddress(result, Context::tags_offset()), Immediate(tags));
