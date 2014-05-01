@@ -216,9 +216,18 @@ class Builder extends ir.Visitor<Expression> {
 
   Builder(this.compiler);
 
+  static final String _bailout = 'Bailout Tree Builder';
+
+  bailout() => throw _bailout;
+
   FunctionDefinition build(ir.FunctionDefinition node) {
-    visit(node);
-    return function;
+    try {
+      visit(node);
+      return function;
+    } catch (e) {
+      if (e == _bailout) return null;
+      rethrow;
+    }
   }
 
   List<Expression> translateArguments(List<ir.Reference> args) {
@@ -289,7 +298,12 @@ class Builder extends ir.Visitor<Expression> {
     // TODO(kmillikin): Support non-return continuations.  These could arise
     // due to local control flow or due to inlining or other optimization.
     assert(node.continuation.definition == returnContinuation);
-    return new Return(variables[node.argument.definition]);
+    assert(node.arguments.length == 1);
+    return new Return(variables[node.arguments[0].definition]);
+  }
+
+  Expression visitBranch(ir.Branch node) {
+    return bailout();
   }
 
   Expression visitConstant(ir.Constant node) {

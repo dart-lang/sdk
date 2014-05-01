@@ -121,6 +121,7 @@ class Unpickler {
   ir.Expression readExpressionNode() {
     int tag = readByte();
     switch (tag) {
+      // Nontail-position expressions.
       case Pickles.NODE_CONSTANT:
         ir.Definition constant = readConstant();
         unpickled[index++] = constant;
@@ -136,6 +137,8 @@ class Unpickler {
         parameters.forEach((p) => unpickled[index++] = p);
         addExpression(new ir.LetCont(continuation, body));
         break;
+
+      // Tail-position expressions.
       case Pickles.NODE_INVOKE_STATIC:
         addExpression(readInvokeStatic());
         current = null;
@@ -144,6 +147,11 @@ class Unpickler {
         addExpression(readInvokeContinuation());
         current = null;
         break;
+      case Pickles.NODE_BRANCH:
+        addExpression(readBranch());
+        current = null;
+        break;
+
       default:
         compiler.internalError(NO_LOCATION_SPANNABLE,
                                "Unexpected expression entry tag: $tag");
@@ -216,8 +224,26 @@ class Unpickler {
 
   ir.InvokeContinuation readInvokeContinuation() {
     ir.Continuation continuation = readBackReference();
-    ir.Definition argument = readBackReference();
-    return new ir.InvokeContinuation(continuation, argument);
+    List<ir.Definition> arguments = readBackReferenceList();
+    return new ir.InvokeContinuation(continuation, arguments);
+  }
+
+  ir.Branch readBranch() {
+    ir.Condition condition = readCondition();
+    ir.Continuation trueContinuation = readBackReference();
+    ir.Continuation falseContinuation = readBackReference();
+    return new ir.Branch(condition, trueContinuation, falseContinuation);
+  }
+
+  ir.Condition readCondition() {
+    int tag = readByte();
+    assert(tag == Pickles.NODE_IS_TRUE);
+    return readIsTrue();
+  }
+
+  ir.IsTrue readIsTrue() {
+    ir.Definition value = readBackReference();
+    return new ir.IsTrue(value);
   }
 
   Constant readConstantValue() {
