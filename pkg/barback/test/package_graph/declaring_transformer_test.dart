@@ -220,38 +220,36 @@ main() {
     expect(declaring.numRuns, completion(equals(2)));
   });
 
-  // TODO(nweiz): Re-enable these when barback is capable of dealing with a
-  // changing [TransformNode.deferred] value.
-  // group("with an error in declareOutputs", () {
-  //   test("still runs apply", () {
-  //     initGraph(["app|foo.txt"], {"app": [[
-  //       new DeclaringBadTransformer("app|out.txt",
-  //           declareError: true, applyError: false)
-  //     ]]});
-  //
-  //     updateSources(["app|foo.txt"]);
-  //     expectAsset("app|out.txt", "bad out");
-  //     expectAsset("app|foo.txt", "foo");
-  //     buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
-  //   });
-  //
-  //   test("waits for apply to complete before passing through the input even if "
-  //       "consumePrimary was called", () {
-  //     var transformer = new DeclaringBadTransformer("app|out.txt",
-  //           declareError: true, applyError: false)..consumePrimary = true;
-  //     initGraph(["app|foo.txt"], {"app": [[transformer]]});
-  //
-  //     transformer.pauseApply();
-  //     updateSources(["app|foo.txt"]);
-  //     expectAssetDoesNotComplete("app|out.txt");
-  //     expectAssetDoesNotComplete("app|foo.txt");
-  //
-  //     transformer.resumeApply();
-  //     expectAsset("app|out.txt", "bad out");
-  //     expectNoAsset("app|foo.txt");
-  //     buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
-  //   });
-  // });
+  group("with an error in declareOutputs", () {
+    test("still runs apply", () {
+      initGraph(["app|foo.txt"], {"app": [[
+        new DeclaringBadTransformer("app|out.txt",
+            declareError: true, applyError: false)
+      ]]});
+
+      updateSources(["app|foo.txt"]);
+      expectAsset("app|out.txt", "bad out");
+      expectAsset("app|foo.txt", "foo");
+      buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
+    });
+
+    test("waits for apply to complete before passing through the input even if "
+        "consumePrimary was called", () {
+      var transformer = new DeclaringBadTransformer("app|out.txt",
+            declareError: true, applyError: false)..consumePrimary = true;
+      initGraph(["app|foo.txt"], {"app": [[transformer]]});
+
+      transformer.pauseApply();
+      updateSources(["app|foo.txt"]);
+      expectAssetDoesNotComplete("app|out.txt");
+      expectAssetDoesNotComplete("app|foo.txt");
+
+      transformer.resumeApply();
+      expectAsset("app|out.txt", "bad out");
+      expectNoAsset("app|foo.txt");
+      buildShouldFail([isTransformerException(BadTransformer.ERROR)]);
+    });
+  });
 
   test("with an error in apply still passes through the input", () {
    initGraph(["app|foo.txt"], {"app": [[

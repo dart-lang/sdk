@@ -58,10 +58,10 @@ class AssetNode {
   /// lazy.
   Function _lazyCallback;
 
-  /// Whether this asset's transform is deferred.
-  ///
-  /// See [TransformNode.deferred].
-  bool get deferred => transform != null && transform.deferred;
+  /// Whether this node is lazy, meaning that [force] must be called to
+  /// guarantee that it will eventually become available.
+  bool get isLazy => _lazyCallback != null ||
+      (_origin != null && _origin.isLazy);
 
   /// A broadcast stream that emits an event whenever the node changes state.
   ///
@@ -145,8 +145,7 @@ class AssetNode {
     }
   }
 
-  String toString() =>
-    "$state${_lazyCallback == null ? '' : ' lazy'} asset $id";
+  String toString() => "${isLazy ? 'lazy' : state} asset $id";
 }
 
 /// The controller for an [AssetNode].

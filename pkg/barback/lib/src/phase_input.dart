@@ -50,7 +50,7 @@ class PhaseInput {
 
   /// How far along [this] is in processing its assets.
   NodeStatus get status {
-    var status = input.state.isDirty && !input.deferred ?
+    var status = input.state.isDirty && !input.isLazy ?
         NodeStatus.MATERIALIZING : NodeStatus.IDLE;
     return status.dirtier(NodeStatus.dirtiest(
         _transforms.map((transform) => transform.status)));
