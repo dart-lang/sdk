@@ -481,40 +481,53 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static Future<_NativeSocket> connect(host, int port) {
     return new Future.value(host)
         .then((host) {
-          if (host is _InternetAddress) return host;
+          if (host is _InternetAddress) return [host];
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
                   throw createError(response, "Failed host lookup: '$host'");
                 }
-                return list[0];
+                return list;
               });
         })
-        .then((address) {
-          var socket = new _NativeSocket.normal();
-          socket.address = address;
-          var result = socket.nativeCreateConnect(
-              address._in_addr, port);
-          if (result is OSError) {
-            throw createError(result, "Connection failed", address, port);
-          } else {
-            socket.port;  // Query the local port, for error messages.
-            var completer = new Completer();
-            // Setup handlers for receiving the first write event which
-            // indicate that the socket is fully connected.
-            socket.setHandlers(
-                write: () {
-                  socket.setListening(read: false, write: false);
-                  completer.complete(socket);
-                },
-                error: (e) {
-                  socket.close();
-                  completer.completeError(e);
-                }
-            );
-            socket.setListening(read: false, write: true);
-            return completer.future;
+        .then((addresses) {
+          assert(addresses is List);
+          var completer = new Completer();
+          var it = addresses.iterator;
+          void run(error) {
+            if (!it.moveNext()) {
+              assert(error != null);
+              completer.completeError(error);
+              return;
+            }
+            var address = it.current;
+            var socket = new _NativeSocket.normal();
+            socket.address = address;
+            var result = socket.nativeCreateConnect(address._in_addr, port);
+            if (result is OSError) {
+              // Keep first error, if present.
+              run(error != null ? error :
+                  createError(result, "Connection failed", address, port));
+            } else {
+              socket.port;  // Query the local port, for error messages.
+              // Setup handlers for receiving the first write event which
+              // indicate that the socket is fully connected.
+              socket.setHandlers(
+                  write: () {
+                    socket.setListening(read: false, write: false);
+                    completer.complete(socket);
+                  },
+                  error: (e) {
+                    socket.close();
+                    // Keep first error, if present.
+                    run(error != null ? error : e);
+                  }
+              );
+              socket.setListening(read: false, write: true);
+            }
           }
+          run(null);
+          return completer.future;
         });
   }
 

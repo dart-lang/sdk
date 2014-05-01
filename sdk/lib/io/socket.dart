@@ -388,8 +388,10 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * if the host-lookup or connection failed.
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
+   * [String], [connect] will perform a [InternetAddress.lookup] and try
+   * all returned [InternetAddress]es, in turn, until connected. Unless a
+   * connection was established, the error from the first attempt is
+   * returned.
    */
   external static Future<RawSocket> connect(host, int port);
 
@@ -479,8 +481,10 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * if the host-lookup or connection failed.
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
+   * [String], [connect] will perform a [InternetAddress.lookup] and try
+   * all returned [InternetAddress]es, in turn, until connected. Unless a
+   * connection was established, the error from the first attempt is
+   * returned.
    */
   external static Future<Socket> connect(host, int port);
 
