@@ -207,6 +207,9 @@ class FlowGraphBuilder: public ValueObject {
   // OSR entry point.
   void PruneUnreachable();
 
+  // Returns address where the constant 'value' is stored or 0 if not found.
+  static uword FindDoubleConstant(double value);
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
 

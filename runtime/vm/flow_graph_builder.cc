@@ -39,6 +39,32 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
+
+// TODO(srdjan): Allow compiler to add constants as they are encountered in
+// the compilation.
+const double kCommonDoubleConstants[] =
+    {-1.0, -0.5, -0.1, 0.0, 0.1, 0.5, 1.0, 2.0, 4.0, 5.0,
+     10.0, 20.0, 30.0, 64.0, 255.0, NAN,
+     // From dart:math
+     2.718281828459045, 2.302585092994046, 0.6931471805599453,
+     1.4426950408889634, 0.4342944819032518, 3.1415926535897932,
+     0.7071067811865476, 1.4142135623730951};
+
+uword FlowGraphBuilder::FindDoubleConstant(double value) {
+  intptr_t len = sizeof(kCommonDoubleConstants) / sizeof(double);  // NOLINT
+  for (intptr_t i = 0; i < len; i++) {
+    // Bitwise compare.
+    const int64_t* a = reinterpret_cast<const int64_t*>(&value);
+    const int64_t* b =
+        reinterpret_cast<const int64_t*>(&kCommonDoubleConstants[i]);
+    if (*a == *b) {
+      return reinterpret_cast<uword>(&kCommonDoubleConstants[i]);
+    }
+  }
+  return 0;
+}
+
+
 // Base class for a stack of enclosing statements of interest (e.g.,
 // blocks (breakable) and loops (continuable)).
 class NestedStatement : public ValueObject {

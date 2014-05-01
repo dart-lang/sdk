@@ -7604,6 +7604,9 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
                                           Integer::Cast(left),
                                           Integer::Cast(right));
       SetValue(instr, Bool::Get(result));
+    } else if (left.IsDouble() && right.IsDouble()) {
+      // TODO(srdjan): Implement.
+      SetValue(instr, non_constant_);
     } else {
       SetValue(instr, non_constant_);
     }
@@ -8068,6 +8071,11 @@ void ConstantPropagator::VisitExtractNthOutput(ExtractNthOutputInstr* instr) {
 
 
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
+  SetValue(instr, instr->value());
+}
+
+
+void ConstantPropagator::VisitUnboxedConstant(UnboxedConstantInstr* instr) {
   SetValue(instr, instr->value());
 }
 

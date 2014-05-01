@@ -691,7 +691,6 @@ class Assembler : public ValueObject {
   void StoreObject(const Address& dst, const Object& obj, Register pp);
   void PushObject(const Object& object, Register pp);
   void CompareObject(Register reg, const Object& object, Register pp);
-  void LoadDoubleConstant(XmmRegister dst, double value);
 
   // Destroys value.
   void StoreIntoObject(Register object,  // Object we are storing into.
@@ -722,7 +721,6 @@ class Assembler : public ValueObject {
   // frame_space bytes are reserved under it.
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
-
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 

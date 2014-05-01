@@ -12,6 +12,7 @@
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -1648,6 +1649,18 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ xorl(destination.reg(), destination.reg());
       } else {
         __ LoadObjectSafely(destination.reg(), constant);
+      }
+    } else if (destination.IsFpuRegister()) {
+      const Double& constant = Double::Cast(source.constant());
+      uword addr = FlowGraphBuilder::FindDoubleConstant(constant.value());
+      if (addr == 0) {
+        __ pushl(EAX);
+        __ LoadObject(EAX, constant);
+        __ movsd(destination.fpu_reg(),
+            FieldAddress(EAX, Double::value_offset()));
+        __ popl(EAX);
+      } else {
+        __ movsd(destination.fpu_reg(), Address::Absolute(addr));
       }
     } else {
       ASSERT(destination.IsStackSlot());

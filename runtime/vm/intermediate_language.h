@@ -721,6 +721,7 @@ class EmbeddedArray<T, 0> {
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
+  M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
@@ -2742,6 +2743,29 @@ class ConstantInstr : public TemplateDefinition<0> {
   const Object& value_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
+};
+
+
+// Merged ConstantInstr -> UnboxedXXX into UnboxedConstantInstr.
+// TODO(srdjan): Implemented currently for doubles only, should implement
+// for other unboxing instructions.
+class UnboxedConstantInstr : public ConstantInstr {
+ public:
+  explicit UnboxedConstantInstr(const Object& value);
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  // Either NULL or the address of the unboxed constant.
+  uword constant_address() const { return constant_address_; }
+
+  DECLARE_INSTRUCTION(UnboxedConstant)
+
+ private:
+  uword constant_address_;  // Either NULL or points to the untagged constant.
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
 
 

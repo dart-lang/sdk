@@ -325,6 +325,14 @@ bool ConstantInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
+    : ConstantInstr(value), constant_address_(NULL) {
+  // Only doubles supported for now.
+  ASSERT(value.IsDouble());
+  constant_address_ =
+      FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+}
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -1224,7 +1232,6 @@ static bool ToIntegerConstant(Value* value, intptr_t* result) {
       return ToIntegerConstant(value->definition()->AsUnboxDouble()->value(),
                                result);
     }
-
     return false;
   }
 
@@ -1601,9 +1608,21 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   // Fold away UnboxDouble(BoxDouble(v)).
-  BoxDoubleInstr* defn = value()->definition()->AsBoxDouble();
-  return (defn != NULL) ? defn->value()->definition() : this;
+  BoxDoubleInstr* box_defn = value()->definition()->AsBoxDouble();
+  if (box_defn != NULL) {
+    return box_defn->value()->definition();
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if ((c != NULL) && c->value().IsDouble()) {
+    UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
+    flow_graph->InsertBefore(this, uc, NULL, Definition::kValue);
+    return uc;
+  }
+
+  return this;
 }
 
 

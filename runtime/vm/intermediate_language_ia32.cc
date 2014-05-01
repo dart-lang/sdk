@@ -146,6 +146,35 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = (constant_address() == 0) ? 1 : 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_out(0, Location::RequiresFpuRegister());
+  if (kNumTemps == 1) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
+  return locs;
+}
+
+
+void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // The register allocator drops constant definitions that have no uses.
+  if (!locs()->out(0).IsInvalid()) {
+    if (constant_address() == 0) {
+      Register boxed = locs()->temp(0).reg();
+      XmmRegister result = locs()->out(0).fpu_reg();
+      __ LoadObjectSafely(boxed, value());
+      __ movsd(result, FieldAddress(boxed, Double::value_offset()));
+    } else {
+      XmmRegister result = locs()->out(0).fpu_reg();
+      __ movsd(result, Address::Absolute(constant_address()));
+    }
+  }
+}
+
+
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;

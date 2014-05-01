@@ -1677,16 +1677,20 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
+    const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      const Object& constant = source.constant();
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorq(destination.reg(), destination.reg());
       } else {
         __ LoadObject(destination.reg(), constant, PP);
       }
+    } else if (destination.IsFpuRegister()) {
+      __ LoadObject(TMP, constant, PP);
+      __ movsd(destination.fpu_reg(),
+          FieldAddress(TMP, Double::value_offset()));
     } else {
       ASSERT(destination.IsStackSlot());
-      StoreObject(destination.ToStackSlotAddress(), source.constant());
+      StoreObject(destination.ToStackSlotAddress(), constant);
     }
   }
 

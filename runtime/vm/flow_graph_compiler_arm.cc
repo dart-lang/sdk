@@ -1608,7 +1608,7 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
       const intptr_t dest_offset = source.ToStackSlotOffset();
-      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       __ LoadDFromOffset(dst, FP, dest_offset);
     } else {
       ASSERT(destination.IsDoubleStackSlot());
@@ -1632,13 +1632,18 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
+    const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      const Object& constant = source.constant();
       __ LoadObject(destination.reg(), constant);
+    } else if (destination.IsFpuRegister()) {
+      const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      __ LoadObject(TMP, constant);
+      __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
+      __ vldrd(dst, Address(TMP, 0));
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, source.constant());
+      __ LoadObject(TMP, constant);
       __ StoreToOffset(kWord, TMP, FP, dest_offset);
     }
   }
@@ -1665,7 +1670,7 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(source.ToStackSlotOffset(), destination.ToStackSlotOffset());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+    const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
     DRegister src = EvenDRegisterOf(source.fpu_reg());
     __ vmovd(DTMP, src);
     __ vmovd(src, dst);
