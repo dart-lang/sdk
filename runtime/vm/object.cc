@@ -10268,32 +10268,35 @@ static const char* VarKindString(int kind) {
 }
 
 
-const char* LocalVarDescriptors::ToCString() const {
-  intptr_t len = 1;  // Trailing '\0'.
-  const char* kFormat =
-      "%2" Pd " %-13s scope=%-3d index=%-3" Pd ""
-      " begin=%-3" Pd " end=%-3" Pd " name=%s\n";
-  const char* kFormatCtxLevel =
-      "%1$2" Pd " %2$-13s level=%4$-3" Pd " scope=%3$-3d"
-      " begin=%5$-3" Pd " end=%6$" Pd "\n";
-  const char* kFormatCtxVar =
-      "%2" Pd " %-13s level=%-3d index=%-3" Pd ""
-      " begin=%-3" Pd " end=%-3" Pd " name=%s\n";
-  for (intptr_t i = 0; i < Length(); i++) {
-    String& var_name = String::Handle(GetName(i));
-    if (var_name.IsNull()) {
-      var_name = Symbols::Empty().raw();
-    }
-    RawLocalVarDescriptors::VarInfo info;
-    GetInfo(i, &info);
-    const char* format = kFormat;
-    if (info.kind == RawLocalVarDescriptors::kContextLevel) {
-      format = kFormatCtxLevel;
-    } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
-      format = kFormatCtxVar;
-    }
-    len += OS::SNPrint(NULL, 0,
-                       format,
+static int PrintVarInfo(char* buffer, int len,
+                        intptr_t i,
+                        const String& var_name,
+                        const RawLocalVarDescriptors::VarInfo& info) {
+  if (info.kind == RawLocalVarDescriptors::kContextLevel) {
+    return OS::SNPrint(buffer, len,
+                       "%2" Pd " %-13s level=%-3" Pd " scope=%-3d"
+                       " begin=%-3" Pd " end=%" Pd "\n",
+                       i,
+                       VarKindString(info.kind),
+                       info.index,
+                       info.scope_id,
+                       info.begin_pos,
+                       info.end_pos);
+  } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
+    return OS::SNPrint(buffer, len,
+                       "%2" Pd " %-13s level=%-3d index=%-3" Pd ""
+                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
+                       i,
+                       VarKindString(info.kind),
+                       info.scope_id,
+                       info.index,
+                       info.begin_pos,
+                       info.end_pos,
+                       var_name.ToCString());
+  } else {
+    return OS::SNPrint(buffer, len,
+                       "%2" Pd " %-13s scope=%-3d index=%-3" Pd ""
+                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
                        i,
                        VarKindString(info.kind),
                        info.scope_id,
@@ -10302,31 +10305,33 @@ const char* LocalVarDescriptors::ToCString() const {
                        info.end_pos,
                        var_name.ToCString());
   }
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
-  intptr_t num_chars = 0;
+}
+
+
+const char* LocalVarDescriptors::ToCString() const {
+  intptr_t len = 1;  // Trailing '\0'.
+  String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
-    String& var_name = String::Handle(GetName(i));
+    RawLocalVarDescriptors::VarInfo info;
+    var_name = GetName(i);
     if (var_name.IsNull()) {
       var_name = Symbols::Empty().raw();
     }
-    RawLocalVarDescriptors::VarInfo info;
     GetInfo(i, &info);
-    const char* format = kFormat;
-    if (info.kind == RawLocalVarDescriptors::kContextLevel) {
-      format = kFormatCtxLevel;
-    } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
-      format = kFormatCtxVar;
+    len += PrintVarInfo(NULL, 0, i, var_name, info);
+  }
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
+  intptr_t num_chars = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    RawLocalVarDescriptors::VarInfo info;
+    var_name = GetName(i);
+    if (var_name.IsNull()) {
+      var_name = Symbols::Empty().raw();
     }
-    num_chars += OS::SNPrint((buffer + num_chars),
-                             (len - num_chars),
-                             format,
-                             i,
-                             VarKindString(info.kind),
-                             info.scope_id,
-                             info.index,
-                             info.begin_pos,
-                             info.end_pos,
-                             var_name.ToCString());
+    GetInfo(i, &info);
+    num_chars += PrintVarInfo((buffer + num_chars),
+                              (len - num_chars),
+                              i, var_name, info);
   }
   return buffer;
 }

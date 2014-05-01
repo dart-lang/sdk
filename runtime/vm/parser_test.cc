@@ -212,13 +212,12 @@ static void SaveVars(Dart_IsolateId isolate_id,
   for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
     var_desc = frame->code().var_descriptors();
-    const char* var_str = var_desc.ToCString();
-    char* edited_var_str = SkipIndex(var_str);
+    const char* var_str = SkipIndex(var_desc.ToCString());
     pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)),
                        "%s\n%s",
                        frame->function().ToQualifiedCString(),
-                       (edited_var_str != NULL ? edited_var_str :var_str));
-    delete [] edited_var_str;
+                       var_str);
+    delete [] var_str;
   }
   pos[0] = '\0';
   saved_vars = buffer;
