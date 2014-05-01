@@ -139,6 +139,10 @@ patch class _ProcessUtils {
       throw new SignalException(
           "Listening for signal $signal is not supported");
     }
+    return _watchSignalInternal(signal);
+  }
+
+  static Stream<ProcessSignal> _watchSignalInternal(ProcessSignal signal) {
     if (_signalControllers[signal._signalNumber] == null) {
       _signalControllers[signal._signalNumber] = new _SignalController(signal);
     }
