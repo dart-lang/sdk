@@ -4365,7 +4365,8 @@ class RangeAnalysis : public ValueObject {
 
   void ConstrainValueAfterBranch(Definition* defn, Value* use);
   void ConstrainValueAfterCheckArrayBound(Definition* defn,
-                                          CheckArrayBoundInstr* check);
+                                          CheckArrayBoundInstr* check,
+                                          intptr_t use_index);
 
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
@@ -4657,19 +4658,28 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
     } else if (use->instruction()->IsCheckArrayBound()) {
       ConstrainValueAfterCheckArrayBound(
           defn,
-          use->instruction()->AsCheckArrayBound());
+          use->instruction()->AsCheckArrayBound(),
+          use->use_index());
     }
   }
 }
 
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
-    Definition* defn, CheckArrayBoundInstr* check) {
-  Definition* length = check->length()->definition();
-
-  Range* constraint_range = new Range(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromDefinition(length, -1));
+    Definition* defn, CheckArrayBoundInstr* check, intptr_t use_index) {
+  Range* constraint_range = NULL;
+  if (use_index == CheckArrayBoundInstr::kIndexPos) {
+    Definition* length = check->length()->definition();
+    constraint_range = new Range(
+        RangeBoundary::FromConstant(0),
+        RangeBoundary::FromDefinition(length, -1));
+  } else {
+    ASSERT(use_index == CheckArrayBoundInstr::kLengthPos);
+    Definition* index = check->index()->definition();
+    constraint_range = new Range(
+        RangeBoundary::FromDefinition(index, 1),
+        RangeBoundary::MaxSmi());
+  }
   InsertConstraintFor(defn, constraint_range, check);
 }
 

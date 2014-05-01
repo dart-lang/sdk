@@ -7685,13 +7685,13 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
- private:
   // Give a name to the location/input indices.
   enum {
     kLengthPos = 0,
     kIndexPos = 1
   };
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
