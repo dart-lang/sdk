@@ -271,7 +271,7 @@ DEFINE_NATIVE_ENTRY(Double_getIsNaN, 1) {
 DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   // Include negative zero, infinity.
-  return Bool::Get(signbit(arg.value()) && !isnan(arg.value())).raw();
+  return Bool::Get(arg.IsNegative()).raw();
 }
 
 // Add here only functions using/referring to old-style casts.

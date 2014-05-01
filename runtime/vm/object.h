@@ -4795,16 +4795,13 @@ class MixinAppType : public AbstractType {
 class Number : public Instance {
  public:
   // TODO(iposva): Fill in a useful Number interface.
-  virtual bool IsZero() const {
-    // Number is an abstract class.
-    UNREACHABLE();
-    return false;
-  }
   virtual bool IsNegative() const {
     // Number is an abstract class.
     UNREACHABLE();
     return false;
   }
+
+ private:
   OBJECT_IMPLEMENTATION(Number, Instance);
   friend class Class;
 };
@@ -4824,6 +4821,11 @@ class Integer : public Number {
                          Heap::Space space = Heap::kNew,
                          const bool silent = false);
 
+  // Integer is an abstract class.
+  virtual bool IsZero() const {
+    UNREACHABLE();
+    return false;
+  }
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
@@ -5080,6 +5082,10 @@ class Double : public Number {
 
   bool EqualsToDouble(double value) const;
   virtual bool Equals(const Instance& other) const;
+  virtual bool IsNegative() const {
+    double dval = value();
+    return (signbit(dval) && !isnan(dval));
+  }
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
