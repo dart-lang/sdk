@@ -160,7 +160,7 @@ iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
-[ $compiler == dart2js && $runtime == safari && $runtime == safarimobilesim ]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $runtime == ie9 || $runtime == ie10 ]
