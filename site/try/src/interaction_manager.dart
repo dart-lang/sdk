@@ -61,6 +61,10 @@ import 'mock.dart' as mock;
 
 import 'settings.dart' as settings;
 
+const String TRY_DART_NEW_DEFECT =
+    'https://code.google.com/p/dart/issues/entry'
+    '?template=Try+Dart+Internal+Error';
+
 /**
  * UI interaction manager for the entire application.
  */
@@ -127,7 +131,33 @@ class InteractionContext extends InteractionManager {
   void onKeyUp(KeyboardEvent event) => state.onKeyUp(event);
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    return state.onMutation(mutations, observer);
+    try {
+      try {
+        return state.onMutation(mutations, observer);
+      } finally {
+        // Discard any mutations during the observer, as these can lead to
+        // infinite loop.
+        observer.takeRecords();
+      }
+    } catch (error, stackTrace) {
+      try {
+        editor.isMalformedInput = true;
+        outputDiv
+            ..nodes.clear()
+            ..append(new HeadingElement.h1()..appendText('Internal Error'))
+            ..appendText('We would appreciate if you take a moment to report '
+                         'this at ')
+            ..append(
+                new AnchorElement(href: TRY_DART_NEW_DEFECT)
+                    ..target = '_blank'
+                    ..appendText(TRY_DART_NEW_DEFECT))
+            ..appendText('\nError and stack trace:\n$error\n')
+            ..appendText('$stackTrace\n');
+      } catch (e) {
+        // Double faults ignored.
+      }
+      rethrow;
+    }
   }
 
   void onSelectionChange(Event event) => state.onSelectionChange(event);
