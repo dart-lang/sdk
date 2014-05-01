@@ -10244,10 +10244,41 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 }
 
 
+static const char* VarKindString(int kind) {
+  switch (kind) {
+    case RawLocalVarDescriptors::kStackVar:
+      return "StackVar";
+      break;
+    case RawLocalVarDescriptors::kContextVar:
+      return "ContextVar";
+      break;
+    case RawLocalVarDescriptors::kContextLevel:
+      return "ContextLevel";
+      break;
+    case RawLocalVarDescriptors::kSavedEntryContext:
+      return "SavedEntryCtx";
+      break;
+    case RawLocalVarDescriptors::kSavedCurrentContext:
+      return "SavedCurrentCtx";
+      break;
+    default:
+      UNREACHABLE();
+      return "Unknown";
+  }
+}
+
+
 const char* LocalVarDescriptors::ToCString() const {
   intptr_t len = 1;  // Trailing '\0'.
   const char* kFormat =
-      "%2" Pd " kind=%d scope=0x%04x begin=%" Pd " end=%" Pd " name=%s\n";
+      "%2" Pd " %-13s scope=%-3d index=%-3" Pd ""
+      " begin=%-3" Pd " end=%-3" Pd " name=%s\n";
+  const char* kFormatCtxLevel =
+      "%1$2" Pd " %2$-13s level=%4$-3" Pd " scope=%3$-3d"
+      " begin=%5$-3" Pd " end=%6$" Pd "\n";
+  const char* kFormatCtxVar =
+      "%2" Pd " %-13s level=%-3d index=%-3" Pd ""
+      " begin=%-3" Pd " end=%-3" Pd " name=%s\n";
   for (intptr_t i = 0; i < Length(); i++) {
     String& var_name = String::Handle(GetName(i));
     if (var_name.IsNull()) {
@@ -10255,10 +10286,18 @@ const char* LocalVarDescriptors::ToCString() const {
     }
     RawLocalVarDescriptors::VarInfo info;
     GetInfo(i, &info);
-    len += OS::SNPrint(NULL, 0, kFormat,
+    const char* format = kFormat;
+    if (info.kind == RawLocalVarDescriptors::kContextLevel) {
+      format = kFormatCtxLevel;
+    } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
+      format = kFormatCtxVar;
+    }
+    len += OS::SNPrint(NULL, 0,
+                       format,
                        i,
-                       info.kind,
+                       VarKindString(info.kind),
                        info.scope_id,
+                       info.index,
                        info.begin_pos,
                        info.end_pos,
                        var_name.ToCString());
@@ -10272,12 +10311,19 @@ const char* LocalVarDescriptors::ToCString() const {
     }
     RawLocalVarDescriptors::VarInfo info;
     GetInfo(i, &info);
+    const char* format = kFormat;
+    if (info.kind == RawLocalVarDescriptors::kContextLevel) {
+      format = kFormatCtxLevel;
+    } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
+      format = kFormatCtxVar;
+    }
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
-                             kFormat,
+                             format,
                              i,
-                             info.kind,
+                             VarKindString(info.kind),
                              info.scope_id,
+                             info.index,
                              info.begin_pos,
                              info.end_pos,
                              var_name.ToCString());

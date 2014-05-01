@@ -30,6 +30,8 @@ namespace dart {
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
             "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool, show_invisible_frames, false,
+            "Show invisible frames in debugger stack traces");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -864,7 +866,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  if (frame->function().is_visible()) {
+  if (FLAG_show_invisible_frames || frame->function().is_visible()) {
     trace_.Add(frame);
   }
 }

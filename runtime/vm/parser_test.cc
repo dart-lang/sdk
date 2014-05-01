@@ -5,6 +5,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
+#include "vm/debugger.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/parser.h"
@@ -12,6 +13,8 @@
 #include "vm/unit_test.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, show_invisible_frames);
 
 
 void DumpFunction(const Library& lib, const char* cname, const char* fname) {
@@ -160,6 +163,298 @@ TEST_CASE(Parser_TopLevel) {
   DumpFunction(lib, "A", "bar");
   DumpFunction(lib, "A", "baz");
   DumpFunction(lib, "B", "bam");
+}
+
+
+const char* saved_vars = NULL;
+
+
+// Saves the var descriptors for all frames on the stack as a string.
+static void SaveVars(Dart_IsolateId isolate_id,
+                     intptr_t bp_id,
+                     const Dart_CodeLocation& loc) {
+  DebuggerStackTrace* stack =
+      Isolate::Current()->debugger()->StackTrace();
+  intptr_t num_frames = stack->Length();
+  const int kBufferLen = 2048;
+  char* buffer = new char[kBufferLen];
+  char* pos = buffer;
+  LocalVarDescriptors& var_desc = LocalVarDescriptors::Handle();
+  for (intptr_t i = 0; i < num_frames; i++) {
+    ActivationFrame* frame = stack->FrameAt(i);
+    var_desc = frame->code().var_descriptors();
+    pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)),
+                       "%s\n%s",
+                       frame->function().ToQualifiedCString(),
+                       var_desc.ToCString());
+  }
+  pos[0] = '\0';
+  saved_vars = buffer;
+}
+
+
+// Uses the debugger to pause the program and capture the variable
+// descriptors for all frames on the stack.
+static const char* CaptureVarsAtLine(Dart_Handle lib,
+                                     const char* entry,
+                                     int line) {
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  bool saved_flag = FLAG_show_invisible_frames;
+  FLAG_show_invisible_frames = true;
+  Isolate* isolate = Isolate::Current();
+  Debugger* debugger = isolate->debugger();
+  const String& url = String::Handle(String::New(TestCase::url()));
+  Dart_SetPausedEventHandler(SaveVars);
+  debugger->SetBreakpointAtLine(url, line);
+  saved_vars = NULL;
+  EXPECT_VALID(Dart_Invoke(lib, NewString(entry), 0, NULL));
+  const char* tmp = saved_vars;
+  saved_vars = NULL;
+  FLAG_show_invisible_frames = saved_flag;
+  return tmp;
+}
+
+
+TEST_CASE(Parser_AllocateVariables_CapturedVar) {
+  const char* kScriptChars =
+      "int main() {\n"
+      "  var value = 11;\n"
+      "  int f(var param) {\n"
+      "    return param + value;\n"  // line 4
+      "  }\n"
+      "  return f(22);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      // function f uses one ctx var at (0,0); doesn't save ctx.
+      "::.main_f\n"
+      " 0 ContextVar    level=0   index=0   begin=14  end=28  name=value\n"
+      " 1 StackVar      scope=1   index=2   begin=16  end=28  name=param\n"
+
+      // Closure call saves current context.
+      "(dynamic, dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // function main uses one ctx var at (1,0); saves caller ctx.
+      "::.main\n"
+      " 0 ContextLevel  level=1   scope=1   begin=2   end=37\n"
+      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 2 ContextVar    level=1   index=0   begin=7   end=37  name=value\n"
+      " 3 StackVar      scope=2   index=-3  begin=12  end=37  name=f\n",
+      CaptureVarsAtLine(lib, "main", 4));
+}
+
+
+TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
+  const char* kScriptChars =
+      "int a() {\n"
+      "  int b() {\n"
+      "    var value = 11;\n"
+      "    int c() {\n"
+      "      return value;\n"  // line 5
+      "    }\n"
+      "    return c();\n"
+      "  }\n"
+      "  return b();\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      // Innermost function uses captured variable 'value' from middle
+      // function.
+      "::.a_b_c\n"
+      " 0 ContextVar    level=0   index=0   begin=20  end=30  name=value\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // Middle function saves the entry context.  Notice that this
+      // happens here and not in the outermost function.  We always
+      // save the entry context at the last possible moment.
+      "::.a_b\n"
+      " 0 ContextLevel  level=1   scope=1   begin=8   end=38\n"
+      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 2 ContextVar    level=1   index=0   begin=13  end=38  name=value\n"
+      " 3 StackVar      scope=2   index=-3  begin=18  end=38  name=c\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // Outermost function neglects to save the entry context.  We
+      // don't save the entry context if the function has no captured
+      // variables.
+      "::.a\n"
+      " 0 StackVar      scope=2   index=-3  begin=6   end=46  name=b\n",
+      CaptureVarsAtLine(lib, "a", 5));
+}
+
+
+TEST_CASE(Parser_AllocateVariables_TwoChains) {
+  const char* kScriptChars =
+      "int a() {\n"
+      "  var value1 = 11;\n"
+      "  int b() {\n"
+      "    int aa() {\n"
+      "      var value2 = 12;\n"
+      "      int bb() {\n"
+      "        return value2;\n"  // line 7
+      "      }\n"
+      "      return bb();\n"
+      "    }\n"
+      "    return value1 + aa();\n"
+      "  }\n"
+      "  return b();\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      // bb captures only value2 from aa.  No others.
+      "::.a_b_aa_bb\n"
+      " 0 ContextVar    level=0   index=0   begin=32  end=42  name=value2\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // aa shares value2. Notice that we save the entry ctx instead
+      // of chaining from b.  This keeps us from holding onto closures
+      // that we would never access.
+      "::.a_b_aa\n"
+      " 0 ContextLevel  level=1   scope=1   begin=20  end=50\n"
+      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 2 ContextVar    level=1   index=0   begin=25  end=50  name=value2\n"
+      " 3 StackVar      scope=2   index=-3  begin=30  end=50  name=bb\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // b captures value1 from a.
+      "::.a_b\n"
+      " 0 ContextVar    level=0   index=0   begin=14  end=60  name=value1\n"
+      " 1 StackVar      scope=2   index=-3  begin=18  end=60  name=aa\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // a shares value1, saves entry ctx.
+      "::.a\n"
+      " 0 ContextLevel  level=1   scope=1   begin=2   end=68\n"
+      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 2 ContextVar    level=1   index=0   begin=7   end=68  name=value1\n"
+      " 3 StackVar      scope=2   index=-3  begin=12  end=68  name=b\n",
+      CaptureVarsAtLine(lib, "a", 7));
+}
+
+
+TEST_CASE(Parser_AllocateVariables_Issue7681) {
+  // This is a distilled version of the program from Issue 7681.
+  //
+  // When we create the closure at line 11, we need to make sure to
+  // save the entry context instead of chaining to the parent context.
+  //
+  // This test is somewhat redundant with CapturedVarChain but
+  // included for good measure.
+  const char* kScriptChars =
+      "class X {\n"
+      "  Function onX;\n"
+      "}\n"
+      "\n"
+      "class Y {\n"
+      "  Function onY;\n"
+      "}\n"
+      "\n"
+      "void doIt() {\n"
+      "  var x = new X();\n"
+      "  x.onX = (y) {\n"
+      "    y.onY = () {\n"  // line 12
+      "      return y;\n"
+      "    };\n"
+      "  };\n"
+      "   x.onX(new Y());\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      // This frame saves the entry context instead of chaining.  Good.
+      "::.doIt_<anonymous closure>\n"
+      " 0 ContextLevel  level=1   scope=1   begin=41  end=62\n"
+      " 1 ContextVar    level=1   index=0   begin=42  end=62  name=y\n"
+      " 2 SavedEntryCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+
+      // Closure call saves current context.
+      "(dynamic, dynamic) => dynamic.call\n"
+      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      "X.onX\n"
+      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
+
+      // No context is saved here since no vars are captured.
+      "::.doIt\n"
+      " 0 StackVar      scope=2   index=-3  begin=29  end=77  name=x\n",
+      CaptureVarsAtLine(lib, "doIt", 12));
+}
+
+
+TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
+  const char* kScriptChars =
+      "int outer() {\n"
+      "  for(int i = 0; i < 1; i++) {\n"
+      "    var value = 11 + i;\n"
+      "    int inner() {\n"
+      "      return value;\n"  // line 5
+      "    }\n"
+      "    return inner();\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      // inner function captures variable value.  That's fine.
+      "::.outer_inner\n"
+      " 0 ContextVar    level=0   index=0   begin=32  end=42  name=value\n"
+
+      // Closure call saves current context.
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // Notice that the outer function neglects to save the entry
+      // context.  This is a bug.
+      //
+      // TODO(turnidge): Fix this very soon and update this test.
+      //
+      //   https://code.google.com/p/dart/issues/detail?id=18561
+      "::.outer\n"
+      " 0 StackVar      scope=3   index=-3  begin=9   end=50  name=i\n"
+      " 1 ContextLevel  level=1   scope=4   begin=20  end=50\n"
+      " 2 ContextVar    level=1   index=0   begin=23  end=50  name=value\n"
+      " 3 StackVar      scope=4   index=-4  begin=30  end=50  name=inner\n",
+      CaptureVarsAtLine(lib, "outer", 5));
 }
 
 }  // namespace dart
