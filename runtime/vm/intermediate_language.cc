@@ -1068,6 +1068,22 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
 }
 
 
+void BlockEntryInstr::ClearAllInstructions() {
+  JoinEntryInstr* join = this->AsJoinEntry();
+  if (join != NULL) {
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      it.Current()->UnuseAllInputs();
+    }
+  }
+  UnuseAllInputs();
+  for (ForwardInstructionIterator it(this);
+       !it.Done();
+       it.Advance()) {
+    it.Current()->UnuseAllInputs();
+  }
+}
+
+
 void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi

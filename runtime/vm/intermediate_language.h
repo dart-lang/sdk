@@ -1386,6 +1386,10 @@ class BlockEntryInstr : public Instruction {
 
   void set_block_id(intptr_t block_id) { block_id_ = block_id; }
 
+  // For all instruction in this block: Remove all inputs (including in the
+  // environment) from their definition's use lists for all instructions.
+  void ClearAllInstructions();
+
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
       : block_id_(block_id),
