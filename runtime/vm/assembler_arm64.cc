@@ -566,6 +566,15 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
 }
 
 
+void Assembler::LoadDImmediate(VRegister vd, double immd, Register pp) {
+  if (!fmovdi(vd, immd)) {
+    int64_t imm = bit_cast<int64_t, double>(immd);
+    LoadImmediate(TMP, imm, pp);
+    fmovdr(vd, TMP);
+  }
+}
+
+
 void Assembler::AddImmediate(
     Register dest, Register rn, int64_t imm, Register pp) {
   ASSERT(rn != TMP2);

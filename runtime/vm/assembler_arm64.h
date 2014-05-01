@@ -601,6 +601,28 @@ class Assembler : public ValueObject {
     EmitExceptionGenOp(HLT, imm);
   }
 
+  // Double floating point.
+  bool fmovdi(VRegister vd, double immd) {
+    int64_t imm64 = bit_cast<int64_t, double>(immd);
+    const uint8_t bit7 = imm64 >> 63;
+    const uint8_t bit6 = (~(imm64 >> 62)) & 0x1;
+    const uint8_t bit54 = (imm64 >> 52) & 0x3;
+    const uint8_t bit30 = (imm64 >> 48) & 0xf;
+    const uint8_t imm8 = (bit7 << 7) | (bit6 << 6) | (bit54 << 4) | bit30;
+    const int64_t expimm8 = Instr::VFPExpandImm(imm8);
+    if (imm64 != expimm8) {
+      return false;
+    }
+    EmitFPImm(FMOVDI, vd, imm8);
+    return true;
+  }
+  void fmovdr(VRegister vd, Register rn) {
+    EmitFPIntCvtOp(FMOVDR, static_cast<Register>(vd), rn);
+  }
+  void fmovrd(Register rd, VRegister vn) {
+    EmitFPIntCvtOp(FMOVRD, rd, static_cast<Register>(vn));
+  }
+
   // Aliases.
   void mov(Register rd, Register rn) {
     if ((rd == SP) || (rn == SP)) {
@@ -750,6 +772,7 @@ class Assembler : public ValueObject {
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
+  void LoadDImmediate(VRegister reg, double immd, Register pp);
 
   void PushObject(const Object& object, Register pp) {
     LoadObject(TMP, object, pp);
@@ -1111,6 +1134,22 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(crn) << kRnShift) |
         (static_cast<int32_t>(crm) << kRmShift) |
         (static_cast<int32_t>(cond) << kSelCondShift);
+    Emit(encoding);
+  }
+
+  void EmitFPImm(FPImmOp op, VRegister vd, uint8_t imm8) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (imm8 << kImm8Shift);
+    Emit(encoding);
+  }
+
+  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(rd) << kRdShift) |
+        (static_cast<int32_t>(rn) << kRnShift);
     Emit(encoding);
   }
 

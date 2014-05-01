@@ -31,6 +31,7 @@ class ARM64Decoder : public ValueObject {
 
   // Printing of common values.
   void PrintRegister(int reg, R31Type r31t);
+  void PrintVRegister(int reg);
   void PrintShiftExtendRm(Instr* instr);
   void PrintMemOperand(Instr* instr);
   void PrintS(Instr* instr);
@@ -38,6 +39,7 @@ class ARM64Decoder : public ValueObject {
 
   // Handle formatting of instructions and their options.
   int FormatRegister(Instr* instr, const char* option);
+  int FormatVRegister(Instr*instr, const char* option);
   int FormatOption(Instr* instr, const char* format);
   void Format(Instr* instr, const char* format);
   void Unknown(Instr* instr);
@@ -100,6 +102,15 @@ void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
   } else {
     Print(reg_names[reg]);
   }
+}
+
+
+void ARM64Decoder::PrintVRegister(int reg) {
+  ASSERT(0 <= reg);
+  ASSERT(reg < kNumberOfVRegisters);
+  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                             remaining_size_in_buffer(),
+                             "v%d", reg);
 }
 
 
@@ -291,6 +302,22 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
 }
 
 
+int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
+  ASSERT(format[0] == 'v');
+  if (format[1] == 'd') {
+    int reg = instr->VdField();
+    PrintVRegister(reg);
+    return 2;
+  } else if (format[1] == 'n') {
+    int reg = instr->VnField();
+    PrintVRegister(reg);
+    return 2;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
 // FormatOption takes a formatting string and interprets it based on
 // the current instructions. The format string points to the first
 // character of the option string (the option escape has already been
@@ -363,30 +390,41 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       }
       return 2;
     }
-    case 'i': {  // 'imm12, imm16
-      uint64_t imm;
-      int ret = 5;
-      if (format[4] == '2') {
-        ASSERT(STRING_STARTS_WITH(format, "imm12"));
-        imm = instr->Imm12Field();
-        if (format[5] == 's') {
-          // shifted immediate.
-          if (instr->Imm12ShiftField() == 1) {
-            imm = imm << 12;
-          } else if ((instr->Imm12ShiftField() & 0x2) != 0) {
-            Print("Unknown Shift");
+    case 'i': {  // 'imm12, 'imm16, 'immd
+      if (format[3] == '1') {
+        uint64_t imm;
+        int ret = 5;
+        if (format[4] == '2') {
+          ASSERT(STRING_STARTS_WITH(format, "imm12"));
+          imm = instr->Imm12Field();
+          if (format[5] == 's') {
+            // shifted immediate.
+            if (instr->Imm12ShiftField() == 1) {
+              imm = imm << 12;
+            } else if ((instr->Imm12ShiftField() & 0x2) != 0) {
+              Print("Unknown Shift");
+            }
+            ret = 6;
           }
-          ret = 6;
+        } else {
+          ASSERT(STRING_STARTS_WITH(format, "imm16"));
+          imm = instr->Imm16Field();
         }
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "0x%"Px64,
+                                   imm);
+        return ret;
       } else {
-        ASSERT(STRING_STARTS_WITH(format, "imm16"));
-        imm = instr->Imm16Field();
+        ASSERT(STRING_STARTS_WITH(format, "immd"));
+        double dimm = bit_cast<double, int64_t>(
+            Instr::VFPExpandImm(instr->Imm8Field()));
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "%f",
+                                   dimm);
+        return 4;
       }
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "0x%"Px64,
-                                 imm);
-      return ret;
     }
     case 'm': {
       ASSERT(STRING_STARTS_WITH(format, "memop"));
@@ -419,6 +457,9 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     }
     case 'r': {
       return FormatRegister(instr, format);
+    }
+    case 'v': {
+      return FormatVRegister(instr, format);
     }
     case 's': {  // 's: S flag.
       if (format[1] == 'h') {
@@ -879,8 +920,55 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeFPImm(Instr* instr) {
+  if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) || (instr->Bit(23) != 0) ||
+      (instr->Bits(5, 5) != 0)) {
+    Unknown(instr);
+    return;
+  }
+  if (instr->Bit(22) == 1) {
+    // Double.
+    Format(instr, "fmovd 'vd, 'immd");
+  } else {
+    // Single.
+    Unknown(instr);
+  }
+}
+
+
+void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
+  if ((instr->SFField() != 1) || (instr->Bit(29) != 0) ||
+      (instr->Bits(22, 2) != 1)) {
+    Unknown(instr);
+    return;
+  }
+  if (instr->Bits(16, 3) == 6) {
+    Format(instr, "fmovrd 'rd, 'vn");
+  } else if (instr->Bits(16, 3) == 7) {
+    Format(instr, "fmovdr 'vd, 'rn");
+  } else {
+    Unknown(instr);
+  }
+}
+
+
+void ARM64Decoder::DecodeFP(Instr* instr) {
+  if (instr->IsFPImmOp()) {
+    DecodeFPImm(instr);
+  } else if (instr->IsFPIntCvtOp()) {
+    DecodeFPIntCvt(instr);
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPSimd2(Instr* instr) {
-  Unknown(instr);
+  if (instr->IsFPOp()) {
+    DecodeFP(instr);
+  } else {
+    Unknown(instr);
+  }
 }
 
 

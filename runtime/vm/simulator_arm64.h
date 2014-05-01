@@ -24,6 +24,11 @@ namespace dart {
 class Isolate;
 class SimulatorSetjmpBuffer;
 
+typedef struct {
+  int64_t lo;
+  int64_t hi;
+} simd_value_t;
+
 class Simulator {
  public:
   static const uword kSimulatorStackUnderflowSize = 64;
@@ -45,6 +50,11 @@ class Simulator {
   int64_t get_register(Register reg, R31Type r31t = R31IsSP) const;
   void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsSP);
   int32_t get_wregister(Register reg, R31Type r31t = R31IsSP) const;
+
+  // Get and set a V register in double ('d') mode. Setting clears the high
+  // 64 bits of the V register. Getting ignores the high 64 bits.
+  int64_t get_vregisterd(VRegister reg);
+  void set_vregisterd(VRegister reg, int64_t value);
 
   int64_t get_pc() const;
   int64_t get_last_pc() const;
@@ -70,7 +80,9 @@ class Simulator {
                int64_t parameter0,
                int64_t parameter1,
                int64_t parameter2,
-               int64_t parameter3);
+               int64_t parameter3,
+               bool fp_return = false,
+               bool fp_args = false);
 
   // Runtime and native call support.
   enum CallKind {
@@ -106,6 +118,12 @@ class Simulator {
   bool z_flag_;
   bool c_flag_;
   bool v_flag_;
+
+  simd_value_t vregisters_[kNumberOfVRegisters];
+  bool fp_n_flag_;
+  bool fp_z_flag_;
+  bool fp_c_flag_;
+  bool fp_v_flag_;
 
   // Simulator support.
   int64_t last_pc_;

@@ -1316,6 +1316,60 @@ ASSEMBLER_TEST_RUN(CSelFalse, test) {
 }
 
 
+// Floating point move immediate, to/from integer register.
+ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
+  __ LoadDImmediate(V0, 1.0, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdi, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovdi2, assembler) {
+  __ LoadDImmediate(V0, 123412983.1324524315, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdi2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_FLOAT_EQ(123412983.1324524315,
+      EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()), 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovrd, assembler) {
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ fmovrd(R0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovrd, test) {
+  typedef int (*SimpleCode)();
+  const int64_t one = bit_cast<int64_t, double>(1.0);
+  EXPECT_EQ(one, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ fmovrd(R1, V1);
+  __ fmovdr(V0, R1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.

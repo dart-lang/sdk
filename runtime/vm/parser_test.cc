@@ -166,6 +166,9 @@ TEST_CASE(Parser_TopLevel) {
 }
 
 
+// TODO(zra): Remove after porting relevant arm64 features.
+#if !defined(TARGET_ARCH_ARM64)
+
 const char* saved_vars = NULL;
 
 
@@ -487,5 +490,7 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       " 3 StackVar      scope=4   begin=30  end=50  name=inner\n",
       CaptureVarsAtLine(lib, "outer", 5));
 }
+
+#endif
 
 }  // namespace dart

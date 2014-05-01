@@ -143,6 +143,8 @@ const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
     (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
     (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R19;
+const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
@@ -259,6 +261,9 @@ enum MainOp {
 
   DPSimd2Mask = 0x1e000000,
   DPSimd2Fixed = B28 | DPSimd1Fixed,
+
+  FPMask = 0x5e000000,
+  FPFixed = B28 | B27 | B26 | B25,
 };
 
 // C3.2.1
@@ -413,6 +418,23 @@ enum LogicalShiftOp {
   BICS = LogicalShiftFixed | B30 | B29 | B21,
 };
 
+// C3.6.28
+enum FPImmOp {
+  FPImmMask = 0x5f201c00,
+  FPImmFixed = FPFixed | B21 | B12,
+  FMOVSI = FPImmFixed,
+  FMOVDI = FPImmFixed | B22,
+};
+
+// C3.6.29
+enum FPIntCvtOp {
+  FPIntCvtMask = 0x5f20fc00,
+  FPIntCvtFixed = FPFixed | B21,
+  FMOVRD = FPIntCvtFixed | B31 | B22 | B18 | B17,
+  FMOVDR = FPIntCvtFixed | B31 | B22 | B18 | B17 | B16,
+};
+
+
 #define APPLY_OP_LIST(_V)                                                      \
 _V(DPImmediate)                                                                \
 _V(CompareBranch)                                                              \
@@ -420,6 +442,7 @@ _V(LoadStore)                                                                  \
 _V(DPRegister)                                                                 \
 _V(DPSimd1)                                                                    \
 _V(DPSimd2)                                                                    \
+_V(FP)                                                                         \
 _V(CompareAndBranch)                                                           \
 _V(ConditionalBranch)                                                          \
 _V(ExceptionGen)                                                               \
@@ -438,6 +461,8 @@ _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
+_V(FPImm)                                                                      \
+_V(FPIntCvt)                                                                   \
 
 
 enum Shift {
@@ -494,11 +519,19 @@ enum InstructionFields {
   kRtShift = 0,
   kRtBits = 5,
 
+  // V Registers.
+  kVdShift = 0,
+  kVdBits = 5,
+  kVnShift = 5,
+  kVnBits = 5,
+
   // Immediates.
   kImm3Shift = 10,
   kImm3Bits = 3,
   kImm6Shift = 10,
   kImm6Bits = 6,
+  kImm8Shift = 13,
+  kImm8Bits = 8,
   kImm9Shift = 12,
   kImm9Bits = 9,
   kImm12Shift = 10,
@@ -655,10 +688,15 @@ class Instr {
   inline Register RtField() const { return static_cast<Register>(
                                         Bits(kRtShift, kRtBits)); }
 
+  inline VRegister VdField() const { return static_cast<VRegister>(
+                                        Bits(kVdShift, kVdBits)); }
+  inline VRegister VnField() const { return static_cast<VRegister>(
+                                        Bits(kVnShift, kVnBits)); }
+
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
   inline int Imm6Field() const { return Bits(kImm6Shift, kImm6Bits); }
-
+  inline int Imm8Field() const { return Bits(kImm8Shift, kImm8Bits); }
   inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
   // Sign-extended Imm9Field()
   inline int64_t SImm9Field() const {
@@ -800,6 +838,20 @@ class Instr {
     }
     UNREACHABLE();
     return 0;
+  }
+
+  static int64_t VFPExpandImm(uint8_t imm8) {
+    const int64_t sign =
+        static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
+    const int64_t hi_exp =
+        static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
+    const int64_t mid_exp =
+        (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
+    const int64_t low_exp =
+        static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
+    const int64_t frac =
+        static_cast<int64_t>(imm8 & 0x0f) << 48;
+    return sign | hi_exp | mid_exp | low_exp | frac;
   }
 
   // Instructions are read out of a code stream. The only way to get a
