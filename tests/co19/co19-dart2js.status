@@ -936,7 +936,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/math/log_A01_t01: Fail # TODO(dart2js-team): Please triage this failure.
 
 
-[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == safarimobilesim || $runtime == opera ) ]
 *: Skip
 
 #
