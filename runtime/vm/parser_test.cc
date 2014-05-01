@@ -169,6 +169,35 @@ TEST_CASE(Parser_TopLevel) {
 const char* saved_vars = NULL;
 
 
+char* SkipIndex(const char* input) {
+  char* output_buffer = new char[strlen(input)];
+  char* output = output_buffer;
+
+  while (input[0] != '\0') {
+    const char* index_pos = strstr(input, "index=");
+    if (index_pos == NULL) {
+      while (input[0] != '\0') {
+        *output++ = *input++;
+      }
+      break;
+    }
+
+    // Copy prefix until "index="
+    while (input < index_pos) {
+      *output++ = *input++;
+    }
+
+    // Skip until space.
+    input += strcspn(input, " ");
+    // Skip until next non-space.
+    input += strspn(input, " ");
+  }
+
+  output[0] = '\0';
+  return output_buffer;
+}
+
+
 // Saves the var descriptors for all frames on the stack as a string.
 static void SaveVars(Dart_IsolateId isolate_id,
                      intptr_t bp_id,
@@ -183,10 +212,13 @@ static void SaveVars(Dart_IsolateId isolate_id,
   for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
     var_desc = frame->code().var_descriptors();
+    const char* var_str = var_desc.ToCString();
+    char* edited_var_str = SkipIndex(var_str);
     pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)),
                        "%s\n%s",
                        frame->function().ToQualifiedCString(),
-                       var_desc.ToCString());
+                       (edited_var_str != NULL ? edited_var_str :var_str));
+    delete [] edited_var_str;
   }
   pos[0] = '\0';
   saved_vars = buffer;
@@ -227,24 +259,24 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   EXPECT_STREQ(
-      // function f uses one ctx var at (0,0); doesn't save ctx.
+      // function f uses one ctx var at (0); doesn't save ctx.
       "::.main_f\n"
-      " 0 ContextVar    level=0   index=0   begin=14  end=28  name=value\n"
-      " 1 StackVar      scope=1   index=2   begin=16  end=28  name=param\n"
+      " 0 ContextVar    level=0   begin=14  end=28  name=value\n"
+      " 1 StackVar      scope=1   begin=16  end=28  name=param\n"
 
       // Closure call saves current context.
       "(dynamic, dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
-      // function main uses one ctx var at (1,0); saves caller ctx.
+      // function main uses one ctx var at (1); saves caller ctx.
       "::.main\n"
       " 0 ContextLevel  level=1   scope=1   begin=2   end=37\n"
-      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      " 1 SavedEntryCtx scope=0   begin=0   end=0"
       "   name=:saved_entry_context_var\n"
-      " 2 ContextVar    level=1   index=0   begin=7   end=37  name=value\n"
-      " 3 StackVar      scope=2   index=-3  begin=12  end=37  name=f\n",
+      " 2 ContextVar    level=1   begin=7   end=37  name=value\n"
+      " 3 StackVar      scope=2   begin=12  end=37  name=f\n",
       CaptureVarsAtLine(lib, "main", 4));
 }
 
@@ -267,12 +299,12 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       // Innermost function uses captured variable 'value' from middle
       // function.
       "::.a_b_c\n"
-      " 0 ContextVar    level=0   index=0   begin=20  end=30  name=value\n"
+      " 0 ContextVar    level=0   begin=20  end=30  name=value\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // Middle function saves the entry context.  Notice that this
@@ -280,22 +312,22 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       // save the entry context at the last possible moment.
       "::.a_b\n"
       " 0 ContextLevel  level=1   scope=1   begin=8   end=38\n"
-      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      " 1 SavedEntryCtx scope=0   begin=0   end=0"
       "   name=:saved_entry_context_var\n"
-      " 2 ContextVar    level=1   index=0   begin=13  end=38  name=value\n"
-      " 3 StackVar      scope=2   index=-3  begin=18  end=38  name=c\n"
+      " 2 ContextVar    level=1   begin=13  end=38  name=value\n"
+      " 3 StackVar      scope=2   begin=18  end=38  name=c\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // Outermost function neglects to save the entry context.  We
       // don't save the entry context if the function has no captured
       // variables.
       "::.a\n"
-      " 0 StackVar      scope=2   index=-3  begin=6   end=46  name=b\n",
+      " 0 StackVar      scope=2   begin=6   end=46  name=b\n",
       CaptureVarsAtLine(lib, "a", 5));
 }
 
@@ -321,12 +353,12 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   EXPECT_STREQ(
       // bb captures only value2 from aa.  No others.
       "::.a_b_aa_bb\n"
-      " 0 ContextVar    level=0   index=0   begin=32  end=42  name=value2\n"
+      " 0 ContextVar    level=0   begin=32  end=42  name=value2\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // aa shares value2. Notice that we save the entry ctx instead
@@ -334,35 +366,35 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       // that we would never access.
       "::.a_b_aa\n"
       " 0 ContextLevel  level=1   scope=1   begin=20  end=50\n"
-      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      " 1 SavedEntryCtx scope=0   begin=0   end=0"
       "   name=:saved_entry_context_var\n"
-      " 2 ContextVar    level=1   index=0   begin=25  end=50  name=value2\n"
-      " 3 StackVar      scope=2   index=-3  begin=30  end=50  name=bb\n"
+      " 2 ContextVar    level=1   begin=25  end=50  name=value2\n"
+      " 3 StackVar      scope=2   begin=30  end=50  name=bb\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // b captures value1 from a.
       "::.a_b\n"
-      " 0 ContextVar    level=0   index=0   begin=14  end=60  name=value1\n"
-      " 1 StackVar      scope=2   index=-3  begin=18  end=60  name=aa\n"
+      " 0 ContextVar    level=0   begin=14  end=60  name=value1\n"
+      " 1 StackVar      scope=2   begin=18  end=60  name=aa\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // a shares value1, saves entry ctx.
       "::.a\n"
       " 0 ContextLevel  level=1   scope=1   begin=2   end=68\n"
-      " 1 SavedEntryCtx scope=0   index=-4  begin=0   end=0"
+      " 1 SavedEntryCtx scope=0   begin=0   end=0"
       "   name=:saved_entry_context_var\n"
-      " 2 ContextVar    level=1   index=0   begin=7   end=68  name=value1\n"
-      " 3 StackVar      scope=2   index=-3  begin=12  end=68  name=b\n",
+      " 2 ContextVar    level=1   begin=7   end=68  name=value1\n"
+      " 3 StackVar      scope=2   begin=12  end=68  name=b\n",
       CaptureVarsAtLine(lib, "a", 7));
 }
 
@@ -399,22 +431,22 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       // This frame saves the entry context instead of chaining.  Good.
       "::.doIt_<anonymous closure>\n"
       " 0 ContextLevel  level=1   scope=1   begin=41  end=62\n"
-      " 1 ContextVar    level=1   index=0   begin=42  end=62  name=y\n"
-      " 2 SavedEntryCtx scope=0   index=-3  begin=0   end=0"
+      " 1 ContextVar    level=1   begin=42  end=62  name=y\n"
+      " 2 SavedEntryCtx scope=0   begin=0   end=0"
       "   name=:saved_entry_context_var\n"
 
       // Closure call saves current context.
       "(dynamic, dynamic) => dynamic.call\n"
-      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       "X.onX\n"
-      " 0 StackVar      scope=1   index=3   begin=0   end=0   name=this\n"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
 
       // No context is saved here since no vars are captured.
       "::.doIt\n"
-      " 0 StackVar      scope=2   index=-3  begin=29  end=77  name=x\n",
+      " 0 StackVar      scope=2   begin=29  end=77  name=x\n",
       CaptureVarsAtLine(lib, "doIt", 12));
 }
 
@@ -435,12 +467,12 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
   EXPECT_STREQ(
       // inner function captures variable value.  That's fine.
       "::.outer_inner\n"
-      " 0 ContextVar    level=0   index=0   begin=32  end=42  name=value\n"
+      " 0 ContextVar    level=0   begin=32  end=42  name=value\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
-      " 0 StackVar      scope=1   index=2   begin=0   end=0   name=this\n"
-      " 1 SavedCurrentCtx scope=0   index=-3  begin=0   end=0"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
       // Notice that the outer function neglects to save the entry
@@ -450,10 +482,10 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       //
       //   https://code.google.com/p/dart/issues/detail?id=18561
       "::.outer\n"
-      " 0 StackVar      scope=3   index=-3  begin=9   end=50  name=i\n"
+      " 0 StackVar      scope=3   begin=9   end=50  name=i\n"
       " 1 ContextLevel  level=1   scope=4   begin=20  end=50\n"
-      " 2 ContextVar    level=1   index=0   begin=23  end=50  name=value\n"
-      " 3 StackVar      scope=4   index=-4  begin=30  end=50  name=inner\n",
+      " 2 ContextVar    level=1   begin=23  end=50  name=value\n"
+      " 3 StackVar      scope=4   begin=30  end=50  name=inner\n",
       CaptureVarsAtLine(lib, "outer", 5));
 }
 
