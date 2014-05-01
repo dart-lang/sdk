@@ -31,7 +31,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   visitFunctionDefinition(ir.FunctionDefinition f) {
     names = new Names();
     BlockCollector builder = new BlockCollector(names);
-    builder.visit(f);
+    f.accept(builder);
 
     printNode(builder.entry);
     for (Block block in builder.cont2block.values) {
@@ -58,7 +58,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         });
       });
       tag("HIR", () {
-        visit(block.body);
+        block.body.accept(this);
       });
     });
   }
@@ -73,7 +73,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   visitLetPrim(ir.LetPrim node) {
     String id = names.name(node.primitive);
     printStmt(id, "LetPrim $id = ${formatPrimitive(node.primitive)}");
-    visit(node.body);
+    node.body.accept(this);
   }
 
   visitLetCont(ir.LetCont node) {
@@ -82,7 +82,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
       String id = names.name(node.continuation);
       printStmt(dummy, "LetCont $id = <$id>");
     }
-    visit(node.body);
+    node.body.accept(this);
   }
 
   visitInvokeStatic(ir.InvokeStatic node) {
@@ -96,16 +96,8 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
-    String args = node.arguments.map(formatReference).join(', ');
-    printStmt(dummy, "InvokeContinuation $kont ($args)");
-  }
-
-  visitBranch(ir.Branch node) {
-    String dummy = names.name(node);
-    String condition = visit(node.condition);
-    String trueCont = formatReference(node.trueContinuation);
-    String falseCont = formatReference(node.falseContinuation);
-    printStmt(dummy, "Branch $condition ($trueCont, $falseCont)");
+    String arg = formatReference(node.argument);
+    printStmt(dummy, "InvokeContinuation $kont ($arg)");
   }
 
   String formatReference(ir.Reference ref) {
@@ -117,7 +109,9 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     }
   }
 
-  String formatPrimitive(ir.Primitive p) => visit(p);
+  String formatPrimitive(ir.Primitive p) {
+    return p.accept(this);
+  }
 
   visitConstant(ir.Constant node) {
     return "Constant ${node.value}";
@@ -131,11 +125,6 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     return "Continuation ${names.name(node)}";
   }
 
-  visitIsTrue(ir.IsTrue node) {
-    return "IsTrue(${names.name(node)})";
-  }
-
-  visitCondition(ir.Condition c) {}
   visitExpression(ir.Expression e) {}
   visitPrimitive(ir.Primitive p) {}
   visitDefinition(ir.Definition d) {}
@@ -212,16 +201,16 @@ class BlockCollector extends ir.Visitor {
 
   visitFunctionDefinition(ir.FunctionDefinition f) {
     entry = current_block = new Block(names.name(f), [], f.body);
-    visit(f.body);
+    f.body.accept(this);
   }
 
   visitLetPrim(ir.LetPrim exp) {
-    visit(exp.body);
+    exp.body.accept(this);
   }
 
   visitLetCont(ir.LetCont exp) {
-    visit(exp.continuation);
-    visit(exp.body);
+    exp.continuation.accept(this);
+    exp.body.accept(this);
   }
 
   visitInvokeStatic(ir.InvokeStatic exp) {
@@ -238,21 +227,14 @@ class BlockCollector extends ir.Visitor {
     }
   }
 
-  visitBranch(ir.Branch exp) {
-    ir.Continuation trueTarget = exp.trueContinuation.definition;
-    if (trueTarget.body != null) {
-      current_block.addEdgeTo(getBlock(trueTarget));
-    }
-    ir.Continuation falseTarget = exp.falseContinuation.definition;
-    if (falseTarget.body != null) {
-      current_block.addEdgeTo(getBlock(falseTarget));
-    }
-  }
+  visitConstant(ir.Constant constant) {}
+
+  visitParameter(ir.Parameter p) {}
 
   visitContinuation(ir.Continuation c) {
     var old_node = current_block;
     current_block = getBlock(c);
-    visit(c.body);
+    c.body.accept(this);
     current_block = old_node;
   }
 }
