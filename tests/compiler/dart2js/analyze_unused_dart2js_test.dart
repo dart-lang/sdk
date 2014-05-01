@@ -19,6 +19,9 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Helper methods for debugging should never be called from production code:
   "implementation/helpers/": const [" is never "],
   "implementation/util/setlet.dart": const [" is never "],
+  
+  // Some things in dart_printer are not yet used
+  "implementation/dart_backend/dart_printer.dart" : const [" is never "]
 };
 
 void main() {

@@ -4,15 +4,13 @@ import 'dart:async' show EventSink;
 import '../tracer.dart';
 import 'dart_tree.dart';
 
-class TreeTracer extends TracerUtil implements Visitor {
+class TreeTracer extends TracerUtil with Visitor {
   final EventSink<String> output;
 
   TreeTracer(this.output);
 
   Names names;
   int statementCounter;
-
-  void visit(Node node) => node.accept(this);
 
   void traceGraph(String name, FunctionDefinition function) {
     names = new Names();
@@ -24,7 +22,7 @@ class TreeTracer extends TracerUtil implements Visitor {
     names = null;
   }
 
-  void printBlock(Expression e) {
+  void printBlock(Statement e) {
     tag("block", () {
       printProperty("name", "B0"); // Update when proper blocks exist
       printProperty("from_bci", -1);
@@ -54,6 +52,8 @@ class TreeTracer extends TracerUtil implements Visitor {
     addIndent();
     add("$bci $uses $name $contents <|@\n");
   }
+  
+  
 
   visitFunctionDefinition(FunctionDefinition node) {
   }
@@ -62,10 +62,9 @@ class TreeTracer extends TracerUtil implements Visitor {
     printStatement(null, "dead-use ${names.varName(node)}");
   }
 
-  visitSequence(Sequence node) {
-    for (Expression e in node.expressions) {
-      e.accept(this);
-    }
+  visitExpressionStatement(ExpressionStatement node) {
+    node.expression.accept(this);
+    node.next.accept(this);
   }
 
   visitLetVal(LetVal node) {
@@ -95,18 +94,13 @@ class TreeTracer extends TracerUtil implements Visitor {
   }
 }
 
-class ExpressionVisitor extends Visitor<String> {
+class ExpressionVisitor extends Visitor<String, String> {
   Names names;
 
   ExpressionVisitor(this.names);
-
+  
   String visitVariable(Variable node) {
     return names.varName(node);
-  }
-
-  String visitSequence(Sequence node) {
-    String exps = node.expressions.map((e) => e.accept(this)).join('; ');
-    return "{ $exps }";
   }
 
   String visitLetVal(LetVal node) {
@@ -129,6 +123,15 @@ class ExpressionVisitor extends Visitor<String> {
   String visitConstant(Constant node) {
     return "${node.value}";
   }
+  
+  String visitExpressionStatement(ExpressionStatement node) {
+    // Note: There should not be statements in the context of expressions.
+    // However, generating a trace that shows where something went wrong is more
+    // useful than raising an exception.
+    String expr = node.expression.accept(this);
+    String body = node.next.accept(this);
+    return "{$expr; $body}";
+  }
 }
 
 /**
@@ -146,8 +149,9 @@ class Names {
   String varName(Variable v) {
     String name = _names[v];
     if (name == null) {
-      if (v.identifier != null) {
-        name = v.identifier.token.value;
+      name = v.name;
+      if (v.cachedName != null) {
+        name = v.cachedName;
       }
       while (name == null || _usedNames.contains(name)) {
         name = "v${_counter++}";
