@@ -36,6 +36,7 @@ class RuntimeConfiguration {
       case 'ie9':
       case 'opera':
       case 'safari':
+      case 'safarimobilesim':
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
 

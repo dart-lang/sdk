@@ -100,7 +100,7 @@ class TestOptionsParser {
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
-               'chromeOnAndroid',
+               'chromeOnAndroid', 'safarimobilesim',
                'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
@@ -603,7 +603,7 @@ Note: currently only implemented for dart2js.''',
         // with dart2js, we should remove it from here.
         validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
                                'ff', 'chrome', 'safari', 'ie9', 'ie10', 'ie11',
-                               'opera', 'chromeOnAndroid'];
+                               'opera', 'chromeOnAndroid', 'safarimobilesim'];
         break;
       case 'dartanalyzer':
       case 'dart2analyzer':
