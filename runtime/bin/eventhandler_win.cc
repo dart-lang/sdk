@@ -73,6 +73,11 @@ OverlappedBuffer* OverlappedBuffer::AllocateDisconnectBuffer() {
 }
 
 
+OverlappedBuffer* OverlappedBuffer::AllocateConnectBuffer() {
+  return AllocateBuffer(0, kConnect);
+}
+
+
 void OverlappedBuffer::DisposeBuffer(OverlappedBuffer* buffer) {
   delete buffer;
 }
@@ -474,6 +479,7 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
     if (rc == NO_ERROR) {
       // Insert the accepted socket into the list.
       ClientSocket* client_socket = new ClientSocket(buffer->client(), 0);
+      client_socket->mark_connected();
       client_socket->CreateCompletionPort(completion_port);
       if (accepted_head_ == NULL) {
         accepted_head_ = client_socket;
@@ -811,14 +817,17 @@ bool ClientSocket::IssueWrite() {
 
 
 void ClientSocket::IssueDisconnect() {
-  Dart_Port p = port();
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateDisconnectBuffer();
   BOOL ok = DisconnectEx_(
     socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
-  if (!ok && WSAGetLastError() != WSA_IO_PENDING) {
+  // DisconnectEx works like other OverlappedIO APIs, where we can get either an
+  // immediate success or delayed operation by WSA_IO_PENDING being set.
+  if (ok || WSAGetLastError() != WSA_IO_PENDING) {
     DisconnectComplete(buffer);
   }
+  Dart_Port p = port();
   if (p != ILLEGAL_PORT) DartUtils::PostInt32(p, 1 << kDestroyedEvent);
+  port_ = ILLEGAL_PORT;
 }
 
 
@@ -828,8 +837,26 @@ void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
   if (data_ready_ != NULL) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
   }
-  // When disconnect is complete get rid of the object.
-  delete this;
+  closed_ = true;
+}
+
+
+void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
+  OverlappedBuffer::DisposeBuffer(buffer);
+  // Update socket to support full socket API, after ConnectEx completed.
+  setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
+  connected_ = true;
+  Dart_Port p = port();
+  if (p != ILLEGAL_PORT) {
+    // If the port is set, we already listen for this socket in Dart.
+    // Handle the cases here.
+    if (!IsClosedRead()) {
+      IssueRead();
+    }
+    if (!IsClosedWrite()) {
+      DartUtils::PostInt32(p, 1 << kOutEvent);
+    }
+  }
 }
 
 
@@ -845,7 +872,7 @@ void ClientSocket::EnsureInitialized(
 
 
 bool ClientSocket::IsClosed() {
-  return false;
+  return closed_;
 }
 
 
@@ -932,7 +959,9 @@ static void DeleteIfClosed(Handle* handle) {
   if (handle->IsClosed()) {
     Dart_Port port = handle->port();
     delete handle;
-    DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+    if (port != ILLEGAL_PORT) {
+      DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+    }
   }
 }
 
@@ -974,10 +1003,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
           }
         }
       }
-
-      if ((msg->data & (1 << kCloseCommand)) != 0) {
-        listen_socket->Close();
-      }
     } else {
       handle->EnsureInitialized(this);
 
@@ -990,9 +1015,12 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       // Issue a read.
       if ((msg->data & (1 << kInEvent)) != 0) {
-        handle->SetPortAndMask(msg->dart_port, msg->data);
         if (handle->is_datagram_socket()) {
           handle->IssueRecvFrom();
+        } else if (handle->is_client_socket()) {
+          if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
+            handle->IssueRead();
+          }
         } else {
           handle->IssueRead();
         }
@@ -1002,10 +1030,14 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       // are no pending writes, meaning any writes are already complete,
       // post an out event immediately.
       if ((msg->data & (1 << kOutEvent)) != 0) {
-        handle->SetPortAndMask(msg->dart_port, msg->data);
         if (!handle->HasPendingWrite()) {
-          int event_mask = (1 << kOutEvent);
-          DartUtils::PostInt32(handle->port(), event_mask);
+          if (handle->is_client_socket()) {
+            if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
+              DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+            }
+          } else {
+            DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+          }
         }
       }
 
@@ -1114,6 +1146,8 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
   if (bytes >= 0) {
     if (!handle->IsError() && !handle->IsClosing()) {
       int event_mask = 1 << kOutEvent;
+      ASSERT(!handle->is_client_socket() ||
+             reinterpret_cast<ClientSocket*>(handle)->is_connected());
       if ((handle->mask() & event_mask) != 0) {
         DartUtils::PostInt32(handle->port(), event_mask);
       }
@@ -1131,7 +1165,22 @@ void EventHandlerImplementation::HandleDisconnect(
     int bytes,
     OverlappedBuffer* buffer) {
   client_socket->DisconnectComplete(buffer);
+  DeleteIfClosed(client_socket);
 }
+
+
+void EventHandlerImplementation::HandleConnect(
+    ClientSocket* client_socket,
+    int bytes,
+    OverlappedBuffer* buffer) {
+  if (bytes < 0) {
+    HandleError(client_socket);
+    OverlappedBuffer::DisposeBuffer(buffer);
+  } else {
+    client_socket->ConnectComplete(buffer);
+  }
+}
+
 
 void EventHandlerImplementation::HandleTimeout() {
   if (!timeout_queue_.HasTimeout()) return;
@@ -1169,6 +1218,11 @@ void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
     case OverlappedBuffer::kDisconnect: {
       ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
       HandleDisconnect(client_socket, bytes, buffer);
+      break;
+    }
+    case OverlappedBuffer::kConnect: {
+      ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
+      HandleConnect(client_socket, bytes, buffer);
       break;
     }
     default:
