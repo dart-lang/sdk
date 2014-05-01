@@ -236,14 +236,18 @@ class DartBackend extends Backend {
         ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         tree.Builder builder = new tree.Builder(compiler);
         tree.FunctionDefinition definition = builder.build(function);
-        compiler.tracer.traceCompilation(element.name, null, compiler);
-        compiler.tracer.traceGraph('Tree builder', definition);
-        treeElements = new TreeElementMapping(element);
-        tree.Unnamer unnamer = new tree.Unnamer();
-        unnamer.unname(definition);
-        compiler.tracer.traceGraph('Unnamer', definition);
-        tree.Emitter emitter = new tree.Emitter();
-        node = emitter.emit(element, treeElements, definition);
+        if (definition == null) {
+          node = element.parseNode(compiler);
+        } else {
+          compiler.tracer.traceCompilation(element.name, null, compiler);
+          compiler.tracer.traceGraph('Tree builder', definition);
+          treeElements = new TreeElementMapping(element);
+          tree.Unnamer unnamer = new tree.Unnamer();
+          unnamer.unname(definition);
+          compiler.tracer.traceGraph('Unnamer', definition);
+          tree.Emitter emitter = new tree.Emitter();
+          node = emitter.emit(element, treeElements, definition);
+        }
       }
       return new ElementAst(node, treeElements);
     }
