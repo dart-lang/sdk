@@ -63,7 +63,7 @@ main_test: Fail  # Dartium needs to check for both main() and main(args).
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
-[ $runtime == ff || $runtime == ie9 || $runtime == jsshell || $runtime == safari ]
+[ $runtime == ff || $runtime == ie9 || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 
@@ -105,7 +105,7 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == safari) ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == safari || $runtime == safarimobilesim) ]
 string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
 
 [ $compiler == dart2js && ( $runtime == drt) ]
@@ -160,7 +160,7 @@ iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
-[ $compiler == dart2js && $runtime == safari ]
+[ $compiler == dart2js && $runtime == safari && $runtime == safarimobilesim ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $runtime == ie9 || $runtime == ie10 ]

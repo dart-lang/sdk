@@ -133,7 +133,7 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
 
@@ -310,7 +310,7 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
-[ $runtime == safari || $ie ]
+[ $runtime == safari || $runtime == safarimobilesim || $ie ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
 polymer_expressions/test/bindings_test: Fail # Issue 16568
 
@@ -334,7 +334,7 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == safari || $runtime == chrome || $runtime == ff || $ie ]
+[ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
