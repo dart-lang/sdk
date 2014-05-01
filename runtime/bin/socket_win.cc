@@ -46,8 +46,11 @@ bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
 }
 
 
+static Mutex* init_mutex = new Mutex();
+static bool socket_initialized = false;
+
 bool Socket::Initialize() {
-  static bool socket_initialized = false;
+  MutexLocker lock(init_mutex);
   if (socket_initialized) return true;
   int err;
   WSADATA winsock_data;
@@ -219,14 +222,10 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
-static Mutex* getaddrinfo_mutex = new Mutex();
 AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
                                                   int type,
                                                   OSError** os_error) {
   Initialize();
-
-  // getaddrinfo is not thread-safe on Windows. Use a mutex to get around it.
-  MutexLocker locker(getaddrinfo_mutex);
 
   // Perform a name lookup for a host name.
   struct addrinfo hints;
