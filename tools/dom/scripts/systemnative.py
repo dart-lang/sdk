@@ -133,8 +133,7 @@ _cpp_overloaded_callback_map = {
   ('DOMURL', 'createObjectUrlFromStreamCallback'): 'URLMediaStream',
   ('DOMURL', '_createObjectUrlFromWebKitSourceCallback'): 'URLMediaSource',
   ('DOMURL', '_createObjectURL_2Callback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_4Callback'): 'URLMediaStream',
+  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
 }
 
 _cpp_partial_map = {}
