@@ -7,7 +7,7 @@
 
 library service.interfaces;
 
-import 'package:analyzer/src/generated/java_core.dart' show Enum;
+import 'package:analyzer/src/generated/java_core.dart' show Enum, StringUtils;
 import 'package:analyzer/src/generated/source.dart' show Source;
 
 /**
@@ -21,235 +21,6 @@ abstract class HighlightRegion implements SourceRegion {
    * @return the type of highlight associated with the region
    */
   HighlightType get type;
-}
-
-/**
- * The interface `NavigationTarget` defines the behavior of objects that provide information
- * about the target of a navigation region.
- */
-abstract class NavigationTarget {
-  /**
-   * Return the id of the element to which this target will navigate.
-   *
-   * @return the id of the element to which this target will navigate
-   */
-  String get elementId;
-
-  /**
-   * Return the length of the region to which the target will navigate.
-   *
-   * @return the length of the region to which the target will navigate
-   */
-  int get length;
-
-  /**
-   * Return the offset to the region to which the target will navigate.
-   *
-   * @return the offset to the region to which the target will navigate
-   */
-  int get offset;
-
-  /**
-   * Return the source containing the element to which this target will navigate.
-   *
-   * @return the source containing the element to which this target will navigate
-   */
-  Source get source;
-}
-
-/**
- * The enumeration `OutlineKind` defines the various kinds of [Outline] items.
- */
-class OutlineKind extends Enum<OutlineKind> {
-  static const OutlineKind CLASS = const OutlineKind('CLASS', 0);
-
-  static const OutlineKind CLASS_TYPE_ALIAS = const OutlineKind('CLASS_TYPE_ALIAS', 1);
-
-  static const OutlineKind CONSTRUCTOR = const OutlineKind('CONSTRUCTOR', 2);
-
-  static const OutlineKind GETTER = const OutlineKind('GETTER', 3);
-
-  static const OutlineKind FIELD = const OutlineKind('FIELD', 4);
-
-  static const OutlineKind FUNCTION = const OutlineKind('FUNCTION', 5);
-
-  static const OutlineKind FUNCTION_TYPE_ALIAS = const OutlineKind('FUNCTION_TYPE_ALIAS', 6);
-
-  static const OutlineKind METHOD = const OutlineKind('METHOD', 7);
-
-  static const OutlineKind SETTER = const OutlineKind('SETTER', 8);
-
-  static const OutlineKind TOP_LEVEL_VARIABLE = const OutlineKind('TOP_LEVEL_VARIABLE', 9);
-
-  static const OutlineKind COMPILATION_UNIT = const OutlineKind('COMPILATION_UNIT', 10);
-
-  static const List<OutlineKind> values = const [
-      CLASS,
-      CLASS_TYPE_ALIAS,
-      CONSTRUCTOR,
-      GETTER,
-      FIELD,
-      FUNCTION,
-      FUNCTION_TYPE_ALIAS,
-      METHOD,
-      SETTER,
-      TOP_LEVEL_VARIABLE,
-      COMPILATION_UNIT];
-
-  const OutlineKind(String name, int ordinal) : super(name, ordinal);
-}
-
-/**
- * The interface `SourceSet` defines the behavior of objects that represent a set of
- * [Source]s.
- */
-abstract class SourceSet {
-  /**
-   * An instance of [SourceSet] for [SourceSetKind#ALL].
-   */
-  static final SourceSet ALL = new _ImplicitSourceSet(SourceSetKind.ALL);
-
-  /**
-   * An instance of [SourceSet] for [SourceSetKind#NON_SDK].
-   */
-  static final SourceSet NON_SDK = new _ImplicitSourceSet(SourceSetKind.NON_SDK);
-
-  /**
-   * An instance of [SourceSet] for [SourceSetKind#EXPLICITLY_ADDED].
-   */
-  static final SourceSet EXPLICITLY_ADDED = new _ImplicitSourceSet(SourceSetKind.EXPLICITLY_ADDED);
-
-  /**
-   * Return the kind of the this source set.
-   */
-  SourceSetKind get kind;
-
-  /**
-   * Returns [Source]s that belong to this source set, if [SourceSetKind#LIST] is used;
-   * an empty array otherwise.
-   */
-  List<Source> get sources;
-}
-
-/**
- * The enumeration `SourceSetKind` defines the kinds of [SourceSet]s.
- */
-class SourceSetKind extends Enum<SourceSetKind> {
-  static const SourceSetKind ALL = const SourceSetKind('ALL', 0);
-
-  static const SourceSetKind NON_SDK = const SourceSetKind('NON_SDK', 1);
-
-  static const SourceSetKind EXPLICITLY_ADDED = const SourceSetKind('EXPLICITLY_ADDED', 2);
-
-  static const SourceSetKind LIST = const SourceSetKind('LIST', 3);
-
-  static const List<SourceSetKind> values = const [ALL, NON_SDK, EXPLICITLY_ADDED, LIST];
-
-  const SourceSetKind(String name, int ordinal) : super(name, ordinal);
-}
-
-/**
- * The interface `SourceRegion` defines the behavior of objects representing a range of
- * characters within a [Source].
- */
-abstract class SourceRegion {
-  /**
-   * Check if <code>x</code> is in [offset, offset + length] interval.
-   */
-  bool containsInclusive(int x);
-
-  /**
-   * Return the length of the region.
-   *
-   * @return the length of the region
-   */
-  int get length;
-
-  /**
-   * Return the offset to the beginning of the region.
-   *
-   * @return the offset to the beginning of the region
-   */
-  int get offset;
-}
-
-/**
- * The enumeration `NotificationKind` defines the kinds of notification clients may subscribe
- * for.
- */
-class NotificationKind extends Enum<NotificationKind> {
-  static const NotificationKind ERRORS = const NotificationKind('ERRORS', 0);
-
-  static const NotificationKind HIGHLIGHTS = const NotificationKind('HIGHLIGHTS', 1);
-
-  static const NotificationKind NAVIGATION = const NotificationKind('NAVIGATION', 2);
-
-  static const NotificationKind OUTLINE = const NotificationKind('OUTLINE', 3);
-
-  static const List<NotificationKind> values = const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
-
-  const NotificationKind(String name, int ordinal) : super(name, ordinal);
-}
-
-/**
- * A [SourceSetKind#LIST] implementation of [SourceSet].
- */
-class ListSourceSet implements SourceSet {
-  /**
-   * Creates a new list-based [SourceSet] instance.
-   */
-  static SourceSet create(Iterable<Source> sourceCollection) {
-    List<Source> sources = new List.from(sourceCollection);
-    return new ListSourceSet(sources);
-  }
-
-  /**
-   * Creates a new list-based [SourceSet] instance.
-   */
-  static SourceSet create2(List<Source> sources) => new ListSourceSet(sources);
-
-  final List<Source> sources;
-
-  ListSourceSet(this.sources);
-
-  @override
-  SourceSetKind get kind => SourceSetKind.LIST;
-
-  @override
-  String toString() => "[${StringUtils.join(sources, ", ")}]";
-}
-
-/**
- * The interface `NavigationRegion` defines the behavior of objects representing a list of
- * elements with which a source region is associated.
- */
-abstract class NavigationRegion implements SourceRegion {
-  /**
-   * An empty array of navigation regions.
-   */
-  static final List<NavigationRegion> EMPTY_ARRAY = new List<NavigationRegion>(0);
-
-  /**
-   * Return the identifiers of the elements associated with the region.
-   *
-   * @return the identifiers of the elements associated with the region
-   */
-  List<NavigationTarget> get targets;
-}
-
-/**
- * An implementation of [SourceSet] for some [SourceSetKind].
- */
-class _ImplicitSourceSet implements SourceSet {
-  final SourceSetKind kind;
-
-  _ImplicitSourceSet(this.kind);
-
-  @override
-  List<Source> get sources => Source.EMPTY_ARRAY;
-
-  @override
-  String toString() => kind.toString();
 }
 
 /**
@@ -368,6 +139,104 @@ class HighlightType extends Enum<HighlightType> {
 }
 
 /**
+ * A [SourceSetKind#LIST] implementation of [SourceSet].
+ */
+class ListSourceSet implements SourceSet {
+  /**
+   * Creates a new list-based [SourceSet] instance.
+   */
+  static SourceSet create(Iterable<Source> sourceCollection) {
+    List<Source> sources = new List.from(sourceCollection);
+    return new ListSourceSet(sources);
+  }
+
+  /**
+   * Creates a new list-based [SourceSet] instance.
+   */
+  static SourceSet create2(List<Source> sources) => new ListSourceSet(sources);
+
+  final List<Source> sources;
+
+  ListSourceSet(this.sources);
+
+  @override
+  SourceSetKind get kind => SourceSetKind.LIST;
+
+  @override
+  String toString() => "[${StringUtils.join(sources, ", ")}]";
+}
+
+/**
+ * The interface `NavigationRegion` defines the behavior of objects representing a list of
+ * elements with which a source region is associated.
+ */
+abstract class NavigationRegion implements SourceRegion {
+  /**
+   * An empty array of navigation regions.
+   */
+  static final List<NavigationRegion> EMPTY_ARRAY = new List<NavigationRegion>(0);
+
+  /**
+   * Return the identifiers of the elements associated with the region.
+   *
+   * @return the identifiers of the elements associated with the region
+   */
+  List<NavigationTarget> get targets;
+}
+
+/**
+ * The interface `NavigationTarget` defines the behavior of objects that provide information
+ * about the target of a navigation region.
+ */
+abstract class NavigationTarget {
+  /**
+   * Return the id of the element to which this target will navigate.
+   *
+   * @return the id of the element to which this target will navigate
+   */
+  String get elementId;
+
+  /**
+   * Return the length of the region to which the target will navigate.
+   *
+   * @return the length of the region to which the target will navigate
+   */
+  int get length;
+
+  /**
+   * Return the offset to the region to which the target will navigate.
+   *
+   * @return the offset to the region to which the target will navigate
+   */
+  int get offset;
+
+  /**
+   * Return the source containing the element to which this target will navigate.
+   *
+   * @return the source containing the element to which this target will navigate
+   */
+  Source get source;
+}
+
+/**
+ * The enumeration `NotificationKind` defines the kinds of notification clients may subscribe
+ * for.
+ */
+class NotificationKind extends Enum<NotificationKind> {
+  static const NotificationKind ERRORS = const NotificationKind('ERRORS', 0);
+
+  static const NotificationKind HIGHLIGHTS = const NotificationKind('HIGHLIGHTS', 1);
+
+  static const NotificationKind NAVIGATION = const NotificationKind('NAVIGATION', 2);
+
+  static const NotificationKind OUTLINE = const NotificationKind('OUTLINE', 3);
+
+  static const List<NotificationKind> values = const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
+
+  const NotificationKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
  * The interface `Outline` defines the behavior of objects that represent an outline for a
  * single source.
  */
@@ -466,4 +335,135 @@ abstract class Outline {
    * @return `true` if the element is a static element
    */
   bool get isStatic;
+}
+
+/**
+ * The enumeration `OutlineKind` defines the various kinds of [Outline] items.
+ */
+class OutlineKind extends Enum<OutlineKind> {
+  static const OutlineKind CLASS = const OutlineKind('CLASS', 0);
+
+  static const OutlineKind CLASS_TYPE_ALIAS = const OutlineKind('CLASS_TYPE_ALIAS', 1);
+
+  static const OutlineKind CONSTRUCTOR = const OutlineKind('CONSTRUCTOR', 2);
+
+  static const OutlineKind GETTER = const OutlineKind('GETTER', 3);
+
+  static const OutlineKind FIELD = const OutlineKind('FIELD', 4);
+
+  static const OutlineKind FUNCTION = const OutlineKind('FUNCTION', 5);
+
+  static const OutlineKind FUNCTION_TYPE_ALIAS = const OutlineKind('FUNCTION_TYPE_ALIAS', 6);
+
+  static const OutlineKind METHOD = const OutlineKind('METHOD', 7);
+
+  static const OutlineKind SETTER = const OutlineKind('SETTER', 8);
+
+  static const OutlineKind TOP_LEVEL_VARIABLE = const OutlineKind('TOP_LEVEL_VARIABLE', 9);
+
+  static const OutlineKind COMPILATION_UNIT = const OutlineKind('COMPILATION_UNIT', 10);
+
+  static const List<OutlineKind> values = const [
+      CLASS,
+      CLASS_TYPE_ALIAS,
+      CONSTRUCTOR,
+      GETTER,
+      FIELD,
+      FUNCTION,
+      FUNCTION_TYPE_ALIAS,
+      METHOD,
+      SETTER,
+      TOP_LEVEL_VARIABLE,
+      COMPILATION_UNIT];
+
+  const OutlineKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `SourceRegion` defines the behavior of objects representing a range of
+ * characters within a [Source].
+ */
+abstract class SourceRegion {
+  /**
+   * Check if <code>x</code> is in [offset, offset + length] interval.
+   */
+  bool containsInclusive(int x);
+
+  /**
+   * Return the length of the region.
+   *
+   * @return the length of the region
+   */
+  int get length;
+
+  /**
+   * Return the offset to the beginning of the region.
+   *
+   * @return the offset to the beginning of the region
+   */
+  int get offset;
+}
+
+/**
+ * The interface `SourceSet` defines the behavior of objects that represent a set of
+ * [Source]s.
+ */
+abstract class SourceSet {
+  /**
+   * An instance of [SourceSet] for [SourceSetKind#ALL].
+   */
+  static final SourceSet ALL = new _ImplicitSourceSet(SourceSetKind.ALL);
+
+  /**
+   * An instance of [SourceSet] for [SourceSetKind#NON_SDK].
+   */
+  static final SourceSet NON_SDK = new _ImplicitSourceSet(SourceSetKind.NON_SDK);
+
+  /**
+   * An instance of [SourceSet] for [SourceSetKind#EXPLICITLY_ADDED].
+   */
+  static final SourceSet EXPLICITLY_ADDED = new _ImplicitSourceSet(SourceSetKind.EXPLICITLY_ADDED);
+
+  /**
+   * Return the kind of the this source set.
+   */
+  SourceSetKind get kind;
+
+  /**
+   * Returns [Source]s that belong to this source set, if [SourceSetKind#LIST] is used;
+   * an empty array otherwise.
+   */
+  List<Source> get sources;
+}
+
+/**
+ * The enumeration `SourceSetKind` defines the kinds of [SourceSet]s.
+ */
+class SourceSetKind extends Enum<SourceSetKind> {
+  static const SourceSetKind ALL = const SourceSetKind('ALL', 0);
+
+  static const SourceSetKind NON_SDK = const SourceSetKind('NON_SDK', 1);
+
+  static const SourceSetKind EXPLICITLY_ADDED = const SourceSetKind('EXPLICITLY_ADDED', 2);
+
+  static const SourceSetKind LIST = const SourceSetKind('LIST', 3);
+
+  static const List<SourceSetKind> values = const [ALL, NON_SDK, EXPLICITLY_ADDED, LIST];
+
+  const SourceSetKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * An implementation of [SourceSet] for some [SourceSetKind].
+ */
+class _ImplicitSourceSet implements SourceSet {
+  final SourceSetKind kind;
+
+  _ImplicitSourceSet(this.kind);
+
+  @override
+  List<Source> get sources => Source.EMPTY_ARRAY;
+
+  @override
+  String toString() => kind.toString();
 }

@@ -383,6 +383,7 @@ void Isolate::SetCurrent(Isolate* current) {
 #if defined(DEBUG)
     CheckForDuplicateThreadState(thread_state);
 #endif
+    ASSERT(thread_state != NULL);
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
     current->set_vm_tag(VMTag::kVMTagId);
@@ -882,7 +883,7 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
-void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
+void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddPropertyF("id", "isolates/%" Pd "",

@@ -834,9 +834,6 @@ class TestSnapshotWriter : public SnapshotWriter {
 };
 
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
-
 static void GenerateSourceAndCheck(const Script& script) {
   // Check if we are able to generate the source from the token stream.
   // Rescan this source and compare the token stream to see if they are
@@ -860,7 +857,7 @@ static void GenerateSourceAndCheck(const Script& script) {
     EXPECT_EQ(expected_kind, reconstructed_kind);
     expected_literal ^= expected_iterator.CurrentLiteral();
     actual_literal ^= reconstructed_iterator.CurrentLiteral();
-    EXPECT(expected_literal.Equals(actual_literal));
+    EXPECT_STREQ(expected_literal.ToCString(), actual_literal.ToCString());
     expected_iterator.Advance();
     reconstructed_iterator.Advance();
     expected_kind = expected_iterator.CurrentTokenKind();
@@ -907,6 +904,9 @@ TEST_CASE(SerializeScript) {
       "a b c\n"
       "d ${d} e\n"
       "g h i''';\n"
+      "  }\n"
+      "  static ms6() {\n"
+      "    return '\\t \\n \\x00 \\xFF';\n"
       "  }\n"
       "}\n";
 
@@ -2715,7 +2715,5 @@ UNIT_TEST_CASE(PostCObject) {
 
   Dart_ExitScope();
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

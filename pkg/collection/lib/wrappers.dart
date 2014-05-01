@@ -31,7 +31,7 @@ class DelegatingIterable<E> implements Iterable<E> {
   /**
    * Create a wrapper that forwards operations to [base].
    */
-  DelegatingIterable(Iterable<E> base) : _base = base;
+  const DelegatingIterable(Iterable<E> base) : _base = base;
 
   bool any(bool test(E element)) => _base.any(test);
 
@@ -102,7 +102,7 @@ class DelegatingIterable<E> implements Iterable<E> {
  * list object.
  */
 class DelegatingList<E> extends DelegatingIterable<E> implements List<E> {
-  DelegatingList(List<E> base) : super(base);
+  const DelegatingList(List<E> base) : super(base);
 
   List<E> get _listBase => _base;
 
@@ -201,7 +201,7 @@ class DelegatingList<E> extends DelegatingIterable<E> implements List<E> {
  * set object.
  */
 class DelegatingSet<E> extends DelegatingIterable<E> implements Set<E> {
-  DelegatingSet(Set<E> base) : super(base);
+  const DelegatingSet(Set<E> base) : super(base);
 
   Set<E> get _setBase => _base;
 
@@ -252,7 +252,7 @@ class DelegatingSet<E> extends DelegatingIterable<E> implements Set<E> {
  * queue object.
  */
 class DelegatingQueue<E> extends DelegatingIterable<E> implements Queue<E> {
-  DelegatingQueue(Queue<E> queue) : super(queue);
+  const DelegatingQueue(Queue<E> queue) : super(queue);
 
   Queue<E> get _baseQueue => _base;
 
@@ -297,7 +297,7 @@ class DelegatingQueue<E> extends DelegatingIterable<E> implements Queue<E> {
 class DelegatingMap<K, V> implements Map<K, V> {
   final Map<K, V> _base;
 
-  DelegatingMap(Map<K, V> base) : _base = base;
+  const DelegatingMap(Map<K, V> base) : _base = base;
 
   V operator [](Object key) => _base[key];
 

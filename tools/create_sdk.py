@@ -21,6 +21,7 @@
 # ......pub
 # ......snapshots/
 # ........dart2js.dart.snapshot
+# ........dartanalyzer.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
@@ -44,9 +45,6 @@
 # ......mirrors/
 # ......typed_data/
 # ....util/
-# ......dartanalyzer/
-# ........dartanalyzer.jar
-# ........(third-party libraries for dart_analyzer)
 # ......(more will come here)
 
 
@@ -114,7 +112,8 @@ def CopyDartScripts(home, sdk_root):
 
 
 def CopySnapshots(snapshots, sdk_root):
-  for snapshot in ['dart2js', 'dartfmt', 'utils_wrapper', 'pub']:
+  for snapshot in ['dart2js', 'dartanalyzer', 'dartfmt', 'utils_wrapper',
+                   'pub']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
@@ -190,16 +189,17 @@ def Main(argv):
   os.makedirs(LIB)
 
   #
-  # Create and populate lib/{core, crypto, isolate, ...}.
+  # Create and populate lib/{async, core, isolate, ...}.
   #
 
   os.makedirs(join(LIB, 'html'))
 
-  for library in [join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
+  for library in [join('_blink', 'dartium'),
+                  join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
                   join('_internal', 'compiler'),
                   join('_internal', 'lib'),
                   'async', 'collection', 'convert', 'core',
-                  'crypto', 'internal', 'io', 'isolate',
+                  'internal', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
@@ -219,16 +219,6 @@ def Main(argv):
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
-
-  # Create and copy dartanalyzer into 'util'
-  DARTANALYZER_SRC = join(HOME, build_dir, 'dartanalyzer')
-  DARTANALYZER_DEST = join(UTIL, 'dartanalyzer')
-  os.makedirs(DARTANALYZER_DEST)
-
-  jarFiles = glob.glob(join(DARTANALYZER_SRC, '*.jar'))
-
-  for jarFile in jarFiles:
-    copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
 
   RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
   os.makedirs(os.path.dirname(RESOURCE))

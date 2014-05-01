@@ -12,7 +12,6 @@ class ClassBuilder {
   final List<String> fields = <String>[];
 
   String superName;
-  String nativeName;
   String functionType;
   List<jsAst.Node> fieldMetadata;
 
@@ -35,9 +34,6 @@ class ClassBuilder {
   jsAst.ObjectInitializer toObjectInitializer() {
     StringBuffer buffer = new StringBuffer();
     if (superName != null) {
-      if (nativeName != null) {
-        buffer.write('$nativeName/');
-      }
       buffer.write('$superName');
       if (functionType != null) {
         buffer.write(':$functionType');

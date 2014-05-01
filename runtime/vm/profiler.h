@@ -45,8 +45,8 @@ class Profiler : public AllStatic {
   static void BeginExecution(Isolate* isolate);
   static void EndExecution(Isolate* isolate);
 
-  static void PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                bool full, TagOrder tag_order);
+  static void PrintJSON(Isolate* isolate, JSONStream* stream,
+                        bool full, TagOrder tag_order);
   static void WriteProfile(Isolate* isolate);
 
   static SampleBuffer* sample_buffer() {

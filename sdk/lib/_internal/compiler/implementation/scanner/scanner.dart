@@ -185,6 +185,9 @@ abstract class AbstractScanner implements Scanner {
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendComment(start, bool asciiOnly);
 
+  /// Append [token] to the token stream.
+  void appendErrorToken(ErrorToken token);
+
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
 
@@ -200,7 +203,7 @@ abstract class AbstractScanner implements Scanner {
       if (atEndOfFile()) {
         appendEofToken();
       } else {
-        error('Unexpected ${$EOF} byte in input.');
+        unexpected($EOF);
       }
     }
 
@@ -385,7 +388,7 @@ abstract class AbstractScanner implements Scanner {
       return $EOF;
     }
     if (next < 0x1f) {
-      return error("unexpected character $next");
+      return unexpected(next);
     }
 
     next = currentAsUnicode(next);
@@ -397,7 +400,7 @@ abstract class AbstractScanner implements Scanner {
       return advance();
     }
 
-    return error("unexpected unicode character $next");
+    return unexpected(next);
   }
 
   int tokenizeTag(int next) {
@@ -628,7 +631,7 @@ abstract class AbstractScanner implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          return error("hex digit expected");
+          return unterminated('0x');
         }
         appendSubstringToken(HEXADECIMAL_INFO, start, true);
         return next;
@@ -658,7 +661,24 @@ abstract class AbstractScanner implements Scanner {
         hasDigit = true;
       } else if (identical($e, next) || identical($E, next)) {
         hasDigit = true;
-        next = tokenizeExponent(advance());
+        next = advance();
+        if (identical(next, $PLUS) || identical(next, $MINUS)) {
+          next = advance();
+        }
+        bool hasExponentDigits = false;
+        while (true) {
+          if ($0 <= next && next <= $9) {
+            hasExponentDigits = true;
+          } else {
+            if (!hasExponentDigits) {
+              unterminated('1e', shouldAdvance: false);
+              return next;
+            }
+            break;
+          }
+          next = advance();
+        }
+
         done = true;
         continue LOOP;
       } else {
@@ -681,25 +701,6 @@ abstract class AbstractScanner implements Scanner {
     }
     appendSubstringToken(DOUBLE_INFO, start, true);
     return next;
-  }
-
-  int tokenizeExponent(int next) {
-    if (identical(next, $PLUS) || identical(next, $MINUS)) {
-      next = advance();
-    }
-    bool hasDigits = false;
-    while (true) {
-      if ($0 <= next && next <= $9) {
-        hasDigits = true;
-      } else {
-        if (!hasDigits) {
-          return error("digit expected");
-        }
-        return next;
-      }
-      next = advance();
-    }
-    return null;
   }
 
   int tokenizeSlashOrComment(int next) {
@@ -832,7 +833,7 @@ abstract class AbstractScanner implements Scanner {
       } else {
         // Identifier ends here.
         if (start == scanOffset) {
-          return error("expected identifier");
+          return unexpected(next);
         } else {
           appendSubstringToken(IDENTIFIER_INFO, start, true);
         }
@@ -897,7 +898,7 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        return error("unterminated string literal");
+        return unterminatedString(quoteChar);
       }
       if (next > 127) asciiOnly = false;
       next = advance();
@@ -935,14 +936,15 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeInterpolatedIdentifier(int next) {
     appendPrecedenceToken(STRING_INTERPOLATION_IDENTIFIER_INFO);
-    beginToken(); // The identifier starts here.
 
     if ($a <= next && next <= $z) {
+      beginToken(); // The identifier starts here.
       next = tokenizeKeywordOrIdentifier(next, false);
     } else if (($A <= next && next <= $Z) || identical(next, $_)) {
+      beginToken(); // The identifier starts here.
       next = tokenizeIdentifier(next, scanOffset, false);
     } else {
-      error("expected identifier or '{'", shouldAdvance: false);
+      unterminated(r'$', shouldAdvance: false);
     }
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -959,14 +961,14 @@ abstract class AbstractScanner implements Scanner {
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
         if (!asciiOnly) handleUnicode(start);
-        return error("unterminated string literal");
+        return unterminatedRawString(quoteChar);
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
     if (!asciiOnly) handleUnicode(start);
-    return error("unterminated string literal");
+    return unterminatedRawString(quoteChar);
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -1003,7 +1005,7 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return error("unterminated string literal");
+    return unterminatedRawMultiLineString(quoteChar);
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -1054,11 +1056,37 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return error("unterminated string literal");
+    return unterminatedMultiLineString(quoteChar);
   }
 
-  int error(String message, {bool shouldAdvance: true}) {
-    appendStringToken(BAD_INPUT_INFO, message);
+  int unexpected(int character) {
+    appendErrorToken(new BadInputToken(character, tokenStart));
+    return advanceAfterError(true);
+  }
+
+  int unterminated(String prefix, {bool shouldAdvance: true}) {
+    appendErrorToken(new UnterminatedToken(prefix, tokenStart, stringOffset));
+    return advanceAfterError(shouldAdvance);
+  }
+
+  int unterminatedString(int quoteChar) {
+    return unterminated(new String.fromCharCodes([quoteChar]));
+  }
+
+  int unterminatedRawString(int quoteChar) {
+    return unterminated('r${new String.fromCharCodes([quoteChar])}');
+  }
+
+  int unterminatedMultiLineString(int quoteChar) {
+    return unterminated(
+        new String.fromCharCodes([quoteChar, quoteChar, quoteChar]));
+  }
+  int unterminatedRawMultiLineString(int quoteChar) {
+    return unterminated(
+        'r${new String.fromCharCodes([quoteChar, quoteChar, quoteChar])}');
+  }
+
+  int advanceAfterError(bool shouldAdvance) {
     if (atEndOfFile()) return $EOF;
     if (shouldAdvance) {
       return advance(); // Ensure progress.
@@ -1068,29 +1096,63 @@ abstract class AbstractScanner implements Scanner {
   }
 
   void unmatchedBeginGroup(BeginGroupToken begin) {
-    String error = 'unmatched "${begin.stringValue}"';
-    Token close =
-        new StringToken.fromString(
-            BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
-
-    // We want to ensure that unmatched BeginGroupTokens are reported
-    // as errors. However, the rest of the parser assumes the groups
-    // are well-balanced and will never look at the endGroup
-    // token. This is a nice property that allows us to skip quickly
-    // over correct code. By inserting an additional error token in
-    // the stream, we can keep ignoring endGroup tokens.
+    // We want to ensure that unmatched BeginGroupTokens are reported as
+    // errors.  However, the diet parser assumes that groups are well-balanced
+    // and will never look at the endGroup token.  This is a nice property that
+    // allows us to skip quickly over correct code. By inserting an additional
+    // synthetic token in the stream, we can keep ignoring endGroup tokens.
     //
     // [begin] --next--> [tail]
-    // [begin] --endG--> [close] --next--> [next] --next--> [tail]
+    // [begin] --endG--> [synthetic] --next--> [next] --next--> [tail]
     //
-    // This allows the parser to skip from [begin] via endGroup to [close] and
-    // ignore the [close] token (assuming it's correct), then the error will be
-    // reported when parsing the [next] token.
-
-    Token next = new StringToken.fromString(
-        BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
-    begin.endGroup = close;
-    close.next = next;
-    next.next = begin.next;
+    // This allows the diet parser to skip from [begin] via endGroup to
+    // [synthetic] and ignore the [synthetic] token (assuming it's correct),
+    // then the error will be reported when parsing the [next] token.
+    //
+    // For example, tokenize("{[1};") produces:
+    //
+    // SymbolToken({) --endGroup-----+
+    //      |                        |
+    //     next                      |
+    //      v                        |
+    // SymbolToken([) --endGroup--+  |
+    //      |                     |  |
+    //     next                   |  |
+    //      v                     |  |
+    // StringToken(1)             |  |
+    //      |                     v  |
+    //     next       SymbolToken(]) | <- Synthetic token.
+    //      |                     |  |
+    //      |                   next |
+    //      v                     |  |
+    // UnmatchedToken([)<---------+  |
+    //      |                        |
+    //     next                      |
+    //      v                        |
+    // SymbolToken(})<---------------+
+    //      |
+    //     next
+    //      v
+    // SymbolToken(;)
+    //      |
+    //     next
+    //      v
+    //     EOF
+    Token synthetic =
+        new SymbolToken(closeBraceInfoFor(begin), begin.charOffset);
+    UnmatchedToken next = new UnmatchedToken(begin);
+    begin.endGroup = synthetic;
+    synthetic.next = next;
+    appendErrorToken(next);
   }
+}
+
+PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
+  return const {
+    '(': CLOSE_PAREN_INFO,
+    '[': CLOSE_SQUARE_BRACKET_INFO,
+    '{': CLOSE_CURLY_BRACKET_INFO,
+    '<': GT_INFO,
+    r'${': CLOSE_CURLY_BRACKET_INFO,
+  }[begin.value];
 }

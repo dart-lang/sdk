@@ -717,14 +717,16 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
       context = Bind(new LoadFieldInstr(
-          context, Context::parent_offset(), Type::ZoneHandle()));
+          context, Context::parent_offset(), Type::ZoneHandle(),
+          Scanner::kNoSourcePos));
     }
     Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
     StoreInstanceFieldInstr* store =
         new StoreInstanceFieldInstr(Context::variable_offset(local.index()),
                                     context,
                                     tmp_val,
-                                    kEmitStoreBarrier);
+                                    kEmitStoreBarrier,
+                                    Scanner::kNoSourcePos);
     Do(store);
     return ExitTempLocalScope(tmp_var);
   } else {
@@ -743,11 +745,13 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
       context = Bind(new LoadFieldInstr(
-          context, Context::parent_offset(), Type::ZoneHandle()));
+          context, Context::parent_offset(), Type::ZoneHandle(),
+          Scanner::kNoSourcePos));
     }
     return new LoadFieldInstr(context,
                               Context::variable_offset(local.index()),
-                              local.type());
+                              local.type(),
+                              Scanner::kNoSourcePos);
   } else {
     return new LoadLocalInstr(local);
   }
@@ -854,7 +858,8 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         comp->right(),
         false));  // No number check.
   } else {
-    branch = new BranchInstr(comp, FLAG_enable_type_checks);
+    branch = new BranchInstr(comp);
+    branch->set_is_checked(FLAG_enable_type_checks);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -2149,8 +2154,8 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
               : kEmitStoreBarrier;
       intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new StoreIndexedInstr(
-          array, index, for_value.value(),
-          emit_store_barrier, index_scale, class_id, deopt_id);
+          array, index, for_value.value(), emit_store_barrier,
+          index_scale, class_id, deopt_id, node->token_pos());
       Do(store);
     }
     ReturnDefinition(ExitTempLocalScope(tmp_var));
@@ -2192,22 +2197,24 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     const Class& cls = Class::Handle(
         owner()->parsed_function()->function().Owner());
     // The closure is now properly setup, add it to the lookup table.
-#if DEBUG
+    // It is possible that the compiler creates more than one function
+    // object for the same closure, e.g. when inlining nodes from
+    // finally clauses. If we already have a function object for the
+    // same closure, do not add a second one. We compare the origin
+    // class, token position, and parent function to detect duplicates.
+    // Note that we can have two different closure object for the same
+    // source text represntation of the closure: one with a non-closurized
+    // parent, and one with a closurized parent function.
+
     const Function& found_func = Function::Handle(
         cls.LookupClosureFunction(function.token_pos()));
-    ASSERT(found_func.IsNull() ||
-           (found_func.token_pos() != function.token_pos()) ||
-           // TODO(hausner): The following check should not be necessary.
-           // Since we only lookup based on the token_pos we can get
-           // duplicate entries due to closurized and non-closurized parent
-           // functions (see Parser::ParseFunctionStatement).
-           // We need two ways to lookup in this cache: One way to cache the
-           // appropriate closure function and one way to find the functions
-           // while debugging (we might need to set breakpoints in multiple
-           // different function for a single token index.)
-           (found_func.parent_function() != function.parent_function()));
-#endif  // DEBUG
-    cls.AddClosureFunction(function);
+
+    if (found_func.IsNull() ||
+        (found_func.token_pos() != function.token_pos()) ||
+        (found_func.script() != function.script()) ||
+        (found_func.parent_function() != function.parent_function())) {
+      cls.AddClosureFunction(function);
+    }
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
@@ -2244,7 +2251,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     Do(new StoreInstanceFieldInstr(Closure::function_offset(),
                                    closure_tmp_val,
                                    func_val,
-                                   kEmitStoreBarrier));
+                                   kEmitStoreBarrier,
+                                   node->token_pos()));
     if (is_implicit) {
       // Create new context containing the receiver.
       const intptr_t kNumContextVariables = 1;  // The receiver.
@@ -2261,14 +2269,16 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
         Do(new StoreInstanceFieldInstr(Context::variable_offset(0),
                                        context_tmp_val,
                                        receiver,
-                                       kEmitStoreBarrier));
+                                       kEmitStoreBarrier,
+                                       node->token_pos()));
         // Store new context in closure.
         closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
         context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
         Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                        closure_tmp_val,
                                        context_tmp_val,
-                                       kEmitStoreBarrier));
+                                       kEmitStoreBarrier,
+                                       node->token_pos()));
         Do(ExitTempLocalScope(context_tmp_var));
       }
     } else {
@@ -2278,7 +2288,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                      closure_tmp_val,
                                      context,
-                                     kEmitStoreBarrier));
+                                     kEmitStoreBarrier,
+                                     node->token_pos()));
     }
     ReturnDefinition(ExitTempLocalScope(closure_tmp_var));
   }
@@ -2374,39 +2385,66 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 }
 
 
-ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
-    ClosureCallNode* node) {
+void EffectGraphVisitor::BuildClosureCall(
+    ClosureCallNode* node, bool result_needed) {
   ValueGraphVisitor for_closure(owner());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
-  PushArgumentInstr* push_closure = PushArgument(for_closure.value());
+
+  LocalVariable* tmp_var = EnterTempLocalScope(for_closure.value());
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
+  Value* closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  PushArgumentInstr* push_closure = PushArgument(closure_val);
   arguments->Add(push_closure);
   BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
   ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
   BuildSaveContext(*owner()->parsed_function()->saved_current_context_var());
-  return new ClosureCallInstr(node, arguments);
+  closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  LoadFieldInstr* context_load = new LoadFieldInstr(closure_val,
+                                                    Closure::context_offset(),
+                                                    AbstractType::ZoneHandle(),
+                                                    node->token_pos());
+  context_load->set_is_immutable(true);
+  Value* context_val = Bind(context_load);
+  AddInstruction(new StoreContextInstr(context_val));
+  closure_val = Bind(new LoadLocalInstr(*tmp_var));
+  LoadFieldInstr* function_load =
+      new LoadFieldInstr(closure_val,
+                         Closure::function_offset(),
+                         AbstractType::ZoneHandle(),
+                         node->token_pos());
+  function_load->set_is_immutable(true);
+  Value* function_val = Bind(function_load);
+  Definition* closure_call =
+      new ClosureCallInstr(function_val, node, arguments);
+  if (result_needed) {
+    Value* result = Bind(closure_call);
+    Do(new StoreLocalInstr(*tmp_var, result));
+    // Restore context from temp.
+    BuildRestoreContext(
+        *owner()->parsed_function()->saved_current_context_var());
+    ReturnDefinition(ExitTempLocalScope(tmp_var));
+  } else {
+    Do(closure_call);
+    // Restore context from saved location.
+    BuildRestoreContext(
+        *owner()->parsed_function()->saved_current_context_var());
+    Do(ExitTempLocalScope(tmp_var));
+  }
 }
 
 
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Do(BuildClosureCall(node));
-  // Restore context from saved location.
-  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
+  BuildClosureCall(node, false);
 }
 
 
 void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Value* result = Bind(BuildClosureCall(node));
-  // Restore context from temp.
-  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
-  ReturnValue(result);
+  BuildClosureCall(node, true);
 }
 
 
@@ -2593,7 +2631,8 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   return Bind(new LoadFieldInstr(
       instantiator,
       type_arguments_field_offset,
-      Type::ZoneHandle()));  // Not an instance, no type.
+      Type::ZoneHandle(),  // Not an instance, no type.
+      Scanner::kNoSourcePos));
 }
 
 
@@ -2937,12 +2976,11 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
         // class-id.
-        const bool is_immutable = false;
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             String::length_offset(),
             Type::ZoneHandle(Type::SmiType()),
-            is_immutable);
+            node->token_pos());
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
         if (kind == MethodRecognizer::kStringBaseLength) {
@@ -2964,13 +3002,12 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        const bool is_immutable =
-            (kind != MethodRecognizer::kGrowableArrayLength);
         LoadFieldInstr* load = new LoadFieldInstr(
             receiver,
             OffsetForLengthGetter(kind),
             Type::ZoneHandle(Type::SmiType()),
-            is_immutable);
+            node->token_pos());
+        load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
@@ -2986,13 +3023,15 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* data_load = new LoadFieldInstr(
             receiver,
             Array::data_offset(),
-            Type::ZoneHandle(Type::DynamicType()));
+            Type::ZoneHandle(Type::DynamicType()),
+            node->token_pos());
         data_load->set_result_cid(kArrayCid);
         Value* data = Bind(data_load);
         LoadFieldInstr* length_load = new LoadFieldInstr(
             data,
             Array::length_offset(),
-            Type::ZoneHandle(Type::SmiType()));
+            Type::ZoneHandle(Type::SmiType()),
+            node->token_pos());
         length_load->set_result_cid(kSmiCid);
         length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
         return ReturnDefinition(length_load);
@@ -3060,7 +3099,8 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   LoadFieldInstr* load = new LoadFieldInstr(
       for_instance.value(),
       &node->field(),
-      AbstractType::ZoneHandle(node->field().type()));
+      AbstractType::ZoneHandle(node->field().type()),
+      node->token_pos());
   if (node->field().guarded_cid() != kIllegalCid) {
     if (!node->field().is_nullable() ||
         (node->field().guarded_cid() == kNullCid)) {
@@ -3103,7 +3143,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                   for_instance.value(),
                                   store_value,
                                   kEmitStoreBarrier,
-                                  true);  // Maybe initializing store.
+                                  node->token_pos());
+  store->set_is_initialization(true);  // Maybe initializing store.
   ReturnDefinition(store);
 }
 
@@ -3339,7 +3380,8 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
       context = Bind(
           new LoadFieldInstr(context,
                              Context::parent_offset(),
-                             Type::ZoneHandle()));  // Not an instance, no type.
+                             Type::ZoneHandle(),  // Not an instance, no type.
+                             Scanner::kNoSourcePos));
     }
     AddInstruction(new StoreContextInstr(context));
   }
@@ -3384,7 +3426,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       Do(new StoreInstanceFieldInstr(Context::parent_offset(),
                                      tmp_val,
                                      parent_context,
-                                     kEmitStoreBarrier));
+                                     kEmitStoreBarrier,
+                                     Scanner::kNoSourcePos));
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }

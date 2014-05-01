@@ -117,18 +117,18 @@ class Heap {
   bool StubCodeContains(uword addr) const;
 
   // Visit all pointers.
-  void IteratePointers(ObjectPointerVisitor* visitor);
+  void IteratePointers(ObjectPointerVisitor* visitor) const;
 
   // Visit all pointers in the space.
-  void IterateNewPointers(ObjectPointerVisitor* visitor);
-  void IterateOldPointers(ObjectPointerVisitor* visitor);
+  void IterateNewPointers(ObjectPointerVisitor* visitor) const;
+  void IterateOldPointers(ObjectPointerVisitor* visitor) const;
 
   // Visit all objects.
-  void IterateObjects(ObjectVisitor* visitor);
+  void IterateObjects(ObjectVisitor* visitor) const;
 
   // Visit all object in the space.
-  void IterateNewObjects(ObjectVisitor* visitor);
-  void IterateOldObjects(ObjectVisitor* visitor);
+  void IterateNewObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjects(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
@@ -163,7 +163,9 @@ class Heap {
   static intptr_t new_space_offset() { return OFFSET_OF(Heap, new_space_); }
 
   // Initialize the heap and register it with the isolate.
-  static void Init(Isolate* isolate);
+  static void Init(Isolate* isolate,
+                   intptr_t max_new_gen_words,
+                   intptr_t max_old_gen_words);
 
   // Verify that all pointers in the heap point to the heap.
   bool Verify() const;
@@ -179,8 +181,6 @@ class Heap {
   int64_t GCTimeInMicros(Space space) const;
 
   intptr_t Collections(Space space) const;
-  // Returns the [lowest, highest) addresses in the heap.
-  void StartEndAddress(uword* start, uword* end) const;
 
   ObjectSet* CreateAllocatedObjectSet() const;
 
@@ -249,6 +249,8 @@ class Heap {
     return old_space_->PrintHeapMapToJSONStream(isolate, stream);
   }
 
+  Isolate* isolate() const { return isolate_; }
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -282,7 +284,9 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
-  Heap();
+  Heap(Isolate* isolate,
+       intptr_t max_new_gen_words,
+       intptr_t max_old_gen_words);
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
@@ -292,6 +296,13 @@ class Heap {
   void RecordAfterGC();
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
+
+  // If this heap is non-empty, updates start and end to the smallest range that
+  // contains both the original [start, end) and the [lowest, highest) addresses
+  // of this heap.
+  void GetMergedAddressRange(uword* start, uword* end) const;
+
+  Isolate* isolate_;
 
   // The different spaces used for allocation.
   Scavenger* new_space_;

@@ -11,7 +11,7 @@ class TemplateLoaderTestCase(unittest.TestCase):
 
   def _preprocess(self, input_text, conds):
     loader = templateloader.TemplateLoader('.', [], conds)
-    return loader._Preprocess(input_text, '<file>')
+    return loader._Preprocess(input_text, '<file>', conds)
 
 
   def _preprocess_test(self, input_text, conds, expected_text):

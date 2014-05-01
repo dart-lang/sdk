@@ -12,7 +12,7 @@
         'utils/compiler/compiler.gyp:dart2js',
         'utils/pub/pub.gyp:pub',
         'utils/dartfmt/dartfmt.gyp:dartfmt',
-        'editor/analyzer.gyp:analyzer',
+        'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
       ],
       'actions': [
         {
@@ -27,7 +27,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
-            '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
+            '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             'tools/VERSION'
           ],

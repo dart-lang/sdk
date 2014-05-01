@@ -5,6 +5,8 @@
 import "package:expect/expect.dart";
 
 import "compiler_helper.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/resolution/class_members.dart"
+    show MembersCreator;
 
 main() {
   testRequiredParameters();
@@ -26,6 +28,7 @@ check(String source, {errors, warnings, hints, infos}) {
   compiler.parseScript(source);
   var cls = compiler.mainApp.find('Class');
   cls.ensureResolved(compiler);
+  MembersCreator.computeAllClassMembers(compiler, cls);
 
   toList(o) => o == null ? [] : o is List ? o : [o];
 

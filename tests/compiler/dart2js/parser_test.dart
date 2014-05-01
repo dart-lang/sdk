@@ -276,6 +276,12 @@ class Collector implements DiagnosticListener {
     throw this;
   }
 
+  void reportError(Token token,
+                   messageKind,
+                   [Map arguments = const {}]) {
+    reportFatalError(token, messageKind, arguments);
+  }
+
   void log(message) {
     print(message);
   }
@@ -302,7 +308,7 @@ void testMissingCloseBraceInClass() {
     fullParseUnit(source, diagnosticHandler: new Collector());
   }
   check(Collector c) {
-    Expect.equals(EOF_TOKEN, c.token);
+    Expect.equals(BAD_INPUT_TOKEN, c.token);
     return true;
   }
   Expect.throws(parse, check);

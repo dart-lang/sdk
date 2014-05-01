@@ -30,6 +30,12 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
+            "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
+DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
+            "old gen heap size in MB,"
+            "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -117,7 +123,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     vm_isolate_ = Isolate::Init("vm-isolate");
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
-    Heap::Init(vm_isolate_);
+    Heap::Init(vm_isolate_,
+               0,  // New gen size 0; VM isolate should only allocate in old.
+               FLAG_old_gen_heap_size * MBInWords);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
     Object::InitOnce();
@@ -203,9 +211,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
-  Heap::Init(isolate);
+  Heap::Init(isolate,
+             FLAG_new_gen_heap_size * MBInWords,
+             FLAG_old_gen_heap_size * MBInWords);
   ObjectIdRing::Init(isolate);
   ObjectStore::Init(isolate);
+
+  // Setup for profiling.
+  Profiler::InitProfilingForIsolate(isolate);
 
   if (snapshot_buffer == NULL) {
     const Error& error = Error::Handle(Object::Init(isolate));
@@ -235,15 +248,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
-  // TODO(zra): ifndef to be removed when ARM64 port is ready.
-#if !defined(TARGET_ARCH_ARM64)
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
       return isolate->object_store()->sticky_error();
     }
   }
   isolate->megamorphic_cache_table()->InitMissHandler();
-#endif
 
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
@@ -252,8 +262,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->class_table()->Print();
   }
 
-  // Setup for profiling.
-  Profiler::InitProfilingForIsolate(isolate);
 
   Service::SendIsolateStartupMessage();
   // Create tag table.

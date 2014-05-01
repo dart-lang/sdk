@@ -13,6 +13,7 @@ import 'errors.dart';
 import 'group_runner.dart';
 import 'log.dart';
 import 'multiset.dart';
+import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase_forwarder.dart';
 import 'phase_input.dart';
@@ -80,24 +81,26 @@ class Phase {
 
   /// The streams exposed by this phase.
   final _streams = new NodeStreams();
-  Stream get onDone => _streams.onDone;
+  Stream<NodeStatus> get onStatusChange => _streams.onStatusChange;
   Stream<AssetNode> get onAsset => _streams.onAsset;
   Stream<LogEntry> get onLog => _streams.onLog;
 
-  /// Whether [this] is dirty and still has more processing to do.
-  ///
-  /// A phase is considered dirty if any of the previous phases in the same
-  /// cascade are dirty, since those phases could emit an asset that this phase
-  /// will then need to process.
-  bool get isDirty => (previous != null && previous.isDirty) ||
-      _inputs.values.any((input) => input.isDirty) ||
-      _groups.values.any((group) => group.isDirty);
+  /// How far along [this] is in processing its assets.
+  NodeStatus get status {
+    var inputStatus = NodeStatus.dirtiest(
+        _inputs.values.map((input) => input.status));
+    var groupStatus = NodeStatus.dirtiest(
+        _groups.values.map((group) => group.status));
+    return (previous == null ? NodeStatus.IDLE : previous.status)
+        .dirtier(inputStatus)
+        .dirtier(groupStatus);
+  }
 
   /// The previous phase in the cascade, or null if this is the first phase.
   final Phase previous;
 
-  /// The subscription to [previous]'s [onDone] stream.
-  StreamSubscription _previousOnDoneSubscription;
+  /// The subscription to [previous]'s [onStatusChange] stream.
+  StreamSubscription _previousStatusSubscription;
 
   /// The subscription to [previous]'s [onAsset] stream.
   StreamSubscription<AssetNode> _previousOnAssetSubscription;
@@ -126,15 +129,16 @@ class Phase {
   Phase._(this.cascade, this._location, this._index, [this.previous]) {
     if (previous != null) {
       _previousOnAssetSubscription = previous.onAsset.listen(addInput);
-      _previousOnDoneSubscription = previous.onDone.listen((_) {
-        if (!isDirty) _streams.onDoneController.add(null);
-      });
+      _previousStatusSubscription = previous.onStatusChange
+          .listen((_) => _streams.changeStatus(status));
     }
 
-    onDone.listen((_) {
-      // All the previous phases have finished building. If anyone's still
-      // waiting for outputs, cut off the wait; we won't be generating them,
-      // at least until a source asset changes.
+    onStatusChange.listen((status) {
+      if (status == NodeStatus.RUNNING) return;
+
+      // All the previous phases have finished declaring or producing their
+      // outputs. If anyone's still waiting for outputs, cut off the wait; we
+      // won't be generating them, at least until a source asset changes.
       for (var completer in _pendingOutputRequests.values) {
         completer.complete(null);
       }
@@ -172,13 +176,11 @@ class Phase {
       _inputOrigins.remove(node.origin);
       _inputs.remove(node.id);
       _forwarders.remove(node.id).remove();
-      if (!isDirty) _streams.onDoneController.add(null);
+      _streams.changeStatus(status);
     });
     input.onAsset.listen(_handleOutput);
     _streams.onLogPool.add(input.onLog);
-    input.onDone.listen((_) {
-      if (!isDirty) _streams.onDoneController.add(null);
-    });
+    input.onStatusChange.listen((_) => _streams.changeStatus(status));
 
     input.updateTransformers(_transformers);
 
@@ -219,9 +221,9 @@ class Phase {
         });
       }
 
-      // If neither this phase nor the previous phases are dirty, the requested
-      // output won't be generated and we can safely return null.
-      if (!isDirty) return null;
+      // If this phase and the previous phases are fully declared or done, the
+      // requested output won't be generated and we can safely return null.
+      if (status != NodeStatus.RUNNING) return null;
 
       // Otherwise, store a completer for the asset node. If it's generated in
       // the future, we'll complete this completer.
@@ -252,9 +254,7 @@ class Phase {
       _groups[added] = runner;
       runner.onAsset.listen(_handleOutput);
       _streams.onLogPool.add(runner.onLog);
-      runner.onDone.listen((_) {
-        if (!isDirty) _streams.onDoneController.add(null);
-      });
+      runner.onStatusChange.listen((_) => _streams.changeStatus(status));
       for (var input in _inputs.values) {
         runner.addInput(input.input);
       }
@@ -302,8 +302,8 @@ class Phase {
       group.remove();
     }
     _streams.close();
-    if (_previousOnDoneSubscription != null) {
-      _previousOnDoneSubscription.cancel();
+    if (_previousStatusSubscription != null) {
+      _previousStatusSubscription.cancel();
     }
     if (_previousOnAssetSubscription != null) {
       _previousOnAssetSubscription.cancel();

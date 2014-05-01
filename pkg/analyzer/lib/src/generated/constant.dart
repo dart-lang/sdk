@@ -20,6 +20,128 @@ import 'utilities_dart.dart' show ParameterKind;
 import 'utilities_collection.dart';
 
 /**
+ * Instances of the class `BoolState` represent the state of an object representing a boolean
+ * value.
+ */
+class BoolState extends InstanceState {
+  /**
+   * The value of this instance.
+   */
+  final bool value;
+
+  /**
+   * An instance representing the boolean value 'false'.
+   */
+  static BoolState FALSE_STATE = new BoolState(false);
+
+  /**
+   * An instance representing the boolean value 'true'.
+   */
+  static BoolState TRUE_STATE = new BoolState(true);
+
+  /**
+   * A state that can be used to represent a boolean whose value is not known.
+   */
+  static BoolState UNKNOWN_VALUE = new BoolState(null);
+
+  /**
+   * Return the boolean state representing the given boolean value.
+   *
+   * @param value the value to be represented
+   * @return the boolean state representing the given boolean value
+   */
+  static BoolState from(bool value) => value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
+
+  /**
+   * Initialize a newly created state to represent the given value.
+   *
+   * @param value the value of this instance
+   */
+  BoolState(this.value);
+
+  @override
+  BoolState convertToBool() => this;
+
+  @override
+  StringState convertToString() {
+    if (value == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(value ? "true" : "false");
+  }
+
+  @override
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is BoolState) {
+      bool rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return BoolState.from(identical(value, rightValue));
+    } else if (rightOperand is DynamicState) {
+      return UNKNOWN_VALUE;
+    }
+    return FALSE_STATE;
+  }
+
+  @override
+  bool operator ==(Object object) => object is BoolState && identical(value, object.value);
+
+  @override
+  String get typeName => "bool";
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : (value ? 2 : 3);
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  @override
+  bool get isBool => true;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  BoolState logicalAnd(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? rightOperand.convertToBool() : FALSE_STATE;
+  }
+
+  @override
+  BoolState logicalNot() {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? FALSE_STATE : TRUE_STATE;
+  }
+
+  @override
+  BoolState logicalOr(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? TRUE_STATE : rightOperand.convertToBool();
+  }
+
+  @override
+  String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
+}
+
+/**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
@@ -93,147 +215,6 @@ class ConstantEvaluator {
     }
     return EvaluationResult.forErrors(new List.from(errors));
   }
-}
-
-/**
- * The interface `DartObject` defines the behavior of objects that represent the state of a
- * Dart object.
- */
-abstract class DartObject {
-  /**
-   * Return the boolean value of this object, or `null` if either the value of this object is
-   * not known or this object is not of type 'bool'.
-   *
-   * @return the boolean value of this object
-   */
-  bool get boolValue;
-
-  /**
-   * Return the floating point value of this object, or `null` if either the value of this
-   * object is not known or this object is not of type 'double'.
-   *
-   * @return the floating point value of this object
-   */
-  double get doubleValue;
-
-  /**
-   * Return the integer value of this object, or `null` if either the value of this object is
-   * not known or this object is not of type 'int'.
-   *
-   * @return the integer value of this object
-   */
-  int get intValue;
-
-  /**
-   * Return the string value of this object, or `null` if either the value of this object is
-   * not known or this object is not of type 'String'.
-   *
-   * @return the string value of this object
-   */
-  String get stringValue;
-
-  /**
-   * Return the run-time type of this object.
-   *
-   * @return the run-time type of this object
-   */
-  InterfaceType get type;
-
-  /**
-   * Return this object's value if it can be represented exactly, or `null` if either the
-   * value cannot be represented exactly or if the value is `null`. Clients should use
-   * [hasExactValue] to distinguish between these two cases.
-   *
-   * @return this object's value
-   */
-  Object get value;
-
-  /**
-   * Return `true` if this object's value can be represented exactly.
-   *
-   * @return `true` if this object's value can be represented exactly
-   */
-  bool get hasExactValue;
-
-  /**
-   * Return `true` if this object represents the value 'false'.
-   *
-   * @return `true` if this object represents the value 'false'
-   */
-  bool get isFalse;
-
-  /**
-   * Return `true` if this object represents the value 'null'.
-   *
-   * @return `true` if this object represents the value 'null'
-   */
-  bool get isNull;
-
-  /**
-   * Return `true` if this object represents the value 'true'.
-   *
-   * @return `true` if this object represents the value 'true'
-   */
-  bool get isTrue;
-}
-
-/**
- * Instances of the class `EvaluationResult` represent the result of attempting to evaluate an
- * expression.
- */
-class EvaluationResult {
-  /**
-   * Return an evaluation result representing the result of evaluating an expression that is not a
-   * compile-time constant because of the given errors.
-   *
-   * @param errors the errors that should be reported for the expression(s) that were evaluated
-   * @return the result of evaluating an expression that is not a compile-time constant
-   */
-  static EvaluationResult forErrors(List<AnalysisError> errors) => new EvaluationResult(null, errors);
-
-  /**
-   * Return an evaluation result representing the result of evaluating an expression that is a
-   * compile-time constant that evaluates to the given value.
-   *
-   * @param value the value of the expression
-   * @return the result of evaluating an expression that is a compile-time constant
-   */
-  static EvaluationResult forValue(DartObject value) => new EvaluationResult(value, null);
-
-  /**
-   * The value of the expression.
-   */
-  final DartObject value;
-
-  /**
-   * The errors that should be reported for the expression(s) that were evaluated.
-   */
-  final List<AnalysisError> _errors;
-
-  /**
-   * Initialize a newly created result object with the given state. Clients should use one of the
-   * factory methods: [forErrors] and [forValue].
-   *
-   * @param value the value of the expression
-   * @param errors the errors that should be reported for the expression(s) that were evaluated
-   */
-  EvaluationResult(this.value, this._errors);
-
-  /**
-   * Return an array containing the errors that should be reported for the expression(s) that were
-   * evaluated. If there are no such errors, the array will be empty. The array can be empty even if
-   * the expression is not a valid compile time constant if the errors would have been reported by
-   * other parts of the analysis engine.
-   */
-  List<AnalysisError> get errors => _errors == null ? AnalysisError.NO_ERRORS : _errors;
-
-  /**
-   * Return `true` if the expression is a compile-time constant expression that would not
-   * throw an exception when evaluated.
-   *
-   * @return `true` if the expression is a valid compile-time constant expression
-   */
-  bool get isValid => _errors == null;
 }
 
 /**
@@ -883,1012 +864,85 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 }
 
 /**
- * Instances of the class `ErrorResult` represent the result of evaluating an expression that
- * is not a valid compile time constant.
+ * The interface `DartObject` defines the behavior of objects that represent the state of a
+ * Dart object.
  */
-class ErrorResult extends EvaluationResultImpl {
+abstract class DartObject {
   /**
-   * The errors that prevent the expression from being a valid compile time constant.
-   */
-  List<ErrorResult_ErrorData> _errors = new List<ErrorResult_ErrorData>();
-
-  /**
-   * Initialize a newly created result representing the error with the given code reported against
-   * the given node.
+   * Return the boolean value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'bool'.
    *
-   * @param node the node against which the error should be reported
-   * @param errorCode the error code for the error to be generated
+   * @return the boolean value of this object
    */
-  ErrorResult.con1(AstNode node, ErrorCode errorCode) {
-    _errors.add(new ErrorResult_ErrorData(node, errorCode));
-  }
+  bool get boolValue;
 
   /**
-   * Initialize a newly created result to represent the union of the errors in the given result
-   * objects.
+   * Return the floating point value of this object, or `null` if either the value of this
+   * object is not known or this object is not of type 'double'.
    *
-   * @param firstResult the first set of results being merged
-   * @param secondResult the second set of results being merged
+   * @return the floating point value of this object
    */
-  ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _errors.addAll(firstResult._errors);
-    _errors.addAll(secondResult._errors);
-  }
-
-  @override
-  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
-
-  @override
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) => this;
-
-  @override
-  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
-
-  @override
-  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) => this;
-
-  @override
-  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrError(node, this);
-
-  @override
-  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorError(node, this);
-
-  @override
-  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateError(node, this);
-
-  @override
-  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideError(node, this);
-
-  @override
-  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
-
-  @override
-  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) => false;
-
-  List<ErrorResult_ErrorData> get errorData => _errors;
-
-  @override
-  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
-
-  @override
-  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualError(node, this);
-
-  @override
-  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideError(node, this);
-
-  @override
-  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanError(node, this);
-
-  @override
-  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualError(node, this);
-
-  @override
-  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndError(node, this);
-
-  @override
-  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) => this;
-
-  @override
-  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrError(node, this);
-
-  @override
-  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusError(node, this);
-
-  @override
-  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) => this;
-
-  @override
-  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualError(node, this);
-
-  @override
-  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) => this;
-
-  @override
-  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderError(node, this);
-
-  @override
-  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftError(node, this);
-
-  @override
-  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightError(node, this);
-
-  @override
-  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesError(node, this);
-
-  @override
-  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-
-  @override
-  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
-
-  @override
-  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
-}
-
-class ErrorResult_ErrorData {
-  /**
-   * The node against which the error should be reported.
-   */
-  final AstNode node;
+  double get doubleValue;
 
   /**
-   * The error code for the error to be generated.
-   */
-  final ErrorCode errorCode;
-
-  /**
-   * Initialize a newly created data holder to represent the error with the given code reported
-   * against the given node.
+   * Return the integer value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'int'.
    *
-   * @param node the node against which the error should be reported
-   * @param errorCode the error code for the error to be generated
+   * @return the integer value of this object
    */
-  ErrorResult_ErrorData(this.node, this.errorCode);
-}
-
-/**
- * Instances of the class `InternalResult` represent the result of attempting to evaluate a
- * expression.
- */
-abstract class EvaluationResultImpl {
-  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+  int get intValue;
 
   /**
-   * Return the result of applying boolean conversion to this result.
+   * Return the string value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'String'.
    *
-   * @param typeProvider the type provider used to access known types
-   * @param node the node against which errors should be reported
-   * @return the result of applying boolean conversion to the given value
+   * @return the string value of this object
    */
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node);
-
-  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node);
-
-  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
-
-  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result);
-
-  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node);
-
-  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node);
-
-  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node);
-
-  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
-
-  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
-
-  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
-
-  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-
-  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand);
-
-  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
-}
-
-/**
- * Instances of the class `ReferenceFinder` add reference information for a given variable to
- * the bi-directional mapping used to order the evaluation of constants.
- */
-class ReferenceFinder extends RecursiveAstVisitor<Object> {
-  /**
-   * The element representing the variable whose initializer will be visited.
-   */
-  final VariableElement _source;
+  String get stringValue;
 
   /**
-   * A graph in which the nodes are the constant variables and the edges are from each variable to
-   * the other constant variables that are referenced in the head's initializer.
-   */
-  final DirectedGraph<VariableElement> _referenceGraph;
-
-  /**
-   * Initialize a newly created reference finder to find references from the given variable to other
-   * variables and to add those references to the given graph.
+   * Return the run-time type of this object.
    *
-   * @param source the element representing the variable whose initializer will be visited
-   * @param referenceGraph a graph recording which variables (heads) reference which other variables
-   *          (tails) in their initializers
+   * @return the run-time type of this object
    */
-  ReferenceFinder(this._source, this._referenceGraph);
-
-  @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    if (element is VariableElement) {
-      VariableElement variable = element as VariableElement;
-      if (variable.isConst) {
-        _referenceGraph.addEdge(_source, variable);
-      }
-    }
-    return null;
-  }
-}
-
-/**
- * Instances of the class `ValidResult` represent the result of attempting to evaluate a valid
- * compile time constant expression.
- */
-class ValidResult extends EvaluationResultImpl {
-  /**
-   * The value of the expression.
-   */
-  final DartObjectImpl value;
+  InterfaceType get type;
 
   /**
-   * Initialize a newly created result to represent the given value.
+   * Return this object's value if it can be represented exactly, or `null` if either the
+   * value cannot be represented exactly or if the value is `null`. Clients should use
+   * [hasExactValue] to distinguish between these two cases.
    *
-   * @param value the value of the expression
+   * @return this object's value
    */
-  ValidResult(this.value);
-
-  @override
-  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(typeProvider, node, this);
+  Object get value;
 
   /**
-   * Return the result of applying boolean conversion to this result.
+   * Return `true` if this object's value can be represented exactly.
    *
-   * @param node the node against which errors should be reported
-   * @return the result of applying boolean conversion to the given value
+   * @return `true` if this object's value can be represented exactly
    */
-  @override
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
-    try {
-      return _valueOf(value.convertToBool(typeProvider));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
-    try {
-      return _valueOf(value.bitNot(typeProvider));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualValid(typeProvider, node, this);
-
-  @override
-  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
-    if (result is! ValidResult) {
-      return false;
-    }
-    return value == (result as ValidResult).value;
-  }
-
-  @override
-  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideValid(typeProvider, node, this);
+  bool get hasExactValue;
 
   /**
-   * Return `true` if this object represents an object whose type is 'bool'.
+   * Return `true` if this object represents the value 'false'.
    *
-   * @return `true` if this object represents a boolean value
+   * @return `true` if this object represents the value 'false'
    */
-  bool get isBool => value.isBool;
+  bool get isFalse;
 
   /**
-   * Return `true` if this object represents an object whose type is either 'bool', 'num',
-   * 'String', or 'Null'.
+   * Return `true` if this object represents the value 'null'.
    *
-   * @return `true` if this object represents either a boolean, numeric, string or null value
+   * @return `true` if this object represents the value 'null'
    */
-  bool get isBoolNumStringOrNull => value.isBoolNumStringOrNull;
+  bool get isNull;
 
   /**
-   * Return `true` if this result represents the value 'false'.
+   * Return `true` if this object represents the value 'true'.
    *
-   * @return `true` if this result represents the value 'false'
+   * @return `true` if this object represents the value 'true'
    */
-  bool get isFalse => value.isFalse;
-
-  /**
-   * Return `true` if this result represents the value 'null'.
-   *
-   * @return `true` if this result represents the value 'null'
-   */
-  bool get isNull => value.isNull;
-
-  /**
-   * Return `true` if this result represents the value 'true'.
-   *
-   * @return `true` if this result represents the value 'true'
-   */
-  bool get isTrue => value.isTrue;
-
-  /**
-   * Return `true` if this object represents an instance of a user-defined class.
-   *
-   * @return `true` if this object represents an instance of a user-defined class
-   */
-  bool get isUserDefinedObject => value.isUserDefinedObject;
-
-  @override
-  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
-    try {
-      return _valueOf(value.logicalNot(typeProvider));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
-    try {
-      return _valueOf(value.negated(typeProvider));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
-    try {
-      return _valueOf(value.performToString(typeProvider));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightValid(typeProvider, node, this);
-
-  @override
-  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesValid(typeProvider, node, this);
-
-  @override
-  String toString() {
-    if (value == null) {
-      return "null";
-    }
-    return value.toString();
-  }
-
-  @override
-  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.add(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.bitAnd(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.bitOr(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.bitXor(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.concatenate(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.divide(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.equalEqual(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.greaterThanOrEqual(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.greaterThan(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.integerDivide(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.lessThanOrEqual(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.lessThan(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.logicalAnd(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.logicalOr(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.minus(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.notEqual(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.remainder(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.shiftLeft(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.shiftRight(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  @override
-  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-
-  @override
-  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
-    try {
-      return _valueOf(leftOperand.value.times(typeProvider, value));
-    } on EvaluationException catch (exception) {
-      return _error(node, exception.errorCode);
-    }
-  }
-
-  /**
-   * Return a result object representing an error associated with the given node.
-   *
-   * @param node the AST node associated with the error
-   * @param code the error code indicating the nature of the error
-   * @return a result object representing an error associated with the given node
-   */
-  ErrorResult _error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code);
-
-  /**
-   * Return a result object representing the given value.
-   *
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
-   */
-  ValidResult _valueOf(DartObjectImpl value) => new ValidResult(value);
-}
-
-/**
- * Instances of the class `BoolState` represent the state of an object representing a boolean
- * value.
- */
-class BoolState extends InstanceState {
-  /**
-   * The value of this instance.
-   */
-  final bool value;
-
-  /**
-   * An instance representing the boolean value 'false'.
-   */
-  static BoolState FALSE_STATE = new BoolState(false);
-
-  /**
-   * An instance representing the boolean value 'true'.
-   */
-  static BoolState TRUE_STATE = new BoolState(true);
-
-  /**
-   * A state that can be used to represent a boolean whose value is not known.
-   */
-  static BoolState UNKNOWN_VALUE = new BoolState(null);
-
-  /**
-   * Return the boolean state representing the given boolean value.
-   *
-   * @param value the value to be represented
-   * @return the boolean state representing the given boolean value
-   */
-  static BoolState from(bool value) => value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
-
-  /**
-   * Initialize a newly created state to represent the given value.
-   *
-   * @param value the value of this instance
-   */
-  BoolState(this.value);
-
-  @override
-  BoolState convertToBool() => this;
-
-  @override
-  StringState convertToString() {
-    if (value == null) {
-      return StringState.UNKNOWN_VALUE;
-    }
-    return new StringState(value ? "true" : "false");
-  }
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    if (value == null) {
-      return UNKNOWN_VALUE;
-    }
-    if (rightOperand is BoolState) {
-      bool rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return UNKNOWN_VALUE;
-      }
-      return BoolState.from(identical(value, rightValue));
-    } else if (rightOperand is DynamicState) {
-      return UNKNOWN_VALUE;
-    }
-    return FALSE_STATE;
-  }
-
-  @override
-  bool operator ==(Object object) => object is BoolState && identical(value, object.value);
-
-  @override
-  String get typeName => "bool";
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : (value ? 2 : 3);
-
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   *
-   * @return `true` if this object represents a boolean value
-   */
-  @override
-  bool get isBool => true;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  BoolState logicalAnd(InstanceState rightOperand) {
-    assertBool(rightOperand);
-    if (value == null) {
-      return UNKNOWN_VALUE;
-    }
-    return value ? rightOperand.convertToBool() : FALSE_STATE;
-  }
-
-  @override
-  BoolState logicalNot() {
-    if (value == null) {
-      return UNKNOWN_VALUE;
-    }
-    return value ? FALSE_STATE : TRUE_STATE;
-  }
-
-  @override
-  BoolState logicalOr(InstanceState rightOperand) {
-    assertBool(rightOperand);
-    if (value == null) {
-      return UNKNOWN_VALUE;
-    }
-    return value ? TRUE_STATE : rightOperand.convertToBool();
-  }
-
-  @override
-  String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
+  bool get isTrue;
 }
 
 /**
@@ -2826,6 +1880,261 @@ class DynamicState extends InstanceState {
 }
 
 /**
+ * Instances of the class `ErrorResult` represent the result of evaluating an expression that
+ * is not a valid compile time constant.
+ */
+class ErrorResult extends EvaluationResultImpl {
+  /**
+   * The errors that prevent the expression from being a valid compile time constant.
+   */
+  List<ErrorResult_ErrorData> _errors = new List<ErrorResult_ErrorData>();
+
+  /**
+   * Initialize a newly created result representing the error with the given code reported against
+   * the given node.
+   *
+   * @param node the node against which the error should be reported
+   * @param errorCode the error code for the error to be generated
+   */
+  ErrorResult.con1(AstNode node, ErrorCode errorCode) {
+    _errors.add(new ErrorResult_ErrorData(node, errorCode));
+  }
+
+  /**
+   * Initialize a newly created result to represent the union of the errors in the given result
+   * objects.
+   *
+   * @param firstResult the first set of results being merged
+   * @param secondResult the second set of results being merged
+   */
+  ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
+    _errors.addAll(firstResult._errors);
+    _errors.addAll(secondResult._errors);
+  }
+
+  @override
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
+
+  @override
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) => this;
+
+  @override
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
+
+  @override
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) => this;
+
+  @override
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrError(node, this);
+
+  @override
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorError(node, this);
+
+  @override
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateError(node, this);
+
+  @override
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideError(node, this);
+
+  @override
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
+
+  @override
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) => false;
+
+  List<ErrorResult_ErrorData> get errorData => _errors;
+
+  @override
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
+
+  @override
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualError(node, this);
+
+  @override
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideError(node, this);
+
+  @override
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanError(node, this);
+
+  @override
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualError(node, this);
+
+  @override
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndError(node, this);
+
+  @override
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) => this;
+
+  @override
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrError(node, this);
+
+  @override
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusError(node, this);
+
+  @override
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) => this;
+
+  @override
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualError(node, this);
+
+  @override
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) => this;
+
+  @override
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderError(node, this);
+
+  @override
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftError(node, this);
+
+  @override
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightError(node, this);
+
+  @override
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesError(node, this);
+
+  @override
+  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+
+  @override
+  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
+
+  @override
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
+}
+
+class ErrorResult_ErrorData {
+  /**
+   * The node against which the error should be reported.
+   */
+  final AstNode node;
+
+  /**
+   * The error code for the error to be generated.
+   */
+  final ErrorCode errorCode;
+
+  /**
+   * Initialize a newly created data holder to represent the error with the given code reported
+   * against the given node.
+   *
+   * @param node the node against which the error should be reported
+   * @param errorCode the error code for the error to be generated
+   */
+  ErrorResult_ErrorData(this.node, this.errorCode);
+}
+
+/**
  * Instances of the class `EvaluationException` represent a run-time exception that would be
  * thrown during the evaluation of Dart code.
  */
@@ -2841,6 +2150,210 @@ class EvaluationException extends JavaException {
    * @param errorCode the error code associated with the exception
    */
   EvaluationException(this.errorCode);
+}
+
+/**
+ * Instances of the class `EvaluationResult` represent the result of attempting to evaluate an
+ * expression.
+ */
+class EvaluationResult {
+  /**
+   * Return an evaluation result representing the result of evaluating an expression that is not a
+   * compile-time constant because of the given errors.
+   *
+   * @param errors the errors that should be reported for the expression(s) that were evaluated
+   * @return the result of evaluating an expression that is not a compile-time constant
+   */
+  static EvaluationResult forErrors(List<AnalysisError> errors) => new EvaluationResult(null, errors);
+
+  /**
+   * Return an evaluation result representing the result of evaluating an expression that is a
+   * compile-time constant that evaluates to the given value.
+   *
+   * @param value the value of the expression
+   * @return the result of evaluating an expression that is a compile-time constant
+   */
+  static EvaluationResult forValue(DartObject value) => new EvaluationResult(value, null);
+
+  /**
+   * The value of the expression.
+   */
+  final DartObject value;
+
+  /**
+   * The errors that should be reported for the expression(s) that were evaluated.
+   */
+  final List<AnalysisError> _errors;
+
+  /**
+   * Initialize a newly created result object with the given state. Clients should use one of the
+   * factory methods: [forErrors] and [forValue].
+   *
+   * @param value the value of the expression
+   * @param errors the errors that should be reported for the expression(s) that were evaluated
+   */
+  EvaluationResult(this.value, this._errors);
+
+  /**
+   * Return an array containing the errors that should be reported for the expression(s) that were
+   * evaluated. If there are no such errors, the array will be empty. The array can be empty even if
+   * the expression is not a valid compile time constant if the errors would have been reported by
+   * other parts of the analysis engine.
+   */
+  List<AnalysisError> get errors => _errors == null ? AnalysisError.NO_ERRORS : _errors;
+
+  /**
+   * Return `true` if the expression is a compile-time constant expression that would not
+   * throw an exception when evaluated.
+   *
+   * @return `true` if the expression is a valid compile-time constant expression
+   */
+  bool get isValid => _errors == null;
+}
+
+/**
+ * Instances of the class `InternalResult` represent the result of attempting to evaluate a
+ * expression.
+ */
+abstract class EvaluationResultImpl {
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  /**
+   * Return the result of applying boolean conversion to this result.
+   *
+   * @param typeProvider the type provider used to access known types
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node);
+
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node);
+
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
+
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result);
+
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node);
+
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node);
+
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node);
+
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
+
+  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
+
+  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
+
+  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand);
+
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 }
 
 /**
@@ -4145,6 +3658,48 @@ class NumState extends InstanceState {
 }
 
 /**
+ * Instances of the class `ReferenceFinder` add reference information for a given variable to
+ * the bi-directional mapping used to order the evaluation of constants.
+ */
+class ReferenceFinder extends RecursiveAstVisitor<Object> {
+  /**
+   * The element representing the variable whose initializer will be visited.
+   */
+  final VariableElement _source;
+
+  /**
+   * A graph in which the nodes are the constant variables and the edges are from each variable to
+   * the other constant variables that are referenced in the head's initializer.
+   */
+  final DirectedGraph<VariableElement> _referenceGraph;
+
+  /**
+   * Initialize a newly created reference finder to find references from the given variable to other
+   * variables and to add those references to the given graph.
+   *
+   * @param source the element representing the variable whose initializer will be visited
+   * @param referenceGraph a graph recording which variables (heads) reference which other variables
+   *          (tails) in their initializers
+   */
+  ReferenceFinder(this._source, this._referenceGraph);
+
+  @override
+  Object visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    if (element is VariableElement) {
+      VariableElement variable = element as VariableElement;
+      if (variable.isConst) {
+        _referenceGraph.addEdge(_source, variable);
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * Instances of the class `StringState` represent the state of an object representing a
  * string.
  */
@@ -4335,4 +3890,449 @@ class TypeState extends InstanceState {
 
   @override
   String toString() => _element == null ? "-unknown-" : _element.name;
+}
+
+/**
+ * Instances of the class `ValidResult` represent the result of attempting to evaluate a valid
+ * compile time constant expression.
+ */
+class ValidResult extends EvaluationResultImpl {
+  /**
+   * The value of the expression.
+   */
+  final DartObjectImpl value;
+
+  /**
+   * Initialize a newly created result to represent the given value.
+   *
+   * @param value the value of the expression
+   */
+  ValidResult(this.value);
+
+  @override
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(typeProvider, node, this);
+
+  /**
+   * Return the result of applying boolean conversion to this result.
+   *
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  @override
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
+    try {
+      return _valueOf(value.convertToBool(typeProvider));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return _valueOf(value.bitNot(typeProvider));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualValid(typeProvider, node, this);
+
+  @override
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
+    if (result is! ValidResult) {
+      return false;
+    }
+    return value == (result as ValidResult).value;
+  }
+
+  @override
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideValid(typeProvider, node, this);
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => value.isBool;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => value.isBoolNumStringOrNull;
+
+  /**
+   * Return `true` if this result represents the value 'false'.
+   *
+   * @return `true` if this result represents the value 'false'
+   */
+  bool get isFalse => value.isFalse;
+
+  /**
+   * Return `true` if this result represents the value 'null'.
+   *
+   * @return `true` if this result represents the value 'null'
+   */
+  bool get isNull => value.isNull;
+
+  /**
+   * Return `true` if this result represents the value 'true'.
+   *
+   * @return `true` if this result represents the value 'true'
+   */
+  bool get isTrue => value.isTrue;
+
+  /**
+   * Return `true` if this object represents an instance of a user-defined class.
+   *
+   * @return `true` if this object represents an instance of a user-defined class
+   */
+  bool get isUserDefinedObject => value.isUserDefinedObject;
+
+  @override
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return _valueOf(value.logicalNot(typeProvider));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
+    try {
+      return _valueOf(value.negated(typeProvider));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
+    try {
+      return _valueOf(value.performToString(typeProvider));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightValid(typeProvider, node, this);
+
+  @override
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesValid(typeProvider, node, this);
+
+  @override
+  String toString() {
+    if (value == null) {
+      return "null";
+    }
+    return value.toString();
+  }
+
+  @override
+  EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.add(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.bitAnd(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.bitOr(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.bitXor(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.concatenate(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.divide(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.equalEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.greaterThanOrEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.greaterThan(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.integerDivide(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.lessThanOrEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.lessThan(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.logicalAnd(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.logicalOr(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.minus(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.notEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.remainder(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.shiftLeft(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.shiftRight(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  @override
+  EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
+
+  @override
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return _valueOf(leftOperand.value.times(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return _error(node, exception.errorCode);
+    }
+  }
+
+  /**
+   * Return a result object representing an error associated with the given node.
+   *
+   * @param node the AST node associated with the error
+   * @param code the error code indicating the nature of the error
+   * @return a result object representing an error associated with the given node
+   */
+  ErrorResult _error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code);
+
+  /**
+   * Return a result object representing the given value.
+   *
+   * @param value the value to be represented as a result object
+   * @return a result object representing the given value
+   */
+  ValidResult _valueOf(DartObjectImpl value) => new ValidResult(value);
 }

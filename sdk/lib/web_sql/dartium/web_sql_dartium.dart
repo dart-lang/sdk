@@ -16,6 +16,7 @@ import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+import 'dart:_blink' as _blink;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
@@ -90,7 +91,7 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
 
   @DomName('Database.version')
   @DocsEditable()
-  String get version native "Database_version_Getter";
+  String get version => _blink.Native_Database_version_Getter(this);
 
   /**
    * Atomically update the database version to [newVersion], asynchronously
@@ -106,15 +107,15 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
    */
   @DomName('Database.changeVersion')
   @DocsEditable()
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.Native_Database_changeVersion_Callback(this, oldVersion, newVersion, callback, errorCallback, successCallback);
 
   @DomName('Database.readTransaction')
   @DocsEditable()
-  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
+  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.Native_Database_readTransaction_Callback(this, callback, errorCallback, successCallback);
 
   @DomName('Database.transaction')
   @DocsEditable()
-  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
+  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.Native_Database_transaction_Callback(this, callback, errorCallback, successCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -166,11 +167,11 @@ class SqlError extends NativeFieldWrapperClass2 {
 
   @DomName('SQLError.code')
   @DocsEditable()
-  int get code native "SQLError_code_Getter";
+  int get code => _blink.Native_SQLError_code_Getter(this);
 
   @DomName('SQLError.message')
   @DocsEditable()
-  String get message native "SQLError_message_Getter";
+  String get message => _blink.Native_SQLError_message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -190,15 +191,15 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
-  int get insertId native "SQLResultSet_insertId_Getter";
+  int get insertId => _blink.Native_SQLResultSet_insertId_Getter(this);
 
   @DomName('SQLResultSet.rows')
   @DocsEditable()
-  SqlResultSetRowList get rows native "SQLResultSet_rows_Getter";
+  SqlResultSetRowList get rows => _blink.Native_SQLResultSet_rows_Getter(this);
 
   @DomName('SQLResultSet.rowsAffected')
   @DocsEditable()
-  int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
+  int get rowsAffected => _blink.Native_SQLResultSet_rowsAffected_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -218,14 +219,15 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
-  int get length native "SQLResultSetRowList_length_Getter";
+  int get length => _blink.Native_SQLResultSetRowList_length_Getter(this);
 
   Map operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return _blink.Native_SQLResultSetRowList_NativeIndexed_Getter(this, index);
   }
-  Map _nativeIndexedGetter(int index) native "SQLResultSetRowList_item_Callback";
+
+  Map _nativeIndexedGetter(int index) => _blink.Native_SQLResultSetRowList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -267,7 +269,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Map item(int index) native "SQLResultSetRowList_item_Callback";
+  Map item(int index) => _blink.Native_SQLResultSetRowList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -290,7 +292,7 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.Native_SQLTransaction_executeSql_Callback(this, sqlStatement, arguments, callback, errorCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -233,12 +233,12 @@ class RawObject {
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
     kRememberedBit = 4,
-    kReservedTagBit = 5,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagPos = 5,  // kReservedBit{10K,100K,1M,10M}
     kReservedTagSize = 3,
-    kSizeTagBit = 8,
+    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
-    kClassIdTagBit = kSizeTagBit + kSizeTagSize,
-    kClassIdTagSize = 16
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
+    kClassIdTagSize = 16,
   };
 
   // Encodes the object size in the tag in units of object alignment.
@@ -261,7 +261,7 @@ class RawObject {
 
   private:
     // The actual unscaled bit field used within the tag field.
-    class SizeBits : public BitField<intptr_t, kSizeTagBit, kSizeTagSize> {};
+    class SizeBits : public BitField<intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
       ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -272,9 +272,8 @@ class RawObject {
     }
   };
 
-  class ClassIdTag : public BitField<intptr_t,
-                                     kClassIdTagBit,
-                                     kClassIdTagSize> {};  // NOLINT
+  class ClassIdTag :
+      public BitField<intptr_t, kClassIdTagPos, kClassIdTagSize> {};  // NOLINT
 
   bool IsHeapObject() const {
     uword value = reinterpret_cast<uword>(this);
@@ -424,9 +423,8 @@ class RawObject {
 
   class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
 
-  class ReservedBits : public BitField<intptr_t,
-                                       kReservedTagBit,
-                                       kReservedTagSize> {};  // NOLINT
+  class ReservedBits : public
+      BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
 
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
@@ -1021,19 +1019,18 @@ class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_);
+    return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
-  RawFunction* function_;      // Parent/calling function of this IC.
+  RawFunction* owner_;         // Parent/calling function of this IC.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   RawArray* ic_data_;          // Contains class-ids, target and count.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  intptr_t deopt_id_;          // Deoptimization id corresponding to this IC.
-  intptr_t num_args_tested_;   // Number of arguments tested in IC.
-  uint8_t deopt_reason_;       // Last deoptimization reason.
-  uint8_t is_closure_call_;    // 0 or 1.
+  int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
+  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
+                         // is closure call, JS warning issued.
 };
 
 

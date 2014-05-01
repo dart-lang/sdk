@@ -19,393 +19,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
- * Instances of the class `GatheringErrorListener` implement an error listener that collects
- * all of the errors passed to it for later examination.
- */
-class GatheringErrorListener implements AnalysisErrorListener {
-  /**
-   * The source being parsed.
-   */
-  final String _rawSource;
-
-  /**
-   * The source being parsed after inserting a marker at the beginning and end of the range of the
-   * most recent error.
-   */
-  String _markedSource;
-
-  /**
-   * A list containing the errors that were collected.
-   */
-  List<AnalysisError> _errors = new List<AnalysisError>();
-
-  /**
-   * A table mapping sources to the line information for the source.
-   */
-  Map<Source, LineInfo> _lineInfoMap = new Map<Source, LineInfo>();
-
-  /**
-   * An empty array of errors used when no errors are expected.
-   */
-  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
-
-  /**
-   * Initialize a newly created error listener to collect errors.
-   */
-  GatheringErrorListener() : this.con1(null);
-
-  /**
-   * Initialize a newly created error listener to collect errors.
-   */
-  GatheringErrorListener.con1(this._rawSource) {
-    this._markedSource = _rawSource;
-  }
-
-  /**
-   * Add all of the errors recorded by the given listener to this listener.
-   *
-   * @param listener the listener that has recorded the errors to be added
-   */
-  void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error in listener.errors) {
-      onError(error);
-    }
-  }
-
-  /**
-   * Assert that the number of errors that have been gathered matches the number of errors that are
-   * given and that they have the expected error codes and locations. The order in which the errors
-   * were gathered is ignored.
-   *
-   * @param errorCodes the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
-   *           expected or if they do not have the same codes and locations
-   */
-  void assertErrors(List<AnalysisError> expectedErrors) {
-    if (_errors.length != expectedErrors.length) {
-      _fail(expectedErrors);
-    }
-    List<AnalysisError> remainingErrors = new List<AnalysisError>();
-    for (AnalysisError error in expectedErrors) {
-      remainingErrors.add(error);
-    }
-    for (AnalysisError error in _errors) {
-      if (!_foundAndRemoved(remainingErrors, error)) {
-        _fail(expectedErrors);
-      }
-    }
-  }
-
-  /**
-   * Assert that the number of errors that have been gathered matches the number of errors that are
-   * given and that they have the expected error codes. The order in which the errors were gathered
-   * is ignored.
-   *
-   * @param expectedErrorCodes the error codes of the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
-   *           expected
-   */
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    //
-    // Verify that the expected error codes have a non-empty message.
-    //
-    for (ErrorCode errorCode in expectedErrorCodes) {
-      JUnitTestCase.assertFalseMsg("Empty error code message", errorCode.message.isEmpty);
-    }
-    //
-    // Compute the expected number of each type of error.
-    //
-    Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
-    for (ErrorCode code in expectedErrorCodes) {
-      int count = expectedCounts[code];
-      if (count == null) {
-        count = 1;
-      } else {
-        count = count + 1;
-      }
-      expectedCounts[code] = count;
-    }
-    //
-    // Compute the actual number of each type of error.
-    //
-    Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
-    for (AnalysisError error in _errors) {
-      ErrorCode code = error.errorCode;
-      List<AnalysisError> list = errorsByCode[code];
-      if (list == null) {
-        list = new List<AnalysisError>();
-        errorsByCode[code] = list;
-      }
-      list.add(error);
-    }
-    //
-    // Compare the expected and actual number of each type of error.
-    //
-    for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
-      ErrorCode code = entry.getKey();
-      int expectedCount = entry.getValue();
-      int actualCount;
-      List<AnalysisError> list = errorsByCode.remove(code);
-      if (list == null) {
-        actualCount = 0;
-      } else {
-        actualCount = list.length;
-      }
-      if (actualCount != expectedCount) {
-        if (builder.length == 0) {
-          builder.append("Expected ");
-        } else {
-          builder.append("; ");
-        }
-        builder.append(expectedCount);
-        builder.append(" errors of type ");
-        builder.append("${code.runtimeType.toString()}.${code}");
-        builder.append(", found ");
-        builder.append(actualCount);
-      }
-    }
-    //
-    // Check that there are no more errors in the actual-errors map, otherwise, record message.
-    //
-    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
-      ErrorCode code = entry.getKey();
-      List<AnalysisError> actualErrors = entry.getValue();
-      int actualCount = actualErrors.length;
-      if (builder.length == 0) {
-        builder.append("Expected ");
-      } else {
-        builder.append("; ");
-      }
-      builder.append("0 errors of type ");
-      builder.append("${code.runtimeType.toString()}.${code}");
-      builder.append(", found ");
-      builder.append(actualCount);
-      builder.append(" (");
-      for (int i = 0; i < actualErrors.length; i++) {
-        AnalysisError error = actualErrors[i];
-        if (i > 0) {
-          builder.append(", ");
-        }
-        builder.append(error.offset);
-      }
-      builder.append(")");
-    }
-    if (builder.length > 0) {
-      JUnitTestCase.fail(builder.toString());
-    }
-  }
-
-  /**
-   * Assert that the number of errors that have been gathered matches the number of severities that
-   * are given and that there are the same number of errors and warnings as specified by the
-   * argument. The order in which the errors were gathered is ignored.
-   *
-   * @param expectedSeverities the severities of the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
-   *           expected
-   */
-  void assertErrorsWithSeverities(List<ErrorSeverity> expectedSeverities) {
-    int expectedErrorCount = 0;
-    int expectedWarningCount = 0;
-    for (ErrorSeverity severity in expectedSeverities) {
-      if (severity == ErrorSeverity.ERROR) {
-        expectedErrorCount++;
-      } else {
-        expectedWarningCount++;
-      }
-    }
-    int actualErrorCount = 0;
-    int actualWarningCount = 0;
-    for (AnalysisError error in _errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
-        actualErrorCount++;
-      } else {
-        actualWarningCount++;
-      }
-    }
-    if (expectedErrorCount != actualErrorCount || expectedWarningCount != actualWarningCount) {
-      JUnitTestCase.fail("Expected ${expectedErrorCount} errors and ${expectedWarningCount} warnings, found ${actualErrorCount} errors and ${actualWarningCount} warnings");
-    }
-  }
-
-  /**
-   * Assert that no errors have been gathered.
-   *
-   * @throws AssertionFailedError if any errors have been gathered
-   */
-  void assertNoErrors() {
-    assertErrors(_NO_ERRORS);
-  }
-
-  /**
-   * Return the errors that were collected.
-   *
-   * @return the errors that were collected
-   */
-  List<AnalysisError> get errors => _errors;
-
-  /**
-   * Return the line information associated with the given source, or `null` if no line
-   * information has been associated with the source.
-   *
-   * @param source the source with which the line information is associated
-   * @return the line information associated with the source
-   */
-  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
-
-  /**
-   * Return `true` if an error with the given error code has been gathered.
-   *
-   * @param errorCode the error code being searched for
-   * @return `true` if an error with the given error code has been gathered
-   */
-  bool hasError(ErrorCode errorCode) {
-    for (AnalysisError error in _errors) {
-      if (identical(error.errorCode, errorCode)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return `true` if at least one error has been gathered.
-   *
-   * @return `true` if at least one error has been gathered
-   */
-  bool get hasErrors => _errors.length > 0;
-
-  @override
-  void onError(AnalysisError error) {
-    if (_rawSource != null) {
-      int left = error.offset;
-      int right = left + error.length - 1;
-      _markedSource = "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
-    }
-    _errors.add(error);
-  }
-
-  /**
-   * Set the line information associated with the given source to the given information.
-   *
-   * @param source the source with which the line information is associated
-   * @param lineStarts the line start information to be associated with the source
-   */
-  void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = new LineInfo(lineStarts);
-  }
-
-  /**
-   * Return `true` if the two errors are equivalent.
-   *
-   * @param firstError the first error being compared
-   * @param secondError the second error being compared
-   * @return `true` if the two errors are equivalent
-   */
-  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && _equalSources(firstError.source, secondError.source);
-
-  /**
-   * Return `true` if the two sources are equivalent.
-   *
-   * @param firstSource the first source being compared
-   * @param secondSource the second source being compared
-   * @return `true` if the two sources are equivalent
-   */
-  bool _equalSources(Source firstSource, Source secondSource) {
-    if (firstSource == null) {
-      return secondSource == null;
-    } else if (secondSource == null) {
-      return false;
-    }
-    return firstSource == secondSource;
-  }
-
-  /**
-   * Assert that the number of errors that have been gathered matches the number of errors that are
-   * given and that they have the expected error codes. The order in which the errors were gathered
-   * is ignored.
-   *
-   * @param errorCodes the errors that should have been gathered
-   * @throws AssertionFailedError with
-   */
-  void _fail(List<AnalysisError> expectedErrors) {
-    PrintStringWriter writer = new PrintStringWriter();
-    writer.print("Expected ");
-    writer.print(expectedErrors.length);
-    writer.print(" errors:");
-    for (AnalysisError error in expectedErrors) {
-      Source source = error.source;
-      LineInfo lineInfo = _lineInfoMap[source];
-      writer.newLine();
-      if (lineInfo == null) {
-        int offset = error.offset;
-        writer.printf("  %s %s (%d..%d)", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            offset,
-            offset + error.length]);
-      } else {
-        LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            location.lineNumber,
-            location.columnNumber,
-            error.length]);
-      }
-    }
-    writer.newLine();
-    writer.print("found ");
-    writer.print(_errors.length);
-    writer.print(" errors:");
-    for (AnalysisError error in _errors) {
-      Source source = error.source;
-      LineInfo lineInfo = _lineInfoMap[source];
-      writer.newLine();
-      if (lineInfo == null) {
-        int offset = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            offset,
-            offset + error.length,
-            error.message]);
-      } else {
-        LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            location.lineNumber,
-            location.columnNumber,
-            error.length,
-            error.message]);
-      }
-    }
-    JUnitTestCase.fail(writer.toString());
-  }
-
-  /**
-   * Search through the given list of errors for an error that is equal to the target error. If one
-   * is found, remove it from the list and return `true`, otherwise return `false`
-   * without modifying the list.
-   *
-   * @param errors the errors through which we are searching
-   * @param targetError the error being searched for
-   * @return `true` if the error is found and removed from the list
-   */
-  bool _foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
-    for (AnalysisError error in errors) {
-      if (_equalErrors(error, targetError)) {
-        errors.remove(error);
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-/**
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
 class EngineTestCase extends JUnitTestCase {
@@ -813,6 +426,393 @@ class EngineTestCase extends JUnitTestCase {
   static dartSuite() {
     _ut.group('EngineTestCase', () {
     });
+  }
+}
+
+/**
+ * Instances of the class `GatheringErrorListener` implement an error listener that collects
+ * all of the errors passed to it for later examination.
+ */
+class GatheringErrorListener implements AnalysisErrorListener {
+  /**
+   * The source being parsed.
+   */
+  final String _rawSource;
+
+  /**
+   * The source being parsed after inserting a marker at the beginning and end of the range of the
+   * most recent error.
+   */
+  String _markedSource;
+
+  /**
+   * A list containing the errors that were collected.
+   */
+  List<AnalysisError> _errors = new List<AnalysisError>();
+
+  /**
+   * A table mapping sources to the line information for the source.
+   */
+  Map<Source, LineInfo> _lineInfoMap = new Map<Source, LineInfo>();
+
+  /**
+   * An empty array of errors used when no errors are expected.
+   */
+  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
+
+  /**
+   * Initialize a newly created error listener to collect errors.
+   */
+  GatheringErrorListener() : this.con1(null);
+
+  /**
+   * Initialize a newly created error listener to collect errors.
+   */
+  GatheringErrorListener.con1(this._rawSource) {
+    this._markedSource = _rawSource;
+  }
+
+  /**
+   * Add all of the errors recorded by the given listener to this listener.
+   *
+   * @param listener the listener that has recorded the errors to be added
+   */
+  void addAll(RecordingErrorListener listener) {
+    for (AnalysisError error in listener.errors) {
+      onError(error);
+    }
+  }
+
+  /**
+   * Assert that the number of errors that have been gathered matches the number of errors that are
+   * given and that they have the expected error codes and locations. The order in which the errors
+   * were gathered is ignored.
+   *
+   * @param errorCodes the errors that should have been gathered
+   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   *           expected or if they do not have the same codes and locations
+   */
+  void assertErrors(List<AnalysisError> expectedErrors) {
+    if (_errors.length != expectedErrors.length) {
+      _fail(expectedErrors);
+    }
+    List<AnalysisError> remainingErrors = new List<AnalysisError>();
+    for (AnalysisError error in expectedErrors) {
+      remainingErrors.add(error);
+    }
+    for (AnalysisError error in _errors) {
+      if (!_foundAndRemoved(remainingErrors, error)) {
+        _fail(expectedErrors);
+      }
+    }
+  }
+
+  /**
+   * Assert that the number of errors that have been gathered matches the number of errors that are
+   * given and that they have the expected error codes. The order in which the errors were gathered
+   * is ignored.
+   *
+   * @param expectedErrorCodes the error codes of the errors that should have been gathered
+   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   *           expected
+   */
+  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    //
+    // Verify that the expected error codes have a non-empty message.
+    //
+    for (ErrorCode errorCode in expectedErrorCodes) {
+      JUnitTestCase.assertFalseMsg("Empty error code message", errorCode.message.isEmpty);
+    }
+    //
+    // Compute the expected number of each type of error.
+    //
+    Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
+    for (ErrorCode code in expectedErrorCodes) {
+      int count = expectedCounts[code];
+      if (count == null) {
+        count = 1;
+      } else {
+        count = count + 1;
+      }
+      expectedCounts[code] = count;
+    }
+    //
+    // Compute the actual number of each type of error.
+    //
+    Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
+    for (AnalysisError error in _errors) {
+      ErrorCode code = error.errorCode;
+      List<AnalysisError> list = errorsByCode[code];
+      if (list == null) {
+        list = new List<AnalysisError>();
+        errorsByCode[code] = list;
+      }
+      list.add(error);
+    }
+    //
+    // Compare the expected and actual number of each type of error.
+    //
+    for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
+      ErrorCode code = entry.getKey();
+      int expectedCount = entry.getValue();
+      int actualCount;
+      List<AnalysisError> list = errorsByCode.remove(code);
+      if (list == null) {
+        actualCount = 0;
+      } else {
+        actualCount = list.length;
+      }
+      if (actualCount != expectedCount) {
+        if (builder.length == 0) {
+          builder.append("Expected ");
+        } else {
+          builder.append("; ");
+        }
+        builder.append(expectedCount);
+        builder.append(" errors of type ");
+        builder.append("${code.runtimeType.toString()}.${code}");
+        builder.append(", found ");
+        builder.append(actualCount);
+      }
+    }
+    //
+    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    //
+    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
+      ErrorCode code = entry.getKey();
+      List<AnalysisError> actualErrors = entry.getValue();
+      int actualCount = actualErrors.length;
+      if (builder.length == 0) {
+        builder.append("Expected ");
+      } else {
+        builder.append("; ");
+      }
+      builder.append("0 errors of type ");
+      builder.append("${code.runtimeType.toString()}.${code}");
+      builder.append(", found ");
+      builder.append(actualCount);
+      builder.append(" (");
+      for (int i = 0; i < actualErrors.length; i++) {
+        AnalysisError error = actualErrors[i];
+        if (i > 0) {
+          builder.append(", ");
+        }
+        builder.append(error.offset);
+      }
+      builder.append(")");
+    }
+    if (builder.length > 0) {
+      JUnitTestCase.fail(builder.toString());
+    }
+  }
+
+  /**
+   * Assert that the number of errors that have been gathered matches the number of severities that
+   * are given and that there are the same number of errors and warnings as specified by the
+   * argument. The order in which the errors were gathered is ignored.
+   *
+   * @param expectedSeverities the severities of the errors that should have been gathered
+   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   *           expected
+   */
+  void assertErrorsWithSeverities(List<ErrorSeverity> expectedSeverities) {
+    int expectedErrorCount = 0;
+    int expectedWarningCount = 0;
+    for (ErrorSeverity severity in expectedSeverities) {
+      if (severity == ErrorSeverity.ERROR) {
+        expectedErrorCount++;
+      } else {
+        expectedWarningCount++;
+      }
+    }
+    int actualErrorCount = 0;
+    int actualWarningCount = 0;
+    for (AnalysisError error in _errors) {
+      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+        actualErrorCount++;
+      } else {
+        actualWarningCount++;
+      }
+    }
+    if (expectedErrorCount != actualErrorCount || expectedWarningCount != actualWarningCount) {
+      JUnitTestCase.fail("Expected ${expectedErrorCount} errors and ${expectedWarningCount} warnings, found ${actualErrorCount} errors and ${actualWarningCount} warnings");
+    }
+  }
+
+  /**
+   * Assert that no errors have been gathered.
+   *
+   * @throws AssertionFailedError if any errors have been gathered
+   */
+  void assertNoErrors() {
+    assertErrors(_NO_ERRORS);
+  }
+
+  /**
+   * Return the errors that were collected.
+   *
+   * @return the errors that were collected
+   */
+  List<AnalysisError> get errors => _errors;
+
+  /**
+   * Return the line information associated with the given source, or `null` if no line
+   * information has been associated with the source.
+   *
+   * @param source the source with which the line information is associated
+   * @return the line information associated with the source
+   */
+  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
+
+  /**
+   * Return `true` if an error with the given error code has been gathered.
+   *
+   * @param errorCode the error code being searched for
+   * @return `true` if an error with the given error code has been gathered
+   */
+  bool hasError(ErrorCode errorCode) {
+    for (AnalysisError error in _errors) {
+      if (identical(error.errorCode, errorCode)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if at least one error has been gathered.
+   *
+   * @return `true` if at least one error has been gathered
+   */
+  bool get hasErrors => _errors.length > 0;
+
+  @override
+  void onError(AnalysisError error) {
+    if (_rawSource != null) {
+      int left = error.offset;
+      int right = left + error.length - 1;
+      _markedSource = "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
+    }
+    _errors.add(error);
+  }
+
+  /**
+   * Set the line information associated with the given source to the given information.
+   *
+   * @param source the source with which the line information is associated
+   * @param lineStarts the line start information to be associated with the source
+   */
+  void setLineInfo(Source source, List<int> lineStarts) {
+    _lineInfoMap[source] = new LineInfo(lineStarts);
+  }
+
+  /**
+   * Return `true` if the two errors are equivalent.
+   *
+   * @param firstError the first error being compared
+   * @param secondError the second error being compared
+   * @return `true` if the two errors are equivalent
+   */
+  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && _equalSources(firstError.source, secondError.source);
+
+  /**
+   * Return `true` if the two sources are equivalent.
+   *
+   * @param firstSource the first source being compared
+   * @param secondSource the second source being compared
+   * @return `true` if the two sources are equivalent
+   */
+  bool _equalSources(Source firstSource, Source secondSource) {
+    if (firstSource == null) {
+      return secondSource == null;
+    } else if (secondSource == null) {
+      return false;
+    }
+    return firstSource == secondSource;
+  }
+
+  /**
+   * Assert that the number of errors that have been gathered matches the number of errors that are
+   * given and that they have the expected error codes. The order in which the errors were gathered
+   * is ignored.
+   *
+   * @param errorCodes the errors that should have been gathered
+   * @throws AssertionFailedError with
+   */
+  void _fail(List<AnalysisError> expectedErrors) {
+    PrintStringWriter writer = new PrintStringWriter();
+    writer.print("Expected ");
+    writer.print(expectedErrors.length);
+    writer.print(" errors:");
+    for (AnalysisError error in expectedErrors) {
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
+      writer.newLine();
+      if (lineInfo == null) {
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d)", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            offset,
+            offset + error.length]);
+      } else {
+        LineInfo_Location location = lineInfo.getLocation(error.offset);
+        writer.printf("  %s %s (%d, %d/%d)", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            location.lineNumber,
+            location.columnNumber,
+            error.length]);
+      }
+    }
+    writer.newLine();
+    writer.print("found ");
+    writer.print(_errors.length);
+    writer.print(" errors:");
+    for (AnalysisError error in _errors) {
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
+      writer.newLine();
+      if (lineInfo == null) {
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d): %s", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            offset,
+            offset + error.length,
+            error.message]);
+      } else {
+        LineInfo_Location location = lineInfo.getLocation(error.offset);
+        writer.printf("  %s %s (%d, %d/%d): %s", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            location.lineNumber,
+            location.columnNumber,
+            error.length,
+            error.message]);
+      }
+    }
+    JUnitTestCase.fail(writer.toString());
+  }
+
+  /**
+   * Search through the given list of errors for an error that is equal to the target error. If one
+   * is found, remove it from the list and return `true`, otherwise return `false`
+   * without modifying the list.
+   *
+   * @param errors the errors through which we are searching
+   * @param targetError the error being searched for
+   * @return `true` if the error is found and removed from the list
+   */
+  bool _foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
+    for (AnalysisError error in errors) {
+      if (_equalErrors(error, targetError)) {
+        errors.remove(error);
+        return true;
+      }
+    }
+    return false;
   }
 }
 

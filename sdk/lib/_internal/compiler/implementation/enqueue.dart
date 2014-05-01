@@ -293,7 +293,7 @@ abstract class Enqueuer {
                            Map<String, Set<Selector>> selectorsMap) {
     String name = selector.name;
     Set<Selector> selectors =
-        selectorsMap.putIfAbsent(name, () => new Set<Selector>());
+        selectorsMap.putIfAbsent(name, () => new Setlet<Selector>());
     if (!selectors.contains(selector)) {
       selectors.add(selector);
       handleUnseenSelector(name, selector);

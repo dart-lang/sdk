@@ -86,7 +86,7 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
     Label size_tag_overflow, done;
     __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&size_tag_overflow);
@@ -457,7 +457,7 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
     Label size_tag_overflow, done;                                             \
     __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));                  \
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));    \
+    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));    \
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
@@ -1479,7 +1479,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     Label size_tag_overflow, done;
     __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&size_tag_overflow);

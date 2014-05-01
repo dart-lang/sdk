@@ -11,7 +11,7 @@
 /** Test of [ParameterMirror]. */
 library test.parameter_test;
 
-@MirrorsUsed(targets: 'test.parameter_test', override: '*')
+@MirrorsUsed(targets: const ['test.parameter_test', 'dart.core.int'], override: '*')
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -153,7 +153,7 @@ main() {
 
   MethodMirror waldo = cm.declarations[#waldo];
   expect('Method(s(waldo) in s(B))', waldo);
-  expect('[Parameter(s(z) in s(waldo),' 
+  expect('[Parameter(s(z) in s(waldo),'
          ' type = Class(s(int) in s(dart.core), top-level))]',
          waldo.parameters);
   expect('<null>', waldo.parameters[0].defaultValue);

@@ -1110,12 +1110,7 @@ class MinifyRenamer implements LocalNamer {
   // use the same namespace for arguments and variables, starting with A, and
   // moving on to a0, a1, etc.
   String declareVariable(String oldName) {
-    // Variables of this $form$ are used in pattern matching the message of JS
-    // exceptions, so should not be renamed.
-    // TODO(sra): Introduce a way for indicating in the JS text which variables
-    // should not be renamed.
-    if (oldName.startsWith(r'$') && oldName.endsWith(r'$')) return oldName;
-
+    if (avoidRenaming(oldName)) return oldName;
     var newName;
     if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
       // Variables start from z and go backwards, for better gzipability.
@@ -1129,6 +1124,7 @@ class MinifyRenamer implements LocalNamer {
   }
 
   String declareParameter(String oldName) {
+    if (avoidRenaming(oldName)) return oldName;
     var newName;
     if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
       newName = getNameNumber(oldName, parameterNumber);
@@ -1137,6 +1133,14 @@ class MinifyRenamer implements LocalNamer {
     }
     parameterNumber++;
     return newName;
+  }
+
+  bool avoidRenaming(String oldName) {
+    // Variables of this $form$ are used in pattern matching the message of JS
+    // exceptions, so should not be renamed.
+    // TODO(sra): Introduce a way for indicating in the JS text which variables
+    // should not be renamed.
+    return oldName.startsWith(r'$') && oldName.endsWith(r'$');
   }
 
   String getNameNumber(String oldName, int n) {

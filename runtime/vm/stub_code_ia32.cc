@@ -686,7 +686,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ andl(ECX, Immediate(-kObjectAlignment));
       __ cmpl(ECX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(ECX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ shll(ECX, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
@@ -942,7 +942,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ andl(EBX, Immediate(-kObjectAlignment));
       __ cmpl(EBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ shll(EBX, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
@@ -1273,7 +1273,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = ECX;
   Register func_reg = temp_reg;
   ASSERT(ic_reg != func_reg);
-  __ movl(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
@@ -1295,9 +1295,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andl(EBX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpl(EBX, Immediate(num_args));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect stub for IC data");
@@ -1511,13 +1513,6 @@ void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
 }
 
 
-// Megamorphic call is currently implemented as IC call but through a stub
-// that does not check/count function invocations.
-void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
-}
-
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // ECX: ICData
@@ -1526,9 +1521,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andl(EBX, Immediate(ICData::NumArgsTestedMask()));
     __ cmpl(EBX, Immediate(0));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect IC data for unoptimized static call");

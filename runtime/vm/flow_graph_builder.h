@@ -421,7 +421,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
                                     bool result_is_needed);
 
-  ClosureCallInstr* BuildClosureCall(ClosureCallNode* node);
+  void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 
   Value* BuildNullValue();
 

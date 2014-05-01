@@ -335,6 +335,13 @@ Note: currently only implemented for dart2js.''',
               false,
               type: 'bool'),
           new _TestOptionSpecification(
+              'clear_browser_cache',
+              'Browser specific clearing of caches(i.e., delete it).',
+              ['--clear_browser_cache'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
               'copy_coredumps',
               'If we see a crash that we did not expect, copy the core dumps. '
               'to /tmp',
@@ -404,6 +411,13 @@ Note: currently only implemented for dart2js.''',
               'Extra options to send to the vm when running',
               ['--vm-options'],
               [],
+              null),
+          new _TestOptionSpecification(
+              'exclude_suite',
+              'Exclude suites from default selector, only works when no'
+              ' selector has been specified on the command line',
+              ['--exclude-suite'],
+              defaultTestSelectors,
               null),];
   }
 
@@ -669,6 +683,12 @@ Note: currently only implemented for dart2js.''',
     // Allow suppression that is valid for all ie versions
     configuration['ie'] = runtime.startsWith('ie');
 
+    // Temporary grace period for clear_safaci_cache
+    // See issue 18478
+    if (configuration['clear_safari_cache']) {
+      configuration['clear_browser_cache'] = true;
+    }
+
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
     // in that test suite. If no selectors are explicitly given use
@@ -676,7 +696,17 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        selectors = defaultTestSelectors;
+        selectors = new List.from(defaultTestSelectors);
+        var exclude_suites = configuration['exclude_suite'] != null ?
+              configuration['exclude_suite'].split(',') : [];
+        for (var exclude in exclude_suites) {
+          if (selectors.contains(exclude)) {
+            selectors.remove(exclude);
+          } else {
+            print("Error: default selectors does not contain $exclude");
+            exit(1);
+          }
+        }
       }
       Map<String, RegExp> selectorMap = new Map<String, RegExp>();
       for (var i = 0; i < selectors.length; i++) {

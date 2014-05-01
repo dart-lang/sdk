@@ -104,6 +104,9 @@ class CodeBuffer implements StringBuffer {
   }
 
   void setSourceLocation(var sourcePosition) {
+    if (sourcePosition == null) {
+      if (markers.length > 0 && markers.last.sourcePosition == null) return;
+    }
     int offsetDelta = buffer.length - lastBufferOffset;
     markers.add(new CodeBufferMarker(offsetDelta, sourcePosition));
     lastBufferOffset = buffer.length;

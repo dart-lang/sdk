@@ -210,7 +210,8 @@ void testClassMembers() {
     InterfaceType A = env['A'];
     checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
                      interfaceMembers: true);
-    checkMemberCount(A, 5 /*inherited*/ + 9 /*non-abstract declared*/,
+    checkMemberCount(A, 5 /*inherited*/ + 9 /*non-abstract declared*/ +
+                        3 /* abstract declared */,
                      interfaceMembers: false);
 
     checkMember(A, '==', inheritedFrom: Object_);
@@ -235,17 +236,15 @@ void testClassMembers() {
     checkMember(A, 'getter', isGetter: true,
                 type: int_, functionType: env.functionType(int_, []));
     checkMember(A, 'abstractGetter', isGetter: true,
-                checkType: NO_CLASS_MEMBER,
                 type: dynamic_, functionType: env.functionType(dynamic_, []));
     checkMember(A, 'setter', isSetter: true,
                 type: int_, functionType: env.functionType(void_, [int_]));
     checkMember(A, 'abstractSetter', isSetter: true,
-                checkType: NO_CLASS_MEMBER, type: dynamic_,
+                type: dynamic_,
                 functionType: env.functionType(dynamic_, [dynamic_]));
 
     checkMember(A, 'method', functionType: env.functionType(dynamic_, []));
     checkMember(A, 'abstractMethod',
-                checkType: NO_CLASS_MEMBER,
                 functionType: env.functionType(dynamic_, []));
     checkMember(A, 'staticMethod',
                 checkType: CHECK_CLASS,

@@ -44,8 +44,8 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadImmediate(R5, entry, PP);
-    __ LoadImmediate(R4, argument_count, PP);
+    __ LoadImmediate(R5, entry, kNoRegister);
+    __ LoadImmediate(R4, argument_count, kNoRegister);
     __ BranchLink(&StubCode::CallToRuntimeLabel(), PP);
   }
 }

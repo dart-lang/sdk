@@ -11,10 +11,9 @@
 
 namespace dart {
 
-intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
-  // Keep track of the discovered live object sizes to be able to finish
-  // sweeping early. Reset the per page in_use count for the next marking phase.
-  intptr_t in_use = 0;
+bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
+  // Keep track whether this page is still in use.
+  bool in_use = false;
 
   bool is_executable = (page->type() == HeapPage::kExecutable);
   uword start = page->object_start();
@@ -28,7 +27,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
       obj_size = raw_obj->Size();
-      in_use += obj_size;
+      in_use = true;
     } else {
       uword free_end = current + raw_obj->Size();
       while (free_end < end) {
@@ -57,15 +56,15 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 }
 
 
-intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
+bool GCSweeper::SweepLargePage(HeapPage* page) {
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (!raw_obj->IsMarked()) {
     // The large object was not marked. Used size is zero, which also tells the
     // calling code that the large object page can be recycled.
-    return 0;
+    return false;
   }
   raw_obj->ClearMarkBit();
-  return raw_obj->Size();
+  return true;
 }
 
 }  // namespace dart

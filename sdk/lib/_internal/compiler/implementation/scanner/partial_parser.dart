@@ -79,6 +79,8 @@ class PartialParser extends Parser {
       if (token is BeginGroupToken) {
         BeginGroupToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
+      } else if (token is ErrorToken) {
+        listener.reportErrorToken(token);
       }
       token = token.next;
     }

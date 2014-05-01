@@ -155,7 +155,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
-  ASSERT(reason() != kDeoptAtCall);
+  ASSERT(reason() != ICData::kDeoptAtCall);
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
@@ -1187,6 +1187,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
+  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
   // to inlining in optimized code, that function may not correspond to the
@@ -1211,6 +1212,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
+  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1231,7 +1233,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const String& name = String::Handle(ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(ic_data.arguments_descriptor());
-  ASSERT(!arguments_descriptor.IsNull());
+  ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
@@ -1315,9 +1317,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                   num_args_checked));  // No arguments checked.
   ic_data.AddTarget(target_function);
   uword label_address = 0;
-  if (ic_data.num_args_tested() == 0) {
+  if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.num_args_tested() == 2) {
+  } else if (ic_data.NumArgsTested() == 2) {
     label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
   } else {
     UNIMPLEMENTED();

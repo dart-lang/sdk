@@ -135,7 +135,7 @@ void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void SourceBreakpoint::PrintToJSONStream(JSONStream* stream) {
+void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   Isolate* isolate = Isolate::Current();
 
   JSONObject jsobj(stream);
@@ -1184,11 +1184,22 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             uword pc,
                                             StackFrame* frame,
-                                            const Code& code,
+                                            const Code& code_param,
                                             const Array& deopt_frame,
                                             intptr_t deopt_frame_offset,
                                             ActivationFrame* callee_activation,
                                             const Context& entry_ctx) {
+  // TODO(turnidge): Remove the workaround below once...
+  //    https://code.google.com/p/dart/issues/detail?id=18384
+  // ...is fixed.
+  Code& code = Code::Handle(isolate);
+  code = code_param.raw();
+  if (!code.ContainsInstructionAt(pc)) {
+    code = Code::LookupCode(pc);
+    ASSERT(!code.IsNull());
+    ASSERT(code.ContainsInstructionAt(pc));
+  }
+
   // We provide either a callee activation or an entry context.  Not both.
   ASSERT(((callee_activation != NULL) && entry_ctx.IsNull()) ||
          ((callee_activation == NULL) && !entry_ctx.IsNull()));
@@ -1203,7 +1214,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   bool is_closure_call = false;
   const PcDescriptors& pc_desc =
       PcDescriptors::Handle(code.pc_descriptors());
-  ASSERT(code.ContainsInstructionAt(pc));
+
   for (int i = 0; i < pc_desc.Length(); i++) {
     if (pc_desc.PC(i) == pc &&
         pc_desc.DescriptorKind(i) == PcDescriptors::kClosureCall) {
@@ -1536,27 +1547,39 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
 }
 
 
-void Debugger::MakeCodeBreakpointsAt(const Function& func,
-                                     SourceBreakpoint* bpt) {
+void Debugger::MakeCodeBreakpointAt(const Function& func,
+                                    SourceBreakpoint* bpt) {
   ASSERT((bpt != NULL) && bpt->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  uword lowest_pc = kUwordMax;
+  intptr_t lowest_pc_index = -1;
+  // Find the safe point with the lowest compiled code address
+  // that maps to the token position of the source breakpoint.
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     if ((desc_token_pos == bpt->token_pos_) && IsSafePoint(desc, i)) {
-      CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
-      if (code_bpt == NULL) {
-        // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(code, i);
-        RegisterCodeBreakpoint(code_bpt);
-      }
-      code_bpt->set_src_bpt(bpt);
-      if (bpt->IsEnabled()) {
-        code_bpt->Enable();
+      if (desc.PC(i) < lowest_pc) {
+        // This descriptor so far has the lowest code address.
+        lowest_pc = desc.PC(i);
+        lowest_pc_index = i;
       }
     }
+  }
+  if (lowest_pc_index < 0) {
+    return;
+  }
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(lowest_pc_index));
+  if (code_bpt == NULL) {
+    // No code breakpoint for this code exists; create one.
+    code_bpt = new CodeBreakpoint(code, lowest_pc_index);
+    RegisterCodeBreakpoint(code_bpt);
+  }
+  code_bpt->set_src_bpt(bpt);
+  if (bpt->IsEnabled()) {
+    code_bpt->Enable();
   }
 }
 
@@ -1759,7 +1782,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
       for (intptr_t i = 0; i < num_functions; i++) {
         func ^= functions.At(i);
         ASSERT(func.HasCode());
-        MakeCodeBreakpointsAt(func, bpt);
+        MakeCodeBreakpointAt(func, bpt);
       }
       bpt->Enable();
       if (FLAG_verbose_debug) {
@@ -1787,8 +1810,8 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   SourceBreakpoint* bpt = GetSourceBreakpoint(script, token_pos);
   if (bpt == NULL) {
     bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
+    RegisterSourceBreakpoint(bpt);
   }
-  RegisterSourceBreakpoint(bpt);
   bpt->Enable();
   return bpt;
 }
@@ -2368,7 +2391,7 @@ void Debugger::NotifyCompilation(const Function& func) {
                   func.IsClosureFunction() ? "closure" : "function",
                   String::Handle(func.name()).ToCString());
       }
-      MakeCodeBreakpointsAt(func, bpt);
+      MakeCodeBreakpointAt(func, bpt);
     }
   }
 }

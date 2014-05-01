@@ -14,6 +14,7 @@ import 'asset_set.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'log.dart';
+import 'node_status.dart';
 import 'package_provider.dart';
 import 'transformer.dart';
 import 'utils.dart';
@@ -55,8 +56,9 @@ class PackageGraph {
   Stream<LogEntry> get log => _logController.stream;
   final _logController = new StreamController<LogEntry>.broadcast(sync: true);
 
-  /// Whether [this] is dirty and still has more processing to do.
-  bool get _isDirty => _cascades.values.any((cascade) => cascade.isDirty);
+  /// How far along [this] is in processing its assets.
+  NodeStatus get _status => NodeStatus.dirtiest(
+      _cascades.values.map((cascade) => cascade.status));
 
   /// Whether a [BuildResult] is scheduled to be emitted on [results] (see
   /// [_tryScheduleResult]).
@@ -89,7 +91,9 @@ class PackageGraph {
         var cascade = new AssetCascade(this, package);
         _cascades[package] = cascade;
         cascade.onLog.listen(_onLog);
-        cascade.onDone.listen((_) => _tryScheduleResult());
+        cascade.onStatusChange.listen((status) {
+          if (status == NodeStatus.IDLE) _tryScheduleResult();
+        });
       }
 
       _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
@@ -126,7 +130,7 @@ class PackageGraph {
       _inErrorZone(() => cascade.forceAllTransforms());
     }
 
-    if (_isDirty) {
+    if (_status != NodeStatus.IDLE) {
       // A build is still ongoing, so wait for it to complete and try again.
       return results.first.then((_) => getAllAssets());
     }
@@ -222,13 +226,13 @@ class PackageGraph {
   /// [BuildResult]) to ensure that calling multiple functions synchronously
   /// produces only a single [BuildResult].
   void _tryScheduleResult() {
-    if (_isDirty) return;
+    if (_status != NodeStatus.IDLE) return;
     if (_resultScheduled) return;
 
     _resultScheduled = true;
     newFuture(() {
       _resultScheduled = false;
-      if (_isDirty) return;
+      if (_status != NodeStatus.IDLE) return;
 
       _lastResult = new BuildResult(_accumulatedErrors);
       _accumulatedErrors.clear();

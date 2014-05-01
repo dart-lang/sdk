@@ -178,8 +178,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     else:
       cmd.extend(['--progress=buildbot', '-v'])
 
-    if runtime == 'safari':
-      cmd.append('--clear_safari_cache')
+    cmd.append('--clear_browser_cache')
 
     global IsFirstTestStepCall
     if IsFirstTestStepCall:

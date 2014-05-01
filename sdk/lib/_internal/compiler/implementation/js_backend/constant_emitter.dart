@@ -62,8 +62,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitFunction(FunctionConstant constant) {
-    return new jsAst.VariableUse(
-        namer.isolateStaticClosureAccess(constant.element));
+    return namer.isolateStaticClosureAccess(constant.element);
   }
 
   jsAst.Expression visitNull(NullConstant constant) {
@@ -218,8 +217,8 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     return maybeAddTypeArguments(constant.type, value);
   }
 
-  String getJsConstructor(ClassElement element) {
-    return namer.isolateAccess(element);
+  jsAst.Expression getJsConstructor(ClassElement element) {
+    return namer.elementAccess(element);
   }
 
   jsAst.Expression visitMap(MapConstant constant) {
@@ -291,9 +290,8 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    jsAst.Expression value = new jsAst.New(
-        new jsAst.VariableUse(getJsConstructor(classElement)),
-        arguments);
+    jsAst.Expression value =
+        new jsAst.New(getJsConstructor(classElement), arguments);
     return maybeAddTypeArguments(constant.type, value);
   }
 
@@ -313,8 +311,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
 
   jsAst.Expression visitInterceptor(InterceptorConstant constant) {
     return new jsAst.PropertyAccess.field(
-        new jsAst.VariableUse(
-            getJsConstructor(constant.dispatchedType.element)),
+        getJsConstructor(constant.dispatchedType.element),
         'prototype');
   }
 
@@ -331,7 +328,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.New instantiation = new jsAst.New(
-        new jsAst.VariableUse(getJsConstructor(constant.type.element)),
+        getJsConstructor(constant.type.element),
         _array(constant.fields));
     return maybeAddTypeArguments(constant.type, instantiation);
   }

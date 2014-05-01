@@ -458,12 +458,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
-    Instantiator makeCompoundTarget = visitNullable(node.compoundTarget);
+    String op = node.op;
     Instantiator makeValue = visitNullable(node.value);
     return (arguments) {
-      return new Assignment._internal(
+      return new Assignment.compound(
           makeLeftHandSide(arguments),
-          makeCompoundTarget(arguments),
+          op,
           makeValue(arguments));
     };
   }

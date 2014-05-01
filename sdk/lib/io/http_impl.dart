@@ -526,13 +526,18 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     return close();
   }
 
-  Future<Socket> detachSocket() {
+  Future<Socket> detachSocket({bool writeHeaders: true}) {
     if (_outgoing.headersWritten) throw new StateError("Headers already sent");
     deadline = null;  // Be sure to stop any deadline.
     var future = _httpRequest._httpConnection.detachSocket();
-    var headersFuture = _outgoing.writeHeaders(drainRequest: false,
-                                               setOutgoing: false);
-    assert(headersFuture == null);
+    if (writeHeaders) {
+      var headersFuture = _outgoing.writeHeaders(drainRequest: false,
+                                                 setOutgoing: false);
+      assert(headersFuture == null);
+    } else {
+      // Imitate having written the headers.
+      _outgoing.headersWritten = true;
+    }
     // Close connection so the socket is 'free'.
     close();
     done.catchError((_) {

@@ -49,6 +49,12 @@ abstract class Browser {
    */
   String id;
 
+  /**
+   * Delete the browser specific caches on startup.
+   * Browser specific implementations are free to ignore this.
+   */
+  static bool deleteCache = false;
+
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
 
@@ -298,7 +304,7 @@ class Safari extends Browser {
   // Clears the cache if the static deleteCache flag is set.
   // Returns false if the command to actually clear the cache did not complete.
   Future<bool> clearCache() {
-    if (!deleteCache) return new Future.value(true);
+    if (!Browser.deleteCache) return new Future.value(true);
     var home = Platform.environment['HOME'];
     Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
     return deleteIfExists(iterator);
@@ -374,11 +380,6 @@ class Safari extends Browser {
   }
 
   String toString() => "Safari";
-
-  // Delete the user specific browser cache and profile data.
-  // Safari only have one per user, and you can't specify one by command line.
-  static bool deleteCache = false;
-
 }
 
 
@@ -480,14 +481,30 @@ class IE extends Browser {
     });
   }
 
+  // Clears the recovery cache if the static deleteCache flag is set.
+  Future<bool> clearCache() {
+    if (!Browser.deleteCache) return new Future.value(true);
+    var localAppData = Platform.environment['LOCALAPPDATA'];
+
+    Directory dir = new Directory("$localAppData\\Microsoft\\"
+                                  "Internet Explorer\\Recovery");
+    return dir.delete(recursive: true)
+      .then((_) { return true; })
+      .catchError((error) {
+        _logEvent("Deleting recovery dir failed with $error");
+        return false;
+      });
+  }
+
   Future<bool> start(String url) {
     _logEvent("Starting ie browser on: $url");
-    return getVersion().then((version) {
+    return clearCache().then((_) => getVersion()).then((version) {
       _logEvent("Got version: $version");
       return startBrowser(_binary, [url]);
     });
   }
   String toString() => "IE";
+
 }
 
 

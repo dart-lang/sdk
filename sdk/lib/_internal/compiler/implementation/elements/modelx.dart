@@ -8,6 +8,7 @@ import 'elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
+import '../resolution/class_members.dart' show ClassMemberMixin;
 
 import '../dart2jslib.dart' show invariant,
                                  InterfaceType,
@@ -331,6 +332,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   isErroneous() => true;
 
+  AbstractFieldElement abstractField;
+
   unsupported() {
     throw 'unsupported operation on erroneous element';
   }
@@ -540,7 +543,7 @@ class ScopeX {
    * element, they are enclosed by the class or compilation unit, as is the
    * abstract field.
    */
-  void addAccessor(Element accessor,
+  void addAccessor(FunctionElementX accessor,
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
@@ -558,6 +561,7 @@ class ScopeX {
         reportError(existing);
       } else {
         AbstractFieldElementX field = existing;
+        accessor.abstractField = field;
         if (accessor.isGetter()) {
           if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
@@ -575,6 +579,7 @@ class ScopeX {
       Element container = accessor.getEnclosingClassOrCompilationUnit();
       AbstractFieldElementX field =
           new AbstractFieldElementX(accessor.name, container);
+      accessor.abstractField = field;
       if (accessor.isGetter()) {
         field.getter = accessor;
       } else {
@@ -1221,7 +1226,9 @@ class VariableElementX extends ElementX with AnalyzableElement
   DartType computeType(Compiler compiler) {
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
-    parseNode(compiler);
+    compiler.withCurrentElement(this, () {
+      parseNode(compiler);
+    });
     return variables.computeType(this, compiler);
   }
 
@@ -1499,6 +1506,8 @@ class FunctionElementX extends ElementX with AnalyzableElement
 
   final bool _hasNoBody;
 
+  AbstractFieldElement abstractField;
+
   /**
    * If this is a redirecting factory, [defaultImplementation] will be
    * changed by the resolver to point to the redirection target.
@@ -1521,14 +1530,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
                             Modifiers modifiers,
                             Element enclosing)
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
-                                false);
-
-  FunctionElementX.from(String name,
-                        FunctionElement other,
-                        Element enclosing)
-      : this.tooMuchOverloading(name, other.node, other.kind,
-                                other.modifiers, enclosing,
-                                other.functionSignature,
                                 false);
 
   FunctionElementX.tooMuchOverloading(String name,
@@ -1662,6 +1663,19 @@ class FunctionElementX extends ElementX with AnalyzableElement
   }
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+}
+
+class SynthesizedCallMethodElementX extends FunctionElementX {
+  final FunctionElement expression;
+
+  SynthesizedCallMethodElementX(String name,
+                                FunctionElement other,
+                                Element enclosing)
+      : expression = other,
+        super.tooMuchOverloading(name, other.node, other.kind,
+                                 other.modifiers, enclosing,
+                                 other.functionSignature,
+                                 false);
 }
 
 class DeferredLoaderGetterElementX extends FunctionElementX {
@@ -1895,7 +1909,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 }
 
 abstract class BaseClassElementX extends ElementX
-    with AnalyzableElement, TypeDeclarationElementX<InterfaceType>
+    with AnalyzableElement,
+         TypeDeclarationElementX<InterfaceType>,
+         ClassMemberMixin
     implements ClassElement {
   final int id;
 
@@ -1917,9 +1933,6 @@ abstract class BaseClassElementX extends ElementX
   Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
-
-  Map<Name, Member> classMembers;
-  Map<Name, MemberSignature> interfaceMembers;
 
   BaseClassElementX(String name,
                     Element enclosing,
@@ -2277,18 +2290,6 @@ abstract class BaseClassElementX extends ElementX
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = name;
-  }
-
-  Member lookupClassMember(Name name) => classMembers[name];
-
-  void forEachClassMember(f(Member member)) {
-    classMembers.forEach((_, member) => f(member));
-  }
-
-  MemberSignature lookupInterfaceMember(Name name) => interfaceMembers[name];
-
-  void forEachInterfaceMember(f(MemberSignature member)) {
-    interfaceMembers.forEach((_, member) => f(member));
   }
 
   FunctionType get callType {

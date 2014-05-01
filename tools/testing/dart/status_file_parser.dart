@@ -253,6 +253,11 @@ class TestRule {
 
 
 class TestExpectations {
+  // Only create one copy of each Set<Expectation>.
+  // We just use .toString as a key, so we may make a few
+  // sets that only differ in their toString element order.
+  static Map _cachedSets = new Map();
+
   Map _map;
   bool _preprocessed = false;
   Map _regExpCache;
@@ -312,7 +317,7 @@ class TestExpectations {
     if (result.isEmpty) {
       result.add(Expectation.PASS);
     }
-    return result;
+    return _cachedSets.putIfAbsent(result.toString(), () => result);
   }
 
   // Preprocess the expectations for matching against

@@ -303,7 +303,8 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = "($kind) $receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
-    return visitGenericInvoke("Invoke", target, arguments);
+    return visitGenericInvoke("Invoke", target, arguments) +
+        "(${invoke.selector.mask})";
   }
 
   String visitInvokeDynamicMethod(HInvokeDynamicMethod node)
@@ -485,8 +486,13 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeKnown(HTypeKnown node) {
-    assert(node.inputs.length == 1);
-    return "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
+    assert(node.inputs.length <= 2);
+    String result =
+        "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
+    if (node.witness != null) {
+      result += " witnessed by ${temporaryId(node.witness)}";
+    }
+    return result;
   }
 
   String visitRangeConversion(HRangeConversion node) {

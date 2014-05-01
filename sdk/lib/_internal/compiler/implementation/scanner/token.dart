@@ -220,6 +220,62 @@ class KeywordToken extends Token {
   String toString() => "KeywordToken($value)";
 }
 
+abstract class ErrorToken extends Token {
+  ErrorToken(int charOffset)
+      : super(charOffset);
+
+  PrecedenceInfo get info => BAD_INPUT_INFO;
+
+  String get value {
+    throw new SpannableAssertionFailure(this, assertionMessage);
+  }
+
+  String get stringValue => null;
+
+  bool isIdentifier() => false;
+
+  String get assertionMessage;
+}
+
+class BadInputToken extends ErrorToken {
+  final int character;
+
+  BadInputToken(this.character, int charOffset)
+      : super(charOffset);
+
+  String toString() => "BadInputToken($character)";
+
+  String get assertionMessage {
+    return 'Character U+${character.toRadixString(16)} not allowed here.';
+  }
+}
+
+class UnterminatedToken extends ErrorToken {
+  final String start;
+  final int endOffset;
+
+  UnterminatedToken(this.start, int charOffset, this.endOffset)
+      : super(charOffset);
+
+  String toString() => "UnterminatedToken($start)";
+
+  String get assertionMessage => "'$start' isn't terminated.";
+
+  int get charCount => endOffset - charOffset;
+}
+
+class UnmatchedToken extends ErrorToken {
+  final BeginGroupToken begin;
+
+  UnmatchedToken(BeginGroupToken begin)
+      : this.begin = begin,
+        super(begin.charOffset);
+
+  String toString() => "UnmatchedToken(${begin.value})";
+
+  String get assertionMessage => "'$begin' isn't closed.";
+}
+
 /**
  * A String-valued token. Represents identifiers, string literals,
  * number literals, comments, and error tokens, using the corresponding

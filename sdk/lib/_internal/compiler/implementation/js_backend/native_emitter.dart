@@ -39,39 +39,9 @@ class NativeEmitter {
   String get n => emitter.n;
   String get N => emitter.N;
 
-  String get dynamicName {
-    Element element = compiler.findHelper('dynamicFunction');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get dynamicFunctionTableName {
-    Element element = compiler.findHelper('dynamicFunctionTable');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get typeNameOfName {
-    Element element = compiler.findHelper('getTypeNameOf');
-    return backend.namer.isolateAccess(element);
-  }
-
   jsAst.Expression get defPropFunction {
     Element element = compiler.findHelper('defineProperty');
     return backend.namer.elementAccess(element);
-  }
-
-  String get toStringHelperName {
-    Element element = compiler.findHelper('toStringForNativeObject');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get hashCodeHelperName {
-    Element element = compiler.findHelper('hashCodeForNativeObject');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get dispatchPropertyNameVariable {
-    Element element = compiler.findInterceptor('dispatchPropertyName');
-    return backend.namer.isolateAccess(element);
   }
 
   /**
@@ -325,7 +295,7 @@ class NativeEmitter {
     String superName = backend.namer.getNameOfClass(superclass);
 
     ClassBuilder builder = new ClassBuilder(backend.namer);
-    emitter.classEmitter.emitClassConstructor(classElement, builder, null);
+    emitter.classEmitter.emitClassConstructor(classElement, builder);
     bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;

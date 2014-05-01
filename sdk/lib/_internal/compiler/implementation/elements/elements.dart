@@ -831,6 +831,10 @@ abstract class FunctionElement extends Element
 
   bool get isRedirectingFactory;
 
+  /// Used to retrieve a link to the abstract field element representing this
+  /// element.
+  AbstractFieldElement get abstractField;
+
   /**
    * Compute the type of the target of a constructor for an instantiation site
    * with type [:newType:].
@@ -1053,6 +1057,7 @@ abstract class MetadataAnnotation implements Spannable {
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
+// TODO(johnniwinther): Remove this element.
 abstract class VoidElement extends Element {}
 
 /// An [Element] that has a type.
@@ -1131,5 +1136,12 @@ abstract class Member extends MemberSignature {
   /// Returns `true` if this member is a getter or setter implicitly declared
   /// by a field.
   bool get isDeclaredByField;
+
+  /// Returns `true` if this member is abstract.
+  bool get isAbstract;
+
+  /// If abstract, [implementation] points to the overridden concrete member,
+  /// if any. Otherwise [implementation] points to the member itself.
+  Member get implementation;
 }
 

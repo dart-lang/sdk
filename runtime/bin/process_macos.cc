@@ -722,7 +722,9 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   if (NO_RETRY_EXPECTED(pipe(fds)) != 0) {
     return -1;
   }
-  if (!FDUtils::SetNonBlocking(fds[0])) {
+  if (!FDUtils::SetCloseOnExec(fds[0]) ||
+      !FDUtils::SetCloseOnExec(fds[1]) ||
+      !FDUtils::SetNonBlocking(fds[0])) {
     VOID_TEMP_FAILURE_RETRY(close(fds[0]));
     VOID_TEMP_FAILURE_RETRY(close(fds[1]));
     return -1;

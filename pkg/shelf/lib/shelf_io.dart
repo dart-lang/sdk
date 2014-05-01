@@ -34,8 +34,17 @@ Future<HttpServer> serve(Handler handler, address, int port,
 ///
 /// [HttpServer] implements [Stream<HttpRequest>] so it can be passed directly
 /// to [serveRequests].
+///
+/// Errors thrown by [handler] while serving a request will be printed to the
+/// console and cause a 500 response with no body. Errors thrown asynchronously
+/// by [handler] will be printed to the console or, if there's an active error
+/// zone, passed to that zone.
 void serveRequests(Stream<HttpRequest> requests, Handler handler) {
-  requests.listen((request) => handleRequest(request, handler));
+  catchTopLevelErrors(() {
+    requests.listen((request) => handleRequest(request, handler));
+  }, (error, stackTrace) {
+    _logError('Asynchronous error\n$error', stackTrace);
+  });
 }
 
 /// Uses [handler] to handle [request].
@@ -46,14 +55,7 @@ Future handleRequest(HttpRequest request, Handler handler) {
 
   return syncFuture(() => handler(shelfRequest))
       .catchError((error, stackTrace) {
-    var chain = new Chain.current();
-    if (stackTrace != null) {
-      chain = new Chain.forTrace(stackTrace)
-          .foldFrames((frame) => frame.isCore || frame.package == 'shelf')
-          .terse;
-    }
-
-    return _logError('Error thrown by handler\n$error\n$chain');
+    return _logError('Error thrown by handler\n$error', stackTrace);
   }).then((response) {
     if (response == null) {
       response = _logError('null response from handler');
@@ -95,8 +97,17 @@ Future _writeResponse(Response response, HttpResponse httpResponse) {
 
 // TODO(kevmoo) A developer mode is needed to include error info in response
 // TODO(kevmoo) Make error output plugable. stderr, logging, etc
-Response _logError(String message) {
+Response _logError(String message, [StackTrace stackTrace]) {
+  var chain = new Chain.current();
+  if (stackTrace != null) {
+    chain = new Chain.forTrace(stackTrace);
+  }
+  chain = chain
+      .foldFrames((frame) => frame.isCore || frame.package == 'shelf')
+      .terse;
+
   stderr.writeln('ERROR - ${new DateTime.now()}');
   stderr.writeln(message);
+  stderr.writeln(chain);
   return new Response.internalServerError();
 }

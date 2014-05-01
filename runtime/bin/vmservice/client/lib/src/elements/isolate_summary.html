@@ -7,7 +7,7 @@
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="css/shared.css" />
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <style>
       .counters {
         display: flex;
@@ -19,7 +19,7 @@
       }
     </style>
     <div class="flex-row">
-      <div class="flex-item-fixed-1-12"><img src="img/isolate_icon.png"></div>
+      <div class="flex-item-fixed-1-12"><img src="packages/observatory/src/elements/img/isolate_icon.png"></div>
       <div class="flex-item-fixed-1-12">{{ isolate.mainPort }}</div>
       <div class="flex-item-fixed-4-12">
         <div class="flex-row">

@@ -349,7 +349,7 @@ class CallSites : public ValueObject {
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
               instance_call->HasSingleRecognizedTarget() ||
-              instance_call->HasSingleDispatcherTarget()) {
+              instance_call->HasOnlyDispatcherTargets()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
@@ -858,26 +858,9 @@ class CallSiteInliner : public ValueObject {
     TimerScope timer(FLAG_compiler_stats,
                      &CompilerStats::graphinliner_subst_timer,
                      Isolate::Current());
-
-    // For closure calls: Store context value.
     FlowGraph* callee_graph = call_data->callee_graph;
     TargetEntryInstr* callee_entry =
         callee_graph->graph_entry()->normal_entry();
-    ClosureCallInstr* closure_call = call_data->call->AsClosureCall();
-    if (closure_call != NULL) {
-      // TODO(fschneider): Avoid setting the context, if not needed.
-      Definition* closure =
-          closure_call->PushArgumentAt(0)->value()->definition();
-      Definition* context = new LoadFieldInstr(new Value(closure),
-                                               Closure::context_offset(),
-                                               Type::ZoneHandle());
-      context->set_ssa_temp_index(caller_graph()->alloc_ssa_temp_index());
-      context->InsertAfter(callee_entry);
-      StoreContextInstr* set_context =
-          new StoreContextInstr(new Value(context));
-      set_context->InsertAfter(context);
-    }
-
     // Plug result in the caller graph.
     InlineExitCollector* exit_collector = call_data->exit_collector;
     exit_collector->PrepareGraphs(callee_graph);
@@ -996,7 +979,7 @@ class CallSiteInliner : public ValueObject {
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
       AllocateObjectInstr* alloc =
-          call->ArgumentAt(0)->AsAllocateObject();
+          call->ArgumentAt(0)->OriginalDefinition()->AsAllocateObject();
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
         target ^= alloc->closure_function().raw();
         ASSERT(target.signature_class() == alloc->cls().raw());
@@ -1410,13 +1393,15 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cursor = AppendInstruction(cursor, redefinition);
       if (inlined_variants_[i].cid == kSmiCid) {
         CheckSmiInstr* check_smi =
-            new CheckSmiInstr(new Value(redefinition), call_->deopt_id());
+            new CheckSmiInstr(new Value(redefinition),
+                              call_->deopt_id(),
+                              call_->token_pos());
         check_smi->InheritDeoptTarget(call_);
         cursor = AppendInstruction(cursor, check_smi);
       } else {
         const ICData& old_checks = call_->ic_data();
         const ICData& new_checks = ICData::ZoneHandle(
-            ICData::New(Function::Handle(old_checks.function()),
+            ICData::New(Function::Handle(old_checks.owner()),
                         String::Handle(old_checks.target_name()),
                         Array::Handle(old_checks.arguments_descriptor()),
                         old_checks.deopt_id(),
@@ -1426,7 +1411,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         CheckClassInstr* check_class =
             new CheckClassInstr(new Value(redefinition),
                                 call_->deopt_id(),
-                                new_checks);
+                                new_checks,
+                                call_->token_pos());
         check_class->InheritDeoptTarget(call_);
         cursor = AppendInstruction(cursor, check_class);
       }
@@ -1548,7 +1534,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     }
     const ICData& old_checks = call_->ic_data();
     const ICData& new_checks = ICData::ZoneHandle(
-        ICData::New(Function::Handle(old_checks.function()),
+        ICData::New(Function::Handle(old_checks.owner()),
                     String::Handle(old_checks.target_name()),
                     Array::Handle(old_checks.arguments_descriptor()),
                     old_checks.deopt_id(),

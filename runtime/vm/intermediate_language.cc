@@ -47,6 +47,19 @@ Definition::Definition()
 }
 
 
+Definition* Definition::OriginalDefinition() {
+  Definition* defn = this;
+  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+    if (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    } else {
+      defn = defn->AsAssertAssignable()->value()->definition();
+    }
+  }
+  return defn;
+}
+
+
 ICData* Instruction::GetICData(const Array& ic_data_array) const {
   ICData& ic_data = ICData::ZoneHandle();
   // The deopt_id can be outside the range of the IC data array for
@@ -85,13 +98,14 @@ bool Value::Equals(Value* other) const {
 
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
-                                 const ICData& unary_checks)
-    : unary_checks_(unary_checks), licm_hoisted_(false) {
+                                 const ICData& unary_checks,
+                                 intptr_t token_pos)
+    : unary_checks_(unary_checks), licm_hoisted_(false), token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
   ASSERT(unary_checks_.NumberOfChecks() > 0);
-  ASSERT(unary_checks_.num_args_tested() == 1);
+  ASSERT(unary_checks_.NumArgsTested() == 1);
   SetInputAt(0, value);
   deopt_id_ = deopt_id;
   // Otherwise use CheckSmiInstr.
@@ -2040,6 +2054,43 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// This function should be kept in sync with
+// FlowGraphCompiler::SlowPathEnvironmentFor().
+void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
+                                            intptr_t* cpu_reg_slots) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    Location loc = LocationAt(i);
+    if (loc.IsRegister()) {
+      intptr_t index = cpu_reg_slots[loc.reg()];
+      ASSERT(index >= 0);
+      locations_[i] = Location::StackSlot(index);
+    } else if (loc.IsFpuRegister()) {
+      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
+      ASSERT(index >= 0);
+      Value* value = InputAt(i);
+      switch (value->definition()->representation()) {
+        case kUnboxedDouble:
+        case kUnboxedMint:
+          locations_[i] = Location::DoubleStackSlot(index);
+          break;
+        case kUnboxedFloat32x4:
+        case kUnboxedInt32x4:
+        case kUnboxedFloat64x2:
+          locations_[i] = Location::QuadStackSlot(index);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    } else if (loc.IsInvalid()) {
+      // We currently only perform one iteration of allocation
+      // sinking, so we do not expect to find materialized objects
+      // here.
+      ASSERT(!InputAt(i)->definition()->IsMaterializeObject());
+    }
+  }
+}
+
+
 LocationSummary* StoreContextInstr::MakeLocationSummary(bool optimizing) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -2160,10 +2211,15 @@ bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
 }
 
 
-bool PolymorphicInstanceCallInstr::HasSingleDispatcherTarget() const {
-  if (!ic_data().HasOneTarget()) return false;
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
-  return target.IsNoSuchMethodDispatcher() || target.IsInvokeFieldDispatcher();
+bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
+  for (intptr_t i = 0; i < ic_data().NumberOfChecks(); ++i) {
+    const Function& target = Function::Handle(ic_data().GetTargetAt(i));
+    if (!target.IsNoSuchMethodDispatcher() &&
+        !target.IsInvokeFieldDispatcher()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -2691,6 +2747,35 @@ ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,
 }
 
 
+
+ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
+                                                    Value* new_right) {
+  return new TestCidsInstr(token_pos(),
+                           kind(),
+                           new_left,
+                           cid_results(),
+                           deopt_id());
+}
+
+
+bool TestCidsInstr::AttributesEqual(Instruction* other) const {
+  TestCidsInstr* other_instr = other->AsTestCids();
+  ASSERT(other != NULL);
+  if (kind() != other_instr->kind()) {
+    return false;
+  }
+  if (cid_results().length() != other_instr->cid_results().length()) {
+    return false;
+  }
+  for (intptr_t i = 0; i < cid_results().length(); i++) {
+    if (cid_results()[i] != other_instr->cid_results()[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
@@ -3117,9 +3202,11 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t original_deopt_id,
-    MethodRecognizer::Kind recognized_kind)
+    MethodRecognizer::Kind recognized_kind,
+    intptr_t token_pos)
     : inputs_(inputs),
-      recognized_kind_(recognized_kind) {
+      recognized_kind_(recognized_kind),
+      token_pos_(token_pos) {
   ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
   for (intptr_t i = 0; i < inputs_->length(); ++i) {
     ASSERT((*inputs)[i] != NULL);

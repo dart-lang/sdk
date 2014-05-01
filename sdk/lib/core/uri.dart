@@ -726,7 +726,7 @@ class Uri {
    */
   Map<String, String> get queryParameters {
     if (_queryParameters == null) {
-      _queryParameters = new _UnmodifiableMap(splitQueryString(query));
+      _queryParameters = new UnmodifiableMapView(splitQueryString(query));
     }
     return _queryParameters;
   }
@@ -1848,34 +1848,4 @@ class Uri {
       0xfffe,   // 0x60 - 0x6f  0111111111111111
                 //              pqrstuvwxyz   ~
       0x47ff];  // 0x70 - 0x7f  1111111111100010
-}
-
-class _UnmodifiableMap<K, V> implements Map<K, V> {
-  final Map _map;
-  const _UnmodifiableMap(this._map);
-
-  bool containsValue(Object value) => _map.containsValue(value);
-  bool containsKey(Object key) => _map.containsKey(key);
-  V operator [](Object key) => _map[key];
-  void operator []=(K key, V value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-  V putIfAbsent(K key, V ifAbsent()) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-  addAll(Map other) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-  V remove(Object key) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-  void clear() {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-  void forEach(void f(K key, V value)) => _map.forEach(f);
-  Iterable<K> get keys => _map.keys;
-  Iterable<V> get values => _map.values;
-  int get length => _map.length;
-  bool get isEmpty => _map.isEmpty;
-  bool get isNotEmpty => _map.isNotEmpty;
 }

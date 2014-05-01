@@ -182,7 +182,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                      Instruction* insert_before);
   Instruction* GetCheckClass(Definition* to_check,
                              const ICData& unary_checks,
-                             intptr_t deopt_id);
+                             intptr_t deopt_id,
+                             intptr_t token_pos);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
@@ -225,7 +226,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
-                            const AbstractType& type) const;
+                            const AbstractType& type,
+                            ZoneGrowableArray<intptr_t>* results) const;
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);

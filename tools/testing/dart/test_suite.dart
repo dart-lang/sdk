@@ -260,13 +260,8 @@ abstract class TestSuite {
     // Handle sharding based on the original test path (i.e. all multitests
     // of a given original test belong to the same shard)
     int shards = configuration['shards'];
-    if (shards > 1) {
-      int shard = configuration['shard'];
-      var testPath =
-          testCase.info.originTestPath.relativeTo(TestUtils.dartDir);
-      if ("$testPath".hashCode % shards != shard - 1) {
-        return;
-      }
+    if (shards > 1 && testCase.hash % shards != configuration['shard'] - 1) {
+      return;
     }
     // Test if the selector includes this test.
     RegExp pattern = configuration['selectors'][suiteName];
@@ -277,8 +272,7 @@ abstract class TestSuite {
     // Update Summary report
     if (configuration['report']) {
       SummaryReport.add(expectations);
-      if (testCase.info != null &&
-          testCase.expectCompileError &&
+      if (testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
         SummaryReport.addCompileErrorSkipTest();
@@ -503,7 +497,6 @@ class CCTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  VoidFunction doDone;
 
   CCTestSuite(Map configuration,
               String suiteName,
@@ -545,8 +538,6 @@ class CCTestSuite extends TestSuite {
 
   void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
     doTest = onTest;
-    doDone = onDone;
-
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
 
@@ -554,7 +545,8 @@ class CCTestSuite extends TestSuite {
         .then((TestExpectations expectations) {
       ccTestLister(hostRunnerPath).then((Iterable<String> names) {
         names.forEach((testName) => testNameHandler(expectations, testName));
-        onDone();
+        doTest = null;
+        if (onDone != null) onDone();
       }).catchError((error) {
         print("Fatal error occured: $error");
         exit(1);
@@ -1810,6 +1802,7 @@ class PkgBuildTestSuite extends TestSuite {
       localPackageDirectories.forEach(enqueueTestCase);
       localSampleDirectories.forEach(enqueueTestCase);
 
+      doTest = null;
       // Notify we're done
       if (onDone != null) onDone();
     }
@@ -2112,25 +2105,26 @@ class TestUtils {
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {
-      "tests_co19_src_WebPlatformTest1_shadow-dom_shadow-trees_":
+      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
           "co19_shadow-trees_",
-      "tests_co19_src_WebPlatformTest1_shadow-dom_elements-and-dom-objects_":
+      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
           "co19_shadowdom_",
-      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_additions-to-": "co19_htmltemplates_add_",
-      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_appending-to-a-template_": "co19_htmltemplates_append_",
-      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_clearing-the-stack-back-to-a-given-context_":
           "co19_htmltemplates_clearstack_",
-      "tests_co19_src_WebPlatformTest1_html-templates_parsing-html-"
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_creating-an-element-for-the-token_":
           "co19_htmltemplates_create_",
-      "tests_co19_src_WebPlatformTest1_html-templates_additions-to-"
+      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
           "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
       "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "pkg_polymer_example_canonicalization_test_canonicalization": "polymer_c16n"
+      "pkg_polymer_example_canonicalization_test_canonicalization":
+          "polymer_c16n"
     };
 
     // Some tests are already in [build_dir]/generated_tests.

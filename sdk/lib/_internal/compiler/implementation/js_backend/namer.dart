@@ -726,38 +726,7 @@ class Namer implements ClosureNamer {
   /// Returns the runtime name for [element].  The result is not safe as an id.
   String getRuntimeTypeName(Element element) {
     if (identical(element, compiler.dynamicClass)) return 'dynamic';
-    JavaScriptBackend backend = compiler.backend;
-    element = backend.getImplementationClass(element);
-    String name = getPrimitiveInterceptorRuntimeName(element);
-    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-    // string concatenation in the implementation), and may prevent
-    // segmentation of '$'.
-    return name != null ? name : getNameForRti(element);
-  }
-
-  /**
-   * Return a string to be used as the runtime name of this class (instead of
-   * the class name) or [:null:] if the class name should be used.
-   */
-  String getPrimitiveInterceptorRuntimeName(Element cls) {
-    JavaScriptBackend backend = compiler.backend;
-    if (cls == backend.jsIntClass) {
-      return 'int';
-    } else if (cls == backend.jsNumberClass) {
-      return 'num';
-    } else if (cls == backend.jsBoolClass) {
-      return 'bool';
-    } else if (cls == backend.jsDoubleClass) {
-      return 'double';
-    } else if (cls == backend.jsStringClass) {
-      return 'String';
-    } else if (cls == backend.jsArrayClass) {
-      return 'List';
-    } else if (cls == backend.jsNullClass) {
-      return 'Null';
-    } else {
-      return null;
-    }
+    return getNameForRti(element);
   }
 
   /**
@@ -895,12 +864,21 @@ class Namer implements ClosureNamer {
     return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
-  String isolateLazyInitializerAccess(Element element) {
-    return "${globalObjectFor(element)}.${getLazyInitializerName(element)}";
+  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+    return js('#.#',
+        [globalObjectFor(element), getLazyInitializerName(element)]);
   }
 
-  String isolateStaticClosureAccess(Element element) {
-    return "${globalObjectFor(element)}.${getStaticClosureName(element)}()";
+  jsAst.Expression isolateStaticClosureAccess(Element element) {
+    return js('#.#()',
+        [globalObjectFor(element), getStaticClosureName(element)]);
+  }
+
+  // This name is used as part of the name of a TypeConstant
+  String uniqueNameForTypeConstantElement(Element element) {
+    // TODO(sra): If we replace the period with an identifier character,
+    // TypeConstants will have better names in unminified code.
+    return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
   String globalObjectForConstant(Constant constant) => 'C';
@@ -1178,7 +1156,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     addRoot('Type');
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     addIdentifier(name);
   }
 
@@ -1258,7 +1236,7 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   int visitType(TypeConstant constant) {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 

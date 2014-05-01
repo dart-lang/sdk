@@ -373,13 +373,15 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   if (check->IsCheckSmi()) {
     check_clone =
         new CheckSmiInstr(assert->value()->Copy(),
-                          assert->env()->deopt_id());
+                          assert->env()->deopt_id(),
+                          check->token_pos());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
         new CheckClassInstr(assert->value()->Copy(),
                             assert->env()->deopt_id(),
-                            check->AsCheckClass()->unary_checks());
+                            check->AsCheckClass()->unary_checks(),
+                            check->token_pos());
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
@@ -544,6 +546,13 @@ bool CompileType::IsNull() {
 const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
     ASSERT(cid_ != kIllegalCid);
+
+    // VM internal Function objects don't have a compile-type. Return
+    // dynamic-type in this case.
+    if (cid_ == kFunctionCid) {
+      type_ = &Type::ZoneHandle(Type::DynamicType());
+      return type_;
+    }
 
     const Class& type_class =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
@@ -802,6 +811,11 @@ CompileType StrictCompareInstr::ComputeType() const {
 
 
 CompileType TestSmiInstr::ComputeType() const {
+  return CompileType::Bool();
+}
+
+
+CompileType TestCidsInstr::ComputeType() const {
   return CompileType::Bool();
 }
 

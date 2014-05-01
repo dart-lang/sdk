@@ -31,15 +31,14 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
     // TODO(podivilov): find the right sourceFile here and remove offset
     // checks below.
+    var sourcePosition, endSourcePosition;
     if (beginToken.charOffset < sourceFile.length) {
-      node.sourcePosition =
-          new TokenSourceFileLocation(sourceFile, beginToken);
+      sourcePosition = new TokenSourceFileLocation(sourceFile, beginToken);
     }
     if (endToken.charOffset < sourceFile.length) {
-      node.endSourcePosition =
-          new TokenSourceFileLocation(sourceFile, endToken);
+      endSourcePosition = new TokenSourceFileLocation(sourceFile, endToken);
     }
-    return node;
+    return node.withPosition(sourcePosition, endSourcePosition);
   }
 
   SourceFile sourceFileOfElement(Element element) {
@@ -204,7 +203,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void pushStatement(js.Statement statement, [HInstruction instruction]) {
     assert(expressionStack.isEmpty);
     if (instruction != null) {
-      attachLocation(statement, instruction);
+      statement = attachLocation(statement, instruction);
     }
     currentContainer.statements.add(statement);
   }
@@ -228,7 +227,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   push(js.Expression expression, [HInstruction instruction]) {
     if (instruction != null) {
-      attachLocation(expression, instruction);
+      expression = attachLocation(expression, instruction);
     }
     expressionStack.add(expression);
   }
@@ -238,20 +237,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   attachLocationToLast(HInstruction instruction) {
-    attachLocation(expressionStack.last, instruction);
+    int index = expressionStack.length - 1;
+    expressionStack[index] =
+        attachLocation(expressionStack[index], instruction);
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
-    jsNode.sourcePosition = instruction.sourcePosition;
-    return jsNode;
+    return jsNode.withLocation(instruction.sourcePosition);
   }
 
   js.Node attachLocationRange(js.Node jsNode,
                               SourceFileLocation sourcePosition,
                               SourceFileLocation endSourcePosition) {
-    jsNode.sourcePosition = sourcePosition;
-    jsNode.endSourcePosition = endSourcePosition;
-    return jsNode;
+    return jsNode.withPosition(sourcePosition, endSourcePosition);
   }
 
   void preGenerateMethod(HGraph graph) {
@@ -797,7 +795,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 if (expression is js.Assignment) {
                   js.Assignment assignment = expression;
                   if (assignment.leftHandSide is js.VariableUse &&
-                      assignment.compoundTarget == null) {
+                      !assignment.isCompound) {
                     expressionIsVariableAssignment = true;
                   }
                 }
@@ -920,8 +918,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler.internalError(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
-    attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
-    js.Statement result = loop;
+    js.Statement result =
+        attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
     if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
       String continueLabelString =
           backend.namer.implicitContinueLabelName(info.target);
@@ -1613,7 +1611,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
     }
 
-    push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+    push(backend.namer.elementAccess(node.element));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
 
@@ -1745,11 +1743,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    String jsClassReference = backend.namer.isolateAccess(node.element);
+    js.Expression jsClassReference = backend.namer.elementAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
-    // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
-    // as if it was a string.
-    push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
+    push(new js.New(jsClassReference, arguments), node);
     registerForeignTypes(node);
     if (node.instantiatedTypes == null) {
       return;
@@ -1985,8 +1981,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateThrowWithHelper(String helperName, argument) {
     Element helper = compiler.findHelper(helperName);
     world.registerStaticUse(helper);
-    js.VariableUse jsHelper =
-        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Expression jsHelper = backend.namer.elementAccess(helper);
     List arguments = [];
     var location;
     if (argument is List) {
@@ -2001,7 +1996,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       arguments.add(pop());
     }
     js.Call value = new js.Call(jsHelper, arguments);
-    attachLocation(value, location);
+    value = attachLocation(value, location);
     // BUG(4906): Using throw/return here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
@@ -2019,10 +2014,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element helper = compiler.findHelper("throwExpression");
     world.registerStaticUse(helper);
 
-    js.VariableUse jsHelper =
-        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Expression jsHelper = backend.namer.elementAccess(helper);
     js.Call value = new js.Call(jsHelper, [pop()]);
-    attachLocation(value, argument);
+    value = attachLocation(value, argument);
     push(value, node);
   }
 
@@ -2033,10 +2027,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitStatic(HStatic node) {
     Element element = node.element;
     if (element.isFunction()) {
-      push(new js.VariableUse(
-          backend.namer.isolateStaticClosureAccess(node.element)));
+      push(backend.namer.isolateStaticClosureAccess(node.element));
     } else {
-      push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+      push(backend.namer.elementAccess(node.element));
     }
     world.registerStaticUse(element);
   }
@@ -2044,9 +2037,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitLazyStatic(HLazyStatic node) {
     Element element = node.element;
     world.registerStaticUse(element);
-    String lazyGetter = backend.namer.isolateLazyInitializerAccess(element);
-    js.VariableUse target = new js.VariableUse(lazyGetter);
-    js.Call call = new js.Call(target, <js.Expression>[]);
+    js.Expression lazyGetter =
+        backend.namer.isolateLazyInitializerAccess(element);
+    js.Call call = new js.Call(lazyGetter, <js.Expression>[]);
     push(call, node);
   }
 
@@ -2083,10 +2076,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
       world.registerStaticUse(convertToString);
-      js.VariableUse variableUse =
-          new js.VariableUse(backend.namer.isolateAccess(convertToString));
+      js.Expression jsHelper = backend.namer.elementAccess(convertToString);
       use(input);
-      push(new js.Call(variableUse, <js.Expression>[pop()]), node);
+      push(new js.Call(jsHelper, <js.Expression>[pop()]), node);
     }
   }
 
@@ -2664,8 +2656,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     ClassElement cls = node.dartType.element;
-    var arguments = [
-        backend.namer.elementAccess(backend.getImplementationClass(cls))];
+    var arguments = [backend.namer.elementAccess(cls)];
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer.from(typeArguments));
     }

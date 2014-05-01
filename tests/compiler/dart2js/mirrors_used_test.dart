@@ -58,7 +58,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 377;
+    int expectedMethodCount = 378;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '
@@ -74,6 +74,18 @@ void main() {
     [
         'Foo_staticMethod', // The name of Foo.staticMethod.
         r'instanceMethod$0']; // The name of Foo.instanceMethod.
+
+    // We always include the names of some native classes.
+    List<Element> nativeClasses = [
+          compiler.intClass, compiler.doubleClass, compiler.numClass,
+          compiler.stringClass, compiler.boolClass, compiler.nullClass,
+          compiler.listClass
+        ];
+
+    Iterable<String> nativeNames =
+        nativeClasses.map(compiler.backend.namer.getNameOfClass);
+    expectedNames.addAll(nativeNames);
+
     Set recordedNames = new Set()
         ..addAll(compiler.backend.emitter.recordedMangledNames)
         ..addAll(compiler.backend.emitter.mangledFieldNames.keys)

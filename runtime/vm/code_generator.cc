@@ -32,8 +32,16 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
     " native entries.");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
+
+// Disable optimizing compiler on ARM64.
+#if defined(TARGET_ARCH_ARM64)
+DEFINE_FLAG(int, optimization_counter_threshold, -1,
+    "Function's usage-counter value before it is optimized, -1 means never");
+#else
 DEFINE_FLAG(int, optimization_counter_threshold, 15000,
     "Function's usage-counter value before it is optimized, -1 means never");
+#endif
+
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
     "Counter threshold before a function gets reoptimized.");
@@ -747,7 +755,7 @@ static RawFunction* InlineCacheMissHandler(
                    String::Handle(ic_data.target_name()).ToCString(),
                    receiver.ToCString());
     }
-    ic_data.set_is_closure_call(true);
+    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
   ASSERT(!target_function.IsNull());
@@ -755,7 +763,7 @@ static RawFunction* InlineCacheMissHandler(
     ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
-    ASSERT(ic_data.num_args_tested() == args.length());
+    ASSERT(ic_data.NumArgsTested() == args.length());
     for (intptr_t i = 0; i < args.length(); i++) {
       class_ids.Add(args[i]->GetClassId());
     }
@@ -908,7 +916,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                                                name,
                                                args_desc));
   if (target_function.IsNull()) {
-    ic_data.set_is_closure_call(true);
+    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
 
@@ -1187,7 +1195,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
       ic_data.raw(),
       function.usage_counter(),
       ic_data.NumberOfChecks(),
-      ic_data.is_closure_call() ? "closure" : "",
+      ic_data.IsClosureCall() ? "closure" : "",
       function.ToFullyQualifiedCString());
 }
 
@@ -1269,11 +1277,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 }
 
 
-const char* DeoptReasonToText(intptr_t deopt_id) {
-  switch (deopt_id) {
-#define DEOPT_REASON_ID_TO_TEXT(name) case kDeopt##name: return #name;
-DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
-#undef DEOPT_REASON_ID_TO_TEXT
+const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
+  switch (deopt_reason) {
+#define DEOPT_REASON_TO_TEXT(name) case ICData::kDeopt##name: return #name;
+DEOPT_REASONS(DEOPT_REASON_TO_TEXT)
+#undef DEOPT_REASON_TO_TEXT
     default:
       UNREACHABLE();
       return "";
@@ -1283,7 +1291,7 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 
 void DeoptimizeAt(const Code& optimized_code, uword pc) {
   ASSERT(optimized_code.is_optimized());
-  intptr_t deopt_reason = kDeoptUnknown;
+  ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   const DeoptInfo& deopt_info =
       DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
   ASSERT(!deopt_info.IsNull());

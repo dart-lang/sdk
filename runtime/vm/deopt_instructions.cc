@@ -36,7 +36,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       cpu_registers_(cpu_registers),
       fpu_registers_(fpu_registers),
       num_args_(0),
-      deopt_reason_(kDeoptUnknown),
+      deopt_reason_(ICData::kDeoptUnknown),
       isolate_(Isolate::Current()),
       deferred_boxes_(NULL),
       deferred_object_refs_(NULL),
@@ -44,12 +44,12 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deferred_objects_(NULL) {
   object_table_ = code.object_table();
 
-  intptr_t deopt_reason = kDeoptUnknown;
+  ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   const DeoptInfo& deopt_info =
       DeoptInfo::Handle(code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
-  deopt_reason_ = static_cast<DeoptReasonId>(deopt_reason);
+  deopt_reason_ = deopt_reason;
 
   const Function& function = Function::Handle(code.function());
 
@@ -96,9 +96,9 @@ DeoptContext::DeoptContext(const StackFrame* frame,
 
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     OS::PrintErr(
-        "Deoptimizing (reason %" Pd " '%s') at pc %#" Px " '%s' (count %d)\n",
+        "Deoptimizing (reason %d '%s') at pc %#" Px " '%s' (count %d)\n",
         deopt_reason,
-        DeoptReasonToText(deopt_reason_),
+        DeoptReasonToCString(deopt_reason_),
         frame->pc(),
         function.ToFullyQualifiedCString(),
         function.deoptimization_counter());
@@ -615,9 +615,10 @@ class DeoptRetAddressInstr : public DeoptInstr {
       ICData& ic_data = ICData::Handle();
       CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
       if (!ic_data.IsNull()) {
-        ic_data.set_deopt_reason(deopt_context->deopt_reason());
+        ic_data.AddDeoptReason(deopt_context->deopt_reason());
       }
-    } else if (deopt_context->deopt_reason() == kDeoptHoistedCheckClass) {
+    } else if (deopt_context->deopt_reason() ==
+               ICData::kDeoptHoistedCheckClass) {
       // Prevent excessive deoptimization.
       Function::Handle(code.function()).set_allows_hoisting_check_class(false);
     }

@@ -358,6 +358,34 @@ static bool IsSpecialCharacter(type value) {
 }
 
 
+static bool IsAsciiPrintChar(int32_t code_point) {
+  return (code_point >= ' ') && (code_point <= '~');
+}
+
+
+static inline bool IsAsciiNonprintable(int32_t c) {
+  return ((0 <= c) && (c < 32)) || (c == 127);
+}
+
+
+static inline bool NeedsEscapeSequence(int32_t c) {
+  return (c == '"')  ||
+         (c == '\\') ||
+         (c == '$')  ||
+         IsAsciiNonprintable(c);
+}
+
+
+static int32_t EscapeOverhead(int32_t c) {
+  if (IsSpecialCharacter(c)) {
+    return 1;  // 1 additional byte for the backslash.
+  } else if (IsAsciiNonprintable(c)) {
+    return 3;  // 3 additional bytes to encode c as \x00.
+  }
+  return 0;
+}
+
+
 template<typename type>
 static type SpecialCharacter(type value) {
   if (value == '"') {
@@ -1458,6 +1486,18 @@ void Object::Print() const {
 }
 
 
+void Object::PrintJSON(JSONStream* stream, bool ref) const {
+  if (IsNull()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/null");
+    jsobj.AddProperty("valueAsString", "null");
+  } else {
+    PrintJSONImpl(stream, ref);
+  }
+}
+
+
 RawString* Object::DictionaryName() const {
   return String::null();
 }
@@ -1951,6 +1991,7 @@ void Class::AddClosureFunction(const Function& function) const {
     StorePointer(&raw_ptr()->closure_functions_, closures.raw());
   }
   ASSERT(function.IsNonImplicitClosureFunction());
+  ASSERT(function.Owner() == this->raw());
   closures.Add(function);
 }
 
@@ -3632,33 +3673,33 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-RawFunction* Class::CheckFunctionType(const Function& func, intptr_t type) {
-  if (type == kInstance) {
+RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
+  if (kind == kInstance) {
     if (func.IsDynamicFunction()) {
       return func.raw();
     }
-  } else if (type == kStatic) {
+  } else if (kind == kStatic) {
     if (func.IsStaticFunction()) {
       return func.raw();
     }
-  } else if (type == kConstructor) {
+  } else if (kind == kConstructor) {
     if (func.IsConstructor()) {
       ASSERT(!func.is_static());
       return func.raw();
     }
-  } else if (type == kFactory) {
+  } else if (kind == kFactory) {
     if (func.IsFactory()) {
       ASSERT(func.is_static());
       return func.raw();
     }
-  } else if (type == kAny) {
+  } else if (kind == kAny) {
     return func.raw();
   }
   return Function::null();
 }
 
 
-RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
+RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -3676,7 +3717,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       if (function.name() == name.raw()) {
-        return CheckFunctionType(function, type);
+        return CheckFunctionType(function, kind);
       }
     }
   } else {
@@ -3686,7 +3727,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
       function ^= funcs.At(i);
       function_name ^= function.name();
       if (function_name.Equals(name)) {
-        return CheckFunctionType(function, type);
+        return CheckFunctionType(function, kind);
       }
     }
   }
@@ -3696,7 +3737,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
 
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
-                                               intptr_t type) const {
+                                               MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -3714,7 +3755,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
     function ^= funcs.At(i);
     function_name ^= function.name();
     if (String::EqualsIgnoringPrivateKey(function_name, name)) {
-      return CheckFunctionType(function, type);
+      return CheckFunctionType(function, kind);
     }
   }
   // No function found.
@@ -3801,7 +3842,7 @@ RawField* Class::LookupField(const String& name) const {
 }
 
 
-RawField* Class::LookupField(const String& name, intptr_t type) const {
+RawField* Class::LookupField(const String& name, MemberKind kind) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
@@ -3819,15 +3860,15 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-      if (type == kInstance) {
+      if (kind == kInstance) {
         if (!field.is_static()) {
           return field.raw();
         }
-      } else if (type == kStatic) {
+      } else if (kind == kStatic) {
         if (field.is_static()) {
           return field.raw();
         }
-      } else if (type == kAny) {
+      } else if (kind == kAny) {
         return field.raw();
       }
       return Field::null();
@@ -3861,7 +3902,7 @@ const char* Class::ToCString() const {
 }
 
 
-void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
     jsobj.AddProperty("type", "Null");
@@ -4042,8 +4083,8 @@ const char* UnresolvedClass::ToCString() const {
 }
 
 
-void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void UnresolvedClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -4197,13 +4238,8 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
 }
 
 
-void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  if (IsNull()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/null");
-    return;
-  }
   // The index in the canonical_type_arguments table cannot be used as part of
   // the object id (as in typearguments/id), because the indices are not
   // preserved when the table grows and the entries get rehashed. Use the ring.
@@ -4797,8 +4833,8 @@ const char* PatchClass::ToCString() const {
 }
 
 
-void PatchClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -6398,7 +6434,7 @@ const char* Function::ToCString() const {
 }
 
 
-void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* internal_name = String::Handle(name()).ToCString();
   const char* user_name =
       String::Handle(UserVisibleName()).ToCString();
@@ -6508,8 +6544,8 @@ const char* ClosureData::ToCString() const {
 }
 
 
-void ClosureData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -6543,8 +6579,8 @@ const char* RedirectionData::ToCString() const {
 }
 
 
-void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -6748,7 +6784,7 @@ const char* Field::ToCString() const {
   return chars;
 }
 
-void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   const char* internal_field_name = String::Handle(name()).ToCString();
   const char* field_name = String::Handle(UserVisibleName()).ToCString();
@@ -7020,8 +7056,8 @@ const char* LiteralToken::ToCString() const {
 }
 
 
-void LiteralToken::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void LiteralToken::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -7095,7 +7131,7 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     if (curr == Token::kSTRING) {
       bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
-        if (IsSpecialCharacter(literal.CharAt(i))) {
+        if (NeedsEscapeSequence(literal.CharAt(i))) {
           escape_characters = true;
         }
       }
@@ -7465,8 +7501,8 @@ const char* TokenStream::ToCString() const {
 }
 
 
-void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -7969,7 +8005,7 @@ const char* Script::ToCString() const {
 
 
 // See also Dart_ScriptGetTokenInfo.
-void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   const String& name = String::Handle(url());
@@ -9237,7 +9273,7 @@ const char* Library::ToCString() const {
 }
 
 
-void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* library_name = String::Handle(name()).ToCString();
   intptr_t id = index();
   ASSERT(id >= 0);
@@ -9534,8 +9570,8 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 
-void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void LibraryPrefix::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -9588,8 +9624,8 @@ const char* Namespace::ToCString() const {
 }
 
 
-void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void Namespace::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -9854,8 +9890,8 @@ const char* Instructions::ToCString() const {
 }
 
 
-void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10006,8 +10042,27 @@ const char* PcDescriptors::ToCString() const {
 }
 
 
-void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
+  jsobj->AddProperty("type", JSONType(false));
+  // TODO(johnmccutchan): Generate a valid ID.
+  // PcDescriptors hang off a Code object but do not have a back reference to
+  // generate an ID. Currently we only print PcDescriptors inline with a Code.
+  jsobj->AddProperty("id", "");
+  JSONArray members(jsobj, "members");
+  for (intptr_t i = 0; i < Length(); i++) {
+    JSONObject descriptor(&members);
+    descriptor.AddPropertyF("pc", "%" Px "", PC(i));
+    descriptor.AddProperty("kind", KindAsStr(i));
+    descriptor.AddProperty("deoptId", DeoptId(i));
+    descriptor.AddProperty("tokenPos", TokenPos(i));
+    descriptor.AddProperty("tryIndex", TryIndex(i));
+  }
+}
+
+
+void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintToJSONObject(&jsobj);
 }
 
 
@@ -10156,8 +10211,8 @@ const char* Stackmap::ToCString() const {
 }
 
 
-void Stackmap::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10231,9 +10286,9 @@ const char* LocalVarDescriptors::ToCString() const {
 }
 
 
-void LocalVarDescriptors::PrintToJSONStream(JSONStream* stream,
-                                            bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
+                                        bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10415,9 +10470,9 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
-void ExceptionHandlers::PrintToJSONStream(JSONStream* stream,
-                                          bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void ExceptionHandlers::PrintJSONImpl(JSONStream* stream,
+                                      bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10533,8 +10588,8 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 }
 
 
-void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void DeoptInfo::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10570,6 +10625,526 @@ void DeoptInfo::SetAt(intptr_t index,
                       intptr_t from_index) const {
   *(EntryAddr(index, kInstruction)) = instr_kind;
   *(EntryAddr(index, kFromIndex)) = from_index;
+}
+
+
+const char* ICData::ToCString() const {
+  const char* kFormat = "ICData target:'%s' num-args: %" Pd
+                        " num-checks: %" Pd "";
+  const String& name = String::Handle(target_name());
+  const intptr_t num_args = NumArgsTested();
+  const intptr_t num_checks = NumberOfChecks();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
+      num_args, num_checks) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
+  return chars;
+}
+
+
+void ICData::set_owner(const Function& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, value.raw());
+}
+
+
+void ICData::set_target_name(const String& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void ICData::set_arguments_descriptor(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+void ICData::set_deopt_id(intptr_t value) const {
+  ASSERT(value <= kMaxInt32);
+  raw_ptr()->deopt_id_ = value;
+}
+
+
+void ICData::set_ic_data(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->ic_data_, value.raw());
+}
+
+
+intptr_t ICData::NumArgsTested() const {
+  return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetNumArgsTested(intptr_t value) const {
+  ASSERT(Utils::IsUint(2, value));
+  raw_ptr()->state_bits_ =
+      NumArgsTestedBits::update(value, raw_ptr()->state_bits_);
+}
+
+
+uint32_t ICData::DeoptReasons() const {
+  return DeoptReasonBits::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetDeoptReasons(uint32_t reasons) const {
+  raw_ptr()->state_bits_ =
+      DeoptReasonBits::update(reasons, raw_ptr()->state_bits_);
+}
+
+
+bool ICData::HasDeoptReason(DeoptReasonId reason) const {
+  return (DeoptReasons() & (1 << reason)) != 0;
+}
+
+
+void ICData::AddDeoptReason(DeoptReasonId reason) const {
+  SetDeoptReasons(DeoptReasons() | (1 << reason));
+}
+
+
+bool ICData::IssuedJSWarning() const {
+  return IssuedJSWarningBit::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetIssuedJSWarning() const {
+  raw_ptr()->state_bits_ =
+      IssuedJSWarningBit::update(true, raw_ptr()->state_bits_);
+}
+
+
+bool ICData::IsClosureCall() const {
+  return IsClosureCallBit::decode(raw_ptr()->state_bits_);
+}
+
+
+void ICData::SetIsClosureCall() const {
+  raw_ptr()->state_bits_ =
+      IsClosureCallBit::update(true, raw_ptr()->state_bits_);
+}
+
+
+void ICData::set_state_bits(uint32_t bits) const {
+  raw_ptr()->state_bits_ = bits;
+}
+
+
+intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
+  return num_args + 1 /* target function*/ + 1 /* frequency */;
+}
+
+
+intptr_t ICData::TestEntryLength() const {
+  return TestEntryLengthFor(NumArgsTested());
+}
+
+
+intptr_t ICData::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
+}
+
+
+void ICData::WriteSentinel(const Array& data) const {
+  ASSERT(!data.IsNull());
+  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
+    data.SetAt(data.Length() - i, smi_illegal_cid());
+  }
+}
+
+
+#if defined(DEBUG)
+// Used in asserts to verify that a check is not added twice.
+bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    GrowableArray<intptr_t> class_ids;
+    Function& target = Function::Handle();
+    GetCheckAt(i, &class_ids, &target);
+    bool matches = true;
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (class_ids[k] != cids[k]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      return true;
+    }
+  }
+  return false;
+}
+#endif  // DEBUG
+
+
+// Used for unoptimized static calls when no class-ids are checked.
+void ICData::AddTarget(const Function& target) const {
+  ASSERT(!target.IsNull());
+  if (NumArgsTested() > 0) {
+    // Create a fake cid entry, so that we can store the target.
+    GrowableArray<intptr_t> class_ids(NumArgsTested());
+    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+      class_ids.Add(kObjectCid);
+    }
+    AddCheck(class_ids, target);
+    return;
+  }
+  ASSERT(NumArgsTested() >= 0);
+  // Can add only once.
+  const intptr_t old_num = NumberOfChecks();
+  ASSERT(old_num == 0);
+  Array& data = Array::Handle(ic_data());
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos++, target);
+  const Smi& value = Smi::Handle(Smi::New(0));
+  data.SetAt(data_pos, value);
+}
+
+
+void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
+                      const Function& target) const {
+  ASSERT(!target.IsNull());
+  DEBUG_ASSERT(!HasCheck(class_ids));
+  ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
+  ASSERT(class_ids.length() == NumArgsTested());
+  const intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  // ICData of static calls with NumArgsTested() > 0 have initially a
+  // dummy set of cids entered (see ICData::AddTarget). That entry is
+  // overwritten by first real type feedback data.
+  if (old_num == 1) {
+    bool has_dummy_entry = true;
+    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
+        has_dummy_entry = false;
+        break;
+      }
+    }
+    if (has_dummy_entry) {
+      ASSERT(target.raw() == data.At(NumArgsTested()));
+      // Replace dummy entry.
+      Smi& value = Smi::Handle();
+      for (intptr_t i = 0; i < NumArgsTested(); i++) {
+        ASSERT(class_ids[i] != kIllegalCid);
+        value = Smi::New(class_ids[i]);
+        data.SetAt(i, value);
+      }
+      return;
+    }
+  }
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  Smi& value = Smi::Handle();
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    // kIllegalCid is used as terminating value, do not add it.
+    ASSERT(class_ids[i] != kIllegalCid);
+    value = Smi::New(class_ids[i]);
+    data.SetAt(data_pos++, value);
+  }
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos++, target);
+  value = Smi::New(1);
+  data.SetAt(data_pos, value);
+}
+
+
+void ICData::AddReceiverCheck(intptr_t receiver_class_id,
+                              const Function& target,
+                              intptr_t count) const {
+#if defined(DEBUG)
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  ASSERT(!HasCheck(class_ids));
+#endif  // DEBUG
+  ASSERT(!target.IsNull());
+  ASSERT(NumArgsTested() == 1);  // Otherwise use 'AddCheck'.
+  ASSERT(receiver_class_id != kIllegalCid);
+
+  const intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
+    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
+    // Move class occupying position 0 to the data_pos.
+    for (intptr_t i = 0; i < TestEntryLength(); i++) {
+      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
+    }
+    // Insert kSmiCid in position 0.
+    data_pos = 0;
+  }
+  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  data.SetAt(data_pos + 1, target);
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+}
+
+
+void ICData::GetCheckAt(intptr_t index,
+                        GrowableArray<intptr_t>* class_ids,
+                        Function* target) const {
+  ASSERT(index < NumberOfChecks());
+  ASSERT(class_ids != NULL);
+  ASSERT(target != NULL);
+  class_ids->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+  }
+  (*target) ^= data.At(data_pos++);
+}
+
+
+void ICData::GetOneClassCheckAt(intptr_t index,
+                                intptr_t* class_id,
+                                Function* target) const {
+  ASSERT(class_id != NULL);
+  ASSERT(target != NULL);
+  ASSERT(NumArgsTested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
+  *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetCidAt(intptr_t index) const {
+  ASSERT(NumArgsTested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  GetCheckAt(index, &class_ids, &target);
+  return class_ids[arg_nr];
+}
+
+
+intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  ASSERT(index < NumberOfChecks());
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+RawFunction* ICData::GetTargetAt(intptr_t index) const {
+  const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
+  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
+
+  NoGCScope no_gc;
+  RawArray* raw_data = ic_data();
+  return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
+}
+
+
+void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
+}
+
+
+void ICData::SetCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(NumArgsTested());
+  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
+}
+
+
+intptr_t ICData::GetCountAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(NumArgsTested());
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+}
+
+
+intptr_t ICData::AggregateCount() const {
+  if (IsNull()) return 0;
+  const intptr_t len = NumberOfChecks();
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < len; i++) {
+    count += GetCountAt(i);
+  }
+  return count;
+}
+
+
+RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (GetReceiverClassIdAt(i) == class_id) {
+      return GetTargetAt(i);
+    }
+  }
+  return Function::null();
+}
+
+
+RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
+  ASSERT(!IsNull());
+  ASSERT(NumArgsTested() > arg_nr);
+  if ((arg_nr == 0) && (NumArgsTested() == 1)) {
+    // Frequent case.
+    return raw();
+  }
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(owner()),
+      String::Handle(target_name()),
+      Array::Handle(arguments_descriptor()),
+      deopt_id(),
+      kNumArgsTested));
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t class_id = GetClassIdAt(i, arg_nr);
+    const intptr_t count = GetCountAt(i);
+    intptr_t duplicate_class_id = -1;
+    const intptr_t result_len = result.NumberOfChecks();
+    for (intptr_t k = 0; k < result_len; k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
+      }
+    }
+    if (duplicate_class_id >= 0) {
+      // This check is valid only when checking the receiver.
+      ASSERT((arg_nr != 0) ||
+             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
+      result.IncrementCountAt(duplicate_class_id, count);
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(GetTargetAt(i)),
+                              count);
+    }
+  }
+  // Copy deoptimization reasons.
+  result.SetDeoptReasons(DeoptReasons());
+
+  return result.raw();
+}
+
+
+bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    if (cls.id() != owner_cid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::AllReceiversAreNumbers() const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    const intptr_t cid = cls.id();
+    if ((cid != kSmiCid) &&
+        (cid != kMintCid) &&
+        (cid != kBigintCid) &&
+        (cid != kDoubleCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::HasReceiverClassId(intptr_t class_id) const {
+  ASSERT(NumArgsTested() > 0);
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t test_class_id = GetReceiverClassIdAt(i);
+    if (test_class_id == class_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
+bool ICData::HasOneTarget() const {
+  ASSERT(NumberOfChecks() > 0);
+  const Function& first_target = Function::Handle(GetTargetAt(0));
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 1; i < len; i++) {
+    if (GetTargetAt(i) != first_target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+RawICData* ICData::New(const Function& owner,
+                       const String& target_name,
+                       const Array& arguments_descriptor,
+                       intptr_t deopt_id,
+                       intptr_t num_args_tested) {
+  ASSERT(!owner.IsNull());
+  ASSERT(!target_name.IsNull());
+  ASSERT(!arguments_descriptor.IsNull());
+  ASSERT(Object::icdata_class() != Class::null());
+  ASSERT(num_args_tested >= 0);
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(ICData::kClassId,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_owner(owner);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
+  result.set_deopt_id(deopt_id);
+  result.set_state_bits(0);
+  result.SetNumArgsTested(num_args_tested);
+  // Number of array elements in one test entry.
+  intptr_t len = result.TestEntryLength();
+  // IC data array must be null terminated (sentinel entry).
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  result.set_ic_data(ic_data);
+  result.WriteSentinel(ic_data);
+  return result.raw();
+}
+
+
+void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -10680,7 +11255,8 @@ bool Code::HasBreakpoint() const {
 }
 
 
-RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
+RawDeoptInfo* Code::GetDeoptInfoAtPc(
+    uword pc, ICData::DeoptReasonId* deopt_reason) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
@@ -10695,11 +11271,13 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
     DeoptTable::GetEntry(table, i, &offset, &info, &reason);
     if (pc == (code_entry + offset.Value())) {
       ASSERT(!info.IsNull());
-      *deopt_reason = reason.Value();
+      ASSERT((0 <= reason.Value()) &&
+             (reason.Value() < ICData::kDeoptNumReasons));
+      *deopt_reason = static_cast<ICData::DeoptReasonId>(reason.Value());
       return info.raw();
     }
   }
-  *deopt_reason = kDeoptUnknown;
+  *deopt_reason = ICData::kDeoptUnknown;
   return DeoptInfo::null();
 }
 
@@ -11049,7 +11627,7 @@ RawString* Code::UserName() const {
 }
 
 
-void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
@@ -11081,11 +11659,18 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   const Array& array = Array::Handle(ObjectPool());
   jsobj.AddProperty("object_pool", array);
-  JSONArray jsarr(&jsobj, "disassembly");
-  if (is_alive()) {
-    // Only disassemble alive code objects.
-    DisassembleToJSONStream formatter(jsarr);
-    Disassemble(&formatter);
+  {
+    JSONArray jsarr(&jsobj, "disassembly");
+    if (is_alive()) {
+      // Only disassemble alive code objects.
+      DisassembleToJSONStream formatter(jsarr);
+      Disassemble(&formatter);
+    }
+  }
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  if (!descriptors.IsNull()) {
+    JSONObject desc(&jsobj, "descriptors");
+    descriptors.PrintToJSONObject(&desc);
   }
 }
 
@@ -11261,8 +11846,8 @@ void Context::Dump(int indent) const {
 }
 
 
-void Context::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -11380,482 +11965,8 @@ const char* ContextScope::ToCString() const {
 }
 
 
-void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
-}
-
-
-const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-args: %" Pd
-                        " num-checks: %" Pd "";
-  const String& name = String::Handle(target_name());
-  const intptr_t num_args = num_args_tested();
-  const intptr_t num_checks = NumberOfChecks();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
-      num_args, num_checks) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
-  return chars;
-}
-
-
-void ICData::set_function(const Function& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->function_, value.raw());
-}
-
-
-void ICData::set_target_name(const String& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-
-void ICData::set_arguments_descriptor(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
-}
-
-void ICData::set_deopt_id(intptr_t value) const {
-  raw_ptr()->deopt_id_ = value;
-}
-
-
-void ICData::set_num_args_tested(intptr_t value) const {
-  raw_ptr()->num_args_tested_ = value;
-}
-
-
-void ICData::set_ic_data(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->ic_data_, value.raw());
-}
-
-
-void ICData::set_deopt_reason(intptr_t deopt_reason) const {
-  raw_ptr()->deopt_reason_ = deopt_reason;
-}
-
-void ICData::set_is_closure_call(bool value) const {
-  raw_ptr()->is_closure_call_ = value ? 1 : 0;
-}
-
-
-intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
-  return num_args + 1 /* target function*/ + 1 /* frequency */;
-}
-
-
-intptr_t ICData::TestEntryLength() const {
-  return TestEntryLengthFor(num_args_tested());
-}
-
-
-intptr_t ICData::NumberOfChecks() const {
-  // Do not count the sentinel;
-  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
-}
-
-
-void ICData::WriteSentinel(const Array& data) const {
-  ASSERT(!data.IsNull());
-  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
-    data.SetAt(data.Length() - i, smi_illegal_cid());
-  }
-}
-
-
-#if defined(DEBUG)
-// Used in asserts to verify that a check is not added twice.
-bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    GetCheckAt(i, &class_ids, &target);
-    bool matches = true;
-    for (intptr_t k = 0; k < class_ids.length(); k++) {
-      if (class_ids[k] != cids[k]) {
-        matches = false;
-        break;
-      }
-    }
-    if (matches) {
-      return true;
-    }
-  }
-  return false;
-}
-#endif  // DEBUG
-
-
-// Used for unoptimized static calls when no class-ids are checked.
-void ICData::AddTarget(const Function& target) const {
-  ASSERT(!target.IsNull());
-  if (num_args_tested() > 0) {
-    // Create a fake cid entry, so that we can store the target.
-    GrowableArray<intptr_t> class_ids(num_args_tested());
-    for (intptr_t i = 0; i < num_args_tested(); i++) {
-      class_ids.Add(kObjectCid);
-    }
-    AddCheck(class_ids, target);
-    return;
-  }
-  ASSERT(num_args_tested() >= 0);
-  // Can add only once.
-  const intptr_t old_num = NumberOfChecks();
-  ASSERT(old_num == 0);
-  Array& data = Array::Handle(ic_data());
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
-  const Smi& value = Smi::Handle(Smi::New(0));
-  data.SetAt(data_pos, value);
-}
-
-
-void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
-                      const Function& target) const {
-  ASSERT(!target.IsNull());
-  DEBUG_ASSERT(!HasCheck(class_ids));
-  ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
-  ASSERT(class_ids.length() == num_args_tested());
-  const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  // ICData of static calls with num_args_tested() > 0 have initially a
-  // dummy set of cids entered (see ICData::AddTarget). That entry is
-  // overwritten by first real type feedback data.
-  if (old_num == 1) {
-    bool has_dummy_entry = true;
-    for (intptr_t i = 0; i < num_args_tested(); i++) {
-      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
-        has_dummy_entry = false;
-        break;
-      }
-    }
-    if (has_dummy_entry) {
-      ASSERT(target.raw() == data.At(num_args_tested()));
-      // Replace dummy entry.
-      Smi& value = Smi::Handle();
-      for (intptr_t i = 0; i < num_args_tested(); i++) {
-        ASSERT(class_ids[i] != kIllegalCid);
-        value = Smi::New(class_ids[i]);
-        data.SetAt(i, value);
-      }
-      return;
-    }
-  }
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  Smi& value = Smi::Handle();
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    // kIllegalCid is used as terminating value, do not add it.
-    ASSERT(class_ids[i] != kIllegalCid);
-    value = Smi::New(class_ids[i]);
-    data.SetAt(data_pos++, value);
-  }
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
-  value = Smi::New(1);
-  data.SetAt(data_pos, value);
-}
-
-
-void ICData::AddReceiverCheck(intptr_t receiver_class_id,
-                              const Function& target,
-                              intptr_t count) const {
-#if defined(DEBUG)
-  GrowableArray<intptr_t> class_ids(1);
-  class_ids.Add(receiver_class_id);
-  ASSERT(!HasCheck(class_ids));
-#endif  // DEBUG
-  ASSERT(!target.IsNull());
-  ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
-  ASSERT(receiver_class_id != kIllegalCid);
-
-  const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
-    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
-    // Move class occupying position 0 to the data_pos.
-    for (intptr_t i = 0; i < TestEntryLength(); i++) {
-      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
-    }
-    // Insert kSmiCid in position 0.
-    data_pos = 0;
-  }
-  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-  data.SetAt(data_pos + 1, target);
-  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
-}
-
-
-void ICData::GetCheckAt(intptr_t index,
-                        GrowableArray<intptr_t>* class_ids,
-                        Function* target) const {
-  ASSERT(index < NumberOfChecks());
-  ASSERT(class_ids != NULL);
-  ASSERT(target != NULL);
-  class_ids->Clear();
-  const Array& data = Array::Handle(ic_data());
-  intptr_t data_pos = index * TestEntryLength();
-  for (intptr_t i = 0; i < num_args_tested(); i++) {
-    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
-  }
-  (*target) ^= data.At(data_pos++);
-}
-
-
-void ICData::GetOneClassCheckAt(intptr_t index,
-                                intptr_t* class_id,
-                                Function* target) const {
-  ASSERT(class_id != NULL);
-  ASSERT(target != NULL);
-  ASSERT(num_args_tested() == 1);
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
-  *target ^= data.At(data_pos + 1);
-}
-
-
-intptr_t ICData::GetCidAt(intptr_t index) const {
-  ASSERT(num_args_tested() == 1);
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
-  GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  GetCheckAt(index, &class_ids, &target);
-  return class_ids[arg_nr];
-}
-
-
-intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
-  ASSERT(index < NumberOfChecks());
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-RawFunction* ICData::GetTargetAt(intptr_t index) const {
-  const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
-  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
-
-  NoGCScope no_gc;
-  RawArray* raw_data = ic_data();
-  return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
-}
-
-
-void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
-  ASSERT(0 <= value);
-  ASSERT(value <= Smi::kMaxValue);
-  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
-}
-
-
-void ICData::SetCountAt(intptr_t index, intptr_t value) const {
-  ASSERT(0 <= value);
-  ASSERT(value <= Smi::kMaxValue);
-
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength() +
-      CountIndexFor(num_args_tested());
-  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
-}
-
-
-intptr_t ICData::GetCountAt(intptr_t index) const {
-  const Array& data = Array::Handle(ic_data());
-  const intptr_t data_pos = index * TestEntryLength() +
-      CountIndexFor(num_args_tested());
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
-}
-
-
-intptr_t ICData::AggregateCount() const {
-  if (IsNull()) return 0;
-  const intptr_t len = NumberOfChecks();
-  intptr_t count = 0;
-  for (intptr_t i = 0; i < len; i++) {
-    count += GetCountAt(i);
-  }
-  return count;
-}
-
-
-RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (GetReceiverClassIdAt(i) == class_id) {
-      return GetTargetAt(i);
-    }
-  }
-  return Function::null();
-}
-
-
-RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
-  ASSERT(!IsNull());
-  ASSERT(num_args_tested() > arg_nr);
-  if ((arg_nr == 0) && (num_args_tested() == 1)) {
-    // Frequent case.
-    return raw();
-  }
-  const intptr_t kNumArgsTested = 1;
-  ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(function()),
-      String::Handle(target_name()),
-      Array::Handle(arguments_descriptor()),
-      deopt_id(),
-      kNumArgsTested));
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t class_id = GetClassIdAt(i, arg_nr);
-    const intptr_t count = GetCountAt(i);
-    intptr_t duplicate_class_id = -1;
-    const intptr_t result_len = result.NumberOfChecks();
-    for (intptr_t k = 0; k < result_len; k++) {
-      if (class_id == result.GetReceiverClassIdAt(k)) {
-        duplicate_class_id = k;
-        break;
-      }
-    }
-    if (duplicate_class_id >= 0) {
-      // This check is valid only when checking the receiver.
-      ASSERT((arg_nr != 0) ||
-             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
-      result.IncrementCountAt(duplicate_class_id, count);
-    } else {
-      // This will make sure that Smi is first if it exists.
-      result.AddReceiverCheck(class_id,
-                              Function::Handle(GetTargetAt(i)),
-                              count);
-    }
-  }
-  // Copy deoptimization reason.
-  result.set_deopt_reason(deopt_reason());
-
-  return result.raw();
-}
-
-
-bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    if (cls.id() != owner_cid) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool ICData::AllReceiversAreNumbers() const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    const intptr_t cid = cls.id();
-    if ((cid != kSmiCid) &&
-        (cid != kMintCid) &&
-        (cid != kBigintCid) &&
-        (cid != kDoubleCid)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool ICData::HasReceiverClassId(intptr_t class_id) const {
-  ASSERT(num_args_tested() > 0);
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-bool ICData::HasOneTarget() const {
-  ASSERT(NumberOfChecks() > 0);
-  const Function& first_target = Function::Handle(GetTargetAt(0));
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 1; i < len; i++) {
-    if (GetTargetAt(i) != first_target.raw()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-RawICData* ICData::New(const Function& caller_function,
-                       const String& target_name,
-                       const Array& arguments_descriptor,
-                       intptr_t deopt_id,
-                       intptr_t num_args_tested) {
-  ASSERT(!caller_function.IsNull());
-  ASSERT(!target_name.IsNull());
-  ASSERT(!arguments_descriptor.IsNull());
-  ASSERT(Object::icdata_class() != Class::null());
-  ASSERT(num_args_tested >= 0);
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(ICData::kClassId,
-                                      ICData::InstanceSize(),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  result.set_function(caller_function);
-  result.set_target_name(target_name);
-  result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
-  result.set_num_args_tested(num_args_tested);
-  result.set_deopt_reason(kDeoptUnknown);
-  result.set_is_closure_call(false);
-  // Number of array elements in one test entry.
-  intptr_t len = result.TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  result.set_ic_data(ic_data);
-  result.WriteSentinel(ic_data);
-  return result.raw();
-}
-
-
-void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void ContextScope::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -11970,8 +12081,8 @@ const char* MegamorphicCache::ToCString() const {
 }
 
 
-void MegamorphicCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -12046,8 +12157,8 @@ const char* SubtypeTestCache::ToCString() const {
 }
 
 
-void SubtypeTestCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Object::PrintToJSONStream(stream, ref);
+void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
 }
 
 
@@ -12064,7 +12175,7 @@ const char* Error::ToCString() const {
 }
 
 
-void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Error::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }
 
@@ -12109,7 +12220,7 @@ const char* ApiError::ToCString() const {
 }
 
 
-void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void ApiError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("id", "");
@@ -12297,7 +12408,7 @@ const char* LanguageError::ToCString() const {
 }
 
 
-void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("id", "");
@@ -12375,8 +12486,8 @@ const char* UnhandledException::ToCString() const {
 
 
 
-void UnhandledException::PrintToJSONStream(JSONStream* stream,
-                                           bool ref) const {
+void UnhandledException::PrintJSONImpl(JSONStream* stream,
+                                       bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("id", "");
@@ -12422,7 +12533,7 @@ const char* UnwindError::ToCString() const {
 }
 
 
-void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("id", "");
@@ -12867,16 +12978,11 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
 }
 
 
-void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 
   // Handle certain special instance values.
-  if (IsNull()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/null");
-    jsobj.AddProperty("valueAsString", "null");
-    return;
-  } else if (raw() == Object::sentinel().raw()) {
+  if (raw() == Object::sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/not-initialized");
     jsobj.AddProperty("valueAsString", "<not initialized>");
@@ -13341,7 +13447,7 @@ const char* AbstractType::ToCString() const {
 }
 
 
-void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }
 
@@ -13945,7 +14051,7 @@ const char* Type::ToCString() const {
 }
 
 
-void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   if (IsCanonical()) {
@@ -14118,7 +14224,7 @@ const char* TypeRef::ToCString() const {
 }
 
 
-void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -14335,7 +14441,7 @@ const char* TypeParameter::ToCString() const {
 }
 
 
-void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -14539,7 +14645,7 @@ const char* BoundedType::ToCString() const {
 }
 
 
-void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -14586,7 +14692,7 @@ const char* MixinAppType::ToCString() const {
 }
 
 
-void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void MixinAppType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }
 
@@ -14634,7 +14740,7 @@ const char* Number::ToCString() const {
 }
 
 
-void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -14651,8 +14757,8 @@ const char* Integer::ToCString() const {
 }
 
 
-void Integer::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Number::PrintToJSONStream(stream, ref);
+void Integer::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Number::PrintJSONImpl(stream, ref);
 }
 
 
@@ -15080,7 +15186,7 @@ const char* Smi::ToCString() const {
 }
 
 
-void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
@@ -15207,8 +15313,8 @@ const char* Mint::ToCString() const {
 }
 
 
-void Mint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Number::PrintToJSONStream(stream, ref);
+void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Number::PrintJSONImpl(stream, ref);
 }
 
 
@@ -15313,8 +15419,8 @@ const char* Double::ToCString() const {
 }
 
 
-void Double::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Number::PrintToJSONStream(stream, ref);
+void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Number::PrintJSONImpl(stream, ref);
 }
 
 
@@ -15489,8 +15595,8 @@ const char* Bigint::ToCString() const {
 }
 
 
-void Bigint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Number::PrintToJSONStream(stream, ref);
+void Bigint::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Number::PrintJSONImpl(stream, ref);
 }
 
 
@@ -16256,11 +16362,6 @@ const char* String::ToCString() const {
 }
 
 
-static bool IsAsciiPrintChar(intptr_t code_point) {
-  return code_point >= ' ' && code_point <= '~';
-}
-
-
 // Does not null-terminate.
 intptr_t String::EscapedString(char* buffer, int max_len) const {
   int pos = 0;
@@ -16349,7 +16450,7 @@ const char* String::ToUserCString(intptr_t max_len) const {
 }
 
 
-void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if (raw() == Symbols::OptimizedOut().raw()) {
     // TODO(turnidge): This is a hack.  The user could have this
@@ -16623,20 +16724,25 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+      uint8_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, 'x');
+        SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(CharAddr(dststr, index)) = *CharAddr(str, i);
+        SetCharAt(dststr, index, ch);
         index += 1;
       }
     }
@@ -16645,27 +16751,32 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   return OneByteString::raw(Symbols::Empty());
 }
 
+
 RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
     const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(OneByteString::CharAddr(dststr, index)) = '\\';
-        *(OneByteString::CharAddr(dststr, index + 1)) =
-        SpecialCharacter(*CharAddr(str, i));
+      uint8_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        OneByteString::SetCharAt(dststr, index, '\\');
+        OneByteString::SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        OneByteString::SetCharAt(dststr, index, '\\');
+        OneByteString::SetCharAt(dststr, index + 1, 'x');
+        OneByteString::SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        OneByteString::SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(OneByteString::CharAddr(dststr, index)) = *CharAddr(str, i);
+        *(OneByteString::CharAddr(dststr, index)) = ch;
         index += 1;
       }
     }
@@ -16886,20 +16997,25 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        num_escapes += 1;
-      }
+      num_escapes += EscapeOverhead(*CharAddr(str, i));
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i))) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+      uint16_t ch = CharAt(str, i);
+      if (IsSpecialCharacter(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, SpecialCharacter(ch));
         index += 2;
+      } else if (IsAsciiNonprintable(ch)) {
+        SetCharAt(dststr, index, '\\');
+        SetCharAt(dststr, index + 1, 'x');
+        SetCharAt(dststr, index + 2, GetHexCharacter(ch >> 4));
+        SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
+        index += 4;
       } else {
-        *(CharAddr(dststr, index)) = *CharAddr(str, i);
+        SetCharAt(dststr, index, ch);
         index += 1;
       }
     }
@@ -17155,7 +17271,7 @@ const char* Bool::ToCString() const {
 }
 
 
-void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -17245,7 +17361,7 @@ const char* Array::ToCString() const {
 }
 
 
-void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -17481,8 +17597,8 @@ const char* GrowableObjectArray::ToCString() const {
 }
 
 
-void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
-                                            bool ref) const {
+void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
+                                        bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -17605,8 +17721,8 @@ const char* Float32x4::ToCString() const {
 }
 
 
-void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void Float32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17710,8 +17826,8 @@ const char* Int32x4::ToCString() const {
 }
 
 
-void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void Int32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17790,8 +17906,8 @@ const char* Float64x2::ToCString() const {
 }
 
 
-void Float64x2::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17841,8 +17957,8 @@ const char* TypedData::ToCString() const {
 }
 
 
-void TypedData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17875,9 +17991,9 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 
-void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
-                                          bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
+                                      bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17900,8 +18016,8 @@ const char* Capability::ToCString() const {
 }
 
 
-void Capability::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17928,8 +18044,8 @@ const char* ReceivePort::ToCString() const {
 }
 
 
-void ReceivePort::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17952,8 +18068,8 @@ const char* SendPort::ToCString() const {
 }
 
 
-void SendPort::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -18138,8 +18254,8 @@ const char* Stacktrace::ToCString() const {
 }
 
 
-void Stacktrace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -18350,8 +18466,8 @@ const char* JSRegExp::ToCString() const {
 }
 
 
-void JSRegExp::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -18370,8 +18486,8 @@ const char* WeakProperty::ToCString() const {
 }
 
 
-void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
@@ -18430,8 +18546,8 @@ const char* MirrorReference::ToCString() const {
 }
 
 
-void MirrorReference::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 
@@ -18554,8 +18670,8 @@ const char* UserTag::ToCString() const {
 }
 
 
-void UserTag::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 

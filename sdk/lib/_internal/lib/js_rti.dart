@@ -52,9 +52,7 @@ class TypeImpl implements Type {
 
   String toString() {
     if (_unmangledName != null) return _unmangledName;
-    String unmangledName = unmangleGlobalNameIfPreservedAnyways(_typeName);
-    // TODO(ahe): Handle type arguments.
-    if (unmangledName == null) unmangledName = _typeName;
+    String unmangledName = unmangleAllIdentifiersIfPreservedAnyways(_typeName);
     return _unmangledName = unmangledName;
   }
 
@@ -211,9 +209,12 @@ String joinArguments(var types, int startIndex,
 
 /**
  * Returns a human-readable representation of the type of [object].
+ *
+ * In minified mode does *not* use unminified identifiers (even when present).
  */
 String getRuntimeTypeString(var object) {
-  String className = isJsArray(object) ? 'List' : getClassName(object);
+  String className = getClassName(object);
+  if (object == null) return className;
   var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
   return "$className${joinArguments(typeInfo, 0)}";
 }
@@ -276,6 +277,9 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
   return checkArguments(substitution, arguments, checks);
 }
 
+/// Returns the field's type name.
+///
+/// In minified mode, uses the unminified names if available.
 String computeTypeName(String isField, List arguments) {
   // Shorten the field name to the class name and append the textual
   // representation of the type arguments.

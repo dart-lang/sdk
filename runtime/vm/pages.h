@@ -7,6 +7,7 @@
 
 #include "vm/freelist.h"
 #include "vm/globals.h"
+#include "vm/ring_buffer.h"
 #include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 
@@ -88,32 +89,36 @@ class HeapPage {
 // runs.
 class PageSpaceGarbageCollectionHistory {
  public:
-  PageSpaceGarbageCollectionHistory();
+  PageSpaceGarbageCollectionHistory() {}
   ~PageSpaceGarbageCollectionHistory() {}
 
   void AddGarbageCollectionTime(int64_t start, int64_t end);
 
   int GarbageCollectionTimeFraction();
 
+  bool IsEmpty() const { return history_.Size() == 0; }
+
  private:
+  struct Entry {
+    int64_t start;
+    int64_t end;
+  };
   static const intptr_t kHistoryLength = 4;
-  int64_t start_[kHistoryLength];
-  int64_t end_[kHistoryLength];
-  intptr_t index_;
+  RingBuffer<Entry, kHistoryLength> history_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PageSpaceGarbageCollectionHistory);
 };
 
 
-// If GC is able to reclaim more than heap_growth_ratio (in percent) memory
-// and if the relative GC time is below a given threshold,
-// then the heap is not grown when the next GC decision is made.
 // PageSpaceController controls the heap size.
 class PageSpaceController {
  public:
-  PageSpaceController(int heap_growth_ratio,
-                      int heap_growth_rate,
+  // The heap is passed in for recording stats only. The controller does not
+  // invoke GC by itself.
+  PageSpaceController(Heap* heap,
+                      int heap_growth_ratio,
+                      int heap_growth_max,
                       int garbage_collection_time_ratio);
   ~PageSpaceController();
 
@@ -123,10 +128,6 @@ class PageSpaceController {
   bool NeedsGarbageCollection(SpaceUsage after) const;
 
   // Should be called after each collection to update the controller state.
-  // A garbage collection is considered as successful if more than
-  // heap_growth_ratio % of memory got deallocated by the garbage collector.
-  // In this case garbage collection will be performed next time. Otherwise
-  // the heap will grow.
   void EvaluateGarbageCollection(SpaceUsage before,
                                  SpaceUsage after,
                                  int64_t start, int64_t end);
@@ -148,6 +149,8 @@ class PageSpaceController {
   }
 
  private:
+  Heap* heap_;
+
   bool is_enabled_;
 
   // Usage after last evaluated GC or last enabled.
@@ -164,11 +167,11 @@ class PageSpaceController {
   // Equivalent to \frac{100-heap_growth_ratio_}{100}.
   double desired_utilization_;
 
-  // Number of pages we grow.
-  int heap_growth_rate_;
+  // Max number of pages we grow.
+  int heap_growth_max_;
 
-  // If the relative GC time stays below garbage_collection_time_ratio_
-  // garbage collection can be performed.
+  // If the relative GC time goes above garbage_collection_time_ratio_ %,
+  // we grow the heap more aggressively.
   int garbage_collection_time_ratio_;
 
   // The time in microseconds of the last time we tried to collect unused

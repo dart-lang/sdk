@@ -18,6 +18,7 @@ import '../native_handler.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../universe/universe.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../util/util.dart';
 
 import '../scanner/scannerlib.dart'

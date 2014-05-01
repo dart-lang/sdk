@@ -29,12 +29,11 @@ main() {
   });
 
   /// Data-driven compilation unit tests
-  /// TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=18315
-//  group('cu_tests.data', () {
-//    runTests('cu_tests.data', (input, expectedOutput) {
-//      expectCUFormatsTo(input, expectedOutput);
-//    });
-//  });
+  group('cu_tests.data', () {
+    runTests('cu_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
 
   /// Data-driven Style Guide acceptance tests
   group('style_guide_tests.data', () {
@@ -1479,7 +1478,6 @@ runTests(testFileName, expectClause(input, output)) {
   var testIndex = 1;
   var testFile = new File(join(TEST_DATA_DIR, testFileName));
   var lines = testFile.readAsLinesSync();
-
   for (var i = 1; i < lines.length; ++i) {
     var input = '', expectedOutput = '';
     while(!lines[i].startsWith('<<<')) {

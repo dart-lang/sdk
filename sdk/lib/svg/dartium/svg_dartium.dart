@@ -6,6 +6,7 @@ import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+import 'dart:_blink' as _blink;
 // DO NOT EDIT
 // Auto-generated dart:svg library.
 
@@ -51,11 +52,11 @@ class AElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGAElement.target')
   @DocsEditable()
-  AnimatedString get target native "SVGAElement_target_Getter";
+  AnimatedString get target => _blink.Native_SVGAElement_target_Getter(this);
 
   @DomName('SVGAElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGAElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGAElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -90,23 +91,23 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 
   @DomName('SVGAltGlyphElement.format')
   @DocsEditable()
-  String get format native "SVGAltGlyphElement_format_Getter";
+  String get format => _blink.Native_SVGAltGlyphElement_format_Getter(this);
 
   @DomName('SVGAltGlyphElement.format')
   @DocsEditable()
-  void set format(String value) native "SVGAltGlyphElement_format_Setter";
+  void set format(String value) => _blink.Native_SVGAltGlyphElement_format_Setter(this, value);
 
   @DomName('SVGAltGlyphElement.glyphRef')
   @DocsEditable()
-  String get glyphRef native "SVGAltGlyphElement_glyphRef_Getter";
+  String get glyphRef => _blink.Native_SVGAltGlyphElement_glyphRef_Getter(this);
 
   @DomName('SVGAltGlyphElement.glyphRef')
   @DocsEditable()
-  void set glyphRef(String value) native "SVGAltGlyphElement_glyphRef_Setter";
+  void set glyphRef(String value) => _blink.Native_SVGAltGlyphElement_glyphRef_Setter(this, value);
 
   @DomName('SVGAltGlyphElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGAltGlyphElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGAltGlyphElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -145,39 +146,39 @@ class Angle extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAngle.unitType')
   @DocsEditable()
-  int get unitType native "SVGAngle_unitType_Getter";
+  int get unitType => _blink.Native_SVGAngle_unitType_Getter(this);
 
   @DomName('SVGAngle.value')
   @DocsEditable()
-  num get value native "SVGAngle_value_Getter";
+  num get value => _blink.Native_SVGAngle_value_Getter(this);
 
   @DomName('SVGAngle.value')
   @DocsEditable()
-  void set value(num value) native "SVGAngle_value_Setter";
+  void set value(num value) => _blink.Native_SVGAngle_value_Setter(this, value);
 
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
-  String get valueAsString native "SVGAngle_valueAsString_Getter";
+  String get valueAsString => _blink.Native_SVGAngle_valueAsString_Getter(this);
 
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
-  void set valueAsString(String value) native "SVGAngle_valueAsString_Setter";
+  void set valueAsString(String value) => _blink.Native_SVGAngle_valueAsString_Setter(this, value);
 
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
-  num get valueInSpecifiedUnits native "SVGAngle_valueInSpecifiedUnits_Getter";
+  num get valueInSpecifiedUnits => _blink.Native_SVGAngle_valueInSpecifiedUnits_Getter(this);
 
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
-  void set valueInSpecifiedUnits(num value) native "SVGAngle_valueInSpecifiedUnits_Setter";
+  void set valueInSpecifiedUnits(num value) => _blink.Native_SVGAngle_valueInSpecifiedUnits_Setter(this, value);
 
   @DomName('SVGAngle.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) native "SVGAngle_convertToSpecifiedUnits_Callback";
+  void convertToSpecifiedUnits(int unitType) => _blink.Native_SVGAngle_convertToSpecifiedUnits_Callback(this, unitType);
 
   @DomName('SVGAngle.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGAngle_newValueSpecifiedUnits_Callback";
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.Native_SVGAngle_newValueSpecifiedUnits_Callback(this, unitType, valueInSpecifiedUnits);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -289,11 +290,11 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedAngle.animVal')
   @DocsEditable()
-  Angle get animVal native "SVGAnimatedAngle_animVal_Getter";
+  Angle get animVal => _blink.Native_SVGAnimatedAngle_animVal_Getter(this);
 
   @DomName('SVGAnimatedAngle.baseVal')
   @DocsEditable()
-  Angle get baseVal native "SVGAnimatedAngle_baseVal_Getter";
+  Angle get baseVal => _blink.Native_SVGAnimatedAngle_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -312,15 +313,15 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedBoolean.animVal')
   @DocsEditable()
-  bool get animVal native "SVGAnimatedBoolean_animVal_Getter";
+  bool get animVal => _blink.Native_SVGAnimatedBoolean_animVal_Getter(this);
 
   @DomName('SVGAnimatedBoolean.baseVal')
   @DocsEditable()
-  bool get baseVal native "SVGAnimatedBoolean_baseVal_Getter";
+  bool get baseVal => _blink.Native_SVGAnimatedBoolean_baseVal_Getter(this);
 
   @DomName('SVGAnimatedBoolean.baseVal')
   @DocsEditable()
-  void set baseVal(bool value) native "SVGAnimatedBoolean_baseVal_Setter";
+  void set baseVal(bool value) => _blink.Native_SVGAnimatedBoolean_baseVal_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -339,15 +340,15 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedEnumeration.animVal')
   @DocsEditable()
-  int get animVal native "SVGAnimatedEnumeration_animVal_Getter";
+  int get animVal => _blink.Native_SVGAnimatedEnumeration_animVal_Getter(this);
 
   @DomName('SVGAnimatedEnumeration.baseVal')
   @DocsEditable()
-  int get baseVal native "SVGAnimatedEnumeration_baseVal_Getter";
+  int get baseVal => _blink.Native_SVGAnimatedEnumeration_baseVal_Getter(this);
 
   @DomName('SVGAnimatedEnumeration.baseVal')
   @DocsEditable()
-  void set baseVal(int value) native "SVGAnimatedEnumeration_baseVal_Setter";
+  void set baseVal(int value) => _blink.Native_SVGAnimatedEnumeration_baseVal_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -366,15 +367,15 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedInteger.animVal')
   @DocsEditable()
-  int get animVal native "SVGAnimatedInteger_animVal_Getter";
+  int get animVal => _blink.Native_SVGAnimatedInteger_animVal_Getter(this);
 
   @DomName('SVGAnimatedInteger.baseVal')
   @DocsEditable()
-  int get baseVal native "SVGAnimatedInteger_baseVal_Getter";
+  int get baseVal => _blink.Native_SVGAnimatedInteger_baseVal_Getter(this);
 
   @DomName('SVGAnimatedInteger.baseVal')
   @DocsEditable()
-  void set baseVal(int value) native "SVGAnimatedInteger_baseVal_Setter";
+  void set baseVal(int value) => _blink.Native_SVGAnimatedInteger_baseVal_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -393,11 +394,11 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedLength.animVal')
   @DocsEditable()
-  Length get animVal native "SVGAnimatedLength_animVal_Getter";
+  Length get animVal => _blink.Native_SVGAnimatedLength_animVal_Getter(this);
 
   @DomName('SVGAnimatedLength.baseVal')
   @DocsEditable()
-  Length get baseVal native "SVGAnimatedLength_baseVal_Getter";
+  Length get baseVal => _blink.Native_SVGAnimatedLength_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -416,11 +417,11 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedLengthList.animVal')
   @DocsEditable()
-  LengthList get animVal native "SVGAnimatedLengthList_animVal_Getter";
+  LengthList get animVal => _blink.Native_SVGAnimatedLengthList_animVal_Getter(this);
 
   @DomName('SVGAnimatedLengthList.baseVal')
   @DocsEditable()
-  LengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
+  LengthList get baseVal => _blink.Native_SVGAnimatedLengthList_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -439,15 +440,15 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  double get animVal native "SVGAnimatedNumber_animVal_Getter";
+  double get animVal => _blink.Native_SVGAnimatedNumber_animVal_Getter(this);
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
-  num get baseVal native "SVGAnimatedNumber_baseVal_Getter";
+  num get baseVal => _blink.Native_SVGAnimatedNumber_baseVal_Getter(this);
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
-  void set baseVal(num value) native "SVGAnimatedNumber_baseVal_Setter";
+  void set baseVal(num value) => _blink.Native_SVGAnimatedNumber_baseVal_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -466,11 +467,11 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedNumberList.animVal')
   @DocsEditable()
-  NumberList get animVal native "SVGAnimatedNumberList_animVal_Getter";
+  NumberList get animVal => _blink.Native_SVGAnimatedNumberList_animVal_Getter(this);
 
   @DomName('SVGAnimatedNumberList.baseVal')
   @DocsEditable()
-  NumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
+  NumberList get baseVal => _blink.Native_SVGAnimatedNumberList_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -489,11 +490,11 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   @DocsEditable()
-  PreserveAspectRatio get animVal native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
+  PreserveAspectRatio get animVal => _blink.Native_SVGAnimatedPreserveAspectRatio_animVal_Getter(this);
 
   @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
   @DocsEditable()
-  PreserveAspectRatio get baseVal native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
+  PreserveAspectRatio get baseVal => _blink.Native_SVGAnimatedPreserveAspectRatio_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -512,11 +513,11 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedRect.animVal')
   @DocsEditable()
-  Rect get animVal native "SVGAnimatedRect_animVal_Getter";
+  Rect get animVal => _blink.Native_SVGAnimatedRect_animVal_Getter(this);
 
   @DomName('SVGAnimatedRect.baseVal')
   @DocsEditable()
-  Rect get baseVal native "SVGAnimatedRect_baseVal_Getter";
+  Rect get baseVal => _blink.Native_SVGAnimatedRect_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -535,15 +536,15 @@ class AnimatedString extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedString.animVal')
   @DocsEditable()
-  String get animVal native "SVGAnimatedString_animVal_Getter";
+  String get animVal => _blink.Native_SVGAnimatedString_animVal_Getter(this);
 
   @DomName('SVGAnimatedString.baseVal')
   @DocsEditable()
-  String get baseVal native "SVGAnimatedString_baseVal_Getter";
+  String get baseVal => _blink.Native_SVGAnimatedString_baseVal_Getter(this);
 
   @DomName('SVGAnimatedString.baseVal')
   @DocsEditable()
-  void set baseVal(String value) native "SVGAnimatedString_baseVal_Setter";
+  void set baseVal(String value) => _blink.Native_SVGAnimatedString_baseVal_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -562,11 +563,11 @@ class AnimatedTransformList extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedTransformList.animVal')
   @DocsEditable()
-  TransformList get animVal native "SVGAnimatedTransformList_animVal_Getter";
+  TransformList get animVal => _blink.Native_SVGAnimatedTransformList_animVal_Getter(this);
 
   @DomName('SVGAnimatedTransformList.baseVal')
   @DocsEditable()
-  TransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
+  TransformList get baseVal => _blink.Native_SVGAnimatedTransformList_baseVal_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -595,51 +596,51 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.targetElement')
   @DocsEditable()
-  SvgElement get targetElement native "SVGAnimationElement_targetElement_Getter";
+  SvgElement get targetElement => _blink.Native_SVGAnimationElement_targetElement_Getter(this);
 
   @DomName('SVGAnimationElement.beginElement')
   @DocsEditable()
-  void beginElement() native "SVGAnimationElement_beginElement_Callback";
+  void beginElement() => _blink.Native_SVGAnimationElement_beginElement_Callback(this);
 
   @DomName('SVGAnimationElement.beginElementAt')
   @DocsEditable()
-  void beginElementAt(num offset) native "SVGAnimationElement_beginElementAt_Callback";
+  void beginElementAt(num offset) => _blink.Native_SVGAnimationElement_beginElementAt_Callback(this, offset);
 
   @DomName('SVGAnimationElement.endElement')
   @DocsEditable()
-  void endElement() native "SVGAnimationElement_endElement_Callback";
+  void endElement() => _blink.Native_SVGAnimationElement_endElement_Callback(this);
 
   @DomName('SVGAnimationElement.endElementAt')
   @DocsEditable()
-  void endElementAt(num offset) native "SVGAnimationElement_endElementAt_Callback";
+  void endElementAt(num offset) => _blink.Native_SVGAnimationElement_endElementAt_Callback(this, offset);
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
+  double getCurrentTime() => _blink.Native_SVGAnimationElement_getCurrentTime_Callback(this);
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  double getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
+  double getSimpleDuration() => _blink.Native_SVGAnimationElement_getSimpleDuration_Callback(this);
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  double getStartTime() native "SVGAnimationElement_getStartTime_Callback";
+  double getStartTime() => _blink.Native_SVGAnimationElement_getStartTime_Callback(this);
 
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGAnimationElement_requiredExtensions_Getter(this);
 
   @DomName('SVGAnimationElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGAnimationElement_requiredFeatures_Getter(this);
 
   @DomName('SVGAnimationElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGAnimationElement_systemLanguage_Getter(this);
 
   @DomName('SVGAnimationElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGAnimationElement_hasExtension_Callback(this, extension);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -668,15 +669,15 @@ class CircleElement extends GeometryElement {
 
   @DomName('SVGCircleElement.cx')
   @DocsEditable()
-  AnimatedLength get cx native "SVGCircleElement_cx_Getter";
+  AnimatedLength get cx => _blink.Native_SVGCircleElement_cx_Getter(this);
 
   @DomName('SVGCircleElement.cy')
   @DocsEditable()
-  AnimatedLength get cy native "SVGCircleElement_cy_Getter";
+  AnimatedLength get cy => _blink.Native_SVGCircleElement_cy_Getter(this);
 
   @DomName('SVGCircleElement.r')
   @DocsEditable()
-  AnimatedLength get r native "SVGCircleElement_r_Getter";
+  AnimatedLength get r => _blink.Native_SVGCircleElement_r_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -705,7 +706,7 @@ class ClipPathElement extends GraphicsElement {
 
   @DomName('SVGClipPathElement.clipPathUnits')
   @DocsEditable()
-  AnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
+  AnimatedEnumeration get clipPathUnits => _blink.Native_SVGClipPathElement_clipPathUnits_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1219,50 +1220,50 @@ class ElementInstance extends EventTarget {
 
   @DomName('SVGElementInstance.childNodes')
   @DocsEditable()
-  List<ElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
+  List<ElementInstance> get childNodes => _blink.Native_SVGElementInstance_childNodes_Getter(this);
 
   @DomName('SVGElementInstance.correspondingElement')
   @DocsEditable()
-  SvgElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
+  SvgElement get correspondingElement => _blink.Native_SVGElementInstance_correspondingElement_Getter(this);
 
   @DomName('SVGElementInstance.correspondingUseElement')
   @DocsEditable()
-  UseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
+  UseElement get correspondingUseElement => _blink.Native_SVGElementInstance_correspondingUseElement_Getter(this);
 
   @DomName('SVGElementInstance.firstChild')
   @DocsEditable()
-  ElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
+  ElementInstance get firstChild => _blink.Native_SVGElementInstance_firstChild_Getter(this);
 
   @DomName('SVGElementInstance.lastChild')
   @DocsEditable()
-  ElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
+  ElementInstance get lastChild => _blink.Native_SVGElementInstance_lastChild_Getter(this);
 
   @DomName('SVGElementInstance.nextSibling')
   @DocsEditable()
-  ElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
+  ElementInstance get nextSibling => _blink.Native_SVGElementInstance_nextSibling_Getter(this);
 
   @DomName('SVGElementInstance.parentNode')
   @DocsEditable()
-  ElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
+  ElementInstance get parentNode => _blink.Native_SVGElementInstance_parentNode_Getter(this);
 
   @DomName('SVGElementInstance.previousSibling')
   @DocsEditable()
-  ElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
+  ElementInstance get previousSibling => _blink.Native_SVGElementInstance_previousSibling_Getter(this);
 
   @DomName('SVGElementInstance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SVGElementInstance_addEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SVGElementInstance.dispatchEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) => _blink.Native_SVGElementInstance_dispatchEvent_Callback(this, event);
 
   @DomName('SVGElementInstance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SVGElementInstance_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [ElementInstance].
   @DomName('SVGElementInstance.onabort')
@@ -1505,19 +1506,19 @@ class EllipseElement extends GeometryElement {
 
   @DomName('SVGEllipseElement.cx')
   @DocsEditable()
-  AnimatedLength get cx native "SVGEllipseElement_cx_Getter";
+  AnimatedLength get cx => _blink.Native_SVGEllipseElement_cx_Getter(this);
 
   @DomName('SVGEllipseElement.cy')
   @DocsEditable()
-  AnimatedLength get cy native "SVGEllipseElement_cy_Getter";
+  AnimatedLength get cy => _blink.Native_SVGEllipseElement_cy_Getter(this);
 
   @DomName('SVGEllipseElement.rx')
   @DocsEditable()
-  AnimatedLength get rx native "SVGEllipseElement_rx_Getter";
+  AnimatedLength get rx => _blink.Native_SVGEllipseElement_rx_Getter(this);
 
   @DomName('SVGEllipseElement.ry')
   @DocsEditable()
-  AnimatedLength get ry native "SVGEllipseElement_ry_Getter";
+  AnimatedLength get ry => _blink.Native_SVGEllipseElement_ry_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1577,35 +1578,35 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEBlendElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEBlendElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEBlendElement_in1_Getter(this);
 
   @DomName('SVGFEBlendElement.in2')
   @DocsEditable()
-  AnimatedString get in2 native "SVGFEBlendElement_in2_Getter";
+  AnimatedString get in2 => _blink.Native_SVGFEBlendElement_in2_Getter(this);
 
   @DomName('SVGFEBlendElement.mode')
   @DocsEditable()
-  AnimatedEnumeration get mode native "SVGFEBlendElement_mode_Getter";
+  AnimatedEnumeration get mode => _blink.Native_SVGFEBlendElement_mode_Getter(this);
 
   @DomName('SVGFEBlendElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEBlendElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEBlendElement_height_Getter(this);
 
   @DomName('SVGFEBlendElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEBlendElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEBlendElement_result_Getter(this);
 
   @DomName('SVGFEBlendElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEBlendElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEBlendElement_width_Getter(this);
 
   @DomName('SVGFEBlendElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEBlendElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEBlendElement_x_Getter(this);
 
   @DomName('SVGFEBlendElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEBlendElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEBlendElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1661,35 +1662,35 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   @DomName('SVGFEColorMatrixElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEColorMatrixElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEColorMatrixElement_in1_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.type')
   @DocsEditable()
-  AnimatedEnumeration get type native "SVGFEColorMatrixElement_type_Getter";
+  AnimatedEnumeration get type => _blink.Native_SVGFEColorMatrixElement_type_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.values')
   @DocsEditable()
-  AnimatedNumberList get values native "SVGFEColorMatrixElement_values_Getter";
+  AnimatedNumberList get values => _blink.Native_SVGFEColorMatrixElement_values_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEColorMatrixElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEColorMatrixElement_height_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEColorMatrixElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEColorMatrixElement_result_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEColorMatrixElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEColorMatrixElement_width_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEColorMatrixElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEColorMatrixElement_x_Getter(this);
 
   @DomName('SVGFEColorMatrixElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEColorMatrixElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEColorMatrixElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1725,27 +1726,27 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
   @DomName('SVGFEComponentTransferElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEComponentTransferElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEComponentTransferElement_in1_Getter(this);
 
   @DomName('SVGFEComponentTransferElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEComponentTransferElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEComponentTransferElement_height_Getter(this);
 
   @DomName('SVGFEComponentTransferElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEComponentTransferElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEComponentTransferElement_result_Getter(this);
 
   @DomName('SVGFEComponentTransferElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEComponentTransferElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEComponentTransferElement_width_Getter(this);
 
   @DomName('SVGFEComponentTransferElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEComponentTransferElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEComponentTransferElement_x_Getter(this);
 
   @DomName('SVGFEComponentTransferElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEComponentTransferElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEComponentTransferElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1798,51 +1799,51 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
   @DomName('SVGFECompositeElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFECompositeElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFECompositeElement_in1_Getter(this);
 
   @DomName('SVGFECompositeElement.in2')
   @DocsEditable()
-  AnimatedString get in2 native "SVGFECompositeElement_in2_Getter";
+  AnimatedString get in2 => _blink.Native_SVGFECompositeElement_in2_Getter(this);
 
   @DomName('SVGFECompositeElement.k1')
   @DocsEditable()
-  AnimatedNumber get k1 native "SVGFECompositeElement_k1_Getter";
+  AnimatedNumber get k1 => _blink.Native_SVGFECompositeElement_k1_Getter(this);
 
   @DomName('SVGFECompositeElement.k2')
   @DocsEditable()
-  AnimatedNumber get k2 native "SVGFECompositeElement_k2_Getter";
+  AnimatedNumber get k2 => _blink.Native_SVGFECompositeElement_k2_Getter(this);
 
   @DomName('SVGFECompositeElement.k3')
   @DocsEditable()
-  AnimatedNumber get k3 native "SVGFECompositeElement_k3_Getter";
+  AnimatedNumber get k3 => _blink.Native_SVGFECompositeElement_k3_Getter(this);
 
   @DomName('SVGFECompositeElement.k4')
   @DocsEditable()
-  AnimatedNumber get k4 native "SVGFECompositeElement_k4_Getter";
+  AnimatedNumber get k4 => _blink.Native_SVGFECompositeElement_k4_Getter(this);
 
   @DomName('SVGFECompositeElement.operator')
   @DocsEditable()
-  AnimatedEnumeration get operator native "SVGFECompositeElement_operator_Getter";
+  AnimatedEnumeration get operator => _blink.Native_SVGFECompositeElement_operator_Getter(this);
 
   @DomName('SVGFECompositeElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFECompositeElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFECompositeElement_height_Getter(this);
 
   @DomName('SVGFECompositeElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFECompositeElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFECompositeElement_result_Getter(this);
 
   @DomName('SVGFECompositeElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFECompositeElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFECompositeElement_width_Getter(this);
 
   @DomName('SVGFECompositeElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFECompositeElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFECompositeElement_x_Getter(this);
 
   @DomName('SVGFECompositeElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFECompositeElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFECompositeElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1894,71 +1895,71 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   @DomName('SVGFEConvolveMatrixElement.bias')
   @DocsEditable()
-  AnimatedNumber get bias native "SVGFEConvolveMatrixElement_bias_Getter";
+  AnimatedNumber get bias => _blink.Native_SVGFEConvolveMatrixElement_bias_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.divisor')
   @DocsEditable()
-  AnimatedNumber get divisor native "SVGFEConvolveMatrixElement_divisor_Getter";
+  AnimatedNumber get divisor => _blink.Native_SVGFEConvolveMatrixElement_divisor_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.edgeMode')
   @DocsEditable()
-  AnimatedEnumeration get edgeMode native "SVGFEConvolveMatrixElement_edgeMode_Getter";
+  AnimatedEnumeration get edgeMode => _blink.Native_SVGFEConvolveMatrixElement_edgeMode_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEConvolveMatrixElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEConvolveMatrixElement_in1_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
   @DocsEditable()
-  AnimatedNumberList get kernelMatrix native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
+  AnimatedNumberList get kernelMatrix => _blink.Native_SVGFEConvolveMatrixElement_kernelMatrix_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthX native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
+  AnimatedNumber get kernelUnitLengthX => _blink.Native_SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthY native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
+  AnimatedNumber get kernelUnitLengthY => _blink.Native_SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.orderX')
   @DocsEditable()
-  AnimatedInteger get orderX native "SVGFEConvolveMatrixElement_orderX_Getter";
+  AnimatedInteger get orderX => _blink.Native_SVGFEConvolveMatrixElement_orderX_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.orderY')
   @DocsEditable()
-  AnimatedInteger get orderY native "SVGFEConvolveMatrixElement_orderY_Getter";
+  AnimatedInteger get orderY => _blink.Native_SVGFEConvolveMatrixElement_orderY_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
   @DocsEditable()
-  AnimatedBoolean get preserveAlpha native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
+  AnimatedBoolean get preserveAlpha => _blink.Native_SVGFEConvolveMatrixElement_preserveAlpha_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.targetX')
   @DocsEditable()
-  AnimatedInteger get targetX native "SVGFEConvolveMatrixElement_targetX_Getter";
+  AnimatedInteger get targetX => _blink.Native_SVGFEConvolveMatrixElement_targetX_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.targetY')
   @DocsEditable()
-  AnimatedInteger get targetY native "SVGFEConvolveMatrixElement_targetY_Getter";
+  AnimatedInteger get targetY => _blink.Native_SVGFEConvolveMatrixElement_targetY_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEConvolveMatrixElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEConvolveMatrixElement_height_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEConvolveMatrixElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEConvolveMatrixElement_result_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEConvolveMatrixElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEConvolveMatrixElement_width_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEConvolveMatrixElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEConvolveMatrixElement_x_Getter(this);
 
   @DomName('SVGFEConvolveMatrixElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEConvolveMatrixElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEConvolveMatrixElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1994,43 +1995,43 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   @DocsEditable()
-  AnimatedNumber get diffuseConstant native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
+  AnimatedNumber get diffuseConstant => _blink.Native_SVGFEDiffuseLightingElement_diffuseConstant_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEDiffuseLightingElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEDiffuseLightingElement_in1_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthX native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
+  AnimatedNumber get kernelUnitLengthX => _blink.Native_SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthY native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
+  AnimatedNumber get kernelUnitLengthY => _blink.Native_SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.surfaceScale')
   @DocsEditable()
-  AnimatedNumber get surfaceScale native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
+  AnimatedNumber get surfaceScale => _blink.Native_SVGFEDiffuseLightingElement_surfaceScale_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEDiffuseLightingElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEDiffuseLightingElement_height_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEDiffuseLightingElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEDiffuseLightingElement_result_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEDiffuseLightingElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEDiffuseLightingElement_width_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEDiffuseLightingElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEDiffuseLightingElement_x_Getter(this);
 
   @DomName('SVGFEDiffuseLightingElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEDiffuseLightingElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEDiffuseLightingElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2086,43 +2087,43 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDisplacementMapElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEDisplacementMapElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEDisplacementMapElement_in1_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.in2')
   @DocsEditable()
-  AnimatedString get in2 native "SVGFEDisplacementMapElement_in2_Getter";
+  AnimatedString get in2 => _blink.Native_SVGFEDisplacementMapElement_in2_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.scale')
   @DocsEditable()
-  AnimatedNumber get scale native "SVGFEDisplacementMapElement_scale_Getter";
+  AnimatedNumber get scale => _blink.Native_SVGFEDisplacementMapElement_scale_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.xChannelSelector')
   @DocsEditable()
-  AnimatedEnumeration get xChannelSelector native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
+  AnimatedEnumeration get xChannelSelector => _blink.Native_SVGFEDisplacementMapElement_xChannelSelector_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.yChannelSelector')
   @DocsEditable()
-  AnimatedEnumeration get yChannelSelector native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
+  AnimatedEnumeration get yChannelSelector => _blink.Native_SVGFEDisplacementMapElement_yChannelSelector_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEDisplacementMapElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEDisplacementMapElement_height_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEDisplacementMapElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEDisplacementMapElement_result_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEDisplacementMapElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEDisplacementMapElement_width_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEDisplacementMapElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEDisplacementMapElement_x_Getter(this);
 
   @DomName('SVGFEDisplacementMapElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEDisplacementMapElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEDisplacementMapElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2158,11 +2159,11 @@ class FEDistantLightElement extends SvgElement {
 
   @DomName('SVGFEDistantLightElement.azimuth')
   @DocsEditable()
-  AnimatedNumber get azimuth native "SVGFEDistantLightElement_azimuth_Getter";
+  AnimatedNumber get azimuth => _blink.Native_SVGFEDistantLightElement_azimuth_Getter(this);
 
   @DomName('SVGFEDistantLightElement.elevation')
   @DocsEditable()
-  AnimatedNumber get elevation native "SVGFEDistantLightElement_elevation_Getter";
+  AnimatedNumber get elevation => _blink.Native_SVGFEDistantLightElement_elevation_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2198,23 +2199,23 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEFloodElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEFloodElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEFloodElement_height_Getter(this);
 
   @DomName('SVGFEFloodElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEFloodElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEFloodElement_result_Getter(this);
 
   @DomName('SVGFEFloodElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEFloodElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEFloodElement_width_Getter(this);
 
   @DomName('SVGFEFloodElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEFloodElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEFloodElement_x_Getter(this);
 
   @DomName('SVGFEFloodElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEFloodElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEFloodElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2378,39 +2379,39 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
   @DomName('SVGFEGaussianBlurElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEGaussianBlurElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEGaussianBlurElement_in1_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationX')
   @DocsEditable()
-  AnimatedNumber get stdDeviationX native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
+  AnimatedNumber get stdDeviationX => _blink.Native_SVGFEGaussianBlurElement_stdDeviationX_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationY')
   @DocsEditable()
-  AnimatedNumber get stdDeviationY native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
+  AnimatedNumber get stdDeviationY => _blink.Native_SVGFEGaussianBlurElement_stdDeviationY_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.setStdDeviation')
   @DocsEditable()
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEGaussianBlurElement_setStdDeviation_Callback";
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) => _blink.Native_SVGFEGaussianBlurElement_setStdDeviation_Callback(this, stdDeviationX, stdDeviationY);
 
   @DomName('SVGFEGaussianBlurElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEGaussianBlurElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEGaussianBlurElement_height_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEGaussianBlurElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEGaussianBlurElement_result_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEGaussianBlurElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEGaussianBlurElement_width_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEGaussianBlurElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEGaussianBlurElement_x_Getter(this);
 
   @DomName('SVGFEGaussianBlurElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEGaussianBlurElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEGaussianBlurElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2446,31 +2447,31 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGFEImageElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGFEImageElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEImageElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEImageElement_height_Getter(this);
 
   @DomName('SVGFEImageElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEImageElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEImageElement_result_Getter(this);
 
   @DomName('SVGFEImageElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEImageElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEImageElement_width_Getter(this);
 
   @DomName('SVGFEImageElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEImageElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEImageElement_x_Getter(this);
 
   @DomName('SVGFEImageElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEImageElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEImageElement_y_Getter(this);
 
   @DomName('SVGFEImageElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGFEImageElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGFEImageElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2506,23 +2507,23 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEMergeElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEMergeElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEMergeElement_height_Getter(this);
 
   @DomName('SVGFEMergeElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEMergeElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEMergeElement_result_Getter(this);
 
   @DomName('SVGFEMergeElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEMergeElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEMergeElement_width_Getter(this);
 
   @DomName('SVGFEMergeElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEMergeElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEMergeElement_x_Getter(this);
 
   @DomName('SVGFEMergeElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEMergeElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEMergeElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2558,7 +2559,7 @@ class FEMergeNodeElement extends SvgElement {
 
   @DomName('SVGFEMergeNodeElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEMergeNodeElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEMergeNodeElement_in1_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2599,43 +2600,43 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
   @DomName('SVGFEMorphologyElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEMorphologyElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEMorphologyElement_in1_Getter(this);
 
   @DomName('SVGFEMorphologyElement.operator')
   @DocsEditable()
-  AnimatedEnumeration get operator native "SVGFEMorphologyElement_operator_Getter";
+  AnimatedEnumeration get operator => _blink.Native_SVGFEMorphologyElement_operator_Getter(this);
 
   @DomName('SVGFEMorphologyElement.radiusX')
   @DocsEditable()
-  AnimatedNumber get radiusX native "SVGFEMorphologyElement_radiusX_Getter";
+  AnimatedNumber get radiusX => _blink.Native_SVGFEMorphologyElement_radiusX_Getter(this);
 
   @DomName('SVGFEMorphologyElement.radiusY')
   @DocsEditable()
-  AnimatedNumber get radiusY native "SVGFEMorphologyElement_radiusY_Getter";
+  AnimatedNumber get radiusY => _blink.Native_SVGFEMorphologyElement_radiusY_Getter(this);
 
   @DomName('SVGFEMorphologyElement.setRadius')
   @DocsEditable()
-  void setRadius(num radiusX, num radiusY) native "SVGFEMorphologyElement_setRadius_Callback";
+  void setRadius(num radiusX, num radiusY) => _blink.Native_SVGFEMorphologyElement_setRadius_Callback(this, radiusX, radiusY);
 
   @DomName('SVGFEMorphologyElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEMorphologyElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEMorphologyElement_height_Getter(this);
 
   @DomName('SVGFEMorphologyElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEMorphologyElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEMorphologyElement_result_Getter(this);
 
   @DomName('SVGFEMorphologyElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEMorphologyElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEMorphologyElement_width_Getter(this);
 
   @DomName('SVGFEMorphologyElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEMorphologyElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEMorphologyElement_x_Getter(this);
 
   @DomName('SVGFEMorphologyElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEMorphologyElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEMorphologyElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2671,35 +2672,35 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
   @DomName('SVGFEOffsetElement.dx')
   @DocsEditable()
-  AnimatedNumber get dx native "SVGFEOffsetElement_dx_Getter";
+  AnimatedNumber get dx => _blink.Native_SVGFEOffsetElement_dx_Getter(this);
 
   @DomName('SVGFEOffsetElement.dy')
   @DocsEditable()
-  AnimatedNumber get dy native "SVGFEOffsetElement_dy_Getter";
+  AnimatedNumber get dy => _blink.Native_SVGFEOffsetElement_dy_Getter(this);
 
   @DomName('SVGFEOffsetElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFEOffsetElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFEOffsetElement_in1_Getter(this);
 
   @DomName('SVGFEOffsetElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFEOffsetElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFEOffsetElement_height_Getter(this);
 
   @DomName('SVGFEOffsetElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFEOffsetElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFEOffsetElement_result_Getter(this);
 
   @DomName('SVGFEOffsetElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFEOffsetElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFEOffsetElement_width_Getter(this);
 
   @DomName('SVGFEOffsetElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFEOffsetElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFEOffsetElement_x_Getter(this);
 
   @DomName('SVGFEOffsetElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFEOffsetElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFEOffsetElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2735,15 +2736,15 @@ class FEPointLightElement extends SvgElement {
 
   @DomName('SVGFEPointLightElement.x')
   @DocsEditable()
-  AnimatedNumber get x native "SVGFEPointLightElement_x_Getter";
+  AnimatedNumber get x => _blink.Native_SVGFEPointLightElement_x_Getter(this);
 
   @DomName('SVGFEPointLightElement.y')
   @DocsEditable()
-  AnimatedNumber get y native "SVGFEPointLightElement_y_Getter";
+  AnimatedNumber get y => _blink.Native_SVGFEPointLightElement_y_Getter(this);
 
   @DomName('SVGFEPointLightElement.z')
   @DocsEditable()
-  AnimatedNumber get z native "SVGFEPointLightElement_z_Getter";
+  AnimatedNumber get z => _blink.Native_SVGFEPointLightElement_z_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2779,39 +2780,39 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
   @DomName('SVGFESpecularLightingElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFESpecularLightingElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFESpecularLightingElement_in1_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.specularConstant')
   @DocsEditable()
-  AnimatedNumber get specularConstant native "SVGFESpecularLightingElement_specularConstant_Getter";
+  AnimatedNumber get specularConstant => _blink.Native_SVGFESpecularLightingElement_specularConstant_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.specularExponent')
   @DocsEditable()
-  AnimatedNumber get specularExponent native "SVGFESpecularLightingElement_specularExponent_Getter";
+  AnimatedNumber get specularExponent => _blink.Native_SVGFESpecularLightingElement_specularExponent_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.surfaceScale')
   @DocsEditable()
-  AnimatedNumber get surfaceScale native "SVGFESpecularLightingElement_surfaceScale_Getter";
+  AnimatedNumber get surfaceScale => _blink.Native_SVGFESpecularLightingElement_surfaceScale_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFESpecularLightingElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFESpecularLightingElement_height_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFESpecularLightingElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFESpecularLightingElement_result_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFESpecularLightingElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFESpecularLightingElement_width_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFESpecularLightingElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFESpecularLightingElement_x_Getter(this);
 
   @DomName('SVGFESpecularLightingElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFESpecularLightingElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFESpecularLightingElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2847,35 +2848,35 @@ class FESpotLightElement extends SvgElement {
 
   @DomName('SVGFESpotLightElement.limitingConeAngle')
   @DocsEditable()
-  AnimatedNumber get limitingConeAngle native "SVGFESpotLightElement_limitingConeAngle_Getter";
+  AnimatedNumber get limitingConeAngle => _blink.Native_SVGFESpotLightElement_limitingConeAngle_Getter(this);
 
   @DomName('SVGFESpotLightElement.pointsAtX')
   @DocsEditable()
-  AnimatedNumber get pointsAtX native "SVGFESpotLightElement_pointsAtX_Getter";
+  AnimatedNumber get pointsAtX => _blink.Native_SVGFESpotLightElement_pointsAtX_Getter(this);
 
   @DomName('SVGFESpotLightElement.pointsAtY')
   @DocsEditable()
-  AnimatedNumber get pointsAtY native "SVGFESpotLightElement_pointsAtY_Getter";
+  AnimatedNumber get pointsAtY => _blink.Native_SVGFESpotLightElement_pointsAtY_Getter(this);
 
   @DomName('SVGFESpotLightElement.pointsAtZ')
   @DocsEditable()
-  AnimatedNumber get pointsAtZ native "SVGFESpotLightElement_pointsAtZ_Getter";
+  AnimatedNumber get pointsAtZ => _blink.Native_SVGFESpotLightElement_pointsAtZ_Getter(this);
 
   @DomName('SVGFESpotLightElement.specularExponent')
   @DocsEditable()
-  AnimatedNumber get specularExponent native "SVGFESpotLightElement_specularExponent_Getter";
+  AnimatedNumber get specularExponent => _blink.Native_SVGFESpotLightElement_specularExponent_Getter(this);
 
   @DomName('SVGFESpotLightElement.x')
   @DocsEditable()
-  AnimatedNumber get x native "SVGFESpotLightElement_x_Getter";
+  AnimatedNumber get x => _blink.Native_SVGFESpotLightElement_x_Getter(this);
 
   @DomName('SVGFESpotLightElement.y')
   @DocsEditable()
-  AnimatedNumber get y native "SVGFESpotLightElement_y_Getter";
+  AnimatedNumber get y => _blink.Native_SVGFESpotLightElement_y_Getter(this);
 
   @DomName('SVGFESpotLightElement.z')
   @DocsEditable()
-  AnimatedNumber get z native "SVGFESpotLightElement_z_Getter";
+  AnimatedNumber get z => _blink.Native_SVGFESpotLightElement_z_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2911,27 +2912,27 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
   @DomName('SVGFETileElement.in1')
   @DocsEditable()
-  AnimatedString get in1 native "SVGFETileElement_in1_Getter";
+  AnimatedString get in1 => _blink.Native_SVGFETileElement_in1_Getter(this);
 
   @DomName('SVGFETileElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFETileElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFETileElement_height_Getter(this);
 
   @DomName('SVGFETileElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFETileElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFETileElement_result_Getter(this);
 
   @DomName('SVGFETileElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFETileElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFETileElement_width_Getter(this);
 
   @DomName('SVGFETileElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFETileElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFETileElement_x_Getter(this);
 
   @DomName('SVGFETileElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFETileElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFETileElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2991,47 +2992,47 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   @DomName('SVGFETurbulenceElement.baseFrequencyX')
   @DocsEditable()
-  AnimatedNumber get baseFrequencyX native "SVGFETurbulenceElement_baseFrequencyX_Getter";
+  AnimatedNumber get baseFrequencyX => _blink.Native_SVGFETurbulenceElement_baseFrequencyX_Getter(this);
 
   @DomName('SVGFETurbulenceElement.baseFrequencyY')
   @DocsEditable()
-  AnimatedNumber get baseFrequencyY native "SVGFETurbulenceElement_baseFrequencyY_Getter";
+  AnimatedNumber get baseFrequencyY => _blink.Native_SVGFETurbulenceElement_baseFrequencyY_Getter(this);
 
   @DomName('SVGFETurbulenceElement.numOctaves')
   @DocsEditable()
-  AnimatedInteger get numOctaves native "SVGFETurbulenceElement_numOctaves_Getter";
+  AnimatedInteger get numOctaves => _blink.Native_SVGFETurbulenceElement_numOctaves_Getter(this);
 
   @DomName('SVGFETurbulenceElement.seed')
   @DocsEditable()
-  AnimatedNumber get seed native "SVGFETurbulenceElement_seed_Getter";
+  AnimatedNumber get seed => _blink.Native_SVGFETurbulenceElement_seed_Getter(this);
 
   @DomName('SVGFETurbulenceElement.stitchTiles')
   @DocsEditable()
-  AnimatedEnumeration get stitchTiles native "SVGFETurbulenceElement_stitchTiles_Getter";
+  AnimatedEnumeration get stitchTiles => _blink.Native_SVGFETurbulenceElement_stitchTiles_Getter(this);
 
   @DomName('SVGFETurbulenceElement.type')
   @DocsEditable()
-  AnimatedEnumeration get type native "SVGFETurbulenceElement_type_Getter";
+  AnimatedEnumeration get type => _blink.Native_SVGFETurbulenceElement_type_Getter(this);
 
   @DomName('SVGFETurbulenceElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFETurbulenceElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFETurbulenceElement_height_Getter(this);
 
   @DomName('SVGFETurbulenceElement.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFETurbulenceElement_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFETurbulenceElement_result_Getter(this);
 
   @DomName('SVGFETurbulenceElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFETurbulenceElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFETurbulenceElement_width_Getter(this);
 
   @DomName('SVGFETurbulenceElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFETurbulenceElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFETurbulenceElement_x_Getter(this);
 
   @DomName('SVGFETurbulenceElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFETurbulenceElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFETurbulenceElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3067,43 +3068,43 @@ class FilterElement extends SvgElement implements UriReference {
 
   @DomName('SVGFilterElement.filterResX')
   @DocsEditable()
-  AnimatedInteger get filterResX native "SVGFilterElement_filterResX_Getter";
+  AnimatedInteger get filterResX => _blink.Native_SVGFilterElement_filterResX_Getter(this);
 
   @DomName('SVGFilterElement.filterResY')
   @DocsEditable()
-  AnimatedInteger get filterResY native "SVGFilterElement_filterResY_Getter";
+  AnimatedInteger get filterResY => _blink.Native_SVGFilterElement_filterResY_Getter(this);
 
   @DomName('SVGFilterElement.filterUnits')
   @DocsEditable()
-  AnimatedEnumeration get filterUnits native "SVGFilterElement_filterUnits_Getter";
+  AnimatedEnumeration get filterUnits => _blink.Native_SVGFilterElement_filterUnits_Getter(this);
 
   @DomName('SVGFilterElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFilterElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFilterElement_height_Getter(this);
 
   @DomName('SVGFilterElement.primitiveUnits')
   @DocsEditable()
-  AnimatedEnumeration get primitiveUnits native "SVGFilterElement_primitiveUnits_Getter";
+  AnimatedEnumeration get primitiveUnits => _blink.Native_SVGFilterElement_primitiveUnits_Getter(this);
 
   @DomName('SVGFilterElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFilterElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFilterElement_width_Getter(this);
 
   @DomName('SVGFilterElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFilterElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFilterElement_x_Getter(this);
 
   @DomName('SVGFilterElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFilterElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFilterElement_y_Getter(this);
 
   @DomName('SVGFilterElement.setFilterRes')
   @DocsEditable()
-  void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
+  void setFilterRes(int filterResX, int filterResY) => _blink.Native_SVGFilterElement_setFilterRes_Callback(this, filterResX, filterResY);
 
   @DomName('SVGFilterElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGFilterElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGFilterElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3122,23 +3123,23 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGFilterPrimitiveStandardAttributes_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGFilterPrimitiveStandardAttributes_height_Getter(this);
 
   @DomName('SVGFilterPrimitiveStandardAttributes.result')
   @DocsEditable()
-  AnimatedString get result native "SVGFilterPrimitiveStandardAttributes_result_Getter";
+  AnimatedString get result => _blink.Native_SVGFilterPrimitiveStandardAttributes_result_Getter(this);
 
   @DomName('SVGFilterPrimitiveStandardAttributes.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGFilterPrimitiveStandardAttributes_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGFilterPrimitiveStandardAttributes_width_Getter(this);
 
   @DomName('SVGFilterPrimitiveStandardAttributes.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGFilterPrimitiveStandardAttributes_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGFilterPrimitiveStandardAttributes_x_Getter(this);
 
   @DomName('SVGFilterPrimitiveStandardAttributes.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGFilterPrimitiveStandardAttributes_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGFilterPrimitiveStandardAttributes_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3157,11 +3158,11 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFitToViewBox_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGFitToViewBox_preserveAspectRatio_Getter(this);
 
   @DomName('SVGFitToViewBox.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGFitToViewBox_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGFitToViewBox_viewBox_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3196,19 +3197,19 @@ class ForeignObjectElement extends GraphicsElement {
 
   @DomName('SVGForeignObjectElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGForeignObjectElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGForeignObjectElement_height_Getter(this);
 
   @DomName('SVGForeignObjectElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGForeignObjectElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGForeignObjectElement_width_Getter(this);
 
   @DomName('SVGForeignObjectElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGForeignObjectElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGForeignObjectElement_x_Getter(this);
 
   @DomName('SVGForeignObjectElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGForeignObjectElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGForeignObjectElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3259,12 +3260,12 @@ class GeometryElement extends GraphicsElement {
   @DomName('SVGGeometryElement.isPointInFill')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInFill(Point point) native "SVGGeometryElement_isPointInFill_Callback";
+  bool isPointInFill(Point point) => _blink.Native_SVGGeometryElement_isPointInFill_Callback(this, point);
 
   @DomName('SVGGeometryElement.isPointInStroke')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInStroke(Point point) native "SVGGeometryElement_isPointInStroke_Callback";
+  bool isPointInStroke(Point point) => _blink.Native_SVGGeometryElement_isPointInStroke_Callback(this, point);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3290,57 +3291,57 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.farthestViewportElement')
   @DocsEditable()
   @Experimental() // untriaged
-  SvgElement get farthestViewportElement native "SVGGraphicsElement_farthestViewportElement_Getter";
+  SvgElement get farthestViewportElement => _blink.Native_SVGGraphicsElement_farthestViewportElement_Getter(this);
 
   @DomName('SVGGraphicsElement.nearestViewportElement')
   @DocsEditable()
   @Experimental() // untriaged
-  SvgElement get nearestViewportElement native "SVGGraphicsElement_nearestViewportElement_Getter";
+  SvgElement get nearestViewportElement => _blink.Native_SVGGraphicsElement_nearestViewportElement_Getter(this);
 
   @DomName('SVGGraphicsElement.transform')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedTransformList get transform native "SVGGraphicsElement_transform_Getter";
+  AnimatedTransformList get transform => _blink.Native_SVGGraphicsElement_transform_Getter(this);
 
   @DomName('SVGGraphicsElement.getBBox')
   @DocsEditable()
   @Experimental() // untriaged
-  Rect getBBox() native "SVGGraphicsElement_getBBox_Callback";
+  Rect getBBox() => _blink.Native_SVGGraphicsElement_getBBox_Callback(this);
 
   @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getCtm() native "SVGGraphicsElement_getCTM_Callback";
+  Matrix getCtm() => _blink.Native_SVGGraphicsElement_getCTM_Callback(this);
 
   @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getScreenCtm() native "SVGGraphicsElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() => _blink.Native_SVGGraphicsElement_getScreenCTM_Callback(this);
 
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getTransformToElement(SvgElement element) native "SVGGraphicsElement_getTransformToElement_Callback";
+  Matrix getTransformToElement(SvgElement element) => _blink.Native_SVGGraphicsElement_getTransformToElement_Callback(this, element);
 
   @DomName('SVGGraphicsElement.requiredExtensions')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get requiredExtensions native "SVGGraphicsElement_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGGraphicsElement_requiredExtensions_Getter(this);
 
   @DomName('SVGGraphicsElement.requiredFeatures')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get requiredFeatures native "SVGGraphicsElement_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGGraphicsElement_requiredFeatures_Getter(this);
 
   @DomName('SVGGraphicsElement.systemLanguage')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get systemLanguage native "SVGGraphicsElement_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGGraphicsElement_systemLanguage_Getter(this);
 
   @DomName('SVGGraphicsElement.hasExtension')
   @DocsEditable()
   @Experimental() // untriaged
-  bool hasExtension(String extension) native "SVGGraphicsElement_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGGraphicsElement_hasExtension_Callback(this, extension);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3369,27 +3370,27 @@ class ImageElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGImageElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGImageElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGImageElement_height_Getter(this);
 
   @DomName('SVGImageElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGImageElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGImageElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGImageElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGImageElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGImageElement_width_Getter(this);
 
   @DomName('SVGImageElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGImageElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGImageElement_x_Getter(this);
 
   @DomName('SVGImageElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGImageElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGImageElement_y_Getter(this);
 
   @DomName('SVGImageElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGImageElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGImageElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3452,39 +3453,39 @@ class Length extends NativeFieldWrapperClass2 {
 
   @DomName('SVGLength.unitType')
   @DocsEditable()
-  int get unitType native "SVGLength_unitType_Getter";
+  int get unitType => _blink.Native_SVGLength_unitType_Getter(this);
 
   @DomName('SVGLength.value')
   @DocsEditable()
-  num get value native "SVGLength_value_Getter";
+  num get value => _blink.Native_SVGLength_value_Getter(this);
 
   @DomName('SVGLength.value')
   @DocsEditable()
-  void set value(num value) native "SVGLength_value_Setter";
+  void set value(num value) => _blink.Native_SVGLength_value_Setter(this, value);
 
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
-  String get valueAsString native "SVGLength_valueAsString_Getter";
+  String get valueAsString => _blink.Native_SVGLength_valueAsString_Getter(this);
 
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
-  void set valueAsString(String value) native "SVGLength_valueAsString_Setter";
+  void set valueAsString(String value) => _blink.Native_SVGLength_valueAsString_Setter(this, value);
 
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
-  num get valueInSpecifiedUnits native "SVGLength_valueInSpecifiedUnits_Getter";
+  num get valueInSpecifiedUnits => _blink.Native_SVGLength_valueInSpecifiedUnits_Getter(this);
 
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
-  void set valueInSpecifiedUnits(num value) native "SVGLength_valueInSpecifiedUnits_Setter";
+  void set valueInSpecifiedUnits(num value) => _blink.Native_SVGLength_valueInSpecifiedUnits_Setter(this, value);
 
   @DomName('SVGLength.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) native "SVGLength_convertToSpecifiedUnits_Callback";
+  void convertToSpecifiedUnits(int unitType) => _blink.Native_SVGLength_convertToSpecifiedUnits_Callback(this, unitType);
 
   @DomName('SVGLength.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGLength_newValueSpecifiedUnits_Callback";
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.Native_SVGLength_newValueSpecifiedUnits_Callback(this, unitType, valueInSpecifiedUnits);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3503,7 +3504,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGLengthList_numberOfItems_Getter(this);
 
   Length operator[](int index) {
     if (index < 0 || index >= length)
@@ -3553,31 +3554,31 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length item) native "SVGLengthList_appendItem_Callback";
+  Length appendItem(Length item) => _blink.Native_SVGLengthList_appendItem_Callback(this, item);
 
   @DomName('SVGLengthList.clear')
   @DocsEditable()
-  void clear() native "SVGLengthList_clear_Callback";
+  void clear() => _blink.Native_SVGLengthList_clear_Callback(this);
 
   @DomName('SVGLengthList.getItem')
   @DocsEditable()
-  Length getItem(int index) native "SVGLengthList_getItem_Callback";
+  Length getItem(int index) => _blink.Native_SVGLengthList_getItem_Callback(this, index);
 
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length item) native "SVGLengthList_initialize_Callback";
+  Length initialize(Length item) => _blink.Native_SVGLengthList_initialize_Callback(this, item);
 
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length item, int index) native "SVGLengthList_insertItemBefore_Callback";
+  Length insertItemBefore(Length item, int index) => _blink.Native_SVGLengthList_insertItemBefore_Callback(this, item, index);
 
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
-  Length removeItem(int index) native "SVGLengthList_removeItem_Callback";
+  Length removeItem(int index) => _blink.Native_SVGLengthList_removeItem_Callback(this, index);
 
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length item, int index) native "SVGLengthList_replaceItem_Callback";
+  Length replaceItem(Length item, int index) => _blink.Native_SVGLengthList_replaceItem_Callback(this, item, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3606,19 +3607,19 @@ class LineElement extends GeometryElement {
 
   @DomName('SVGLineElement.x1')
   @DocsEditable()
-  AnimatedLength get x1 native "SVGLineElement_x1_Getter";
+  AnimatedLength get x1 => _blink.Native_SVGLineElement_x1_Getter(this);
 
   @DomName('SVGLineElement.x2')
   @DocsEditable()
-  AnimatedLength get x2 native "SVGLineElement_x2_Getter";
+  AnimatedLength get x2 => _blink.Native_SVGLineElement_x2_Getter(this);
 
   @DomName('SVGLineElement.y1')
   @DocsEditable()
-  AnimatedLength get y1 native "SVGLineElement_y1_Getter";
+  AnimatedLength get y1 => _blink.Native_SVGLineElement_y1_Getter(this);
 
   @DomName('SVGLineElement.y2')
   @DocsEditable()
-  AnimatedLength get y2 native "SVGLineElement_y2_Getter";
+  AnimatedLength get y2 => _blink.Native_SVGLineElement_y2_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3647,19 +3648,19 @@ class LinearGradientElement extends _GradientElement {
 
   @DomName('SVGLinearGradientElement.x1')
   @DocsEditable()
-  AnimatedLength get x1 native "SVGLinearGradientElement_x1_Getter";
+  AnimatedLength get x1 => _blink.Native_SVGLinearGradientElement_x1_Getter(this);
 
   @DomName('SVGLinearGradientElement.x2')
   @DocsEditable()
-  AnimatedLength get x2 native "SVGLinearGradientElement_x2_Getter";
+  AnimatedLength get x2 => _blink.Native_SVGLinearGradientElement_x2_Getter(this);
 
   @DomName('SVGLinearGradientElement.y1')
   @DocsEditable()
-  AnimatedLength get y1 native "SVGLinearGradientElement_y1_Getter";
+  AnimatedLength get y1 => _blink.Native_SVGLinearGradientElement_y1_Getter(this);
 
   @DomName('SVGLinearGradientElement.y2')
   @DocsEditable()
-  AnimatedLength get y2 native "SVGLinearGradientElement_y2_Getter";
+  AnimatedLength get y2 => _blink.Native_SVGLinearGradientElement_y2_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3712,47 +3713,47 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGMarkerElement.markerHeight')
   @DocsEditable()
-  AnimatedLength get markerHeight native "SVGMarkerElement_markerHeight_Getter";
+  AnimatedLength get markerHeight => _blink.Native_SVGMarkerElement_markerHeight_Getter(this);
 
   @DomName('SVGMarkerElement.markerUnits')
   @DocsEditable()
-  AnimatedEnumeration get markerUnits native "SVGMarkerElement_markerUnits_Getter";
+  AnimatedEnumeration get markerUnits => _blink.Native_SVGMarkerElement_markerUnits_Getter(this);
 
   @DomName('SVGMarkerElement.markerWidth')
   @DocsEditable()
-  AnimatedLength get markerWidth native "SVGMarkerElement_markerWidth_Getter";
+  AnimatedLength get markerWidth => _blink.Native_SVGMarkerElement_markerWidth_Getter(this);
 
   @DomName('SVGMarkerElement.orientAngle')
   @DocsEditable()
-  AnimatedAngle get orientAngle native "SVGMarkerElement_orientAngle_Getter";
+  AnimatedAngle get orientAngle => _blink.Native_SVGMarkerElement_orientAngle_Getter(this);
 
   @DomName('SVGMarkerElement.orientType')
   @DocsEditable()
-  AnimatedEnumeration get orientType native "SVGMarkerElement_orientType_Getter";
+  AnimatedEnumeration get orientType => _blink.Native_SVGMarkerElement_orientType_Getter(this);
 
   @DomName('SVGMarkerElement.refX')
   @DocsEditable()
-  AnimatedLength get refX native "SVGMarkerElement_refX_Getter";
+  AnimatedLength get refX => _blink.Native_SVGMarkerElement_refX_Getter(this);
 
   @DomName('SVGMarkerElement.refY')
   @DocsEditable()
-  AnimatedLength get refY native "SVGMarkerElement_refY_Getter";
+  AnimatedLength get refY => _blink.Native_SVGMarkerElement_refY_Getter(this);
 
   @DomName('SVGMarkerElement.setOrientToAngle')
   @DocsEditable()
-  void setOrientToAngle(Angle angle) native "SVGMarkerElement_setOrientToAngle_Callback";
+  void setOrientToAngle(Angle angle) => _blink.Native_SVGMarkerElement_setOrientToAngle_Callback(this, angle);
 
   @DomName('SVGMarkerElement.setOrientToAuto')
   @DocsEditable()
-  void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
+  void setOrientToAuto() => _blink.Native_SVGMarkerElement_setOrientToAuto_Callback(this);
 
   @DomName('SVGMarkerElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGMarkerElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGMarkerElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGMarkerElement_viewBox_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3781,43 +3782,43 @@ class MaskElement extends SvgElement implements Tests {
 
   @DomName('SVGMaskElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGMaskElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGMaskElement_height_Getter(this);
 
   @DomName('SVGMaskElement.maskContentUnits')
   @DocsEditable()
-  AnimatedEnumeration get maskContentUnits native "SVGMaskElement_maskContentUnits_Getter";
+  AnimatedEnumeration get maskContentUnits => _blink.Native_SVGMaskElement_maskContentUnits_Getter(this);
 
   @DomName('SVGMaskElement.maskUnits')
   @DocsEditable()
-  AnimatedEnumeration get maskUnits native "SVGMaskElement_maskUnits_Getter";
+  AnimatedEnumeration get maskUnits => _blink.Native_SVGMaskElement_maskUnits_Getter(this);
 
   @DomName('SVGMaskElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGMaskElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGMaskElement_width_Getter(this);
 
   @DomName('SVGMaskElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGMaskElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGMaskElement_x_Getter(this);
 
   @DomName('SVGMaskElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGMaskElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGMaskElement_y_Getter(this);
 
   @DomName('SVGMaskElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGMaskElement_requiredExtensions_Getter(this);
 
   @DomName('SVGMaskElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGMaskElement_requiredFeatures_Getter(this);
 
   @DomName('SVGMaskElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGMaskElement_systemLanguage_Getter(this);
 
   @DomName('SVGMaskElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGMaskElement_hasExtension_Callback(this, extension);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3836,95 +3837,95 @@ class Matrix extends NativeFieldWrapperClass2 {
 
   @DomName('SVGMatrix.a')
   @DocsEditable()
-  num get a native "SVGMatrix_a_Getter";
+  num get a => _blink.Native_SVGMatrix_a_Getter(this);
 
   @DomName('SVGMatrix.a')
   @DocsEditable()
-  void set a(num value) native "SVGMatrix_a_Setter";
+  void set a(num value) => _blink.Native_SVGMatrix_a_Setter(this, value);
 
   @DomName('SVGMatrix.b')
   @DocsEditable()
-  num get b native "SVGMatrix_b_Getter";
+  num get b => _blink.Native_SVGMatrix_b_Getter(this);
 
   @DomName('SVGMatrix.b')
   @DocsEditable()
-  void set b(num value) native "SVGMatrix_b_Setter";
+  void set b(num value) => _blink.Native_SVGMatrix_b_Setter(this, value);
 
   @DomName('SVGMatrix.c')
   @DocsEditable()
-  num get c native "SVGMatrix_c_Getter";
+  num get c => _blink.Native_SVGMatrix_c_Getter(this);
 
   @DomName('SVGMatrix.c')
   @DocsEditable()
-  void set c(num value) native "SVGMatrix_c_Setter";
+  void set c(num value) => _blink.Native_SVGMatrix_c_Setter(this, value);
 
   @DomName('SVGMatrix.d')
   @DocsEditable()
-  num get d native "SVGMatrix_d_Getter";
+  num get d => _blink.Native_SVGMatrix_d_Getter(this);
 
   @DomName('SVGMatrix.d')
   @DocsEditable()
-  void set d(num value) native "SVGMatrix_d_Setter";
+  void set d(num value) => _blink.Native_SVGMatrix_d_Setter(this, value);
 
   @DomName('SVGMatrix.e')
   @DocsEditable()
-  num get e native "SVGMatrix_e_Getter";
+  num get e => _blink.Native_SVGMatrix_e_Getter(this);
 
   @DomName('SVGMatrix.e')
   @DocsEditable()
-  void set e(num value) native "SVGMatrix_e_Setter";
+  void set e(num value) => _blink.Native_SVGMatrix_e_Setter(this, value);
 
   @DomName('SVGMatrix.f')
   @DocsEditable()
-  num get f native "SVGMatrix_f_Getter";
+  num get f => _blink.Native_SVGMatrix_f_Getter(this);
 
   @DomName('SVGMatrix.f')
   @DocsEditable()
-  void set f(num value) native "SVGMatrix_f_Setter";
+  void set f(num value) => _blink.Native_SVGMatrix_f_Setter(this, value);
 
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
-  Matrix flipX() native "SVGMatrix_flipX_Callback";
+  Matrix flipX() => _blink.Native_SVGMatrix_flipX_Callback(this);
 
   @DomName('SVGMatrix.flipY')
   @DocsEditable()
-  Matrix flipY() native "SVGMatrix_flipY_Callback";
+  Matrix flipY() => _blink.Native_SVGMatrix_flipY_Callback(this);
 
   @DomName('SVGMatrix.inverse')
   @DocsEditable()
-  Matrix inverse() native "SVGMatrix_inverse_Callback";
+  Matrix inverse() => _blink.Native_SVGMatrix_inverse_Callback(this);
 
   @DomName('SVGMatrix.multiply')
   @DocsEditable()
-  Matrix multiply(Matrix secondMatrix) native "SVGMatrix_multiply_Callback";
+  Matrix multiply(Matrix secondMatrix) => _blink.Native_SVGMatrix_multiply_Callback(this, secondMatrix);
 
   @DomName('SVGMatrix.rotate')
   @DocsEditable()
-  Matrix rotate(num angle) native "SVGMatrix_rotate_Callback";
+  Matrix rotate(num angle) => _blink.Native_SVGMatrix_rotate_Callback(this, angle);
 
   @DomName('SVGMatrix.rotateFromVector')
   @DocsEditable()
-  Matrix rotateFromVector(num x, num y) native "SVGMatrix_rotateFromVector_Callback";
+  Matrix rotateFromVector(num x, num y) => _blink.Native_SVGMatrix_rotateFromVector_Callback(this, x, y);
 
   @DomName('SVGMatrix.scale')
   @DocsEditable()
-  Matrix scale(num scaleFactor) native "SVGMatrix_scale_Callback";
+  Matrix scale(num scaleFactor) => _blink.Native_SVGMatrix_scale_Callback(this, scaleFactor);
 
   @DomName('SVGMatrix.scaleNonUniform')
   @DocsEditable()
-  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native "SVGMatrix_scaleNonUniform_Callback";
+  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => _blink.Native_SVGMatrix_scaleNonUniform_Callback(this, scaleFactorX, scaleFactorY);
 
   @DomName('SVGMatrix.skewX')
   @DocsEditable()
-  Matrix skewX(num angle) native "SVGMatrix_skewX_Callback";
+  Matrix skewX(num angle) => _blink.Native_SVGMatrix_skewX_Callback(this, angle);
 
   @DomName('SVGMatrix.skewY')
   @DocsEditable()
-  Matrix skewY(num angle) native "SVGMatrix_skewY_Callback";
+  Matrix skewY(num angle) => _blink.Native_SVGMatrix_skewY_Callback(this, angle);
 
   @DomName('SVGMatrix.translate')
   @DocsEditable()
-  Matrix translate(num x, num y) native "SVGMatrix_translate_Callback";
+  Matrix translate(num x, num y) => _blink.Native_SVGMatrix_translate_Callback(this, x, y);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3964,11 +3965,11 @@ class Number extends NativeFieldWrapperClass2 {
 
   @DomName('SVGNumber.value')
   @DocsEditable()
-  num get value native "SVGNumber_value_Getter";
+  num get value => _blink.Native_SVGNumber_value_Getter(this);
 
   @DomName('SVGNumber.value')
   @DocsEditable()
-  void set value(num value) native "SVGNumber_value_Setter";
+  void set value(num value) => _blink.Native_SVGNumber_value_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3987,7 +3988,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGNumberList_numberOfItems_Getter(this);
 
   Number operator[](int index) {
     if (index < 0 || index >= length)
@@ -4037,31 +4038,31 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number item) native "SVGNumberList_appendItem_Callback";
+  Number appendItem(Number item) => _blink.Native_SVGNumberList_appendItem_Callback(this, item);
 
   @DomName('SVGNumberList.clear')
   @DocsEditable()
-  void clear() native "SVGNumberList_clear_Callback";
+  void clear() => _blink.Native_SVGNumberList_clear_Callback(this);
 
   @DomName('SVGNumberList.getItem')
   @DocsEditable()
-  Number getItem(int index) native "SVGNumberList_getItem_Callback";
+  Number getItem(int index) => _blink.Native_SVGNumberList_getItem_Callback(this, index);
 
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number item) native "SVGNumberList_initialize_Callback";
+  Number initialize(Number item) => _blink.Native_SVGNumberList_initialize_Callback(this, item);
 
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number item, int index) native "SVGNumberList_insertItemBefore_Callback";
+  Number insertItemBefore(Number item, int index) => _blink.Native_SVGNumberList_insertItemBefore_Callback(this, item, index);
 
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
-  Number removeItem(int index) native "SVGNumberList_removeItem_Callback";
+  Number removeItem(int index) => _blink.Native_SVGNumberList_removeItem_Callback(this, index);
 
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number item, int index) native "SVGNumberList_replaceItem_Callback";
+  Number replaceItem(Number item, int index) => _blink.Native_SVGNumberList_replaceItem_Callback(this, item, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4090,111 +4091,111 @@ class PathElement extends GeometryElement {
 
   @DomName('SVGPathElement.animatedNormalizedPathSegList')
   @DocsEditable()
-  PathSegList get animatedNormalizedPathSegList native "SVGPathElement_animatedNormalizedPathSegList_Getter";
+  PathSegList get animatedNormalizedPathSegList => _blink.Native_SVGPathElement_animatedNormalizedPathSegList_Getter(this);
 
   @DomName('SVGPathElement.animatedPathSegList')
   @DocsEditable()
-  PathSegList get animatedPathSegList native "SVGPathElement_animatedPathSegList_Getter";
+  PathSegList get animatedPathSegList => _blink.Native_SVGPathElement_animatedPathSegList_Getter(this);
 
   @DomName('SVGPathElement.normalizedPathSegList')
   @DocsEditable()
-  PathSegList get normalizedPathSegList native "SVGPathElement_normalizedPathSegList_Getter";
+  PathSegList get normalizedPathSegList => _blink.Native_SVGPathElement_normalizedPathSegList_Getter(this);
 
   @DomName('SVGPathElement.pathLength')
   @DocsEditable()
-  AnimatedNumber get pathLength native "SVGPathElement_pathLength_Getter";
+  AnimatedNumber get pathLength => _blink.Native_SVGPathElement_pathLength_Getter(this);
 
   @DomName('SVGPathElement.pathSegList')
   @DocsEditable()
-  PathSegList get pathSegList native "SVGPathElement_pathSegList_Getter";
+  PathSegList get pathSegList => _blink.Native_SVGPathElement_pathSegList_Getter(this);
 
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
   @DocsEditable()
-  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.Native_SVGPathElement_createSVGPathSegArcAbs_Callback(this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
 
   @DomName('SVGPathElement.createSVGPathSegArcRel')
   @DocsEditable()
-  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.Native_SVGPathElement_createSVGPathSegArcRel_Callback(this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
 
   @DomName('SVGPathElement.createSVGPathSegClosePath')
   @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
+  PathSegClosePath createSvgPathSegClosePath() => _blink.Native_SVGPathElement_createSVGPathSegClosePath_Callback(this);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   @DocsEditable()
-  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback(this, x, y, x1, y1, x2, y2);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   @DocsEditable()
-  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback(this, x, y, x1, y1, x2, y2);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback(this, x, y, x2, y2);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback(this, x, y, x2, y2);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback(this, x, y, x1, y1);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback(this, x, y, x1, y1);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback(this, x, y);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback(this, x, y);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   @DocsEditable()
-  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegLinetoAbs_Callback(this, x, y);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   @DocsEditable()
-  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) => _blink.Native_SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback(this, x);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   @DocsEditable()
-  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) => _blink.Native_SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback(this, x);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   @DocsEditable()
-  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegLinetoRel_Callback(this, x, y);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   @DocsEditable()
-  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) => _blink.Native_SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback(this, y);
 
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   @DocsEditable()
-  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) => _blink.Native_SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback(this, y);
 
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   @DocsEditable()
-  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegMovetoAbs_Callback(this, x, y);
 
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   @DocsEditable()
-  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) => _blink.Native_SVGPathElement_createSVGPathSegMovetoRel_Callback(this, x, y);
 
   @DomName('SVGPathElement.getPathSegAtLength')
   @DocsEditable()
-  int getPathSegAtLength(num distance) native "SVGPathElement_getPathSegAtLength_Callback";
+  int getPathSegAtLength(num distance) => _blink.Native_SVGPathElement_getPathSegAtLength_Callback(this, distance);
 
   @DomName('SVGPathElement.getPointAtLength')
   @DocsEditable()
-  Point getPointAtLength(num distance) native "SVGPathElement_getPointAtLength_Callback";
+  Point getPointAtLength(num distance) => _blink.Native_SVGPathElement_getPointAtLength_Callback(this, distance);
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  double getTotalLength() native "SVGPathElement_getTotalLength_Callback";
+  double getTotalLength() => _blink.Native_SVGPathElement_getTotalLength_Callback(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4293,11 +4294,11 @@ class PathSeg extends NativeFieldWrapperClass2 {
 
   @DomName('SVGPathSeg.pathSegType')
   @DocsEditable()
-  int get pathSegType native "SVGPathSeg_pathSegType_Getter";
+  int get pathSegType => _blink.Native_SVGPathSeg_pathSegType_Getter(this);
 
   @DomName('SVGPathSeg.pathSegTypeAsLetter')
   @DocsEditable()
-  String get pathSegTypeAsLetter native "SVGPathSeg_pathSegTypeAsLetter_Getter";
+  String get pathSegTypeAsLetter => _blink.Native_SVGPathSeg_pathSegTypeAsLetter_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4316,59 +4317,59 @@ class PathSegArcAbs extends PathSeg {
 
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable()
-  num get angle native "SVGPathSegArcAbs_angle_Getter";
+  num get angle => _blink.Native_SVGPathSegArcAbs_angle_Getter(this);
 
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable()
-  void set angle(num value) native "SVGPathSegArcAbs_angle_Setter";
+  void set angle(num value) => _blink.Native_SVGPathSegArcAbs_angle_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
-  bool get largeArcFlag native "SVGPathSegArcAbs_largeArcFlag_Getter";
+  bool get largeArcFlag => _blink.Native_SVGPathSegArcAbs_largeArcFlag_Getter(this);
 
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
-  void set largeArcFlag(bool value) native "SVGPathSegArcAbs_largeArcFlag_Setter";
+  void set largeArcFlag(bool value) => _blink.Native_SVGPathSegArcAbs_largeArcFlag_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
-  num get r1 native "SVGPathSegArcAbs_r1_Getter";
+  num get r1 => _blink.Native_SVGPathSegArcAbs_r1_Getter(this);
 
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
-  void set r1(num value) native "SVGPathSegArcAbs_r1_Setter";
+  void set r1(num value) => _blink.Native_SVGPathSegArcAbs_r1_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
-  num get r2 native "SVGPathSegArcAbs_r2_Getter";
+  num get r2 => _blink.Native_SVGPathSegArcAbs_r2_Getter(this);
 
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
-  void set r2(num value) native "SVGPathSegArcAbs_r2_Setter";
+  void set r2(num value) => _blink.Native_SVGPathSegArcAbs_r2_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
-  bool get sweepFlag native "SVGPathSegArcAbs_sweepFlag_Getter";
+  bool get sweepFlag => _blink.Native_SVGPathSegArcAbs_sweepFlag_Getter(this);
 
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
-  void set sweepFlag(bool value) native "SVGPathSegArcAbs_sweepFlag_Setter";
+  void set sweepFlag(bool value) => _blink.Native_SVGPathSegArcAbs_sweepFlag_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegArcAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegArcAbs_x_Getter(this);
 
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegArcAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegArcAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegArcAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegArcAbs_y_Getter(this);
 
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegArcAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegArcAbs_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4387,59 +4388,59 @@ class PathSegArcRel extends PathSeg {
 
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable()
-  num get angle native "SVGPathSegArcRel_angle_Getter";
+  num get angle => _blink.Native_SVGPathSegArcRel_angle_Getter(this);
 
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable()
-  void set angle(num value) native "SVGPathSegArcRel_angle_Setter";
+  void set angle(num value) => _blink.Native_SVGPathSegArcRel_angle_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
-  bool get largeArcFlag native "SVGPathSegArcRel_largeArcFlag_Getter";
+  bool get largeArcFlag => _blink.Native_SVGPathSegArcRel_largeArcFlag_Getter(this);
 
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
-  void set largeArcFlag(bool value) native "SVGPathSegArcRel_largeArcFlag_Setter";
+  void set largeArcFlag(bool value) => _blink.Native_SVGPathSegArcRel_largeArcFlag_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
-  num get r1 native "SVGPathSegArcRel_r1_Getter";
+  num get r1 => _blink.Native_SVGPathSegArcRel_r1_Getter(this);
 
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
-  void set r1(num value) native "SVGPathSegArcRel_r1_Setter";
+  void set r1(num value) => _blink.Native_SVGPathSegArcRel_r1_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
-  num get r2 native "SVGPathSegArcRel_r2_Getter";
+  num get r2 => _blink.Native_SVGPathSegArcRel_r2_Getter(this);
 
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
-  void set r2(num value) native "SVGPathSegArcRel_r2_Setter";
+  void set r2(num value) => _blink.Native_SVGPathSegArcRel_r2_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
-  bool get sweepFlag native "SVGPathSegArcRel_sweepFlag_Getter";
+  bool get sweepFlag => _blink.Native_SVGPathSegArcRel_sweepFlag_Getter(this);
 
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
-  void set sweepFlag(bool value) native "SVGPathSegArcRel_sweepFlag_Setter";
+  void set sweepFlag(bool value) => _blink.Native_SVGPathSegArcRel_sweepFlag_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegArcRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegArcRel_x_Getter(this);
 
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegArcRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegArcRel_x_Setter(this, value);
 
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegArcRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegArcRel_y_Getter(this);
 
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegArcRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegArcRel_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4473,51 +4474,51 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoCubicAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoCubicAbs_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoCubicAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
-  num get x1 native "SVGPathSegCurvetoCubicAbs_x1_Getter";
+  num get x1 => _blink.Native_SVGPathSegCurvetoCubicAbs_x1_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
-  void set x1(num value) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
+  void set x1(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_x1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
-  num get x2 native "SVGPathSegCurvetoCubicAbs_x2_Getter";
+  num get x2 => _blink.Native_SVGPathSegCurvetoCubicAbs_x2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
-  void set x2(num value) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
+  void set x2(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_x2_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoCubicAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoCubicAbs_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoCubicAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
-  num get y1 native "SVGPathSegCurvetoCubicAbs_y1_Getter";
+  num get y1 => _blink.Native_SVGPathSegCurvetoCubicAbs_y1_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
-  void set y1(num value) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
+  void set y1(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_y1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
-  num get y2 native "SVGPathSegCurvetoCubicAbs_y2_Getter";
+  num get y2 => _blink.Native_SVGPathSegCurvetoCubicAbs_y2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
-  void set y2(num value) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
+  void set y2(num value) => _blink.Native_SVGPathSegCurvetoCubicAbs_y2_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4536,51 +4537,51 @@ class PathSegCurvetoCubicRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoCubicRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoCubicRel_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoCubicRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
-  num get x1 native "SVGPathSegCurvetoCubicRel_x1_Getter";
+  num get x1 => _blink.Native_SVGPathSegCurvetoCubicRel_x1_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
-  void set x1(num value) native "SVGPathSegCurvetoCubicRel_x1_Setter";
+  void set x1(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_x1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
-  num get x2 native "SVGPathSegCurvetoCubicRel_x2_Getter";
+  num get x2 => _blink.Native_SVGPathSegCurvetoCubicRel_x2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
-  void set x2(num value) native "SVGPathSegCurvetoCubicRel_x2_Setter";
+  void set x2(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_x2_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoCubicRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoCubicRel_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoCubicRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
-  num get y1 native "SVGPathSegCurvetoCubicRel_y1_Getter";
+  num get y1 => _blink.Native_SVGPathSegCurvetoCubicRel_y1_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
-  void set y1(num value) native "SVGPathSegCurvetoCubicRel_y1_Setter";
+  void set y1(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_y1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
-  num get y2 native "SVGPathSegCurvetoCubicRel_y2_Getter";
+  num get y2 => _blink.Native_SVGPathSegCurvetoCubicRel_y2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
-  void set y2(num value) native "SVGPathSegCurvetoCubicRel_y2_Setter";
+  void set y2(num value) => _blink.Native_SVGPathSegCurvetoCubicRel_y2_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4599,35 +4600,35 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
-  num get x2 native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
+  num get x2 => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_x2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
-  void set x2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
+  void set x2(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_x2_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
-  num get y2 native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
+  num get y2 => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_y2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
-  void set y2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
+  void set y2(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothAbs_y2_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4646,35 +4647,35 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
-  num get x2 native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
+  num get x2 => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_x2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
-  void set x2(num value) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
+  void set x2(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_x2_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
-  num get y2 native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
+  num get y2 => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_y2_Getter(this);
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
-  void set y2(num value) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
+  void set y2(num value) => _blink.Native_SVGPathSegCurvetoCubicSmoothRel_y2_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4693,35 +4694,35 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoQuadraticAbs_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoQuadraticAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
-  num get x1 native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
+  num get x1 => _blink.Native_SVGPathSegCurvetoQuadraticAbs_x1_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
-  void set x1(num value) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
+  void set x1(num value) => _blink.Native_SVGPathSegCurvetoQuadraticAbs_x1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoQuadraticAbs_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoQuadraticAbs_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
-  num get y1 native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
+  num get y1 => _blink.Native_SVGPathSegCurvetoQuadraticAbs_y1_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
-  void set y1(num value) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
+  void set y1(num value) => _blink.Native_SVGPathSegCurvetoQuadraticAbs_y1_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4740,35 +4741,35 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoQuadraticRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoQuadraticRel_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoQuadraticRel_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
-  num get x1 native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
+  num get x1 => _blink.Native_SVGPathSegCurvetoQuadraticRel_x1_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
-  void set x1(num value) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
+  void set x1(num value) => _blink.Native_SVGPathSegCurvetoQuadraticRel_x1_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoQuadraticRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoQuadraticRel_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoQuadraticRel_y_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
-  num get y1 native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
+  num get y1 => _blink.Native_SVGPathSegCurvetoQuadraticRel_y1_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
-  void set y1(num value) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
+  void set y1(num value) => _blink.Native_SVGPathSegCurvetoQuadraticRel_y1_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4787,19 +4788,19 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4818,19 +4819,19 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegCurvetoQuadraticSmoothRel_x_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegCurvetoQuadraticSmoothRel_x_Setter(this, value);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegCurvetoQuadraticSmoothRel_y_Getter(this);
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegCurvetoQuadraticSmoothRel_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4849,19 +4850,19 @@ class PathSegLinetoAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegLinetoAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegLinetoAbs_x_Getter(this);
 
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegLinetoAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegLinetoAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegLinetoAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegLinetoAbs_y_Getter(this);
 
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegLinetoAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegLinetoAbs_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4880,11 +4881,11 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegLinetoHorizontalAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegLinetoHorizontalAbs_x_Getter(this);
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegLinetoHorizontalAbs_x_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4903,11 +4904,11 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegLinetoHorizontalRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegLinetoHorizontalRel_x_Getter(this);
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegLinetoHorizontalRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegLinetoHorizontalRel_x_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4926,19 +4927,19 @@ class PathSegLinetoRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegLinetoRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegLinetoRel_x_Getter(this);
 
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegLinetoRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegLinetoRel_x_Setter(this, value);
 
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegLinetoRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegLinetoRel_y_Getter(this);
 
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegLinetoRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegLinetoRel_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4957,11 +4958,11 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegLinetoVerticalAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegLinetoVerticalAbs_y_Getter(this);
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegLinetoVerticalAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegLinetoVerticalAbs_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4980,11 +4981,11 @@ class PathSegLinetoVerticalRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegLinetoVerticalRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegLinetoVerticalRel_y_Getter(this);
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegLinetoVerticalRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegLinetoVerticalRel_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5003,7 +5004,7 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGPathSegList_numberOfItems_Getter(this);
 
   PathSeg operator[](int index) {
     if (index < 0 || index >= length)
@@ -5053,31 +5054,31 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
 
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
-  PathSeg appendItem(PathSeg newItem) native "SVGPathSegList_appendItem_Callback";
+  PathSeg appendItem(PathSeg newItem) => _blink.Native_SVGPathSegList_appendItem_Callback(this, newItem);
 
   @DomName('SVGPathSegList.clear')
   @DocsEditable()
-  void clear() native "SVGPathSegList_clear_Callback";
+  void clear() => _blink.Native_SVGPathSegList_clear_Callback(this);
 
   @DomName('SVGPathSegList.getItem')
   @DocsEditable()
-  PathSeg getItem(int index) native "SVGPathSegList_getItem_Callback";
+  PathSeg getItem(int index) => _blink.Native_SVGPathSegList_getItem_Callback(this, index);
 
   @DomName('SVGPathSegList.initialize')
   @DocsEditable()
-  PathSeg initialize(PathSeg newItem) native "SVGPathSegList_initialize_Callback";
+  PathSeg initialize(PathSeg newItem) => _blink.Native_SVGPathSegList_initialize_Callback(this, newItem);
 
   @DomName('SVGPathSegList.insertItemBefore')
   @DocsEditable()
-  PathSeg insertItemBefore(PathSeg newItem, int index) native "SVGPathSegList_insertItemBefore_Callback";
+  PathSeg insertItemBefore(PathSeg newItem, int index) => _blink.Native_SVGPathSegList_insertItemBefore_Callback(this, newItem, index);
 
   @DomName('SVGPathSegList.removeItem')
   @DocsEditable()
-  PathSeg removeItem(int index) native "SVGPathSegList_removeItem_Callback";
+  PathSeg removeItem(int index) => _blink.Native_SVGPathSegList_removeItem_Callback(this, index);
 
   @DomName('SVGPathSegList.replaceItem')
   @DocsEditable()
-  PathSeg replaceItem(PathSeg newItem, int index) native "SVGPathSegList_replaceItem_Callback";
+  PathSeg replaceItem(PathSeg newItem, int index) => _blink.Native_SVGPathSegList_replaceItem_Callback(this, newItem, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5096,19 +5097,19 @@ class PathSegMovetoAbs extends PathSeg {
 
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable()
-  num get x native "SVGPathSegMovetoAbs_x_Getter";
+  num get x => _blink.Native_SVGPathSegMovetoAbs_x_Getter(this);
 
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegMovetoAbs_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegMovetoAbs_x_Setter(this, value);
 
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
-  num get y native "SVGPathSegMovetoAbs_y_Getter";
+  num get y => _blink.Native_SVGPathSegMovetoAbs_y_Getter(this);
 
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegMovetoAbs_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegMovetoAbs_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5127,19 +5128,19 @@ class PathSegMovetoRel extends PathSeg {
 
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable()
-  num get x native "SVGPathSegMovetoRel_x_Getter";
+  num get x => _blink.Native_SVGPathSegMovetoRel_x_Getter(this);
 
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable()
-  void set x(num value) native "SVGPathSegMovetoRel_x_Setter";
+  void set x(num value) => _blink.Native_SVGPathSegMovetoRel_x_Setter(this, value);
 
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
-  num get y native "SVGPathSegMovetoRel_y_Getter";
+  num get y => _blink.Native_SVGPathSegMovetoRel_y_Getter(this);
 
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
-  void set y(num value) native "SVGPathSegMovetoRel_y_Setter";
+  void set y(num value) => _blink.Native_SVGPathSegMovetoRel_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5168,59 +5169,59 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 
   @DomName('SVGPatternElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGPatternElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGPatternElement_height_Getter(this);
 
   @DomName('SVGPatternElement.patternContentUnits')
   @DocsEditable()
-  AnimatedEnumeration get patternContentUnits native "SVGPatternElement_patternContentUnits_Getter";
+  AnimatedEnumeration get patternContentUnits => _blink.Native_SVGPatternElement_patternContentUnits_Getter(this);
 
   @DomName('SVGPatternElement.patternTransform')
   @DocsEditable()
-  AnimatedTransformList get patternTransform native "SVGPatternElement_patternTransform_Getter";
+  AnimatedTransformList get patternTransform => _blink.Native_SVGPatternElement_patternTransform_Getter(this);
 
   @DomName('SVGPatternElement.patternUnits')
   @DocsEditable()
-  AnimatedEnumeration get patternUnits native "SVGPatternElement_patternUnits_Getter";
+  AnimatedEnumeration get patternUnits => _blink.Native_SVGPatternElement_patternUnits_Getter(this);
 
   @DomName('SVGPatternElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGPatternElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGPatternElement_width_Getter(this);
 
   @DomName('SVGPatternElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGPatternElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGPatternElement_x_Getter(this);
 
   @DomName('SVGPatternElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGPatternElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGPatternElement_y_Getter(this);
 
   @DomName('SVGPatternElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGPatternElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGPatternElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGPatternElement_viewBox_Getter(this);
 
   @DomName('SVGPatternElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGPatternElement_requiredExtensions_Getter(this);
 
   @DomName('SVGPatternElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGPatternElement_requiredFeatures_Getter(this);
 
   @DomName('SVGPatternElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGPatternElement_systemLanguage_Getter(this);
 
   @DomName('SVGPatternElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGPatternElement_hasExtension_Callback(this, extension);
 
   @DomName('SVGPatternElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGPatternElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGPatternElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5239,23 +5240,23 @@ class Point extends NativeFieldWrapperClass2 {
 
   @DomName('SVGPoint.x')
   @DocsEditable()
-  num get x native "SVGPoint_x_Getter";
+  num get x => _blink.Native_SVGPoint_x_Getter(this);
 
   @DomName('SVGPoint.x')
   @DocsEditable()
-  void set x(num value) native "SVGPoint_x_Setter";
+  void set x(num value) => _blink.Native_SVGPoint_x_Setter(this, value);
 
   @DomName('SVGPoint.y')
   @DocsEditable()
-  num get y native "SVGPoint_y_Getter";
+  num get y => _blink.Native_SVGPoint_y_Getter(this);
 
   @DomName('SVGPoint.y')
   @DocsEditable()
-  void set y(num value) native "SVGPoint_y_Setter";
+  void set y(num value) => _blink.Native_SVGPoint_y_Setter(this, value);
 
   @DomName('SVGPoint.matrixTransform')
   @DocsEditable()
-  Point matrixTransform(Matrix matrix) native "SVGPoint_matrixTransform_Callback";
+  Point matrixTransform(Matrix matrix) => _blink.Native_SVGPoint_matrixTransform_Callback(this, matrix);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5274,35 +5275,35 @@ class PointList extends NativeFieldWrapperClass2 {
 
   @DomName('SVGPointList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGPointList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGPointList_numberOfItems_Getter(this);
 
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point item) native "SVGPointList_appendItem_Callback";
+  Point appendItem(Point item) => _blink.Native_SVGPointList_appendItem_Callback(this, item);
 
   @DomName('SVGPointList.clear')
   @DocsEditable()
-  void clear() native "SVGPointList_clear_Callback";
+  void clear() => _blink.Native_SVGPointList_clear_Callback(this);
 
   @DomName('SVGPointList.getItem')
   @DocsEditable()
-  Point getItem(int index) native "SVGPointList_getItem_Callback";
+  Point getItem(int index) => _blink.Native_SVGPointList_getItem_Callback(this, index);
 
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point item) native "SVGPointList_initialize_Callback";
+  Point initialize(Point item) => _blink.Native_SVGPointList_initialize_Callback(this, item);
 
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point item, int index) native "SVGPointList_insertItemBefore_Callback";
+  Point insertItemBefore(Point item, int index) => _blink.Native_SVGPointList_insertItemBefore_Callback(this, item, index);
 
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
-  Point removeItem(int index) native "SVGPointList_removeItem_Callback";
+  Point removeItem(int index) => _blink.Native_SVGPointList_removeItem_Callback(this, index);
 
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point item, int index) native "SVGPointList_replaceItem_Callback";
+  Point replaceItem(Point item, int index) => _blink.Native_SVGPointList_replaceItem_Callback(this, item, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5331,11 +5332,11 @@ class PolygonElement extends GeometryElement {
 
   @DomName('SVGPolygonElement.animatedPoints')
   @DocsEditable()
-  PointList get animatedPoints native "SVGPolygonElement_animatedPoints_Getter";
+  PointList get animatedPoints => _blink.Native_SVGPolygonElement_animatedPoints_Getter(this);
 
   @DomName('SVGPolygonElement.points')
   @DocsEditable()
-  PointList get points native "SVGPolygonElement_points_Getter";
+  PointList get points => _blink.Native_SVGPolygonElement_points_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5364,11 +5365,11 @@ class PolylineElement extends GeometryElement {
 
   @DomName('SVGPolylineElement.animatedPoints')
   @DocsEditable()
-  PointList get animatedPoints native "SVGPolylineElement_animatedPoints_Getter";
+  PointList get animatedPoints => _blink.Native_SVGPolylineElement_animatedPoints_Getter(this);
 
   @DomName('SVGPolylineElement.points')
   @DocsEditable()
-  PointList get points native "SVGPolylineElement_points_Getter";
+  PointList get points => _blink.Native_SVGPolylineElement_points_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5443,19 +5444,19 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
 
   @DomName('SVGPreserveAspectRatio.align')
   @DocsEditable()
-  int get align native "SVGPreserveAspectRatio_align_Getter";
+  int get align => _blink.Native_SVGPreserveAspectRatio_align_Getter(this);
 
   @DomName('SVGPreserveAspectRatio.align')
   @DocsEditable()
-  void set align(int value) native "SVGPreserveAspectRatio_align_Setter";
+  void set align(int value) => _blink.Native_SVGPreserveAspectRatio_align_Setter(this, value);
 
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
-  int get meetOrSlice native "SVGPreserveAspectRatio_meetOrSlice_Getter";
+  int get meetOrSlice => _blink.Native_SVGPreserveAspectRatio_meetOrSlice_Getter(this);
 
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
-  void set meetOrSlice(int value) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
+  void set meetOrSlice(int value) => _blink.Native_SVGPreserveAspectRatio_meetOrSlice_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5484,27 +5485,27 @@ class RadialGradientElement extends _GradientElement {
 
   @DomName('SVGRadialGradientElement.cx')
   @DocsEditable()
-  AnimatedLength get cx native "SVGRadialGradientElement_cx_Getter";
+  AnimatedLength get cx => _blink.Native_SVGRadialGradientElement_cx_Getter(this);
 
   @DomName('SVGRadialGradientElement.cy')
   @DocsEditable()
-  AnimatedLength get cy native "SVGRadialGradientElement_cy_Getter";
+  AnimatedLength get cy => _blink.Native_SVGRadialGradientElement_cy_Getter(this);
 
   @DomName('SVGRadialGradientElement.fr')
   @DocsEditable()
-  AnimatedLength get fr native "SVGRadialGradientElement_fr_Getter";
+  AnimatedLength get fr => _blink.Native_SVGRadialGradientElement_fr_Getter(this);
 
   @DomName('SVGRadialGradientElement.fx')
   @DocsEditable()
-  AnimatedLength get fx native "SVGRadialGradientElement_fx_Getter";
+  AnimatedLength get fx => _blink.Native_SVGRadialGradientElement_fx_Getter(this);
 
   @DomName('SVGRadialGradientElement.fy')
   @DocsEditable()
-  AnimatedLength get fy native "SVGRadialGradientElement_fy_Getter";
+  AnimatedLength get fy => _blink.Native_SVGRadialGradientElement_fy_Getter(this);
 
   @DomName('SVGRadialGradientElement.r')
   @DocsEditable()
-  AnimatedLength get r native "SVGRadialGradientElement_r_Getter";
+  AnimatedLength get r => _blink.Native_SVGRadialGradientElement_r_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5523,35 +5524,35 @@ class Rect extends NativeFieldWrapperClass2 {
 
   @DomName('SVGRect.height')
   @DocsEditable()
-  num get height native "SVGRect_height_Getter";
+  num get height => _blink.Native_SVGRect_height_Getter(this);
 
   @DomName('SVGRect.height')
   @DocsEditable()
-  void set height(num value) native "SVGRect_height_Setter";
+  void set height(num value) => _blink.Native_SVGRect_height_Setter(this, value);
 
   @DomName('SVGRect.width')
   @DocsEditable()
-  num get width native "SVGRect_width_Getter";
+  num get width => _blink.Native_SVGRect_width_Getter(this);
 
   @DomName('SVGRect.width')
   @DocsEditable()
-  void set width(num value) native "SVGRect_width_Setter";
+  void set width(num value) => _blink.Native_SVGRect_width_Setter(this, value);
 
   @DomName('SVGRect.x')
   @DocsEditable()
-  num get x native "SVGRect_x_Getter";
+  num get x => _blink.Native_SVGRect_x_Getter(this);
 
   @DomName('SVGRect.x')
   @DocsEditable()
-  void set x(num value) native "SVGRect_x_Setter";
+  void set x(num value) => _blink.Native_SVGRect_x_Setter(this, value);
 
   @DomName('SVGRect.y')
   @DocsEditable()
-  num get y native "SVGRect_y_Getter";
+  num get y => _blink.Native_SVGRect_y_Getter(this);
 
   @DomName('SVGRect.y')
   @DocsEditable()
-  void set y(num value) native "SVGRect_y_Setter";
+  void set y(num value) => _blink.Native_SVGRect_y_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5580,27 +5581,27 @@ class RectElement extends GeometryElement {
 
   @DomName('SVGRectElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGRectElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGRectElement_height_Getter(this);
 
   @DomName('SVGRectElement.rx')
   @DocsEditable()
-  AnimatedLength get rx native "SVGRectElement_rx_Getter";
+  AnimatedLength get rx => _blink.Native_SVGRectElement_rx_Getter(this);
 
   @DomName('SVGRectElement.ry')
   @DocsEditable()
-  AnimatedLength get ry native "SVGRectElement_ry_Getter";
+  AnimatedLength get ry => _blink.Native_SVGRectElement_ry_Getter(this);
 
   @DomName('SVGRectElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGRectElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGRectElement_width_Getter(this);
 
   @DomName('SVGRectElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGRectElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGRectElement_x_Getter(this);
 
   @DomName('SVGRectElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGRectElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGRectElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5668,15 +5669,15 @@ class ScriptElement extends SvgElement implements UriReference {
 
   @DomName('SVGScriptElement.type')
   @DocsEditable()
-  String get type native "SVGScriptElement_type_Getter";
+  String get type => _blink.Native_SVGScriptElement_type_Getter(this);
 
   @DomName('SVGScriptElement.type')
   @DocsEditable()
-  void set type(String value) native "SVGScriptElement_type_Setter";
+  void set type(String value) => _blink.Native_SVGScriptElement_type_Setter(this, value);
 
   @DomName('SVGScriptElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGScriptElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGScriptElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5736,7 +5737,7 @@ class StopElement extends SvgElement {
 
   @DomName('SVGStopElement.offset')
   @DocsEditable()
-  AnimatedNumber get gradientOffset native "SVGStopElement_offset_Getter";
+  AnimatedNumber get gradientOffset => _blink.Native_SVGStopElement_offset_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5755,7 +5756,7 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGStringList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGStringList_numberOfItems_Getter(this);
 
   String operator[](int index) {
     if (index < 0 || index >= length)
@@ -5805,31 +5806,31 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
 
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
-  String appendItem(String item) native "SVGStringList_appendItem_Callback";
+  String appendItem(String item) => _blink.Native_SVGStringList_appendItem_Callback(this, item);
 
   @DomName('SVGStringList.clear')
   @DocsEditable()
-  void clear() native "SVGStringList_clear_Callback";
+  void clear() => _blink.Native_SVGStringList_clear_Callback(this);
 
   @DomName('SVGStringList.getItem')
   @DocsEditable()
-  String getItem(int index) native "SVGStringList_getItem_Callback";
+  String getItem(int index) => _blink.Native_SVGStringList_getItem_Callback(this, index);
 
   @DomName('SVGStringList.initialize')
   @DocsEditable()
-  String initialize(String item) native "SVGStringList_initialize_Callback";
+  String initialize(String item) => _blink.Native_SVGStringList_initialize_Callback(this, item);
 
   @DomName('SVGStringList.insertItemBefore')
   @DocsEditable()
-  String insertItemBefore(String item, int index) native "SVGStringList_insertItemBefore_Callback";
+  String insertItemBefore(String item, int index) => _blink.Native_SVGStringList_insertItemBefore_Callback(this, item, index);
 
   @DomName('SVGStringList.removeItem')
   @DocsEditable()
-  String removeItem(int index) native "SVGStringList_removeItem_Callback";
+  String removeItem(int index) => _blink.Native_SVGStringList_removeItem_Callback(this, index);
 
   @DomName('SVGStringList.replaceItem')
   @DocsEditable()
-  String replaceItem(String item, int index) native "SVGStringList_replaceItem_Callback";
+  String replaceItem(String item, int index) => _blink.Native_SVGStringList_replaceItem_Callback(this, item, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5859,35 +5860,35 @@ class StyleElement extends SvgElement {
 
   @DomName('SVGStyleElement.disabled')
   @DocsEditable()
-  bool get disabled native "SVGStyleElement_disabled_Getter";
+  bool get disabled => _blink.Native_SVGStyleElement_disabled_Getter(this);
 
   @DomName('SVGStyleElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) native "SVGStyleElement_disabled_Setter";
+  void set disabled(bool value) => _blink.Native_SVGStyleElement_disabled_Setter(this, value);
 
   @DomName('SVGStyleElement.media')
   @DocsEditable()
-  String get media native "SVGStyleElement_media_Getter";
+  String get media => _blink.Native_SVGStyleElement_media_Getter(this);
 
   @DomName('SVGStyleElement.media')
   @DocsEditable()
-  void set media(String value) native "SVGStyleElement_media_Setter";
+  void set media(String value) => _blink.Native_SVGStyleElement_media_Setter(this, value);
 
   @DomName('SVGStyleElement.title')
   @DocsEditable()
-  String get title native "SVGStyleElement_title_Getter";
+  String get title => _blink.Native_SVGStyleElement_title_Getter(this);
 
   @DomName('SVGStyleElement.title')
   @DocsEditable()
-  void set title(String value) native "SVGStyleElement_title_Setter";
+  void set title(String value) => _blink.Native_SVGStyleElement_title_Setter(this, value);
 
   @DomName('SVGStyleElement.type')
   @DocsEditable()
-  String get type native "SVGStyleElement_type_Getter";
+  String get type => _blink.Native_SVGStyleElement_type_Getter(this);
 
   @DomName('SVGStyleElement.type')
   @DocsEditable()
-  void set type(String value) native "SVGStyleElement_type_Setter";
+  void set type(String value) => _blink.Native_SVGStyleElement_type_Setter(this, value);
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6313,48 +6314,48 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.className')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedString get _svgClassName native "SVGElement_className_Getter";
+  AnimatedString get _svgClassName => _blink.Native_SVGElement_className_Getter(this);
 
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()
-  SvgSvgElement get ownerSvgElement native "SVGElement_ownerSVGElement_Getter";
+  SvgSvgElement get ownerSvgElement => _blink.Native_SVGElement_ownerSVGElement_Getter(this);
 
   @DomName('SVGElement.style')
   @DocsEditable()
   @Experimental() // untriaged
-  CssStyleDeclaration get style native "SVGElement_style_Getter";
+  CssStyleDeclaration get style => _blink.Native_SVGElement_style_Getter(this);
 
   @DomName('SVGElement.viewportElement')
   @DocsEditable()
-  SvgElement get viewportElement native "SVGElement_viewportElement_Getter";
+  SvgElement get viewportElement => _blink.Native_SVGElement_viewportElement_Getter(this);
 
   @DomName('SVGElement.xmlbase')
   @DocsEditable()
-  String get xmlbase native "SVGElement_xmlbase_Getter";
+  String get xmlbase => _blink.Native_SVGElement_xmlbase_Getter(this);
 
   @DomName('SVGElement.xmlbase')
   @DocsEditable()
-  void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
+  void set xmlbase(String value) => _blink.Native_SVGElement_xmlbase_Setter(this, value);
 
   @DomName('SVGElement.xmllang')
   @DocsEditable()
   @Experimental() // untriaged
-  String get xmllang native "SVGElement_xmllang_Getter";
+  String get xmllang => _blink.Native_SVGElement_xmllang_Getter(this);
 
   @DomName('SVGElement.xmllang')
   @DocsEditable()
   @Experimental() // untriaged
-  void set xmllang(String value) native "SVGElement_xmllang_Setter";
+  void set xmllang(String value) => _blink.Native_SVGElement_xmllang_Setter(this, value);
 
   @DomName('SVGElement.xmlspace')
   @DocsEditable()
   @Experimental() // untriaged
-  String get xmlspace native "SVGElement_xmlspace_Getter";
+  String get xmlspace => _blink.Native_SVGElement_xmlspace_Getter(this);
 
   @DomName('SVGElement.xmlspace')
   @DocsEditable()
   @Experimental() // untriaged
-  void set xmlspace(String value) native "SVGElement_xmlspace_Setter";
+  void set xmlspace(String value) => _blink.Native_SVGElement_xmlspace_Setter(this, value);
 
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -6643,183 +6644,183 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.contentScriptType')
   @DocsEditable()
-  String get contentScriptType native "SVGSVGElement_contentScriptType_Getter";
+  String get contentScriptType => _blink.Native_SVGSVGElement_contentScriptType_Getter(this);
 
   @DomName('SVGSVGElement.contentScriptType')
   @DocsEditable()
-  void set contentScriptType(String value) native "SVGSVGElement_contentScriptType_Setter";
+  void set contentScriptType(String value) => _blink.Native_SVGSVGElement_contentScriptType_Setter(this, value);
 
   @DomName('SVGSVGElement.contentStyleType')
   @DocsEditable()
-  String get contentStyleType native "SVGSVGElement_contentStyleType_Getter";
+  String get contentStyleType => _blink.Native_SVGSVGElement_contentStyleType_Getter(this);
 
   @DomName('SVGSVGElement.contentStyleType')
   @DocsEditable()
-  void set contentStyleType(String value) native "SVGSVGElement_contentStyleType_Setter";
+  void set contentStyleType(String value) => _blink.Native_SVGSVGElement_contentStyleType_Setter(this, value);
 
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
-  num get currentScale native "SVGSVGElement_currentScale_Getter";
+  num get currentScale => _blink.Native_SVGSVGElement_currentScale_Getter(this);
 
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
-  void set currentScale(num value) native "SVGSVGElement_currentScale_Setter";
+  void set currentScale(num value) => _blink.Native_SVGSVGElement_currentScale_Setter(this, value);
 
   @DomName('SVGSVGElement.currentTranslate')
   @DocsEditable()
-  Point get currentTranslate native "SVGSVGElement_currentTranslate_Getter";
+  Point get currentTranslate => _blink.Native_SVGSVGElement_currentTranslate_Getter(this);
 
   @DomName('SVGSVGElement.currentView')
   @DocsEditable()
-  ViewSpec get currentView native "SVGSVGElement_currentView_Getter";
+  ViewSpec get currentView => _blink.Native_SVGSVGElement_currentView_Getter(this);
 
   @DomName('SVGSVGElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGSVGElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGSVGElement_height_Getter(this);
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  double get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
+  double get pixelUnitToMillimeterX => _blink.Native_SVGSVGElement_pixelUnitToMillimeterX_Getter(this);
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  double get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
+  double get pixelUnitToMillimeterY => _blink.Native_SVGSVGElement_pixelUnitToMillimeterY_Getter(this);
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  double get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
+  double get screenPixelToMillimeterX => _blink.Native_SVGSVGElement_screenPixelToMillimeterX_Getter(this);
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  double get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
+  double get screenPixelToMillimeterY => _blink.Native_SVGSVGElement_screenPixelToMillimeterY_Getter(this);
 
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
-  bool get useCurrentView native "SVGSVGElement_useCurrentView_Getter";
+  bool get useCurrentView => _blink.Native_SVGSVGElement_useCurrentView_Getter(this);
 
   @DomName('SVGSVGElement.viewport')
   @DocsEditable()
-  Rect get viewport native "SVGSVGElement_viewport_Getter";
+  Rect get viewport => _blink.Native_SVGSVGElement_viewport_Getter(this);
 
   @DomName('SVGSVGElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGSVGElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGSVGElement_width_Getter(this);
 
   @DomName('SVGSVGElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGSVGElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGSVGElement_x_Getter(this);
 
   @DomName('SVGSVGElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGSVGElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGSVGElement_y_Getter(this);
 
   @DomName('SVGSVGElement.animationsPaused')
   @DocsEditable()
-  bool animationsPaused() native "SVGSVGElement_animationsPaused_Callback";
+  bool animationsPaused() => _blink.Native_SVGSVGElement_animationsPaused_Callback(this);
 
   @DomName('SVGSVGElement.checkEnclosure')
   @DocsEditable()
-  bool checkEnclosure(SvgElement element, Rect rect) native "SVGSVGElement_checkEnclosure_Callback";
+  bool checkEnclosure(SvgElement element, Rect rect) => _blink.Native_SVGSVGElement_checkEnclosure_Callback(this, element, rect);
 
   @DomName('SVGSVGElement.checkIntersection')
   @DocsEditable()
-  bool checkIntersection(SvgElement element, Rect rect) native "SVGSVGElement_checkIntersection_Callback";
+  bool checkIntersection(SvgElement element, Rect rect) => _blink.Native_SVGSVGElement_checkIntersection_Callback(this, element, rect);
 
   @DomName('SVGSVGElement.createSVGAngle')
   @DocsEditable()
-  Angle createSvgAngle() native "SVGSVGElement_createSVGAngle_Callback";
+  Angle createSvgAngle() => _blink.Native_SVGSVGElement_createSVGAngle_Callback(this);
 
   @DomName('SVGSVGElement.createSVGLength')
   @DocsEditable()
-  Length createSvgLength() native "SVGSVGElement_createSVGLength_Callback";
+  Length createSvgLength() => _blink.Native_SVGSVGElement_createSVGLength_Callback(this);
 
   @DomName('SVGSVGElement.createSVGMatrix')
   @DocsEditable()
-  Matrix createSvgMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
+  Matrix createSvgMatrix() => _blink.Native_SVGSVGElement_createSVGMatrix_Callback(this);
 
   @DomName('SVGSVGElement.createSVGNumber')
   @DocsEditable()
-  Number createSvgNumber() native "SVGSVGElement_createSVGNumber_Callback";
+  Number createSvgNumber() => _blink.Native_SVGSVGElement_createSVGNumber_Callback(this);
 
   @DomName('SVGSVGElement.createSVGPoint')
   @DocsEditable()
-  Point createSvgPoint() native "SVGSVGElement_createSVGPoint_Callback";
+  Point createSvgPoint() => _blink.Native_SVGSVGElement_createSVGPoint_Callback(this);
 
   @DomName('SVGSVGElement.createSVGRect')
   @DocsEditable()
-  Rect createSvgRect() native "SVGSVGElement_createSVGRect_Callback";
+  Rect createSvgRect() => _blink.Native_SVGSVGElement_createSVGRect_Callback(this);
 
   @DomName('SVGSVGElement.createSVGTransform')
   @DocsEditable()
-  Transform createSvgTransform() native "SVGSVGElement_createSVGTransform_Callback";
+  Transform createSvgTransform() => _blink.Native_SVGSVGElement_createSVGTransform_Callback(this);
 
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
+  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.Native_SVGSVGElement_createSVGTransformFromMatrix_Callback(this, matrix);
 
   @DomName('SVGSVGElement.deselectAll')
   @DocsEditable()
-  void deselectAll() native "SVGSVGElement_deselectAll_Callback";
+  void deselectAll() => _blink.Native_SVGSVGElement_deselectAll_Callback(this);
 
   @DomName('SVGSVGElement.forceRedraw')
   @DocsEditable()
-  void forceRedraw() native "SVGSVGElement_forceRedraw_Callback";
+  void forceRedraw() => _blink.Native_SVGSVGElement_forceRedraw_Callback(this);
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
+  double getCurrentTime() => _blink.Native_SVGSVGElement_getCurrentTime_Callback(this);
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
-  Element getElementById(String elementId) native "SVGSVGElement_getElementById_Callback";
+  Element getElementById(String elementId) => _blink.Native_SVGSVGElement_getElementById_Callback(this, elementId);
 
   @DomName('SVGSVGElement.getEnclosureList')
   @DocsEditable()
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
+  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) => _blink.Native_SVGSVGElement_getEnclosureList_Callback(this, rect, referenceElement);
 
   @DomName('SVGSVGElement.getIntersectionList')
   @DocsEditable()
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
+  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) => _blink.Native_SVGSVGElement_getIntersectionList_Callback(this, rect, referenceElement);
 
   @DomName('SVGSVGElement.pauseAnimations')
   @DocsEditable()
-  void pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
+  void pauseAnimations() => _blink.Native_SVGSVGElement_pauseAnimations_Callback(this);
 
   @DomName('SVGSVGElement.setCurrentTime')
   @DocsEditable()
-  void setCurrentTime(num seconds) native "SVGSVGElement_setCurrentTime_Callback";
+  void setCurrentTime(num seconds) => _blink.Native_SVGSVGElement_setCurrentTime_Callback(this, seconds);
 
   @DomName('SVGSVGElement.suspendRedraw')
   @DocsEditable()
-  int suspendRedraw(int maxWaitMilliseconds) native "SVGSVGElement_suspendRedraw_Callback";
+  int suspendRedraw(int maxWaitMilliseconds) => _blink.Native_SVGSVGElement_suspendRedraw_Callback(this, maxWaitMilliseconds);
 
   @DomName('SVGSVGElement.unpauseAnimations')
   @DocsEditable()
-  void unpauseAnimations() native "SVGSVGElement_unpauseAnimations_Callback";
+  void unpauseAnimations() => _blink.Native_SVGSVGElement_unpauseAnimations_Callback(this);
 
   @DomName('SVGSVGElement.unsuspendRedraw')
   @DocsEditable()
-  void unsuspendRedraw(int suspendHandleId) native "SVGSVGElement_unsuspendRedraw_Callback";
+  void unsuspendRedraw(int suspendHandleId) => _blink.Native_SVGSVGElement_unsuspendRedraw_Callback(this, suspendHandleId);
 
   @DomName('SVGSVGElement.unsuspendRedrawAll')
   @DocsEditable()
-  void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
+  void unsuspendRedrawAll() => _blink.Native_SVGSVGElement_unsuspendRedrawAll_Callback(this);
 
   @DomName('SVGSVGElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGSVGElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGSVGElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGSVGElement_viewBox_Getter(this);
 
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
+  int get zoomAndPan => _blink.Native_SVGSVGElement_zoomAndPan_Getter(this);
 
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) native "SVGSVGElement_zoomAndPan_Setter";
+  void set zoomAndPan(int value) => _blink.Native_SVGSVGElement_zoomAndPan_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6873,11 +6874,11 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGSymbolElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGSymbolElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGSymbolElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGSymbolElement_viewBox_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6921,19 +6922,19 @@ abstract class Tests extends NativeFieldWrapperClass2 {
 
   @DomName('SVGTests.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGTests_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGTests_requiredExtensions_Getter(this);
 
   @DomName('SVGTests.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGTests_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGTests_requiredFeatures_Getter(this);
 
   @DomName('SVGTests.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage native "SVGTests_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGTests_systemLanguage_Getter(this);
 
   @DomName('SVGTests.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGTests_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGTests_hasExtension_Callback(this, extension);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6970,47 +6971,47 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.lengthAdjust')
   @DocsEditable()
-  AnimatedEnumeration get lengthAdjust native "SVGTextContentElement_lengthAdjust_Getter";
+  AnimatedEnumeration get lengthAdjust => _blink.Native_SVGTextContentElement_lengthAdjust_Getter(this);
 
   @DomName('SVGTextContentElement.textLength')
   @DocsEditable()
-  AnimatedLength get textLength native "SVGTextContentElement_textLength_Getter";
+  AnimatedLength get textLength => _blink.Native_SVGTextContentElement_textLength_Getter(this);
 
   @DomName('SVGTextContentElement.getCharNumAtPosition')
   @DocsEditable()
-  int getCharNumAtPosition(Point point) native "SVGTextContentElement_getCharNumAtPosition_Callback";
+  int getCharNumAtPosition(Point point) => _blink.Native_SVGTextContentElement_getCharNumAtPosition_Callback(this, point);
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  double getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
+  double getComputedTextLength() => _blink.Native_SVGTextContentElement_getComputedTextLength_Callback(this);
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int offset) native "SVGTextContentElement_getEndPositionOfChar_Callback";
+  Point getEndPositionOfChar(int offset) => _blink.Native_SVGTextContentElement_getEndPositionOfChar_Callback(this, offset);
 
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
-  Rect getExtentOfChar(int offset) native "SVGTextContentElement_getExtentOfChar_Callback";
+  Rect getExtentOfChar(int offset) => _blink.Native_SVGTextContentElement_getExtentOfChar_Callback(this, offset);
 
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
-  int getNumberOfChars() native "SVGTextContentElement_getNumberOfChars_Callback";
+  int getNumberOfChars() => _blink.Native_SVGTextContentElement_getNumberOfChars_Callback(this);
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  double getRotationOfChar(int offset) native "SVGTextContentElement_getRotationOfChar_Callback";
+  double getRotationOfChar(int offset) => _blink.Native_SVGTextContentElement_getRotationOfChar_Callback(this, offset);
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int offset) native "SVGTextContentElement_getStartPositionOfChar_Callback";
+  Point getStartPositionOfChar(int offset) => _blink.Native_SVGTextContentElement_getStartPositionOfChar_Callback(this, offset);
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  double getSubStringLength(int offset, int length) native "SVGTextContentElement_getSubStringLength_Callback";
+  double getSubStringLength(int offset, int length) => _blink.Native_SVGTextContentElement_getSubStringLength_Callback(this, offset, length);
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
-  void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
+  void selectSubString(int offset, int length) => _blink.Native_SVGTextContentElement_selectSubString_Callback(this, offset, length);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7084,19 +7085,19 @@ class TextPathElement extends TextContentElement implements UriReference {
 
   @DomName('SVGTextPathElement.method')
   @DocsEditable()
-  AnimatedEnumeration get method native "SVGTextPathElement_method_Getter";
+  AnimatedEnumeration get method => _blink.Native_SVGTextPathElement_method_Getter(this);
 
   @DomName('SVGTextPathElement.spacing')
   @DocsEditable()
-  AnimatedEnumeration get spacing native "SVGTextPathElement_spacing_Getter";
+  AnimatedEnumeration get spacing => _blink.Native_SVGTextPathElement_spacing_Getter(this);
 
   @DomName('SVGTextPathElement.startOffset')
   @DocsEditable()
-  AnimatedLength get startOffset native "SVGTextPathElement_startOffset_Getter";
+  AnimatedLength get startOffset => _blink.Native_SVGTextPathElement_startOffset_Getter(this);
 
   @DomName('SVGTextPathElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGTextPathElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGTextPathElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7121,23 +7122,23 @@ class TextPositioningElement extends TextContentElement {
 
   @DomName('SVGTextPositioningElement.dx')
   @DocsEditable()
-  AnimatedLengthList get dx native "SVGTextPositioningElement_dx_Getter";
+  AnimatedLengthList get dx => _blink.Native_SVGTextPositioningElement_dx_Getter(this);
 
   @DomName('SVGTextPositioningElement.dy')
   @DocsEditable()
-  AnimatedLengthList get dy native "SVGTextPositioningElement_dy_Getter";
+  AnimatedLengthList get dy => _blink.Native_SVGTextPositioningElement_dy_Getter(this);
 
   @DomName('SVGTextPositioningElement.rotate')
   @DocsEditable()
-  AnimatedNumberList get rotate native "SVGTextPositioningElement_rotate_Getter";
+  AnimatedNumberList get rotate => _blink.Native_SVGTextPositioningElement_rotate_Getter(this);
 
   @DomName('SVGTextPositioningElement.x')
   @DocsEditable()
-  AnimatedLengthList get x native "SVGTextPositioningElement_x_Getter";
+  AnimatedLengthList get x => _blink.Native_SVGTextPositioningElement_x_Getter(this);
 
   @DomName('SVGTextPositioningElement.y')
   @DocsEditable()
-  AnimatedLengthList get y native "SVGTextPositioningElement_y_Getter";
+  AnimatedLengthList get y => _blink.Native_SVGTextPositioningElement_y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7209,39 +7210,39 @@ class Transform extends NativeFieldWrapperClass2 {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  double get angle native "SVGTransform_angle_Getter";
+  double get angle => _blink.Native_SVGTransform_angle_Getter(this);
 
   @DomName('SVGTransform.matrix')
   @DocsEditable()
-  Matrix get matrix native "SVGTransform_matrix_Getter";
+  Matrix get matrix => _blink.Native_SVGTransform_matrix_Getter(this);
 
   @DomName('SVGTransform.type')
   @DocsEditable()
-  int get type native "SVGTransform_type_Getter";
+  int get type => _blink.Native_SVGTransform_type_Getter(this);
 
   @DomName('SVGTransform.setMatrix')
   @DocsEditable()
-  void setMatrix(Matrix matrix) native "SVGTransform_setMatrix_Callback";
+  void setMatrix(Matrix matrix) => _blink.Native_SVGTransform_setMatrix_Callback(this, matrix);
 
   @DomName('SVGTransform.setRotate')
   @DocsEditable()
-  void setRotate(num angle, num cx, num cy) native "SVGTransform_setRotate_Callback";
+  void setRotate(num angle, num cx, num cy) => _blink.Native_SVGTransform_setRotate_Callback(this, angle, cx, cy);
 
   @DomName('SVGTransform.setScale')
   @DocsEditable()
-  void setScale(num sx, num sy) native "SVGTransform_setScale_Callback";
+  void setScale(num sx, num sy) => _blink.Native_SVGTransform_setScale_Callback(this, sx, sy);
 
   @DomName('SVGTransform.setSkewX')
   @DocsEditable()
-  void setSkewX(num angle) native "SVGTransform_setSkewX_Callback";
+  void setSkewX(num angle) => _blink.Native_SVGTransform_setSkewX_Callback(this, angle);
 
   @DomName('SVGTransform.setSkewY')
   @DocsEditable()
-  void setSkewY(num angle) native "SVGTransform_setSkewY_Callback";
+  void setSkewY(num angle) => _blink.Native_SVGTransform_setSkewY_Callback(this, angle);
 
   @DomName('SVGTransform.setTranslate')
   @DocsEditable()
-  void setTranslate(num tx, num ty) native "SVGTransform_setTranslate_Callback";
+  void setTranslate(num tx, num ty) => _blink.Native_SVGTransform_setTranslate_Callback(this, tx, ty);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7260,7 +7261,7 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
+  int get numberOfItems => _blink.Native_SVGTransformList_numberOfItems_Getter(this);
 
   Transform operator[](int index) {
     if (index < 0 || index >= length)
@@ -7310,39 +7311,39 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
 
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform item) native "SVGTransformList_appendItem_Callback";
+  Transform appendItem(Transform item) => _blink.Native_SVGTransformList_appendItem_Callback(this, item);
 
   @DomName('SVGTransformList.clear')
   @DocsEditable()
-  void clear() native "SVGTransformList_clear_Callback";
+  void clear() => _blink.Native_SVGTransformList_clear_Callback(this);
 
   @DomName('SVGTransformList.consolidate')
   @DocsEditable()
-  Transform consolidate() native "SVGTransformList_consolidate_Callback";
+  Transform consolidate() => _blink.Native_SVGTransformList_consolidate_Callback(this);
 
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
+  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.Native_SVGTransformList_createSVGTransformFromMatrix_Callback(this, matrix);
 
   @DomName('SVGTransformList.getItem')
   @DocsEditable()
-  Transform getItem(int index) native "SVGTransformList_getItem_Callback";
+  Transform getItem(int index) => _blink.Native_SVGTransformList_getItem_Callback(this, index);
 
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform item) native "SVGTransformList_initialize_Callback";
+  Transform initialize(Transform item) => _blink.Native_SVGTransformList_initialize_Callback(this, item);
 
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform item, int index) native "SVGTransformList_insertItemBefore_Callback";
+  Transform insertItemBefore(Transform item, int index) => _blink.Native_SVGTransformList_insertItemBefore_Callback(this, item, index);
 
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
-  Transform removeItem(int index) native "SVGTransformList_removeItem_Callback";
+  Transform removeItem(int index) => _blink.Native_SVGTransformList_removeItem_Callback(this, index);
 
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform item, int index) native "SVGTransformList_replaceItem_Callback";
+  Transform replaceItem(Transform item, int index) => _blink.Native_SVGTransformList_replaceItem_Callback(this, item, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7388,7 +7389,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
 
   @DomName('SVGURIReference.href')
   @DocsEditable()
-  AnimatedString get href native "SVGURIReference_href_Getter";
+  AnimatedString get href => _blink.Native_SVGURIReference_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7417,47 +7418,47 @@ class UseElement extends GraphicsElement implements UriReference, Tests {
 
   @DomName('SVGUseElement.animatedInstanceRoot')
   @DocsEditable()
-  ElementInstance get animatedInstanceRoot native "SVGUseElement_animatedInstanceRoot_Getter";
+  ElementInstance get animatedInstanceRoot => _blink.Native_SVGUseElement_animatedInstanceRoot_Getter(this);
 
   @DomName('SVGUseElement.height')
   @DocsEditable()
-  AnimatedLength get height native "SVGUseElement_height_Getter";
+  AnimatedLength get height => _blink.Native_SVGUseElement_height_Getter(this);
 
   @DomName('SVGUseElement.instanceRoot')
   @DocsEditable()
-  ElementInstance get instanceRoot native "SVGUseElement_instanceRoot_Getter";
+  ElementInstance get instanceRoot => _blink.Native_SVGUseElement_instanceRoot_Getter(this);
 
   @DomName('SVGUseElement.width')
   @DocsEditable()
-  AnimatedLength get width native "SVGUseElement_width_Getter";
+  AnimatedLength get width => _blink.Native_SVGUseElement_width_Getter(this);
 
   @DomName('SVGUseElement.x')
   @DocsEditable()
-  AnimatedLength get x native "SVGUseElement_x_Getter";
+  AnimatedLength get x => _blink.Native_SVGUseElement_x_Getter(this);
 
   @DomName('SVGUseElement.y')
   @DocsEditable()
-  AnimatedLength get y native "SVGUseElement_y_Getter";
+  AnimatedLength get y => _blink.Native_SVGUseElement_y_Getter(this);
 
   @DomName('SVGUseElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
+  StringList get requiredExtensions => _blink.Native_SVGUseElement_requiredExtensions_Getter(this);
 
   @DomName('SVGUseElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
+  StringList get requiredFeatures => _blink.Native_SVGUseElement_requiredFeatures_Getter(this);
 
   @DomName('SVGUseElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
+  StringList get systemLanguage => _blink.Native_SVGUseElement_systemLanguage_Getter(this);
 
   @DomName('SVGUseElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
+  bool hasExtension(String extension) => _blink.Native_SVGUseElement_hasExtension_Callback(this, extension);
 
   @DomName('SVGUseElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGUseElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGUseElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7486,23 +7487,23 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   @DomName('SVGViewElement.viewTarget')
   @DocsEditable()
-  StringList get viewTarget native "SVGViewElement_viewTarget_Getter";
+  StringList get viewTarget => _blink.Native_SVGViewElement_viewTarget_Getter(this);
 
   @DomName('SVGViewElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewElement_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGViewElement_preserveAspectRatio_Getter(this);
 
   @DomName('SVGViewElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox native "SVGViewElement_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGViewElement_viewBox_Getter(this);
 
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan native "SVGViewElement_zoomAndPan_Getter";
+  int get zoomAndPan => _blink.Native_SVGViewElement_zoomAndPan_Getter(this);
 
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) native "SVGViewElement_zoomAndPan_Setter";
+  void set zoomAndPan(int value) => _blink.Native_SVGViewElement_zoomAndPan_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7521,47 +7522,47 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
 
   @DomName('SVGViewSpec.preserveAspectRatioString')
   @DocsEditable()
-  String get preserveAspectRatioString native "SVGViewSpec_preserveAspectRatioString_Getter";
+  String get preserveAspectRatioString => _blink.Native_SVGViewSpec_preserveAspectRatioString_Getter(this);
 
   @DomName('SVGViewSpec.transform')
   @DocsEditable()
-  TransformList get transform native "SVGViewSpec_transform_Getter";
+  TransformList get transform => _blink.Native_SVGViewSpec_transform_Getter(this);
 
   @DomName('SVGViewSpec.transformString')
   @DocsEditable()
-  String get transformString native "SVGViewSpec_transformString_Getter";
+  String get transformString => _blink.Native_SVGViewSpec_transformString_Getter(this);
 
   @DomName('SVGViewSpec.viewBoxString')
   @DocsEditable()
-  String get viewBoxString native "SVGViewSpec_viewBoxString_Getter";
+  String get viewBoxString => _blink.Native_SVGViewSpec_viewBoxString_Getter(this);
 
   @DomName('SVGViewSpec.viewTarget')
   @DocsEditable()
-  SvgElement get viewTarget native "SVGViewSpec_viewTarget_Getter";
+  SvgElement get viewTarget => _blink.Native_SVGViewSpec_viewTarget_Getter(this);
 
   @DomName('SVGViewSpec.viewTargetString')
   @DocsEditable()
-  String get viewTargetString native "SVGViewSpec_viewTargetString_Getter";
+  String get viewTargetString => _blink.Native_SVGViewSpec_viewTargetString_Getter(this);
 
   @DomName('SVGViewSpec.preserveAspectRatio')
   @DocsEditable()
   @Experimental() // nonstandard
-  AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewSpec_preserveAspectRatio_Getter";
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.Native_SVGViewSpec_preserveAspectRatio_Getter(this);
 
   @DomName('SVGViewSpec.viewBox')
   @DocsEditable()
   @Experimental() // nonstandard
-  AnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
+  AnimatedRect get viewBox => _blink.Native_SVGViewSpec_viewBox_Getter(this);
 
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
+  int get zoomAndPan => _blink.Native_SVGViewSpec_zoomAndPan_Getter(this);
 
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable()
   @Experimental() // nonstandard
-  void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
+  void set zoomAndPan(int value) => _blink.Native_SVGViewSpec_zoomAndPan_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7592,11 +7593,11 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
 
   @DomName('SVGZoomAndPan.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan native "SVGZoomAndPan_zoomAndPan_Getter";
+  int get zoomAndPan => _blink.Native_SVGZoomAndPan_zoomAndPan_Getter(this);
 
   @DomName('SVGZoomAndPan.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) native "SVGZoomAndPan_zoomAndPan_Setter";
+  void set zoomAndPan(int value) => _blink.Native_SVGZoomAndPan_zoomAndPan_Setter(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7615,23 +7616,23 @@ class ZoomEvent extends UIEvent {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  double get newScale native "SVGZoomEvent_newScale_Getter";
+  double get newScale => _blink.Native_SVGZoomEvent_newScale_Getter(this);
 
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
-  Point get newTranslate native "SVGZoomEvent_newTranslate_Getter";
+  Point get newTranslate => _blink.Native_SVGZoomEvent_newTranslate_Getter(this);
 
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  double get previousScale native "SVGZoomEvent_previousScale_Getter";
+  double get previousScale => _blink.Native_SVGZoomEvent_previousScale_Getter(this);
 
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()
-  Point get previousTranslate native "SVGZoomEvent_previousTranslate_Getter";
+  Point get previousTranslate => _blink.Native_SVGZoomEvent_previousTranslate_Getter(this);
 
   @DomName('SVGZoomEvent.zoomRectScreen')
   @DocsEditable()
-  Rect get zoomRectScreen native "SVGZoomEvent_zoomRectScreen_Getter";
+  Rect get zoomRectScreen => _blink.Native_SVGZoomEvent_zoomRectScreen_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7650,14 +7651,15 @@ class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<Eleme
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable()
-  int get length native "SVGElementInstanceList_length_Getter";
+  int get length => _blink.Native_SVGElementInstanceList_length_Getter(this);
 
   ElementInstance operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return _blink.Native_SVGElementInstanceList_NativeIndexed_Getter(this, index);
   }
-  ElementInstance _nativeIndexedGetter(int index) native "SVGElementInstanceList_item_Callback";
+
+  ElementInstance _nativeIndexedGetter(int index) => _blink.Native_SVGElementInstanceList_NativeIndexed_Getter(this, index);
 
   void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7699,7 +7701,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<Eleme
 
   @DomName('SVGElementInstanceList.item')
   @DocsEditable()
-  ElementInstance item(int index) native "SVGElementInstanceList_item_Callback";
+  ElementInstance item(int index) => _blink.Native_SVGElementInstanceList_item_Callback(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7740,19 +7742,19 @@ class _GradientElement extends SvgElement implements UriReference {
 
   @DomName('SVGGradientElement.gradientTransform')
   @DocsEditable()
-  AnimatedTransformList get gradientTransform native "SVGGradientElement_gradientTransform_Getter";
+  AnimatedTransformList get gradientTransform => _blink.Native_SVGGradientElement_gradientTransform_Getter(this);
 
   @DomName('SVGGradientElement.gradientUnits')
   @DocsEditable()
-  AnimatedEnumeration get gradientUnits native "SVGGradientElement_gradientUnits_Getter";
+  AnimatedEnumeration get gradientUnits => _blink.Native_SVGGradientElement_gradientUnits_Getter(this);
 
   @DomName('SVGGradientElement.spreadMethod')
   @DocsEditable()
-  AnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
+  AnimatedEnumeration get spreadMethod => _blink.Native_SVGGradientElement_spreadMethod_Getter(this);
 
   @DomName('SVGGradientElement.href')
   @DocsEditable()
-  AnimatedString get href native "SVGGradientElement_href_Getter";
+  AnimatedString get href => _blink.Native_SVGGradientElement_href_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

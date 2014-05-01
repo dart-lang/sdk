@@ -66,8 +66,9 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(
     'keys'
   ]);
 
-abstract class TracerVisitor implements TypeInformationVisitor {
-  final TypeInformation tracedType;
+abstract class TracerVisitor<T extends TypeInformation>
+    implements TypeInformationVisitor {
+  final T tracedType;
   final TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
 
@@ -333,6 +334,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   bool isClosure(Element element) {
     if (!element.isFunction()) return false;
+    /// Creating an instance of a class that implements [Function] also
+    /// closurizes the corresponding [call] member. We do not currently
+    /// track these, thus the check for [isClosurized] on such a method will
+    /// return false. Instead we catch that case here for now.
+    // TODO(herhut): Handle creation of closures from instances of Function.
+    if (element.isInstanceMember() &&
+        element.name == Compiler.CALL_OPERATOR_NAME) {
+      return true;
+    }
     Element outermost = element.getOutermostEnclosingMemberOrTopLevel();
     return outermost.declaration != element.declaration;
   }
@@ -343,7 +353,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         && inferrer.isNativeElement(element.enclosingElement)) {
       bailout('Passed to a native method');
     }
-    if (info.isClosurized()) {
+    if (info.isClosurized) {
       bailout('Returned from a closurized method');
     }
     if (isClosure(info.element)) {
@@ -351,6 +361,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
+    }
+    if (!inferrer.compiler.backend
+        .canBeUsedForGlobalOptimizations(info.element)) {
+      bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info.element) ||
         isParameterOfMapAddingMethod(info.element)) {

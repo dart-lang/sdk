@@ -155,17 +155,24 @@ class Address : public ValueObject {
     return addr;
   }
 
+  enum Scaling {
+    Unscaled,
+    Scaled,
+  };
+
   // Base register rn with offset rm. rm is sign-extended according to ext.
   // If ext is UXTX, rm may be optionally scaled by the
   // Log2OperandSize (specified by the instruction).
-  Address(Register rn, Register rm, Extend ext = UXTX, bool scaled = false) {
+  Address(Register rn, Register rm,
+          Extend ext = UXTX, Scaling scale = Unscaled) {
     ASSERT((rn != R31) && (rn != ZR));
     ASSERT((rm != R31) && (rm != SP));
-    ASSERT(!scaled || (ext == UXTX));  // Can only scale when ext = UXTX.
+    // Can only scale when ext = UXTX.
+    ASSERT((scale != Scaled) || (ext == UXTX));
     ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
     const Register crn = ConcreteRegister(rn);
     const Register crm = ConcreteRegister(rm);
-    const int32_t s = scaled ? B12 : 0;
+    const int32_t s = (scale == Scaled) ? B12 : 0;
     encoding_ =
         B21 | B11 | s |
         (static_cast<int32_t>(crn) << kRnShift) |
@@ -525,9 +532,10 @@ class Assembler : public ValueObject {
   }
 
   // Loads and Stores.
-  void ldr(Register rt, Address a) {
+  void ldr(Register rt, Address a, OperandSize sz = kDoubleWord) {
     if (a.type() == Address::PCOffset) {
-      EmitLoadRegLiteral(LDRpc, rt, a, kDoubleWord);
+      ASSERT(sz == kDoubleWord);
+      EmitLoadRegLiteral(LDRpc, rt, a, sz);
     } else {
       // If we are doing pre-/post-indexing, and the base and result registers
       // are the same, then the result of the load will be clobbered by the
@@ -535,11 +543,16 @@ class Assembler : public ValueObject {
       ASSERT(((a.type() != Address::PreIndex) &&
               (a.type() != Address::PostIndex)) ||
              (rt != a.base()));
-      EmitLoadStoreReg(LDR, rt, a, kDoubleWord);
+      EmitLoadStoreReg(LDR, rt, a, sz);
     }
   }
-  void str(Register rt, Address a) {
-    EmitLoadStoreReg(STR, rt, a, kDoubleWord);
+  void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    EmitLoadStoreReg(STR, rt, a, sz);
+  }
+
+  // Conditional select.
+  void csel(Register rd, Register rn, Register rm, Condition cond) {
+    EmitCoditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
   }
 
   // Comparison.
@@ -609,19 +622,19 @@ class Assembler : public ValueObject {
     madd(rd, rn, rm, ZR);
   }
   void Push(Register reg) {
-    ASSERT(reg != PP);  // Only push PP with PushPP().
+    ASSERT(reg != PP);  // Only push PP with TagAndPushPP().
     str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
   void Pop(Register reg) {
-    ASSERT(reg != PP);  // Only pop PP with PopPP().
+    ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
-  void PushPP() {
+  void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
-    add(PP, PP, Operand(kHeapObjectTag));
-    str(PP, Address(SP, -1 * kWordSize, Address::PreIndex));
+    add(TMP, PP, Operand(kHeapObjectTag));
+    str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
-  void PopPP() {
+  void PopAndUntagPP() {
     ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
     sub(PP, PP, Operand(kHeapObjectTag));
   }
@@ -645,6 +658,9 @@ class Assembler : public ValueObject {
   void SmiUntag(Register reg) {
     Asr(reg, reg, kSmiTagSize);
   }
+  void SmiTag(Register reg) {
+    Lsl(reg, reg, kSmiTagSize);
+  }
 
   // Branching to ExternalLabels.
   void BranchPatchable(const ExternalLabel* label, Register pp) {
@@ -665,7 +681,7 @@ class Assembler : public ValueObject {
 
   void BranchLink(const ExternalLabel* label, Register pp) {
     if (Isolate::Current() == Dart::vm_isolate()) {
-      LoadImmediate(TMP, label->address(), kNoRegister);
+      LoadImmediate(TMP, label->address(), kNoPP);
       blr(TMP);
     } else {
       LoadExternalLabel(TMP, label, kNotPatchable, pp);
@@ -683,12 +699,17 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
+  void TestImmediate(Register rn, int64_t imm, Register pp);
   void CompareImmediate(Register rn, int64_t imm, Register pp);
-  void LoadFromOffset(Register dest, Register base, int32_t offset);
+
+  void LoadFromOffset(Register dest, Register base, int32_t offset,
+                      OperandSize sz = kDoubleWord);
   void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag);
   }
-  void StoreToOffset(Register dest, Register base, int32_t offset);
+
+  void StoreToOffset(Register dest, Register base, int32_t offset,
+                     OperandSize sz = kDoubleWord);
   void StoreFieldToOffset(Register dest, Register base, int32_t offset) {
     StoreToOffset(dest, base, offset - kHeapObjectTag);
   }
@@ -707,6 +728,9 @@ class Assembler : public ValueObject {
 
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
+
+  // Index of constant pool entries pointing to debugger stubs.
+  static const int kBreakpointRuntimeCPIndex = 5;
 
   enum Patchability {
     kPatchable,
@@ -731,6 +755,12 @@ class Assembler : public ValueObject {
     LoadObject(TMP, object, pp);
     Push(TMP);
   }
+  void CompareObject(Register reg, const Object& object, Register pp);
+
+  void LoadClassId(Register result, Register object);
+  void LoadClassById(Register result, Register class_id);
+  void LoadClass(Register result, Register object);
+  void CompareClassId(Register object, intptr_t class_id);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
@@ -742,8 +772,23 @@ class Assembler : public ValueObject {
 
   void EnterCallRuntimeFrame(intptr_t frame_size);
   void LeaveCallRuntimeFrame();
-
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
+
+  void UpdateAllocationStats(intptr_t cid,
+                             Register temp_reg,
+                             Register pp,
+                             Heap::Space space = Heap::kNew);
+
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     Register size_reg,
+                                     Register temp_reg,
+                                     Register pp,
+                                     Heap::Space space = Heap::kNew);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
@@ -836,7 +881,7 @@ class Assembler : public ValueObject {
 
   void EmitAddSubImmOp(AddSubImmOp op, Register rd, Register rn,
                        Operand o, OperandSize sz, bool set_flags) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
     const int32_t encoding =
@@ -849,7 +894,7 @@ class Assembler : public ValueObject {
 
   void EmitLogicalImmOp(LogicalImmOp op, Register rd, Register rn,
                         Operand o, OperandSize sz) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rd != R31) && (rn != R31));
     ASSERT(rn != SP);
     ASSERT((op == ANDIS) || (rd != ZR));  // op != ANDIS => rd != ZR.
@@ -868,7 +913,7 @@ class Assembler : public ValueObject {
 
   void EmitLogicalShiftOp(LogicalShiftOp op,
                           Register rd, Register rn, Operand o, OperandSize sz) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rd != R31) && (rn != R31));
     ASSERT((rd != SP) && (rn != SP));
     ASSERT(o.type() == Operand::Shifted);
@@ -886,7 +931,7 @@ class Assembler : public ValueObject {
   void EmitAddSubShiftExtOp(AddSubShiftExtOp op,
                             Register rd, Register rn, Operand o,
                             OperandSize sz, bool set_flags) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
     const int32_t encoding =
@@ -904,13 +949,13 @@ class Assembler : public ValueObject {
   }
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
-    const int32_t off = (((instr >> kImm19Shift) & kImm19Shift) << 13) >> 13;
+    const int32_t off = (((instr & kImm19Mask) >> kImm19Shift) << 13) >> 11;
     return static_cast<int64_t>(off);
   }
 
   void EmitCompareAndBranch(CompareAndBranchOp op, Register rt, int64_t imm,
                             OperandSize sz) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != SP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
@@ -935,7 +980,7 @@ class Assembler : public ValueObject {
 
   bool CanEncodeImm19BranchOffset(int64_t offset) {
     ASSERT(Utils::IsAligned(offset, 4));
-    return Utils::IsInt(19, offset);
+    return Utils::IsInt(21, offset);
   }
 
   // TODO(zra): Implement far branches. Requires loading large immediates.
@@ -969,7 +1014,7 @@ class Assembler : public ValueObject {
   void EmitMoveWideOp(MoveWideOp op, Register rd, uint16_t imm, int hw_idx,
                       OperandSize sz) {
     ASSERT((hw_idx >= 0) && (hw_idx <= 3));
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoding =
         op | size |
@@ -992,7 +1037,7 @@ class Assembler : public ValueObject {
 
   void EmitLoadRegLiteral(LoadRegLiteralOp op, Register rt, Address a,
                           OperandSize sz) {
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rt != SP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B30 : 0;
@@ -1019,6 +1064,7 @@ class Assembler : public ValueObject {
                          Register rd, Register rn, Register rm,
                          OperandSize sz) {
     ASSERT((rd != SP) && (rn != SP) && (rm != SP));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);
     const Register crm = ConcreteRegister(rm);
@@ -1035,6 +1081,7 @@ class Assembler : public ValueObject {
                          Register rd, Register rn, Register rm, Register ra,
                          OperandSize sz) {
     ASSERT((rd != SP) && (rn != SP) && (rm != SP) && (ra != SP));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);
     const Register crm = ConcreteRegister(rm);
@@ -1046,6 +1093,24 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(crn) << kRnShift) |
         (static_cast<int32_t>(crm) << kRmShift) |
         (static_cast<int32_t>(cra) << kRaShift);
+    Emit(encoding);
+  }
+
+  void EmitCoditionalSelect(ConditionalSelectOp op,
+                            Register rd, Register rn, Register rm,
+                            Condition cond, OperandSize sz) {
+    ASSERT((rd != SP) && (rn != SP) && (rm != SP));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift) |
+        (static_cast<int32_t>(cond) << kSelCondShift);
     Emit(encoding);
   }
 

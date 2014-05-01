@@ -864,6 +864,11 @@ class Script extends ServiceObject {
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
+  ScriptLine getLine(int line) {
+    assert(line >= 1);
+    return lines[line - 1];
+  }
+
   /// This function maps a token position to a line number.
   int tokenToLine(int token) => _tokenToLine[token];
   Map _tokenToLine;
@@ -952,10 +957,53 @@ class CodeTick {
 }
 
 
+class PcDescriptor extends Observable {
+  final int address;
+  @reflectable final int deoptId;
+  @reflectable final int tokenPos;
+  @reflectable final int tryIndex;
+  @reflectable final String kind;
+  @observable Script script;
+  @observable String formattedLine;
+  PcDescriptor(this.address, this.deoptId, this.tokenPos, this.tryIndex,
+               this.kind);
+
+  @reflectable String formattedDeoptId() {
+    if (deoptId == -1) {
+      return 'N/A';
+    }
+    return deoptId.toString();
+  }
+
+  @reflectable String formattedTokenPos() {
+    if (tokenPos == -1) {
+      return '';
+    }
+    return tokenPos.toString();
+  }
+
+  void processScript(Script script) {
+    this.script = null;
+    if (tokenPos == -1) {
+      return;
+    }
+    var line = script.tokenToLine(tokenPos);
+    if (line == null) {
+      return;
+    }
+    this.script = script;
+    var scriptLine = script.getLine(line);
+    formattedLine = scriptLine.text;
+  }
+}
+
 class CodeInstruction extends Observable {
   @observable final int address;
   @observable final String machine;
   @observable final String human;
+  @observable CodeInstruction jumpTarget;
+  @reflectable List<PcDescriptor> descriptors =
+      new ObservableList<PcDescriptor>();
 
   static String formatPercent(num a, num total) {
     var percent = 100.0 * (a / total);
@@ -963,6 +1011,9 @@ class CodeInstruction extends Observable {
   }
 
   CodeInstruction(this.address, this.machine, this.human);
+
+  @reflectable bool get isComment => address == 0;
+  @reflectable bool get hasDescriptors => descriptors.length > 0;
 
   @reflectable String formattedAddress() {
     if (address == 0) {
@@ -997,6 +1048,49 @@ class CodeInstruction extends Observable {
     }
     var pcent = formatPercent(tick.exclusiveTicks, code.totalSamplesInProfile);
     return '$pcent (${tick.exclusiveTicks})';
+  }
+
+  bool _isJumpInstruction() {
+    return human.startsWith('j');
+  }
+
+  int _getJumpAddress() {
+    assert(_isJumpInstruction());
+    var chunks = human.split(' ');
+    if (chunks.length != 2) {
+      // We expect jump instructions to be of the form 'j.. address'.
+      return 0;
+    }
+    var address = chunks[1];
+    if (address.startsWith('0x')) {
+      // Chop off the 0x.
+      address = address.substring(2);
+    }
+    try {
+      return int.parse(address, radix:16);
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  void _resolveJumpTarget(List<CodeInstruction> instructions) {
+    if (!_isJumpInstruction()) {
+      return;
+    }
+    int address = _getJumpAddress();
+    if (address == 0) {
+      // Could not determine jump address.
+      print('Could not determine jump address for $human');
+      return;
+    }
+    for (var i = 0; i < instructions.length; i++) {
+      var instruction = instructions[i];
+      if (instruction.address == address) {
+        jumpTarget = instruction;
+        return;
+      }
+    }
+    print('Could not find instruction at ${address.toRadixString(16)}');
   }
 }
 
@@ -1056,6 +1150,7 @@ class Code extends ServiceObject {
   @observable String formattedExclusiveTicks = '';
   @observable ServiceMap objectPool;
   @observable ServiceMap function;
+  @observable Script script;
   String name;
   String vmName;
 
@@ -1074,6 +1169,43 @@ class Code extends ServiceObject {
     callers.clear();
     callees.clear();
     addressTicks.clear();
+  }
+
+  void _updateDescriptors(Script script) {
+    this.script = script;
+    for (var instruction in instructions) {
+      for (var descriptor in instruction.descriptors) {
+        descriptor.processScript(script);
+      }
+    }
+  }
+
+  void loadScript() {
+    if (script != null) {
+      // Already done.
+      return;
+    }
+    if (kind != CodeKind.Dart){
+      return;
+    }
+    if (function == null) {
+      return;
+    }
+    if (function['script'] == null) {
+      // Attempt to load the function.
+      function.load().then((func) {
+        var script = function['script'];
+        if (script == null) {
+          // Function doesn't have an associated script.
+          return;
+        }
+        // Load the script and then update descriptors.
+        script.load().then(_updateDescriptors);
+      });
+      return;
+    }
+    // Load the script and then update descriptors.
+    function['script'].load().then(_updateDescriptors);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or
@@ -1144,6 +1276,11 @@ class Code extends ServiceObject {
     if (disassembly != null) {
       _processDisassembly(disassembly);
     }
+    var descriptors = m['descriptors'];
+    if (descriptors != null) {
+      descriptors = descriptors['members'];
+      _processDescriptors(descriptors);
+    }
     // We are loaded if we have instructions or are not Dart code.
     _loaded = (instructions.length != 0) || (kind != CodeKind.Dart);
     hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
@@ -1165,6 +1302,35 @@ class Code extends ServiceObject {
       }
       var instruction = new CodeInstruction(address, machine, human);
       instructions.add(instruction);
+    }
+    for (var instruction in instructions) {
+      instruction._resolveJumpTarget(instructions);
+    }
+  }
+
+  void _processDescriptor(Map d) {
+    var address = int.parse(d['pc'], radix:16);
+    var deoptId = d['deoptId'];
+    var tokenPos = d['tokenPos'];
+    var tryIndex = d['tryIndex'];
+    var kind = d['kind'].trim();
+    for (var instruction in instructions) {
+      if (instruction.address == address) {
+        instruction.descriptors.add(new PcDescriptor(address,
+                                                     deoptId,
+                                                     tokenPos,
+                                                     tryIndex,
+                                                     kind));
+        return;
+      }
+    }
+    Logger.root.warning(
+        'Could not find instruction with pc descriptor address: $address');
+  }
+
+  void _processDescriptors(List<Map> descriptors) {
+    for (Map descriptor in descriptors) {
+      _processDescriptor(descriptor);
     }
   }
 

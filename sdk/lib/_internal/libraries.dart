@@ -27,6 +27,13 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/lib/async_patch.dart"),
 
+  "_blink": const LibraryInfo(
+      "_blink/dartium/_blink_dartium.dart",
+      category: "Client",
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
+ 
   "_chrome": const LibraryInfo(
       "_chrome/dart2js/chrome_dart2js.dart",
       documented: false,

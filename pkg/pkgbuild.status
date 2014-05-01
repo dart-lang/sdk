@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-samples/third_party/angular_todo: Pass, Slow
 samples/third_party/dromaeo: Pass, Slow
 samples/third_party/todomvc_performance: Pass, Slow
 samples/pop_pop_win: Pass, Slow
@@ -13,9 +12,11 @@ pkg/docgen: Pass, Slow
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
+samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
 pkg/oauth2: PubGetError # Uses -dev version of pkg/http.
+samples/third_party/angular_todo: Pass, Slow
 
 [ $use_public_packages && $builder_tag == russian ]
 samples/third_party/todomvc: Fail # Issue 18104

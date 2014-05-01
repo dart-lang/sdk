@@ -16,9 +16,10 @@ import 'dart:math' show
 import 'dart:async' show
     Future;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart'
-  show
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
+    BeginGroupToken,
     EOF_TOKEN,
+    ErrorToken,
     StringScanner,
     Token;
 
@@ -685,6 +686,15 @@ void tokenizeAndHighlight(String currentText,
     if (charOffset < offset) continue; // Happens for scanner errors.
 
     Decoration decoration = editor.getDecoration(token);
+
+    Token follow = token.next;
+    if (token is BeginGroupToken) {
+      follow = token.endGroup.next;
+    }
+    if (follow is ErrorToken) {
+      decoration = editor.getDecoration(follow);
+    }
+
     if (decoration == null) continue;
 
     // Add a node for text before current token.

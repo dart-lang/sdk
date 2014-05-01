@@ -4,7 +4,7 @@
 
 library dart2js.mirrors;
 
-import 'dart:collection' show UnmodifiableListView;
+import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
 import '../elements/elements.dart';
 import '../scanner/scannerlib.dart';
@@ -13,15 +13,12 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart'
-    show Spannable,
-         Link,
-         LinkBuilder,
-         NO_LOCATION_SPANNABLE;
+    show Link,
+         LinkBuilder;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';
 import 'mirrors_util.dart';
-import 'util.dart';
 
 part 'dart2js_library_mirror.dart';
 part 'dart2js_type_mirrors.dart';
@@ -31,6 +28,11 @@ part 'dart2js_instance_mirrors.dart';
 //------------------------------------------------------------------------------
 // Utility types and functions for the dart2js mirror system
 //------------------------------------------------------------------------------
+
+bool _includeLibrary(Dart2JsLibraryMirror mirror) {
+  return const bool.fromEnvironment("list_all_libraries") ||
+      !mirror._element.isInternalLibrary;
+}
 
 bool _isPrivate(String name) {
   return name.startsWith('_');
@@ -282,30 +284,33 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
 class Dart2JsMirrorSystem extends MirrorSystem {
   final Compiler compiler;
-  Map<Uri, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
+  UnmodifiableMapView<Uri, LibraryMirror> _filteredLibraries;
 
-  Dart2JsMirrorSystem(this.compiler)
-    : _libraryMap = new Map<LibraryElement, Dart2JsLibraryMirror>();
+  Dart2JsMirrorSystem(this.compiler);
 
   IsolateMirror get isolate => null;
 
   void _ensureLibraries() {
-    if (_libraries == null) {
-      _libraries = new Map<Uri, Dart2JsLibraryMirror>();
+    if (_filteredLibraries == null) {
+      var filteredLibs = new Map<Uri, LibraryMirror>();
+      _libraryMap = new Map<LibraryElement, Dart2JsLibraryMirror>();
       compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(mirrorSystem, v);
-        _libraries[mirror.uri] = mirror;
+        if (_includeLibrary(mirror)) {
+          filteredLibs[mirror.uri] = mirror;
+        }
         _libraryMap[v] = mirror;
       });
+
+      _filteredLibraries =
+          new UnmodifiableMapView<Uri, LibraryMirror>(filteredLibs);
     }
   }
 
   Map<Uri, LibraryMirror> get libraries {
     _ensureLibraries();
-    return new FilteredImmutableMap<Uri, LibraryMirror>(_libraries,
-        (library) => const bool.fromEnvironment("list_all_libraries") ||
-                     !library._element.isInternalLibrary);
+    return _filteredLibraries;
   }
 
   Dart2JsLibraryMirror _getLibrary(LibraryElement element) =>
@@ -360,20 +365,22 @@ class Dart2JsMirrorSystem extends MirrorSystem {
 }
 
 abstract class ContainerMixin {
-  Map<Symbol, DeclarationMirror> _declarations;
+  UnmodifiableMapView<Symbol, DeclarationMirror> _declarations;
 
   void _ensureDeclarations() {
     if (_declarations == null) {
-      _declarations = <Symbol, DeclarationMirror>{};
+      var declarations = <Symbol, DeclarationMirror>{};
       _forEachElement((Element element) {
         for (DeclarationMirror mirror in _getDeclarationMirrors(element)) {
           assert(invariant(_element,
-              !_declarations.containsKey(mirror.simpleName),
+              !declarations.containsKey(mirror.simpleName),
               message: "Declaration name '${nameOf(mirror)}' "
                        "is not unique in $_element."));
-          _declarations[mirror.simpleName] = mirror;
+          declarations[mirror.simpleName] = mirror;
         }
       });
+      _declarations =
+          new UnmodifiableMapView<Symbol, DeclarationMirror>(declarations);
     }
   }
 
@@ -385,7 +392,7 @@ abstract class ContainerMixin {
 
   Map<Symbol, DeclarationMirror> get declarations {
     _ensureDeclarations();
-    return new ImmutableMapWrapper<Symbol, DeclarationMirror>(_declarations);
+    return _declarations;
   }
 }
 
@@ -433,8 +440,7 @@ DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
  * library.
  */
 // TODO(ahe): Superclasses? Is this really a mirror?
-class Dart2JsCompilationUnitMirror extends Dart2JsMirror
-    with ContainerMixin {
+class Dart2JsCompilationUnitMirror extends Dart2JsMirror with ContainerMixin {
   final Dart2JsLibraryMirror _library;
   final CompilationUnitElement _element;
 

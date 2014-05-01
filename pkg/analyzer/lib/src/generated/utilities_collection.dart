@@ -81,37 +81,6 @@ class BooleanArray {
 }
 
 /**
- * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
- */
-class TokenMap {
-  /**
-   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
-   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
-   * cursor indicating where to start searching.
-   */
-  Map<Token, Token> _map = new Map<Token, Token>();
-
-  /**
-   * Return the token that is mapped to the given token, or `null` if there is no token
-   * corresponding to the given token.
-   *
-   * @param key the token being mapped to another token
-   * @return the token that is mapped to the given token
-   */
-  Token get(Token key) => _map[key];
-
-  /**
-   * Map the key to the value.
-   *
-   * @param key the token being mapped to the value
-   * @param value the token to which the key will be mapped
-   */
-  void put(Token key, Token value) {
-    _map[key] = value;
-  }
-}
-
-/**
  * Instances of the class `DirectedGraph` implement a directed graph in which the nodes are
  * arbitrary (client provided) objects and edges are represented implicitly. The graph will allow an
  * edge from any node to any other node, including itself, but will not represent multiple edges
@@ -437,6 +406,25 @@ class DirectedGraph_SccFinder<N> {
 }
 
 /**
+ * The class `ListUtilities` defines utility methods useful for working with [List
+ ].
+ */
+class ListUtilities {
+  /**
+   * Add all of the elements in the given array to the given list.
+   *
+   * @param list the list to which the elements are to be added
+   * @param elements the elements to be added to the list
+   */
+  static void addAll(List list, List<Object> elements) {
+    int count = elements.length;
+    for (int i = 0; i < count; i++) {
+      list.add(elements[i]);
+    }
+  }
+}
+
+/**
  * The interface `MapIterator` defines the behavior of objects that iterate over the entries
  * in a map.
  *
@@ -480,25 +468,6 @@ abstract class MapIterator<K, V> {
    * @throws NoSuchElementException if there is no current element
    */
   void set value(V newValue);
-}
-
-/**
- * The class `ListUtilities` defines utility methods useful for working with [List
- ].
- */
-class ListUtilities {
-  /**
-   * Add all of the elements in the given array to the given list.
-   *
-   * @param list the list to which the elements are to be added
-   * @param elements the elements to be added to the list
-   */
-  static void addAll(List list, List<Object> elements) {
-    int count = elements.length;
-    for (int i = 0; i < count; i++) {
-      list.add(elements[i]);
-    }
-  }
 }
 
 /**
@@ -599,6 +568,37 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
       _iteratorIndex++;
     }
     return false;
+  }
+}
+
+/**
+ * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
+ */
+class TokenMap {
+  /**
+   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
+   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
+   * cursor indicating where to start searching.
+   */
+  Map<Token, Token> _map = new Map<Token, Token>();
+
+  /**
+   * Return the token that is mapped to the given token, or `null` if there is no token
+   * corresponding to the given token.
+   *
+   * @param key the token being mapped to another token
+   * @return the token that is mapped to the given token
+   */
+  Token get(Token key) => _map[key];
+
+  /**
+   * Map the key to the value.
+   *
+   * @param key the token being mapped to the value
+   * @param value the token to which the key will be mapped
+   */
+  void put(Token key, Token value) {
+    _map[key] = value;
   }
 }
 

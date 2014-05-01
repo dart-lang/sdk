@@ -73,7 +73,7 @@ stringReplaceJS(receiver, replacer, to) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
-  to = JS('String', r'#.replace("$", "$$$$")', to);
+  to = JS('String', r'#.replace(/\$/g, "$$$$")', to);
   return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
 

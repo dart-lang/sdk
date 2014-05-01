@@ -16,4 +16,12 @@ main() {
   Expect.equals(jsText, htmlOut);
   htmlOut = htmlStr.replaceFirst(new RegExp("%%DART"), jsText);
   Expect.equals(jsText, htmlOut);
+
+  // Regression test, http://dartbug.com/17886
+  String doubleDollar = r"$'$`";
+  var string = r"flip-flip-flop";
+  var result = string.replaceFirst("flip", doubleDollar);
+  Expect.equals(r"$'$`-flip-flop", result);
+  result = string.replaceAll("flip", doubleDollar);
+  Expect.equals(r"$'$`-$'$`-flop", result);
 }

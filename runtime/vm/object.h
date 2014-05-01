@@ -134,11 +134,12 @@ class Symbols;
   /* Object is printed as JSON into stream. If ref is true only a header */    \
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
-  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const;   \
   virtual const char* JSONType(bool ref) const {                               \
     return ref ? "@"#object : ""#object;                                       \
   }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
+ protected:  /* NOLINT */                                                      \
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
@@ -268,10 +269,7 @@ class Object {
     }
   }
 
-  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const {
-    JSONObject jsobj(stream);
-    jsobj.AddProperty("type", JSONType(ref));
-  }
+  void PrintJSON(JSONStream* stream, bool ref = true) const;
 
   virtual const char* JSONType(bool ref) const {
     return IsNull() ? "null" : "Object";
@@ -543,6 +541,12 @@ class Object {
   }
 
   RawObject* raw_;  // The raw object reference.
+
+ protected:
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", JSONType(ref));
+  }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -1113,20 +1117,20 @@ class Class : public Object {
   void set_cha_codes(const Array& value) const;
 
  private:
-  enum {
+  enum MemberKind {
     kAny = 0,
     kStatic,
     kInstance,
     kConstructor,
     kFactory,
   };
-  enum {
+  enum StateBits {
     kConstBit = 0,
     kImplementedBit = 1,
     kTypeFinalizedBit = 2,
-    kClassFinalizedBits = 3,
+    kClassFinalizedPos = 3,
     kClassFinalizedSize = 2,
-    kAbstractBit = 5,
+    kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
     kPatchBit = 6,
     kSynthesizedClassBit = 7,
     kMarkedForParsingBit = 8,
@@ -1139,7 +1143,7 @@ class Class : public Object {
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
   class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
-      kClassFinalizedBits, kClassFinalizedSize> {};  // NOLINT
+      kClassFinalizedPos, kClassFinalizedSize> {};  // NOLINT
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class PatchBit : public BitField<bool, kPatchBit, 1> {};
   class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
@@ -1186,11 +1190,11 @@ class Class : public Object {
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
 
-  static RawFunction* CheckFunctionType(const Function& func, intptr_t type);
-  RawFunction* LookupFunction(const String& name, intptr_t type) const;
+  static RawFunction* CheckFunctionType(const Function& func, MemberKind kind);
+  RawFunction* LookupFunction(const String& name, MemberKind kind) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name,
-                                          intptr_t type) const;
-  RawField* LookupField(const String& name, intptr_t type) const;
+                                          MemberKind kind) const;
+  RawField* LookupField(const String& name, MemberKind kind) const;
 
   RawFunction* LookupAccessorFunction(const char* prefix,
                                       intptr_t prefix_length,
@@ -1942,9 +1946,9 @@ class Function : public Object {
 
  private:
   enum KindTagBits {
-    kKindTagBit = 0,
+    kKindTagPos = 0,
     kKindTagSize = 4,
-    kStaticBit = 4,
+    kStaticBit = kKindTagPos + kKindTagSize,  // = 4
     kConstBit = 5,
     kAbstractBit = 6,
     kVisibleBit = 7,
@@ -1958,7 +1962,7 @@ class Function : public Object {
     kAllowsHoistingCheckClassBit = 15,
   };
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
+    public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
@@ -2964,6 +2968,8 @@ class PcDescriptors : public Object {
 
   static void PrintHeaderString();
 
+  void PrintToJSONObject(JSONObject* jsobj) const;
+
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
@@ -3180,6 +3186,219 @@ class DeoptInfo : public Object {
 };
 
 
+// Object holding information about an IC: test classes and their
+// corresponding targets.
+class ICData : public Object {
+ public:
+  RawFunction* owner() const {
+    return raw_ptr()->owner_;
+  }
+
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
+  intptr_t NumArgsTested() const;
+
+  intptr_t deopt_id() const {
+    return raw_ptr()->deopt_id_;
+  }
+
+  #define DEOPT_REASONS(V)                                                     \
+    V(Unknown)                                                                 \
+    V(InstanceGetter)                                                          \
+    V(PolymorphicInstanceCallTestFail)                                         \
+    V(InstanceCallNoICData)                                                    \
+    V(IntegerToDouble)                                                         \
+    V(BinarySmiOp)                                                             \
+    V(BinaryMintOp)                                                            \
+    V(UnaryMintOp)                                                             \
+    V(ShiftMintOp)                                                             \
+    V(BinaryDoubleOp)                                                          \
+    V(InstanceSetter)                                                          \
+    V(Equality)                                                                \
+    V(RelationalOp)                                                            \
+    V(EqualityClassCheck)                                                      \
+    V(NoTypeFeedback)                                                          \
+    V(UnaryOp)                                                                 \
+    V(UnboxInteger)                                                            \
+    V(CheckClass)                                                              \
+    V(HoistedCheckClass)                                                       \
+    V(CheckSmi)                                                                \
+    V(CheckArrayBound)                                                         \
+    V(AtCall)                                                                  \
+    V(DoubleToSmi)                                                             \
+    V(Int32Load)                                                               \
+    V(Uint32Load)                                                              \
+    V(GuardField)                                                              \
+    V(TestCids)                                                                \
+    V(NumReasons)                                                              \
+
+  enum DeoptReasonId {
+  #define DEFINE_ENUM_LIST(name) kDeopt##name,
+  DEOPT_REASONS(DEFINE_ENUM_LIST)
+  #undef DEFINE_ENUM_LIST
+  };
+
+  bool HasDeoptReasons() const { return DeoptReasons() != 0; }
+  uint32_t DeoptReasons() const;
+  void SetDeoptReasons(uint32_t reasons) const;
+
+  bool HasDeoptReason(ICData::DeoptReasonId reason) const;
+  void AddDeoptReason(ICData::DeoptReasonId reason) const;
+
+  bool IssuedJSWarning() const;
+  void SetIssuedJSWarning() const;
+
+  bool IsClosureCall() const;
+  void SetIsClosureCall() const;
+
+  intptr_t NumberOfChecks() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawICData));
+  }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawICData, target_name_);
+  }
+
+  static intptr_t state_bits_offset() {
+    return OFFSET_OF(RawICData, state_bits_);
+  }
+
+  static intptr_t NumArgsTestedShift() {
+    return kNumArgsTestedPos;
+  }
+
+  static intptr_t NumArgsTestedMask() {
+    return ((1 << kNumArgsTestedSize) - 1) << kNumArgsTestedPos;
+  }
+
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawICData, args_descriptor_);
+  }
+
+  static intptr_t ic_data_offset() {
+    return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  static intptr_t owner_offset() {
+    return OFFSET_OF(RawICData, owner_);
+  }
+
+  // Used for unoptimized static calls when no class-ids are checked.
+  void AddTarget(const Function& target) const;
+
+  // Adding checks.
+
+  // Adds one more class test to ICData. Length of 'classes' must be equal to
+  // the number of arguments tested. Use only for num_args_tested > 1.
+  void AddCheck(const GrowableArray<intptr_t>& class_ids,
+                const Function& target) const;
+  // Adds sorted so that Smi is the first class-id. Use only for
+  // num_args_tested == 1.
+  void AddReceiverCheck(intptr_t receiver_class_id,
+                        const Function& target,
+                        intptr_t count = 1) const;
+
+  // Retrieving checks.
+
+  void GetCheckAt(intptr_t index,
+                  GrowableArray<intptr_t>* class_ids,
+                  Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  void GetOneClassCheckAt(intptr_t index,
+                          intptr_t* class_id,
+                          Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  intptr_t GetCidAt(intptr_t index) const;
+
+  intptr_t GetReceiverClassIdAt(intptr_t index) const;
+  intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
+
+  RawFunction* GetTargetAt(intptr_t index) const;
+  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
+
+  void IncrementCountAt(intptr_t index, intptr_t value) const;
+  void SetCountAt(intptr_t index, intptr_t value) const;
+  intptr_t GetCountAt(intptr_t index) const;
+  intptr_t AggregateCount() const;
+
+  // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
+  // returns a new ICData object containing only unique arg_nr checks.
+  RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
+  RawICData* AsUnaryClassChecks() const {
+    return AsUnaryClassChecksForArgNr(0);
+  }
+
+  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
+  bool AllReceiversAreNumbers() const;
+  bool HasOneTarget() const;
+  bool HasReceiverClassId(intptr_t class_id) const;
+
+  static RawICData* New(const Function& owner,
+                        const String& target_name,
+                        const Array& arguments_descriptor,
+                        intptr_t deopt_id,
+                        intptr_t num_args_tested);
+
+  static intptr_t TestEntryLengthFor(intptr_t num_args);
+
+  static intptr_t TargetIndexFor(intptr_t num_args) {
+    return num_args;
+  }
+
+  static intptr_t CountIndexFor(intptr_t num_args) {
+    return (num_args + 1);
+  }
+
+ private:
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
+  void set_owner(const Function& value) const;
+  void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
+  void set_deopt_id(intptr_t value) const;
+  void SetNumArgsTested(intptr_t value) const;
+  void set_ic_data(const Array& value) const;
+  void set_state_bits(uint32_t bits) const;
+
+  enum {
+    kNumArgsTestedPos = 0,
+    kNumArgsTestedSize = 2,
+    kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
+    kDeoptReasonSize = kDeoptNumReasons,
+    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
+    kIsClosureCallBit = kIssuedJSWarningBit + 1,
+  };
+
+  class NumArgsTestedBits : public BitField<uint32_t,
+      kNumArgsTestedPos, kNumArgsTestedSize> {};  // NOLINT
+  class DeoptReasonBits : public BitField<uint32_t,
+      ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
+  class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
+  class IsClosureCallBit : public BitField<bool, kIsClosureCallBit, 1> {};
+
+#if defined(DEBUG)
+  // Used in asserts to verify that a check is not added twice.
+  bool HasCheck(const GrowableArray<intptr_t>& cids) const;
+#endif  // DEBUG
+
+  intptr_t TestEntryLength() const;
+  void WriteSentinel(const Array& data) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  friend class Class;
+};
+
+
 class Code : public Object {
  public:
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
@@ -3257,7 +3476,8 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
-  RawDeoptInfo* GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const;
+  RawDeoptInfo* GetDeoptInfoAtPc(
+      uword pc, ICData::DeoptReasonId* deopt_reason) const;
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
@@ -3600,163 +3820,6 @@ class ContextScope : public Object {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
-  friend class Class;
-};
-
-
-// Object holding information about an IC: test classes and their
-// corresponding targets.
-class ICData : public Object {
- public:
-  RawFunction* function() const {
-    return raw_ptr()->function_;
-  }
-
-  RawString* target_name() const {
-    return raw_ptr()->target_name_;
-  }
-
-  RawArray* arguments_descriptor() const {
-    return raw_ptr()->args_descriptor_;
-  }
-
-  intptr_t num_args_tested() const {
-    return raw_ptr()->num_args_tested_;
-  }
-
-  intptr_t deopt_id() const {
-    return raw_ptr()->deopt_id_;
-  }
-
-  intptr_t deopt_reason() const {
-    return raw_ptr()->deopt_reason_;
-  }
-
-  void set_deopt_reason(intptr_t reason) const;
-
-  bool is_closure_call() const {
-    return raw_ptr()->is_closure_call_ == 1;
-  }
-
-  void set_is_closure_call(bool value) const;
-
-  intptr_t NumberOfChecks() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawICData));
-  }
-
-  static intptr_t target_name_offset() {
-    return OFFSET_OF(RawICData, target_name_);
-  }
-
-  static intptr_t num_args_tested_offset() {
-    return OFFSET_OF(RawICData, num_args_tested_);
-  }
-
-  static intptr_t arguments_descriptor_offset() {
-    return OFFSET_OF(RawICData, args_descriptor_);
-  }
-
-  static intptr_t ic_data_offset() {
-    return OFFSET_OF(RawICData, ic_data_);
-  }
-
-  static intptr_t function_offset() {
-    return OFFSET_OF(RawICData, function_);
-  }
-
-  static intptr_t is_closure_call_offset() {
-    return OFFSET_OF(RawICData, is_closure_call_);
-  }
-
-  // Used for unoptimized static calls when no class-ids are checked.
-  void AddTarget(const Function& target) const;
-
-  // Adding checks.
-
-  // Adds one more class test to ICData. Length of 'classes' must be equal to
-  // the number of arguments tested. Use only for num_args_tested > 1.
-  void AddCheck(const GrowableArray<intptr_t>& class_ids,
-                const Function& target) const;
-  // Adds sorted so that Smi is the first class-id. Use only for
-  // num_args_tested == 1.
-  void AddReceiverCheck(intptr_t receiver_class_id,
-                        const Function& target,
-                        intptr_t count = 1) const;
-
-  // Retrieving checks.
-
-  void GetCheckAt(intptr_t index,
-                  GrowableArray<intptr_t>* class_ids,
-                  Function* target) const;
-  // Only for 'num_args_checked == 1'.
-  void GetOneClassCheckAt(intptr_t index,
-                          intptr_t* class_id,
-                          Function* target) const;
-  // Only for 'num_args_checked == 1'.
-  intptr_t GetCidAt(intptr_t index) const;
-
-  intptr_t GetReceiverClassIdAt(intptr_t index) const;
-  intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
-
-  RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
-
-  void IncrementCountAt(intptr_t index, intptr_t value) const;
-  void SetCountAt(intptr_t index, intptr_t value) const;
-  intptr_t GetCountAt(intptr_t index) const;
-  intptr_t AggregateCount() const;
-
-  // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
-  // returns a new ICData object containing only unique arg_nr checks.
-  RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
-  RawICData* AsUnaryClassChecks() const {
-    return AsUnaryClassChecksForArgNr(0);
-  }
-
-  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
-  bool AllReceiversAreNumbers() const;
-  bool HasOneTarget() const;
-  bool HasReceiverClassId(intptr_t class_id) const;
-
-  static RawICData* New(const Function& caller_function,
-                        const String& target_name,
-                        const Array& arguments_descriptor,
-                        intptr_t deopt_id,
-                        intptr_t num_args_tested);
-
-  static intptr_t TestEntryLengthFor(intptr_t num_args);
-
-  static intptr_t TargetIndexFor(intptr_t num_args) {
-    return num_args;
-  }
-
-  static intptr_t CountIndexFor(intptr_t num_args) {
-    return (num_args + 1);
-  }
-
- private:
-  RawArray* ic_data() const {
-    return raw_ptr()->ic_data_;
-  }
-
-  void set_function(const Function& value) const;
-  void set_target_name(const String& value) const;
-  void set_arguments_descriptor(const Array& value) const;
-  void set_deopt_id(intptr_t value) const;
-  void set_num_args_tested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
-
-#if defined(DEBUG)
-  // Used in asserts to verify that a check is not added twice.
-  bool HasCheck(const GrowableArray<intptr_t>& cids) const;
-#endif  // DEBUG
-
-  intptr_t TestEntryLength() const;
-  void WriteSentinel(const Array& data) const;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
 };
 
@@ -4114,10 +4177,10 @@ class Instance : public Object {
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class Class;
   friend class Closure;
+  friend class DeferredObject;
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
-  friend class DeferredObject;
 };
 
 
@@ -5453,6 +5516,10 @@ class TwoByteString : public AllStatic {
  public:
   static int32_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
+  }
+
+  static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {
+    *CharAddr(str, index) = ch;
   }
 
   static RawTwoByteString* EscapeSpecialCharacters(const String& str);

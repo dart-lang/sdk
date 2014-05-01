@@ -163,7 +163,9 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintICDataHelper(&f, ic_data);
-  OS::Print("%s\n", buffer);
+  OS::Print("%s ", buffer);
+  const Array& a = Array::Handle(ic_data.arguments_descriptor());
+  OS::Print(" arg-desc %" Pd "\n", a.Length());
 }
 
 
@@ -355,8 +357,10 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("function=");
+  InputAt(0)->PrintTo(f);
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i > 0) f->Print(", ");
+    f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
 }
@@ -392,6 +396,17 @@ void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (needs_number_check()) {
     f->Print(", with number check");
   }
+}
+
+
+void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
+  left()->PrintTo(f);
+  f->Print(" %s [", Token::Str(kind()));
+  for (intptr_t i = 0; i < cid_results().length(); i += 2) {
+    f->Print("0x%" Px ":%s ",
+        cid_results()[i], cid_results()[i + 1] == 0 ? "false" : "true");
+  }
+  f->Print("] ");
 }
 
 
@@ -1055,6 +1070,13 @@ void Environment::PrintTo(BufferFormatter* f) const {
   }
   f->Print(" }");
   if (outer_ != NULL) outer_->PrintTo(f);
+}
+
+const char* Environment::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
 }
 
 }  // namespace dart

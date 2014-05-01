@@ -71,7 +71,7 @@ class _Platform {
           result[str.substring(0, equalsIndex)] =
               str.substring(equalsIndex + 1);
         }
-        _environmentCache = new _UnmodifiableMap(result);
+        _environmentCache = new UnmodifiableMapView(result);
       } else {
         _environmentCache = env;
       }

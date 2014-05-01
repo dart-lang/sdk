@@ -582,6 +582,78 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+
+LocationSummary* TestCidsInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                            BranchLabels labels) {
+  ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
+  Register val_reg = locs()->in(0).reg();
+  Register cid_reg = locs()->temp(0).reg();
+
+  Label* deopt = CanDeoptimize() ?
+  compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
+
+  const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
+  const ZoneGrowableArray<intptr_t>& data = cid_results();
+  ASSERT(data[0] == kSmiCid);
+  bool result = data[1] == true_result;
+  __ testl(val_reg, Immediate(kSmiTagMask));
+  __ j(ZERO, result ? labels.true_label : labels.false_label);
+  __ LoadClassId(cid_reg, val_reg);
+  for (intptr_t i = 2; i < data.length(); i += 2) {
+    const intptr_t test_cid = data[i];
+    ASSERT(test_cid != kSmiCid);
+    result = data[i + 1] == true_result;
+    __ cmpl(cid_reg,  Immediate(test_cid));
+    __ j(EQUAL, result ? labels.true_label : labels.false_label);
+  }
+  // No match found, deoptimize or false.
+  if (deopt == NULL) {
+    Label* target = result ? labels.false_label : labels.true_label;
+    if (target != labels.fall_through) {
+        __ jmp(target);
+    }
+  } else {
+    __ jmp(deopt);
+  }
+  // Dummy result as the last instruction is a jump, any conditional
+  // branch using the result will therefore be skipped.
+  return ZERO;
+}
+
+
+void TestCidsInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                   BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  EmitComparisonCode(compiler, labels);
+}
+
+
+void TestCidsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result_reg = locs()->out(0).reg();
+  Label is_true, is_false, done;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  EmitComparisonCode(compiler, labels);
+  __ Bind(&is_false);
+  __ LoadObject(result_reg, Bool::False());
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&is_true);
+  __ LoadObject(result_reg, Bool::True());
+  __ Bind(&done);
+}
+
+
 LocationSummary* RelationalOpInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1008,7 +1080,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     case kTypedDataInt32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
+        Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                              ICData::kDeoptInt32Load);
         __ movl(result, element_address);
         // Verify that the signed value in 'result' can fit inside a Smi.
         __ cmpl(result, Immediate(0xC0000000));
@@ -1017,7 +1090,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kTypedDataUint32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
+        Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                              ICData::kDeoptUint32Load);
         __ movl(result, element_address);
         // Verify that the unsigned value in 'result' can fit inside a Smi.
         __ testl(result, Immediate(0xC0000000));
@@ -1302,7 +1376,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label ok, fail_label;
 
   Label* deopt = compiler->is_optimizing() ?
-      compiler->AddDeoptStub(deopt_id(), kDeoptGuardField) : NULL;
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField) : NULL;
 
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
@@ -2411,7 +2485,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Calculate the size tag and write tags.
     intptr_t size_tag = (instance_size > RawObject::SizeTag::kMaxSizeTag)
-        ? 0 : instance_size << (RawObject::kSizeTagBit - kObjectAlignmentLog2);
+        ? 0 : instance_size << (RawObject::kSizeTagPos - kObjectAlignmentLog2);
 
     intptr_t tags = size_tag | RawObject::ClassIdTag::encode(kContextCid);
     __ movl(FieldAddress(result, Context::tags_offset()), Immediate(tags));
@@ -2614,7 +2688,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   Register result = locs.out(0).reg();
   ASSERT(left == result);
   Label* deopt = shift_left->CanDeoptimize() ?
-      compiler->AddDeoptStub(shift_left->deopt_id(), kDeoptBinarySmiOp) : NULL;
+      compiler->AddDeoptStub(shift_left->deopt_id(), ICData::kDeoptBinarySmiOp)
+      : NULL;
   if (locs.in(1).IsConstant()) {
     const Object& constant = locs.in(1).constant();
     ASSERT(constant.IsSmi());
@@ -2808,7 +2883,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+    deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
 
   if (locs()->in(1).IsConstant()) {
@@ -3114,7 +3189,8 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryDoubleOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptBinaryDoubleOp);
   intptr_t left_cid = left()->Type()->ToCid();
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
@@ -3194,7 +3270,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(value);  // Untag input before conversion.
     __ cvtsi2sd(result, value);
   } else {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+                                          ICData::kDeoptBinaryDoubleOp);
     Register temp = locs()->temp(0).reg();
     Label is_smi, done;
     __ testl(value, Immediate(kSmiTagMask));
@@ -3265,7 +3342,7 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kFloat32x4Cid) {
     const Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
     __ CompareClassId(value, kFloat32x4Cid, temp);
@@ -3328,7 +3405,7 @@ void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kFloat64x2Cid) {
     const Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
     __ CompareClassId(value, kFloat64x2Cid, temp);
@@ -3423,7 +3500,7 @@ void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kInt32x4Cid) {
     const Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
     __ CompareClassId(value, kInt32x4Cid, temp);
@@ -4566,8 +4643,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == locs()->out(0).reg());
   switch (op_kind()) {
     case Token::kNEGATE: {
-      Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                            kDeoptUnaryOp);
+      Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryOp);
       __ negl(value);
       __ j(OVERFLOW, deopt);
       break;
@@ -4675,7 +4751,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
 
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
   Register result = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
   __ cvttsd2si(result, value);
@@ -4950,7 +5026,7 @@ extern const RuntimeEntry kSinCosRuntimeEntry(
 void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+    deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
 
   if (kind() == MergedMathInstr::kTruncDivMod) {
@@ -5049,13 +5125,13 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptPolymorphicInstanceCallTestFail);
+  Label* deopt = compiler->AddDeoptStub(
+      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
   if (ic_data().NumberOfChecks() == 0) {
     __ jmp(deopt);
     return;
   }
-  ASSERT(ic_data().num_args_tested() == 1);
+  ASSERT(ic_data().NumArgsTested() == 1);
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
@@ -5113,8 +5189,8 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const DeoptReasonId deopt_reason =
-      licm_hoisted_ ? kDeoptHoistedCheckClass : kDeoptCheckClass;
+  const ICData::DeoptReasonId deopt_reason = licm_hoisted_ ?
+      ICData::kDeoptHoistedCheckClass : ICData::kDeoptCheckClass;
   if (IsNullCheck()) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
     const Immediate& raw_null =
@@ -5171,8 +5247,7 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(bool opt) const {
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckSmi);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
   __ testl(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
 }
@@ -5197,7 +5272,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptCheckArrayBound);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptCheckArrayBound);
 
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
@@ -5280,7 +5356,8 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ pmovsxdq(result, result);
   } else {
     Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptUnboxInteger);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+                                          ICData::kDeoptUnboxInteger);
     Label is_smi, done;
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
@@ -5432,7 +5509,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   switch (op_kind()) {
     case Token::kBIT_AND: __ andpd(left, right); break;
@@ -5443,7 +5520,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Register lo = locs()->temp(0).reg();
       Register hi = locs()->temp(1).reg();
       if (!FLAG_throw_on_javascript_int_overflow) {
-        deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+        deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
       }
 
       Label done, overflow;
@@ -5498,8 +5575,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == ECX);
   ASSERT(locs()->out(0).fpu_reg() == left);
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
   Label done;
   __ testl(ECX, ECX);
   __ j(ZERO, &done);  // Shift by 0 is a nop.
@@ -5572,8 +5648,7 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == locs()->out(0).fpu_reg());
   Label* deopt = NULL;
   if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(),
-                                   kDeoptUnaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
   }
   __ pcmpeqq(XMM0, XMM0);  // Generate all 1's.
   __ pxor(value, XMM0);
@@ -5825,28 +5900,26 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));  // Function.
+  summary->set_out(0, Location::RegisterLocation(EAX));
+  return summary;
 }
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load closure object (first argument) in EDI.
-  intptr_t argument_count = ArgumentCount();
-  __ movl(EDI, Address(ESP, (argument_count - 1) * kWordSize));
-
   // Load arguments descriptors.
+  intptr_t argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(EDX, arguments_descriptor);
 
-  // Load the closure function into EAX.
-  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
-
-  // Load closure context in CTX; note that CTX has already been preserved.
-  __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
-
   // EBX: Code (compiled code or lazy compile stub).
+  ASSERT(locs()->in(0).reg() == EAX);
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
 
   // EAX: Function.

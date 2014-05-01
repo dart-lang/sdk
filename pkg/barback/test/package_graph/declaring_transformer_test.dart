@@ -61,19 +61,96 @@ main() {
     buildShouldSucceed();
   });
 
-  // TODO(nweiz): Enable this test when issue 18226 is fixed.
-  // test("fails to get a consumed asset before apply is finished", () {
-  //   var transformer = new DeclaringRewriteTransformer("blub", "blab")
-  //       ..consumePrimary = true;
-  //   initGraph(["app|foo.blub"], {"app": [[transformer]]});
-  //
-  //   transformer.pauseApply();
-  //   updateSources(["app|foo.blub"]);
-  //   expectNoAsset("app|foo.blub");
-  //
-  //   transformer.resumeApply();
-  //   buildShouldSucceed();
-  // });
+  test("fails to get a consumed asset before apply is finished", () {
+    var transformer = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
+  
+    transformer.pauseApply();
+    updateSources(["app|foo.blub"]);
+    expectNoAsset("app|foo.blub");
+  
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("blocks on getting a declared asset that wasn't generated last run", () {
+    var transformer = new DeclaringCheckContentAndRenameTransformer(
+          oldExtension: "txt", oldContent: "yes",
+          newExtension: "out", newContent: "done");
+    initGraph({"app|foo.txt": "no"}, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    // The transform should remember that foo.out was declared, so it should
+    // expect that it might still be generated even though it wasn't last time.
+    transformer.pauseApply();
+    modifyAsset("app|foo.txt", "yes");
+    updateSources(["app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.out");
+
+    transformer.resumeApply();
+    expectAsset("app|foo.out", "done");
+    buildShouldSucceed();
+  });
+
+  test("doesn't block on on getting an undeclared asset that wasn't generated "
+      "last run", () {
+    var transformer = new DeclaringCheckContentAndRenameTransformer(
+          oldExtension: "txt", oldContent: "yes",
+          newExtension: "out", newContent: "done");
+    initGraph({"app|foo.txt": "no"}, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    transformer.pauseApply();
+    modifyAsset("app|foo.txt", "yes");
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|undeclared.out");
+
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("fails to get a consumed asset before apply is finished when a sibling "
+      "has finished applying", () {
+    var transformer = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    initGraph(["app|foo.blub", "app|foo.txt"], {"app": [[
+      transformer,
+      new RewriteTransformer("txt", "out")
+    ]]});
+  
+    transformer.pauseApply();
+    updateSources(["app|foo.blub", "app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.out");
+    expectNoAsset("app|foo.blub");
+  
+    transformer.resumeApply();
+    buildShouldSucceed();
+  });
+
+  test("blocks getting a consumed asset before apply is finished when a "
+      "sibling hasn't finished applying", () {
+    var declaring = new DeclaringRewriteTransformer("blub", "blab")
+        ..consumePrimary = true;
+    var eager = new RewriteTransformer("txt", "out");
+    initGraph(["app|foo.blub", "app|foo.txt"], {"app": [[declaring, eager]]});
+  
+    declaring.pauseApply();
+    eager.pauseApply();
+    updateSources(["app|foo.blub", "app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.blub");
+  
+    declaring.resumeApply();
+    eager.resumeApply();
+    expectNoAsset("app|foo.blub");
+    buildShouldSucceed();
+  });
 
   test("waits until apply is finished to get an overwritten asset", () {
     var transformer = new DeclaringRewriteTransformer("blub", "blub");

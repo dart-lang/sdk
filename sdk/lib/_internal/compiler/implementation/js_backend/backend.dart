@@ -558,6 +558,8 @@ class JavaScriptBackend extends Backend {
         ..add(jsNullClass);
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    validateInterceptorImplementsAllObjectMethods(jsNullClass);
 
     typeVariableClass = compiler.findHelper('TypeVariable');
 
@@ -583,7 +585,7 @@ class JavaScriptBackend extends Backend {
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
-      assert(interceptorMember.getEnclosingClass() != compiler.objectClass);
+      assert(interceptorMember.getEnclosingClass() == interceptorClass);
     });
   }
 
@@ -1065,6 +1067,12 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getFallThroughError(), elements);
   }
 
+  void registerCheckDeferredIsLoaded(TreeElements elements) {
+    enqueueInResolution(getCheckDeferredIsLoaded(), elements);
+    // Also register the types of the arguments passed to this method.
+    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
+  }
+
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(compiler.noSuchMethodSelector);
@@ -1104,7 +1112,8 @@ class JavaScriptBackend extends Backend {
     assert(element.name == Compiler.NO_SUCH_METHOD);
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass
-        || classElement == jsInterceptorClass;
+        || classElement == jsInterceptorClass
+        || classElement == jsNullClass;
   }
 
   bool isDefaultEqualityImplementation(Element element) {
@@ -1253,15 +1262,6 @@ class JavaScriptBackend extends Backend {
     for (ClassElement dartClass in implementationClasses.keys) {
       if (element == implementationClasses[dartClass]) {
         return dartClass;
-      }
-    }
-    return element;
-  }
-
-  Element getImplementationClass(Element element) {
-    for (ClassElement dartClass in implementationClasses.keys) {
-      if (element == dartClass) {
-        return implementationClasses[dartClass];
       }
     }
     return element;
@@ -1526,6 +1526,10 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper('checkSubtypeOfRuntimeType');
   }
 
+  Element getCheckDeferredIsLoaded() {
+    return compiler.findHelper('checkDeferredIsLoaded');
+  }
+
   Element getAssertSubtypeOfRuntimeType() {
     return compiler.findHelper('assertSubtypeOfRuntimeType');
   }
@@ -1761,13 +1765,12 @@ class JavaScriptBackend extends Backend {
     // helper rather than reading it inside the helper to increase the
     // chance of making the dispatch record access monomorphic.
     jsAst.PropertyAccess record = new jsAst.PropertyAccess(
-        use2, new jsAst.VariableUse(dispatchPropertyName));
+        use2, js(dispatchPropertyName));
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    FunctionElement helper =
-        compiler.findHelper('isJsIndexable');
-    String helperName = namer.isolateAccess(helper);
-    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
+    FunctionElement helper = compiler.findHelper('isJsIndexable');
+    jsAst.Expression helperExpression = namer.elementAccess(helper);
+    return new jsAst.Call(helperExpression, arguments);
   }
 
   bool isTypedArray(TypeMask mask) {

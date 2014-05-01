@@ -42,7 +42,9 @@ class ContextDomainHandlerTest {
       ContextDomainHandler.MODIFIED_PARAM : ['ffile:/two.dart'],
       ContextDomainHandler.REMOVED_PARAM : ['ffile:/three.dart']
     });
+    expect(server.contextWorkQueue, isEmpty);
     Response response = handler.handleRequest(request);
+    expect(server.contextWorkQueue, hasLength(1));
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: null

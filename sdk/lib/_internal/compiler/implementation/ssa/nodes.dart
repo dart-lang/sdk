@@ -816,7 +816,6 @@ abstract class HInstruction implements Spannable {
 
   bool useGvn() => _useGvn;
   void setUseGvn() { _useGvn = true; }
-  void clearUseGvn() { _useGvn = false; }
 
   bool get isMovable => useGvn();
 
@@ -2552,6 +2551,8 @@ class HTypeKnown extends HCheck {
   bool isJsStatement() => false;
   bool isControlFlow() => false;
   bool canThrow() => false;
+
+  HInstruction get witness => inputs.length == 2 ? inputs[1] : null;
 
   int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeKnown;

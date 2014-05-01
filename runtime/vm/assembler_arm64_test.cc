@@ -379,8 +379,8 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ movz(R2, 10, 0);
   __ sub(SP, SP, Operand(10*kWordSize));
   // Store R1 into SP + R2 * kWordSize.
-  __ str(R1, Address(SP, R2, UXTX, true));
-  __ ldr(R0, Address(SP, R2, UXTX, true));
+  __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
+  __ ldr(R0, Address(SP, R2, UXTX, Address::Scaled));
   __ add(SP, SP, Operand(10*kWordSize));
   __ ret();
 }
@@ -1177,10 +1177,10 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 42, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1192,10 +1192,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0xf1234123, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1207,10 +1207,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x4321f1234124, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1222,10 +1222,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x9287436598237465, PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1239,10 +1239,10 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Object::null_object(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1255,10 +1255,10 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::True(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1271,10 +1271,10 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ PushPP();  // Save caller's pool pointer and load a new one here.
+  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::False(), PP);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 
@@ -1286,13 +1286,43 @@ ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csel(R0, R1, R2, LT);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CSelTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csel(R0, R1, R2, GE);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CSelFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.
 // R1: value.
 // R2: growable array.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ PushPP();
+  __ TagAndPushPP();
   __ LoadPoolPointer(PP);
   __ Push(CTX);
   __ Push(LR);
@@ -1302,7 +1332,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                      R1);
   __ Pop(LR);
   __ Pop(CTX);
-  __ PopPP();
+  __ PopAndUntagPP();
   __ ret();
 }
 

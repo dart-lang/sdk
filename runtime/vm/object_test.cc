@@ -2751,9 +2751,9 @@ TEST_CASE(ICData) {
       Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested);
-  EXPECT_EQ(1, o1.num_args_tested());
+  EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
-  EXPECT_EQ(function.raw(), o1.function());
+  EXPECT_EQ(function.raw(), o1.owner());
   EXPECT_EQ(0, o1.NumberOfChecks());
   EXPECT_EQ(target_name.raw(), o1.target_name());
   EXPECT_EQ(args_descriptor.raw(), o1.arguments_descriptor());
@@ -2783,9 +2783,9 @@ TEST_CASE(ICData) {
 
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);
-  EXPECT_EQ(2, o2.num_args_tested());
+  EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
-  EXPECT_EQ(function.raw(), o2.function());
+  EXPECT_EQ(function.raw(), o2.owner());
   EXPECT_EQ(0, o2.NumberOfChecks());
   GrowableArray<intptr_t> classes;
   classes.Add(kSmiCid);
@@ -2992,9 +2992,6 @@ TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
-
 TEST_CASE(StackTraceFormat) {
   const char* kScriptChars =
       "void baz() {\n"
@@ -3054,7 +3051,6 @@ TEST_CASE(StackTraceFormat) {
       "#9      main (dart:test-lib:37:24)");
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
@@ -3463,9 +3459,6 @@ TEST_CASE(MirrorReference) {
 }
 
 
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
-
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
@@ -3605,8 +3598,6 @@ TEST_CASE(FindFunctionIndex) {
   EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
-
 
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
@@ -3686,9 +3677,6 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   EXPECT_EQ(bad_invocation_dispatcher_index, -1);
 }
 
-
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
 
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
@@ -3857,6 +3845,9 @@ TEST_CASE(FunctionSourceFingerprint) {
 }
 
 
+// TODO(zra): Enable test when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+
 TEST_CASE(FunctionWithBreakpointNotInlined) {
   const char* kScriptChars =
       "class A {\n"
@@ -3928,9 +3919,6 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(array.IsArray());
 }
 
-
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
 
 TEST_CASE(ToUserCString) {
   const char* kScriptChars =
@@ -4014,19 +4002,17 @@ class JSONTypeVerifier : public ObjectVisitor {
       return;
     }
     JSONStream js;
-    handle.PrintToJSONStream(&js, false);
+    handle.PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
 };
 
 
-TEST_CASE(PrintToJSONStream) {
+TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   JSONTypeVerifier verifier;
   heap->IterateObjects(&verifier);
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

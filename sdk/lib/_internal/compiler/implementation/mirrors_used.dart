@@ -41,9 +41,6 @@ import 'tree/tree.dart' show
     NewExpression,
     Node;
 
-import 'resolution/resolution.dart' show
-    ConstantMapper;
-
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
  *

@@ -6,9 +6,9 @@ library trydart.editor;
 
 import 'dart:html';
 
-import 'package:compiler/implementation/scanner/scannerlib.dart'
-  show
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
+    ErrorToken,
     StringScanner,
     Token;
 
@@ -200,6 +200,10 @@ void inlineChildren(Element element) {
 }
 
 Decoration getDecoration(Token token) {
+  if (token is ErrorToken) {
+    isMalformedInput = true;
+    return new DiagnosticDecoration('error', token.assertionMessage);
+  }
   String tokenValue = token.value;
   String tokenInfo = token.info.value;
   if (tokenInfo == 'string') return currentTheme.string;

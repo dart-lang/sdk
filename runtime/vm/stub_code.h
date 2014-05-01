@@ -50,7 +50,6 @@ class RawCode;
 // List of stubs created per isolate, these stubs could potentially contain
 // embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
-  V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
   V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \
@@ -60,10 +59,10 @@ class RawCode;
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
   V(ClosureCallInlineCache)                                                    \
-  V(MegamorphicCall)                                                           \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
+  V(InvokeDartCode)                                                            \
 
 // class StubEntry is used to describe stub methods generated in dart to
 // abstract out common code executed from generated dart code.

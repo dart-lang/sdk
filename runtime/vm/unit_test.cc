@@ -48,8 +48,6 @@ void TestCaseBase::RunAll() {
   }
 }
 
-// TODO(zra): Remove when tests that need these functions are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -144,7 +142,6 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
-#endif
 
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
@@ -206,9 +203,6 @@ void CodeGenTest::Compile() {
 }
 
 
-// TODO(zra): Remove once supported.
-#if !defined(TARGET_ARCH_ARM64)
-
 LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
   char name[64];
   OS::SNPrint(name, 64, ":%s", name_part);
@@ -227,6 +221,10 @@ bool CompilerTest::TestCompileScript(const Library& library,
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(Compiler::Compile(library, script));
+  if (!error.IsNull()) {
+    OS::Print("Error compiling test script:\n%s\n",
+    error.ToErrorCString());
+  }
   return error.IsNull();
 }
 
@@ -239,6 +237,5 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   return error.IsNull();
 }
 
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

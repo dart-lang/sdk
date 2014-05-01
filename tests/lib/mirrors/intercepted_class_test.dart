@@ -10,8 +10,7 @@ import 'dart:mirrors';
 
 import 'stringify.dart' show stringify, expect;
 
-checkClassMirror(ClassMirror cls, String name) {
-  expect('s($name)', cls.simpleName);
+checkClassMirrorMethods(ClassMirror cls) {
   var variables = new Map();
   cls.declarations.forEach((Symbol key, DeclarationMirror value) {
     if (value is VariableMirror && !value.isStatic && !value.isPrivate) {
@@ -19,6 +18,11 @@ checkClassMirror(ClassMirror cls, String name) {
     }
   });
   expect('{}', variables);
+}
+
+checkClassMirror(ClassMirror cls, String name) {
+  expect('s($name)', cls.simpleName);
+  checkClassMirrorMethods(cls);
 }
 
 main() {

@@ -216,6 +216,14 @@ void Location::PrintTo(BufferFormatter* f) const {
 }
 
 
+const char* Location::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
+
 void Location::Print() const {
   if (kind() == kStackSlot) {
     OS::Print("S%+" Pd "", stack_index());

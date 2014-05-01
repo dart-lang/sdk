@@ -8,16 +8,20 @@ import 'dart:async';
 
 import 'asset_node.dart';
 import 'log.dart';
+import 'node_status.dart';
 import 'stream_pool.dart';
 
 /// A collection of streams that are common to nodes in barback's package graph.
 class NodeStreams {
-  /// A stream that emits an event whenever the node is no longer dirty.
+  /// A stream that emits an event every time the node's status changes.
   ///
-  /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => onDoneController.stream;
-  final onDoneController = new StreamController.broadcast(sync: true);
+  /// This will emit the new status. It's guaranteed to emit an event only when
+  /// the status changes from the previous value. To ensure this, callers should
+  /// emit status changes using [changeStatus]. The initial status is assumed to
+  /// be [NodeStatus.RUNNING].
+  Stream<NodeStatus> get onStatusChange => _onStatusChangeController.stream;
+  final _onStatusChangeController =
+      new StreamController<NodeStatus>.broadcast(sync: true);
 
   /// A stream that emits any new assets produced by the node.
   ///
@@ -33,14 +37,24 @@ class NodeStreams {
   final onLogPool = new StreamPool<LogEntry>.broadcast();
   final onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
+  var _previousStatus = NodeStatus.RUNNING;
+
   NodeStreams() {
     onAssetPool.add(onAssetController.stream);
     onLogPool.add(onLogController.stream);
   }
 
+  /// Emits a status change notification via [onStatusChange].
+  ///
+  /// This guarantees that a change notification won't be emitted if the status
+  /// didn't actually change.
+  void changeStatus(NodeStatus status) {
+    if (_previousStatus != status) _onStatusChangeController.add(status);
+  }
+
   /// Closes all the streams.
   void close() {
-    onDoneController.close();
+    _onStatusChangeController.close();
     onAssetController.close();
     onAssetPool.close();
     onLogController.close();

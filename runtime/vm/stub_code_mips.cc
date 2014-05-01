@@ -762,7 +762,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // A1: Array length as Smi.
     // T2: new object end address.
     // T3: array size.
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     // If no size tag overflow, shift T3 left, else set T3 to zero.
     __ LoadImmediate(T4, RawObject::SizeTag::kMaxSizeTag);
     __ sltu(CMPRES1, T4, T3);  // CMPRES1 = T4 < T3 ? 1 : 0
@@ -1045,7 +1045,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // V0: new object.
     // T1: number of context variables.
     // T2: object size.
-    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ LoadImmediate(TMP, RawObject::SizeTag::kMaxSizeTag);
     __ sltu(CMPRES1, TMP, T2);  // CMPRES1 = T2 > TMP ? 1 : 0.
     __ movn(T2, ZR, CMPRES1);  // T2 = CMPRES1 != 0 ? 0 : T2.
@@ -1391,7 +1391,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = S5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == T0);
-  __ lw(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
   __ addiu(T1, T1, Immediate(1));
   __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1416,9 +1416,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ lw(T0, FieldAddress(S5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == num_args.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
     __ BranchEqual(T0, num_args, &ok);
     __ Stop("Incorrect stub for IC data");
     __ Bind(&ok);
@@ -1654,12 +1656,6 @@ void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
-}
-
-
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // S5: ICData
@@ -1668,9 +1664,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ TraceSimMsg("UnoptimizedStaticCallStub");
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
-    // 'num_args_tested' is stored as an untagged int.
-    __ lw(T0, FieldAddress(S5, ICData::num_args_tested_offset()));
+    // Check that the IC data array has NumArgsTested() == 0.
+    // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
+    __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
+    ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
+    __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
     __ beq(T0, ZR, &ok);
     __ Stop("Incorrect IC data for unoptimized static call");
     __ Bind(&ok);

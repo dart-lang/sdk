@@ -671,7 +671,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   }
   if (!found) return -1;
   int fds[2];
-  if (pipe(fds) != 0) {
+  if (NO_RETRY_EXPECTED(pipe2(fds, O_CLOEXEC)) != 0) {
     return -1;
   }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);

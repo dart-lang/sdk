@@ -212,14 +212,14 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = SocketAddress::FromType(type);
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = (AI_V4MAPPED | AI_ADDRCONFIG);
+  hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no global IPv6 addresses.
-    hints.ai_flags = AI_V4MAPPED;
+    hints.ai_flags = 0;
     status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
     if (status != 0) {
       ASSERT(*os_error == NULL);
@@ -420,8 +420,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  socket = TEMP_FAILURE_RETRY(accept4(
-      fd, &clientaddr, &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC));
+  socket = TEMP_FAILURE_RETRY(accept(fd, &clientaddr, &addrlen));
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an
@@ -430,6 +429,9 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       ASSERT(kTemporaryFailure != -1);
       socket = kTemporaryFailure;
     }
+  } else {
+    FDUtils::SetNonBlocking(socket);
+    FDUtils::SetCloseOnExec(socket);
   }
   return socket;
 }

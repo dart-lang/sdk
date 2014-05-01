@@ -845,14 +845,19 @@ class ResolverTask extends CompilerTask {
       }
     });
 
-    computeClassMembers(element);
+    computeClassMember(element, Compiler.CALL_OPERATOR_NAME);
   }
 
   void computeClassMembers(ClassElement element) {
-    MembersCreator.computeClassMembers(compiler, element);
+    MembersCreator.computeAllClassMembers(compiler, element);
+  }
+
+  void computeClassMember(ClassElement element, String name) {
+    MembersCreator.computeClassMembersByName(compiler, element, name);
   }
 
   void checkClass(ClassElement element) {
+    computeClassMembers(element);
     if (element.isMixinApplication) {
       checkMixinApplication(element);
     } else {
@@ -2405,6 +2410,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // if the resolved receiver is not null.
         return null;
       }
+      MembersCreator.computeClassMembersByName(
+          compiler, receiverClass.declaration, name);
       target = receiverClass.lookupLocalMember(name);
       if (target == null || target.isInstanceMember()) {
         compiler.backend.registerThrowNoSuchMethod(mapping);
@@ -4435,8 +4442,9 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
-                     {'variableName': name});
+      compiler.reportError(
+          identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
+          {'variableName': name});
     }
     return identifier;
   }

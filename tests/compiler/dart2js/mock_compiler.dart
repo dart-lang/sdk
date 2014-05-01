@@ -66,6 +66,7 @@ const String DEFAULT_HELPERLIB = r'''
     factory LinkedHashMap._literal(elements) => null;
   }
   class ConstantMap {}
+  class ConstantStringMap {}
   class TypeImpl {}
   S() {}
   throwCyclicInit() {}
@@ -178,6 +179,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     get hashCode => throw "JSNull.hashCode not implemented.";
     String toString() => 'Null';
     Type get runtimeType => null;
+    noSuchMethod(x) => super.noSuchMethod(x);
   }
   class JSBool extends Interceptor implements bool {
   }

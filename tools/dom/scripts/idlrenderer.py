@@ -51,7 +51,6 @@ def render(idl_node, indent_str='  '):
           w(list_separator)
         w(node[i])
     elif isinstance(node, IDLFile):
-      w(node.modules)
       w(node.interfaces)
       w(node.enums)
       w(node.typeDefs)

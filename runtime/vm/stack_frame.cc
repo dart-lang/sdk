@@ -397,7 +397,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   ASSERT(code_.is_optimized());
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
-  intptr_t deopt_reason = kDeoptUnknown;
+  ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason);
   if (deopt_info_.IsNull()) {
     // This is the case when a call without deopt info in optimized code

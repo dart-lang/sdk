@@ -1168,11 +1168,13 @@ abstract class StreamSubscription<T> {
   /**
    * Cancels this subscription. It will no longer receive events.
    *
-   * If an event is currently firing, this unsubscription will only
-   * take effect after all subscribers have received the current event.
-   *
-   * Returns a future if the cancel-operation is not completed synchronously.
-   * Otherwise returns `null`.
+   * May return a future which completes when the stream is done cleaning up.
+   * This can be used if the stream needs to release some resources
+   * that are needed for a following operation,
+   * for example a file being read, that should be deleted afterwards.
+   * In that case, the file may not be able to be deleted successfully
+   * until the returned future has completed.
+   * Returns `null` if there is no need to wait.
    */
   Future cancel();
 

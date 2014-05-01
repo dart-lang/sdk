@@ -16,219 +16,34 @@ import 'instrumentation.dart';
 import 'utilities_collection.dart' show TokenMap;
 
 /**
- * Instances of the abstract class `KeywordState` represent a state in a state machine used to
- * scan keywords.
+ * Instances of the class `BeginToken` represent the opening half of a grouping pair of
+ * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
  */
-class KeywordState {
+class BeginToken extends Token {
   /**
-   * An empty transition table used by leaf states.
+   * The token that corresponds to this token.
    */
-  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
+  Token endToken;
 
   /**
-   * The initial state in the state machine.
-   */
-  static KeywordState KEYWORD_STATE = _createKeywordStateTable();
-
-  /**
-   * Create the next state in the state machine where we have already recognized the subset of
-   * strings in the given array of strings starting at the given offset and having the given length.
-   * All of these strings have a common prefix and the next character is at the given start index.
+   * Initialize a newly created token representing the opening half of a grouping pair of tokens.
    *
-   * @param start the index of the character in the strings used to transition to a new state
-   * @param strings an array containing all of the strings that will be recognized by the state
-   *          machine
-   * @param offset the offset of the first string in the array that has the prefix that is assumed
-   *          to have been recognized by the time we reach the state being built
-   * @param length the number of strings in the array that pass through the state being built
-   * @return the state that was created
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
    */
-  static KeywordState _computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>(26);
-    assert(length != 0);
-    int chunk = 0x0;
-    int chunkStart = -1;
-    bool isLeaf = false;
-    for (int i = offset; i < offset + length; i++) {
-      if (strings[i].length == start) {
-        isLeaf = true;
-      }
-      if (strings[i].length > start) {
-        int c = strings[i].codeUnitAt(start);
-        if (chunk != c) {
-          if (chunkStart != -1) {
-            result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
-          }
-          chunkStart = i;
-          chunk = c;
-        }
-      }
-    }
-    if (chunkStart != -1) {
-      assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
-    } else {
-      assert(length == 1);
-      return new KeywordState(_EMPTY_TABLE, strings[offset]);
-    }
-    if (isLeaf) {
-      return new KeywordState(result, strings[offset]);
-    } else {
-      return new KeywordState(result, null);
-    }
+  BeginToken(TokenType type, int offset) : super(type, offset) {
+    assert((type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION));
   }
 
-  /**
-   * Create the initial state in the state machine.
-   *
-   * @return the state that was created
-   */
-  static KeywordState _createKeywordStateTable() {
-    List<Keyword> values = Keyword.values;
-    List<String> strings = new List<String>(values.length);
-    for (int i = 0; i < values.length; i++) {
-      strings[i] = values[i].syntax;
-    }
-    strings.sort();
-    return _computeKeywordStateTable(0, strings, 0, strings.length);
-  }
-
-  /**
-   * A table mapping characters to the states to which those characters will transition. (The index
-   * into the array is the offset from the character `'a'` to the transitioning character.)
-   */
-  final List<KeywordState> _table;
-
-  /**
-   * The keyword that is recognized by this state, or `null` if this state is not a terminal
-   * state.
-   */
-  Keyword _keyword;
-
-  /**
-   * Initialize a newly created state to have the given transitions and to recognize the keyword
-   * with the given syntax.
-   *
-   * @param table a table mapping characters to the states to which those characters will transition
-   * @param syntax the syntax of the keyword that is recognized by the state
-   */
-  KeywordState(this._table, String syntax) {
-    this._keyword = (syntax == null) ? null : Keyword.keywords[syntax];
-  }
-
-  /**
-   * Return the keyword that was recognized by this state, or `null` if this state does not
-   * recognized a keyword.
-   *
-   * @return the keyword that was matched by reaching this state
-   */
-  Keyword keyword() => _keyword;
-
-  /**
-   * Return the state that follows this state on a transition of the given character, or
-   * `null` if there is no valid state reachable from this state with such a transition.
-   *
-   * @param c the character used to transition from this state to another state
-   * @return the state that follows this state on a transition of the given character
-   */
-  KeywordState next(int c) => _table[c - 0x61];
+  @override
+  Token copy() => new BeginToken(type, offset);
 }
 
 /**
- * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
- * scanner.
- */
-class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
-  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
-
-  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
-
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
-
-  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
-
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = const ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
-
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL = const ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
-
-  static const List<ScannerErrorCode> values = const [
-      ILLEGAL_CHARACTER,
-      MISSING_DIGIT,
-      MISSING_HEX_DIGIT,
-      MISSING_QUOTE,
-      UNTERMINATED_MULTI_LINE_COMMENT,
-      UNTERMINATED_STRING_LITERAL];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for this error
-   */
-  const ScannerErrorCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given message and correction.
-   *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const ScannerErrorCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-}
-
-/**
- * Instances of the class `SubSequenceReader` implement a [CharacterReader] that reads
- * characters from a character sequence, but adds a delta when reporting the current character
- * offset so that the character sequence can be a subsequence from a larger sequence.
- */
-class SubSequenceReader extends CharSequenceReader {
-  /**
-   * The offset from the beginning of the file to the beginning of the source being scanned.
-   */
-  final int _offsetDelta;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given sequence.
-   *
-   * @param sequence the sequence from which characters will be read
-   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
-   *          being scanned
-   */
-  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
-
-  @override
-  int get offset => _offsetDelta + super.offset;
-
-  @override
-  String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
-
-  @override
-  void set offset(int offset) {
-    super.offset = offset - _offsetDelta;
-  }
-}
-
-/**
- * Instances of the class `TokenWithComment` represent a string token that is preceded by
+ * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
  * comments.
  */
-class StringTokenWithComment extends StringToken {
+class BeginTokenWithComment extends BeginToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
@@ -242,10 +57,10 @@ class StringTokenWithComment extends StringToken {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param precedingComment the first comment in the list of comments that precede this token
    */
-  StringTokenWithComment(TokenType type, String value, int offset, this._precedingComment) : super(type, value, offset);
+  BeginTokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
 
   @override
-  Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
+  Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
 
   @override
   Token get precedingComments => _precedingComment;
@@ -259,206 +74,6 @@ class StringTokenWithComment extends StringToken {
       token = token.next;
     }
   }
-}
-
-/**
- * The enumeration `Keyword` defines the keywords in the Dart programming language.
- */
-class Keyword extends Enum<Keyword> {
-  static const Keyword ASSERT = const Keyword.con1('ASSERT', 0, "assert");
-
-  static const Keyword BREAK = const Keyword.con1('BREAK', 1, "break");
-
-  static const Keyword CASE = const Keyword.con1('CASE', 2, "case");
-
-  static const Keyword CATCH = const Keyword.con1('CATCH', 3, "catch");
-
-  static const Keyword CLASS = const Keyword.con1('CLASS', 4, "class");
-
-  static const Keyword CONST = const Keyword.con1('CONST', 5, "const");
-
-  static const Keyword CONTINUE = const Keyword.con1('CONTINUE', 6, "continue");
-
-  static const Keyword DEFAULT = const Keyword.con1('DEFAULT', 7, "default");
-
-  static const Keyword DO = const Keyword.con1('DO', 8, "do");
-
-  static const Keyword ELSE = const Keyword.con1('ELSE', 9, "else");
-
-  static const Keyword ENUM = const Keyword.con1('ENUM', 10, "enum");
-
-  static const Keyword EXTENDS = const Keyword.con1('EXTENDS', 11, "extends");
-
-  static const Keyword FALSE = const Keyword.con1('FALSE', 12, "false");
-
-  static const Keyword FINAL = const Keyword.con1('FINAL', 13, "final");
-
-  static const Keyword FINALLY = const Keyword.con1('FINALLY', 14, "finally");
-
-  static const Keyword FOR = const Keyword.con1('FOR', 15, "for");
-
-  static const Keyword IF = const Keyword.con1('IF', 16, "if");
-
-  static const Keyword IN = const Keyword.con1('IN', 17, "in");
-
-  static const Keyword IS = const Keyword.con1('IS', 18, "is");
-
-  static const Keyword NEW = const Keyword.con1('NEW', 19, "new");
-
-  static const Keyword NULL = const Keyword.con1('NULL', 20, "null");
-
-  static const Keyword RETHROW = const Keyword.con1('RETHROW', 21, "rethrow");
-
-  static const Keyword RETURN = const Keyword.con1('RETURN', 22, "return");
-
-  static const Keyword SUPER = const Keyword.con1('SUPER', 23, "super");
-
-  static const Keyword SWITCH = const Keyword.con1('SWITCH', 24, "switch");
-
-  static const Keyword THIS = const Keyword.con1('THIS', 25, "this");
-
-  static const Keyword THROW = const Keyword.con1('THROW', 26, "throw");
-
-  static const Keyword TRUE = const Keyword.con1('TRUE', 27, "true");
-
-  static const Keyword TRY = const Keyword.con1('TRY', 28, "try");
-
-  static const Keyword VAR = const Keyword.con1('VAR', 29, "var");
-
-  static const Keyword VOID = const Keyword.con1('VOID', 30, "void");
-
-  static const Keyword WHILE = const Keyword.con1('WHILE', 31, "while");
-
-  static const Keyword WITH = const Keyword.con1('WITH', 32, "with");
-
-  static const Keyword ABSTRACT = const Keyword.con2('ABSTRACT', 33, "abstract", true);
-
-  static const Keyword AS = const Keyword.con2('AS', 34, "as", true);
-
-  static const Keyword DEFERRED = const Keyword.con2('DEFERRED', 35, "deferred", true);
-
-  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 36, "dynamic", true);
-
-  static const Keyword EXPORT = const Keyword.con2('EXPORT', 37, "export", true);
-
-  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 38, "external", true);
-
-  static const Keyword FACTORY = const Keyword.con2('FACTORY', 39, "factory", true);
-
-  static const Keyword GET = const Keyword.con2('GET', 40, "get", true);
-
-  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 41, "implements", true);
-
-  static const Keyword IMPORT = const Keyword.con2('IMPORT', 42, "import", true);
-
-  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 43, "library", true);
-
-  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 44, "operator", true);
-
-  static const Keyword PART = const Keyword.con2('PART', 45, "part", true);
-
-  static const Keyword SET = const Keyword.con2('SET', 46, "set", true);
-
-  static const Keyword STATIC = const Keyword.con2('STATIC', 47, "static", true);
-
-  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 48, "typedef", true);
-
-  static const List<Keyword> values = const [
-      ASSERT,
-      BREAK,
-      CASE,
-      CATCH,
-      CLASS,
-      CONST,
-      CONTINUE,
-      DEFAULT,
-      DO,
-      ELSE,
-      ENUM,
-      EXTENDS,
-      FALSE,
-      FINAL,
-      FINALLY,
-      FOR,
-      IF,
-      IN,
-      IS,
-      NEW,
-      NULL,
-      RETHROW,
-      RETURN,
-      SUPER,
-      SWITCH,
-      THIS,
-      THROW,
-      TRUE,
-      TRY,
-      VAR,
-      VOID,
-      WHILE,
-      WITH,
-      ABSTRACT,
-      AS,
-      DEFERRED,
-      DYNAMIC,
-      EXPORT,
-      EXTERNAL,
-      FACTORY,
-      GET,
-      IMPLEMENTS,
-      IMPORT,
-      LIBRARY,
-      OPERATOR,
-      PART,
-      SET,
-      STATIC,
-      TYPEDEF];
-
-  /**
-   * The lexeme for the keyword.
-   */
-  final String syntax;
-
-  /**
-   * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
-   * identifiers.
-   */
-  final bool isPseudoKeyword;
-
-  /**
-   * A table mapping the lexemes of keywords to the corresponding keyword.
-   */
-  static Map<String, Keyword> keywords = _createKeywordMap();
-
-  /**
-   * Create a table mapping the lexemes of keywords to the corresponding keyword.
-   *
-   * @return the table that was created
-   */
-  static Map<String, Keyword> _createKeywordMap() {
-    LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
-    for (Keyword keyword in values) {
-      result[keyword.syntax] = keyword;
-    }
-    return result;
-  }
-
-  /**
-   * Initialize a newly created keyword to have the given syntax. The keyword is not a
-   * pseudo-keyword.
-   *
-   * @param syntax the lexeme for the keyword
-   */
-  const Keyword.con1(String name, int ordinal, String syntax) : this.con2(name, ordinal, syntax, false);
-
-  /**
-   * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
-   * the given flag is `true`.
-   *
-   * @param syntax the lexeme for the keyword
-   * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
-   */
-  const Keyword.con2(String name, int ordinal, this.syntax, this.isPseudoKeyword) : super(name, ordinal);
 }
 
 /**
@@ -520,20 +135,51 @@ class CharSequenceReader implements CharacterReader {
 }
 
 /**
- * Synthetic `StringToken` represent a token whose value is independent of it's type.
+ * The interface `CharacterReader`
  */
-class SyntheticStringToken extends StringToken {
+abstract class CharacterReader {
   /**
-   * Initialize a newly created token to represent a token of the given type with the given value.
+   * Advance the current position and return the character at the new current position.
    *
-   * @param type the type of the token
-   * @param value the lexeme represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
+   * @return the character at the new current position
    */
-  SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
+  int advance();
 
-  @override
-  bool get isSynthetic => true;
+  /**
+   * Return the current offset relative to the beginning of the source. Return the initial offset if
+   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
+   * the entire source code has been scanned.
+   *
+   * @return the current offset of the scanner in the source
+   */
+  int get offset;
+
+  /**
+   * Return the substring of the source code between the start offset and the modified current
+   * position. The current position is modified by adding the end delta.
+   *
+   * @param start the offset to the beginning of the string, relative to the start of the file
+   * @param endDelta the number of characters after the current location to be included in the
+   *          string, or the number of characters before the current location to be excluded if the
+   *          offset is negative
+   * @return the specified substring of the source code
+   */
+  String getString(int start, int endDelta);
+
+  /**
+   * Return the character at the current position without changing the current position.
+   *
+   * @return the character at the current position
+   */
+  int peek();
+
+  /**
+   * Set the current offset relative to the beginning of the source. The new offset must be between
+   * the initial offset and one (1) past the end of the source code.
+   *
+   * @param offset the new offset in the source
+   */
+  void set offset(int offset);
 }
 
 /**
@@ -754,6 +400,389 @@ class IncrementalScanner extends Scanner {
    * @return `true` if the two tokens are equal to each other
    */
   bool _equalTokens(Token oldToken, Token newToken) => oldToken.type == newToken.type && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
+}
+
+/**
+ * The enumeration `Keyword` defines the keywords in the Dart programming language.
+ */
+class Keyword extends Enum<Keyword> {
+  static const Keyword ASSERT = const Keyword.con1('ASSERT', 0, "assert");
+
+  static const Keyword BREAK = const Keyword.con1('BREAK', 1, "break");
+
+  static const Keyword CASE = const Keyword.con1('CASE', 2, "case");
+
+  static const Keyword CATCH = const Keyword.con1('CATCH', 3, "catch");
+
+  static const Keyword CLASS = const Keyword.con1('CLASS', 4, "class");
+
+  static const Keyword CONST = const Keyword.con1('CONST', 5, "const");
+
+  static const Keyword CONTINUE = const Keyword.con1('CONTINUE', 6, "continue");
+
+  static const Keyword DEFAULT = const Keyword.con1('DEFAULT', 7, "default");
+
+  static const Keyword DO = const Keyword.con1('DO', 8, "do");
+
+  static const Keyword ELSE = const Keyword.con1('ELSE', 9, "else");
+
+  static const Keyword ENUM = const Keyword.con1('ENUM', 10, "enum");
+
+  static const Keyword EXTENDS = const Keyword.con1('EXTENDS', 11, "extends");
+
+  static const Keyword FALSE = const Keyword.con1('FALSE', 12, "false");
+
+  static const Keyword FINAL = const Keyword.con1('FINAL', 13, "final");
+
+  static const Keyword FINALLY = const Keyword.con1('FINALLY', 14, "finally");
+
+  static const Keyword FOR = const Keyword.con1('FOR', 15, "for");
+
+  static const Keyword IF = const Keyword.con1('IF', 16, "if");
+
+  static const Keyword IN = const Keyword.con1('IN', 17, "in");
+
+  static const Keyword IS = const Keyword.con1('IS', 18, "is");
+
+  static const Keyword NEW = const Keyword.con1('NEW', 19, "new");
+
+  static const Keyword NULL = const Keyword.con1('NULL', 20, "null");
+
+  static const Keyword RETHROW = const Keyword.con1('RETHROW', 21, "rethrow");
+
+  static const Keyword RETURN = const Keyword.con1('RETURN', 22, "return");
+
+  static const Keyword SUPER = const Keyword.con1('SUPER', 23, "super");
+
+  static const Keyword SWITCH = const Keyword.con1('SWITCH', 24, "switch");
+
+  static const Keyword THIS = const Keyword.con1('THIS', 25, "this");
+
+  static const Keyword THROW = const Keyword.con1('THROW', 26, "throw");
+
+  static const Keyword TRUE = const Keyword.con1('TRUE', 27, "true");
+
+  static const Keyword TRY = const Keyword.con1('TRY', 28, "try");
+
+  static const Keyword VAR = const Keyword.con1('VAR', 29, "var");
+
+  static const Keyword VOID = const Keyword.con1('VOID', 30, "void");
+
+  static const Keyword WHILE = const Keyword.con1('WHILE', 31, "while");
+
+  static const Keyword WITH = const Keyword.con1('WITH', 32, "with");
+
+  static const Keyword ABSTRACT = const Keyword.con2('ABSTRACT', 33, "abstract", true);
+
+  static const Keyword AS = const Keyword.con2('AS', 34, "as", true);
+
+  static const Keyword DEFERRED = const Keyword.con2('DEFERRED', 35, "deferred", true);
+
+  static const Keyword DYNAMIC = const Keyword.con2('DYNAMIC', 36, "dynamic", true);
+
+  static const Keyword EXPORT = const Keyword.con2('EXPORT', 37, "export", true);
+
+  static const Keyword EXTERNAL = const Keyword.con2('EXTERNAL', 38, "external", true);
+
+  static const Keyword FACTORY = const Keyword.con2('FACTORY', 39, "factory", true);
+
+  static const Keyword GET = const Keyword.con2('GET', 40, "get", true);
+
+  static const Keyword IMPLEMENTS = const Keyword.con2('IMPLEMENTS', 41, "implements", true);
+
+  static const Keyword IMPORT = const Keyword.con2('IMPORT', 42, "import", true);
+
+  static const Keyword LIBRARY = const Keyword.con2('LIBRARY', 43, "library", true);
+
+  static const Keyword OPERATOR = const Keyword.con2('OPERATOR', 44, "operator", true);
+
+  static const Keyword PART = const Keyword.con2('PART', 45, "part", true);
+
+  static const Keyword SET = const Keyword.con2('SET', 46, "set", true);
+
+  static const Keyword STATIC = const Keyword.con2('STATIC', 47, "static", true);
+
+  static const Keyword TYPEDEF = const Keyword.con2('TYPEDEF', 48, "typedef", true);
+
+  static const List<Keyword> values = const [
+      ASSERT,
+      BREAK,
+      CASE,
+      CATCH,
+      CLASS,
+      CONST,
+      CONTINUE,
+      DEFAULT,
+      DO,
+      ELSE,
+      ENUM,
+      EXTENDS,
+      FALSE,
+      FINAL,
+      FINALLY,
+      FOR,
+      IF,
+      IN,
+      IS,
+      NEW,
+      NULL,
+      RETHROW,
+      RETURN,
+      SUPER,
+      SWITCH,
+      THIS,
+      THROW,
+      TRUE,
+      TRY,
+      VAR,
+      VOID,
+      WHILE,
+      WITH,
+      ABSTRACT,
+      AS,
+      DEFERRED,
+      DYNAMIC,
+      EXPORT,
+      EXTERNAL,
+      FACTORY,
+      GET,
+      IMPLEMENTS,
+      IMPORT,
+      LIBRARY,
+      OPERATOR,
+      PART,
+      SET,
+      STATIC,
+      TYPEDEF];
+
+  /**
+   * The lexeme for the keyword.
+   */
+  final String syntax;
+
+  /**
+   * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
+   * identifiers.
+   */
+  final bool isPseudoKeyword;
+
+  /**
+   * A table mapping the lexemes of keywords to the corresponding keyword.
+   */
+  static Map<String, Keyword> keywords = _createKeywordMap();
+
+  /**
+   * Create a table mapping the lexemes of keywords to the corresponding keyword.
+   *
+   * @return the table that was created
+   */
+  static Map<String, Keyword> _createKeywordMap() {
+    LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
+    for (Keyword keyword in values) {
+      result[keyword.syntax] = keyword;
+    }
+    return result;
+  }
+
+  /**
+   * Initialize a newly created keyword to have the given syntax. The keyword is not a
+   * pseudo-keyword.
+   *
+   * @param syntax the lexeme for the keyword
+   */
+  const Keyword.con1(String name, int ordinal, String syntax) : this.con2(name, ordinal, syntax, false);
+
+  /**
+   * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
+   * the given flag is `true`.
+   *
+   * @param syntax the lexeme for the keyword
+   * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
+   */
+  const Keyword.con2(String name, int ordinal, this.syntax, this.isPseudoKeyword) : super(name, ordinal);
+}
+
+/**
+ * Instances of the abstract class `KeywordState` represent a state in a state machine used to
+ * scan keywords.
+ */
+class KeywordState {
+  /**
+   * An empty transition table used by leaf states.
+   */
+  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
+
+  /**
+   * The initial state in the state machine.
+   */
+  static KeywordState KEYWORD_STATE = _createKeywordStateTable();
+
+  /**
+   * Create the next state in the state machine where we have already recognized the subset of
+   * strings in the given array of strings starting at the given offset and having the given length.
+   * All of these strings have a common prefix and the next character is at the given start index.
+   *
+   * @param start the index of the character in the strings used to transition to a new state
+   * @param strings an array containing all of the strings that will be recognized by the state
+   *          machine
+   * @param offset the offset of the first string in the array that has the prefix that is assumed
+   *          to have been recognized by the time we reach the state being built
+   * @param length the number of strings in the array that pass through the state being built
+   * @return the state that was created
+   */
+  static KeywordState _computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
+    List<KeywordState> result = new List<KeywordState>(26);
+    assert(length != 0);
+    int chunk = 0x0;
+    int chunkStart = -1;
+    bool isLeaf = false;
+    for (int i = offset; i < offset + length; i++) {
+      if (strings[i].length == start) {
+        isLeaf = true;
+      }
+      if (strings[i].length > start) {
+        int c = strings[i].codeUnitAt(start);
+        if (chunk != c) {
+          if (chunkStart != -1) {
+            result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
+          }
+          chunkStart = i;
+          chunk = c;
+        }
+      }
+    }
+    if (chunkStart != -1) {
+      assert(result[chunk - 0x61] == null);
+      result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
+    } else {
+      assert(length == 1);
+      return new KeywordState(_EMPTY_TABLE, strings[offset]);
+    }
+    if (isLeaf) {
+      return new KeywordState(result, strings[offset]);
+    } else {
+      return new KeywordState(result, null);
+    }
+  }
+
+  /**
+   * Create the initial state in the state machine.
+   *
+   * @return the state that was created
+   */
+  static KeywordState _createKeywordStateTable() {
+    List<Keyword> values = Keyword.values;
+    List<String> strings = new List<String>(values.length);
+    for (int i = 0; i < values.length; i++) {
+      strings[i] = values[i].syntax;
+    }
+    strings.sort();
+    return _computeKeywordStateTable(0, strings, 0, strings.length);
+  }
+
+  /**
+   * A table mapping characters to the states to which those characters will transition. (The index
+   * into the array is the offset from the character `'a'` to the transitioning character.)
+   */
+  final List<KeywordState> _table;
+
+  /**
+   * The keyword that is recognized by this state, or `null` if this state is not a terminal
+   * state.
+   */
+  Keyword _keyword;
+
+  /**
+   * Initialize a newly created state to have the given transitions and to recognize the keyword
+   * with the given syntax.
+   *
+   * @param table a table mapping characters to the states to which those characters will transition
+   * @param syntax the syntax of the keyword that is recognized by the state
+   */
+  KeywordState(this._table, String syntax) {
+    this._keyword = (syntax == null) ? null : Keyword.keywords[syntax];
+  }
+
+  /**
+   * Return the keyword that was recognized by this state, or `null` if this state does not
+   * recognized a keyword.
+   *
+   * @return the keyword that was matched by reaching this state
+   */
+  Keyword keyword() => _keyword;
+
+  /**
+   * Return the state that follows this state on a transition of the given character, or
+   * `null` if there is no valid state reachable from this state with such a transition.
+   *
+   * @param c the character used to transition from this state to another state
+   * @return the state that follows this state on a transition of the given character
+   */
+  KeywordState next(int c) => _table[c - 0x61];
+}
+
+/**
+ * Instances of the class `KeywordToken` represent a keyword in the language.
+ */
+class KeywordToken extends Token {
+  /**
+   * The keyword being represented by this token.
+   */
+  final Keyword keyword;
+
+  /**
+   * Initialize a newly created token to represent the given keyword.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
+
+  @override
+  Token copy() => new KeywordToken(keyword, offset);
+
+  @override
+  String get lexeme => keyword.syntax;
+
+  @override
+  Keyword value() => keyword;
+}
+
+/**
+ * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
+ * by comments.
+ */
+class KeywordTokenWithComment extends KeywordToken {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to to represent the given keyword and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment) : super(keyword, offset);
+
+  @override
+  Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
+
+  @override
+  Token get precedingComments => _precedingComment;
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
 }
 
 /**
@@ -1827,6 +1856,64 @@ class Scanner {
 }
 
 /**
+ * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
+ * scanner.
+ */
+class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
+  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
+
+  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
+
+  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
+
+  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
+
+  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = const ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
+
+  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL = const ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
+
+  static const List<ScannerErrorCode> values = const [
+      ILLEGAL_CHARACTER,
+      MISSING_DIGIT,
+      MISSING_HEX_DIGIT,
+      MISSING_QUOTE,
+      UNTERMINATED_MULTI_LINE_COMMENT,
+      UNTERMINATED_STRING_LITERAL];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  final String correction;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for this error
+   */
+  const ScannerErrorCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  const ScannerErrorCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+
+  @override
+  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+}
+
+/**
  * Instances of the class `StringToken` represent a token whose value is independent of it's
  * type.
  */
@@ -1858,10 +1945,10 @@ class StringToken extends Token {
 }
 
 /**
- * Instances of the class `TokenWithComment` represent a normal token that is preceded by
+ * Instances of the class `TokenWithComment` represent a string token that is preceded by
  * comments.
  */
-class TokenWithComment extends Token {
+class StringTokenWithComment extends StringToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
@@ -1875,13 +1962,72 @@ class TokenWithComment extends Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param precedingComment the first comment in the list of comments that precede this token
    */
-  TokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
+  StringTokenWithComment(TokenType type, String value, int offset, this._precedingComment) : super(type, value, offset);
 
   @override
-  Token copy() => new TokenWithComment(type, offset, _precedingComment);
+  Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
 
   @override
   Token get precedingComments => _precedingComment;
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+}
+
+/**
+ * Instances of the class `SubSequenceReader` implement a [CharacterReader] that reads
+ * characters from a character sequence, but adds a delta when reporting the current character
+ * offset so that the character sequence can be a subsequence from a larger sequence.
+ */
+class SubSequenceReader extends CharSequenceReader {
+  /**
+   * The offset from the beginning of the file to the beginning of the source being scanned.
+   */
+  final int _offsetDelta;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given sequence.
+   *
+   * @param sequence the sequence from which characters will be read
+   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
+   *          being scanned
+   */
+  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
+
+  @override
+  int get offset => _offsetDelta + super.offset;
+
+  @override
+  String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
+
+  @override
+  void set offset(int offset) {
+    super.offset = offset - _offsetDelta;
+  }
+}
+
+/**
+ * Synthetic `StringToken` represent a token whose value is independent of it's type.
+ */
+class SyntheticStringToken extends StringToken {
+  /**
+   * Initialize a newly created token to represent a token of the given type with the given value.
+   *
+   * @param type the type of the token
+   * @param value the lexeme represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
+
+  @override
+  bool get isSynthetic => true;
 }
 
 /**
@@ -2070,142 +2216,6 @@ class Token {
 }
 
 /**
- * The interface `CharacterReader`
- */
-abstract class CharacterReader {
-  /**
-   * Advance the current position and return the character at the new current position.
-   *
-   * @return the character at the new current position
-   */
-  int advance();
-
-  /**
-   * Return the current offset relative to the beginning of the source. Return the initial offset if
-   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
-   * the entire source code has been scanned.
-   *
-   * @return the current offset of the scanner in the source
-   */
-  int get offset;
-
-  /**
-   * Return the substring of the source code between the start offset and the modified current
-   * position. The current position is modified by adding the end delta.
-   *
-   * @param start the offset to the beginning of the string, relative to the start of the file
-   * @param endDelta the number of characters after the current location to be included in the
-   *          string, or the number of characters before the current location to be excluded if the
-   *          offset is negative
-   * @return the specified substring of the source code
-   */
-  String getString(int start, int endDelta);
-
-  /**
-   * Return the character at the current position without changing the current position.
-   *
-   * @return the character at the current position
-   */
-  int peek();
-
-  /**
-   * Set the current offset relative to the beginning of the source. The new offset must be between
-   * the initial offset and one (1) past the end of the source code.
-   *
-   * @param offset the new offset in the source
-   */
-  void set offset(int offset);
-}
-
-/**
- * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
- * comments.
- */
-class BeginTokenWithComment extends BeginToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  final Token _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given type and offset and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  BeginTokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
-
-  @override
-  Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
-
-  @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = _precedingComment;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-}
-
-/**
- * Instances of the class `KeywordToken` represent a keyword in the language.
- */
-class KeywordToken extends Token {
-  /**
-   * The keyword being represented by this token.
-   */
-  final Keyword keyword;
-
-  /**
-   * Initialize a newly created token to represent the given keyword.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
-
-  @override
-  Token copy() => new KeywordToken(keyword, offset);
-
-  @override
-  String get lexeme => keyword.syntax;
-
-  @override
-  Keyword value() => keyword;
-}
-
-/**
- * Instances of the class `BeginToken` represent the opening half of a grouping pair of
- * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
- */
-class BeginToken extends Token {
-  /**
-   * The token that corresponds to this token.
-   */
-  Token endToken;
-
-  /**
-   * Initialize a newly created token representing the opening half of a grouping pair of tokens.
-   *
-   * @param type the type of the token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert((type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION));
-  }
-
-  @override
-  Token copy() => new BeginToken(type, offset);
-}
-
-/**
  * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
  */
 class TokenClass extends Enum<TokenClass> {
@@ -2316,43 +2326,6 @@ class TokenClass extends Enum<TokenClass> {
   const TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
 
   const TokenClass.con2(String name, int ordinal, this.precedence) : super(name, ordinal);
-}
-
-/**
- * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
- * by comments.
- */
-class KeywordTokenWithComment extends KeywordToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  final Token _precedingComment;
-
-  /**
-   * Initialize a newly created token to to represent the given keyword and to be preceded by the
-   * comments reachable from the given comment.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   * @param precedingComment the first comment in the list of comments that precede this token
-   */
-  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment) : super(keyword, offset);
-
-  @override
-  Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
-
-  @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = _precedingComment;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
 }
 
 /**
@@ -2688,4 +2661,31 @@ class TokenType_EOF extends TokenType {
 
   @override
   String toString() => "-eof-";
+}
+
+/**
+ * Instances of the class `TokenWithComment` represent a normal token that is preceded by
+ * comments.
+ */
+class TokenWithComment extends Token {
+  /**
+   * The first comment in the list of comments that precede this token.
+   */
+  final Token _precedingComment;
+
+  /**
+   * Initialize a newly created token to have the given type and offset and to be preceded by the
+   * comments reachable from the given comment.
+   *
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
+   */
+  TokenWithComment(TokenType type, int offset, this._precedingComment) : super(type, offset);
+
+  @override
+  Token copy() => new TokenWithComment(type, offset, _precedingComment);
+
+  @override
+  Token get precedingComments => _precedingComment;
 }

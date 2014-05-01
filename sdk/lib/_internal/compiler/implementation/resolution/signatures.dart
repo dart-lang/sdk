@@ -174,7 +174,8 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     } else {
       Identifier name = getParameterName(node);
       validateName(name);
-      Element fieldElement = currentClass.lookupLocalMember(name.source);
+      Element fieldElement =
+          enclosingElement.getEnclosingClass().lookupLocalMember(name.source);
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
@@ -199,11 +200,8 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
-      error(defaultValue, defaultValuesError);
+      compiler.reportError(defaultValue, defaultValuesError);
     }
-    // Visit the value. The compile time constant handler will
-    // make sure it's a compile time constant.
-    resolveExpression(defaultValue);
     return element;
   }
 
@@ -351,17 +349,5 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       return compiler.types.dynamicType;
     }
     return result;
-  }
-
-  // TODO(ahe): This is temporary.
-  void resolveExpression(Node node) {
-    if (node == null) return;
-    node.accept(resolver);
-  }
-
-  // TODO(ahe): This is temporary.
-  ClassElement get currentClass {
-    return enclosingElement.isMember()
-      ? enclosingElement.getEnclosingClass() : null;
   }
 }

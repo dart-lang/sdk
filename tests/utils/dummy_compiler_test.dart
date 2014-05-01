@@ -22,6 +22,7 @@ Future<String> provider(Uri uri) {
 library core;
 class Object {
   Object();
+  // Note: JSNull below must reimplement all members.
   operator==(other) {}
   get hashCode => throw 'Object.hashCode not implemented.';
 }
@@ -84,7 +85,10 @@ class JSUInt31 {}
 class JSUInt32 {}
 class JSDouble {}
 class JSNumber {}
-class JSNull {}
+class JSNull {
+  bool operator ==(other) => identical(null, other);
+  int get hashCode => 0;
+}
 class JSBool {}
 getInterceptor(o){}
 getDispatchProperty(o) {}

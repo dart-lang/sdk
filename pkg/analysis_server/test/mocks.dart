@@ -6,14 +6,18 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
+
+@MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:matcher/matcher.dart';
+import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
 
 /**
@@ -182,14 +186,16 @@ class MockAnalysisLogger extends Logger {
 }
 
 /**
- * A mock [AnalysisContext] for testing [AnalysisServer].  This class raises an
- * exception for every abstract method in [AnalysisContext].  Tests should
- * derive from this and re-implement the methods they need.
+ * A mock [AnalysisContext] for testing [AnalysisServer].
  */
-@proxy
-class MockAnalysisContext extends AnalysisContext {
-  noSuchMethod(Invocation invocation) {
-    var name = MirrorSystem.getName(invocation.memberName);
-    return _unexpected("MockAnalysisContext.$name");
-  }
+class MockAnalysisContext extends Mock implements AnalysisContext {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * A mock [Source].  Particularly useful when all that is needed is the
+ * encoding.
+ */
+class MockSource extends Mock implements Source {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

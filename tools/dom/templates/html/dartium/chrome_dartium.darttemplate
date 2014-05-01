@@ -13,3 +13,7 @@
 /// For more information on these APIs, see the
 /// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
 library _chrome;
+
+$if DART_USE_BLINK
+import 'dart:_blink' as _blink;
+$endif

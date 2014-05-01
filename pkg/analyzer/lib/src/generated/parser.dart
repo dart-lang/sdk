@@ -67,80 +67,6 @@ class FinalConstVarOrType {
 }
 
 /**
- * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
- * to return multiple values.
- */
-class Modifiers {
-  /**
-   * The token representing the keyword 'abstract', or `null` if the keyword was not found.
-   */
-  Token abstractKeyword;
-
-  /**
-   * The token representing the keyword 'const', or `null` if the keyword was not found.
-   */
-  Token constKeyword;
-
-  /**
-   * The token representing the keyword 'external', or `null` if the keyword was not found.
-   */
-  Token externalKeyword;
-
-  /**
-   * The token representing the keyword 'factory', or `null` if the keyword was not found.
-   */
-  Token factoryKeyword;
-
-  /**
-   * The token representing the keyword 'final', or `null` if the keyword was not found.
-   */
-  Token finalKeyword;
-
-  /**
-   * The token representing the keyword 'static', or `null` if the keyword was not found.
-   */
-  Token staticKeyword;
-
-  /**
-   * The token representing the keyword 'var', or `null` if the keyword was not found.
-   */
-  Token varKeyword;
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSpace = _appendKeyword(builder, false, abstractKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, constKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, externalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, factoryKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, finalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, staticKeyword);
-    _appendKeyword(builder, needsSpace, varKeyword);
-    return builder.toString();
-  }
-
-  /**
-   * If the given keyword is not `null`, append it to the given builder, prefixing it with a
-   * space if needed.
-   *
-   * @param builder the builder to which the keyword will be appended
-   * @param needsSpace `true` if the keyword needs to be prefixed with a space
-   * @param keyword the keyword to be appended
-   * @return `true` if subsequent keywords need to be prefixed with a space
-   */
-  bool _appendKeyword(JavaStringBuilder builder, bool needsSpace, Token keyword) {
-    if (keyword != null) {
-      if (needsSpace) {
-        builder.appendChar(0x20);
-      }
-      builder.append(keyword.lexeme);
-      return true;
-    }
-    return needsSpace;
-  }
-}
-
-/**
  * Instances of the class `IncrementalParseDispatcher` implement a dispatcher that will invoke
  * the right parse method when re-parsing a specified child of the visited node. All of the methods
  * in this class assume that the parser is positioned to parse the replacement for the node. All of
@@ -1417,6 +1343,80 @@ class InsufficientContextException extends IncrementalParseException {
    * @param cause the exception that caused this exception
    */
   InsufficientContextException.con2(Exception cause) : super.con2(cause);
+}
+
+/**
+ * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
+ * to return multiple values.
+ */
+class Modifiers {
+  /**
+   * The token representing the keyword 'abstract', or `null` if the keyword was not found.
+   */
+  Token abstractKeyword;
+
+  /**
+   * The token representing the keyword 'const', or `null` if the keyword was not found.
+   */
+  Token constKeyword;
+
+  /**
+   * The token representing the keyword 'external', or `null` if the keyword was not found.
+   */
+  Token externalKeyword;
+
+  /**
+   * The token representing the keyword 'factory', or `null` if the keyword was not found.
+   */
+  Token factoryKeyword;
+
+  /**
+   * The token representing the keyword 'final', or `null` if the keyword was not found.
+   */
+  Token finalKeyword;
+
+  /**
+   * The token representing the keyword 'static', or `null` if the keyword was not found.
+   */
+  Token staticKeyword;
+
+  /**
+   * The token representing the keyword 'var', or `null` if the keyword was not found.
+   */
+  Token varKeyword;
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    bool needsSpace = _appendKeyword(builder, false, abstractKeyword);
+    needsSpace = _appendKeyword(builder, needsSpace, constKeyword);
+    needsSpace = _appendKeyword(builder, needsSpace, externalKeyword);
+    needsSpace = _appendKeyword(builder, needsSpace, factoryKeyword);
+    needsSpace = _appendKeyword(builder, needsSpace, finalKeyword);
+    needsSpace = _appendKeyword(builder, needsSpace, staticKeyword);
+    _appendKeyword(builder, needsSpace, varKeyword);
+    return builder.toString();
+  }
+
+  /**
+   * If the given keyword is not `null`, append it to the given builder, prefixing it with a
+   * space if needed.
+   *
+   * @param builder the builder to which the keyword will be appended
+   * @param needsSpace `true` if the keyword needs to be prefixed with a space
+   * @param keyword the keyword to be appended
+   * @return `true` if subsequent keywords need to be prefixed with a space
+   */
+  bool _appendKeyword(JavaStringBuilder builder, bool needsSpace, Token keyword) {
+    if (keyword != null) {
+      if (needsSpace) {
+        builder.appendChar(0x20);
+      }
+      builder.append(keyword.lexeme);
+      return true;
+    }
+    return needsSpace;
+  }
 }
 
 /**
@@ -7426,25 +7426,6 @@ class Parser {
 }
 
 /**
- * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
- */
-class Parser_SyntheticKeywordToken extends KeywordToken {
-  /**
-   * Initialize a newly created token to represent the given keyword.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  Parser_SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
-
-  @override
-  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
-
-  @override
-  int get length => 0;
-}
-
-/**
  * The enumeration `ParserErrorCode` defines the error codes used for errors detected by the
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
@@ -7894,6 +7875,25 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+}
+
+/**
+ * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
+ */
+class Parser_SyntheticKeywordToken extends KeywordToken {
+  /**
+   * Initialize a newly created token to represent the given keyword.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  Parser_SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+
+  @override
+  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
+
+  @override
+  int get length => 0;
 }
 
 /**

@@ -68,6 +68,23 @@ def SrcSteps(build_info):
   tarfilename = 'dart-%s.tar.gz' % version
   tarfile = os.path.join(builddir, tarfilename)
 
+  with bot.BuildStep('Validating linux system'):
+    print 'Validating that we are on %s' % build_info.builder_tag
+    args = ['cat', '/etc/os-release']
+    (stdout, stderr, exitcode) = bot_utils.run(args)
+    if exitcode != 0:
+      print "Could not find linux system, exiting"
+      sys.exit(1)
+
+    if build_info.builder_tag == "debian_wheezy":
+      if not "wheezy" in stdout:
+        print "Trying to build debian bits on a non debian system"
+        sys.exit(1)
+    if build_info.builder_tag == "ubuntu_precise":
+      if not "precise" in stdout:
+        print "Trying to build ubuntu bits on a non ubuntu system"
+        sys.exit(1)
+
   with bot.BuildStep('Create src tarball'):
     args = [sys.executable, './tools/create_tarball.py', '--tar_filename',
             tarfile]
@@ -82,10 +99,10 @@ def SrcSteps(build_info):
   with bot.BuildStep('Upload artifacts'):
     bot_name, _ = bot.GetBotName()
     channel = bot_utils.GetChannelFromName(bot_name)
-    if channel != bot_utils.Channel.BLEEDING_EDGE:
-      ArchiveArtifacts(tarfile, builddir, channel, build_info.builder_tag)
-    else:
-      print 'Not uploading artifacts on bleeding edge'
+#    if channel != bot_utils.Channel.BLEEDING_EDGE:
+    ArchiveArtifacts(tarfile, builddir, channel, build_info.builder_tag)
+#    else:
+#      print 'Not uploading artifacts on bleeding edge'
 
 if __name__ == '__main__':
   # We pass in None for build_step to avoid building the sdk.

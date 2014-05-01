@@ -131,7 +131,7 @@ static Register LookupCpuRegisterByName(const char* name) {
       R16, R17, R18, R19, R20, R21, R22, R23,
       R24, R25, R26, R27, R28, R29, R30,
 
-      IP0, IP1, PP, CTX, FP, LR, SP, ZR,
+      IP0, IP1, PP, CTX, FP, LR, R31, ZR,
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -146,6 +146,10 @@ static Register LookupCpuRegisterByName(const char* name) {
 bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
   Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
+    if (reg == ZR) {
+      *value = 0;
+      return true;
+    }
     *value = sim_->get_register(reg);
     return true;
   }
@@ -401,6 +405,7 @@ Simulator::Simulator() {
   icount_ = 0;
   break_pc_ = NULL;
   break_instr_ = 0;
+  last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
 
   // Setup architecture state.
@@ -592,7 +597,7 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
 // and if not, will likely take a number of additional cycles to execute,
 // so let's just not generate any.
 void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
-  char buffer[64];
+  char buffer[128];
   snprintf(buffer, sizeof(buffer),
            "unaligned %s at 0x%" Px ", pc=%p\n", msg, addr, instr);
   SimulatorDebugger dbg(this);
@@ -604,8 +609,10 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 
 
 void Simulator::UnimplementedInstruction(Instr* instr) {
-  char buffer[64];
-  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer),
+      "Unimplemented instruction: at %p, last_pc=0x%" Px64 "\n",
+      instr, get_last_pc());
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   FATAL("Cannot continue execution after unimplemented instruction.");
@@ -890,7 +897,11 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
     set_register(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      SetCFlag(CarryFromX(rn_val, imm));
+      if (addition) {
+        SetCFlag(CarryFromX(rn_val, imm));
+      } else {
+        SetCFlag(!BorrowFromX(rn_val, imm));
+      }
       SetVFlag(OverflowFromX(alu_out, rn_val, imm, addition));
     }
   } else {
@@ -900,7 +911,11 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      SetCFlag(CarryFromW(rn_val, imm));
+      if (addition) {
+        SetCFlag(CarryFromW(rn_val, imm));
+      } else {
+        SetCFlag(!BorrowFromW(rn_val, imm));
+      }
       SetVFlag(OverflowFromW(alu_out, rn_val, imm, addition));
     }
   }
@@ -1010,7 +1025,13 @@ void Simulator::DecodeCompareAndBranch(Instr* instr) {
 
 
 bool Simulator::ConditionallyExecute(Instr* instr) {
-  switch (instr->ConditionField()) {
+  Condition cond;
+  if (instr->IsConditionalSelectOp()) {
+    cond = instr->SelectConditionField();
+  } else {
+    cond = instr->ConditionField();
+  }
+  switch (cond) {
     case EQ: return z_flag_;
     case NE: return !z_flag_;
     case CS: return c_flag_;
@@ -1590,7 +1611,11 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
     set_register(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      SetCFlag(CarryFromX(rn_val, rm_val));
+      if (subtract) {
+        SetCFlag(!BorrowFromX(rn_val, rm_val));
+      } else {
+        SetCFlag(CarryFromX(rn_val, rm_val));
+      }
       SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, !subtract));
     }
   } else {
@@ -1606,7 +1631,11 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      SetCFlag(CarryFromW(rn_val, rm_val32));
+      if (subtract) {
+        SetCFlag(!BorrowFromW(rn_val, rm_val32));
+      } else {
+        SetCFlag(CarryFromW(rn_val, rm_val32));
+      }
       SetVFlag(OverflowFromW(alu_out, rn_val, rm_val32, !subtract));
     }
   }
@@ -1818,6 +1847,36 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
 }
 
 
+void Simulator::DecodeConditionalSelect(Instr* instr) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
+    // Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
+    const Register rd = instr->RdField();
+    const Register rn = instr->RnField();
+    const Register rm = instr->RmField();
+    if (instr->SFField() == 1) {
+      int64_t res = 0;
+      if (ConditionallyExecute(instr)) {
+        res = get_register(rn, instr->RnMode());
+      } else {
+        res = get_register(rm, R31IsZR);
+      }
+      set_register(rd, res, instr->RdMode());
+    } else {
+      int32_t res = 0;
+      if (ConditionallyExecute(instr)) {
+        res = get_wregister(rn, instr->RnMode());
+      } else {
+        res = get_wregister(rm, R31IsZR);
+      }
+      set_wregister(rd, res, instr->RdMode());
+    }
+
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 void Simulator::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
@@ -1827,6 +1886,8 @@ void Simulator::DecodeDPRegister(Instr* instr) {
     DecodeMiscDP2Source(instr);
   } else if (instr->IsMiscDP3SourceOp()) {
     DecodeMiscDP3Source(instr);
+  } else if (instr->IsConditionalSelectOp()) {
+    DecodeConditionalSelect(instr);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -1862,9 +1923,10 @@ void Simulator::InstructionDecode(Instr* instr) {
     DecodeDPRegister(instr);
   } else if (instr->IsDPSimd1Op()) {
     DecodeDPSimd1(instr);
-  } else {
-    ASSERT(instr->IsDPSimd2Op());
+  } else if (instr->IsDPSimd2Op()) {
     DecodeDPSimd2(instr);
+  } else {
+    UnimplementedInstruction(instr);
   }
 
   if (!pc_modified_) {
@@ -2002,6 +2064,41 @@ int64_t Simulator::Call(int64_t entry,
   int64_t return_value;
   return_value = get_register(R0);
   return return_value;
+}
+
+
+void Simulator::Longjmp(uword pc,
+                        uword sp,
+                        uword fp,
+                        RawObject* raw_exception,
+                        RawObject* raw_stacktrace) {
+  // Walk over all setjmp buffers (simulated --> C++ transitions)
+  // and try to find the setjmp associated with the simulated stack pointer.
+  SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
+  while (buf->link() != NULL && buf->link()->sp() <= sp) {
+    buf = buf->link();
+  }
+  ASSERT(buf != NULL);
+
+  // The C++ caller has not cleaned up the stack memory of C++ frames.
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous C++ frames.
+  uword native_sp = buf->native_sp();
+  Isolate* isolate = Isolate::Current();
+  while (isolate->top_resource() != NULL &&
+         (reinterpret_cast<uword>(isolate->top_resource()) < native_sp)) {
+    isolate->top_resource()->~StackResource();
+  }
+
+  // Unwind the C++ stack and continue simulation in the target frame.
+  set_pc(static_cast<int64_t>(pc));
+  set_register(R31, static_cast<int64_t>(sp), R31IsSP);
+  set_register(FP, static_cast<int64_t>(fp));
+
+  ASSERT(raw_exception != Object::null());
+  set_register(kExceptionObjectReg, bit_cast<int64_t>(raw_exception));
+  set_register(kStackTraceObjectReg, bit_cast<int64_t>(raw_stacktrace));
+  buf->Longjmp();
 }
 
 }  // namespace dart

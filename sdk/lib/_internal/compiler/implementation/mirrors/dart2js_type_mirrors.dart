@@ -375,7 +375,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
       var name = method.qualifiedName;
       assert(!map.containsKey(name));
       map[name] = method;
-      return new ImmutableMapWrapper<Symbol, DeclarationMirror>(map);
+      return new UnmodifiableMapView<Symbol, DeclarationMirror>(map);
     }
     return originalDeclaration.declarations;
   }

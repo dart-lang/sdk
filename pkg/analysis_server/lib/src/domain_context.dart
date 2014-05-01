@@ -142,6 +142,7 @@ class ContextDomainHandler implements RequestHandler {
         changesData);
 
     context.applyChanges(changeSet);
+    server.addContextToWorkQueue(context);
     Response response = new Response(request.id);
     return response;
   }

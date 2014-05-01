@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
-#include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
-
 #include "platform/assert.h"
 #include "platform/json.h"
 #include "vm/json_stream.h"
@@ -302,7 +298,10 @@ TEST_CASE(JSON_JSONStream_DartObject) {
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
-  EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}}]",
+  EXPECT_STREQ("[{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"},"
+               "{\"object_key\":{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+               "\"valueAsString\":\"null\"}}]",
                js.ToCString());
 }
 
@@ -338,5 +337,3 @@ TEST_CASE(JSON_JSONStream_Options) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(TARGET_ARCH_ARM64)

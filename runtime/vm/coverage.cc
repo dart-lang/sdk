@@ -156,7 +156,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   }
 
   JSONStream stream;
-  PrintToJSONStream(isolate, &stream);
+  PrintJSON(isolate, &stream);
 
   const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
@@ -175,7 +175,7 @@ void CodeCoverage::Write(Isolate* isolate) {
 }
 
 
-void CodeCoverage::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
+void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate, isolate->object_store()->libraries());
   Library& lib = Library::Handle();

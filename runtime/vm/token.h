@@ -304,6 +304,8 @@ class Token {
       case Token::kGTE: return Token::kLT;
       case Token::kEQ_STRICT: return Token::kNE_STRICT;
       case Token::kNE_STRICT: return Token::kEQ_STRICT;
+      case Token::kIS:    return Token::kISNOT;
+      case Token::kISNOT: return Token::kIS;
       default:
         UNREACHABLE();
         return Token::kILLEGAL;

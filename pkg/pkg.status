@@ -16,6 +16,7 @@ polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
+polymer/test/build/script_compactor_test: Pass, Slow
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
@@ -26,7 +27,6 @@ analyzer/test/generated/parser_test: Pass, Timeout
 code_transformers/test/resolver_test: Pass, Timeout
 docgen/test/*: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
-polymer/test/build/script_compactor_test: Pass, Timeout
 polymer_expressions/test/globals_test: Pass, Timeout
 smoke/test/codegen/end_to_end_test: Pass, Timeout
 smoke/test/codegen/recorder_test: Pass, Timeout
@@ -73,6 +73,9 @@ async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
+[ $compiler == dart2js && $runtime == drt ]
+async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
+
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
@@ -109,7 +112,7 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-[ ($runtime == ff || $runtime == jsshell) && $system != windows ]
+[ $runtime == jsshell ]
 # Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
@@ -132,8 +135,8 @@ matcher/test/matchers_test: RuntimeError # Issue 17762
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
-[ $runtime == ie10 || $runtime == ie11 ]
-typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
+[ $runtime == ie10 ]
+typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
 [ $runtime == safari ]
 # Unexplained errors only occuring on Safari.
@@ -165,7 +168,6 @@ polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 [ $compiler == dart2js && $csp ]
-matcher/test/mirror_matchers_test: Skip # Issue 12151
 polymer/test/noscript_test: Fail # Issue 17326
 polymer/test/js_interop_test: Fail # Issue 17326
 
@@ -177,7 +179,6 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 matcher/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-matcher/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces

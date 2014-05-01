@@ -28,20 +28,26 @@ EXECUTABLE_NAMES = {
     'content_shell': 'content_shell.exe',
     'dart': 'dart.exe',
     'iexplore': 'iexplore.exe',
-    'firefox': 'firefox.exe'
+    'firefox': 'firefox.exe',
+    'git': 'git.exe',
+    'svn': 'svn.exe'
   },
   'linux': {
     'chrome': 'chrome',
     'content_shell': 'content_shell',
     'dart': 'dart',
-    'firefox': 'firefox.exe'
+    'firefox': 'firefox.exe',
+    'git': 'git',
+    'svn': 'svn'
   },
   'macos': {
     'chrome': 'Chrome',
     'content_shell': 'Content Shell',
     'dart': 'dart',
     'firefox': 'firefox',
-    'safari': 'Safari'
+    'safari': 'Safari',
+    'git': 'git',
+    'svn': 'svn'
   }
 }
 
@@ -55,6 +61,8 @@ def GetOptions():
   parser = optparse.OptionParser("usage: %prog [options]")
   parser.add_option("--kill_dart", default=True,
                     help="Kill all dart processes")
+  parser.add_option("--kill_vc", default=True,
+                    help="Kill all git and svn processes")
   parser.add_option("--kill_browsers", default=False,
                      help="Kill all browser processes")
   (options, args) = parser.parse_args()
@@ -170,6 +178,11 @@ def KillBrowsers():
   status += Kill('content_shell')
   return status
 
+def KillVCSystems():
+  status = Kill('git')
+  status += Kill('svn')
+  return status
+
 def KillDart():
   status = Kill("dart")
   return status
@@ -179,6 +192,8 @@ def Main():
   status = 0
   if (options.kill_dart):
     status += KillDart();
+  if (options.kill_vc):
+    status += KillVCSystems();
   if (options.kill_browsers):
     status += KillBrowsers()
   return status

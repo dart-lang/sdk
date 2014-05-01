@@ -40,6 +40,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -273,6 +274,23 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
+
+void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
+  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+    return;
+  }
+  const Function& function =
+      Function::Handle(instr->env()->code().function());
+  const Script& s = Script::Handle(function.script());
+  intptr_t line_nr;
+  intptr_t column_nr;
+  s.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
+  const String& line = String::Handle(s.GetLine(line_nr));
+  assembler()->Comment("Line %" Pd " in '%s':\n           %s",
+      line_nr, function.ToFullyQualifiedCString(), line.ToCString());
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
 
@@ -292,6 +310,9 @@ void FlowGraphCompiler::VisitBlocks() {
       Instruction* instr = it.Current();
       if (FLAG_code_comments &&
           (FLAG_disassemble || FLAG_disassemble_optimized)) {
+        if (FLAG_source_lines) {
+          EmitSourceLine(instr);
+        }
         EmitComment(instr);
       }
       if (instr->IsParallelMove()) {
@@ -476,7 +497,7 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   ASSERT(is_optimizing());
   CompilerDeoptInfo* info =
       new CompilerDeoptInfo(deopt_id,
-                            kDeoptAtCall,
+                            ICData::kDeoptAtCall,
                             pending_deoptimization_env_);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
@@ -549,11 +570,18 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 }
 
 
-// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
-// FlowGraphCompiler::SaveLiveRegisters.
+// This function must be kept in sync with:
+//
+//     FlowGraphCompiler::RecordSafepoint
+//     FlowGraphCompiler::SaveLiveRegisters
+//     MaterializeObjectInstr::RemapRegisters
+//
 Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     Instruction* instruction) {
-  if (instruction->env() == NULL) return NULL;
+  if (instruction->env() == NULL) {
+    ASSERT(!is_optimizing());
+    return NULL;
+  }
 
   Environment* env = instruction->env()->DeepCopy();
   // 1. Iterate the registers in the order they will be spilled to compute
@@ -611,15 +639,22 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
         default:
           UNREACHABLE();
       }
+    } else if (loc.IsInvalid()) {
+      Definition* def =
+          it.CurrentValue()->definition();
+      ASSERT(def != NULL);
+      if (def->IsMaterializeObject()) {
+        def->AsMaterializeObject()->RemapRegisters(fpu_reg_slots,
+                                                   cpu_reg_slots);
+      }
     }
   }
-
   return env;
 }
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       DeoptReasonId reason) {
+                                       ICData::DeoptReasonId reason) {
   ASSERT(is_optimizing_);
   CompilerDeoptInfoWithStub* stub =
       new CompilerDeoptInfoWithStub(deopt_id,
@@ -758,7 +793,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
   uword label_address = 0;
   if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
-    if (ic_data.is_closure_call()) {
+    if (ic_data.IsClosureCall()) {
       // This IC call may be closure call only.
       label_address = StubCode::ClosureCallInlineCacheEntryPoint();
       ExternalLabel target_label("InlineCache", label_address);
@@ -772,7 +807,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     ASSERT(!is_optimizing()
            || may_reoptimize()
            || flow_graph().IsCompiledForOsr());
-    switch (ic_data.num_args_tested()) {
+    switch (ic_data.NumArgsTested()) {
       case 1:
         label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
         break;
@@ -798,7 +833,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  switch (ic_data.num_args_tested()) {
+  switch (ic_data.NumArgsTested()) {
     case 1:
       label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
       break;
@@ -1275,7 +1310,7 @@ static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
 // The expected number of elements to sort is less than 10.
 void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
                                           GrowableArray<CidTarget>* sorted) {
-  ASSERT(ic_data.num_args_tested() == 1);
+  ASSERT(ic_data.NumArgsTested() == 1);
   const intptr_t len = ic_data.NumberOfChecks();
   sorted->Clear();
 

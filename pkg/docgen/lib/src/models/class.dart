@@ -86,8 +86,8 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
     interfaces = superinterfaces.toList();
     variables = createVariables(
         dart2js_util.variablesOf(classMirror.declarations), this);
-    methods = createMethods(classMirror.declarations.values.where(
-        (mirror) => mirror is MethodMirror), this);
+    methods = createMethods(dart2js_util.anyMethodOf(classMirror.declarations),
+        this);
 
     // Tell superclass that you are a subclass, unless you are not
     // visible or an intermediary mixin class.

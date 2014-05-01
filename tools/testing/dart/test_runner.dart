@@ -711,6 +711,14 @@ class CommandBuilder {
  * the test is completed.
  */
 class TestCase extends UniqueObject {
+  // Flags set in _expectations from the optional argument info.
+  static final int IS_NEGATIVE = 1 << 0;
+  static final int HAS_RUNTIME_ERROR = 1 << 1;
+  static final int HAS_STATIC_WARNING = 1 << 2;
+  static final int IS_NEGATIVE_IF_CHECKED = 1 << 3;
+  static final int HAS_COMPILE_ERROR = 1 << 4;
+  static final int HAS_COMPILE_ERROR_IF_CHECKED = 1 << 5;
+  static final int EXPECT_COMPILE_ERROR = 1 << 6;
   /**
    * A list of commands to execute. Most test cases have a single command.
    * Dart2js tests have two commands, one to compile the source and another
@@ -722,28 +730,50 @@ class TestCase extends UniqueObject {
 
   Map configuration;
   String displayName;
-  bool isNegative;
+  int _expectations = 0;
+  int hash = 0;
   Set<Expectation> expectedOutcomes;
-  TestInformation info;
 
   TestCase(this.displayName,
            this.commands,
            this.configuration,
            this.expectedOutcomes,
-           {this.isNegative: false,
-            this.info: null}) {
-    if (!isNegative) {
-      this.isNegative = displayName.contains("negative_test");
+           {isNegative: false,
+            TestInformation info: null}) {
+    if (isNegative || displayName.contains("negative_test")) {
+      _expectations |= IS_NEGATIVE;
+    }
+    if (info != null) {
+      _setExpectations(info);
+      hash = info.originTestPath.relativeTo(TestUtils.dartDir)
+          .toString().hashCode;
     }
   }
 
-  /// Returns `true` if this test case should result in a compile-time error,
-  /// either unconditionally or if the configuration is 'checked'.
-  bool get expectCompileError {
-    if (info == null) return false;
-    return info.hasCompileError ||
-        (configuration['checked'] && info.hasCompileErrorIfChecked);
+  void _setExpectations(TestInformation info) {
+    // We don't want to keep the entire (large) TestInformation structure,
+    // so we copy the needed bools into flags set in a single integer.
+    if (info.hasRuntimeError) _expectations |= HAS_RUNTIME_ERROR;
+    if (info.hasStaticWarning) _expectations |= HAS_STATIC_WARNING;
+    if (info.isNegativeIfChecked) _expectations |= IS_NEGATIVE_IF_CHECKED;
+    if (info.hasCompileError) _expectations |= HAS_COMPILE_ERROR;
+    if (info.hasCompileErrorIfChecked) {
+      _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
+    }
+    if (info.hasCompileError ||
+        (configuration['checked'] && info.hasCompileErrorIfChecked)) {
+      _expectations |= EXPECT_COMPILE_ERROR;
+    }
   }
+
+  bool get isNegative => _expectations & IS_NEGATIVE != 0;
+  bool get hasRuntimeError => _expectations & HAS_RUNTIME_ERROR != 0;
+  bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
+  bool get isNegativeIfChecked => _expectations & IS_NEGATIVE_IF_CHECKED != 0;
+  bool get hasCompileError => _expectations & HAS_COMPILE_ERROR != 0;
+  bool get hasCompileErrorIfChecked =>
+      _expectations & HAS_COMPILE_ERROR_IF_CHECKED != 0;
+  bool get expectCompileError => _expectations & EXPECT_COMPILE_ERROR != 0;
 
   bool get unexpectedOutput {
     var outcome = lastCommandOutput.result(this);
@@ -1020,7 +1050,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
     var outcome = _getOutcome();
 
-    if (testCase.info != null && testCase.info.hasRuntimeError) {
+    if (testCase.hasRuntimeError) {
       if (!outcome.canBeOutcomeOf(Expectation.RUNTIME_ERROR)) {
         return Expectation.MISSING_RUNTIME_ERROR;
       }
@@ -1363,11 +1393,9 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
     if (_result.didTimeout)  return Expectation.TIMEOUT;
 
     // Multitests are handled specially
-    if (testCase.info != null) {
-      if (testCase.info.hasRuntimeError) {
-        if (_rawOutcome == Expectation.RUNTIME_ERROR) return Expectation.PASS;
-        return Expectation.MISSING_RUNTIME_ERROR;
-      }
+    if (testCase.hasRuntimeError) {
+      if (_rawOutcome == Expectation.RUNTIME_ERROR) return Expectation.PASS;
+      return Expectation.MISSING_RUNTIME_ERROR;
     }
 
     return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
@@ -1414,7 +1442,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     parseAnalyzerOutput(errors, warnings);
 
     // Handle errors / missing errors
-    if (testCase.info.hasCompileError) {
+    if (testCase.hasCompileError) {
       // Don't use [TestCase.expectCompileError] since the analyzer does not
       // (currently) report checked-mode only compile time errors.
       if (errors.length > 0) {
@@ -1427,7 +1455,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     }
 
     // Handle static warnings / missing static warnings
-    if (testCase.info.hasStaticWarning) {
+    if (testCase.hasStaticWarning) {
       if (warnings.length > 0) {
         return Expectation.PASS;
       }
@@ -1438,8 +1466,8 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     }
 
     assert (errors.length == 0 && warnings.length == 0);
-    assert (!testCase.info.hasCompileError &&
-            !testCase.info.hasStaticWarning);
+    assert (!testCase.hasCompileError &&
+            !testCase.hasStaticWarning);
     return Expectation.PASS;
   }
 
@@ -1502,22 +1530,19 @@ class VmCommandOutputImpl extends CommandOutputImpl
     if (hasTimedOut) return Expectation.TIMEOUT;
 
     // Multitests are handled specially
-    if (testCase.info != null) {
-      if (testCase.expectCompileError) {
-        if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
-          return Expectation.PASS;
-        }
-
-        return Expectation.MISSING_COMPILETIME_ERROR;
+    if (testCase.expectCompileError) {
+      if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
+        return Expectation.PASS;
       }
-      if (testCase.info.hasRuntimeError) {
-        // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
-        // exception or does any nonzero exit code fullfil this requirement?
-        if (exitCode != 0) {
-          return Expectation.PASS;
-        }
-        return Expectation.MISSING_RUNTIME_ERROR;
+      return Expectation.MISSING_COMPILETIME_ERROR;
+    }
+    if (testCase.hasRuntimeError) {
+      // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
+      // exception or does any nonzero exit code fullfil this requirement?
+      if (exitCode != 0) {
+        return Expectation.PASS;
       }
+      return Expectation.MISSING_RUNTIME_ERROR;
     }
 
     // The actual outcome depends on the exitCode
@@ -1559,23 +1584,21 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
     }
 
     // Multitests are handled specially
-    if (testCase.info != null) {
     if (testCase.expectCompileError) {
-        // Nonzero exit code of the compiler means compilation failed
-        // TODO(kustermann): Do we have a special exit code in that case???
-        if (exitCode != 0) {
-          return Expectation.PASS;
-        }
-        return Expectation.MISSING_COMPILETIME_ERROR;
+      // Nonzero exit code of the compiler means compilation failed
+      // TODO(kustermann): Do we have a special exit code in that case???
+      if (exitCode != 0) {
+        return Expectation.PASS;
       }
+      return Expectation.MISSING_COMPILETIME_ERROR;
+    }
 
-      // TODO(kustermann): This is a hack, remove it
-      if (testCase.info.hasRuntimeError && testCase.commands.length > 1) {
-        // We expected to run the test, but we got an compile time error.
-        // If the compilation succeeded, we wouldn't be in here!
-        assert(exitCode != 0);
-        return Expectation.COMPILETIME_ERROR;
-      }
+    // TODO(kustermann): This is a hack, remove it
+    if (testCase.hasRuntimeError && testCase.commands.length > 1) {
+      // We expected to run the test, but we got an compile time error.
+      // If the compilation succeeded, we wouldn't be in here!
+      assert(exitCode != 0);
+      return Expectation.COMPILETIME_ERROR;
     }
 
     Expectation outcome =
@@ -1595,7 +1618,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
 
-    if (testCase.info != null && testCase.info.hasRuntimeError) {
+    if (testCase.hasRuntimeError) {
       if (exitCode != 0) return Expectation.PASS;
       return Expectation.MISSING_RUNTIME_ERROR;
     }

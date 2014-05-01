@@ -16,14 +16,7 @@ class InvokeDynamicSpecializer {
   TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
                                      Compiler compiler) {
     Selector selector = instruction.selector;
-    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
-    instruction.sideEffects = compiler.world.getSideEffectsOfSelector(selector);
-    if (!instruction.sideEffects.hasSideEffects()) {
-      instruction.setUseGvn();
-    } else {
-      instruction.clearUseGvn();
-    }
-    return type;
+    return TypeMaskFactory.inferredTypeForSelector(selector, compiler);
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -213,7 +206,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     }
     return null;
   }
-  
+
   void clearAllSideEffects(HInstruction instruction) {
     instruction.sideEffects.clearAllSideEffects();
     instruction.sideEffects.clearAllDependencies();

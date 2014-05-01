@@ -20,303 +20,40 @@ import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 
-class NodeLocatorTest extends ParserTestCase {
-  void test_range() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    _assertLocate(unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
-  }
+class AssignmentKind extends Enum<AssignmentKind> {
+  static const AssignmentKind BINARY = const AssignmentKind('BINARY', 0);
 
-  void test_searchWithin_null() {
-    NodeLocator locator = new NodeLocator.con2(0, 0);
-    JUnitTestCase.assertNull(locator.searchWithin(null));
-  }
+  static const AssignmentKind COMPOUND_LEFT = const AssignmentKind('COMPOUND_LEFT', 1);
 
-  void test_searchWithin_offset() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    _assertLocate(unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
-  }
+  static const AssignmentKind COMPOUND_RIGHT = const AssignmentKind('COMPOUND_RIGHT', 2);
 
-  void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
-    NodeLocator locator = new NodeLocator.con2(1024, 1024);
-    AstNode node = locator.searchWithin(unit.declarations[0]);
-    JUnitTestCase.assertNull(node);
-  }
+  static const AssignmentKind POSTFIX_INC = const AssignmentKind('POSTFIX_INC', 3);
 
-  void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
-    NodeLocator locator = new NodeLocator.con2(0, 0);
-    AstNode node = locator.searchWithin(unit.declarations[1]);
-    JUnitTestCase.assertNull(node);
-  }
+  static const AssignmentKind PREFIX_DEC = const AssignmentKind('PREFIX_DEC', 4);
 
-  void _assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
-    NodeLocator locator = new NodeLocator.con2(start, end);
-    AstNode node = locator.searchWithin(unit);
-    JUnitTestCase.assertNotNull(node);
-    JUnitTestCase.assertSame(node, locator.foundNode);
-    JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
-    JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
-    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
-  }
+  static const AssignmentKind PREFIX_INC = const AssignmentKind('PREFIX_INC', 5);
 
-  static dartSuite() {
-    _ut.group('NodeLocatorTest', () {
-      _ut.test('test_range', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_range);
-      });
-      _ut.test('test_searchWithin_null', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_null);
-      });
-      _ut.test('test_searchWithin_offset', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offset);
-      });
-      _ut.test('test_searchWithin_offsetAfterNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offsetAfterNode);
-      });
-      _ut.test('test_searchWithin_offsetBeforeNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_searchWithin_offsetBeforeNode);
-      });
-    });
-  }
-}
+  static const AssignmentKind PREFIX_NOT = const AssignmentKind('PREFIX_NOT', 6);
 
-class IndexExpressionTest extends EngineTestCase {
-  void test_inGetterContext_assignment_compound_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
+  static const AssignmentKind SIMPLE_LEFT = const AssignmentKind('SIMPLE_LEFT', 7);
 
-  void test_inGetterContext_assignment_simple_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertFalse(expression.inGetterContext());
-  }
+  static const AssignmentKind SIMPLE_RIGHT = const AssignmentKind('SIMPLE_RIGHT', 8);
 
-  void test_inGetterContext_nonAssignment() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] + ?
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
+  static const AssignmentKind NONE = const AssignmentKind('NONE', 9);
 
-  void test_inSetterContext_assignment_compound_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
+  static const List<AssignmentKind> values = const [
+      BINARY,
+      COMPOUND_LEFT,
+      COMPOUND_RIGHT,
+      POSTFIX_INC,
+      PREFIX_DEC,
+      PREFIX_INC,
+      PREFIX_NOT,
+      SIMPLE_LEFT,
+      SIMPLE_RIGHT,
+      NONE];
 
-  void test_inSetterContext_assignment_compound_right() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? += a[i]
-    AstFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_assignment_simple_left() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_assignment_simple_right() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? = a[i]
-    AstFactory.assignmentExpression(null, TokenType.EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_nonAssignment() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
-    // a[i] + ?
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_postfix() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-    // a[i]++
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_bang() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // !a[i]
-    AstFactory.prefixExpression(TokenType.BANG, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_minusMinus() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // --a[i]
-    AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  void test_inSetterContext_prefix_plusPlus() {
-    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ++a[i]
-    AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-
-  static dartSuite() {
-    _ut.group('IndexExpressionTest', () {
-      _ut.test('test_inGetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inGetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inGetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
-      });
-      _ut.test('test_inSetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_postfix', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_postfix);
-      });
-      _ut.test('test_inSetterContext_prefix_bang', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
-      });
-      _ut.test('test_inSetterContext_prefix_minusMinus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
-      });
-      _ut.test('test_inSetterContext_prefix_plusPlus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
-      });
-    });
-  }
-}
-
-class ClassDeclarationTest extends ParserTestCase {
-  void test_getConstructor() {
-    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
-    ConstructorDeclaration defaultConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), null, AstFactory.formalParameterList([]), initializers);
-    ConstructorDeclaration aConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "a", AstFactory.formalParameterList([]), initializers);
-    ConstructorDeclaration bConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "b", AstFactory.formalParameterList([]), initializers);
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
-    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
-    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
-    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
-    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
-  }
-
-  void test_getField() {
-    VariableDeclaration aVar = AstFactory.variableDeclaration("a");
-    VariableDeclaration bVar = AstFactory.variableDeclaration("b");
-    VariableDeclaration cVar = AstFactory.variableDeclaration("c");
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [
-        AstFactory.fieldDeclaration2(false, null, [aVar]),
-        AstFactory.fieldDeclaration2(false, null, [bVar, cVar])]);
-    JUnitTestCase.assertSame(aVar, clazz.getField("a"));
-    JUnitTestCase.assertSame(bVar, clazz.getField("b"));
-    JUnitTestCase.assertSame(cVar, clazz.getField("c"));
-    JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
-  }
-
-  void test_getMethod() {
-    MethodDeclaration aMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("a"), AstFactory.formalParameterList([]));
-    MethodDeclaration bMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("b"), AstFactory.formalParameterList([]));
-    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
-    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
-    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
-    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
-  }
-
-  void test_isAbstract() {
-    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
-    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
-  }
-
-  static dartSuite() {
-    _ut.group('ClassDeclarationTest', () {
-      _ut.test('test_getConstructor', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getConstructor);
-      });
-      _ut.test('test_getField', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getField);
-      });
-      _ut.test('test_getMethod', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_getMethod);
-      });
-      _ut.test('test_isAbstract', () {
-        final __test = new ClassDeclarationTest();
-        runJUnitTest(__test, __test.test_isAbstract);
-      });
-    });
-  }
-}
-
-class VariableDeclarationTest extends ParserTestCase {
-  void test_getDocumentationComment_onGrandParent() {
-    VariableDeclaration varDecl = AstFactory.variableDeclaration("a");
-    TopLevelVariableDeclaration decl = AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    JUnitTestCase.assertNull(varDecl.documentationComment);
-    decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(varDecl.documentationComment);
-    JUnitTestCase.assertNotNull(decl.documentationComment);
-  }
-
-  void test_getDocumentationComment_onNode() {
-    VariableDeclaration decl = AstFactory.variableDeclaration("a");
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(decl.documentationComment);
-  }
-
-  static dartSuite() {
-    _ut.group('VariableDeclarationTest', () {
-      _ut.test('test_getDocumentationComment_onGrandParent', () {
-        final __test = new VariableDeclarationTest();
-        runJUnitTest(__test, __test.test_getDocumentationComment_onGrandParent);
-      });
-      _ut.test('test_getDocumentationComment_onNode', () {
-        final __test = new VariableDeclarationTest();
-        runJUnitTest(__test, __test.test_getDocumentationComment_onNode);
-      });
-    });
-  }
+  const AssignmentKind(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -731,340 +468,6 @@ class AstFactory {
   static WithClause withClause(List<TypeName> types) => new WithClause(TokenFactory.tokenFromKeyword(Keyword.WITH), list(types));
 }
 
-class SimpleIdentifierTest extends ParserTestCase {
-  void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier = AstFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_catch_exception() {
-    SimpleIdentifier identifier = AstFactory.catchClause("e", []).exceptionParameter;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_catch_stack() {
-    SimpleIdentifier identifier = AstFactory.catchClause2("e", "s", []).stackTraceParameter;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_classDeclaration() {
-    SimpleIdentifier identifier = AstFactory.classDeclaration(null, "C", null, null, null, null, []).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_classTypeAlias() {
-    SimpleIdentifier identifier = AstFactory.classTypeAlias("C", null, null, null, null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_constructorDeclaration() {
-    SimpleIdentifier identifier = AstFactory.constructorDeclaration(AstFactory.identifier3("C"), "c", null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_declaredIdentifier() {
-    DeclaredIdentifier declaredIdentifier = AstFactory.declaredIdentifier3("v");
-    SimpleIdentifier identifier = declaredIdentifier.identifier;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier = AstFactory.fieldFormalParameter2("p").identifier;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_functionDeclaration() {
-    SimpleIdentifier identifier = AstFactory.functionDeclaration(null, null, "f", null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_functionTypeAlias() {
-    SimpleIdentifier identifier = AstFactory.typeAlias(null, "F", null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_label_false() {
-    SimpleIdentifier identifier = AstFactory.namedExpression2("l", AstFactory.integer(0)).name.label;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_label_true() {
-    Label label = AstFactory.label2("l");
-    SimpleIdentifier identifier = label.label;
-    AstFactory.labeledStatement(AstFactory.list([label]), AstFactory.emptyStatement());
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_methodDeclaration() {
-    SimpleIdentifier identifier = AstFactory.identifier3("m");
-    AstFactory.methodDeclaration2(null, null, null, null, identifier, null, null);
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_simpleFormalParameter() {
-    SimpleIdentifier identifier = AstFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_typeParameter_bound() {
-    TypeName bound = AstFactory.typeName4("A", []);
-    SimpleIdentifier identifier = bound.name as SimpleIdentifier;
-    AstFactory.typeParameter2("E", bound);
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_typeParameter_name() {
-    SimpleIdentifier identifier = AstFactory.typeParameter("E").name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inDeclarationContext_variableDeclaration() {
-    SimpleIdentifier identifier = AstFactory.variableDeclaration("v").name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
-  }
-
-  void test_inGetterContext() {
-    for (WrapperKind wrapper in WrapperKind.values) {
-      for (AssignmentKind assignment in AssignmentKind.values) {
-        SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
-        if (assignment == AssignmentKind.SIMPLE_LEFT && wrapper != WrapperKind.PREFIXED_LEFT && wrapper != WrapperKind.PROPERTY_LEFT) {
-          if (identifier.inGetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
-          }
-        } else {
-          if (!identifier.inGetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
-          }
-        }
-      }
-    }
-  }
-
-  void test_inReferenceContext() {
-    SimpleIdentifier identifier = AstFactory.identifier3("id");
-    AstFactory.namedExpression(AstFactory.label(identifier), AstFactory.identifier3("_"));
-    JUnitTestCase.assertFalse(identifier.inGetterContext());
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
-  }
-
-  void test_inSetterContext() {
-    for (WrapperKind wrapper in WrapperKind.values) {
-      for (AssignmentKind assignment in AssignmentKind.values) {
-        SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
-        if (wrapper == WrapperKind.PREFIXED_LEFT || wrapper == WrapperKind.PROPERTY_LEFT || assignment == AssignmentKind.BINARY || assignment == AssignmentKind.COMPOUND_RIGHT || assignment == AssignmentKind.PREFIX_NOT || assignment == AssignmentKind.SIMPLE_RIGHT || assignment == AssignmentKind.NONE) {
-          if (identifier.inSetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
-          }
-        } else {
-          if (!identifier.inSetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
-          }
-        }
-      }
-    }
-  }
-
-  SimpleIdentifier _createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
-    SimpleIdentifier identifier = AstFactory.identifier3("a");
-    Expression expression = identifier;
-    while (true) {
-      if (wrapper == WrapperKind.PREFIXED_LEFT) {
-        expression = AstFactory.identifier(identifier, AstFactory.identifier3("_"));
-      } else if (wrapper == WrapperKind.PREFIXED_RIGHT) {
-        expression = AstFactory.identifier(AstFactory.identifier3("_"), identifier);
-      } else if (wrapper == WrapperKind.PROPERTY_LEFT) {
-        expression = AstFactory.propertyAccess2(expression, "_");
-      } else if (wrapper == WrapperKind.PROPERTY_RIGHT) {
-        expression = AstFactory.propertyAccess(AstFactory.identifier3("_"), identifier);
-      } else if (wrapper == WrapperKind.NONE) {
-      }
-      break;
-    }
-    while (true) {
-      if (assignment == AssignmentKind.BINARY) {
-        AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("_"));
-      } else if (assignment == AssignmentKind.COMPOUND_LEFT) {
-        AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("_"));
-      } else if (assignment == AssignmentKind.COMPOUND_RIGHT) {
-        AstFactory.assignmentExpression(AstFactory.identifier3("_"), TokenType.PLUS_EQ, expression);
-      } else if (assignment == AssignmentKind.POSTFIX_INC) {
-        AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-      } else if (assignment == AssignmentKind.PREFIX_DEC) {
-        AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-      } else if (assignment == AssignmentKind.PREFIX_INC) {
-        AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-      } else if (assignment == AssignmentKind.PREFIX_NOT) {
-        AstFactory.prefixExpression(TokenType.BANG, expression);
-      } else if (assignment == AssignmentKind.SIMPLE_LEFT) {
-        AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("_"));
-      } else if (assignment == AssignmentKind.SIMPLE_RIGHT) {
-        AstFactory.assignmentExpression(AstFactory.identifier3("_"), TokenType.EQ, expression);
-      } else if (assignment == AssignmentKind.NONE) {
-      }
-      break;
-    }
-    return identifier;
-  }
-
-  /**
-   * Return the top-most node in the AST structure containing the given identifier.
-   *
-   * @param identifier the identifier in the AST structure being traversed
-   * @return the root of the AST structure containing the identifier
-   */
-  AstNode _topMostNode(SimpleIdentifier identifier) {
-    AstNode child = identifier;
-    AstNode parent = identifier.parent;
-    while (parent != null) {
-      child = parent;
-      parent = parent.parent;
-    }
-    return child;
-  }
-
-  static dartSuite() {
-    _ut.group('SimpleIdentifierTest', () {
-      _ut.test('test_inDeclarationContext_argumentDefinition', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_argumentDefinition);
-      });
-      _ut.test('test_inDeclarationContext_catch_exception', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_catch_exception);
-      });
-      _ut.test('test_inDeclarationContext_catch_stack', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_catch_stack);
-      });
-      _ut.test('test_inDeclarationContext_classDeclaration', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_classDeclaration);
-      });
-      _ut.test('test_inDeclarationContext_classTypeAlias', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_classTypeAlias);
-      });
-      _ut.test('test_inDeclarationContext_constructorDeclaration', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_constructorDeclaration);
-      });
-      _ut.test('test_inDeclarationContext_declaredIdentifier', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_declaredIdentifier);
-      });
-      _ut.test('test_inDeclarationContext_fieldFormalParameter', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_fieldFormalParameter);
-      });
-      _ut.test('test_inDeclarationContext_functionDeclaration', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_functionDeclaration);
-      });
-      _ut.test('test_inDeclarationContext_functionTypeAlias', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_functionTypeAlias);
-      });
-      _ut.test('test_inDeclarationContext_label_false', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_label_false);
-      });
-      _ut.test('test_inDeclarationContext_label_true', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_label_true);
-      });
-      _ut.test('test_inDeclarationContext_methodDeclaration', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_methodDeclaration);
-      });
-      _ut.test('test_inDeclarationContext_simpleFormalParameter', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_simpleFormalParameter);
-      });
-      _ut.test('test_inDeclarationContext_typeParameter_bound', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_bound);
-      });
-      _ut.test('test_inDeclarationContext_typeParameter_name', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_name);
-      });
-      _ut.test('test_inDeclarationContext_variableDeclaration', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_variableDeclaration);
-      });
-      _ut.test('test_inGetterContext', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext);
-      });
-      _ut.test('test_inReferenceContext', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inReferenceContext);
-      });
-      _ut.test('test_inSetterContext', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext);
-      });
-    });
-  }
-}
-
-class AssignmentKind extends Enum<AssignmentKind> {
-  static const AssignmentKind BINARY = const AssignmentKind('BINARY', 0);
-
-  static const AssignmentKind COMPOUND_LEFT = const AssignmentKind('COMPOUND_LEFT', 1);
-
-  static const AssignmentKind COMPOUND_RIGHT = const AssignmentKind('COMPOUND_RIGHT', 2);
-
-  static const AssignmentKind POSTFIX_INC = const AssignmentKind('POSTFIX_INC', 3);
-
-  static const AssignmentKind PREFIX_DEC = const AssignmentKind('PREFIX_DEC', 4);
-
-  static const AssignmentKind PREFIX_INC = const AssignmentKind('PREFIX_INC', 5);
-
-  static const AssignmentKind PREFIX_NOT = const AssignmentKind('PREFIX_NOT', 6);
-
-  static const AssignmentKind SIMPLE_LEFT = const AssignmentKind('SIMPLE_LEFT', 7);
-
-  static const AssignmentKind SIMPLE_RIGHT = const AssignmentKind('SIMPLE_RIGHT', 8);
-
-  static const AssignmentKind NONE = const AssignmentKind('NONE', 9);
-
-  static const List<AssignmentKind> values = const [
-      BINARY,
-      COMPOUND_LEFT,
-      COMPOUND_RIGHT,
-      POSTFIX_INC,
-      PREFIX_DEC,
-      PREFIX_INC,
-      PREFIX_NOT,
-      SIMPLE_LEFT,
-      SIMPLE_RIGHT,
-      NONE];
-
-  const AssignmentKind(String name, int ordinal) : super(name, ordinal);
-}
-
-class WrapperKind extends Enum<WrapperKind> {
-  static const WrapperKind PREFIXED_LEFT = const WrapperKind('PREFIXED_LEFT', 0);
-
-  static const WrapperKind PREFIXED_RIGHT = const WrapperKind('PREFIXED_RIGHT', 1);
-
-  static const WrapperKind PROPERTY_LEFT = const WrapperKind('PROPERTY_LEFT', 2);
-
-  static const WrapperKind PROPERTY_RIGHT = const WrapperKind('PROPERTY_RIGHT', 3);
-
-  static const WrapperKind NONE = const WrapperKind('NONE', 4);
-
-  static const List<WrapperKind> values = const [
-      PREFIXED_LEFT,
-      PREFIXED_RIGHT,
-      PROPERTY_LEFT,
-      PROPERTY_RIGHT,
-      NONE];
-
-  const WrapperKind(String name, int ordinal) : super(name, ordinal);
-}
-
 class BreadthFirstVisitorTest extends ParserTestCase {
   void testIt() {
     String source = EngineTestCase.createSource([
@@ -1120,307 +523,63 @@ class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends BreadthFirstVis
   }
 }
 
-class NodeListTest extends EngineTestCase {
-  void test_add() {
-    AstNode parent = AstFactory.argumentList([]);
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    NodeList<AstNode> list = new NodeList<AstNode>(parent);
-    list.insert(0, secondNode);
-    list.insert(0, firstNode);
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    AstNode thirdNode = AstFactory.booleanLiteral(false);
-    list.insert(1, thirdNode);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
-    JUnitTestCase.assertSame(secondNode, list[2]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
+class ClassDeclarationTest extends ParserTestCase {
+  void test_getConstructor() {
+    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
+    ConstructorDeclaration defaultConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), null, AstFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration aConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "a", AstFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration bConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "b", AstFactory.formalParameterList([]), initializers);
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
+    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
+    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
+    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
+    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
   }
 
-  void test_add_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.insert(-1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
+  void test_getField() {
+    VariableDeclaration aVar = AstFactory.variableDeclaration("a");
+    VariableDeclaration bVar = AstFactory.variableDeclaration("b");
+    VariableDeclaration cVar = AstFactory.variableDeclaration("c");
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [
+        AstFactory.fieldDeclaration2(false, null, [aVar]),
+        AstFactory.fieldDeclaration2(false, null, [bVar, cVar])]);
+    JUnitTestCase.assertSame(aVar, clazz.getField("a"));
+    JUnitTestCase.assertSame(bVar, clazz.getField("b"));
+    JUnitTestCase.assertSame(cVar, clazz.getField("c"));
+    JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
   }
 
-  void test_add_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.insert(1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
+  void test_getMethod() {
+    MethodDeclaration aMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("a"), AstFactory.formalParameterList([]));
+    MethodDeclaration bMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("b"), AstFactory.formalParameterList([]));
+    ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
+    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
+    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
+    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
   }
 
-  void test_addAll() {
-    AstNode parent = AstFactory.argumentList([]);
-    List<AstNode> firstNodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    firstNodes.add(firstNode);
-    firstNodes.add(secondNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(parent);
-    list.addAll(firstNodes);
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    List<AstNode> secondNodes = new List<AstNode>();
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    AstNode fourthNode = AstFactory.booleanLiteral(false);
-    secondNodes.add(thirdNode);
-    secondNodes.add(fourthNode);
-    list.addAll(secondNodes);
-    EngineTestCase.assertSizeOfList(4, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
-    JUnitTestCase.assertSame(fourthNode, list[3]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
-    JUnitTestCase.assertSame(parent, fourthNode.parent);
-  }
-
-  void test_create() {
-    AstNode owner = AstFactory.argumentList([]);
-    NodeList<AstNode> list = NodeList.create(owner);
-    JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
-  }
-
-  void test_creation() {
-    AstNode owner = AstFactory.argumentList([]);
-    NodeList<AstNode> list = new NodeList<AstNode>(owner);
-    JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
-  }
-
-  void test_get_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list[-1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_get_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list[1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_getBeginToken_empty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.beginToken);
-  }
-
-  void test_getBeginToken_nonEmpty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
-    list.add(node);
-    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
-  }
-
-  void test_getEndToken_empty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.endToken);
-  }
-
-  void test_getEndToken_nonEmpty() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
-    list.add(node);
-    JUnitTestCase.assertSame(node.endToken, list.endToken);
-  }
-
-  void test_indexOf() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    AstNode fourthNode = AstFactory.booleanLiteral(false);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
-    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
-    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(null));
-  }
-
-  void test_remove() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
-    EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
-  }
-
-  void test_remove_negative() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.removeAt(-1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_remove_tooBig() {
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      list.removeAt(1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_set() {
-    List<AstNode> nodes = new List<AstNode>();
-    AstNode firstNode = AstFactory.booleanLiteral(true);
-    AstNode secondNode = AstFactory.booleanLiteral(false);
-    AstNode thirdNode = AstFactory.booleanLiteral(true);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
-    AstNode fourthNode = AstFactory.integer(0);
-    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
-    EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(fourthNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
-  }
-
-  void test_set_negative() {
-    AstNode node = AstFactory.booleanLiteral(true);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      javaListSet(list, -1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
-  }
-
-  void test_set_tooBig() {
-    AstNode node = AstFactory.booleanLiteral(true);
-    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    try {
-      javaListSet(list, 1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
-    } on RangeError catch (exception) {
-    }
+  void test_isAbstract() {
+    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
+    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
   }
 
   static dartSuite() {
-    _ut.group('NodeListTest', () {
-      _ut.test('test_add', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add);
+    _ut.group('ClassDeclarationTest', () {
+      _ut.test('test_getConstructor', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getConstructor);
       });
-      _ut.test('test_addAll', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_addAll);
+      _ut.test('test_getField', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getField);
       });
-      _ut.test('test_add_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add_negative);
+      _ut.test('test_getMethod', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getMethod);
       });
-      _ut.test('test_add_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_add_tooBig);
-      });
-      _ut.test('test_create', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_create);
-      });
-      _ut.test('test_creation', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_creation);
-      });
-      _ut.test('test_getBeginToken_empty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getBeginToken_empty);
-      });
-      _ut.test('test_getBeginToken_nonEmpty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getBeginToken_nonEmpty);
-      });
-      _ut.test('test_getEndToken_empty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getEndToken_empty);
-      });
-      _ut.test('test_getEndToken_nonEmpty', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_getEndToken_nonEmpty);
-      });
-      _ut.test('test_get_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_get_negative);
-      });
-      _ut.test('test_get_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_get_tooBig);
-      });
-      _ut.test('test_indexOf', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_indexOf);
-      });
-      _ut.test('test_remove', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove);
-      });
-      _ut.test('test_remove_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove_negative);
-      });
-      _ut.test('test_remove_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_remove_tooBig);
-      });
-      _ut.test('test_set', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set);
-      });
-      _ut.test('test_set_negative', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set_negative);
-      });
-      _ut.test('test_set_tooBig', () {
-        final __test = new NodeListTest();
-        runJUnitTest(__test, __test.test_set_tooBig);
+      _ut.test('test_isAbstract', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_isAbstract);
       });
     });
   }
@@ -1954,6 +1113,794 @@ class ConstantEvaluatorTest extends ParserTestCase {
       _ut.test('test_unary_negated_integer', () {
         final __test = new ConstantEvaluatorTest();
         runJUnitTest(__test, __test.test_unary_negated_integer);
+      });
+    });
+  }
+}
+
+class IndexExpressionTest extends EngineTestCase {
+  void test_inGetterContext_assignment_compound_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] += ?
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+
+  void test_inGetterContext_assignment_simple_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] = ?
+    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertFalse(expression.inGetterContext());
+  }
+
+  void test_inGetterContext_nonAssignment() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] + ?
+    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+
+  void test_inSetterContext_assignment_compound_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] += ?
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_compound_right() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ? += a[i]
+    AstFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_simple_left() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // a[i] = ?
+    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_assignment_simple_right() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ? = a[i]
+    AstFactory.assignmentExpression(null, TokenType.EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_nonAssignment() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
+    // a[i] + ?
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_postfix() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+    // a[i]++
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_bang() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // !a[i]
+    AstFactory.prefixExpression(TokenType.BANG, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_minusMinus() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // --a[i]
+    AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  void test_inSetterContext_prefix_plusPlus() {
+    IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
+    // ++a[i]
+    AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+
+  static dartSuite() {
+    _ut.group('IndexExpressionTest', () {
+      _ut.test('test_inGetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inGetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inGetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
+      });
+      _ut.test('test_inSetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_postfix', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_postfix);
+      });
+      _ut.test('test_inSetterContext_prefix_bang', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
+      });
+      _ut.test('test_inSetterContext_prefix_minusMinus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
+      });
+      _ut.test('test_inSetterContext_prefix_plusPlus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
+      });
+    });
+  }
+}
+
+class NodeListTest extends EngineTestCase {
+  void test_add() {
+    AstNode parent = AstFactory.argumentList([]);
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
+    list.insert(0, secondNode);
+    list.insert(0, firstNode);
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    AstNode thirdNode = AstFactory.booleanLiteral(false);
+    list.insert(1, thirdNode);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+    JUnitTestCase.assertSame(secondNode, list[2]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+  }
+
+  void test_add_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.insert(-1, AstFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_add_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.insert(1, AstFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_addAll() {
+    AstNode parent = AstFactory.argumentList([]);
+    List<AstNode> firstNodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    firstNodes.add(firstNode);
+    firstNodes.add(secondNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
+    list.addAll(firstNodes);
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    List<AstNode> secondNodes = new List<AstNode>();
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    AstNode fourthNode = AstFactory.booleanLiteral(false);
+    secondNodes.add(thirdNode);
+    secondNodes.add(fourthNode);
+    list.addAll(secondNodes);
+    EngineTestCase.assertSizeOfList(4, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+    JUnitTestCase.assertSame(fourthNode, list[3]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+    JUnitTestCase.assertSame(parent, fourthNode.parent);
+  }
+
+  void test_create() {
+    AstNode owner = AstFactory.argumentList([]);
+    NodeList<AstNode> list = NodeList.create(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSizeOfList(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+
+  void test_creation() {
+    AstNode owner = AstFactory.argumentList([]);
+    NodeList<AstNode> list = new NodeList<AstNode>(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSizeOfList(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+
+  void test_get_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list[-1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_get_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list[1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_getBeginToken_empty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.beginToken);
+  }
+
+  void test_getBeginToken_nonEmpty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
+  }
+
+  void test_getEndToken_empty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.endToken);
+  }
+
+  void test_getEndToken_nonEmpty() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.endToken, list.endToken);
+  }
+
+  void test_indexOf() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    AstNode fourthNode = AstFactory.booleanLiteral(false);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
+    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
+    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(null));
+  }
+
+  void test_remove() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
+    EngineTestCase.assertSizeOfList(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+  }
+
+  void test_remove_negative() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.removeAt(-1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_remove_tooBig() {
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      list.removeAt(1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_set() {
+    List<AstNode> nodes = new List<AstNode>();
+    AstNode firstNode = AstFactory.booleanLiteral(true);
+    AstNode secondNode = AstFactory.booleanLiteral(false);
+    AstNode thirdNode = AstFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSizeOfList(3, list);
+    AstNode fourthNode = AstFactory.integer(0);
+    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
+    EngineTestCase.assertSizeOfList(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(fourthNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+  }
+
+  void test_set_negative() {
+    AstNode node = AstFactory.booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      javaListSet(list, -1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  void test_set_tooBig() {
+    AstNode node = AstFactory.booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
+    try {
+      javaListSet(list, 1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+
+  static dartSuite() {
+    _ut.group('NodeListTest', () {
+      _ut.test('test_add', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add);
+      });
+      _ut.test('test_addAll', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_addAll);
+      });
+      _ut.test('test_add_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_negative);
+      });
+      _ut.test('test_add_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_tooBig);
+      });
+      _ut.test('test_create', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_create);
+      });
+      _ut.test('test_creation', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getBeginToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_empty);
+      });
+      _ut.test('test_getBeginToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_nonEmpty);
+      });
+      _ut.test('test_getEndToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_empty);
+      });
+      _ut.test('test_getEndToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_nonEmpty);
+      });
+      _ut.test('test_get_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_negative);
+      });
+      _ut.test('test_get_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_tooBig);
+      });
+      _ut.test('test_indexOf', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_indexOf);
+      });
+      _ut.test('test_remove', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove);
+      });
+      _ut.test('test_remove_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_negative);
+      });
+      _ut.test('test_remove_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_tooBig);
+      });
+      _ut.test('test_set', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set);
+      });
+      _ut.test('test_set_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_negative);
+      });
+      _ut.test('test_set_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_tooBig);
+      });
+    });
+  }
+}
+
+class NodeLocatorTest extends ParserTestCase {
+  void test_range() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
+    _assertLocate(unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
+  }
+
+  void test_searchWithin_null() {
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    JUnitTestCase.assertNull(locator.searchWithin(null));
+  }
+
+  void test_searchWithin_offset() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
+    _assertLocate(unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
+  }
+
+  void test_searchWithin_offsetAfterNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(1024, 1024);
+    AstNode node = locator.searchWithin(unit.declarations[0]);
+    JUnitTestCase.assertNull(node);
+  }
+
+  void test_searchWithin_offsetBeforeNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    AstNode node = locator.searchWithin(unit.declarations[1]);
+    JUnitTestCase.assertNull(node);
+  }
+
+  void _assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
+    NodeLocator locator = new NodeLocator.con2(start, end);
+    AstNode node = locator.searchWithin(unit);
+    JUnitTestCase.assertNotNull(node);
+    JUnitTestCase.assertSame(node, locator.foundNode);
+    JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
+    JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
+    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
+  }
+
+  static dartSuite() {
+    _ut.group('NodeLocatorTest', () {
+      _ut.test('test_range', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_range);
+      });
+      _ut.test('test_searchWithin_null', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_null);
+      });
+      _ut.test('test_searchWithin_offset', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offset);
+      });
+      _ut.test('test_searchWithin_offsetAfterNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetAfterNode);
+      });
+      _ut.test('test_searchWithin_offsetBeforeNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetBeforeNode);
+      });
+    });
+  }
+}
+
+class SimpleIdentifierTest extends ParserTestCase {
+  void test_inDeclarationContext_argumentDefinition() {
+    SimpleIdentifier identifier = AstFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_catch_exception() {
+    SimpleIdentifier identifier = AstFactory.catchClause("e", []).exceptionParameter;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_catch_stack() {
+    SimpleIdentifier identifier = AstFactory.catchClause2("e", "s", []).stackTraceParameter;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_classDeclaration() {
+    SimpleIdentifier identifier = AstFactory.classDeclaration(null, "C", null, null, null, null, []).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_classTypeAlias() {
+    SimpleIdentifier identifier = AstFactory.classTypeAlias("C", null, null, null, null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_constructorDeclaration() {
+    SimpleIdentifier identifier = AstFactory.constructorDeclaration(AstFactory.identifier3("C"), "c", null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_declaredIdentifier() {
+    DeclaredIdentifier declaredIdentifier = AstFactory.declaredIdentifier3("v");
+    SimpleIdentifier identifier = declaredIdentifier.identifier;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_fieldFormalParameter() {
+    SimpleIdentifier identifier = AstFactory.fieldFormalParameter2("p").identifier;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_functionDeclaration() {
+    SimpleIdentifier identifier = AstFactory.functionDeclaration(null, null, "f", null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_functionTypeAlias() {
+    SimpleIdentifier identifier = AstFactory.typeAlias(null, "F", null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_label_false() {
+    SimpleIdentifier identifier = AstFactory.namedExpression2("l", AstFactory.integer(0)).name.label;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_label_true() {
+    Label label = AstFactory.label2("l");
+    SimpleIdentifier identifier = label.label;
+    AstFactory.labeledStatement(AstFactory.list([label]), AstFactory.emptyStatement());
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_methodDeclaration() {
+    SimpleIdentifier identifier = AstFactory.identifier3("m");
+    AstFactory.methodDeclaration2(null, null, null, null, identifier, null, null);
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_simpleFormalParameter() {
+    SimpleIdentifier identifier = AstFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_typeParameter_bound() {
+    TypeName bound = AstFactory.typeName4("A", []);
+    SimpleIdentifier identifier = bound.name as SimpleIdentifier;
+    AstFactory.typeParameter2("E", bound);
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_typeParameter_name() {
+    SimpleIdentifier identifier = AstFactory.typeParameter("E").name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_variableDeclaration() {
+    SimpleIdentifier identifier = AstFactory.variableDeclaration("v").name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inGetterContext() {
+    for (WrapperKind wrapper in WrapperKind.values) {
+      for (AssignmentKind assignment in AssignmentKind.values) {
+        SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
+        if (assignment == AssignmentKind.SIMPLE_LEFT && wrapper != WrapperKind.PREFIXED_LEFT && wrapper != WrapperKind.PROPERTY_LEFT) {
+          if (identifier.inGetterContext()) {
+            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
+          }
+        } else {
+          if (!identifier.inGetterContext()) {
+            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
+          }
+        }
+      }
+    }
+  }
+
+  void test_inReferenceContext() {
+    SimpleIdentifier identifier = AstFactory.identifier3("id");
+    AstFactory.namedExpression(AstFactory.label(identifier), AstFactory.identifier3("_"));
+    JUnitTestCase.assertFalse(identifier.inGetterContext());
+    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  }
+
+  void test_inSetterContext() {
+    for (WrapperKind wrapper in WrapperKind.values) {
+      for (AssignmentKind assignment in AssignmentKind.values) {
+        SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
+        if (wrapper == WrapperKind.PREFIXED_LEFT || wrapper == WrapperKind.PROPERTY_LEFT || assignment == AssignmentKind.BINARY || assignment == AssignmentKind.COMPOUND_RIGHT || assignment == AssignmentKind.PREFIX_NOT || assignment == AssignmentKind.SIMPLE_RIGHT || assignment == AssignmentKind.NONE) {
+          if (identifier.inSetterContext()) {
+            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
+          }
+        } else {
+          if (!identifier.inSetterContext()) {
+            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
+          }
+        }
+      }
+    }
+  }
+
+  SimpleIdentifier _createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
+    SimpleIdentifier identifier = AstFactory.identifier3("a");
+    Expression expression = identifier;
+    while (true) {
+      if (wrapper == WrapperKind.PREFIXED_LEFT) {
+        expression = AstFactory.identifier(identifier, AstFactory.identifier3("_"));
+      } else if (wrapper == WrapperKind.PREFIXED_RIGHT) {
+        expression = AstFactory.identifier(AstFactory.identifier3("_"), identifier);
+      } else if (wrapper == WrapperKind.PROPERTY_LEFT) {
+        expression = AstFactory.propertyAccess2(expression, "_");
+      } else if (wrapper == WrapperKind.PROPERTY_RIGHT) {
+        expression = AstFactory.propertyAccess(AstFactory.identifier3("_"), identifier);
+      } else if (wrapper == WrapperKind.NONE) {
+      }
+      break;
+    }
+    while (true) {
+      if (assignment == AssignmentKind.BINARY) {
+        AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("_"));
+      } else if (assignment == AssignmentKind.COMPOUND_LEFT) {
+        AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("_"));
+      } else if (assignment == AssignmentKind.COMPOUND_RIGHT) {
+        AstFactory.assignmentExpression(AstFactory.identifier3("_"), TokenType.PLUS_EQ, expression);
+      } else if (assignment == AssignmentKind.POSTFIX_INC) {
+        AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+      } else if (assignment == AssignmentKind.PREFIX_DEC) {
+        AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
+      } else if (assignment == AssignmentKind.PREFIX_INC) {
+        AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
+      } else if (assignment == AssignmentKind.PREFIX_NOT) {
+        AstFactory.prefixExpression(TokenType.BANG, expression);
+      } else if (assignment == AssignmentKind.SIMPLE_LEFT) {
+        AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("_"));
+      } else if (assignment == AssignmentKind.SIMPLE_RIGHT) {
+        AstFactory.assignmentExpression(AstFactory.identifier3("_"), TokenType.EQ, expression);
+      } else if (assignment == AssignmentKind.NONE) {
+      }
+      break;
+    }
+    return identifier;
+  }
+
+  /**
+   * Return the top-most node in the AST structure containing the given identifier.
+   *
+   * @param identifier the identifier in the AST structure being traversed
+   * @return the root of the AST structure containing the identifier
+   */
+  AstNode _topMostNode(SimpleIdentifier identifier) {
+    AstNode child = identifier;
+    AstNode parent = identifier.parent;
+    while (parent != null) {
+      child = parent;
+      parent = parent.parent;
+    }
+    return child;
+  }
+
+  static dartSuite() {
+    _ut.group('SimpleIdentifierTest', () {
+      _ut.test('test_inDeclarationContext_argumentDefinition', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_argumentDefinition);
+      });
+      _ut.test('test_inDeclarationContext_catch_exception', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_catch_exception);
+      });
+      _ut.test('test_inDeclarationContext_catch_stack', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_catch_stack);
+      });
+      _ut.test('test_inDeclarationContext_classDeclaration', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_classDeclaration);
+      });
+      _ut.test('test_inDeclarationContext_classTypeAlias', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_classTypeAlias);
+      });
+      _ut.test('test_inDeclarationContext_constructorDeclaration', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_constructorDeclaration);
+      });
+      _ut.test('test_inDeclarationContext_declaredIdentifier', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_declaredIdentifier);
+      });
+      _ut.test('test_inDeclarationContext_fieldFormalParameter', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_fieldFormalParameter);
+      });
+      _ut.test('test_inDeclarationContext_functionDeclaration', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_functionDeclaration);
+      });
+      _ut.test('test_inDeclarationContext_functionTypeAlias', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_functionTypeAlias);
+      });
+      _ut.test('test_inDeclarationContext_label_false', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_label_false);
+      });
+      _ut.test('test_inDeclarationContext_label_true', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_label_true);
+      });
+      _ut.test('test_inDeclarationContext_methodDeclaration', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_methodDeclaration);
+      });
+      _ut.test('test_inDeclarationContext_simpleFormalParameter', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_simpleFormalParameter);
+      });
+      _ut.test('test_inDeclarationContext_typeParameter_bound', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_bound);
+      });
+      _ut.test('test_inDeclarationContext_typeParameter_name', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_name);
+      });
+      _ut.test('test_inDeclarationContext_variableDeclaration', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_variableDeclaration);
+      });
+      _ut.test('test_inGetterContext', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inGetterContext);
+      });
+      _ut.test('test_inReferenceContext', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inReferenceContext);
+      });
+      _ut.test('test_inSetterContext', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inSetterContext);
       });
     });
   }
@@ -4265,6 +4212,59 @@ class ToSourceVisitorTest extends EngineTestCase {
       });
     });
   }
+}
+
+class VariableDeclarationTest extends ParserTestCase {
+  void test_getDocumentationComment_onGrandParent() {
+    VariableDeclaration varDecl = AstFactory.variableDeclaration("a");
+    TopLevelVariableDeclaration decl = AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    JUnitTestCase.assertNull(varDecl.documentationComment);
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(varDecl.documentationComment);
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+
+  void test_getDocumentationComment_onNode() {
+    VariableDeclaration decl = AstFactory.variableDeclaration("a");
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+
+  static dartSuite() {
+    _ut.group('VariableDeclarationTest', () {
+      _ut.test('test_getDocumentationComment_onGrandParent', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onGrandParent);
+      });
+      _ut.test('test_getDocumentationComment_onNode', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onNode);
+      });
+    });
+  }
+}
+
+class WrapperKind extends Enum<WrapperKind> {
+  static const WrapperKind PREFIXED_LEFT = const WrapperKind('PREFIXED_LEFT', 0);
+
+  static const WrapperKind PREFIXED_RIGHT = const WrapperKind('PREFIXED_RIGHT', 1);
+
+  static const WrapperKind PROPERTY_LEFT = const WrapperKind('PROPERTY_LEFT', 2);
+
+  static const WrapperKind PROPERTY_RIGHT = const WrapperKind('PROPERTY_RIGHT', 3);
+
+  static const WrapperKind NONE = const WrapperKind('NONE', 4);
+
+  static const List<WrapperKind> values = const [
+      PREFIXED_LEFT,
+      PREFIXED_RIGHT,
+      PROPERTY_LEFT,
+      PROPERTY_RIGHT,
+      NONE];
+
+  const WrapperKind(String name, int ordinal) : super(name, ordinal);
 }
 
 main() {

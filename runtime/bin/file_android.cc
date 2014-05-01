@@ -305,9 +305,9 @@ void File::Stat(const char* name, int64_t* data) {
     } else {
       data[kType] = kDoesNotExist;
     }
-    data[kCreatedTime] = st.st_ctime;
-    data[kModifiedTime] = st.st_mtime;
-    data[kAccessedTime] = st.st_atime;
+    data[kCreatedTime] = static_cast<int64_t>(st.st_ctime) * 1000;
+    data[kModifiedTime] = static_cast<int64_t>(st.st_mtime) * 1000;
+    data[kAccessedTime] = static_cast<int64_t>(st.st_atime) * 1000;
     data[kMode] = st.st_mode;
     data[kSize] = st.st_size;
   } else {

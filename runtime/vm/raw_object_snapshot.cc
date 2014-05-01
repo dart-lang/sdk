@@ -710,13 +710,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
-// TODO(zra): Remove when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
   // Set up code pointer with the lazy-compile-stub.
   func.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
-#else
-  func.set_code(Code::Handle());
-#endif
 
   return func.raw();
 }

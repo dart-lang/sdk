@@ -138,7 +138,16 @@ class _RawReceivePortImpl implements RawReceivePort {
 
   // TODO(iposva): Ideally keep this map in the VM.
   // id to handler mapping.
-  static final Map _handlerMap = new HashMap();
+  static _initHandlerMap() {
+    // TODO(18511): Workaround bad CheckSmi hoisting.
+    var tempMap = new HashMap();
+    // Collect feedback that not all keys are Smis.
+    tempMap["."] = 1;
+    tempMap["."] = 2;
+
+    return new HashMap();
+  }
+  static final Map _handlerMap = _initHandlerMap();
 }
 
 

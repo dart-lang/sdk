@@ -1172,9 +1172,8 @@ class SsaBuilder extends ResolvedVisitor {
     bool meetsHardConstraints() {
       // Don't inline from one output unit to another. If something is deferred
       // it is to save space in the loading code.
-      var getOutputUnit = compiler.deferredLoadTask.outputUnitForElement;
-      if (getOutputUnit(element) !=
-          getOutputUnit(compiler.currentElement)) {
+      if (!compiler.deferredLoadTask
+          .inSameOutputUnit(element,compiler.currentElement)) {
         return false;
       }
       if (compiler.disableInlining) return false;
@@ -1616,10 +1615,34 @@ class SsaBuilder extends ResolvedVisitor {
    * function.
    */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
+    if (!compiler.enableTypeAssertions) return;
+
     FunctionSignature signature = function.functionSignature;
+
+    InterfaceType contextType;
+    if (function.isSynthesized && function.isGenerativeConstructor()) {
+      // Synthesized constructors reuse the parameters from the
+      // [targetConstructor]. In face of generic types, the type variables
+      // occurring in the parameter types must be substituted by the type
+      // arguments of the enclosing class.
+      FunctionElement target = function;
+      while (target.targetConstructor != null) {
+        target = target.targetConstructor;
+      }
+      if (target != function) {
+        ClassElement functionClass = function.getEnclosingClass();
+        ClassElement targetClass = target.getEnclosingClass();
+        contextType = functionClass.thisType.asInstanceOf(targetClass);
+      }
+    }
+
     signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckType(argument, parameter.type);
+      DartType parameterType = parameter.type;
+      if (contextType != null) {
+        parameterType = parameterType.substByContext(contextType);
+      }
+      potentiallyCheckType(argument, parameterType);
     });
   }
 
@@ -2929,6 +2952,24 @@ class SsaBuilder extends ResolvedVisitor {
     pushInvokeDynamic(send, selector, [receiver]);
   }
 
+  /// Inserts a call to checkDeferredIsLoaded if the send has a prefix that
+  /// resolves to a deferred library.
+  void generateIsDeferredLoadedCheckIfNeeded(ast.Send node) {
+    DeferredLoadTask deferredTask = compiler.deferredLoadTask;
+    PrefixElement prefixElement =
+         deferredTask.deferredPrefixElement(node, elements);
+    if (prefixElement != null) {
+      String loadId =
+          deferredTask.importDeferName[prefixElement.deferredImport];
+      HInstruction loadIdConstant = addConstantString(loadId);
+      String uri = prefixElement.deferredImport.uri.dartString.slowToString();
+      HInstruction uriConstant = addConstantString(uri);
+      Element helper = backend.getCheckDeferredIsLoaded();
+      pushInvokeStatic(node, helper, [loadIdConstant, uriConstant]);
+      pop();
+    }
+  }
+
   void generateGetter(ast.Send send, Element element) {
     if (element != null && element.isForeign(compiler)) {
       visitForeignGetter(send);
@@ -3167,8 +3208,7 @@ class SsaBuilder extends ResolvedVisitor {
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
       add(representations);
-      String operator =
-          backend.namer.operatorIs(backend.getImplementationClass(element));
+      String operator = backend.namer.operatorIs(element);
       HInstruction isFieldName = addConstantString(operator);
       HInstruction asFieldName = compiler.world.hasAnySubtype(element)
           ? addConstantString(backend.namer.substitutionName(element))
@@ -3921,6 +3961,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
+    generateIsDeferredLoadedCheckIfNeeded(send);
+
     bool isFixedList = false;
     bool isFixedListConstructorCall =
         Elements.isFixedListConstructorCall(elements[send], send, compiler);
@@ -4172,6 +4214,7 @@ class SsaBuilder extends ResolvedVisitor {
       return;
     }
     invariant(element, !element.isGenerativeConstructor());
+    generateIsDeferredLoadedCheckIfNeeded(node);
     if (element.isFunction()) {
       var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
@@ -4247,6 +4290,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitGetterSend(ast.Send node) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
     generateGetter(node, elements[node]);
   }
 
@@ -4515,6 +4559,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitSendSet(ast.SendSet node) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
       ast.Identifier selector = node.selector;

@@ -686,7 +686,7 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
 
 
 static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
-  isolate->PrintToJSONStream(js, false);
+  isolate->PrintJSON(js, false);
   return true;
 }
 
@@ -886,11 +886,7 @@ static bool HandleInstanceCommands(Isolate* isolate,
         Object::Handle(instance.Evaluate(expr_str,
                                          Array::empty_array(),
                                          Array::empty_array()));
-    if (result.IsNull()) {
-      Object::null_instance().PrintToJSONStream(js, true);
-    } else {
-      result.PrintToJSONStream(js, true);
-    }
+    result.PrintJSON(js, true);
     return true;
   }
 
@@ -916,7 +912,7 @@ static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
     PrintError(js, "Closure function %" Pd " not found", id);
     return true;
   }
-  func.PrintToJSONStream(js, false);
+  func.PrintJSON(js, false);
   return true;
 }
 
@@ -937,11 +933,7 @@ static bool HandleClassesEval(Isolate* isolate, const Class& cls,
   const Object& result = Object::Handle(cls.Evaluate(expr_str,
                                                      Array::empty_array(),
                                                      Array::empty_array()));
-  if (result.IsNull()) {
-    Object::null_instance().PrintToJSONStream(js, true);
-  } else {
-    result.PrintToJSONStream(js, true);
-  }
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -963,7 +955,7 @@ static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
     PrintError(js, "Dispatcher %" Pd " not found", id);
     return true;
   }
-  func.PrintToJSONStream(js, false);
+  func.PrintJSON(js, false);
   return true;
 }
 
@@ -985,7 +977,7 @@ static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
     PrintError(js, "Function %" Pd " not found", id);
     return true;
   }
-  func.PrintToJSONStream(js, false);
+  func.PrintJSON(js, false);
   return true;
 }
 
@@ -1007,7 +999,7 @@ static bool HandleClassesImplicitClosures(Isolate* isolate, const Class& cls,
     PrintError(js, "Implicit closure function %" Pd " not found", id);
     return true;
   }
-  func.PrintToJSONStream(js, false);
+  func.PrintJSON(js, false);
   return true;
 }
 
@@ -1028,7 +1020,7 @@ static bool HandleClassesFields(Isolate* isolate, const Class& cls,
     PrintError(js, "Field %" Pd " not found", id);
     return true;
   }
-  field.PrintToJSONStream(js, false);
+  field.PrintJSON(js, false);
   return true;
 }
 
@@ -1060,7 +1052,7 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     return true;
   }
   if (js->num_arguments() == 4) {
-    type.PrintToJSONStream(js, false);
+    type.PrintJSON(js, false);
     return true;
   }
   return HandleInstanceCommands(isolate, type, js, 4);
@@ -1087,7 +1079,7 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   }
   Class& cls = Class::Handle(table->At(id));
   if (js->num_arguments() == 2) {
-    cls.PrintToJSONStream(js, false);
+    cls.PrintJSON(js, false);
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
@@ -1131,11 +1123,7 @@ static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
   const Object& result = Object::Handle(lib.Evaluate(expr_str,
                                                      Array::empty_array(),
                                                      Array::empty_array()));
-  if (result.IsNull()) {
-    Object::null_instance().PrintToJSONStream(js, true);
-  } else {
-    result.PrintToJSONStream(js, true);
-  }
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -1153,7 +1141,7 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   lib ^= libs.At(id);
   ASSERT(!lib.IsNull());
   if (js->num_arguments() == 2) {
-    lib.PrintToJSONStream(js, false);
+    lib.PrintJSON(js, false);
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
@@ -1228,7 +1216,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      Instance::null_instance().PrintToJSONStream(js, false);
+      Instance::null_instance().PrintJSON(js, false);
     }
     return true;
 
@@ -1237,7 +1225,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      Object::sentinel().PrintToJSONStream(js, false);
+      Object::sentinel().PrintJSON(js, false);
     }
     return true;
 
@@ -1246,7 +1234,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      Object::transition_sentinel().PrintToJSONStream(js, false);
+      Object::transition_sentinel().PrintJSON(js, false);
     }
     return true;
 
@@ -1255,7 +1243,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      Symbols::OptimizedOut().PrintToJSONStream(js, false);
+      Symbols::OptimizedOut().PrintJSON(js, false);
     }
     return true;
 
@@ -1297,7 +1285,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintPseudoNull(js, "objects/expired", "<expired>");
       return true;
     }
-    obj.PrintToJSONStream(js, false);
+    obj.PrintJSON(js, false);
     return true;
   }
   return HandleInstanceCommands(isolate, obj, js, 2);
@@ -1353,7 +1341,7 @@ static bool HandleScriptsFetch(Isolate* isolate, JSONStream* js) {
       ASSERT(!script.IsNull());
       url ^= script.url();
       if (url.Equals(requested_url)) {
-        script.PrintToJSONStream(js, false);
+        script.PrintJSON(js, false);
         return true;
       }
     }
@@ -1400,7 +1388,7 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
         bpt = isolate->debugger()->GetBreakpointById(id);
       }
       if (bpt != NULL) {
-        bpt->PrintToJSONStream(js);
+        bpt->PrintJSON(js);
         return true;
       } else {
         PrintError(js, "Unrecognized breakpoint id %s", js->GetArgument(2));
@@ -1420,7 +1408,7 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
 static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
   // TODO(turnidge): Consider adding/using Object::null_code() for
   // consistent "type".
-  Object::null_object().PrintToJSONStream(js, false);
+  Object::null_object().PrintJSON(js, false);
   return true;
 }
 
@@ -1472,7 +1460,7 @@ static bool HandleCode(Isolate* isolate, JSONStream* js) {
   }
   Code& code = Code::Handle(Code::FindCode(pc, timestamp));
   if (!code.IsNull()) {
-    code.PrintToJSONStream(js, false);
+    code.PrintJSON(js, false);
     return true;
   }
   PrintError(js, "Could not find code with id: %s", command);
@@ -1517,12 +1505,12 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
       return true;
     }
   }
-  Profiler::PrintToJSONStream(isolate, js, full_profile, tag_order);
+  Profiler::PrintJSON(isolate, js, full_profile, tag_order);
   return true;
 }
 
 static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
-  CodeCoverage::PrintToJSONStream(isolate, js);
+  CodeCoverage::PrintJSON(isolate, js);
   return true;
 }
 
@@ -1557,7 +1545,7 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
   if (should_collect) {
     isolate->heap()->CollectAllGarbage();
   }
-  isolate->class_table()->AllocationProfilePrintToJSONStream(js);
+  isolate->class_table()->AllocationProfilePrintJSON(js);
   return true;
 }
 
@@ -1630,7 +1618,7 @@ static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
     return true;
   }
   type_args ^= table.At(id);
-  type_args.PrintToJSONStream(js, false);
+  type_args.PrintJSON(js, false);
   return true;
 }
 
@@ -1677,7 +1665,7 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintToJSONStream(js, true);
+  object.PrintJSON(js, true);
   return true;
 }
 

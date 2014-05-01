@@ -505,7 +505,7 @@ class HtmlDartGenerator(object):
             'factory $CTOR($PARAMS) => '
             '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
-            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
             FACTORY=factory_name,
             METADATA=metadata,
             CTOR_FACTORY_NAME=factory_constructor_name,
@@ -522,7 +522,7 @@ class HtmlDartGenerator(object):
             METADATA=metadata,
             FACTORY=factory_name,
             CTOR_FACTORY_NAME=factory_constructor_name,
-            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
             FACTORY_PARAMS=factory_parameters)
 
         for index, param_info in enumerate(constructor_info.param_infos):
@@ -558,7 +558,7 @@ class HtmlDartGenerator(object):
             CTOR=(('' if not custom_factory_ctr else '_factory')
                 + constructor_full_name),
             METADATA=metadata,
-            PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
+            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType)),
           GenerateCall,
           IsOptional)
 
@@ -589,7 +589,7 @@ class HtmlDartGenerator(object):
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name),
         NAME=html_name[1:],
-        PARAMS=info.ParametersDeclaration(self._NarrowInputType
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType
             if '_NarrowInputType' in dir(self) else self._DartType),
         PARAMS_LIST='' if param_list == '' else param_list + ',',
         NAMED_PARAM=('%s : ' % info.callback_args[0].name
@@ -641,7 +641,7 @@ class HtmlDartGenerator(object):
              '  $TYPE $NAME($PARAMS);\n',
              TYPE=return_type_name,
              NAME=method_name,
-             PARAMS=operation.ParametersDeclaration(self._DartType))
+             PARAMS=operation.ParametersAsDeclaration(self._DartType))
 
   def EmitListMixin(self, element_name):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
