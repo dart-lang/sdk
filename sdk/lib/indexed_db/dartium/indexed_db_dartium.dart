@@ -223,24 +223,7 @@ class Database extends EventTarget {
   @DocsEditable()
   void deleteObjectStore(String name) => _blink.Native_IDBDatabase_deleteObjectStore_Callback(this, name);
 
-  Transaction transaction(storeName_OR_storeNames, String mode) {
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return _transaction_1(storeName_OR_storeNames, mode);
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return _transaction_2(storeName_OR_storeNames, mode);
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return _transaction_3(storeName_OR_storeNames, mode);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Transaction _transaction_1(storeName_OR_storeNames, mode) => _blink.Native_IDBDatabase__transaction_1_Callback(this, storeName_OR_storeNames, mode);
-
-  Transaction _transaction_2(storeName_OR_storeNames, mode) => _blink.Native_IDBDatabase__transaction_2_Callback(this, storeName_OR_storeNames, mode);
-
-  Transaction _transaction_3(storeName_OR_storeNames, mode) => _blink.Native_IDBDatabase__transaction_3_Callback(this, storeName_OR_storeNames, mode);
+  Transaction transaction(storeName_OR_storeNames, String mode) => _blink.Native_IDBDatabase_transaction(this, storeName_OR_storeNames, mode);
 
   @DomName('IDBDatabase.transactionList')
   @DocsEditable()
@@ -386,16 +369,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   @DocsEditable()
   OpenDBRequest _deleteDatabase(String name) => _blink.Native_IDBFactory_deleteDatabase_Callback(this, name);
 
-  OpenDBRequest _open(String name, [int version]) {
-    if (version != null) {
-      return _open_1(name, version);
-    }
-    return _open_2(name);
-  }
-
-  OpenDBRequest _open_1(name, version) => _blink.Native_IDBFactory__open_1_Callback(this, name, version);
-
-  OpenDBRequest _open_2(name) => _blink.Native_IDBFactory__open_2_Callback(this, name);
+  OpenDBRequest _open(String name, [int version]) => _blink.Native_IDBFactory__open(this, name, version);
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
   @DocsEditable()
@@ -795,19 +769,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   @DocsEditable()
   Request _count(Object key) => _blink.Native_IDBObjectStore_count_Callback(this, key);
 
-  Index _createIndex(String name, keyPath, [Map options]) {
-    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _createIndex_1(name, keyPath, options);
-    }
-    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _createIndex_2(name, keyPath, options);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Index _createIndex_1(name, keyPath, options) => _blink.Native_IDBObjectStore__createIndex_1_Callback(this, name, keyPath, options);
-
-  Index _createIndex_2(name, keyPath, options) => _blink.Native_IDBObjectStore__createIndex_2_Callback(this, name, keyPath, options);
+  Index _createIndex(String name, keyPath, [Map options]) => _blink.Native_IDBObjectStore__createIndex(this, name, keyPath, options);
 
   @DomName('IDBObjectStore.delete')
   @DocsEditable()

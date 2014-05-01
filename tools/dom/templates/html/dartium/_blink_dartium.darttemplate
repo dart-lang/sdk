@@ -10,6 +10,30 @@
  * up the dart:html library.
  */
 library dart.dom._blink;
+// TODO(leafp) These are mostly copied over from dart:html.  When
+// we shift dart:blink generation over to dartium, this dependency 
+// should go away, or at least be reconsidered.
+import 'dart:async';
+import 'dart:collection';
+import 'dart:html';
+import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:html_common';
+import 'dart:indexed_db';
+import 'dart:isolate';
+import "dart:convert";
+import 'dart:math';
+// TODO(vsm): Remove this when we can do the proper checking in
+// native code for custom elements.
+import 'dart:mirrors';
+import 'dart:nativewrappers';
+import 'dart:typed_data';
+import 'dart:web_gl' as gl;
+import 'dart:web_sql';
+// Not actually used, but imported since dart:html can generate these objects.
+import 'dart:svg' as svg;
+import 'dart:svg' show Matrix;
+import 'dart:svg' show SvgSvgElement;
+import 'dart:web_audio' show AudioNode, AudioParam;
 
 part '$AUXILIARY_DIR/blink_native_DOMImplementation.dart';
 

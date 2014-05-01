@@ -36,7 +36,10 @@ _custom_factories = [
 ]
 
 class HtmlDartGenerator(object):
-  def __init__(self, interface, options):
+  def __init__(self, interface, options, dart_use_blink):
+    # This goes away after the Chrome 35 roll (or whenever we commit to the
+    # dart:blink refactor)
+    self._dart_use_blink = dart_use_blink
     self._database = options.database
     self._interface = interface
     self._type_registry = options.type_registry
@@ -315,12 +318,13 @@ class HtmlDartGenerator(object):
       declaration,
       generate_call,
       is_optional,
+      emitter,
       can_omit_type_check=lambda type, pos: False):
 
     parameter_names = [p.name for p in info.param_infos]
     number_of_required_in_dart = info.NumberOfRequiredInDart()
 
-    body_emitter = self._members_emitter.Emit(
+    body_emitter = emitter.Emit(
         '\n'
         '  $DECLARATION {\n'
         '$!BODY'
@@ -432,6 +436,10 @@ class HtmlDartGenerator(object):
     def IsOptional(signature_index, argument):
       return is_optional(operations[signature_index], argument)
 
+    emitter = \
+        self._native_library_emitter if self._dart_use_blink \
+        else self._members_emitter
+
     self._GenerateOverloadDispatcher(
         info,
         [operation.arguments for operation in operations],
@@ -439,6 +447,7 @@ class HtmlDartGenerator(object):
         declaration,
         GenerateCall,
         IsOptional,
+        emitter,
         can_omit_type_check)
 
   def AdditionalImplementedInterfaces(self):
@@ -529,13 +538,25 @@ class HtmlDartGenerator(object):
           if param_info.is_optional:
             inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
     else:
+      custom_factory_ctr = self._interface.id in _custom_factories
+      constructor_full_name = constructor_info._ConstructorFullName(
+          self._DartType)
+
       def GenerateCall(
           stmts_emitter, call_emitter,
           version, signature_index, argument_count):
         name = emitter.Format('_create_$VERSION', VERSION=version)
-        call_emitter.Emit('$FACTORY.$NAME($FACTORY_PARAMS)',
-            FACTORY=factory_name,
-            NAME=name,
+        if self._dart_use_blink:
+            qualified_name = \
+                "_".join(["Native",self._interface.id,
+                          name + 'constructorCallback'])
+        else:
+            qualified_name = emitter.Format(
+                '$FACTORY.$NAME',
+                FACTORY=factory_name,
+                NAME=name)
+        call_emitter.Emit('$FACTORY_NAME($FACTORY_PARAMS)',
+            FACTORY_NAME=qualified_name,
             FACTORY_PARAMS= \
                 constructor_info.ParametersAsArgumentList(argument_count))
         self.EmitStaticFactoryOverload(
@@ -545,22 +566,47 @@ class HtmlDartGenerator(object):
       def IsOptional(signature_index, argument):
         return self.IsConstructorArgumentOptional(argument)
 
-      custom_factory_ctr = self._interface.id in _custom_factories
-      constructor_full_name = constructor_info._ConstructorFullName(
-          self._DartType)
+      entry_declaration = emitter.Format(
+          '$(METADATA)$FACTORY_KEYWORD $CTOR($PARAMS)',
+          FACTORY_KEYWORD=('factory' if not custom_factory_ctr else
+                           'static %s' % constructor_full_name),
+          CTOR=(('' if not custom_factory_ctr else '_factory')
+                + constructor_full_name),
+          METADATA=metadata,
+          PARAMS=constructor_info.ParametersAsDeclaration(self._DartType))
+
+      if self._dart_use_blink:
+          overload_emitter = self._native_library_emitter
+          mname = constructor_full_name.replace(".", "_")
+          blink_name = \
+              "_".join(["Native",self._interface.id, mname])
+          qual_name = self._native_library_name + "." + blink_name
+          actuals_s = constructor_info.ParametersAsStringOfVariables()
+          self._members_emitter.Emit(
+            '\n'
+            '  $DECLARATION => $NATIVE_NAME($ACTUALS);\n',
+            DECLARATION=entry_declaration,
+            NATIVE_NAME=qual_name,
+            ACTUALS=actuals_s)
+          overload_declaration = emitter.Format(
+              '// Generated overload resolver\n'
+              '$CTOR($PARAMS)',
+              CTOR=blink_name,
+              PARAMS=actuals_s)
+
+
+      else:
+          overload_emitter = self._members_emitter
+          overload_declaration = entry_declaration
+
       self._GenerateOverloadDispatcher(
           constructor_info,
           constructor_info.idl_args,
           False,
-          emitter.Format('$(METADATA)$FACTORY_KEYWORD $CTOR($PARAMS)',
-            FACTORY_KEYWORD=('factory' if not custom_factory_ctr else
-                'static %s' % constructor_full_name),
-            CTOR=(('' if not custom_factory_ctr else '_factory')
-                + constructor_full_name),
-            METADATA=metadata,
-            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType)),
+          overload_declaration,
           GenerateCall,
-          IsOptional)
+          IsOptional,
+          overload_emitter)
 
   def _AddFutureifiedOperation(self, info, html_name):
     """Given a API function that uses callbacks, convert it to using Futures.

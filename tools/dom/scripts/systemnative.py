@@ -245,7 +245,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def __init__(self, interface, native_library_emitter,
                cpp_library_emitter, options, dart_use_blink):
-    super(DartiumBackend, self).__init__(interface, options)
+    super(DartiumBackend, self).__init__(interface, options, dart_use_blink)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
@@ -256,9 +256,6 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
     self._native_library_name = "_blink"
-    # This goes away after the Chrome 35 roll (or whenever we commit to the
-    # dart:blink refactor)
-    self._dart_use_blink = dart_use_blink
     # These get initialized by StartInterface
     self._cpp_header_emitter = None
     self._cpp_impl_emitter = None
@@ -450,7 +447,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, constructor_callback_cpp_name, factory_method_name,
-      argument_count=None):
+      argument_count=None, emit_to_native=False):
     constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
     if argument_count is None:
       argument_count = len(constructor_info.param_infos)
@@ -472,16 +469,17 @@ class DartiumBackend(HtmlDartGenerator):
 
         # Then we emit the impedance matching wrapper to call out to the
         # toplevel wrapper
-        self._members_emitter.Emit(
-            '\n  @DocsEditable()\n'
-            '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
-            '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
-            INTERFACE_NAME=self._interface_type_info.interface_name(),
-            FACTORY_METHOD_NAME=factory_method_name,
-            PARAMETERS=typed_formals,
-            TOPLEVEL_NAME=DeriveQualifiedName(self._native_library_name,
-                                              dart_native_name),
-            OUTPARAMETERS=parameters)
+        if not emit_to_native:
+            self._members_emitter.Emit(
+                '\n  @DocsEditable()\n'
+                '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
+                '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
+                INTERFACE_NAME=self._interface_type_info.interface_name(),
+                FACTORY_METHOD_NAME=factory_method_name,
+                PARAMETERS=typed_formals,
+                TOPLEVEL_NAME=DeriveQualifiedName(self._native_library_name,
+                                                  dart_native_name),
+                OUTPARAMETERS=parameters)
     else:
         self._members_emitter.Emit(
             '\n  @DocsEditable()\n'
@@ -531,7 +529,8 @@ class DartiumBackend(HtmlDartGenerator):
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     constructor_callback_cpp_name = name + 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, constructor_callback_cpp_name, name, len(arguments))
+        constructor_info, constructor_callback_cpp_name, name, len(arguments), 
+        emit_to_native=self._dart_use_blink)
 
     ext_attrs = self._interface.ext_attrs
 
@@ -1014,33 +1013,72 @@ class DartiumBackend(HtmlDartGenerator):
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
-      self._GenerateDispatcher(info, info.operations, dart_declaration)
+      self._GenerateDispatcher(info, info.operations, dart_declaration, html_name)
 
-  def _GenerateDispatcher(self, info, operations, dart_declaration):
+  def _GenerateDispatcher(self, info, operations, dart_declaration, html_name):
 
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
-      overload_name = '_%s_%s' % (operation.id, version)
-      return_type = self.SecureOutputType(operation.type.id)
+      native_suffix = 'Callback'
       actuals = info.ParametersAsListOfVariables(argument_count)
-      actuals_s = ", ".join(actuals)
+      return_type = self.SecureOutputType(operation.type.id)
+      if self._dart_use_blink:
+          base_name = '_%s_%s' % (operation.id, version)
+          overload_name = \
+              DeriveNativeName(self._interface.id, base_name, native_suffix)
+          static = True
+          if not operation.is_static:
+            actuals = ['mthis'] + actuals
+          actuals_s = ", ".join(actuals)
+          dart_declaration = '%s(%s)' % (
+            base_name, actuals_s)
+      else:
+          base_name = '_%s_%s' % (operation.id, version)
+          overload_name = base_name
+          static = operation.is_static
+          actuals_s = ", ".join(actuals)
+          dart_declaration = '%s%s %s(%s)' % (
+            'static ' if static else '',
+            return_type,
+            overload_name, actuals_s)
+
       call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
-      dart_declaration = '%s%s %s(%s)' % (
-          'static ' if operation.is_static else '',
-          return_type,
-          overload_name, actuals_s)
       is_custom = 'Custom' in operation.ext_attrs
       native_suffix = 'Callback'
       auto_scope_setup = \
-        self._GenerateAutoSetupScope(overload_name, native_suffix)
+        self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
-        overload_name, (0 if operation.is_static else 1) + argument_count,
-        dart_declaration, operation.is_static, return_type, actuals,
-        'Callback', is_custom, auto_scope_setup, emit_metadata=False)
+        base_name, (0 if static else 1) + argument_count,
+        dart_declaration, static, return_type, actuals,
+        native_suffix, is_custom, auto_scope_setup, emit_metadata=False,
+        emit_to_native=self._dart_use_blink)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation,
           operation.arguments[:argument_count], cpp_callback_name,
           auto_scope_setup)
+
+
+    if self._dart_use_blink:
+        name = DeriveNativeName(self._interface.id, html_name, "")
+        qual_name = DeriveQualifiedName(self._native_library_name,
+                                        name)
+        actuals = info.ParametersAsListOfVariables()
+        formals = info.ParametersAsListOfVariables()
+        if not info.IsStatic():
+            formals = ['mthis'] + formals
+            actuals = ['this'] + actuals
+        actuals_s = ', '.join(actuals)
+        formals_s = ', '.join(formals)
+        self._members_emitter.Emit(
+        '\n'
+        '  $DECLARATION => $NATIVE_NAME($ACTUALS);\n',
+        DECLARATION=dart_declaration,
+        NATIVE_NAME=qual_name,
+        ACTUALS=actuals_s)
+
+        dart_declaration = \
+            '// Generated overload resolver\n' \
+            '%s(%s)' % (name, formals_s)
 
     self._GenerateDispatcherBody(
         info,
@@ -1441,7 +1479,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
-      auto_scope_setup=True, emit_metadata=True):
+      auto_scope_setup=True, emit_metadata=True, emit_to_native=False):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1465,17 +1503,17 @@ class DartiumBackend(HtmlDartGenerator):
             FORMALS=formals,
             NATIVE_BINDING=native_binding)
 
-        # We then emit a class method which calls out to the mangled toplevel
-        # function.  Eventually this will be replaced with a call to an
-        # interceptor
-        self._members_emitter.Emit(
-            '\n'
-            '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
-            METADATA=metadata,
-            DART_DECLARATION=dart_declaration,
-            DART_NAME=DeriveQualifiedName(self._native_library_name,
-                                          dart_native_name),
-            ACTUALS=actuals)
+        if not emit_to_native:
+            caller_emitter = self._members_emitter
+            full_dart_name = DeriveQualifiedName(self._native_library_name,
+                                                 dart_native_name)
+            caller_emitter.Emit(
+                '\n'
+                '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
+                METADATA=metadata,
+                DART_DECLARATION=dart_declaration,
+                DART_NAME=full_dart_name,
+                ACTUALS=actuals)
     else:
         self._members_emitter.Emit(
             '\n'

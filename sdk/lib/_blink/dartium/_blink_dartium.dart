@@ -4,6 +4,24 @@
  */
 library dart.dom._blink;
 
+import 'dart:async';
+import 'dart:collection';
+import 'dart:html';
+import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:html_common';
+import 'dart:indexed_db';
+import 'dart:isolate';
+import "dart:convert";
+import 'dart:math';
+import 'dart:mirrors';
+import 'dart:nativewrappers';
+import 'dart:typed_data';
+import 'dart:web_gl' as gl;
+import 'dart:web_sql';
+import 'dart:svg' as svg;
+import 'dart:svg' show Matrix;
+import 'dart:svg' show SvgSvgElement;
+import 'dart:web_audio' show AudioNode, AudioParam;
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11,6 +29,12 @@ library dart.dom._blink;
 // DO NOT EDIT
 // Auto-generated dart:_blink library.
 
+// TODO(leafp) These are mostly copied over from dart:html.  When
+// we shift dart:blink generation over to dartium, this dependency 
+// should go away, or at least be reconsidered.
+// TODO(vsm): Remove this when we can do the proper checking in
+// native code for custom elements.
+// Not actually used, but imported since dart:html can generate these objects.
 
 
 
@@ -45,6 +69,19 @@ Native_AudioNode_context_Getter(mthis) native "AudioNode_context_Getter";
 Native_AudioNode_numberOfInputs_Getter(mthis) native "AudioNode_numberOfInputs_Getter";
 
 Native_AudioNode_numberOfOutputs_Getter(mthis) native "AudioNode_numberOfOutputs_Getter";
+
+  // Generated overload resolver
+Native_AudioNode__connect(mthis, destination, output, input) {
+    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
+      Native_AudioNode__connect_1_Callback(mthis, destination, output, input);
+      return;
+    }
+    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
+      Native_AudioNode__connect_2_Callback(mthis, destination, output);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_AudioNode__connect_1_Callback(mthis, destination, output, input) native "AudioNode__connect_1_Callback";
 
@@ -97,6 +134,20 @@ Native_TimedItem_player_Getter(mthis) native "TimedItem_player_Getter";
 Native_TimedItem_specified_Getter(mthis) native "TimedItem_specified_Getter";
 
 Native_TimedItem_startTime_Getter(mthis) native "TimedItem_startTime_Getter";
+
+  // Generated overload resolver
+Native_Animation_Animation(target, keyframes, timingInput) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return Native_Animation__create_1constructorCallback(target, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return Native_Animation__create_2constructorCallback(target, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
+      return Native_Animation__create_3constructorCallback(target, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_Animation__create_1constructorCallback(target, keyframes, timingInput) native "Animation__create_1constructorCallback";
 
@@ -222,6 +273,24 @@ Native_AudioBufferSourceNode_noteOff_Callback(mthis, when) native "AudioBufferSo
 
 Native_AudioBufferSourceNode_noteOn_Callback(mthis, when) native "AudioBufferSourceNode_noteOn_Callback";
 
+  // Generated overload resolver
+Native_AudioBufferSourceNode_start(mthis, when, grainOffset, grainDuration) {
+    if (grainDuration != null) {
+      Native_AudioBufferSourceNode__start_1_Callback(mthis, when, grainOffset, grainDuration);
+      return;
+    }
+    if (grainOffset != null) {
+      Native_AudioBufferSourceNode__start_2_Callback(mthis, when, grainOffset);
+      return;
+    }
+    if (when != null) {
+      Native_AudioBufferSourceNode__start_3_Callback(mthis, when);
+      return;
+    }
+    Native_AudioBufferSourceNode__start_4_Callback(mthis);
+    return;
+  }
+
 Native_AudioBufferSourceNode__start_1_Callback(mthis, when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_1_Callback";
 
 Native_AudioBufferSourceNode__start_2_Callback(mthis, when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
@@ -230,9 +299,24 @@ Native_AudioBufferSourceNode__start_3_Callback(mthis, when) native "AudioBufferS
 
 Native_AudioBufferSourceNode__start_4_Callback(mthis) native "AudioBufferSourceNode__start_4_Callback";
 
+  // Generated overload resolver
+Native_AudioBufferSourceNode_stop(mthis, when) {
+    if (when != null) {
+      Native_AudioBufferSourceNode__stop_1_Callback(mthis, when);
+      return;
+    }
+    Native_AudioBufferSourceNode__stop_2_Callback(mthis);
+    return;
+  }
+
 Native_AudioBufferSourceNode__stop_1_Callback(mthis, when) native "AudioBufferSourceNode__stop_1_Callback";
 
 Native_AudioBufferSourceNode__stop_2_Callback(mthis) native "AudioBufferSourceNode__stop_2_Callback";
+
+  // Generated overload resolver
+Native_AudioContext_AudioContext() {
+    return Native_AudioContext__create_1constructorCallback();
+  }
 
 Native_AudioContext__create_1constructorCallback() native "AudioContext__create_1constructorCallback";
 
@@ -256,9 +340,25 @@ Native_AudioContext_createBufferFromBuffer_Callback(mthis, buffer, mixToMono) na
 
 Native_AudioContext_createBufferSource_Callback(mthis) native "AudioContext_createBufferSource_Callback";
 
+  // Generated overload resolver
+Native_AudioContext_createChannelMerger(mthis, numberOfInputs) {
+    if (numberOfInputs != null) {
+      return Native_AudioContext__createChannelMerger_1_Callback(mthis, numberOfInputs);
+    }
+    return Native_AudioContext__createChannelMerger_2_Callback(mthis);
+  }
+
 Native_AudioContext__createChannelMerger_1_Callback(mthis, numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
 
 Native_AudioContext__createChannelMerger_2_Callback(mthis) native "AudioContext__createChannelMerger_2_Callback";
+
+  // Generated overload resolver
+Native_AudioContext_createChannelSplitter(mthis, numberOfOutputs) {
+    if (numberOfOutputs != null) {
+      return Native_AudioContext__createChannelSplitter_1_Callback(mthis, numberOfOutputs);
+    }
+    return Native_AudioContext__createChannelSplitter_2_Callback(mthis);
+  }
 
 Native_AudioContext__createChannelSplitter_1_Callback(mthis, numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
 
@@ -266,9 +366,25 @@ Native_AudioContext__createChannelSplitter_2_Callback(mthis) native "AudioContex
 
 Native_AudioContext_createConvolver_Callback(mthis) native "AudioContext_createConvolver_Callback";
 
+  // Generated overload resolver
+Native_AudioContext_createDelay(mthis, maxDelayTime) {
+    if (maxDelayTime != null) {
+      return Native_AudioContext__createDelay_1_Callback(mthis, maxDelayTime);
+    }
+    return Native_AudioContext__createDelay_2_Callback(mthis);
+  }
+
 Native_AudioContext__createDelay_1_Callback(mthis, maxDelayTime) native "AudioContext__createDelay_1_Callback";
 
 Native_AudioContext__createDelay_2_Callback(mthis) native "AudioContext__createDelay_2_Callback";
+
+  // Generated overload resolver
+Native_AudioContext_createDelayNode(mthis, maxDelayTime) {
+    if (maxDelayTime != null) {
+      return Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime);
+    }
+    return Native_AudioContext__createDelayNode_2_Callback(mthis);
+  }
 
 Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime) native "AudioContext__createDelayNode_1_Callback";
 
@@ -279,6 +395,17 @@ Native_AudioContext_createDynamicsCompressor_Callback(mthis) native "AudioContex
 Native_AudioContext_createGain_Callback(mthis) native "AudioContext_createGain_Callback";
 
 Native_AudioContext_createGainNode_Callback(mthis) native "AudioContext_createGainNode_Callback";
+
+  // Generated overload resolver
+Native_AudioContext_createJavaScriptNode(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) {
+    if (numberOfOutputChannels != null) {
+      return Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    }
+    if (numberOfInputChannels != null) {
+      return Native_AudioContext__createJavaScriptNode_2_Callback(mthis, bufferSize, numberOfInputChannels);
+    }
+    return Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize);
+  }
 
 Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createJavaScriptNode_1_Callback";
 
@@ -297,6 +424,20 @@ Native_AudioContext_createOscillator_Callback(mthis) native "AudioContext_create
 Native_AudioContext_createPanner_Callback(mthis) native "AudioContext_createPanner_Callback";
 
 Native_AudioContext_createPeriodicWave_Callback(mthis, real, imag) native "AudioContext_createPeriodicWave_Callback";
+
+  // Generated overload resolver
+Native_AudioContext_createScriptProcessor(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) {
+    if (numberOfOutputChannels != null) {
+      return Native_AudioContext__createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    }
+    if (numberOfInputChannels != null) {
+      return Native_AudioContext__createScriptProcessor_2_Callback(mthis, bufferSize, numberOfInputChannels);
+    }
+    if (bufferSize != null) {
+      return Native_AudioContext__createScriptProcessor_3_Callback(mthis, bufferSize);
+    }
+    return Native_AudioContext__createScriptProcessor_4_Callback(mthis);
+  }
 
 Native_AudioContext__createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
 
@@ -423,6 +564,20 @@ Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_construct
 Native_Blob_size_Getter(mthis) native "Blob_size_Getter";
 
 Native_Blob_type_Getter(mthis) native "Blob_type_Getter";
+
+  // Generated overload resolver
+Native_Blob_slice(mthis, start, end, contentType) {
+    if (contentType != null) {
+      return Native_Blob__slice_1_Callback(mthis, start, end, contentType);
+    }
+    if (end != null) {
+      return Native_Blob__slice_2_Callback(mthis, start, end);
+    }
+    if (start != null) {
+      return Native_Blob__slice_3_Callback(mthis, start);
+    }
+    return Native_Blob__slice_4_Callback(mthis);
+  }
 
 Native_Blob__slice_1_Callback(mthis, start, end, contentType) native "Blob__slice_1_Callback";
 
@@ -580,11 +735,27 @@ Native_CSSStyleSheet_ownerRule_Getter(mthis) native "CSSStyleSheet_ownerRule_Get
 
 Native_CSSStyleSheet_rules_Getter(mthis) native "CSSStyleSheet_rules_Getter";
 
+  // Generated overload resolver
+Native_CSSStyleSheet_addRule(mthis, selector, style, index) {
+    if (index != null) {
+      return Native_CSSStyleSheet__addRule_1_Callback(mthis, selector, style, index);
+    }
+    return Native_CSSStyleSheet__addRule_2_Callback(mthis, selector, style);
+  }
+
 Native_CSSStyleSheet__addRule_1_Callback(mthis, selector, style, index) native "CSSStyleSheet__addRule_1_Callback";
 
 Native_CSSStyleSheet__addRule_2_Callback(mthis, selector, style) native "CSSStyleSheet__addRule_2_Callback";
 
 Native_CSSStyleSheet_deleteRule_Callback(mthis, index) native "CSSStyleSheet_deleteRule_Callback";
+
+  // Generated overload resolver
+Native_CSSStyleSheet_insertRule(mthis, rule, index) {
+    if (index != null) {
+      return Native_CSSStyleSheet__insertRule_1_Callback(mthis, rule, index);
+    }
+    return Native_CSSStyleSheet__insertRule_2_Callback(mthis, rule);
+  }
 
 Native_CSSStyleSheet__insertRule_1_Callback(mthis, rule, index) native "CSSStyleSheet__insertRule_1_Callback";
 
@@ -704,6 +875,16 @@ Native_CanvasRenderingContext2D_bezierCurveTo_Callback(mthis, cp1x, cp1y, cp2x, 
 
 Native_CanvasRenderingContext2D_clearRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_clearRect_Callback";
 
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_clip(mthis, winding) {
+    if (winding != null) {
+      Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding);
+      return;
+    }
+    Native_CanvasRenderingContext2D__clip_2_Callback(mthis);
+    return;
+  }
+
 Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D__clip_1_Callback";
 
 Native_CanvasRenderingContext2D__clip_2_Callback(mthis) native "CanvasRenderingContext2D__clip_2_Callback";
@@ -723,6 +904,59 @@ Native_CanvasRenderingContext2D_createPatternFromImage_Callback(mthis, image, re
 Native_CanvasRenderingContext2D_createRadialGradient_Callback(mthis, x0, y0, r0, x1, y1, r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
 Native_CanvasRenderingContext2D_drawCustomFocusRing_Callback(mthis, element) native "CanvasRenderingContext2D_drawCustomFocusRing_Callback";
+
+  // Generated overload resolver
+Native_CanvasRenderingContext2D__drawImage(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_2_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      Native_CanvasRenderingContext2D__drawImage_3_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_4_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_5_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      Native_CanvasRenderingContext2D__drawImage_6_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_7_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_8_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      Native_CanvasRenderingContext2D__drawImage_9_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_10_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      Native_CanvasRenderingContext2D__drawImage_11_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      Native_CanvasRenderingContext2D__drawImage_12_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_CanvasRenderingContext2D__drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
 
@@ -752,11 +986,31 @@ Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(mthis, element) nat
 
 Native_CanvasRenderingContext2D_ellipse_Callback(mthis, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) native "CanvasRenderingContext2D_ellipse_Callback";
 
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_fill(mthis, winding) {
+    if (winding != null) {
+      Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding);
+      return;
+    }
+    Native_CanvasRenderingContext2D__fill_2_Callback(mthis);
+    return;
+  }
+
 Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D__fill_1_Callback";
 
 Native_CanvasRenderingContext2D__fill_2_Callback(mthis) native "CanvasRenderingContext2D__fill_2_Callback";
 
 Native_CanvasRenderingContext2D_fillRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_fillRect_Callback";
+
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_fillText(mthis, text, x, y, maxWidth) {
+    if (maxWidth != null) {
+      Native_CanvasRenderingContext2D__fillText_1_Callback(mthis, text, x, y, maxWidth);
+      return;
+    }
+    Native_CanvasRenderingContext2D__fillText_2_Callback(mthis, text, x, y);
+    return;
+  }
 
 Native_CanvasRenderingContext2D__fillText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D__fillText_1_Callback";
 
@@ -767,6 +1021,14 @@ Native_CanvasRenderingContext2D_getContextAttributes_Callback(mthis) native "Can
 Native_CanvasRenderingContext2D_getImageData_Callback(mthis, sx, sy, sw, sh) native "CanvasRenderingContext2D_getImageData_Callback";
 
 Native_CanvasRenderingContext2D_getLineDash_Callback(mthis) native "CanvasRenderingContext2D_getLineDash_Callback";
+
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_isPointInPath(mthis, x, y, winding) {
+    if (winding != null) {
+      return Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding);
+    }
+    return Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y);
+  }
 
 Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D__isPointInPath_1_Callback";
 
@@ -779,6 +1041,19 @@ Native_CanvasRenderingContext2D_lineTo_Callback(mthis, x, y) native "CanvasRende
 Native_CanvasRenderingContext2D_measureText_Callback(mthis, text) native "CanvasRenderingContext2D_measureText_Callback";
 
 Native_CanvasRenderingContext2D_moveTo_Callback(mthis, x, y) native "CanvasRenderingContext2D_moveTo_Callback";
+
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_putImageData(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
+      Native_CanvasRenderingContext2D__putImageData_1_Callback(mthis, imagedata, dx, dy);
+      return;
+    }
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
+      Native_CanvasRenderingContext2D__putImageData_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_CanvasRenderingContext2D__putImageData_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D__putImageData_1_Callback";
 
@@ -806,6 +1081,16 @@ Native_CanvasRenderingContext2D_stroke_Callback(mthis) native "CanvasRenderingCo
 
 Native_CanvasRenderingContext2D_strokeRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_strokeRect_Callback";
 
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_strokeText(mthis, text, x, y, maxWidth) {
+    if (maxWidth != null) {
+      Native_CanvasRenderingContext2D__strokeText_1_Callback(mthis, text, x, y, maxWidth);
+      return;
+    }
+    Native_CanvasRenderingContext2D__strokeText_2_Callback(mthis, text, x, y);
+    return;
+  }
+
 Native_CanvasRenderingContext2D__strokeText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D__strokeText_1_Callback";
 
 Native_CanvasRenderingContext2D__strokeText_2_Callback(mthis, text, x, y) native "CanvasRenderingContext2D__strokeText_2_Callback";
@@ -815,6 +1100,19 @@ Native_CanvasRenderingContext2D_transform_Callback(mthis, m11, m12, m21, m22, dx
 Native_CanvasRenderingContext2D_translate_Callback(mthis, tx, ty) native "CanvasRenderingContext2D_translate_Callback";
 
 Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(mthis, sx, sy, sw, sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
+
+  // Generated overload resolver
+Native_CanvasRenderingContext2D_putImageDataHD(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
+      Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy);
+      return;
+    }
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
+      Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback";
 
@@ -852,6 +1150,16 @@ Native_Clipboard_items_Getter(mthis) native "Clipboard_items_Getter";
 
 Native_Clipboard_types_Getter(mthis) native "Clipboard_types_Getter";
 
+  // Generated overload resolver
+Native_Clipboard_clearData(mthis, type) {
+    if (type != null) {
+      Native_Clipboard__clearData_1_Callback(mthis, type);
+      return;
+    }
+    Native_Clipboard__clearData_2_Callback(mthis);
+    return;
+  }
+
 Native_Clipboard__clearData_1_Callback(mthis, type) native "Clipboard__clearData_1_Callback";
 
 Native_Clipboard__clearData_2_Callback(mthis) native "Clipboard__clearData_2_Callback";
@@ -867,6 +1175,11 @@ Native_CloseEvent_code_Getter(mthis) native "CloseEvent_code_Getter";
 Native_CloseEvent_reason_Getter(mthis) native "CloseEvent_reason_Getter";
 
 Native_CloseEvent_wasClean_Getter(mthis) native "CloseEvent_wasClean_Getter";
+
+  // Generated overload resolver
+Native_Comment_Comment(data) {
+    return Native_Comment__create_1constructorCallback(data);
+  }
 
 Native_Comment__create_1constructorCallback(data) native "Comment__create_1constructorCallback";
 
@@ -1000,6 +1313,11 @@ Native_DOMImplementation_createHTMLDocument_Callback(mthis, title) native "DOMIm
 
 Native_DOMImplementation_hasFeature_Callback(mthis, feature, version) native "DOMImplementation_hasFeature_Callback";
 
+  // Generated overload resolver
+Native_DOMParser_DomParser() {
+    return Native_DOMParser__create_1constructorCallback();
+  }
+
 Native_DOMParser__create_1constructorCallback() native "DOMParser__create_1constructorCallback";
 
 Native_DOMParser_parseFromString_Callback(mthis, str, contentType) native "DOMParser_parseFromString_Callback";
@@ -1011,6 +1329,14 @@ Native_DOMTokenList_contains_Callback(mthis, token) native "DOMTokenList_contain
 Native_DOMTokenList_item_Callback(mthis, index) native "DOMTokenList_item_Callback";
 
 Native_DOMTokenList_toString_Callback(mthis) native "DOMTokenList_toString_Callback";
+
+  // Generated overload resolver
+Native_DOMTokenList_toggle(mthis, token, force) {
+    if (force != null) {
+      return Native_DOMTokenList__toggle_1_Callback(mthis, token, force);
+    }
+    return Native_DOMTokenList__toggle_2_Callback(mthis, token);
+  }
 
 Native_DOMTokenList__toggle_1_Callback(mthis, token, force) native "DOMTokenList__toggle_1_Callback";
 
@@ -1030,13 +1356,48 @@ Native_DOMStringList_contains_Callback(mthis, string) native "DOMStringList_cont
 
 Native_DOMStringList_item_Callback(mthis, index) native "DOMStringList_item_Callback";
 
+  // Generated overload resolver
+Native_DOMStringMap___delete__(mthis, index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return Native_DOMStringMap____delete___1_Callback(mthis, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return Native_DOMStringMap____delete___2_Callback(mthis, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_DOMStringMap____delete___1_Callback(mthis, index_OR_name) native "DOMStringMap____delete___1_Callback";
 
 Native_DOMStringMap____delete___2_Callback(mthis, index_OR_name) native "DOMStringMap____delete___2_Callback";
 
+  // Generated overload resolver
+Native_DOMStringMap___getter__(mthis, index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return Native_DOMStringMap____getter___1_Callback(mthis, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return Native_DOMStringMap____getter___2_Callback(mthis, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_DOMStringMap____getter___1_Callback(mthis, index_OR_name) native "DOMStringMap____getter___1_Callback";
 
 Native_DOMStringMap____getter___2_Callback(mthis, index_OR_name) native "DOMStringMap____getter___2_Callback";
+
+  // Generated overload resolver
+Native_DOMStringMap___setter__(mthis, index_OR_name, value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      Native_DOMStringMap____setter___1_Callback(mthis, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      Native_DOMStringMap____setter___2_Callback(mthis, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_DOMStringMap____setter___1_Callback(mthis, index_OR_name, value) native "DOMStringMap____setter___1_Callback";
 
@@ -1055,6 +1416,17 @@ Native_DataTransferItem_webkitGetAsEntry_Callback(mthis) native "DataTransferIte
 Native_DataTransferItemList_length_Getter(mthis) native "DataTransferItemList_length_Getter";
 
 Native_DataTransferItemList___getter___Callback(mthis, index) native "DataTransferItemList___getter___Callback";
+
+  // Generated overload resolver
+Native_DataTransferItemList_add(mthis, data_OR_file, type) {
+    if ((data_OR_file is File || data_OR_file == null) && type == null) {
+      return Native_DataTransferItemList__add_1_Callback(mthis, data_OR_file);
+    }
+    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
+      return Native_DataTransferItemList__add_2_Callback(mthis, data_OR_file, type);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_DataTransferItemList__add_1_Callback(mthis, data_OR_file) native "DataTransferItemList__add_1_Callback";
 
@@ -1190,6 +1562,16 @@ Native_Entry_isFile_Getter(mthis) native "Entry_isFile_Getter";
 
 Native_Entry_name_Getter(mthis) native "Entry_name_Getter";
 
+  // Generated overload resolver
+Native_Entry__copyTo(mthis, parent, name, successCallback, errorCallback) {
+    if (name != null) {
+      Native_Entry__copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback);
+      return;
+    }
+    Native_Entry__copyTo_2_Callback(mthis, parent);
+    return;
+  }
+
 Native_Entry__copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry__copyTo_1_Callback";
 
 Native_Entry__copyTo_2_Callback(mthis, parent) native "Entry__copyTo_2_Callback";
@@ -1197,6 +1579,16 @@ Native_Entry__copyTo_2_Callback(mthis, parent) native "Entry__copyTo_2_Callback"
 Native_Entry_getMetadata_Callback(mthis, successCallback, errorCallback) native "Entry_getMetadata_Callback";
 
 Native_Entry_getParent_Callback(mthis, successCallback, errorCallback) native "Entry_getParent_Callback";
+
+  // Generated overload resolver
+Native_Entry__moveTo(mthis, parent, name, successCallback, errorCallback) {
+    if (name != null) {
+      Native_Entry__moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback);
+      return;
+    }
+    Native_Entry__moveTo_2_Callback(mthis, parent);
+    return;
+  }
 
 Native_Entry__moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry__moveTo_1_Callback";
 
@@ -1294,9 +1686,28 @@ Native_Document_createElement_Callback(mthis, localName_OR_tagName, typeExtensio
 
 Native_Document_createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback";
 
+  // Generated overload resolver
+Native_Document__createEvent(mthis, eventType) {
+    if (eventType != null) {
+      return Native_Document__createEvent_1_Callback(mthis, eventType);
+    }
+    return Native_Document__createEvent_2_Callback(mthis);
+  }
+
 Native_Document__createEvent_1_Callback(mthis, eventType) native "Document__createEvent_1_Callback";
 
 Native_Document__createEvent_2_Callback(mthis) native "Document__createEvent_2_Callback";
+
+  // Generated overload resolver
+Native_Document__createNodeIterator(mthis, root, whatToShow, filter) {
+    if (filter != null) {
+      return Native_Document__createNodeIterator_1_Callback(mthis, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return Native_Document__createNodeIterator_2_Callback(mthis, root, whatToShow);
+    }
+    return Native_Document__createNodeIterator_3_Callback(mthis, root);
+  }
 
 Native_Document__createNodeIterator_1_Callback(mthis, root, whatToShow, filter) native "Document__createNodeIterator_1_Callback";
 
@@ -1309,6 +1720,17 @@ Native_Document_createRange_Callback(mthis) native "Document_createRange_Callbac
 Native_Document_createTextNode_Callback(mthis, data) native "Document_createTextNode_Callback";
 
 Native_Document_createTouch_Callback(mthis, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "Document_createTouch_Callback";
+
+  // Generated overload resolver
+Native_Document__createTreeWalker(mthis, root, whatToShow, filter) {
+    if (filter != null) {
+      return Native_Document__createTreeWalker_1_Callback(mthis, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return Native_Document__createTreeWalker_2_Callback(mthis, root, whatToShow);
+    }
+    return Native_Document__createTreeWalker_3_Callback(mthis, root);
+  }
 
 Native_Document__createTreeWalker_1_Callback(mthis, root, whatToShow, filter) native "Document__createTreeWalker_1_Callback";
 
@@ -1329,6 +1751,14 @@ Native_Document_getElementsByClassName_Callback(mthis, classNames) native "Docum
 Native_Document_getElementsByName_Callback(mthis, elementName) native "Document_getElementsByName_Callback";
 
 Native_Document_getElementsByTagName_Callback(mthis, localName) native "Document_getElementsByTagName_Callback";
+
+  // Generated overload resolver
+Native_Document_importNode(mthis, node, deep) {
+    if (deep != null) {
+      return Native_Document__importNode_1_Callback(mthis, node, deep);
+    }
+    return Native_Document__importNode_2_Callback(mthis, node);
+  }
 
 Native_Document__importNode_1_Callback(mthis, node, deep) native "Document__importNode_1_Callback";
 
@@ -1438,6 +1868,20 @@ Native_Element_style_Getter(mthis) native "Element_style_Getter";
 
 Native_Element_tagName_Getter(mthis) native "Element_tagName_Getter";
 
+  // Generated overload resolver
+Native_Element_animate(mthis, keyframes, timingInput) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return Native_Element__animate_1_Callback(mthis, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return Native_Element__animate_2_Callback(mthis, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && timingInput == null) {
+      return Native_Element__animate_3_Callback(mthis, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_Element__animate_1_Callback(mthis, keyframes, timingInput) native "Element__animate_1_Callback";
 
 Native_Element__animate_2_Callback(mthis, keyframes, timingInput) native "Element__animate_2_Callback";
@@ -1488,9 +1932,29 @@ Native_Element_scrollByLines_Callback(mthis, lines) native "Element_scrollByLine
 
 Native_Element_scrollByPages_Callback(mthis, pages) native "Element_scrollByPages_Callback";
 
+  // Generated overload resolver
+Native_Element__scrollIntoView(mthis, alignWithTop) {
+    if (alignWithTop != null) {
+      Native_Element__scrollIntoView_1_Callback(mthis, alignWithTop);
+      return;
+    }
+    Native_Element__scrollIntoView_2_Callback(mthis);
+    return;
+  }
+
 Native_Element__scrollIntoView_1_Callback(mthis, alignWithTop) native "Element__scrollIntoView_1_Callback";
 
 Native_Element__scrollIntoView_2_Callback(mthis) native "Element__scrollIntoView_2_Callback";
+
+  // Generated overload resolver
+Native_Element__scrollIntoViewIfNeeded(mthis, centerIfNeeded) {
+    if (centerIfNeeded != null) {
+      Native_Element__scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded);
+      return;
+    }
+    Native_Element__scrollIntoViewIfNeeded_2_Callback(mthis);
+    return;
+  }
 
 Native_Element__scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded) native "Element__scrollIntoViewIfNeeded_1_Callback";
 
@@ -1528,6 +1992,11 @@ Native_ErrorEvent_lineno_Getter(mthis) native "ErrorEvent_lineno_Getter";
 
 Native_ErrorEvent_message_Getter(mthis) native "ErrorEvent_message_Getter";
 
+  // Generated overload resolver
+Native_EventSource_EventSource(url, eventSourceInit) {
+    return Native_EventSource__create_1constructorCallback(url, eventSourceInit);
+  }
+
 Native_EventSource__create_1constructorCallback(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
 Native_EventSource_readyState_Getter(mthis) native "EventSource_readyState_Getter";
@@ -1564,6 +2033,11 @@ Native_FileList_NativeIndexed_Getter(mthis, index) native "FileList_item_Callbac
 
 Native_FileList_item_Callback(mthis, index) native "FileList_item_Callback";
 
+  // Generated overload resolver
+Native_FileReader_FileReader() {
+    return Native_FileReader__create_1constructorCallback();
+  }
+
 Native_FileReader__create_1constructorCallback() native "FileReader__create_1constructorCallback";
 
 Native_FileReader_error_Getter(mthis) native "FileReader_error_Getter";
@@ -1578,6 +2052,16 @@ Native_FileReader_readAsArrayBuffer_Callback(mthis, blob) native "FileReader_rea
 
 Native_FileReader_readAsDataURL_Callback(mthis, blob) native "FileReader_readAsDataURL_Callback";
 
+  // Generated overload resolver
+Native_FileReader_readAsText(mthis, blob, encoding) {
+    if (encoding != null) {
+      Native_FileReader__readAsText_1_Callback(mthis, blob, encoding);
+      return;
+    }
+    Native_FileReader__readAsText_2_Callback(mthis, blob);
+    return;
+  }
+
 Native_FileReader__readAsText_1_Callback(mthis, blob, encoding) native "FileReader__readAsText_1_Callback";
 
 Native_FileReader__readAsText_2_Callback(mthis, blob) native "FileReader__readAsText_2_Callback";
@@ -1587,6 +2071,11 @@ Native_FileReader_addEventListener_Callback(mthis, type, listener, useCapture) n
 Native_FileReader_dispatchEvent_Callback(mthis, event) native "FileReader_dispatchEvent_Callback";
 
 Native_FileReader_removeEventListener_Callback(mthis, type, listener, useCapture) native "FileReader_removeEventListener_Callback";
+
+  // Generated overload resolver
+Native_FileReaderSync__FileReaderSync() {
+    return Native_FileReaderSync__create_1constructorCallback();
+  }
 
 Native_FileReaderSync__create_1constructorCallback() native "FileReaderSync__create_1constructorCallback";
 
@@ -1613,6 +2102,11 @@ Native_FileWriter_dispatchEvent_Callback(mthis, event) native "FileWriter_dispat
 Native_FileWriter_removeEventListener_Callback(mthis, type, listener, useCapture) native "FileWriter_removeEventListener_Callback";
 
 Native_FocusEvent_relatedTarget_Getter(mthis) native "FocusEvent_relatedTarget_Getter";
+
+  // Generated overload resolver
+Native_FontFace_FontFace(family, source, descriptors) {
+    return Native_FontFace__create_1constructorCallback(family, source, descriptors);
+  }
 
 Native_FontFace__create_1constructorCallback(family, source, descriptors) native "FontFace__create_1constructorCallback";
 
@@ -1659,6 +2153,16 @@ Native_FontFaceSet_check_Callback(mthis, font, text) native "FontFaceSet_check_C
 Native_FontFaceSet_clear_Callback(mthis) native "FontFaceSet_clear_Callback";
 
 Native_FontFaceSet_delete_Callback(mthis, fontFace) native "FontFaceSet_delete_Callback";
+
+  // Generated overload resolver
+Native_FontFaceSet_forEach(mthis, callback, thisArg) {
+    if (thisArg != null) {
+      Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg);
+      return;
+    }
+    Native_FontFaceSet__forEach_2_Callback(mthis, callback);
+    return;
+  }
 
 Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet__forEach_1_Callback";
 
@@ -2008,6 +2512,17 @@ Native_HTMLMediaElement_webkitAudioDecodedByteCount_Getter(mthis) native "HTMLMe
 
 Native_HTMLMediaElement_webkitVideoDecodedByteCount_Getter(mthis) native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
+  // Generated overload resolver
+Native_HTMLMediaElement_addTextTrack(mthis, kind, label, language) {
+    if (language != null) {
+      return Native_HTMLMediaElement__addTextTrack_1_Callback(mthis, kind, label, language);
+    }
+    if (label != null) {
+      return Native_HTMLMediaElement__addTextTrack_2_Callback(mthis, kind, label);
+    }
+    return Native_HTMLMediaElement__addTextTrack_3_Callback(mthis, kind);
+  }
+
 Native_HTMLMediaElement__addTextTrack_1_Callback(mthis, kind, label, language) native "HTMLMediaElement__addTextTrack_1_Callback";
 
 Native_HTMLMediaElement__addTextTrack_2_Callback(mthis, kind, label) native "HTMLMediaElement__addTextTrack_2_Callback";
@@ -2024,15 +2539,40 @@ Native_HTMLMediaElement_play_Callback(mthis) native "HTMLMediaElement_play_Callb
 
 Native_HTMLMediaElement_setMediaKeys_Callback(mthis, mediaKeys) native "HTMLMediaElement_setMediaKeys_Callback";
 
+  // Generated overload resolver
+Native_HTMLMediaElement_addKey(mthis, keySystem, key, initData, sessionId) {
+    if (initData != null) {
+      Native_HTMLMediaElement__webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId);
+      return;
+    }
+    Native_HTMLMediaElement__webkitAddKey_2_Callback(mthis, keySystem, key);
+    return;
+  }
+
 Native_HTMLMediaElement__webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId) native "HTMLMediaElement__webkitAddKey_1_Callback";
 
 Native_HTMLMediaElement__webkitAddKey_2_Callback(mthis, keySystem, key) native "HTMLMediaElement__webkitAddKey_2_Callback";
 
 Native_HTMLMediaElement_webkitCancelKeyRequest_Callback(mthis, keySystem, sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
+  // Generated overload resolver
+Native_HTMLMediaElement_generateKeyRequest(mthis, keySystem, initData) {
+    if (initData != null) {
+      Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData);
+      return;
+    }
+    Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(mthis, keySystem);
+    return;
+  }
+
 Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData) native "HTMLMediaElement__webkitGenerateKeyRequest_1_Callback";
 
 Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(mthis, keySystem) native "HTMLMediaElement__webkitGenerateKeyRequest_2_Callback";
+
+  // Generated overload resolver
+Native_HTMLAudioElement_AudioElement(src) {
+    return Native_HTMLAudioElement__create_1constructorCallback(src);
+  }
 
 Native_HTMLAudioElement__create_1constructorCallback(src) native "HTMLAudioElement__create_1constructorCallback";
 
@@ -2500,17 +3040,60 @@ Native_HTMLInputElement_select_Callback(mthis) native "HTMLInputElement_select_C
 
 Native_HTMLInputElement_setCustomValidity_Callback(mthis, error) native "HTMLInputElement_setCustomValidity_Callback";
 
+  // Generated overload resolver
+Native_HTMLInputElement_setRangeText(mthis, replacement, start, end, selectionMode) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      Native_HTMLInputElement__setRangeText_1_Callback(mthis, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      Native_HTMLInputElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_HTMLInputElement__setRangeText_1_Callback(mthis, replacement) native "HTMLInputElement__setRangeText_1_Callback";
 
 Native_HTMLInputElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLInputElement__setRangeText_2_Callback";
+
+  // Generated overload resolver
+Native_HTMLInputElement_setSelectionRange(mthis, start, end, direction) {
+    if (direction != null) {
+      Native_HTMLInputElement__setSelectionRange_1_Callback(mthis, start, end, direction);
+      return;
+    }
+    Native_HTMLInputElement__setSelectionRange_2_Callback(mthis, start, end);
+    return;
+  }
 
 Native_HTMLInputElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLInputElement__setSelectionRange_1_Callback";
 
 Native_HTMLInputElement__setSelectionRange_2_Callback(mthis, start, end) native "HTMLInputElement__setSelectionRange_2_Callback";
 
+  // Generated overload resolver
+Native_HTMLInputElement_stepDown(mthis, n) {
+    if (n != null) {
+      Native_HTMLInputElement__stepDown_1_Callback(mthis, n);
+      return;
+    }
+    Native_HTMLInputElement__stepDown_2_Callback(mthis);
+    return;
+  }
+
 Native_HTMLInputElement__stepDown_1_Callback(mthis, n) native "HTMLInputElement__stepDown_1_Callback";
 
 Native_HTMLInputElement__stepDown_2_Callback(mthis) native "HTMLInputElement__stepDown_2_Callback";
+
+  // Generated overload resolver
+Native_HTMLInputElement_stepUp(mthis, n) {
+    if (n != null) {
+      Native_HTMLInputElement__stepUp_1_Callback(mthis, n);
+      return;
+    }
+    Native_HTMLInputElement__stepUp_2_Callback(mthis);
+    return;
+  }
 
 Native_HTMLInputElement__stepUp_1_Callback(mthis, n) native "HTMLInputElement__stepUp_1_Callback";
 
@@ -2711,6 +3294,11 @@ Native_HTMLOptGroupElement_disabled_Setter(mthis, value) native "HTMLOptGroupEle
 Native_HTMLOptGroupElement_label_Getter(mthis) native "HTMLOptGroupElement_label_Getter";
 
 Native_HTMLOptGroupElement_label_Setter(mthis, value) native "HTMLOptGroupElement_label_Setter";
+
+  // Generated overload resolver
+Native_HTMLOptionElement_OptionElement__(data, value, defaultSelected, selected) {
+    return Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected);
+  }
 
 Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected) native "HTMLOptionElement__create_1constructorCallback";
 
@@ -3072,9 +3660,32 @@ Native_HTMLTextAreaElement_select_Callback(mthis) native "HTMLTextAreaElement_se
 
 Native_HTMLTextAreaElement_setCustomValidity_Callback(mthis, error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
+  // Generated overload resolver
+Native_HTMLTextAreaElement_setRangeText(mthis, replacement, start, end, selectionMode) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      Native_HTMLTextAreaElement__setRangeText_1_Callback(mthis, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      Native_HTMLTextAreaElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_HTMLTextAreaElement__setRangeText_1_Callback(mthis, replacement) native "HTMLTextAreaElement__setRangeText_1_Callback";
 
 Native_HTMLTextAreaElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLTextAreaElement__setRangeText_2_Callback";
+
+  // Generated overload resolver
+Native_HTMLTextAreaElement_setSelectionRange(mthis, start, end, direction) {
+    if (direction != null) {
+      Native_HTMLTextAreaElement__setSelectionRange_1_Callback(mthis, start, end, direction);
+      return;
+    }
+    Native_HTMLTextAreaElement__setSelectionRange_2_Callback(mthis, start, end);
+    return;
+  }
 
 Native_HTMLTextAreaElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLTextAreaElement__setSelectionRange_1_Callback";
 
@@ -3182,6 +3793,20 @@ Native_IDBDatabase_createObjectStore_Callback(mthis, name, options) native "IDBD
 
 Native_IDBDatabase_deleteObjectStore_Callback(mthis, name) native "IDBDatabase_deleteObjectStore_Callback";
 
+  // Generated overload resolver
+Native_IDBDatabase_transaction(mthis, storeName_OR_storeNames, mode) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
+      return Native_IDBDatabase__transaction_1_Callback(mthis, storeName_OR_storeNames, mode);
+    }
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
+      return Native_IDBDatabase__transaction_2_Callback(mthis, storeName_OR_storeNames, mode);
+    }
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
+      return Native_IDBDatabase__transaction_3_Callback(mthis, storeName_OR_storeNames, mode);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_IDBDatabase__transaction_1_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase__transaction_1_Callback";
 
 Native_IDBDatabase__transaction_2_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase__transaction_2_Callback";
@@ -3203,6 +3828,14 @@ Native_IDBDatabase_removeEventListener_Callback(mthis, type, listener, useCaptur
 Native_IDBFactory_cmp_Callback(mthis, first, second) native "IDBFactory_cmp_Callback";
 
 Native_IDBFactory_deleteDatabase_Callback(mthis, name) native "IDBFactory_deleteDatabase_Callback";
+
+  // Generated overload resolver
+Native_IDBFactory__open(mthis, name, version) {
+    if (version != null) {
+      return Native_IDBFactory__open_1_Callback(mthis, name, version);
+    }
+    return Native_IDBFactory__open_2_Callback(mthis, name);
+  }
 
 Native_IDBFactory__open_1_Callback(mthis, name, version) native "IDBFactory__open_1_Callback";
 
@@ -3261,6 +3894,17 @@ Native_IDBObjectStore_add_Callback(mthis, value, key) native "IDBObjectStore_add
 Native_IDBObjectStore_clear_Callback(mthis) native "IDBObjectStore_clear_Callback";
 
 Native_IDBObjectStore_count_Callback(mthis, key) native "IDBObjectStore_count_Callback";
+
+  // Generated overload resolver
+Native_IDBObjectStore__createIndex(mthis, name, keyPath, options) {
+    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
+      return Native_IDBObjectStore__createIndex_1_Callback(mthis, name, keyPath, options);
+    }
+    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
+      return Native_IDBObjectStore__createIndex_2_Callback(mthis, name, keyPath, options);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_IDBObjectStore__createIndex_1_Callback(mthis, name, keyPath, options) native "IDBObjectStore__createIndex_1_Callback";
 
@@ -3462,9 +4106,24 @@ Native_MIDIMessageEvent_data_Getter(mthis) native "MIDIMessageEvent_data_Getter"
 
 Native_MIDIMessageEvent_receivedTime_Getter(mthis) native "MIDIMessageEvent_receivedTime_Getter";
 
+  // Generated overload resolver
+Native_MIDIOutput_send(mthis, data, timestamp) {
+    if (timestamp != null) {
+      Native_MIDIOutput__send_1_Callback(mthis, data, timestamp);
+      return;
+    }
+    Native_MIDIOutput__send_2_Callback(mthis, data);
+    return;
+  }
+
 Native_MIDIOutput__send_1_Callback(mthis, data, timestamp) native "MIDIOutput__send_1_Callback";
 
 Native_MIDIOutput__send_2_Callback(mthis, data) native "MIDIOutput__send_2_Callback";
+
+  // Generated overload resolver
+Native_MediaController_MediaController() {
+    return Native_MediaController__create_1constructorCallback();
+  }
 
 Native_MediaController__create_1constructorCallback() native "MediaController__create_1constructorCallback";
 
@@ -3558,6 +4217,11 @@ Native_MediaKeySession_dispatchEvent_Callback(mthis, event) native "MediaKeySess
 
 Native_MediaKeySession_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaKeySession_removeEventListener_Callback";
 
+  // Generated overload resolver
+Native_MediaKeys_MediaKeys(keySystem) {
+    return Native_MediaKeys__create_1constructorCallback(keySystem);
+  }
+
 Native_MediaKeys__create_1constructorCallback(keySystem) native "MediaKeys__create_1constructorCallback";
 
 Native_MediaKeys_keySystem_Getter(mthis) native "MediaKeys_keySystem_Getter";
@@ -3580,6 +4244,11 @@ Native_MediaQueryList_matches_Getter(mthis) native "MediaQueryList_matches_Gette
 
 Native_MediaQueryList_media_Getter(mthis) native "MediaQueryList_media_Getter";
 
+  // Generated overload resolver
+Native_MediaSource_MediaSource() {
+    return Native_MediaSource__create_1constructorCallback();
+  }
+
 Native_MediaSource__create_1constructorCallback() native "MediaSource__create_1constructorCallback";
 
 Native_MediaSource_activeSourceBuffers_Getter(mthis) native "MediaSource_activeSourceBuffers_Getter";
@@ -3594,6 +4263,16 @@ Native_MediaSource_sourceBuffers_Getter(mthis) native "MediaSource_sourceBuffers
 
 Native_MediaSource_addSourceBuffer_Callback(mthis, type) native "MediaSource_addSourceBuffer_Callback";
 
+  // Generated overload resolver
+Native_MediaSource_endOfStream(mthis, error) {
+    if (error != null) {
+      Native_MediaSource__endOfStream_1_Callback(mthis, error);
+      return;
+    }
+    Native_MediaSource__endOfStream_2_Callback(mthis);
+    return;
+  }
+
 Native_MediaSource__endOfStream_1_Callback(mthis, error) native "MediaSource__endOfStream_1_Callback";
 
 Native_MediaSource__endOfStream_2_Callback(mthis) native "MediaSource__endOfStream_2_Callback";
@@ -3607,6 +4286,20 @@ Native_MediaSource_addEventListener_Callback(mthis, type, listener, useCapture) 
 Native_MediaSource_dispatchEvent_Callback(mthis, event) native "MediaSource_dispatchEvent_Callback";
 
 Native_MediaSource_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaSource_removeEventListener_Callback";
+
+  // Generated overload resolver
+Native_MediaStream_MediaStream(stream_OR_tracks) {
+    if (stream_OR_tracks == null) {
+      return Native_MediaStream__create_1constructorCallback();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return Native_MediaStream__create_2constructorCallback(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return Native_MediaStream__create_3constructorCallback(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_MediaStream__create_1constructorCallback() native "MediaStream__create_1constructorCallback";
 
@@ -3898,6 +4591,11 @@ Native_NodeList_NativeIndexed_Getter(mthis, index) native "NodeList_item_Callbac
 
 Native_NodeList_item_Callback(mthis, index) native "NodeList_item_Callback";
 
+  // Generated overload resolver
+Native_Notification_Notification(title, options) {
+    return Native_Notification__create_1constructorCallback(title, options);
+  }
+
 Native_Notification__create_1constructorCallback(title, options) native "Notification__create_1constructorCallback";
 
 Native_Notification_body_Getter(mthis) native "Notification_body_Getter";
@@ -3934,6 +4632,11 @@ Native_OESVertexArrayObject_isVertexArrayOES_Callback(mthis, arrayObject) native
 
 Native_OfflineAudioCompletionEvent_renderedBuffer_Getter(mthis) native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
 
+  // Generated overload resolver
+Native_OfflineAudioContext_OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate) {
+    return Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
+  }
+
 Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext__create_1constructorCallback";
 
 Native_OscillatorNode_detune_Getter(mthis) native "OscillatorNode_detune_Getter";
@@ -3952,9 +4655,29 @@ Native_OscillatorNode_noteOn_Callback(mthis, when) native "OscillatorNode_noteOn
 
 Native_OscillatorNode_setPeriodicWave_Callback(mthis, periodicWave) native "OscillatorNode_setPeriodicWave_Callback";
 
+  // Generated overload resolver
+Native_OscillatorNode_start(mthis, when) {
+    if (when != null) {
+      Native_OscillatorNode__start_1_Callback(mthis, when);
+      return;
+    }
+    Native_OscillatorNode__start_2_Callback(mthis);
+    return;
+  }
+
 Native_OscillatorNode__start_1_Callback(mthis, when) native "OscillatorNode__start_1_Callback";
 
 Native_OscillatorNode__start_2_Callback(mthis) native "OscillatorNode__start_2_Callback";
+
+  // Generated overload resolver
+Native_OscillatorNode_stop(mthis, when) {
+    if (when != null) {
+      Native_OscillatorNode__stop_1_Callback(mthis, when);
+      return;
+    }
+    Native_OscillatorNode__stop_2_Callback(mthis);
+    return;
+  }
 
 Native_OscillatorNode__stop_1_Callback(mthis, when) native "OscillatorNode__stop_1_Callback";
 
@@ -4005,6 +4728,20 @@ Native_PannerNode_setOrientation_Callback(mthis, x, y, z) native "PannerNode_set
 Native_PannerNode_setPosition_Callback(mthis, x, y, z) native "PannerNode_setPosition_Callback";
 
 Native_PannerNode_setVelocity_Callback(mthis, x, y, z) native "PannerNode_setVelocity_Callback";
+
+  // Generated overload resolver
+Native_Path_Path(path_OR_text) {
+    if (path_OR_text == null) {
+      return Native_Path__create_1constructorCallback();
+    }
+    if ((path_OR_text is Path || path_OR_text == null)) {
+      return Native_Path__create_2constructorCallback(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return Native_Path__create_3constructorCallback(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_Path__create_1constructorCallback() native "Path__create_1constructorCallback";
 
@@ -4222,6 +4959,20 @@ Native_RTCDTMFSender_toneBuffer_Getter(mthis) native "RTCDTMFSender_toneBuffer_G
 
 Native_RTCDTMFSender_track_Getter(mthis) native "RTCDTMFSender_track_Getter";
 
+  // Generated overload resolver
+Native_RTCDTMFSender_insertDtmf(mthis, tones, duration, interToneGap) {
+    if (interToneGap != null) {
+      Native_RTCDTMFSender__insertDTMF_1_Callback(mthis, tones, duration, interToneGap);
+      return;
+    }
+    if (duration != null) {
+      Native_RTCDTMFSender__insertDTMF_2_Callback(mthis, tones, duration);
+      return;
+    }
+    Native_RTCDTMFSender__insertDTMF_3_Callback(mthis, tones);
+    return;
+  }
+
 Native_RTCDTMFSender__insertDTMF_1_Callback(mthis, tones, duration, interToneGap) native "RTCDTMFSender__insertDTMF_1_Callback";
 
 Native_RTCDTMFSender__insertDTMF_2_Callback(mthis, tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
@@ -4262,6 +5013,27 @@ Native_RTCDataChannel_reliable_Getter(mthis) native "RTCDataChannel_reliable_Get
 
 Native_RTCDataChannel_close_Callback(mthis) native "RTCDataChannel_close_Callback";
 
+  // Generated overload resolver
+Native_RTCDataChannel_send(mthis, data) {
+    if ((data is TypedData || data == null)) {
+      Native_RTCDataChannel__send_1_Callback(mthis, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      Native_RTCDataChannel__send_2_Callback(mthis, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      Native_RTCDataChannel__send_3_Callback(mthis, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      Native_RTCDataChannel__send_4_Callback(mthis, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_RTCDataChannel__send_1_Callback(mthis, data) native "RTCDataChannel__send_1_Callback";
 
 Native_RTCDataChannel__send_2_Callback(mthis, data) native "RTCDataChannel__send_2_Callback";
@@ -4286,6 +5058,11 @@ Native_RTCDataChannel_removeEventListener_Callback(mthis, type, listener, useCap
 
 Native_RTCDataChannelEvent_channel_Getter(mthis) native "RTCDataChannelEvent_channel_Getter";
 
+  // Generated overload resolver
+Native_RTCIceCandidate_RtcIceCandidate(dictionary) {
+    return Native_RTCIceCandidate__create_1constructorCallback(dictionary);
+  }
+
 Native_RTCIceCandidate__create_1constructorCallback(dictionary) native "RTCIceCandidate__create_1constructorCallback";
 
 Native_RTCIceCandidate_candidate_Getter(mthis) native "RTCIceCandidate_candidate_Getter";
@@ -4295,6 +5072,11 @@ Native_RTCIceCandidate_sdpMLineIndex_Getter(mthis) native "RTCIceCandidate_sdpML
 Native_RTCIceCandidate_sdpMid_Getter(mthis) native "RTCIceCandidate_sdpMid_Getter";
 
 Native_RTCIceCandidateEvent_candidate_Getter(mthis) native "RTCIceCandidateEvent_candidate_Getter";
+
+  // Generated overload resolver
+Native_RTCPeerConnection_RtcPeerConnection(rtcIceServers, mediaConstraints) {
+    return Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints);
+  }
 
 Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints) native "RTCPeerConnection__create_1constructorCallback";
 
@@ -4343,6 +5125,11 @@ Native_RTCPeerConnection_addEventListener_Callback(mthis, type, listener, useCap
 Native_RTCPeerConnection_dispatchEvent_Callback(mthis, event) native "RTCPeerConnection_dispatchEvent_Callback";
 
 Native_RTCPeerConnection_removeEventListener_Callback(mthis, type, listener, useCapture) native "RTCPeerConnection_removeEventListener_Callback";
+
+  // Generated overload resolver
+Native_RTCSessionDescription_RtcSessionDescription(descriptionInitDict) {
+    return Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict);
+  }
 
 Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict) native "RTCSessionDescription__create_1constructorCallback";
 
@@ -5908,6 +6695,17 @@ Native_Screen_pixelDepth_Getter(mthis) native "Screen_pixelDepth_Getter";
 
 Native_Screen_width_Getter(mthis) native "Screen_width_Getter";
 
+  // Generated overload resolver
+Native_Screen_lockOrientation(mthis, orientation_OR_orientations) {
+    if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
+      return Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations);
+    }
+    if ((orientation_OR_orientations is List<String> || orientation_OR_orientations == null)) {
+      return Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations) native "Screen__lockOrientation_1_Callback";
 
 Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations) native "Screen__lockOrientation_2_Callback";
@@ -6028,6 +6826,11 @@ Native_ShadowRoot_getElementsByTagName_Callback(mthis, tagName) native "ShadowRo
 
 Native_ShadowRoot_getSelection_Callback(mthis) native "ShadowRoot_getSelection_Callback";
 
+  // Generated overload resolver
+Native_SharedWorker_SharedWorker(scriptURL, name) {
+    return Native_SharedWorker__create_1constructorCallback(scriptURL, name);
+  }
+
 Native_SharedWorker__create_1constructorCallback(scriptURL, name) native "SharedWorker__create_1constructorCallback";
 
 Native_SharedWorker_port_Getter(mthis) native "SharedWorker_port_Getter";
@@ -6066,6 +6869,16 @@ Native_SourceBuffer_abort_Callback(mthis) native "SourceBuffer_abort_Callback";
 
 Native_SourceBuffer_appendBuffer_Callback(mthis, data) native "SourceBuffer_appendBuffer_Callback";
 
+  // Generated overload resolver
+Native_SourceBuffer_appendStream(mthis, stream, maxSize) {
+    if (maxSize != null) {
+      Native_SourceBuffer__appendStream_1_Callback(mthis, stream, maxSize);
+      return;
+    }
+    Native_SourceBuffer__appendStream_2_Callback(mthis, stream);
+    return;
+  }
+
 Native_SourceBuffer__appendStream_1_Callback(mthis, stream, maxSize) native "SourceBuffer__appendStream_1_Callback";
 
 Native_SourceBuffer__appendStream_2_Callback(mthis, stream) native "SourceBuffer__appendStream_2_Callback";
@@ -6100,6 +6913,11 @@ Native_SourceInfo_kind_Getter(mthis) native "SourceInfo_kind_Getter";
 
 Native_SourceInfo_label_Getter(mthis) native "SourceInfo_label_Getter";
 
+  // Generated overload resolver
+Native_SpeechGrammar_SpeechGrammar() {
+    return Native_SpeechGrammar__create_1constructorCallback();
+  }
+
 Native_SpeechGrammar__create_1constructorCallback() native "SpeechGrammar__create_1constructorCallback";
 
 Native_SpeechGrammar_src_Getter(mthis) native "SpeechGrammar_src_Getter";
@@ -6110,15 +6928,40 @@ Native_SpeechGrammar_weight_Getter(mthis) native "SpeechGrammar_weight_Getter";
 
 Native_SpeechGrammar_weight_Setter(mthis, value) native "SpeechGrammar_weight_Setter";
 
+  // Generated overload resolver
+Native_SpeechGrammarList_SpeechGrammarList() {
+    return Native_SpeechGrammarList__create_1constructorCallback();
+  }
+
 Native_SpeechGrammarList__create_1constructorCallback() native "SpeechGrammarList__create_1constructorCallback";
 
 Native_SpeechGrammarList_length_Getter(mthis) native "SpeechGrammarList_length_Getter";
 
 Native_SpeechGrammarList_NativeIndexed_Getter(mthis, index) native "SpeechGrammarList_item_Callback";
 
+  // Generated overload resolver
+Native_SpeechGrammarList_addFromString(mthis, string, weight) {
+    if (weight != null) {
+      Native_SpeechGrammarList__addFromString_1_Callback(mthis, string, weight);
+      return;
+    }
+    Native_SpeechGrammarList__addFromString_2_Callback(mthis, string);
+    return;
+  }
+
 Native_SpeechGrammarList__addFromString_1_Callback(mthis, string, weight) native "SpeechGrammarList__addFromString_1_Callback";
 
 Native_SpeechGrammarList__addFromString_2_Callback(mthis, string) native "SpeechGrammarList__addFromString_2_Callback";
+
+  // Generated overload resolver
+Native_SpeechGrammarList_addFromUri(mthis, src, weight) {
+    if (weight != null) {
+      Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight);
+      return;
+    }
+    Native_SpeechGrammarList__addFromUri_2_Callback(mthis, src);
+    return;
+  }
 
 Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight) native "SpeechGrammarList__addFromUri_1_Callback";
 
@@ -6137,6 +6980,11 @@ Native_SpeechInputResultList_length_Getter(mthis) native "SpeechInputResultList_
 Native_SpeechInputResultList_NativeIndexed_Getter(mthis, index) native "SpeechInputResultList_item_Callback";
 
 Native_SpeechInputResultList_item_Callback(mthis, index) native "SpeechInputResultList_item_Callback";
+
+  // Generated overload resolver
+Native_SpeechRecognition_SpeechRecognition() {
+    return Native_SpeechRecognition__create_1constructorCallback();
+  }
 
 Native_SpeechRecognition__create_1constructorCallback() native "SpeechRecognition__create_1constructorCallback";
 
@@ -6228,6 +7076,11 @@ Native_SpeechSynthesisEvent_elapsedTime_Getter(mthis) native "SpeechSynthesisEve
 
 Native_SpeechSynthesisEvent_name_Getter(mthis) native "SpeechSynthesisEvent_name_Getter";
 
+  // Generated overload resolver
+Native_SpeechSynthesisUtterance_SpeechSynthesisUtterance(text) {
+    return Native_SpeechSynthesisUtterance__create_1constructorCallback(text);
+  }
+
 Native_SpeechSynthesisUtterance__create_1constructorCallback(text) native "SpeechSynthesisUtterance__create_1constructorCallback";
 
 Native_SpeechSynthesisUtterance_lang_Getter(mthis) native "SpeechSynthesisUtterance_lang_Getter";
@@ -6272,13 +7125,48 @@ Native_SpeechSynthesisVoice_voiceURI_Getter(mthis) native "SpeechSynthesisVoice_
 
 Native_Storage_length_Getter(mthis) native "Storage_length_Getter";
 
+  // Generated overload resolver
+Native_Storage___delete__(mthis, index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return Native_Storage____delete___1_Callback(mthis, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return Native_Storage____delete___2_Callback(mthis, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_Storage____delete___1_Callback(mthis, index_OR_name) native "Storage____delete___1_Callback";
 
 Native_Storage____delete___2_Callback(mthis, index_OR_name) native "Storage____delete___2_Callback";
 
+  // Generated overload resolver
+Native_Storage___getter__(mthis, index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return Native_Storage____getter___1_Callback(mthis, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return Native_Storage____getter___2_Callback(mthis, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_Storage____getter___1_Callback(mthis, index_OR_name) native "Storage____getter___1_Callback";
 
 Native_Storage____getter___2_Callback(mthis, index_OR_name) native "Storage____getter___2_Callback";
+
+  // Generated overload resolver
+Native_Storage___setter__(mthis, index_OR_name, value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      Native_Storage____setter___1_Callback(mthis, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      Native_Storage____setter___2_Callback(mthis, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_Storage____setter___1_Callback(mthis, index_OR_name, value) native "Storage____setter___1_Callback";
 
@@ -6530,15 +7418,25 @@ Native_TreeWalker_previousNode_Callback(mthis) native "TreeWalker_previousNode_C
 
 Native_TreeWalker_previousSibling_Callback(mthis) native "TreeWalker_previousSibling_Callback";
 
-Native_URL__createObjectUrlFromWebKitSource_Callback(source) native "URL__createObjectUrlFromWebKitSource_Callback";
+  // Generated overload resolver
+Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+      return Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+      return Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+      return Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_1_Callback";
 
 Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_2_Callback";
 
 Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_3_Callback";
-
-Native_URL__createObjectURL_4_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_4_Callback";
 
 Native_URL_createObjectUrlFromBlob_Callback(blob) native "URL_createObjectUrlFromBlob_Callback";
 
@@ -6610,6 +7508,11 @@ Native_URLUtilsReadOnly_search_Getter(mthis) native "URLUtilsReadOnly_search_Get
 
 Native_URLUtilsReadOnly_toString_Callback(mthis) native "URLUtilsReadOnly_toString_Callback";
 
+  // Generated overload resolver
+Native_VTTCue_VttCue(startTime, endTime, text) {
+    return Native_VTTCue__create_1constructorCallback(startTime, endTime, text);
+  }
+
 Native_VTTCue__create_1constructorCallback(startTime, endTime, text) native "VTTCue__create_1constructorCallback";
 
 Native_VTTCue_align_Getter(mthis) native "VTTCue_align_Getter";
@@ -6645,6 +7548,11 @@ Native_VTTCue_vertical_Getter(mthis) native "VTTCue_vertical_Getter";
 Native_VTTCue_vertical_Setter(mthis, value) native "VTTCue_vertical_Setter";
 
 Native_VTTCue_getCueAsHTML_Callback(mthis) native "VTTCue_getCueAsHTML_Callback";
+
+  // Generated overload resolver
+Native_VTTRegion_VttRegion() {
+    return Native_VTTRegion__create_1constructorCallback();
+  }
 
 Native_VTTRegion__create_1constructorCallback() native "VTTRegion__create_1constructorCallback";
 
@@ -6798,6 +7706,23 @@ Native_WebGLRenderingContext_blendFuncSeparate_Callback(mthis, srcRGB, dstRGB, s
 
 Native_WebGLRenderingContext_bufferByteData_Callback(mthis, target, data, usage) native "WebGLRenderingContext_bufferByteData_Callback";
 
+  // Generated overload resolver
+Native_WebGLRenderingContext_bufferData(mthis, target, data_OR_size, usage) {
+    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__bufferData_1_Callback(mthis, target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__bufferData_2_Callback(mthis, target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__bufferData_3_Callback(mthis, target, data_OR_size, usage);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_WebGLRenderingContext__bufferData_1_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_1_Callback";
 
 Native_WebGLRenderingContext__bufferData_2_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_2_Callback";
@@ -6807,6 +7732,19 @@ Native_WebGLRenderingContext__bufferData_3_Callback(mthis, target, data_OR_size,
 Native_WebGLRenderingContext_bufferDataTyped_Callback(mthis, target, data, usage) native "WebGLRenderingContext_bufferDataTyped_Callback";
 
 Native_WebGLRenderingContext_bufferSubByteData_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubByteData_Callback";
+
+  // Generated overload resolver
+Native_WebGLRenderingContext_bufferSubData(mthis, target, offset, data) {
+    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__bufferSubData_1_Callback(mthis, target, offset, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__bufferSubData_2_Callback(mthis, target, offset, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_WebGLRenderingContext__bufferSubData_1_Callback(mthis, target, offset, data) native "WebGLRenderingContext__bufferSubData_1_Callback";
 
@@ -6988,6 +7926,31 @@ Native_WebGLRenderingContext_stencilOp_Callback(mthis, fail, zfail, zpass) nativ
 
 Native_WebGLRenderingContext_stencilOpSeparate_Callback(mthis, face, fail, zfail, zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
+  // Generated overload resolver
+Native_WebGLRenderingContext_texImage2D(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texImage2D_3_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texImage2D_4_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texImage2D_5_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_WebGLRenderingContext__texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext__texImage2D_1_Callback";
 
 Native_WebGLRenderingContext__texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_2_Callback";
@@ -7009,6 +7972,31 @@ Native_WebGLRenderingContext_texImage2DVideo_Callback(mthis, target, level, inte
 Native_WebGLRenderingContext_texParameterf_Callback(mthis, target, pname, param) native "WebGLRenderingContext_texParameterf_Callback";
 
 Native_WebGLRenderingContext_texParameteri_Callback(mthis, target, pname, param) native "WebGLRenderingContext_texParameteri_Callback";
+
+  // Generated overload resolver
+Native_WebGLRenderingContext_texSubImage2D(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
+      Native_WebGLRenderingContext__texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texSubImage2D_2_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texSubImage2D_3_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texSubImage2D_4_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      Native_WebGLRenderingContext__texSubImage2D_5_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_WebGLRenderingContext__texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext__texSubImage2D_1_Callback";
 
@@ -7102,7 +8090,17 @@ Native_WebKitAnimationEvent_elapsedTime_Getter(mthis) native "WebKitAnimationEve
 
 Native_WebKitCSSFilterRule_style_Getter(mthis) native "WebKitCSSFilterRule_style_Getter";
 
+  // Generated overload resolver
+Native_WebKitCSSMatrix__WebKitCSSMatrix(cssValue) {
+    return Native_WebKitCSSMatrix__create_1constructorCallback(cssValue);
+  }
+
 Native_WebKitCSSMatrix__create_1constructorCallback(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
+
+  // Generated overload resolver
+Native_WebKitMediaSource__WebKitMediaSource() {
+    return Native_WebKitMediaSource__create_1constructorCallback();
+  }
 
 Native_WebKitMediaSource__create_1constructorCallback() native "WebKitMediaSource__create_1constructorCallback";
 
@@ -7117,6 +8115,20 @@ Native_WebKitPoint_y_Getter(mthis) native "WebKitPoint_y_Getter";
 Native_WebKitPoint_y_Setter(mthis, value) native "WebKitPoint_y_Setter";
 
 Native_WebKitSourceBufferList_item_Callback(mthis, index) native "WebKitSourceBufferList_item_Callback";
+
+  // Generated overload resolver
+Native_WebSocket_WebSocket(url, protocol_OR_protocols) {
+    if ((url is String || url == null) && protocol_OR_protocols == null) {
+      return Native_WebSocket__create_1constructorCallback(url);
+    }
+    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return Native_WebSocket__create_2constructorCallback(url, protocol_OR_protocols);
+    }
+    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return Native_WebSocket__create_3constructorCallback(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 Native_WebSocket__create_1constructorCallback(url) native "WebSocket__create_1constructorCallback";
 
@@ -7137,6 +8149,20 @@ Native_WebSocket_protocol_Getter(mthis) native "WebSocket_protocol_Getter";
 Native_WebSocket_readyState_Getter(mthis) native "WebSocket_readyState_Getter";
 
 Native_WebSocket_url_Getter(mthis) native "WebSocket_url_Getter";
+
+  // Generated overload resolver
+Native_WebSocket_close(mthis, code, reason) {
+    if (reason != null) {
+      Native_WebSocket__close_1_Callback(mthis, code, reason);
+      return;
+    }
+    if (code != null) {
+      Native_WebSocket__close_2_Callback(mthis, code);
+      return;
+    }
+    Native_WebSocket__close_3_Callback(mthis);
+    return;
+  }
 
 Native_WebSocket__close_1_Callback(mthis, code, reason) native "WebSocket__close_1_Callback";
 
@@ -7276,6 +8302,17 @@ Native_Window_top_Getter(mthis) native "Window_top_Getter";
 
 Native_Window_window_Getter(mthis) native "Window_window_Getter";
 
+  // Generated overload resolver
+Native_Window___getter__(mthis, index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return Native_Window____getter___1_Callback(mthis, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return Native_Window____getter___2_Callback(mthis, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
 Native_Window____getter___1_Callback(mthis, index_OR_name) native "Window____getter___1_Callback";
 
 Native_Window____getter___2_Callback(mthis, index_OR_name) native "Window____getter___2_Callback";
@@ -7354,6 +8391,11 @@ Native_Window_setInterval_Callback(mthis, handler, timeout) native "Window_setIn
 
 Native_Window_setTimeout_Callback(mthis, handler, timeout) native "Window_setTimeout_Callback";
 
+  // Generated overload resolver
+Native_Worker_Worker(scriptUrl) {
+    return Native_Worker__create_1constructorCallback(scriptUrl);
+  }
+
 Native_Worker__create_1constructorCallback(scriptUrl) native "Worker__create_1constructorCallback";
 
 Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback";
@@ -7418,9 +8460,19 @@ Native_XMLHttpRequest_send_Callback(mthis, data) native "XMLHttpRequest_send_Cal
 
 Native_XMLHttpRequest_setRequestHeader_Callback(mthis, header, value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+  // Generated overload resolver
+Native_XMLSerializer_XmlSerializer() {
+    return Native_XMLSerializer__create_1constructorCallback();
+  }
+
 Native_XMLSerializer__create_1constructorCallback() native "XMLSerializer__create_1constructorCallback";
 
 Native_XMLSerializer_serializeToString_Callback(mthis, node) native "XMLSerializer_serializeToString_Callback";
+
+  // Generated overload resolver
+Native_XPathEvaluator_XPathEvaluator() {
+    return Native_XPathEvaluator__create_1constructorCallback();
+  }
 
 Native_XPathEvaluator__create_1constructorCallback() native "XPathEvaluator__create_1constructorCallback";
 
@@ -7451,6 +8503,11 @@ Native_XPathResult_stringValue_Getter(mthis) native "XPathResult_stringValue_Get
 Native_XPathResult_iterateNext_Callback(mthis) native "XPathResult_iterateNext_Callback";
 
 Native_XPathResult_snapshotItem_Callback(mthis, index) native "XPathResult_snapshotItem_Callback";
+
+  // Generated overload resolver
+Native_XSLTProcessor_XsltProcessor() {
+    return Native_XSLTProcessor__create_1constructorCallback();
+  }
 
 Native_XSLTProcessor__create_1constructorCallback() native "XSLTProcessor__create_1constructorCallback";
 

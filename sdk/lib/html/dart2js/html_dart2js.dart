@@ -26406,11 +26406,6 @@ class Url extends Interceptor implements UrlUtils native "URL" {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('createObjectURL')
-  @DomName('URL.createObjectURL')
-  @DocsEditable()
-  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native;
-
   // From URLUtils
 
   @DomName('URL.hash')

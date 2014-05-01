@@ -350,27 +350,7 @@ class Animation extends TimedItem {
 
   @DomName('Animation.Animation')
   @DocsEditable()
-  factory Animation(Element target, List<Map> keyframes, [timingInput]) {
-    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return Animation._create_1(target, keyframes, timingInput);
-    }
-    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return Animation._create_2(target, keyframes, timingInput);
-    }
-    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
-      return Animation._create_3(target, keyframes);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DocsEditable()
-  static Animation _create_1(target, keyframes, timingInput) => _blink.Native_Animation__create_1constructorCallback(target, keyframes, timingInput);
-
-  @DocsEditable()
-  static Animation _create_2(target, keyframes, timingInput) => _blink.Native_Animation__create_2constructorCallback(target, keyframes, timingInput);
-
-  @DocsEditable()
-  static Animation _create_3(target, keyframes) => _blink.Native_Animation__create_3constructorCallback(target, keyframes);
+  factory Animation(Element target, List<Map> keyframes, [timingInput]) => _blink.Native_Animation_Animation(target, keyframes, timingInput);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -768,12 +748,7 @@ class AudioElement extends MediaElement {
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) {
-    return AudioElement._create_1(src);
-  }
-
-  @DocsEditable()
-  static AudioElement _create_1(src) => _blink.Native_HTMLAudioElement__create_1constructorCallback(src);
+  factory AudioElement([String src]) => _blink.Native_HTMLAudioElement_AudioElement(src);
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -952,26 +927,7 @@ class Blob extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get type => _blink.Native_Blob_type_Getter(this);
 
-  Blob slice([int start, int end, String contentType]) {
-    if (contentType != null) {
-      return _slice_1(start, end, contentType);
-    }
-    if (end != null) {
-      return _slice_2(start, end);
-    }
-    if (start != null) {
-      return _slice_3(start);
-    }
-    return _slice_4();
-  }
-
-  Blob _slice_1(start, end, contentType) => _blink.Native_Blob__slice_1_Callback(this, start, end, contentType);
-
-  Blob _slice_2(start, end) => _blink.Native_Blob__slice_2_Callback(this, start, end);
-
-  Blob _slice_3(start) => _blink.Native_Blob__slice_3_Callback(this, start);
-
-  Blob _slice_4() => _blink.Native_Blob__slice_4_Callback(this);
+  Blob slice([int start, int end, String contentType]) => _blink.Native_Blob_slice(this, start, end, contentType);
 
 }
 
@@ -1889,18 +1845,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void clearRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_clearRect_Callback(this, x, y, width, height);
 
-  void clip([String winding]) {
-    if (winding != null) {
-      _clip_1(winding);
-      return;
-    }
-    _clip_2();
-    return;
-  }
-
-  void _clip_1(winding) => _blink.Native_CanvasRenderingContext2D__clip_1_Callback(this, winding);
-
-  void _clip_2() => _blink.Native_CanvasRenderingContext2D__clip_2_Callback(this);
+  void clip([String winding]) => _blink.Native_CanvasRenderingContext2D_clip(this, winding);
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable()
@@ -1935,81 +1880,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   bool drawCustomFocusRing(Element element) => _blink.Native_CanvasRenderingContext2D_drawCustomFocusRing_Callback(this, element);
 
-  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_1_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-
-  void _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_2_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-
-  void _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_3_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-
-  void _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_4_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-
-  void _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_5_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-
-  void _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_6_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-
-  void _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_7_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-
-  void _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_8_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-
-  void _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_9_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-
-  void _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) => _blink.Native_CanvasRenderingContext2D__drawImage_10_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-
-  void _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) => _blink.Native_CanvasRenderingContext2D__drawImage_11_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-
-  void _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) => _blink.Native_CanvasRenderingContext2D__drawImage_12_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) => _blink.Native_CanvasRenderingContext2D__drawImage(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
   @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
   @DocsEditable()
@@ -2021,35 +1892,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) => _blink.Native_CanvasRenderingContext2D_ellipse_Callback(this, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
 
-  void fill([String winding]) {
-    if (winding != null) {
-      _fill_1(winding);
-      return;
-    }
-    _fill_2();
-    return;
-  }
-
-  void _fill_1(winding) => _blink.Native_CanvasRenderingContext2D__fill_1_Callback(this, winding);
-
-  void _fill_2() => _blink.Native_CanvasRenderingContext2D__fill_2_Callback(this);
+  void fill([String winding]) => _blink.Native_CanvasRenderingContext2D_fill(this, winding);
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_fillRect_Callback(this, x, y, width, height);
 
-  void fillText(String text, num x, num y, [num maxWidth]) {
-    if (maxWidth != null) {
-      _fillText_1(text, x, y, maxWidth);
-      return;
-    }
-    _fillText_2(text, x, y);
-    return;
-  }
-
-  void _fillText_1(text, x, y, maxWidth) => _blink.Native_CanvasRenderingContext2D__fillText_1_Callback(this, text, x, y, maxWidth);
-
-  void _fillText_2(text, x, y) => _blink.Native_CanvasRenderingContext2D__fillText_2_Callback(this, text, x, y);
+  void fillText(String text, num x, num y, [num maxWidth]) => _blink.Native_CanvasRenderingContext2D_fillText(this, text, x, y, maxWidth);
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable()
@@ -2065,16 +1914,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   List<num> _getLineDash() => _blink.Native_CanvasRenderingContext2D_getLineDash_Callback(this);
 
-  bool isPointInPath(num x, num y, [String winding]) {
-    if (winding != null) {
-      return _isPointInPath_1(x, y, winding);
-    }
-    return _isPointInPath_2(x, y);
-  }
-
-  bool _isPointInPath_1(x, y, winding) => _blink.Native_CanvasRenderingContext2D__isPointInPath_1_Callback(this, x, y, winding);
-
-  bool _isPointInPath_2(x, y) => _blink.Native_CanvasRenderingContext2D__isPointInPath_2_Callback(this, x, y);
+  bool isPointInPath(num x, num y, [String winding]) => _blink.Native_CanvasRenderingContext2D_isPointInPath(this, x, y, winding);
 
   @DomName('CanvasRenderingContext2D.isPointInStroke')
   @DocsEditable()
@@ -2092,21 +1932,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void moveTo(num x, num y) => _blink.Native_CanvasRenderingContext2D_moveTo_Callback(this, x, y);
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      _putImageData_1(imagedata, dx, dy);
-      return;
-    }
-    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
-      _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _putImageData_1(imagedata, dx, dy) => _blink.Native_CanvasRenderingContext2D__putImageData_1_Callback(this, imagedata, dx, dy);
-
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => _blink.Native_CanvasRenderingContext2D__putImageData_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) => _blink.Native_CanvasRenderingContext2D_putImageData(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   @DocsEditable()
@@ -2153,18 +1979,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void strokeRect(num x, num y, num width, num height) => _blink.Native_CanvasRenderingContext2D_strokeRect_Callback(this, x, y, width, height);
 
-  void strokeText(String text, num x, num y, [num maxWidth]) {
-    if (maxWidth != null) {
-      _strokeText_1(text, x, y, maxWidth);
-      return;
-    }
-    _strokeText_2(text, x, y);
-    return;
-  }
-
-  void _strokeText_1(text, x, y, maxWidth) => _blink.Native_CanvasRenderingContext2D__strokeText_1_Callback(this, text, x, y, maxWidth);
-
-  void _strokeText_2(text, x, y) => _blink.Native_CanvasRenderingContext2D__strokeText_2_Callback(this, text, x, y);
+  void strokeText(String text, num x, num y, [num maxWidth]) => _blink.Native_CanvasRenderingContext2D_strokeText(this, text, x, y, maxWidth);
 
   @DomName('CanvasRenderingContext2D.transform')
   @DocsEditable()
@@ -2181,21 +1996,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental()
   ImageData getImageDataHD(num sx, num sy, num sw, num sh) => _blink.Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(this, sx, sy, sw, sh);
 
-  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      _webkitPutImageDataHD_1(imagedata, dx, dy);
-      return;
-    }
-    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
-      _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) => _blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(this, imagedata, dx, dy);
-
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) => _blink.Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) => _blink.Native_CanvasRenderingContext2D_putImageDataHD(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 
 
   /**
@@ -2549,12 +2350,7 @@ class Comment extends CharacterData {
 
   @DomName('Comment.Comment')
   @DocsEditable()
-  factory Comment([String data]) {
-    return Comment._create_1(data);
-  }
-
-  @DocsEditable()
-  static Comment _create_1(data) => _blink.Native_Comment__create_1constructorCallback(data);
+  factory Comment([String data]) => _blink.Native_Comment_Comment(data);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6591,31 +6387,13 @@ class CssStyleSheet extends StyleSheet {
   @Experimental() // non-standard
   List<CssRule> get rules => _blink.Native_CSSStyleSheet_rules_Getter(this);
 
-  int addRule(String selector, String style, [int index]) {
-    if (index != null) {
-      return _addRule_1(selector, style, index);
-    }
-    return _addRule_2(selector, style);
-  }
-
-  int _addRule_1(selector, style, index) => _blink.Native_CSSStyleSheet__addRule_1_Callback(this, selector, style, index);
-
-  int _addRule_2(selector, style) => _blink.Native_CSSStyleSheet__addRule_2_Callback(this, selector, style);
+  int addRule(String selector, String style, [int index]) => _blink.Native_CSSStyleSheet_addRule(this, selector, style, index);
 
   @DomName('CSSStyleSheet.deleteRule')
   @DocsEditable()
   void deleteRule(int index) => _blink.Native_CSSStyleSheet_deleteRule_Callback(this, index);
 
-  int insertRule(String rule, [int index]) {
-    if (index != null) {
-      return _insertRule_1(rule, index);
-    }
-    return _insertRule_2(rule);
-  }
-
-  int _insertRule_1(rule, index) => _blink.Native_CSSStyleSheet__insertRule_1_Callback(this, rule, index);
-
-  int _insertRule_2(rule) => _blink.Native_CSSStyleSheet__insertRule_2_Callback(this, rule);
+  int insertRule(String rule, [int index]) => _blink.Native_CSSStyleSheet_insertRule(this, rule, index);
 
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable()
@@ -6825,18 +6603,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DocsEditable()
   List<String> get types => _blink.Native_Clipboard_types_Getter(this);
 
-  void clearData([String type]) {
-    if (type != null) {
-      _clearData_1(type);
-      return;
-    }
-    _clearData_2();
-    return;
-  }
-
-  void _clearData_1(type) => _blink.Native_Clipboard__clearData_1_Callback(this, type);
-
-  void _clearData_2() => _blink.Native_Clipboard__clearData_2_Callback(this);
+  void clearData([String type]) => _blink.Native_Clipboard_clearData(this, type);
 
   /**
    * Gets the data for the specified type.
@@ -6935,19 +6702,7 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   @Experimental() // untriaged
   DataTransferItem __getter__(int index) => _blink.Native_DataTransferItemList___getter___Callback(this, index);
 
-  DataTransferItem add(data_OR_file, [String type]) {
-    if ((data_OR_file is File || data_OR_file == null) && type == null) {
-      return _add_1(data_OR_file);
-    }
-    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
-      return _add_2(data_OR_file, type);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  DataTransferItem _add_1(data_OR_file) => _blink.Native_DataTransferItemList__add_1_Callback(this, data_OR_file);
-
-  DataTransferItem _add_2(data_OR_file, type) => _blink.Native_DataTransferItemList__add_2_Callback(this, data_OR_file, type);
+  DataTransferItem add(data_OR_file, [String type]) => _blink.Native_DataTransferItemList_add(this, data_OR_file, type);
 
   @DomName('DataTransferItemList.addData')
   @DocsEditable()
@@ -7720,32 +7475,9 @@ class Document extends Node
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => _blink.Native_Document_createElementNS_Callback(this, namespaceURI, qualifiedName, typeExtension);
 
-  Event _createEvent([String eventType]) {
-    if (eventType != null) {
-      return _createEvent_1(eventType);
-    }
-    return _createEvent_2();
-  }
+  Event _createEvent([String eventType]) => _blink.Native_Document__createEvent(this, eventType);
 
-  Event _createEvent_1(eventType) => _blink.Native_Document__createEvent_1_Callback(this, eventType);
-
-  Event _createEvent_2() => _blink.Native_Document__createEvent_2_Callback(this);
-
-  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
-    if (filter != null) {
-      return _createNodeIterator_1(root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return _createNodeIterator_2(root, whatToShow);
-    }
-    return _createNodeIterator_3(root);
-  }
-
-  NodeIterator _createNodeIterator_1(root, whatToShow, filter) => _blink.Native_Document__createNodeIterator_1_Callback(this, root, whatToShow, filter);
-
-  NodeIterator _createNodeIterator_2(root, whatToShow) => _blink.Native_Document__createNodeIterator_2_Callback(this, root, whatToShow);
-
-  NodeIterator _createNodeIterator_3(root) => _blink.Native_Document__createNodeIterator_3_Callback(this, root);
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) => _blink.Native_Document__createNodeIterator(this, root, whatToShow, filter);
 
   @DomName('Document.createRange')
   @DocsEditable()
@@ -7761,21 +7493,7 @@ class Document extends Node
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _blink.Native_Document_createTouch_Callback(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
 
-  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
-    if (filter != null) {
-      return _createTreeWalker_1(root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return _createTreeWalker_2(root, whatToShow);
-    }
-    return _createTreeWalker_3(root);
-  }
-
-  TreeWalker _createTreeWalker_1(root, whatToShow, filter) => _blink.Native_Document__createTreeWalker_1_Callback(this, root, whatToShow, filter);
-
-  TreeWalker _createTreeWalker_2(root, whatToShow) => _blink.Native_Document__createTreeWalker_2_Callback(this, root, whatToShow);
-
-  TreeWalker _createTreeWalker_3(root) => _blink.Native_Document__createTreeWalker_3_Callback(this, root);
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) => _blink.Native_Document__createTreeWalker(this, root, whatToShow, filter);
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -7807,16 +7525,7 @@ class Document extends Node
   @DocsEditable()
   List<Node> getElementsByTagName(String localName) => _blink.Native_Document_getElementsByTagName_Callback(this, localName);
 
-  Node importNode(Node node, [bool deep]) {
-    if (deep != null) {
-      return _importNode_1(node, deep);
-    }
-    return _importNode_2(node);
-  }
-
-  Node _importNode_1(node, deep) => _blink.Native_Document__importNode_1_Callback(this, node, deep);
-
-  Node _importNode_2(node) => _blink.Native_Document__importNode_2_Callback(this, node);
+  Node importNode(Node node, [bool deep]) => _blink.Native_Document_importNode(this, node, deep);
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
@@ -8508,12 +8217,7 @@ class DomParser extends NativeFieldWrapperClass2 {
 
   @DomName('DOMParser.DOMParser')
   @DocsEditable()
-  factory DomParser() {
-    return DomParser._create_1();
-  }
-
-  @DocsEditable()
-  static DomParser _create_1() => _blink.Native_DOMParser__create_1constructorCallback();
+  factory DomParser() => _blink.Native_DOMParser_DomParser();
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
@@ -8631,49 +8335,11 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  bool __delete__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___delete___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___delete___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  bool __delete__(index_OR_name) => _blink.Native_DOMStringMap___delete__(this, index_OR_name);
 
-  bool ___delete___1(index_OR_name) => _blink.Native_DOMStringMap____delete___1_Callback(this, index_OR_name);
+  String __getter__(index_OR_name) => _blink.Native_DOMStringMap___getter__(this, index_OR_name);
 
-  bool ___delete___2(index_OR_name) => _blink.Native_DOMStringMap____delete___2_Callback(this, index_OR_name);
-
-  String __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  String ___getter___1(index_OR_name) => _blink.Native_DOMStringMap____getter___1_Callback(this, index_OR_name);
-
-  String ___getter___2(index_OR_name) => _blink.Native_DOMStringMap____getter___2_Callback(this, index_OR_name);
-
-  void __setter__(index_OR_name, String value) {
-    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
-      ___setter___1(index_OR_name, value);
-      return;
-    }
-    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
-      ___setter___2(index_OR_name, value);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void ___setter___1(index_OR_name, value) => _blink.Native_DOMStringMap____setter___1_Callback(this, index_OR_name, value);
-
-  void ___setter___2(index_OR_name, value) => _blink.Native_DOMStringMap____setter___2_Callback(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) => _blink.Native_DOMStringMap___setter__(this, index_OR_name, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8705,16 +8371,7 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String toString() => _blink.Native_DOMTokenList_toString_Callback(this);
 
-  bool toggle(String token, [bool force]) {
-    if (force != null) {
-      return _toggle_1(token, force);
-    }
-    return _toggle_2(token);
-  }
-
-  bool _toggle_1(token, force) => _blink.Native_DOMTokenList__toggle_1_Callback(this, token, force);
-
-  bool _toggle_2(token) => _blink.Native_DOMTokenList__toggle_2_Callback(this, token);
+  bool toggle(String token, [bool force]) => _blink.Native_DOMTokenList_toggle(this, token, force);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11289,24 +10946,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String get tagName => _blink.Native_Element_tagName_Getter(this);
 
-  Animation animate(List<Map> keyframes, [timingInput]) {
-    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
-      return _animate_1(keyframes, timingInput);
-    }
-    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
-      return _animate_2(keyframes, timingInput);
-    }
-    if ((keyframes is List<Map> || keyframes == null) && timingInput == null) {
-      return _animate_3(keyframes);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Animation _animate_1(keyframes, timingInput) => _blink.Native_Element__animate_1_Callback(this, keyframes, timingInput);
-
-  Animation _animate_2(keyframes, timingInput) => _blink.Native_Element__animate_2_Callback(this, keyframes, timingInput);
-
-  Animation _animate_3(keyframes) => _blink.Native_Element__animate_3_Callback(this, keyframes);
+  Animation animate(List<Map> keyframes, [timingInput]) => _blink.Native_Element_animate(this, keyframes, timingInput);
 
   @DomName('Element.blur')
   @DocsEditable()
@@ -11485,31 +11125,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   void scrollByPages(int pages) => _blink.Native_Element_scrollByPages_Callback(this, pages);
 
-  void _scrollIntoView([bool alignWithTop]) {
-    if (alignWithTop != null) {
-      _scrollIntoView_1(alignWithTop);
-      return;
-    }
-    _scrollIntoView_2();
-    return;
-  }
+  void _scrollIntoView([bool alignWithTop]) => _blink.Native_Element__scrollIntoView(this, alignWithTop);
 
-  void _scrollIntoView_1(alignWithTop) => _blink.Native_Element__scrollIntoView_1_Callback(this, alignWithTop);
-
-  void _scrollIntoView_2() => _blink.Native_Element__scrollIntoView_2_Callback(this);
-
-  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
-    if (centerIfNeeded != null) {
-      _scrollIntoViewIfNeeded_1(centerIfNeeded);
-      return;
-    }
-    _scrollIntoViewIfNeeded_2();
-    return;
-  }
-
-  void _scrollIntoViewIfNeeded_1(centerIfNeeded) => _blink.Native_Element__scrollIntoViewIfNeeded_1_Callback(this, centerIfNeeded);
-
-  void _scrollIntoViewIfNeeded_2() => _blink.Native_Element__scrollIntoViewIfNeeded_2_Callback(this);
+  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) => _blink.Native_Element__scrollIntoViewIfNeeded(this, centerIfNeeded);
 
   @DomName('Element.setAttribute')
   @DocsEditable()
@@ -12113,18 +11731,7 @@ class Entry extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get name => _blink.Native_Entry_name_Getter(this);
 
-  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (name != null) {
-      _copyTo_1(parent, name, successCallback, errorCallback);
-      return;
-    }
-    _copyTo_2(parent);
-    return;
-  }
-
-  void _copyTo_1(parent, name, successCallback, errorCallback) => _blink.Native_Entry__copyTo_1_Callback(this, parent, name, successCallback, errorCallback);
-
-  void _copyTo_2(parent) => _blink.Native_Entry__copyTo_2_Callback(this, parent);
+  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.Native_Entry__copyTo(this, parent, name, successCallback, errorCallback);
 
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12158,18 +11765,7 @@ class Entry extends NativeFieldWrapperClass2 {
     return completer.future;
   }
 
-  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (name != null) {
-      _moveTo_1(parent, name, successCallback, errorCallback);
-      return;
-    }
-    _moveTo_2(parent);
-    return;
-  }
-
-  void _moveTo_1(parent, name, successCallback, errorCallback) => _blink.Native_Entry__moveTo_1_Callback(this, parent, name, successCallback, errorCallback);
-
-  void _moveTo_2(parent) => _blink.Native_Entry__moveTo_2_Callback(this, parent);
+  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.Native_Entry__moveTo(this, parent, name, successCallback, errorCallback);
 
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12484,12 +12080,7 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.EventSource')
   @DocsEditable()
-  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
-    return EventSource._create_1(url, eventSourceInit);
-  }
-
-  @DocsEditable()
-  static EventSource _create_1(url, eventSourceInit) => _blink.Native_EventSource__create_1constructorCallback(url, eventSourceInit);
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) => _blink.Native_EventSource_EventSource(url, eventSourceInit);
 
   @DomName('EventSource.CLOSED')
   @DocsEditable()
@@ -13035,12 +12626,7 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.FileReader')
   @DocsEditable()
-  factory FileReader() {
-    return FileReader._create_1();
-  }
-
-  @DocsEditable()
-  static FileReader _create_1() => _blink.Native_FileReader__create_1constructorCallback();
+  factory FileReader() => _blink.Native_FileReader_FileReader();
 
   @DomName('FileReader.DONE')
   @DocsEditable()
@@ -13078,18 +12664,7 @@ class FileReader extends EventTarget {
   @DocsEditable()
   void readAsDataUrl(Blob blob) => _blink.Native_FileReader_readAsDataURL_Callback(this, blob);
 
-  void readAsText(Blob blob, [String encoding]) {
-    if (encoding != null) {
-      _readAsText_1(blob, encoding);
-      return;
-    }
-    _readAsText_2(blob);
-    return;
-  }
-
-  void _readAsText_1(blob, encoding) => _blink.Native_FileReader__readAsText_1_Callback(this, blob, encoding);
-
-  void _readAsText_2(blob) => _blink.Native_FileReader__readAsText_2_Callback(this, blob);
+  void readAsText(Blob blob, [String encoding]) => _blink.Native_FileReader_readAsText(this, blob, encoding);
 
   @DomName('FileReader.addEventListener')
   @DocsEditable()
@@ -13400,12 +12975,7 @@ class FontFace extends NativeFieldWrapperClass2 {
 
   @DomName('FontFace.FontFace')
   @DocsEditable()
-  factory FontFace(String family, String source, Map descriptors) {
-    return FontFace._create_1(family, source, descriptors);
-  }
-
-  @DocsEditable()
-  static FontFace _create_1(family, source, descriptors) => _blink.Native_FontFace__create_1constructorCallback(family, source, descriptors);
+  factory FontFace(String family, String source, Map descriptors) => _blink.Native_FontFace_FontFace(family, source, descriptors);
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -13532,18 +13102,7 @@ class FontFaceSet extends EventTarget {
   @Experimental() // untriaged
   bool delete(FontFace fontFace) => _blink.Native_FontFaceSet_delete_Callback(this, fontFace);
 
-  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
-    if (thisArg != null) {
-      _forEach_1(callback, thisArg);
-      return;
-    }
-    _forEach_2(callback);
-    return;
-  }
-
-  void _forEach_1(callback, thisArg) => _blink.Native_FontFaceSet__forEach_1_Callback(this, callback, thisArg);
-
-  void _forEach_2(callback) => _blink.Native_FontFaceSet__forEach_2_Callback(this, callback);
+  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) => _blink.Native_FontFaceSet_forEach(this, callback, thisArg);
 
   @DomName('FontFaceSet.has')
   @DocsEditable()
@@ -17096,60 +16655,13 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   void setCustomValidity(String error) => _blink.Native_HTMLInputElement_setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
-    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
-      _setRangeText_1(replacement);
-      return;
-    }
-    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
-      _setRangeText_2(replacement, start, end, selectionMode);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.Native_HTMLInputElement_setRangeText(this, replacement, start, end, selectionMode);
 
-  void _setRangeText_1(replacement) => _blink.Native_HTMLInputElement__setRangeText_1_Callback(this, replacement);
+  void setSelectionRange(int start, int end, [String direction]) => _blink.Native_HTMLInputElement_setSelectionRange(this, start, end, direction);
 
-  void _setRangeText_2(replacement, start, end, selectionMode) => _blink.Native_HTMLInputElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+  void stepDown([int n]) => _blink.Native_HTMLInputElement_stepDown(this, n);
 
-  void setSelectionRange(int start, int end, [String direction]) {
-    if (direction != null) {
-      _setSelectionRange_1(start, end, direction);
-      return;
-    }
-    _setSelectionRange_2(start, end);
-    return;
-  }
-
-  void _setSelectionRange_1(start, end, direction) => _blink.Native_HTMLInputElement__setSelectionRange_1_Callback(this, start, end, direction);
-
-  void _setSelectionRange_2(start, end) => _blink.Native_HTMLInputElement__setSelectionRange_2_Callback(this, start, end);
-
-  void stepDown([int n]) {
-    if (n != null) {
-      _stepDown_1(n);
-      return;
-    }
-    _stepDown_2();
-    return;
-  }
-
-  void _stepDown_1(n) => _blink.Native_HTMLInputElement__stepDown_1_Callback(this, n);
-
-  void _stepDown_2() => _blink.Native_HTMLInputElement__stepDown_2_Callback(this);
-
-  void stepUp([int n]) {
-    if (n != null) {
-      _stepUp_1(n);
-      return;
-    }
-    _stepUp_2();
-    return;
-  }
-
-  void _stepUp_1(n) => _blink.Native_HTMLInputElement__stepUp_1_Callback(this, n);
-
-  void _stepUp_2() => _blink.Native_HTMLInputElement__stepUp_2_Callback(this);
+  void stepUp([int n]) => _blink.Native_HTMLInputElement_stepUp(this, n);
 
   /// Stream of `speechchange` events handled by this [InputElement].
   @DomName('HTMLInputElement.onwebkitSpeechChange')
@@ -18416,12 +17928,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.MediaController')
   @DocsEditable()
-  factory MediaController() {
-    return MediaController._create_1();
-  }
-
-  @DocsEditable()
-  static MediaController _create_1() => _blink.Native_MediaController__create_1constructorCallback();
+  factory MediaController() => _blink.Native_MediaController_MediaController();
 
   @DomName('MediaController.buffered')
   @DocsEditable()
@@ -19022,21 +18529,7 @@ class MediaElement extends HtmlElement {
   @Experimental() // nonstandard
   int get videoDecodedByteCount => _blink.Native_HTMLMediaElement_webkitVideoDecodedByteCount_Getter(this);
 
-  TextTrack addTextTrack(String kind, [String label, String language]) {
-    if (language != null) {
-      return _addTextTrack_1(kind, label, language);
-    }
-    if (label != null) {
-      return _addTextTrack_2(kind, label);
-    }
-    return _addTextTrack_3(kind);
-  }
-
-  TextTrack _addTextTrack_1(kind, label, language) => _blink.Native_HTMLMediaElement__addTextTrack_1_Callback(this, kind, label, language);
-
-  TextTrack _addTextTrack_2(kind, label) => _blink.Native_HTMLMediaElement__addTextTrack_2_Callback(this, kind, label);
-
-  TextTrack _addTextTrack_3(kind) => _blink.Native_HTMLMediaElement__addTextTrack_3_Callback(this, kind);
+  TextTrack addTextTrack(String kind, [String label, String language]) => _blink.Native_HTMLMediaElement_addTextTrack(this, kind, label, language);
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable()
@@ -19060,18 +18553,7 @@ class MediaElement extends HtmlElement {
   @Experimental() // untriaged
   void setMediaKeys(MediaKeys mediaKeys) => _blink.Native_HTMLMediaElement_setMediaKeys_Callback(this, mediaKeys);
 
-  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
-    if (initData != null) {
-      _webkitAddKey_1(keySystem, key, initData, sessionId);
-      return;
-    }
-    _webkitAddKey_2(keySystem, key);
-    return;
-  }
-
-  void _webkitAddKey_1(keySystem, key, initData, sessionId) => _blink.Native_HTMLMediaElement__webkitAddKey_1_Callback(this, keySystem, key, initData, sessionId);
-
-  void _webkitAddKey_2(keySystem, key) => _blink.Native_HTMLMediaElement__webkitAddKey_2_Callback(this, keySystem, key);
+  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) => _blink.Native_HTMLMediaElement_addKey(this, keySystem, key, initData, sessionId);
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable()
@@ -19081,18 +18563,7 @@ class MediaElement extends HtmlElement {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
   void cancelKeyRequest(String keySystem, String sessionId) => _blink.Native_HTMLMediaElement_webkitCancelKeyRequest_Callback(this, keySystem, sessionId);
 
-  void generateKeyRequest(String keySystem, [Uint8List initData]) {
-    if (initData != null) {
-      _webkitGenerateKeyRequest_1(keySystem, initData);
-      return;
-    }
-    _webkitGenerateKeyRequest_2(keySystem);
-    return;
-  }
-
-  void _webkitGenerateKeyRequest_1(keySystem, initData) => _blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(this, keySystem, initData);
-
-  void _webkitGenerateKeyRequest_2(keySystem) => _blink.Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(this, keySystem);
+  void generateKeyRequest(String keySystem, [Uint8List initData]) => _blink.Native_HTMLMediaElement_generateKeyRequest(this, keySystem, initData);
 
   /// Stream of `canplay` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplay')
@@ -19479,12 +18950,7 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 
   @DomName('MediaKeys.MediaKeys')
   @DocsEditable()
-  factory MediaKeys(String keySystem) {
-    return MediaKeys._create_1(keySystem);
-  }
-
-  @DocsEditable()
-  static MediaKeys _create_1(keySystem) => _blink.Native_MediaKeys__create_1constructorCallback(keySystem);
+  factory MediaKeys(String keySystem) => _blink.Native_MediaKeys_MediaKeys(keySystem);
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
@@ -19574,12 +19040,7 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.MediaSource')
   @DocsEditable()
-  factory MediaSource() {
-    return MediaSource._create_1();
-  }
-
-  @DocsEditable()
-  static MediaSource _create_1() => _blink.Native_MediaSource__create_1constructorCallback();
+  factory MediaSource() => _blink.Native_MediaSource_MediaSource();
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()
@@ -19605,18 +19066,7 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   SourceBuffer addSourceBuffer(String type) => _blink.Native_MediaSource_addSourceBuffer_Callback(this, type);
 
-  void endOfStream([String error]) {
-    if (error != null) {
-      _endOfStream_1(error);
-      return;
-    }
-    _endOfStream_2();
-    return;
-  }
-
-  void _endOfStream_1(error) => _blink.Native_MediaSource__endOfStream_1_Callback(this, error);
-
-  void _endOfStream_2() => _blink.Native_MediaSource__endOfStream_2_Callback(this);
+  void endOfStream([String error]) => _blink.Native_MediaSource_endOfStream(this, error);
 
   @DomName('MediaSource.isTypeSupported')
   @DocsEditable()
@@ -19684,27 +19134,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable()
-  factory MediaStream([stream_OR_tracks]) {
-    if (stream_OR_tracks == null) {
-      return MediaStream._create_1();
-    }
-    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
-      return MediaStream._create_2(stream_OR_tracks);
-    }
-    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
-      return MediaStream._create_3(stream_OR_tracks);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DocsEditable()
-  static MediaStream _create_1() => _blink.Native_MediaStream__create_1constructorCallback();
-
-  @DocsEditable()
-  static MediaStream _create_2(stream_OR_tracks) => _blink.Native_MediaStream__create_2constructorCallback(stream_OR_tracks);
-
-  @DocsEditable()
-  static MediaStream _create_3(stream_OR_tracks) => _blink.Native_MediaStream__create_3constructorCallback(stream_OR_tracks);
+  factory MediaStream([stream_OR_tracks]) => _blink.Native_MediaStream_MediaStream(stream_OR_tracks);
 
   @DomName('MediaStream.ended')
   @DocsEditable()
@@ -20480,18 +19910,7 @@ class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
-  void send(Uint8List data, [num timestamp]) {
-    if (timestamp != null) {
-      _send_1(data, timestamp);
-      return;
-    }
-    _send_2(data);
-    return;
-  }
-
-  void _send_1(data, timestamp) => _blink.Native_MIDIOutput__send_1_Callback(this, data, timestamp);
-
-  void _send_2(data) => _blink.Native_MIDIOutput__send_2_Callback(this, data);
+  void send(Uint8List data, [num timestamp]) => _blink.Native_MIDIOutput_send(this, data, timestamp);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22171,12 +21590,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.Notification')
   @DocsEditable()
-  static Notification _factoryNotification(String title, [Map options]) {
-    return Notification._create_1(title, options);
-  }
-
-  @DocsEditable()
-  static Notification _create_1(title, options) => _blink.Native_Notification__create_1constructorCallback(title, options);
+  static Notification _factoryNotification(String title, [Map options]) => _blink.Native_Notification_Notification(title, options);
 
   @DomName('Notification.body')
   @DocsEditable()
@@ -22483,12 +21897,7 @@ class OptionElement extends HtmlElement {
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
-  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
-    return OptionElement._create_1(data, value, defaultSelected, selected);
-  }
-
-  @DocsEditable()
-  static OptionElement _create_1(data, value, defaultSelected, selected) => _blink.Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected);
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) => _blink.Native_HTMLOptionElement_OptionElement__(data, value, defaultSelected, selected);
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22812,27 +22221,7 @@ class Path extends NativeFieldWrapperClass2 {
 
   @DomName('Path.Path')
   @DocsEditable()
-  factory Path([path_OR_text]) {
-    if (path_OR_text == null) {
-      return Path._create_1();
-    }
-    if ((path_OR_text is Path || path_OR_text == null)) {
-      return Path._create_2(path_OR_text);
-    }
-    if ((path_OR_text is String || path_OR_text == null)) {
-      return Path._create_3(path_OR_text);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DocsEditable()
-  static Path _create_1() => _blink.Native_Path__create_1constructorCallback();
-
-  @DocsEditable()
-  static Path _create_2(path_OR_text) => _blink.Native_Path__create_2constructorCallback(path_OR_text);
-
-  @DocsEditable()
-  static Path _create_3(path_OR_text) => _blink.Native_Path__create_3constructorCallback(path_OR_text);
+  factory Path([path_OR_text]) => _blink.Native_Path_Path(path_OR_text);
 
   @DomName('Path.arc')
   @DocsEditable()
@@ -24080,33 +23469,7 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   void close() => _blink.Native_RTCDataChannel_close_Callback(this);
 
-  void send(data) {
-    if ((data is TypedData || data == null)) {
-      _send_1(data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null)) {
-      _send_2(data);
-      return;
-    }
-    if ((data is Blob || data == null)) {
-      _send_3(data);
-      return;
-    }
-    if ((data is String || data == null)) {
-      _send_4(data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _send_1(data) => _blink.Native_RTCDataChannel__send_1_Callback(this, data);
-
-  void _send_2(data) => _blink.Native_RTCDataChannel__send_2_Callback(this, data);
-
-  void _send_3(data) => _blink.Native_RTCDataChannel__send_3_Callback(this, data);
-
-  void _send_4(data) => _blink.Native_RTCDataChannel__send_4_Callback(this, data);
+  void send(data) => _blink.Native_RTCDataChannel_send(this, data);
 
   @DomName('RTCDataChannel.sendBlob')
   @DocsEditable()
@@ -24222,24 +23585,7 @@ class RtcDtmfSender extends EventTarget {
   @DocsEditable()
   MediaStreamTrack get track => _blink.Native_RTCDTMFSender_track_Getter(this);
 
-  void insertDtmf(String tones, [int duration, int interToneGap]) {
-    if (interToneGap != null) {
-      _insertDTMF_1(tones, duration, interToneGap);
-      return;
-    }
-    if (duration != null) {
-      _insertDTMF_2(tones, duration);
-      return;
-    }
-    _insertDTMF_3(tones);
-    return;
-  }
-
-  void _insertDTMF_1(tones, duration, interToneGap) => _blink.Native_RTCDTMFSender__insertDTMF_1_Callback(this, tones, duration, interToneGap);
-
-  void _insertDTMF_2(tones, duration) => _blink.Native_RTCDTMFSender__insertDTMF_2_Callback(this, tones, duration);
-
-  void _insertDTMF_3(tones) => _blink.Native_RTCDTMFSender__insertDTMF_3_Callback(this, tones);
+  void insertDtmf(String tones, [int duration, int interToneGap]) => _blink.Native_RTCDTMFSender_insertDtmf(this, tones, duration, interToneGap);
 
   @DomName('RTCDTMFSender.addEventListener')
   @DocsEditable()
@@ -24297,12 +23643,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
 
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
-  factory RtcIceCandidate(Map dictionary) {
-    return RtcIceCandidate._create_1(dictionary);
-  }
-
-  @DocsEditable()
-  static RtcIceCandidate _create_1(dictionary) => _blink.Native_RTCIceCandidate__create_1constructorCallback(dictionary);
+  factory RtcIceCandidate(Map dictionary) => _blink.Native_RTCIceCandidate_RtcIceCandidate(dictionary);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -24450,12 +23791,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable()
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
-  }
-
-  @DocsEditable()
-  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => _blink.Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints);
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _blink.Native_RTCPeerConnection_RtcPeerConnection(rtcIceServers, mediaConstraints);
 
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
@@ -24619,12 +23955,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 
   @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable()
-  factory RtcSessionDescription([Map descriptionInitDict]) {
-    return RtcSessionDescription._create_1(descriptionInitDict);
-  }
-
-  @DocsEditable()
-  static RtcSessionDescription _create_1(descriptionInitDict) => _blink.Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict);
+  factory RtcSessionDescription([Map descriptionInitDict]) => _blink.Native_RTCSessionDescription_RtcSessionDescription(descriptionInitDict);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
@@ -24772,19 +24103,7 @@ class Screen extends EventTarget {
   @DocsEditable()
   int get width => _blink.Native_Screen_width_Getter(this);
 
-  bool lockOrientation(orientation_OR_orientations) {
-    if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
-      return _lockOrientation_1(orientation_OR_orientations);
-    }
-    if ((orientation_OR_orientations is List<String> || orientation_OR_orientations == null)) {
-      return _lockOrientation_2(orientation_OR_orientations);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  bool _lockOrientation_1(orientation_OR_orientations) => _blink.Native_Screen__lockOrientation_1_Callback(this, orientation_OR_orientations);
-
-  bool _lockOrientation_2(orientation_OR_orientations) => _blink.Native_Screen__lockOrientation_2_Callback(this, orientation_OR_orientations);
+  bool lockOrientation(orientation_OR_orientations) => _blink.Native_Screen_lockOrientation(this, orientation_OR_orientations);
 
   @DomName('Screen.unlockOrientation')
   @DocsEditable()
@@ -25414,12 +24733,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
-  factory SharedWorker(String scriptURL, [String name]) {
-    return SharedWorker._create_1(scriptURL, name);
-  }
-
-  @DocsEditable()
-  static SharedWorker _create_1(scriptURL, name) => _blink.Native_SharedWorker__create_1constructorCallback(scriptURL, name);
+  factory SharedWorker(String scriptURL, [String name]) => _blink.Native_SharedWorker_SharedWorker(scriptURL, name);
 
   @DomName('SharedWorker.port')
   @DocsEditable()
@@ -25559,18 +24873,7 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) => _blink.Native_SourceBuffer_appendBuffer_Callback(this, data);
 
-  void appendStream(FileStream stream, [int maxSize]) {
-    if (maxSize != null) {
-      _appendStream_1(stream, maxSize);
-      return;
-    }
-    _appendStream_2(stream);
-    return;
-  }
-
-  void _appendStream_1(stream, maxSize) => _blink.Native_SourceBuffer__appendStream_1_Callback(this, stream, maxSize);
-
-  void _appendStream_2(stream) => _blink.Native_SourceBuffer__appendStream_2_Callback(this, stream);
+  void appendStream(FileStream stream, [int maxSize]) => _blink.Native_SourceBuffer_appendStream(this, stream, maxSize);
 
   @DomName('SourceBuffer.appendTypedData')
   @DocsEditable()
@@ -25804,12 +25107,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable()
-  factory SpeechGrammar() {
-    return SpeechGrammar._create_1();
-  }
-
-  @DocsEditable()
-  static SpeechGrammar _create_1() => _blink.Native_SpeechGrammar__create_1constructorCallback();
+  factory SpeechGrammar() => _blink.Native_SpeechGrammar_SpeechGrammar();
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -25845,12 +25143,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
-  factory SpeechGrammarList() {
-    return SpeechGrammarList._create_1();
-  }
-
-  @DocsEditable()
-  static SpeechGrammarList _create_1() => _blink.Native_SpeechGrammarList__create_1constructorCallback();
+  factory SpeechGrammarList() => _blink.Native_SpeechGrammarList_SpeechGrammarList();
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -25902,31 +25195,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(String string, [num weight]) {
-    if (weight != null) {
-      _addFromString_1(string, weight);
-      return;
-    }
-    _addFromString_2(string);
-    return;
-  }
+  void addFromString(String string, [num weight]) => _blink.Native_SpeechGrammarList_addFromString(this, string, weight);
 
-  void _addFromString_1(string, weight) => _blink.Native_SpeechGrammarList__addFromString_1_Callback(this, string, weight);
-
-  void _addFromString_2(string) => _blink.Native_SpeechGrammarList__addFromString_2_Callback(this, string);
-
-  void addFromUri(String src, [num weight]) {
-    if (weight != null) {
-      _addFromUri_1(src, weight);
-      return;
-    }
-    _addFromUri_2(src);
-    return;
-  }
-
-  void _addFromUri_1(src, weight) => _blink.Native_SpeechGrammarList__addFromUri_1_Callback(this, src, weight);
-
-  void _addFromUri_2(src) => _blink.Native_SpeechGrammarList__addFromUri_2_Callback(this, src);
+  void addFromUri(String src, [num weight]) => _blink.Native_SpeechGrammarList_addFromUri(this, src, weight);
 
   @DomName('SpeechGrammarList.item')
   @DocsEditable()
@@ -26105,12 +25376,7 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable()
-  factory SpeechRecognition() {
-    return SpeechRecognition._create_1();
-  }
-
-  @DocsEditable()
-  static SpeechRecognition _create_1() => _blink.Native_SpeechRecognition__create_1constructorCallback();
+  factory SpeechRecognition() => _blink.Native_SpeechRecognition_SpeechRecognition();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -26525,12 +25791,7 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable()
-  factory SpeechSynthesisUtterance([String text]) {
-    return SpeechSynthesisUtterance._create_1(text);
-  }
-
-  @DocsEditable()
-  static SpeechSynthesisUtterance _create_1(text) => _blink.Native_SpeechSynthesisUtterance__create_1constructorCallback(text);
+  factory SpeechSynthesisUtterance([String text]) => _blink.Native_SpeechSynthesisUtterance_SpeechSynthesisUtterance(text);
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
@@ -26761,49 +26022,11 @@ class Storage extends NativeFieldWrapperClass2
   @DocsEditable()
   int get _length => _blink.Native_Storage_length_Getter(this);
 
-  bool __delete__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___delete___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___delete___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  bool __delete__(index_OR_name) => _blink.Native_Storage___delete__(this, index_OR_name);
 
-  bool ___delete___1(index_OR_name) => _blink.Native_Storage____delete___1_Callback(this, index_OR_name);
+  String __getter__(index_OR_name) => _blink.Native_Storage___getter__(this, index_OR_name);
 
-  bool ___delete___2(index_OR_name) => _blink.Native_Storage____delete___2_Callback(this, index_OR_name);
-
-  String __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  String ___getter___1(index_OR_name) => _blink.Native_Storage____getter___1_Callback(this, index_OR_name);
-
-  String ___getter___2(index_OR_name) => _blink.Native_Storage____getter___2_Callback(this, index_OR_name);
-
-  void __setter__(index_OR_name, String value) {
-    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
-      ___setter___1(index_OR_name, value);
-      return;
-    }
-    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
-      ___setter___2(index_OR_name, value);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void ___setter___1(index_OR_name, value) => _blink.Native_Storage____setter___1_Callback(this, index_OR_name, value);
-
-  void ___setter___2(index_OR_name, value) => _blink.Native_Storage____setter___2_Callback(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) => _blink.Native_Storage___setter__(this, index_OR_name, value);
 
   @DomName('Storage.clear')
   @DocsEditable()
@@ -27688,34 +26911,9 @@ class TextAreaElement extends HtmlElement {
   @DocsEditable()
   void setCustomValidity(String error) => _blink.Native_HTMLTextAreaElement_setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
-    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
-      _setRangeText_1(replacement);
-      return;
-    }
-    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
-      _setRangeText_2(replacement, start, end, selectionMode);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.Native_HTMLTextAreaElement_setRangeText(this, replacement, start, end, selectionMode);
 
-  void _setRangeText_1(replacement) => _blink.Native_HTMLTextAreaElement__setRangeText_1_Callback(this, replacement);
-
-  void _setRangeText_2(replacement, start, end, selectionMode) => _blink.Native_HTMLTextAreaElement__setRangeText_2_Callback(this, replacement, start, end, selectionMode);
-
-  void setSelectionRange(int start, int end, [String direction]) {
-    if (direction != null) {
-      _setSelectionRange_1(start, end, direction);
-      return;
-    }
-    _setSelectionRange_2(start, end);
-    return;
-  }
-
-  void _setSelectionRange_1(start, end, direction) => _blink.Native_HTMLTextAreaElement__setSelectionRange_1_Callback(this, start, end, direction);
-
-  void _setSelectionRange_2(start, end) => _blink.Native_HTMLTextAreaElement__setSelectionRange_2_Callback(this, start, end);
+  void setSelectionRange(int start, int end, [String direction]) => _blink.Native_HTMLTextAreaElement_setSelectionRange(this, start, end, direction);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28961,34 +28159,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('URL._createObjectUrlFromWebKitSource')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) => _blink.Native_URL__createObjectUrlFromWebKitSource_Callback(source);
-
-  static String createObjectUrl(blob_OR_source_OR_stream) {
-    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_1(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_2(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_3(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_4(blob_OR_source_OR_stream);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  static String _createObjectURL_1(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
-
-  static String _createObjectURL_2(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
-
-  static String _createObjectURL_3(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
-
-  static String _createObjectURL_4(blob_OR_source_OR_stream) => _blink.Native_URL__createObjectURL_4_Callback(blob_OR_source_OR_stream);
+  static String createObjectUrl(blob_OR_source_OR_stream) => _blink.Native_URL_createObjectUrl(blob_OR_source_OR_stream);
 
   @DomName('URL.createObjectUrlFromBlob')
   @DocsEditable()
@@ -29506,12 +28677,7 @@ class VttCue extends TextTrackCue {
 
   @DomName('VTTCue.VTTCue')
   @DocsEditable()
-  factory VttCue(num startTime, num endTime, String text) {
-    return VttCue._create_1(startTime, endTime, text);
-  }
-
-  @DocsEditable()
-  static VttCue _create_1(startTime, endTime, text) => _blink.Native_VTTCue__create_1constructorCallback(startTime, endTime, text);
+  factory VttCue(num startTime, num endTime, String text) => _blink.Native_VTTCue_VttCue(startTime, endTime, text);
 
   @DomName('VTTCue.align')
   @DocsEditable()
@@ -29615,12 +28781,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
 
   @DomName('VTTRegion.VTTRegion')
   @DocsEditable()
-  factory VttRegion() {
-    return VttRegion._create_1();
-  }
-
-  @DocsEditable()
-  static VttRegion _create_1() => _blink.Native_VTTRegion__create_1constructorCallback();
+  factory VttRegion() => _blink.Native_VTTRegion_VttRegion();
 
   @DomName('VTTRegion.height')
   @DocsEditable()
@@ -29832,27 +28993,7 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.WebSocket')
   @DocsEditable()
-  factory WebSocket(String url, [protocol_OR_protocols]) {
-    if ((url is String || url == null) && protocol_OR_protocols == null) {
-      return WebSocket._create_1(url);
-    }
-    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return WebSocket._create_2(url, protocol_OR_protocols);
-    }
-    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return WebSocket._create_3(url, protocol_OR_protocols);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DocsEditable()
-  static WebSocket _create_1(url) => _blink.Native_WebSocket__create_1constructorCallback(url);
-
-  @DocsEditable()
-  static WebSocket _create_2(url, protocol_OR_protocols) => _blink.Native_WebSocket__create_2constructorCallback(url, protocol_OR_protocols);
-
-  @DocsEditable()
-  static WebSocket _create_3(url, protocol_OR_protocols) => _blink.Native_WebSocket__create_3constructorCallback(url, protocol_OR_protocols);
+  factory WebSocket(String url, [protocol_OR_protocols]) => _blink.Native_WebSocket_WebSocket(url, protocol_OR_protocols);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29901,24 +29042,7 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   String get url => _blink.Native_WebSocket_url_Getter(this);
 
-  void close([int code, String reason]) {
-    if (reason != null) {
-      _close_1(code, reason);
-      return;
-    }
-    if (code != null) {
-      _close_2(code);
-      return;
-    }
-    _close_3();
-    return;
-  }
-
-  void _close_1(code, reason) => _blink.Native_WebSocket__close_1_Callback(this, code, reason);
-
-  void _close_2(code) => _blink.Native_WebSocket__close_2_Callback(this, code);
-
-  void _close_3() => _blink.Native_WebSocket__close_3_Callback(this);
+  void close([int code, String reason]) => _blink.Native_WebSocket_close(this, code, reason);
 
   /**
    * Transmit data to the server over this connection.
@@ -30964,19 +30088,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   WindowBase get window => _blink.Native_Window_window_Getter(this);
 
-  WindowBase __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  WindowBase ___getter___1(index_OR_name) => _blink.Native_Window____getter___1_Callback(this, index_OR_name);
-
-  WindowBase ___getter___2(index_OR_name) => _blink.Native_Window____getter___2_Callback(this, index_OR_name);
+  WindowBase __getter__(index_OR_name) => _blink.Native_Window___getter__(this, index_OR_name);
 
   /**
    * Displays a modal alert to the user.
@@ -31805,12 +30917,7 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.Worker')
   @DocsEditable()
-  factory Worker(String scriptUrl) {
-    return Worker._create_1(scriptUrl);
-  }
-
-  @DocsEditable()
-  static Worker _create_1(scriptUrl) => _blink.Native_Worker__create_1constructorCallback(scriptUrl);
+  factory Worker(String scriptUrl) => _blink.Native_Worker_Worker(scriptUrl);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -32109,12 +31216,7 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
 
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable()
-  factory XPathEvaluator() {
-    return XPathEvaluator._create_1();
-  }
-
-  @DocsEditable()
-  static XPathEvaluator _create_1() => _blink.Native_XPathEvaluator__create_1constructorCallback();
+  factory XPathEvaluator() => _blink.Native_XPathEvaluator_XPathEvaluator();
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
@@ -32293,12 +31395,7 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
 
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable()
-  factory XmlSerializer() {
-    return XmlSerializer._create_1();
-  }
-
-  @DocsEditable()
-  static XmlSerializer _create_1() => _blink.Native_XMLSerializer__create_1constructorCallback();
+  factory XmlSerializer() => _blink.Native_XMLSerializer_XmlSerializer();
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -32324,12 +31421,7 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
 
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable()
-  factory XsltProcessor() {
-    return XsltProcessor._create_1();
-  }
-
-  @DocsEditable()
-  static XsltProcessor _create_1() => _blink.Native_XSLTProcessor__create_1constructorCallback();
+  factory XsltProcessor() => _blink.Native_XSLTProcessor_XsltProcessor();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -33013,12 +32105,7 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable()
-  factory _FileReaderSync() {
-    return _FileReaderSync._create_1();
-  }
-
-  @DocsEditable()
-  static _FileReaderSync _create_1() => _blink.Native_FileReaderSync__create_1constructorCallback();
+  factory _FileReaderSync() => _blink.Native_FileReaderSync__FileReaderSync();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33756,12 +32843,7 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable()
-  factory _WebKitCSSMatrix([String cssValue]) {
-    return _WebKitCSSMatrix._create_1(cssValue);
-  }
-
-  @DocsEditable()
-  static _WebKitCSSMatrix _create_1(cssValue) => _blink.Native_WebKitCSSMatrix__create_1constructorCallback(cssValue);
+  factory _WebKitCSSMatrix([String cssValue]) => _blink.Native_WebKitCSSMatrix__WebKitCSSMatrix(cssValue);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33796,12 +32878,7 @@ abstract class _WebKitMediaSource extends EventTarget {
 
   @DomName('WebKitMediaSource.WebKitMediaSource')
   @DocsEditable()
-  factory _WebKitMediaSource() {
-    return _WebKitMediaSource._create_1();
-  }
-
-  @DocsEditable()
-  static _WebKitMediaSource _create_1() => _blink.Native_WebKitMediaSource__create_1constructorCallback();
+  factory _WebKitMediaSource() => _blink.Native_WebKitMediaSource__WebKitMediaSource();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38864,7 +37941,7 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   String remove(String key) => _blink.Native_DOMStringMap_remove(this, key);
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this, keys);
+  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this);
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
