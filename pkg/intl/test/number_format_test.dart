@@ -15,7 +15,7 @@ import 'dart:math';
 /**
  * Tests the Numeric formatting library in dart.
  */
-var testNumbers = {
+var testNumbersWeCanReadBack = {
   "0.001": 0.001,
   "0.01": 0.01,
   "0.1": 0.1,
@@ -32,7 +32,23 @@ var testNumbers = {
   "NaN": double.NAN,
   "∞": double.INFINITY,
   "-∞": double.NEGATIVE_INFINITY,
-  "3.142": PI};
+};
+
+/** Test numbers that we can't parse because we lose precision in formatting.*/
+var testNumbersWeCannotReadBack = {
+  "3.142" : PI,
+  };
+
+/** Test numbers that won't work in Javascript because they're too big. */
+var testNumbersOnlyForTheVM = {
+  "10,000,000,000,000,000,000,000,000,000,000" :
+      10000000000000000000000000000000,
+};
+
+get allTestNumbers =>
+    new Map.from(testNumbersWeCanReadBack)
+      ..addAll(testNumbersWeCannotReadBack)
+      ..addAll(inJavaScript() ? {} : testNumbersOnlyForTheVM);
 
 var testExponential = const {
   "1E-3" : 0.001,
@@ -51,14 +67,11 @@ List<NumberFormat> standardFormats(String locale) {
           ];
 }
 
+// Pay no attention to the hint. This is here deliberately to have different
+// behavior in the Dart VM versus Javascript so we can distinguish the two.
 inJavaScript() => 1 is double;
 
 main() {
-  if (!inJavaScript()) {
-    testNumbers["10,000,000,000,000,000,000,000,000,000,000"] =
-        10000000000000000000000000000000;
-  }
-
   // For data from a list of locales, run each locale's data as a separate
   // test so we can see exactly which ones pass or fail.
   var mainList = numberTestData;
@@ -75,15 +88,26 @@ main() {
         var formatted = format.format(123);
         var expected = (list..moveNext()).current;
         expect(formatted, expected);
+        var readBack = format.parse(formatted);
+        expect(readBack, 123);
       }
     });
   }
 
   test('Simple set of numbers', () {
     var number = new NumberFormat();
-    for (var x in testNumbers.keys) {
-      var formatted = number.format(testNumbers[x]);
+    for (var x in allTestNumbers.keys) {
+      var formatted = number.format(allTestNumbers[x]);
       expect(formatted, x);
+      if (!testNumbersWeCannotReadBack.containsKey(x)) {
+        var readBack = number.parse(formatted);
+        // Even among ones we can read back, we can't test NaN for equality.
+        if (allTestNumbers[x].isNaN) {
+          expect(readBack.isNaN, isTrue);
+        } else {
+          expect(readBack, allTestNumbers[x]);
+        }
+      }
     }
   });
 
@@ -92,6 +116,8 @@ main() {
     for (var x in testExponential.keys) {
       var formatted = number.format(testExponential[x]);
       expect(formatted, x);
+      var readBack = number.parse(formatted);
+      expect(testExponential[x], readBack);
     }
   });
 
@@ -100,15 +126,21 @@ main() {
     var usConvention = new NumberFormat.currencyPattern('en_US', '€');
     var formatted = usConvention.format(amount);
     expect(formatted, '€1,000,000.32');
+    var readBack = usConvention.parse(formatted);
+    expect(readBack, amount);
     var swissConvention = new NumberFormat.currencyPattern('de_CH', r'$');
     formatted = swissConvention.format(amount);
     var nbsp = new String.fromCharCode(0xa0);
     expect(formatted, r"$" + nbsp + "1'000'000.32");
+    readBack = swissConvention.parse(formatted);
+    expect(readBack, amount);
 
     /// Verify we can leave off the currency and it gets filled in.
     var plainSwiss = new NumberFormat.currencyPattern('de_CH');
     formatted = plainSwiss.format(amount);
     expect(formatted, r"CHF" + nbsp + "1'000'000.32");
+    readBack = plainSwiss.parse(formatted);
+    expect(readBack, amount);
 
     // Verify that we can pass null in order to specify the currency symbol
     // but use the default locale.
@@ -116,5 +148,15 @@ main() {
     formatted = defaultLocale.format(amount);
     // We don't know what the exact format will be, but it should have Smurfs.
     expect(formatted.contains('Smurfs'), isTrue);
+    readBack = defaultLocale.parse(formatted);
+    expect(readBack, amount);
+  });
+
+  test('Unparseable', () {
+    var format = new NumberFormat.currencyPattern();
+    expect(() => format.parse("abcdefg"), throwsFormatException);
+    expect(() => format.parse(""), throwsFormatException);
+    expect(() => format.parse("1.0zzz"), throwsFormatException);
+    expect(() => format.parse("-∞+1"), throwsFormatException);
   });
 }
