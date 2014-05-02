@@ -5,6 +5,8 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
+#include <math.h>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
