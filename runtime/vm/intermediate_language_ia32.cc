@@ -4539,8 +4539,7 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
-  if ((kind() == MethodRecognizer::kMathSin) ||
-      (kind() == MethodRecognizer::kMathCos)) {
+  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
     const intptr_t kNumInputs = 1;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
@@ -4552,23 +4551,32 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
     summary->set_out(0, Location::FpuRegisterLocation(XMM1));
     return summary;
   }
-  ASSERT(kind() == MethodRecognizer::kMathSqrt);
+  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
+         (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  if (kind() == MathUnaryInstr::kDoubleSquare) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresFpuRegister());
+  }
   return summary;
 }
 
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (kind() == MethodRecognizer::kMathSqrt) {
+  if (kind() == MathUnaryInstr::kSqrt) {
     __ sqrtsd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    XmmRegister value_reg = locs()->in(0).fpu_reg();
+    __ mulsd(value_reg, value_reg);
+    ASSERT(value_reg == locs()->out(0).fpu_reg());
   } else {
-    ASSERT((kind() == MethodRecognizer::kMathSin) ||
-           (kind() == MethodRecognizer::kMathCos));
+    ASSERT((kind() == MathUnaryInstr::kSin) ||
+           (kind() == MathUnaryInstr::kCos));
     // Save ESP.
     __ movl(locs()->temp(0).reg(), ESP);
     __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());

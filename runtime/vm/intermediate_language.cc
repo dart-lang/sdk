@@ -1362,22 +1362,32 @@ Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kDoubleCid,
                                              left(),
                                              right());
+  if (result == NULL) {
+    result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                               kDoubleCid,
+                                               right(),
+                                               left());
+  }
   if (result != NULL) {
     return result;
   }
 
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kDoubleCid,
-                                             right(),
-                                             left());
-  if (result != NULL) {
-    return result;
+  if ((op_kind() == Token::kMUL) &&
+      (left()->definition() == right()->definition())) {
+    MathUnaryInstr* math_unary =
+        new MathUnaryInstr(MathUnaryInstr::kDoubleSquare,
+                           new Value(left()->definition()),
+                           Isolate::kNoDeoptId);
+    flow_graph->InsertBefore(this, math_unary, NULL, Definition::kValue);
+    return math_unary;
   }
 
   return this;
@@ -3333,14 +3343,27 @@ extern const RuntimeEntry kSinRuntimeEntry(
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
-    case MethodRecognizer::kMathSin:
+    case MathUnaryInstr::kSin:
       return kSinRuntimeEntry;
-    case MethodRecognizer::kMathCos:
+    case MathUnaryInstr::kCos:
       return kCosRuntimeEntry;
     default:
       UNREACHABLE();
   }
   return kSinRuntimeEntry;
+}
+
+
+const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
+  switch (kind) {
+    case kIllegal:       return "illegal";
+    case kSin:           return "sin";
+    case kCos:           return "cos";
+    case kSqrt:          return "sqrt";
+    case kDoubleSquare:  return "double-square";
+  }
+  UNREACHABLE();
+  return "";
 }
 
 

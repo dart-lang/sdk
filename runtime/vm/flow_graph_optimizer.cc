@@ -395,6 +395,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 }
 
 
+// Tries to merge MathUnary operations, in this case sinus and cosinus.
 void FlowGraphOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
   if (!FlowGraphCompiler::SupportsSinCos()) {
@@ -411,8 +412,8 @@ void FlowGraphOptimizer::TryMergeMathUnary(
       continue;
     }
     const intptr_t kind = curr_instr->kind();
-    ASSERT((kind == MethodRecognizer::kMathSin) ||
-           (kind == MethodRecognizer::kMathCos));
+    ASSERT((kind == MathUnaryInstr::kSin) ||
+           (kind == MathUnaryInstr::kCos));
     // Check if there is sin/cos binop with same inputs.
     const intptr_t other_kind = (kind == MethodRecognizer::kMathSin) ?
         MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
@@ -488,8 +489,8 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
         }
       } else if (it.Current()->IsMathUnary()) {
         MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
-        if ((math_unary->kind() == MethodRecognizer::kMathSin) ||
-            (math_unary->kind() == MethodRecognizer::kMathCos)) {
+        if ((math_unary->kind() == MathUnaryInstr::kSin) ||
+            (math_unary->kind() == MathUnaryInstr::kCos)) {
           if (math_unary->HasUses()) {
             sin_cos_merge.Add(math_unary);
           }
@@ -4100,11 +4101,24 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
-      (recognized_kind == MethodRecognizer::kMathSin) ||
-      (recognized_kind == MethodRecognizer::kMathCos)) {
+  MathUnaryInstr::MathUnaryKind unary_kind;
+  switch (recognized_kind) {
+    case MethodRecognizer::kMathSqrt:
+      unary_kind = MathUnaryInstr::kSqrt;
+      break;
+    case MethodRecognizer::kMathSin:
+      unary_kind = MathUnaryInstr::kSin;
+      break;
+    case MethodRecognizer::kMathCos:
+      unary_kind = MathUnaryInstr::kCos;
+      break;
+    default:
+      unary_kind = MathUnaryInstr::kIllegal;
+      break;
+  }
+  if (unary_kind != MathUnaryInstr::kIllegal) {
     MathUnaryInstr* math_unary =
-        new MathUnaryInstr(recognized_kind,
+        new MathUnaryInstr(unary_kind,
                            new Value(call->ArgumentAt(0)),
                            call->deopt_id());
     ReplaceCall(call, math_unary);

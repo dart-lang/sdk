@@ -3512,8 +3512,7 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
-  if ((kind() == MethodRecognizer::kMathSin) ||
-      (kind() == MethodRecognizer::kMathCos)) {
+  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
     const intptr_t kNumInputs = 1;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
@@ -3522,6 +3521,8 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
     summary->set_out(0, Location::FpuRegisterLocation(D0));
     return summary;
   }
+  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
+         (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3533,8 +3534,12 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
 
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (kind() == MethodRecognizer::kMathSqrt) {
+  if (kind() == MathUnaryInstr::kSqrt) {
     __ sqrtd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    DRegister val = locs()->in(0).fpu_reg();
+    DRegister result = locs()->out(0).fpu_reg();
+    __ muld(result, val, val);
   } else {
     __ CallRuntime(TargetFunction(), InputCount());
   }

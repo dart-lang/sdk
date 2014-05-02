@@ -5069,14 +5069,21 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 
 class MathUnaryInstr : public TemplateDefinition<1> {
  public:
-  MathUnaryInstr(MethodRecognizer::Kind kind, Value* value, intptr_t deopt_id)
+  enum MathUnaryKind {
+    kIllegal,
+    kSin,
+    kCos,
+    kSqrt,
+    kDoubleSquare,
+  };
+  MathUnaryInstr(MathUnaryKind kind, Value* value, intptr_t deopt_id)
       : kind_(kind) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
-  MethodRecognizer::Kind kind() const { return kind_; }
+  MathUnaryKind kind() const { return kind_; }
   const RuntimeEntry& TargetFunction() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -5112,8 +5119,10 @@ class MathUnaryInstr : public TemplateDefinition<1> {
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
+  static const char* KindToCString(MathUnaryKind kind);
+
  private:
-  const MethodRecognizer::Kind kind_;
+  const MathUnaryKind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
