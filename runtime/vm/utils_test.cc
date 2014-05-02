@@ -219,4 +219,13 @@ UNIT_TEST_CASE(Endianity) {
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[7]);
 }
 
+
+UNIT_TEST_CASE(DoublesBitEqual) {
+  EXPECT(Utils::DoublesBitEqual(1.0, 1.0));
+  EXPECT(!Utils::DoublesBitEqual(1.0, -1.0));
+  EXPECT(Utils::DoublesBitEqual(0.0, 0.0));
+  EXPECT(!Utils::DoublesBitEqual(0.0, -0.0));
+  EXPECT(Utils::DoublesBitEqual(NAN, NAN));
+}
+
 }  // namespace dart

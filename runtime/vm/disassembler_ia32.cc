@@ -1360,7 +1360,7 @@ int X86Decoder::InstructionDecode(uword pc) {
           Print(" ");
           PrintXmmRegister(regop);
           Print(",");
-          data += PrintRightOperand(data);
+          data += PrintRightXmmOperand(data);
         } else if (f0byte == 0xB1) {
           data += 2;
           data += PrintOperands(f0mnem, OPER_REG_OP_ORDER, data);

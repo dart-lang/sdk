@@ -290,9 +290,14 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
-    Register temp = locs()->temp(0).reg();
-    __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
+    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+      QRegister dst = locs()->out(0).fpu_reg();
+      __ veorq(dst, dst, dst);
+    } else {
+      DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
+      Register temp = locs()->temp(0).reg();
+      __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
+    }
   }
 }
 

@@ -162,13 +162,14 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
+     XmmRegister result = locs()->out(0).fpu_reg();
     if (constant_address() == 0) {
       Register boxed = locs()->temp(0).reg();
-      XmmRegister result = locs()->out(0).fpu_reg();
       __ LoadObjectSafely(boxed, value());
       __ movsd(result, FieldAddress(boxed, Double::value_offset()));
+    } else if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+      __ xorps(result, result);
     } else {
-      XmmRegister result = locs()->out(0).fpu_reg();
       __ movsd(result, Address::Absolute(constant_address()));
     }
   }

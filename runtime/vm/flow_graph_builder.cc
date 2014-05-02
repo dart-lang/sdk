@@ -40,7 +40,6 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
-
 // TODO(srdjan): Allow compiler to add constants as they are encountered in
 // the compilation.
 const double kCommonDoubleConstants[] =
@@ -54,11 +53,7 @@ const double kCommonDoubleConstants[] =
 uword FlowGraphBuilder::FindDoubleConstant(double value) {
   intptr_t len = sizeof(kCommonDoubleConstants) / sizeof(double);  // NOLINT
   for (intptr_t i = 0; i < len; i++) {
-    // Bitwise compare.
-    const int64_t* a = reinterpret_cast<const int64_t*>(&value);
-    const int64_t* b =
-        reinterpret_cast<const int64_t*>(&kCommonDoubleConstants[i]);
-    if (*a == *b) {
+    if (Utils::DoublesBitEqual(value, kCommonDoubleConstants[i])) {
       return reinterpret_cast<uword>(&kCommonDoubleConstants[i]);
     }
   }

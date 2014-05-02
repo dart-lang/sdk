@@ -242,8 +242,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
     XmmRegister result = locs()->out(0).fpu_reg();
-    __ LoadObject(TMP, value(), PP);
-    __ movsd(result, FieldAddress(TMP, Double::value_offset()));
+    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+      __ xorps(result, result);
+    } else {
+      __ LoadObject(TMP, value(), PP);
+      __ movsd(result, FieldAddress(TMP, Double::value_offset()));
+    }
   }
 }
 
