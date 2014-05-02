@@ -9869,15 +9869,39 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   /**
    * Called by the DOM when this element has been inserted into the live
    * document.
+   *
+   * More information can be found in the
+   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-attached-callback)
+   * draft specification.
    */
   @Experimental()
-  void enteredView() {}
+  void attached() {
+    // For the deprecation period, call the old callback.
+    enteredView();
+  }
 
   /**
    * Called by the DOM when this element has been removed from the live
    * document.
+   *
+   * More information can be found in the
+   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-detached-callback)
+   * draft specification.
    */
   @Experimental()
+  void detached() {
+    // For the deprecation period, call the old callback.
+    leftView();
+  }
+
+  /** *Deprecated*: override [attached] instead. */
+  @Experimental()
+  @deprecated
+  void enteredView() {}
+
+  /** *Deprecated*: override [detached] instead. */
+  @Experimental()
+  @deprecated
   void leftView() {}
 
   /**
