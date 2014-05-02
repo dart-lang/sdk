@@ -246,13 +246,23 @@ abstract class RawSecureSocket implements RawSocket {
       {bool sendClientCertificate: false,
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
-    return  _RawSecureSocket.connect(
+    _RawSecureSocket._verifyFields(
         host,
         port,
         certificateName,
-        is_server: false,
-        sendClientCertificate: sendClientCertificate,
-        onBadCertificate: onBadCertificate);
+        false,
+        false,
+        false,
+        sendClientCertificate,
+        onBadCertificate);
+    return RawSocket.connect(host, port)
+        .then((socket) {
+          return secure(socket,
+                        host: host,
+                        sendClientCertificate: sendClientCertificate,
+                        certificateName: certificateName,
+                        onBadCertificate: onBadCertificate);
+        });
   }
 
   /**
