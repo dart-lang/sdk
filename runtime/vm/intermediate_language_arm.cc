@@ -5799,8 +5799,8 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiUntag(shift);
 
   // vshlq takes the shift value from low byte. Deopt if shift is
-  // outside of [0, 127].
-  __ CompareImmediate(shift, 127);
+  // outside of [0, 63].
+  __ CompareImmediate(shift, 63);
   __ b(deopt, GT);
   __ CompareImmediate(shift, 0);
   __ b(deopt, LT);
