@@ -3311,7 +3311,8 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  CompileType* value_type = value()->Type();
+  const intptr_t value_cid = value_type->ToCid();
   const Register value = locs()->in(0).reg();
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
 
@@ -3325,19 +3326,29 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
     Register temp = locs()->temp(0).reg();
-    Label is_smi, done;
-    __ tst(value, ShifterOperand(kSmiTagMask));
-    __ b(&is_smi, EQ);
-    __ CompareClassId(value, kDoubleCid, temp);
-    __ b(deopt, NE);
-    __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
-    __ b(&done);
-    __ Bind(&is_smi);
-    // TODO(regis): Why do we preserve value here but not above?
-    __ mov(IP, ShifterOperand(value, ASR, 1));  // Copy and untag.
-    __ vmovsr(STMP, IP);
-    __ vcvtdi(result, STMP);
-    __ Bind(&done);
+    if (value_type->is_nullable() &&
+        (value_type->ToNullableCid() == kDoubleCid)) {
+      __ CompareImmediate(value, reinterpret_cast<intptr_t>(Object::null()));
+      __ b(deopt, EQ);
+      // It must be double now.
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+    } else {
+      Label is_smi, done;
+      __ tst(value, ShifterOperand(kSmiTagMask));
+      __ b(&is_smi, EQ);
+      __ CompareClassId(value, kDoubleCid, temp);
+      __ b(deopt, NE);
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+      __ b(&done);
+      __ Bind(&is_smi);
+      // TODO(regis): Why do we preserve value here but not above?
+      __ mov(IP, ShifterOperand(value, ASR, 1));  // Copy and untag.
+      __ vmovsr(STMP, IP);
+      __ vcvtdi(result, STMP);
+      __ Bind(&done);
+    }
   }
 }
 

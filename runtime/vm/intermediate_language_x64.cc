@@ -3165,7 +3165,8 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  CompileType* value_type = value()->Type();
+  const intptr_t value_cid = value_type->ToCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out(0).fpu_reg();
 
@@ -3177,17 +3178,27 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
-    Label is_smi, done;
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, &is_smi);
-    __ CompareClassId(value, kDoubleCid);
-    __ j(NOT_EQUAL, deopt);
-    __ movsd(result, FieldAddress(value, Double::value_offset()));
-    __ jmp(&done);
-    __ Bind(&is_smi);
-    __ SmiUntag(value);
-    __ cvtsi2sd(result, value);
-    __ Bind(&done);
+    if (value_type->is_nullable() &&
+        (value_type->ToNullableCid() == kDoubleCid)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ cmpq(value, raw_null);
+      __ j(EQUAL, deopt);
+      // It must be double now.
+      __ movsd(result, FieldAddress(value, Double::value_offset()));
+    } else {
+      Label is_smi, done;
+      __ testq(value, Immediate(kSmiTagMask));
+      __ j(ZERO, &is_smi);
+      __ CompareClassId(value, kDoubleCid);
+      __ j(NOT_EQUAL, deopt);
+      __ movsd(result, FieldAddress(value, Double::value_offset()));
+      __ jmp(&done);
+      __ Bind(&is_smi);
+      __ SmiUntag(value);
+      __ cvtsi2sd(result, value);
+      __ Bind(&done);
+    }
   }
 }
 

@@ -3042,7 +3042,8 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  CompileType* value_type = value()->Type();
+  const intptr_t value_cid = value_type->ToCid();
   const Register value = locs()->in(0).reg();
   const DRegister result = locs()->out(0).fpu_reg();
 
@@ -3055,20 +3056,29 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
-    Label is_smi, done;
+    if (value_type->is_nullable() &&
+        (value_type->ToNullableCid() == kDoubleCid)) {
+      __ BranchEqual(value, reinterpret_cast<int32_t>(Object::null()), deopt);
+      // It must be double now.
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+    } else {
+      Label is_smi, done;
 
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, &is_smi);
-    __ LoadClassId(CMPRES1, value);
-    __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
-    __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
-    __ b(&done);
-    __ Bind(&is_smi);
-    // TODO(regis): Why do we preserve value here but not above?
-    __ sra(TMP, value, 1);
-    __ mtc1(TMP, STMP1);
-    __ cvtdw(result, STMP1);
-    __ Bind(&done);
+      __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+      __ beq(CMPRES1, ZR, &is_smi);
+      __ LoadClassId(CMPRES1, value);
+      __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+      __ b(&done);
+      __ Bind(&is_smi);
+      // TODO(regis): Why do we preserve value here but not above?
+      __ sra(TMP, value, 1);
+      __ mtc1(TMP, STMP1);
+      __ cvtdw(result, STMP1);
+      __ Bind(&done);
+    }
   }
 }
 
