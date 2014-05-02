@@ -21,7 +21,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
     ErrorToken,
     StringScanner,
-    Token;
+    Token,
+    UnmatchedToken,
+    UnterminatedToken;
 
 import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
@@ -274,7 +276,16 @@ class InitialState extends InteractionState {
     int offset = 0;
     List<Node> nodes = <Node>[];
 
-    tokenizeAndHighlight(currentText, offset, trySelection, nodes);
+    String state = '';
+    for (String line in currentText.split(new RegExp('^', multiLine: true))) {
+      List<Node> lineNodes = <Node>[];
+      state =
+          tokenizeAndHighlight(line, state, offset, trySelection, lineNodes);
+      offset += line.length;
+      nodes.add(new SpanElement()
+          ..nodes.addAll(lineNodes)
+          ..classes.add('lineNumber'));
+    }
 
     mainEditorPane
         ..nodes.clear()
@@ -700,50 +711,77 @@ bool computeHasModifier(KeyboardEvent event) {
       event.getModifierState("OS");
 }
 
-void tokenizeAndHighlight(String currentText,
-                          int offset,
-                          TrySelection trySelection,
-                          List<Node> nodes) {
+String tokenizeAndHighlight(String line,
+                            String state,
+                            int start,
+                            TrySelection trySelection,
+                            List<Node> nodes) {
+  String newState = '';
+  int offset = state.length;
+  int adjustedStart = start - state.length;
+
   //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
   //   v         v             v                v
   // do          identifier_abcdefghijklmnopqrst
-  for (Token token = tokenize(currentText);
+  for (Token token = tokenize('$state$line');
        token.kind != EOF_TOKEN;
        token = token.next) {
     int charOffset = token.charOffset;
     int charCount = token.charCount;
 
-    if (charOffset < offset) continue; // Happens for scanner errors.
-
-    Decoration decoration = editor.getDecoration(token);
-
-    Token follow = token.next;
-    if (token is BeginGroupToken) {
-      follow = token.endGroup.next;
+    Token tokenToDecorate = token;
+    if (token is UnterminatedToken && isUnterminatedMultiLineToken(token)) {
+      newState += '${token.start}';
+      continue; // This might not be an error.
+    } else {
+      Token follow = token.next;
+      if (token is BeginGroupToken && token.endGroup != null) {
+        follow = token.endGroup.next;
+      }
+      if (follow is ErrorToken && follow.charOffset == token.charOffset) {
+        if (follow is UnmatchedToken) {
+          newState += '${follow.begin.value}';
+        } else {
+          tokenToDecorate = follow;
+        }
+      }
     }
-    if (follow is ErrorToken) {
-      decoration = editor.getDecoration(follow);
+
+    if (charOffset < offset) {
+      // Happens for scanner errors, or for the [state] prefix.
+      continue;
     }
+
+    Decoration decoration = editor.getDecoration(tokenToDecorate);
 
     if (decoration == null) continue;
 
     // Add a node for text before current token.
-    trySelection.addNodeFromSubstring(offset, charOffset, nodes);
+    trySelection.addNodeFromSubstring(
+        adjustedStart + offset, adjustedStart + charOffset, nodes);
 
     // Add a node for current token.
     trySelection.addNodeFromSubstring(
-        charOffset, charOffset + charCount, nodes, decoration);
+        adjustedStart + charOffset,
+        adjustedStart + charOffset + charCount, nodes, decoration);
 
     offset = charOffset + charCount;
   }
 
   // Add a node for anything after the last (decorated) token.
-  trySelection.addNodeFromSubstring(offset, currentText.length, nodes);
+  trySelection.addNodeFromSubstring(
+      adjustedStart + offset, start + line.length, nodes);
 
-  // Ensure text always ends with a newline.
-  if (!currentText.endsWith('\n')) {
-    nodes.add(new Text('\n'));
-  }
+  return newState;
+}
+
+bool isUnterminatedMultiLineToken(UnterminatedToken token) {
+  return
+      token.start == '/*' ||
+      token.start == "'''" ||
+      token.start == '"""' ||
+      token.start == "r'''" ||
+      token.start == 'r"""';
 }
 
 void normalizeMutationRecord(MutationRecord record, TrySelection selection) {

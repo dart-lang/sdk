@@ -16,6 +16,7 @@ See: http://www.google.com/fonts#UsePlace:use/Collection:Open+Sans:400,600,700,8
 -->
 <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800,300' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="dartlang-style.css">
+<link rel="alternate stylesheet" type="text/css" href="line_numbers.css" title="line_numbers">
 <style>
 a.diagnostic {
   /* position: relative; */
@@ -33,7 +34,7 @@ a:hover.diagnostic span {
   position: absolute;
   /* left: 1em; */
   /* top: 2em; */
-  right: 10px;
+  left: 10px;
 }
 
 .offline {
@@ -148,7 +149,16 @@ a:hover.diagnostic span {
   height: auto;
 }
 
+.mainEditorPane {
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre;
+  max-height: 80vh;
+}
 
+.lineNumber {
+  position: relative;
+}
 </style>
 
 <meta itemprop="name" content="Try Dart!">

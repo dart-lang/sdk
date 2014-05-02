@@ -7,7 +7,8 @@ library trydart.projectServer;
 import 'dart:io';
 
 import 'dart:async' show
-    Future;
+    Future,
+    Stream;
 
 import 'dart:convert' show
     HtmlEscape,
@@ -142,12 +143,6 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     response.statusCode = HttpStatus.NOT_FOUND;
     response.write(htmlInfo('Not Found',
                             'The file "$path" could not be found.'));
-    response.close();
-  }
-
-  redirect(String location) {
-    response.statusCode = HttpStatus.FOUND;
-    response.headers.add(HttpHeaders.LOCATION, location);
     response.close();
   }
 

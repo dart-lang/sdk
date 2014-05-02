@@ -23,13 +23,16 @@ import '../../pkg/expect/lib/expect.dart';
 import '../../pkg/async_helper/lib/async_helper.dart';
 
 const Map<String, String> tests = const <String, String> {
-  '<span><p>//...</p>}</span>': '//...\n}\n',
-  'someText': 'someText\n',
-  '"\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC>"\n',
-  '"\$\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>"\n',
-  '"\$\$4"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4"\n',
-  '"\$\$4 "': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4 "\n',
-  '1e': '<DIAGNOSTIC>1e</DIAGNOSTIC>\n',
+  '<span><p>//...</p>}</span>': '//...\n}',
+  'someText': 'someText',
+  '"\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC>"',
+  '"\$\$"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>"',
+  '"\$\$4"': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4"',
+  '"\$\$4 "': '"<DIAGNOSTIC>\$</DIAGNOSTIC><DIAGNOSTIC>\$</DIAGNOSTIC>4 "',
+  '1e': '<DIAGNOSTIC>1e</DIAGNOSTIC>',
+  'r"""\n\n\'"""': 'r"""\n\n\'"""',
+  '"': '<DIAGNOSTIC>"</DIAGNOSTIC>',
+  '/**\n*/': '/**\n*/',
 };
 
 List<Node> queryDiagnosticNodes() {
@@ -75,8 +78,6 @@ void main() {
   observer = new MutationObserver(interaction.onMutation)
       ..observe(
           mainEditorPane, childList: true, characterData: true, subtree: true);
-
-  mainEditorPane.innerHtml = "<span><p>//...</p>}</span>";
 
   asyncTest(runTests);
 }
