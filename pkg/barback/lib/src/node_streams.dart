@@ -39,6 +39,9 @@ class NodeStreams {
 
   var _previousStatus = NodeStatus.RUNNING;
 
+  /// Whether [this] has been closed.
+  bool get isClosed => onAssetController.isClosed;
+
   NodeStreams() {
     onAssetPool.add(onAssetController.stream);
     onLogPool.add(onLogController.stream);

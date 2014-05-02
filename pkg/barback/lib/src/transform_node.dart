@@ -47,8 +47,7 @@ class TransformNode {
 
   /// How far along [this] is in processing its assets.
   NodeStatus get status {
-    if (_state == _State.NOT_PRIMARY || _state == _State.APPLIED ||
-        _state == _State.DECLARED) {
+    if (_state == _State.APPLIED || _state == _State.DECLARED) {
       return NodeStatus.IDLE;
     }
 
@@ -130,6 +129,7 @@ class TransformNode {
       : transformer = transformer,
         primary = primary {
     _forced = transformer is! DeclaringTransformer;
+    if (_forced) primary.force();
 
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
@@ -146,7 +146,14 @@ class TransformNode {
       _dirty();
     });
 
-    _isPrimary();
+    _declareOutputs().then((_) {
+      if (_forced || _canRunDeclaringEagerly) {
+        _apply();
+      } else {
+        _state = _State.DECLARED;
+        _streams.changeStatus(NodeStatus.IDLE);
+      }
+    });
   }
 
   /// The [TransformInfo] describing this node.
@@ -186,14 +193,8 @@ class TransformNode {
   ///
   /// This causes all of the transform's outputs to be marked as dirty as well.
   void _dirty() {
-    if (_state == _State.NOT_PRIMARY) {
-      _emitPassThrough();
-      return;
-    }
-
-    // If we're in the process of running [isPrimary] or [declareOutputs], we
-    // already know that [apply] needs to be run so there's nothing we need to
-    // mark as dirty.
+    // If we're in the process of running [declareOutputs], we already know that
+    // [apply] needs to be run so there's nothing we need to mark as dirty.
     if (_state == _State.DECLARING) return;
 
     if (!_forced && !_canRunDeclaringEagerly) {
@@ -225,41 +226,6 @@ class TransformNode {
     } else {
       _state = _State.NEEDS_APPLY;
     }
-  }
-
-  /// Runs [transformer.isPrimary] and adjusts [this]'s state according to the
-  /// result.
-  ///
-  /// This will also run [_declareOutputs] and/or [_apply] as appropriate.
-  void _isPrimary() {
-    syncFuture(() => transformer.isPrimary(primary.id))
-        .catchError((error, stackTrace) {
-      if (_isRemoved) return false;
-
-      // Catch all transformer errors and pipe them to the results stream. This
-      // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(_wrapException(error, stackTrace));
-
-      return false;
-    }).then((isPrimary) {
-      if (_isRemoved) return null;
-      if (isPrimary) {
-        if (_forced) primary.force();
-        return _declareOutputs().then((_) {
-          if (_isRemoved) return;
-          if (_forced || _canRunDeclaringEagerly) {
-            _apply();
-          } else {
-            _state = _State.DECLARED;
-            _streams.changeStatus(NodeStatus.IDLE);
-          }
-        });
-      }
-
-      _emitPassThrough();
-      _state = _State.NOT_PRIMARY;
-      _streams.changeStatus(NodeStatus.IDLE);
-    });
   }
 
   /// Runs [transform.declareOutputs] and emits the resulting assets as dirty
@@ -517,16 +483,17 @@ class TransformNode {
 
 /// The enum of states that [TransformNode] can be in.
 class _State {
-  /// The transform is running [Transformer.isPrimary] followed by
-  /// [DeclaringTransformer.declareOutputs] (for a [DeclaringTransformer]).
+  /// The transform is running [DeclaringTransformer.declareOutputs].
   ///
   /// This is the initial state of the transformer, and it will only occur once
-  /// since [Transformer.isPrimary] and [DeclaringTransformer.declareOutputs]
-  /// are independent of the contents of the primary input. Once the two methods
-  /// finish running, this will transition to [NOT_PRIMARY] if the input isn't
-  /// primary, [DECLARED] if the transform is deferred, and [APPLYING]
-  /// otherwise.
-  static final DECLARING = const _State._("computing isPrimary");
+  /// since [DeclaringTransformer.declareOutputs] is independent of the contents
+  /// of the primary input. Once the method finishes running, this will
+  /// transition to [APPLYING] if the transform is non-lazy and the input is
+  /// available, and [DECLARED] otherwise.
+  ///
+  /// Non-declaring transformers will transition out of this state and into
+  /// [APPLYING] immediately.
+  static final DECLARING = const _State._("declaring outputs");
 
   /// The transform is deferred and has run
   /// [DeclaringTransformer.declareOutputs] but hasn't yet been forced.
@@ -559,12 +526,6 @@ class _State {
   /// If an input changes, this will transition to [DECLARED] if the transform
   /// is deferred and [APPLYING] otherwise.
   static final APPLIED = const _State._("applied");
-
-  /// The transform has finished running [Transformer.isPrimary], which returned
-  /// `false`.
-  ///
-  /// This will never transition to another state.
-  static final NOT_PRIMARY = const _State._("not primary");
 
   final String name;
 

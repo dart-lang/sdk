@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_node_set.dart';
 import 'errors.dart';
 import 'group_runner.dart';
 import 'log.dart';
@@ -16,9 +17,9 @@ import 'multiset.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase_forwarder.dart';
-import 'phase_input.dart';
 import 'phase_output.dart';
 import 'transformer.dart';
+import 'transformer_classifier.dart';
 import 'transformer_group.dart';
 import 'utils.dart';
 
@@ -44,11 +45,6 @@ class Phase {
   /// The index of [this] in its parent cascade or group.
   final int _index;
 
-  /// The transformers that can access [inputs].
-  ///
-  /// Their outputs will be available to the next phase.
-  final _transformers = new Set<Transformer>();
-
   /// The groups for this phase.
   final _groups = new Map<TransformerGroup, GroupRunner>();
 
@@ -56,7 +52,10 @@ class Phase {
   ///
   /// For the first phase, these will be the source assets. For all other
   /// phases, they will be the outputs from the previous phase.
-  final _inputs = new Map<AssetId, PhaseInput>();
+  final _inputs = new AssetNodeSet();
+
+  /// The transformer classifiers for this phase.
+  final _classifiers = new Map<Transformer, TransformerClassifier>();
 
   /// The forwarders for this phase.
   final _forwarders = new Map<AssetId, PhaseForwarder>();
@@ -68,13 +67,12 @@ class Phase {
   /// phase.
   ///
   /// This is used to determine which assets have been passed unmodified through
-  /// [_inputs] or [_groups]. Each input asset has a PhaseInput in [_inputs]. If
-  /// that input isn't consumed by any transformers, it will be forwarded
-  /// through the PhaseInput. However, it's possible that it was consumed by a
-  /// group, and so shouldn't be forwarded through the phase as a whole.
+  /// [_classifiers] or [_groups]. It's possible that a given asset was consumed
+  /// by a group and not an individual transformer, and so shouldn't be
+  /// forwarded through the phase as a whole.
   ///
   /// In order to detect whether an output has been forwarded through a group or
-  /// a PhaseInput, we must be able to distinguish it from other outputs with
+  /// a classifier, we must be able to distinguish it from other outputs with
   /// the same id. To do so, we check if its origin is in [_inputOrigins]. If
   /// so, it's been forwarded unmodified.
   final _inputOrigins = new Multiset<AssetNode>();
@@ -87,12 +85,19 @@ class Phase {
 
   /// How far along [this] is in processing its assets.
   NodeStatus get status {
-    var inputStatus = NodeStatus.dirtiest(
-        _inputs.values.map((input) => input.status));
+    // Before any transformers are added, the phase should be dirty if and only
+    // if any input is dirty.
+    if (_classifiers.isEmpty && _groups.isEmpty) {
+      return _inputs.any((input) => input.state.isDirty) ?
+          NodeStatus.RUNNING : NodeStatus.IDLE;
+    }
+
+    var classifierStatus = NodeStatus.dirtiest(
+        _classifiers.values.map((classifier) => classifier.status));
     var groupStatus = NodeStatus.dirtiest(
         _groups.values.map((group) => group.status));
     return (previous == null ? NodeStatus.IDLE : previous.status)
-        .dirtier(inputStatus)
+        .dirtier(classifierStatus)
         .dirtier(groupStatus);
   }
 
@@ -157,12 +162,10 @@ class Phase {
   /// removed and re-created. The phase will automatically handle updated assets
   /// using the [AssetNode.onStateChange] stream.
   void addInput(AssetNode node) {
-    if (_inputs.containsKey(node.id)) _inputs[node.id].remove();
-
     // Each group is one channel along which an asset may be forwarded, as is
     // each transformer.
     var forwarder = new PhaseForwarder(
-        node, _transformers.length, _groups.length);
+        node, _classifiers.length, _groups.length);
     _forwarders[node.id] = forwarder;
     forwarder.onAsset.listen(_handleOutputWithoutForwarder);
     if (forwarder.output != null) {
@@ -170,20 +173,18 @@ class Phase {
     }
 
     _inputOrigins.add(node.origin);
-    var input = new PhaseInput(this, node, "$_location.$_index");
-    _inputs[node.id] = input;
-    input.input.whenRemoved(() {
-      _inputOrigins.remove(node.origin);
-      _inputs.remove(node.id);
-      _forwarders.remove(node.id).remove();
+    _inputs.add(node);
+    node.onStateChange.listen((state) {
+      if (state.isRemoved) {
+        _inputOrigins.remove(node.origin);
+        _forwarders.remove(node.id).remove();
+      }
       _streams.changeStatus(status);
     });
-    input.onAsset.listen(_handleOutput);
-    _streams.onLogPool.add(input.onLog);
-    input.onStatusChange.listen((_) => _streams.changeStatus(status));
 
-    input.updateTransformers(_transformers);
-
+    for (var classifier in _classifiers.values) {
+      classifier.addInput(node);
+    }
     for (var group in _groups.values) {
       group.addInput(node);
     }
@@ -235,11 +236,23 @@ class Phase {
 
   /// Set this phase's transformers to [transformers].
   void updateTransformers(Iterable transformers) {
-    var actualTransformers = transformers.where((op) => op is Transformer);
-    _transformers.clear();
-    _transformers.addAll(actualTransformers);
-    for (var input in _inputs.values) {
-      input.updateTransformers(actualTransformers);
+    var newTransformers = transformers.where((op) => op is Transformer)
+        .toSet();
+    var oldTransformers = _classifiers.keys.toSet();
+    for (var removed in oldTransformers.difference(newTransformers)) {
+      _classifiers.remove(removed).remove();
+    }
+
+    for (var transformer in newTransformers.difference(oldTransformers)) {
+      var classifier = new TransformerClassifier(
+          this, transformer, "$_location.$_index");
+      _classifiers[transformer] = classifier;
+      classifier.onAsset.listen(_handleOutput);
+      _streams.onLogPool.add(classifier.onLog);
+      classifier.onStatusChange.listen((_) => _streams.changeStatus(status));
+      for (var input in _inputs) {
+        classifier.addInput(input);
+      }
     }
 
     var newGroups = transformers.where((op) => op is TransformerGroup)
@@ -255,25 +268,27 @@ class Phase {
       runner.onAsset.listen(_handleOutput);
       _streams.onLogPool.add(runner.onLog);
       runner.onStatusChange.listen((_) => _streams.changeStatus(status));
-      for (var input in _inputs.values) {
-        runner.addInput(input.input);
+      for (var input in _inputs) {
+        runner.addInput(input);
       }
     }
 
     for (var forwarder in _forwarders.values) {
-      forwarder.updateTransformers(_transformers.length, _groups.length);
+      forwarder.updateTransformers(_classifiers.length, _groups.length);
     }
+
+    _streams.changeStatus(status);
   }
 
   /// Force all [LazyTransformer]s' transforms in this phase to begin producing
   /// concrete assets.
   void forceAllTransforms() {
-    for (var group in _groups.values) {
-      group.forceAllTransforms();
+    for (var classifier in _classifiers.values) {
+      classifier.forceAllTransforms();
     }
 
-    for (var input in _inputs.values) {
-      input.forceAllTransforms();
+    for (var group in _groups.values) {
+      group.forceAllTransforms();
     }
   }
 
@@ -295,8 +310,8 @@ class Phase {
   ///
   /// This will remove all the phase's outputs.
   void remove() {
-    for (var input in _inputs.values.toList()) {
-      input.remove();
+    for (var classifier in _classifiers.values.toList()) {
+      classifier.remove();
     }
     for (var group in _groups.values) {
       group.remove();
