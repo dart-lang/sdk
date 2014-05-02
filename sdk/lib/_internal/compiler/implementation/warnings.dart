@@ -1824,6 +1824,14 @@ main() {
 }
 ''']);
 
+  static const MessageKind UNTERMINATED_COMMENT = const MessageKind(
+      "Comment starting with '/*' must end with '*/'.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [r"""
+main() {
+}
+/*"""]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 

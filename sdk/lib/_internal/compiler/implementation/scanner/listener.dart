@@ -714,6 +714,9 @@ class Listener {
         case r'$':
           kind = MessageKind.MALFORMED_STRING_LITERAL;
           break;
+        case '/*':
+          kind = MessageKind.UNTERMINATED_COMMENT;
+          break;
         default:
           kind = MessageKind.UNTERMINATED_TOKEN;
           break;
