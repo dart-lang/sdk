@@ -130,7 +130,6 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      fprintf(stderr, "Looking at %s\n", current->DebugName());
 
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(true);  // Optimizing.
