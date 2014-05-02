@@ -8514,7 +8514,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
           changed = true;
 
           if (FLAG_trace_constant_propagation) {
-            OS::Print("Eliminated branch in B%"Pd" common target B%"Pd"\n",
+            OS::Print("Eliminated branch in B%" Pd " common target B%" Pd "\n",
                       block->block_id(), join->block_id());
           }
         }

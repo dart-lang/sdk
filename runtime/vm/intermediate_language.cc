@@ -326,7 +326,7 @@ bool ConstantInstr::AttributesEqual(Instruction* other) const {
 
 
 UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
-    : ConstantInstr(value), constant_address_(NULL) {
+    : ConstantInstr(value), constant_address_(0) {
   // Only doubles supported for now.
   ASSERT(value.IsDouble());
   constant_address_ =
