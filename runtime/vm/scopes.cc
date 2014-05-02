@@ -152,7 +152,8 @@ int LocalScope::AllocateVariables(int first_parameter_index,
                                   int num_parameters,
                                   int first_frame_index,
                                   LocalScope* loop_owner,
-                                  LocalScope** context_owner) {
+                                  LocalScope** context_owner,
+                                  bool* found_captured_variables) {
   // We should not allocate variables of nested functions while compiling an
   // enclosing function.
   ASSERT(function_level() == 0);
@@ -177,6 +178,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
       // context allocation index.
       frame_index--;
       loop_owner->AllocateContextVariable(parameter, context_owner);
+      *found_captured_variables = true;
     } else {
       parameter->set_index(frame_index--);
     }
@@ -190,6 +192,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         loop_owner->AllocateContextVariable(variable, context_owner);
+        *found_captured_variables = true;
       } else {
         variable->set_index(frame_index--);
       }
@@ -206,7 +209,8 @@ int LocalScope::AllocateVariables(int first_parameter_index,
                                                      num_parameters_in_child,
                                                      frame_index,
                                                      loop_owner,
-                                                     &child_context_owner);
+                                                     &child_context_owner,
+                                                     found_captured_variables);
     if (child_frame_index < min_frame_index) {
       min_frame_index = child_frame_index;
     }

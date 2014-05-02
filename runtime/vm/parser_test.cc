@@ -454,6 +454,11 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
 
 
 TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
+  // This test verifies that...
+  //
+  //   https://code.google.com/p/dart/issues/detail?id=18561
+  //
+  // ...stays fixed.
   const char* kScriptChars =
       "int outer() {\n"
       "  for(int i = 0; i < 1; i++) {\n"
@@ -477,20 +482,66 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       " 1 SavedCurrentCtx scope=0   begin=0   end=0"
       "   name=:saved_current_context_var\n"
 
-      // Notice that the outer function neglects to save the entry
-      // context.  This is a bug.
-      //
-      // TODO(turnidge): Fix this very soon and update this test.
-      //
-      //   https://code.google.com/p/dart/issues/detail?id=18561
+      // The outer function saves the entry context, even though the
+      // captured variable is in a loop.  Good.
       "::.outer\n"
-      " 0 StackVar      scope=3   begin=9   end=50  name=i\n"
-      " 1 ContextLevel  level=1   scope=4   begin=20  end=50\n"
-      " 2 ContextVar    level=1   begin=23  end=50  name=value\n"
-      " 3 StackVar      scope=4   begin=30  end=50  name=inner\n",
+      " 0 SavedEntryCtx scope=0   begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 1 StackVar      scope=3   begin=9   end=50  name=i\n"
+      " 2 ContextLevel  level=1   scope=4   begin=20  end=50\n"
+      " 3 ContextVar    level=1   begin=23  end=50  name=value\n"
+      " 4 StackVar      scope=4   begin=30  end=50  name=inner\n",
       CaptureVarsAtLine(lib, "outer", 5));
 }
 
+TEST_CASE(Parser_AllocateVariables_MiddleChain) {
+  const char* kScriptChars =
+      "a() {\n"
+      "  int x = 11;\n"
+      "  b() {\n"
+      "    for (int i = 0; i < 1; i++) {\n"
+      "      int d() {\n"
+      "        return i;\n"
+      "      }\n"
+      "    }\n"
+      "    int c() {\n"
+      "      return x + 1;\n"  // line 10
+      "    }\n"
+      "    return c();\n"
+      "  }\n"
+      "  return b();\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "::.a_b_c\n"
+      " 0 ContextVar    level=0   begin=48  end=60  name=x\n"
+      "(dynamic) => int.call\n"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      // Doesn't save the entry context.  Chains to parent instead.
+      "::.a_b\n"
+      " 0 ContextVar    level=0   begin=12  end=68  name=x\n"
+      " 1 StackVar      scope=2   begin=46  end=68  name=c\n"
+      " 2 ContextLevel  level=1   scope=3   begin=18  end=46\n"
+      " 3 ContextVar    level=1   begin=19  end=46  name=i\n"
+      " 4 StackVar      scope=4   begin=32  end=46  name=d\n"
+
+      "(dynamic) => dynamic.call\n"
+      " 0 StackVar      scope=1   begin=0   end=0   name=this\n"
+      " 1 SavedCurrentCtx scope=0   begin=0   end=0"
+      "   name=:saved_current_context_var\n"
+
+      "::.a\n"
+      " 0 ContextLevel  level=1   scope=1   begin=1   end=76\n"
+      " 1 SavedEntryCtx scope=0   begin=0   end=0"
+      "   name=:saved_entry_context_var\n"
+      " 2 ContextVar    level=1   begin=6   end=76  name=x\n"
+      " 3 StackVar      scope=2   begin=11  end=76  name=b\n",
+      CaptureVarsAtLine(lib, "a", 10));
+}
 #endif
 
 }  // namespace dart

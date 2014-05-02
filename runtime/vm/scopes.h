@@ -302,7 +302,8 @@ class LocalScope : public ZoneAllocated {
                         int num_parameters,
                         int first_frame_index,
                         LocalScope* loop_owner,
-                        LocalScope** context_owner);
+                        LocalScope** context_owner,
+                        bool* found_captured_variables);
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.

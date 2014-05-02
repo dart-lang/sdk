@@ -167,21 +167,29 @@ void ParsedFunction::AllocateVariables() {
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
   LocalScope* context_owner = NULL;  // No context needed yet.
+  bool found_captured_variables = false;
   int next_free_frame_index =
       scope->AllocateVariables(first_parameter_index_,
                                num_params,
                                first_stack_local_index_,
                                scope,
-                               &context_owner);
+                               &context_owner,
+                               &found_captured_variables);
 
-  // If this function allocates context variables, but none of its enclosing
-  // functions do, the context on entry is not linked as parent of the allocated
-  // context but saved on entry and restored on exit as to prevent memory leaks.
-  // Add and allocate a local variable to this purpose.
-  if (context_owner != NULL) {
+  // We save the entry context for a function when...
+  //
+  //   - some variable in the function is captured by nested functions, and
+  //   - the function does not capture any variables from parent functions.
+  //
+  // We used to link to the parent context in these cases, but this
+  // had the effect of unintentionally retaining parent contexts which
+  // would never be accessed.  By breaking the context chain at this
+  // point, we allow these outer contexts to be collected.
+  if (found_captured_variables) {
     const ContextScope& context_scope =
         ContextScope::Handle(function().context_scope());
     if (context_scope.IsNull() || (context_scope.num_variables() == 0)) {
+      // Allocate a local variable for saving the entry context.
       LocalVariable* context_var =
           new LocalVariable(function().token_pos(),
                             Symbols::SavedEntryContextVar(),

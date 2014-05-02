@@ -10309,6 +10309,9 @@ static int PrintVarInfo(char* buffer, int len,
 
 
 const char* LocalVarDescriptors::ToCString() const {
+  if (IsNull()) {
+    return "LocalVarDescriptors(NULL)";
+  }
   intptr_t len = 1;  // Trailing '\0'.
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
@@ -10320,7 +10323,8 @@ const char* LocalVarDescriptors::ToCString() const {
     GetInfo(i, &info);
     len += PrintVarInfo(NULL, 0, i, var_name, info);
   }
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  buffer[0] = '\0';
   intptr_t num_chars = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     RawLocalVarDescriptors::VarInfo info;

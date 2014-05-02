@@ -18,6 +18,7 @@
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/resolver.h"
@@ -3490,6 +3491,16 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  } else if (MustSaveRestoreContext(node)) {
+    // Even when the current scope has no context variables, we may
+    // still need to save the current context if, for example, there
+    // are loop scopes below this which will allocate a context
+    // object.
+    BuildSaveContext(
+        *owner()->parsed_function()->saved_entry_context_var());
+    AddInstruction(
+        new StoreContextInstr(Bind(new ConstantInstr(Object::ZoneHandle(
+            Isolate::Current()->object_store()->empty_context())))));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -3557,7 +3568,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
-      ASSERT(num_context_variables > 0);
       BuildRestoreContext(
           *owner()->parsed_function()->saved_entry_context_var());
     } else if (num_context_variables > 0) {
