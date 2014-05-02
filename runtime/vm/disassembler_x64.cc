@@ -838,7 +838,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       // Print only if jumping to entry point.
       const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const String& name = String::Handle(code.UserName());
+        const String& name = String::Handle(code.PrettyName());
         const char* name_c = name.ToCString();
         AppendToBuffer(" [%s]", name_c);
       }
