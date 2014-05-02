@@ -1323,7 +1323,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
-  Value* instantiator = BuildInstantiator();
+  Value* instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     *push_instantiator_result = PushArgument(BuildNullValue());
@@ -1352,7 +1352,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
       owner()->parsed_function()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
-  instantiator = BuildInstantiator();
+  instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator = BuildNullValue();
@@ -2588,12 +2588,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
-Value* EffectGraphVisitor::BuildInstantiator() {
-  const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function()->function().Owner());
-  if (instantiator_class.NumTypeParameters() == 0) {
-    return NULL;
-  }
+Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
+  ASSERT(instantiator_class.NumTypeParameters() > 0);
   Function& outer_function =
       Function::Handle(owner()->parsed_function()->function().raw());
   while (outer_function.IsLocalFunction()) {
@@ -2603,11 +2599,10 @@ Value* EffectGraphVisitor::BuildInstantiator() {
     return NULL;
   }
 
-  ASSERT(owner()->parsed_function()->instantiator() != NULL);
-  ValueGraphVisitor for_instantiator(owner());
-  owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
-  Append(for_instantiator);
-  return for_instantiator.value();
+  LocalVariable* instantiator = owner()->parsed_function()->instantiator();
+  ASSERT(instantiator != NULL);
+  Value* result = Bind(BuildLoadLocal(*instantiator));
+  return result;
 }
 
 
@@ -2638,14 +2633,13 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   if (outer_function.IsFactory()) {
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
-    ASSERT(owner()->parsed_function()->instantiator() != NULL);
-    ValueGraphVisitor for_instantiator(owner());
-    owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
-    Append(for_instantiator);
-    return for_instantiator.value();
+    LocalVariable* instantiator_var =
+        owner()->parsed_function()->instantiator();
+    ASSERT(instantiator_var != NULL);
+    return Bind(BuildLoadLocal(*instantiator_var));
   }
   if (instantiator == NULL) {
-    instantiator = BuildInstantiator();
+    instantiator = BuildInstantiator(instantiator_class);
   }
   // The instantiator is the receiver of the caller, which is not a factory.
   // The receiver cannot be null; extract its TypeArguments object.

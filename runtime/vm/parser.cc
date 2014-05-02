@@ -871,8 +871,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     }
     if (!parser.current_function().IsLocalFunction() ||
         ((instantiator != NULL) && instantiator->is_captured())) {
-      parsed_function->set_instantiator(
-          new LoadLocalNode(node_sequence->token_pos(), instantiator));
+      parsed_function->set_instantiator(instantiator);
     }
   }
 
