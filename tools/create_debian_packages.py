@@ -31,6 +31,10 @@ def BuildOptions():
   result.add_option("--out_dir",
                     default=None,
                     help="Where to put the packages.")
+  result.add_option("-a", "--arch",
+      help='Target architectures (comma-separated).',
+      metavar='[all,ia32,x64]',
+      default='x64')
 
   return result
 
@@ -45,7 +49,7 @@ def RunBuildPackage(opt, cwd):
     raise Exception('Command \'%s\' failed: %s\nSTDOUT: %s' %
                     (' '.join(cmd), stderr, stdout))
 
-def BuildDebianPackage(tarball, out_dir):
+def BuildDebianPackage(tarball, out_dir, arch):
   version = utils.GetVersion()
   tarroot = 'dart-%s' % version
   origtarname = 'dart_%s.orig.tar.gz' % version
@@ -65,9 +69,15 @@ def BuildDebianPackage(tarball, out_dir):
     print "Building source package"
     RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot));
 
+    # Build 32-bit binary package.
+    if ('ia32' in arch):
+      print "Building i386 package"
+      RunBuildPackage(['-B', '-ai386', '-us', '-uc'], join(temp_dir, tarroot));
+
     # Build 64-bit binary package.
-    print "Building amd64 package"
-    RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot));
+    if ('x64' in arch):
+      print "Building amd64 package"
+      RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot));
 
     # Copy the Debian package files to the build directory.
     debbase = 'dart_%s' % version
@@ -76,14 +86,21 @@ def BuildDebianPackage(tarball, out_dir):
       '%s.orig.tar.gz' % debbase,
       '%s-1.debian.tar.gz' % debbase
     ]
+    i386_package = [
+      '%s-1_i386.deb' % debbase
+    ]
     amd64_package = [
       '%s-1_amd64.deb' % debbase
     ]
 
     for name in source_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
-    for name in amd64_package:
-      copyfile(join(temp_dir, name), join(out_dir, name))
+    if ('ia32' in arch):
+      for name in i386_package:
+        copyfile(join(temp_dir, name), join(out_dir, name))
+    if ('x64' in arch):
+      for name in amd64_package:
+        copyfile(join(temp_dir, name), join(out_dir, name))
 
 def Main():
   if HOST_OS != 'linux':
@@ -93,6 +110,10 @@ def Main():
   options, args = BuildOptions().parse_args()
   out_dir = options.out_dir
   tar_filename = options.tar_filename
+  if options.arch == 'all':
+    options.arch = 'ia32,x64'
+  arch = options.arch.split(',')
+
   if not options.out_dir:
     out_dir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
 
@@ -101,7 +122,7 @@ def Main():
                         utils.GetBuildDir(HOST_OS, HOST_OS),
                         'dart-%s.tar.gz' % utils.GetVersion())
 
-  BuildDebianPackage(tar_filename, out_dir)
+  BuildDebianPackage(tar_filename, out_dir, arch)
 
 if __name__ == '__main__':
   sys.exit(Main())
