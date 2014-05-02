@@ -5,8 +5,6 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
-#include <math.h>
-
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -4797,11 +4795,6 @@ class MixinAppType : public AbstractType {
 class Number : public Instance {
  public:
   // TODO(iposva): Fill in a useful Number interface.
-  virtual bool IsNegative() const {
-    // Number is an abstract class.
-    UNREACHABLE();
-    return false;
-  }
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
@@ -4825,6 +4818,11 @@ class Integer : public Number {
 
   // Integer is an abstract class.
   virtual bool IsZero() const {
+    UNREACHABLE();
+    return false;
+  }
+  virtual bool IsNegative() const {
+    // Number is an abstract class.
     UNREACHABLE();
     return false;
   }
@@ -5084,10 +5082,6 @@ class Double : public Number {
 
   bool EqualsToDouble(double value) const;
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsNegative() const {
-    double dval = value();
-    return (signbit(dval) && !isnan(dval));
-  }
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
