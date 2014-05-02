@@ -296,6 +296,10 @@ class PageSpace {
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
+  HeapPage* NextPageAnySize(HeapPage* page) const {
+    ASSERT(pages_tail_ == NULL || pages_tail_->next() == NULL);
+    return page == pages_tail_ ? large_pages_ : page->next();
+  }
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 

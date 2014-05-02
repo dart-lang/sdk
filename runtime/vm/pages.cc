@@ -296,15 +296,7 @@ bool PageSpace::Contains(uword addr) const {
     if (page->Contains(addr)) {
       return true;
     }
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    if (page->Contains(addr)) {
-      return true;
-    }
-    page = page->next();
+    page = NextPageAnySize(page);
   }
   return false;
 }
@@ -316,15 +308,7 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
     if ((page->type() == type) && page->Contains(addr)) {
       return true;
     }
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    if ((page->type() == type) && page->Contains(addr)) {
-      return true;
-    }
-    page = page->next();
+    page = NextPageAnySize(page);
   }
   return false;
 }
@@ -334,11 +318,7 @@ void PageSpace::StartEndAddress(uword* start, uword* end) const {
   ASSERT(pages_ != NULL || large_pages_ != NULL);
   *start = static_cast<uword>(~0);
   *end = 0;
-  for (HeapPage* page = pages_; page != NULL; page = page->next()) {
-    *start = Utils::Minimum(*start, page->object_start());
-    *end = Utils::Maximum(*end, page->object_end());
-  }
-  for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
+  for (HeapPage* page = pages_; page != NULL; page = NextPageAnySize(page)) {
     *start = Utils::Minimum(*start, page->object_start());
     *end = Utils::Maximum(*end, page->object_end());
   }
@@ -351,13 +331,7 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
   HeapPage* page = pages_;
   while (page != NULL) {
     page->VisitObjects(visitor);
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    page->VisitObjects(visitor);
-    page = page->next();
+    page = NextPageAnySize(page);
   }
 }
 
@@ -366,13 +340,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   HeapPage* page = pages_;
   while (page != NULL) {
     page->VisitObjectPointers(visitor);
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    page->VisitObjectPointers(visitor);
-    page = page->next();
+    page = NextPageAnySize(page);
   }
 }
 
@@ -388,18 +356,7 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
         return obj;
       }
     }
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    if (page->type() == type) {
-      RawObject* obj = page->FindObject(visitor);
-      if (obj != Object::null()) {
-        return obj;
-      }
-    }
-    page = page->next();
+    page = NextPageAnySize(page);
   }
   return Object::null();
 }
@@ -409,12 +366,7 @@ void PageSpace::WriteProtect(bool read_only) {
   HeapPage* page = pages_;
   while (page != NULL) {
     page->WriteProtect(read_only);
-    page = page->next();
-  }
-  page = large_pages_;
-  while (page != NULL) {
-    page->WriteProtect(read_only);
-    page = page->next();
+    page = NextPageAnySize(page);
   }
 }
 
@@ -523,14 +475,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       if (current_page->type() == HeapPage::kExecutable) {
         current_page->WriteProtect(false);
       }
-      current_page = current_page->next();
-    }
-    current_page = large_pages_;
-    while (current_page != NULL) {
-      if (current_page->type() == HeapPage::kExecutable) {
-        current_page->WriteProtect(false);
-      }
-      current_page = current_page->next();
+      current_page = NextPageAnySize(current_page);
     }
   }
 
@@ -591,14 +536,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       if (current_page->type() == HeapPage::kExecutable) {
         current_page->WriteProtect(true);
       }
-      current_page = current_page->next();
-    }
-    current_page = large_pages_;
-    while (current_page != NULL) {
-      if (current_page->type() == HeapPage::kExecutable) {
-        current_page->WriteProtect(true);
-      }
-      current_page = current_page->next();
+      current_page = NextPageAnySize(current_page);
     }
   }
 
