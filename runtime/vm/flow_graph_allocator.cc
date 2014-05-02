@@ -130,6 +130,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      fprintf(stderr, "Looking at %s\n", current->DebugName());
 
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(true);  // Optimizing.
@@ -229,12 +230,6 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     const intptr_t vreg = def->ssa_temp_index();
     kill_[graph_entry_->postorder_number()]->Add(vreg);
     live_in_[graph_entry_->postorder_number()]->Remove(vreg);
-  }
-
-  // Update initial live_in sets to match live_out sets. Has to be
-  // done in a separate path because of backwards branches.
-  for (intptr_t i = 0; i < block_count; i++) {
-    UpdateLiveIn(*postorder_[i]);
   }
 }
 
