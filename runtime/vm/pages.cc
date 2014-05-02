@@ -445,6 +445,20 @@ bool PageSpace::ShouldCollectCode() {
 }
 
 
+void PageSpace::WriteProtectCode(bool read_only) {
+  // TODO(koda): Is this flag still useful?
+  if (FLAG_write_protect_code) {
+    HeapPage* current_page = pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(read_only);
+      }
+      current_page = NextPageAnySize(current_page);
+    }
+  }
+}
+
+
 void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
@@ -468,16 +482,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   const int64_t start = OS::GetCurrentTimeMicros();
 
-  if (FLAG_write_protect_code) {
-    // Make code pages writable.
-    HeapPage* current_page = pages_;
-    while (current_page != NULL) {
-      if (current_page->type() == HeapPage::kExecutable) {
-        current_page->WriteProtect(false);
-      }
-      current_page = NextPageAnySize(current_page);
-    }
-  }
+  // Make code pages writable.
+  WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = usage_;
@@ -529,16 +535,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     page = next_page;
   }
 
-  if (FLAG_write_protect_code) {
-    // Make code pages read-only.
-    HeapPage* current_page = pages_;
-    while (current_page != NULL) {
-      if (current_page->type() == HeapPage::kExecutable) {
-        current_page->WriteProtect(true);
-      }
-      current_page = NextPageAnySize(current_page);
-    }
-  }
+  // Make code pages read-only.
+  WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentTimeMicros();
 

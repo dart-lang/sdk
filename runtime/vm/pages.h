@@ -250,7 +250,9 @@ class PageSpace {
     return UsedInWords() + ExternalInWords() > max_capacity_in_words_;
   }
 
+  // TODO(koda): Unify protection handling.
   void WriteProtect(bool read_only);
+  void WriteProtectCode(bool read_only);
 
   void AddGCTime(int64_t micros) {
     gc_time_micros_ += micros;

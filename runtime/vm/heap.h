@@ -156,6 +156,9 @@ class Heap {
 
   // Protect access to the heap.
   void WriteProtect(bool read_only);
+  void WriteProtectCode(bool read_only) {
+    old_space_->WriteProtectCode(read_only);
+  }
 
   // Accessors for inlined allocation in generated code.
   uword TopAddress();
