@@ -530,12 +530,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // The new context, saved vm tag, the top exit frame, and the old context.
   // const intptr_t kPreservedContextSlots = 4;
   const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount) * kWordSize;
+      -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
   // const intptr_t kPreservedRegSpace =
   //     kWordSize * (kAbiPreservedCpuRegCount + kPreservedContextSlots);
 
   // Save the callee-saved registers.
-  for (int i = R19; i <= R28; i++) {
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
     // We use str instead of the Push macro because we will be pushing the PP
     // register when it is not holding a pool-pointer since we are coming from
@@ -543,8 +543,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ str(r, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
 
-  // TODO(zra): Save the bottom 64-bits of callee-saved floating point
-  // registers.
+  // Save the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    __ PushDouble(r);
+  }
 
   // Push new context.
   __ Push(R3);
@@ -567,7 +570,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFieldFromOffset(R5, CTX, Context::isolate_offset());
 
   // Save the current VMTag on the stack.
-  ASSERT(kSavedVMTagSlotFromEntryFp == -12);
+  ASSERT(kSavedVMTagSlotFromEntryFp == -20);
   __ LoadFromOffset(R4, R5, Isolate::vm_tag_offset());
   __ Push(R4);
 
@@ -589,8 +592,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -13);
-  ASSERT(kSavedContextSlotFromEntryFp == -14);
+  ASSERT(kExitLinkSlotFromEntryFp == -21);
+  ASSERT(kSavedContextSlotFromEntryFp == -22);
   __ Push(R6);
   __ Push(R4);
 
@@ -650,16 +653,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R3);
   __ Pop(R4);
 
+  // Restore the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
+    const VRegister r = static_cast<VRegister>(i);
+    __ PushDouble(r);
+  }
+
   // Restore C++ ABI callee-saved registers.
-  for (int i = R28; i >= R19; i--) {
+  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
     Register r = static_cast<Register>(i);
     // We use ldr instead of the Pop macro because we will be popping the PP
     // register when it is not holding a pool-pointer since we are returning to
     // C++ code.
     __ ldr(r, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
-
-  // TODO(zra): Restore callee-saved fpu registers.
 
   // Restore the frame pointer and return.
   __ LeaveFrame();

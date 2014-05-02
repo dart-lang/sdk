@@ -603,7 +603,6 @@ void Assembler::TestImmediate(Register rn, int64_t imm, Register pp) {
 
 
 void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
-  ASSERT(rn != TMP2);
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     cmp(rn, op);
@@ -611,6 +610,7 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
              Operand::Immediate) {
     cmn(rn, op);
   } else {
+    ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm, pp);
     cmp(rn, Operand(TMP2));
   }
@@ -619,10 +619,10 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
 
 void Assembler::LoadFromOffset(
     Register dest, Register base, int32_t offset, OperandSize sz) {
-  ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     ldr(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
+    ASSERT(base != TMP2);
     // Since offset is 32-bits, it won't be loaded from the pool.
     AddImmediate(TMP2, base, offset, kNoPP);
     ldr(dest, Address(TMP2), sz);
@@ -630,16 +630,40 @@ void Assembler::LoadFromOffset(
 }
 
 
+void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
+    fldrd(dest, Address(base, offset, Address::Offset, kDWord));
+  } else {
+    ASSERT(base != TMP2);
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoPP);
+    fldrd(dest, Address(TMP2));
+  }
+}
+
+
 void Assembler::StoreToOffset(
     Register src, Register base, int32_t offset, OperandSize sz) {
-  ASSERT(src != TMP2);
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     str(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
+    ASSERT(src != TMP2);
     // Since offset is 32-bits, it won't be loaded from the pool.
     AddImmediate(TMP2, base, offset, kNoPP);
     str(src, Address(TMP2), sz);
+  }
+}
+
+
+void Assembler::StoreDToOffset(VRegister src, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
+    fstrd(src, Address(base, offset, Address::Offset, kDWord));
+  } else {
+    ASSERT(base != TMP2);
+    // Since offset is 32-bits, it won't be loaded from the pool.
+    AddImmediate(TMP2, base, offset, kNoPP);
+    fstrd(src, Address(TMP2));
   }
 }
 
@@ -873,11 +897,22 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
   EnterFrame(0);
 
-  // TODO(zra): also save volatile FPU registers.
+  // Store fpu registers with the lowest register number at the lowest
+  // address.
+  for (int i = kNumberOfVRegisters - 1; i >= 0; i--) {
+    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
+      // TODO(zra): When SIMD is added, we must also preserve the top
+      // 64-bits of the callee-saved registers.
+      continue;
+    }
+    // TODO(zra): Save the whole V register.
+    VRegister reg = static_cast<VRegister>(i);
+    PushDouble(reg);
+  }
 
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     const Register reg = static_cast<Register>(i);
-    if ((reg != R16) && (reg != R17)) {
+    if ((reg != TMP) && (reg != TMP2)) {
       Push(reg);
     }
   }
@@ -892,13 +927,25 @@ void Assembler::LeaveCallRuntimeFrame() {
   // We need to restore it before restoring registers.
   // TODO(zra): Also include FPU regs in this count once they are added.
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * kWordSize;
+      kDartVolatileCpuRegCount * kWordSize +
+      kDartVolatileFpuRegCount * kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize, PP);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
-    if ((reg != R16) && (reg != R17)) {
+    if ((reg != TMP) && (reg != TMP2)) {
       Pop(reg);
     }
+  }
+
+  for (int i = 0; i < kNumberOfVRegisters; i++) {
+    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
+      // TODO(zra): When SIMD is added, we must also restore the top
+      // 64-bits of the callee-saved registers.
+      continue;
+    }
+    // TODO(zra): Restore the whole V register.
+    VRegister reg = static_cast<VRegister>(i);
+    PopDouble(reg);
   }
 
   Pop(FP);
@@ -1014,6 +1061,48 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
     ldr(TMP, Address(temp_reg, size_field_offset));
     add(TMP, TMP, Operand(size_reg));
     str(TMP, Address(temp_reg, size_field_offset));
+  }
+}
+
+
+void Assembler::TryAllocate(const Class& cls,
+                            Label* failure,
+                            Register instance_reg,
+                            Register temp_reg,
+                            Register pp) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Heap* heap = Isolate::Current()->heap();
+    const intptr_t instance_size = cls.instance_size();
+    LoadImmediate(instance_reg, heap->TopAddress(), pp);
+    ldr(instance_reg, Address(instance_reg));
+    AddImmediate(instance_reg, instance_reg, instance_size, pp);
+
+    // instance_reg: potential next object start.
+    LoadImmediate(TMP, heap->EndAddress(), pp);
+    ldr(TMP, Address(TMP));
+    CompareRegisters(TMP, instance_reg);
+    // fail if heap end unsigned less than or equal to instance_reg.
+    b(failure, LS);
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and store the class in the class field of object.
+    LoadImmediate(TMP, heap->TopAddress(), pp);
+    str(instance_reg, Address(TMP));
+
+    ASSERT(instance_size >= kHeapObjectTag);
+    AddImmediate(
+        instance_reg, instance_reg, -instance_size + kHeapObjectTag, pp);
+    UpdateAllocationStats(cls.id(), temp_reg, pp);
+
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    LoadImmediate(TMP, tags, pp);
+    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
+  } else {
+    b(failure);
   }
 }
 

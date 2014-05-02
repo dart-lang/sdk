@@ -610,16 +610,21 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       if (value()->IsSmiValue()) {
         locs->set_in(2, Location::WritableRegister());
       } else {
-        // TODO(zra): Implement when we add fpu loads and stores.
+        // TODO(zra): Implement when we add simd loads and stores.
         UNIMPLEMENTED();
       }
       break;
     case kTypedDataFloat32ArrayCid:
+      // TODO(zra): Implement when we add float store.
+      UNIMPLEMENTED();
+      break;
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
+      locs->set_in(2, Location::RequiresFpuRegister());
+      break;
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
     case kTypedDataFloat64x2ArrayCid:
-      // TODO(zra): Implement when we add fpu loads and stores.
+      // TODO(zra): Implement when we add simd loads and stores.
       UNIMPLEMENTED();
       break;
     default:
@@ -742,17 +747,25 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(value);
         __ str(value, element_address);
       } else {
-        // TODO(zra): Implement when we add fpu loads and stores.
+        // TODO(zra): Implement when we add simd loads and stores.
         UNIMPLEMENTED();
       }
       break;
     }
     case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
+      // TODO(zra): Implement when we add float store.
+      UNIMPLEMENTED();
+      break;
+    case kTypedDataFloat64ArrayCid: {
+      VRegister in2 = locs()->in(2).fpu_reg();
+      __ add(index.reg(), index.reg(), Operand(array));
+      __ StoreDFieldToOffset(in2, index.reg(), 0);
+      break;
+    }
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
-      // TODO(zra): Implement when we add fpu loads and stores.
+      // TODO(zra): Implement when we add simd loads and stores.
       UNIMPLEMENTED();
       break;
     }
@@ -893,7 +906,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ CompareImmediate(value_cid_reg, kTypedDataInt8ArrayCid, PP);
           // Could still be a regular array.
           __ b(&check_array, LT);
-          __ LoadFromOffset(temp_reg, value_reg, TypedData::length_offset());
+          __ LoadFieldFromOffset(
+              temp_reg, value_reg, TypedData::length_offset());
           __ ldr(TMP, field_length_operand);
           __ CompareRegisters(temp_reg, TMP);
           __ b(&length_compared);
@@ -1142,14 +1156,17 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(bool opt) const {
 
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
-    // TODO(zra): Implement when we add fpu loads and stores.
-    UNIMPLEMENTED();
+    summary->set_in(1, Location::RequiresFpuRegister());
+    summary->AddTemp(Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresRegister());
   } else if (IsPotentialUnboxedStore()) {
       summary->set_in(1, ShouldEmitStoreBarrier()
           ? Location::WritableRegister()
           :  Location::RequiresRegister());
       summary->AddTemp(Location::RequiresRegister());
       summary->AddTemp(Location::RequiresRegister());
+      summary->AddTemp(opt ? Location::RequiresFpuRegister()
+                           : Location::FpuRegisterLocation(V1));
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -1165,12 +1182,64 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
-    UNIMPLEMENTED();
+    const VRegister value = locs()->in(1).fpu_reg();
+    const Register temp = locs()->temp(0).reg();
+    const Register temp2 = locs()->temp(1).reg();
+    const intptr_t cid = field().UnboxedFieldCid();
+
+    if (is_initialization_) {
+      const Class* cls = NULL;
+      switch (cid) {
+        case kDoubleCid:
+          cls = &compiler->double_class();
+          break;
+        // TODO(zra): Implement these when we add fpu loads and stores.
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          UNIMPLEMENTED();
+          break;
+        default:
+          UNREACHABLE();
+      }
+
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, *cls);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(*cls,
+                     slow_path->entry_label(),
+                     temp,
+                     temp2,
+                     PP);
+      __ Bind(slow_path->exit_label());
+      __ mov(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+    } else {
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
+    }
+    switch (cid) {
+      case kDoubleCid:
+        __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+        __ StoreDFieldToOffset(value, temp, Double::value_offset());
+        break;
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        UNIMPLEMENTED();
+        break;
+      default:
+        UNREACHABLE();
+    }
+
+    return;
   }
 
   if (IsPotentialUnboxedStore()) {
+    const Register value_reg = locs()->in(1).reg();
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
+    const VRegister fpu_temp = locs()->temp(2).fpu_reg();
 
     Label store_pointer;
     Label store_double;
@@ -1208,12 +1277,34 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         locs()->live_registers()->Add(locs()->in(1));
     }
 
-    // TODO(zra): Implement these when we add fpu loads and stores.
     {
       __ Bind(&store_double);
-      __ hlt(0);  // Unimplemented.
+      Label copy_double;
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->double_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
+      __ CompareObject(temp, Object::null_object(), PP);
+      __ b(&copy_double, NE);
+
+      __ TryAllocate(compiler->double_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2,
+                     PP);
+      __ Bind(slow_path->exit_label());
+      __ mov(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+      __ Bind(&copy_double);
+      __ LoadDFieldFromOffset(fpu_temp, value_reg, Double::value_offset());
+      __ StoreDFieldToOffset(fpu_temp, temp, Double::value_offset());
+      __ b(&skip_store);
     }
 
+    // TODO(zra): Implement these when we add simd loads and stores.
     {
       __ Bind(&store_float32x4);
       __ hlt(0);  // Unimplemented.
@@ -1331,6 +1422,38 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+class BoxDoubleSlowPath : public SlowPathCode {
+ public:
+  explicit BoxDoubleSlowPath(Instruction* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxDoubleSlowPath");
+    __ Bind(entry_label());
+    const Class& double_class = compiler->double_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+    const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ mov(locs->out(0).reg(), R0);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ b(exit_label());
+  }
+
+ private:
+  Instruction* instruction_;
+};
+
+
 LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -1344,9 +1467,10 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    // TODO(zra): Implement when we add fpu loads and stores.
-    UNIMPLEMENTED();
+    locs->AddTemp(Location::RequiresRegister());
   } else if (IsPotentialUnboxedLoad()) {
+    locs->AddTemp(opt ? Location::RequiresFpuRegister()
+                      : Location::FpuRegisterLocation(V1));
     locs->AddTemp(Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
@@ -1357,13 +1481,30 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
-    UNIMPLEMENTED();
+    const VRegister result = locs()->out(0).fpu_reg();
+    const Register temp = locs()->temp(0).reg();
+    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+    const intptr_t cid = field()->UnboxedFieldCid();
+    switch (cid) {
+      case kDoubleCid:
+        __ Comment("UnboxedDoubleLoadFieldInstr");
+        __ LoadDFieldFromOffset(result, temp, Double::value_offset());
+        break;
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        UNIMPLEMENTED();
+        break;
+      default:
+        UNREACHABLE();
+    }
+    return;
   }
 
   Label done;
   Register result_reg = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
-    const Register temp = locs()->temp(0).reg();
+    const Register temp = locs()->temp(1).reg();
+    const VRegister value = locs()->temp(0).fpu_reg();
 
     Label load_pointer;
     Label load_double;
@@ -1399,12 +1540,24 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       locs()->live_registers()->Add(locs()->in(0));
     }
 
-    // TODO(zra): Implement these when we add fpu loads and stores.
     {
       __ Bind(&load_double);
-      __ hlt(0);  // Unimplemented.
+      BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->double_class(),
+                     slow_path->entry_label(),
+                     result_reg,
+                     temp,
+                     PP);
+      __ Bind(slow_path->exit_label());
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+      __ LoadDFieldFromOffset(value, temp, Double::value_offset());
+      __ StoreDFieldToOffset(value, result_reg, Double::value_offset());
+      __ b(&done);
     }
 
+    // TODO(zra): Implement these when we add simd loads and stores.
     {
       __ Bind(&load_float32x4);
       __ hlt(0);  // Unimplemented.
@@ -1417,8 +1570,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFromOffset(
-      result_reg, instance_reg, offset_in_bytes() - kHeapObjectTag);
+  __ LoadFieldFromOffset(result_reg, instance_reg, offset_in_bytes());
   __ Bind(&done);
 }
 

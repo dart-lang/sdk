@@ -613,7 +613,7 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
       break;
     }
     case 1: {
-      if ((instr->RdField() == R31) && (instr->SFField())) {
+      if ((instr->RdField() == R31) && (instr->SField() == 1)) {
         Format(instr, "cmpi'sf 'rn, 'imm12s");
       } else {
         Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");

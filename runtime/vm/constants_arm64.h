@@ -166,9 +166,7 @@ const RegList kDartVolatileCpuRegs =
 const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R18;
 const int kDartVolatileCpuRegCount = 17;  // Excluding R16 and R17.
-const VRegister kDartFirstVolatileFpuReg = V0;
-const VRegister kDartLastVolatileFpuReg = V7;
-const int kDartVolatileFpuRegCount = 8;
+const int kDartVolatileFpuRegCount = 24;
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == SP)) ? R31 : r;

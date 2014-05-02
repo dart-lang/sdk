@@ -660,6 +660,12 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
+  void PushDouble(VRegister reg) {
+    fstrd(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+  void PopDouble(VRegister reg) {
+    fldrd(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP, PP, Operand(kHeapObjectTag));
@@ -738,11 +744,19 @@ class Assembler : public ValueObject {
   void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag);
   }
+  void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
+  void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
+    LoadDFromOffset(dest, base, offset - kHeapObjectTag);
+  }
 
-  void StoreToOffset(Register dest, Register base, int32_t offset,
+  void StoreToOffset(Register src, Register base, int32_t offset,
                      OperandSize sz = kDoubleWord);
-  void StoreFieldToOffset(Register dest, Register base, int32_t offset) {
-    StoreToOffset(dest, base, offset - kHeapObjectTag);
+  void StoreFieldToOffset(Register src, Register base, int32_t offset) {
+    StoreToOffset(src, base, offset - kHeapObjectTag);
+  }
+  void StoreDToOffset(VRegister src, Register base, int32_t offset);
+  void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset - kHeapObjectTag);
   }
 
   // Storing into an object.
@@ -821,6 +835,16 @@ class Assembler : public ValueObject {
                                      Register temp_reg,
                                      Register pp,
                                      Heap::Space space = Heap::kNew);
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   Register instance_reg,
+                   Register temp_reg,
+                   Register pp);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.

@@ -1128,7 +1128,20 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
-  // TODO(zra): Save live FPU Registers.
+  // TODO(vegorov): consider saving only caller save (volatile) registers.
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    // Store fpu registers with the lowest register number at the lowest
+    // address.
+    for (intptr_t reg_idx = kNumberOfVRegisters - 1;
+                  reg_idx >= 0; --reg_idx) {
+      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        // TODO(zra): Save the whole V register.
+        __ PushDouble(fpu_reg);
+      }
+    }
+  }
 
   // Store general purpose registers with the highest register number at the
   // lowest address.
@@ -1151,7 +1164,17 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     }
   }
 
-  // TODO(zra): Restore live FPU registers.
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    // Fpu registers have the lowest register number at the lowest address.
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfVRegisters; ++reg_idx) {
+      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        // TODO(zra): Restore the whole V register.
+        __ PopDouble(fpu_reg);
+      }
+    }
+  }
 }
 
 
