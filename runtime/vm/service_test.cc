@@ -447,7 +447,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"fields\":[],"
       "\"id\":\"objects\\/int-123\","
       "\"valueAsString\":\"123\"}",
@@ -463,7 +463,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"String\","
       "\"class\":{\"type\":\"@Class\","
-      "\"user_name\":\"String\"},\"fields\":[],"
+      "\"user_name\":\"_OneByteString\"},\"fields\":[],"
       "\"valueAsString\":\"\\\"value\\\"\"}",
       handler.msg());
 
@@ -499,7 +499,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"id\":\"objects\\/int-222\","
       "\"valueAsString\":\"222\"}",
       handler.msg());
@@ -598,7 +598,7 @@ TEST_CASE(Service_Libraries) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"id\":\"objects\\/int-54320\","
+      "\"user_name\":\"_Smi\"},\"id\":\"objects\\/int-54320\","
       "\"valueAsString\":\"54320\"}",
       handler.msg());
 }
@@ -672,7 +672,7 @@ TEST_CASE(Service_Classes) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"id\":\"objects\\/int-111235\","
       "\"valueAsString\":\"111235\"}",
       handler.msg());

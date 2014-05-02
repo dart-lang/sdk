@@ -1634,6 +1634,11 @@ RawString* Class::Name() const {
 }
 
 
+RawString* Class::PrettyName() const {
+  return GeneratePrettyName();
+}
+
+
 RawString* Class::UserVisibleName() const {
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
@@ -3031,6 +3036,16 @@ void Class::set_user_name(const String& value) const {
 }
 
 
+RawString* Class::GeneratePrettyName() const {
+  if (!IsCanonicalSignatureClass()) {
+    const String& name = String::Handle(Name());
+    return String::IdentifierPrettyName(name);
+  } else {
+    return Name();
+  }
+}
+
+
 RawString* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
     return Name();
@@ -3909,12 +3924,12 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   const char* internal_class_name = String::Handle(Name()).ToCString();
-  const char* user_visible_class_name =
-      String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_class_name =
+      String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
   jsobj.AddProperty("name", internal_class_name);
-  jsobj.AddProperty("user_name", user_visible_class_name);
+  jsobj.AddProperty("user_name", pretty_class_name);
   if (ref) {
     return;
   }
@@ -3998,8 +4013,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     typesRef.AddProperty("type", "@TypeList");
     typesRef.AddPropertyF("id", "classes/%" Pd "/types", id());
     jsobj.AddPropertyF("name", "canonical types of %s", internal_class_name);
-    jsobj.AddPropertyF("user_name", "canonical types of %s",
-                       user_visible_class_name);
+    jsobj.AddPropertyF("user_name", "canonical types of %s", pretty_class_name);
   }
 }
 
@@ -4252,9 +4266,9 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
-  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name = String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   jsobj.AddProperty("length", Length());
   jsobj.AddProperty("num_instantiations", NumInstantiations());
   if (ref) {
@@ -6265,9 +6279,38 @@ bool Function::HasOptimizedCode() const {
 }
 
 
-RawString* Function::UserVisibleName() const {
+RawString* Function::PrettyName() const {
   const String& str = String::Handle(name());
   return String::IdentifierPrettyName(str);
+}
+
+
+RawString* Function::UserVisibleName() const {
+  return PrettyName();
+}
+
+
+RawString* Function::QualifiedPrettyName() const {
+  String& tmp = String::Handle();
+  const Class& cls = Class::Handle(Owner());
+
+  if (IsClosureFunction()) {
+    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
+      const Function& parent = Function::Handle(parent_function());
+      tmp = parent.QualifiedPrettyName();
+    } else {
+      return PrettyName();
+    }
+  } else {
+    if (cls.IsTopLevel()) {
+      return PrettyName();
+    } else {
+      tmp = cls.PrettyName();
+    }
+  }
+  tmp = String::Concat(tmp, Symbols::Dot());
+  const String& suffix = String::Handle(PrettyName());
+  return String::Concat(tmp, suffix);
 }
 
 
@@ -6436,8 +6479,8 @@ const char* Function::ToCString() const {
 
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* internal_name = String::Handle(name()).ToCString();
-  const char* user_name =
-      String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name =
+      String::Handle(PrettyName()).ToCString();
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
@@ -6472,7 +6515,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
   }
   jsobj.AddProperty("name", internal_name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
     jsobj.AddProperty("owner", library);
@@ -6733,9 +6776,14 @@ RawField* Field::Clone(const Class& new_owner) const {
 }
 
 
-RawString* Field::UserVisibleName() const {
+RawString* Field::PrettyName() const {
   const String& str = String::Handle(name());
   return String::IdentifierPrettyName(str);
+}
+
+
+RawString* Field::UserVisibleName() const {
+  return PrettyName();
 }
 
 
@@ -6787,7 +6835,7 @@ const char* Field::ToCString() const {
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   const char* internal_field_name = String::Handle(name()).ToCString();
-  const char* field_name = String::Handle(UserVisibleName()).ToCString();
+  const char* field_name = String::Handle(PrettyName()).ToCString();
   Class& cls = Class::Handle(owner());
   intptr_t id = cls.FindFieldIndex(*this);
   ASSERT(id >= 0);
@@ -11660,7 +11708,7 @@ RawString* Code::Name() const {
 }
 
 
-RawString* Code::UserName() const {
+RawString* Code::PrettyName() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
     // Regular stub.
@@ -11677,7 +11725,7 @@ RawString* Code::UserName() const {
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    return Function::Cast(obj).QualifiedUserVisibleName();
+    return Function::Cast(obj).QualifiedPrettyName();
   }
 }
 
@@ -11693,10 +11741,10 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("is_alive", is_alive());
   jsobj.AddProperty("kind", "Dart");
   const String& name = String::Handle(Name());
-  const String& user_name = String::Handle(UserName());
+  const String& pretty_name = String::Handle(PrettyName());
   const char* name_prefix = is_optimized() ? "*" : "";
   jsobj.AddPropertyF("name", "%s%s", name_prefix, name.ToCString());
-  jsobj.AddPropertyF("user_name", "%s%s", name_prefix, user_name.ToCString());
+  jsobj.AddPropertyF("user_name", "%s%s", name_prefix, pretty_name.ToCString());
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
@@ -11706,7 +11754,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     func.AddProperty("type", "@Function");
     func.AddProperty("kind", "Stub");
     func.AddPropertyF("id", "functions/stub-%" Pd "", EntryPoint());
-    func.AddProperty("user_name", user_name.ToCString());
+    func.AddProperty("user_name", pretty_name.ToCString());
     func.AddProperty("name", name.ToCString());
   }
   if (ref) {
@@ -13231,7 +13279,9 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   if (IsBoundedType()) {
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
-    if (name_visibility == kUserVisibleName) {
+    if (name_visibility == kPrettyName) {
+      return type.BuildName(kPrettyName);
+    } else if (name_visibility == kUserVisibleName) {
       return type.BuildName(kUserVisibleName);
     }
     String& type_name = String::Handle(type.BuildName(kInternalName));
@@ -13276,6 +13326,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     if (name_visibility == kInternalName) {
       class_name = cls.Name();
+    } else if (name_visibility == kPrettyName) {
+      class_name = cls.PrettyName();
     } else {
       ASSERT(name_visibility == kUserVisibleName);
       // Map internal types to their corresponding public interfaces.
@@ -14122,9 +14174,9 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   }
   const char* name = String::Handle(Name()).ToCString();
-  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name = String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   if (ref) {
     return;
   }
@@ -14286,9 +14338,9 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
-  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name = String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   if (ref) {
     return;
   }
@@ -14503,9 +14555,9 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
-  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name = String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   const Class& param_cls = Class::Handle(parameterized_class());
   jsobj.AddProperty("parameterized_class", param_cls);
   if (ref) {
@@ -14707,9 +14759,9 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
-  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  const char* pretty_name = String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("user_name", pretty_name);
   if (ref) {
     return;
   }

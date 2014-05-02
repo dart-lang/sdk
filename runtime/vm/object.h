@@ -495,7 +495,41 @@ class Object {
 
   // Different kinds of name visibility.
   enum NameVisibility {
+    // Internal names are the true names of classes, fields,
+    // etc. inside the vm.  These names include privacy suffixes,
+    // getter prefixes, and trailing dots on unnamed constructors.
+    //
+    // The names of core implementation classes (like _OneByteString)
+    // are preserved as well.
+    //
+    // e.g.
+    //   private getter             - get:foo@6be832b
+    //   private constructor        - _MyClass@6b3832b.
+    //   private named constructor  - _MyClass@6b3832b.named
+    //   core impl class name shown - _OneByteString
     kInternalName = 0,
+
+    // Pretty names drop privacy suffixes, getter prefixes, and
+    // trailing dots on unnamed constructors.  These names are used in
+    // the vm service.
+    //
+    // e.g.
+    //   get:foo@6be832b        -> foo
+    //   _MyClass@6b3832b.      -> _MyClass
+    //   _MyClass@6b3832b.named -> _MyClass.named
+    //   _OneByteString          -> _OneByteString (not remapped)
+    kPrettyName,
+
+    // User visible names are appropriate for reporting type errors
+    // directly to programmers.  The names have been "prettied" and
+    // the names of core implementation classes are remapped to their
+    // public interface names.
+    //
+    // e.g.
+    //   get:foo@6be832b        -> foo
+    //   _MyClass@6b3832b.      -> _MyClass
+    //   _MyClass@6b3832b.named -> _MyClass.named
+    //   _OneByteString          -> String (remapped)
     kUserVisibleName
   };
 
@@ -705,6 +739,7 @@ class Class : public Object {
   }
 
   RawString* Name() const;
+  RawString* PrettyName() const;
   RawString* UserVisibleName() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
@@ -1155,7 +1190,9 @@ class Class : public Object {
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
 
   void set_name(const String& value) const;
+  void set_pretty_name(const String& value) const;
   void set_user_name(const String& value) const;
+  RawString* GeneratePrettyName() const;
   RawString* GenerateUserVisibleName() const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
@@ -1271,6 +1308,12 @@ class TypeArguments : public Object {
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
+  }
+
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
+  // Names of internal classes are not mapped to their public interfaces.
+  RawString* PrettyName() const {
+    return SubvectorName(0, Length(), kPrettyName);
   }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
@@ -1463,7 +1506,9 @@ class PatchClass : public Object {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* PrettyName() const;
   RawString* UserVisibleName() const;
+  RawString* QualifiedPrettyName() const;
   RawString* QualifiedUserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
 
@@ -1475,6 +1520,12 @@ class Function : public Object {
   RawString* Signature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
+  }
+
+  RawString* PrettySignature() const {
+    const bool instantiate = false;
+    return BuildSignature(
+        instantiate, kPrettyName, TypeArguments::Handle());
   }
 
   // Build a string of the form '(T, {b: B, c: C}) => R' representing the
@@ -2095,6 +2146,7 @@ class RedirectionData: public Object {
 class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* PrettyName() const;
   RawString* UserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
 
@@ -3610,7 +3662,7 @@ class Code : public Object {
   RawArray* ExtractTypeFeedbackArray() const;
 
   RawString* Name() const;
-  RawString* UserName() const;
+  RawString* PrettyName() const;
 
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
@@ -4294,6 +4346,10 @@ class AbstractType : public Instance {
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
     return BuildName(kInternalName);
+  }
+
+  virtual RawString* PrettyName() const {
+    return BuildName(kPrettyName);
   }
 
   // The name of this type, including the names of its type arguments, if any.
