@@ -1401,16 +1401,10 @@ void Simulator::DecodeCompareBranch(Instr* instr) {
 
 
 void Simulator::DecodeLoadStoreReg(Instr* instr) {
-  // TODO(zra): SIMD loads and stores have bit 26 (V) set.
-  // (bit 25 is never set for loads and stores).
-  if (instr->Bits(25, 2) != 0) {
-    UnimplementedInstruction(instr);
-    return;
-  }
-
   // Calculate the address.
   const Register rn = instr->RnField();
   const Register rt = instr->RtField();
+  const VRegister vt = instr->VtField();
   const int64_t rn_val = get_register(rn, R31IsSP);
   const uint32_t size = instr->SzField();
   uword address = 0;
@@ -1451,6 +1445,7 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
     address = rn_val + offset;
   } else {
     UnimplementedInstruction(instr);
+    return;
   }
 
   // Check the address.
@@ -1461,86 +1456,106 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
 
   // Do access.
   if (instr->Bits(22, 2) == 0) {
-    // Format(instr, "str'sz 'rt, 'memop");
-    int32_t rt_val32 = get_wregister(rt, R31IsZR);
-    switch (size) {
-      case 0: {
-        uint8_t val = static_cast<uint8_t>(rt_val32);
-        WriteB(address, val);
-        break;
+    if (instr->Bit(26) == 1) {
+      // Format(instr, "vstrd 'vt, 'memop");
+      if (size != 3) {
+        UnimplementedInstruction(instr);
+        return;
       }
-      case 1: {
-        uint16_t val = static_cast<uint16_t>(rt_val32);
-        WriteH(address, val, instr);
-        break;
+      const int64_t vt_val = get_vregisterd(vt);
+      WriteX(address, vt_val, instr);
+    } else {
+      // Format(instr, "str'sz 'rt, 'memop");
+      const int32_t rt_val32 = get_wregister(rt, R31IsZR);
+      switch (size) {
+        case 0: {
+          const uint8_t val = static_cast<uint8_t>(rt_val32);
+          WriteB(address, val);
+          break;
+        }
+        case 1: {
+          const uint16_t val = static_cast<uint16_t>(rt_val32);
+          WriteH(address, val, instr);
+          break;
+        }
+        case 2: {
+          const uint32_t val = static_cast<uint32_t>(rt_val32);
+          WriteW(address, val, instr);
+          break;
+        }
+        case 3: {
+          const int64_t val = get_register(rt, R31IsZR);
+          WriteX(address, val, instr);
+          break;
+        }
+        default:
+          UNREACHABLE();
+          break;
       }
-      case 2: {
-        uint32_t val = static_cast<uint32_t>(rt_val32);
-        WriteW(address, val, instr);
-        break;
-      }
-      case 3: {
-        int64_t val = get_register(rt, R31IsZR);
-        WriteX(address, val, instr);
-        break;
-      }
-      default:
-        UNREACHABLE();
-        break;
     }
   } else {
-    // Format(instr, "ldr'sz 'rt, 'memop");
-    // Undefined case.
-    if ((size == 3) && (instr->Bits(22, 0) == 3)) {
-      UnimplementedInstruction(instr);
-      return;
-    }
-
-    // Read the value.
-    const bool signd = instr->Bit(23) == 1;
-    // Write the W register for signed values when size < 2.
-    // Write the W register for unsigned values when size == 2.
-    const bool use_w =
-        (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
-    int64_t val = 0;  // Sign extend into an int64_t.
-    switch (size) {
-      case 0: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadB(address));
-        } else {
-          val = static_cast<int64_t>(ReadBU(address));
-        }
-        break;
+    if (instr->Bit(26) == 1) {
+      // Format(instr, "ldrd 'vt, 'memop");
+      if ((size != 3) || (instr->Bit(23) != 0)) {
+        UnimplementedInstruction(instr);
+        return;
       }
-      case 1: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadH(address, instr));
-        } else {
-          val = static_cast<int64_t>(ReadHU(address, instr));
-        }
-        break;
-      }
-      case 2: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadW(address, instr));
-        } else {
-          val = static_cast<int64_t>(ReadWU(address, instr));
-        }
-        break;
-      }
-      case 3:
-        val = ReadX(address, instr);
-        break;
-      default:
-        UNREACHABLE();
-        break;
-    }
-
-    // Write to register.
-    if (use_w) {
-      set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+      const int64_t val = ReadX(address, instr);
+      set_vregisterd(vt, val);
     } else {
-      set_register(rt, val, R31IsZR);
+      // Format(instr, "ldr'sz 'rt, 'memop");
+      // Undefined case.
+      if ((size == 3) && (instr->Bits(22, 2) == 3)) {
+        UnimplementedInstruction(instr);
+        return;
+      }
+
+      // Read the value.
+      const bool signd = instr->Bit(23) == 1;
+      // Write the W register for signed values when size < 2.
+      // Write the W register for unsigned values when size == 2.
+      const bool use_w =
+          (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
+      int64_t val = 0;  // Sign extend into an int64_t.
+      switch (size) {
+        case 0: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadB(address));
+          } else {
+            val = static_cast<int64_t>(ReadBU(address));
+          }
+          break;
+        }
+        case 1: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadH(address, instr));
+          } else {
+            val = static_cast<int64_t>(ReadHU(address, instr));
+          }
+          break;
+        }
+        case 2: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadW(address, instr));
+          } else {
+            val = static_cast<int64_t>(ReadWU(address, instr));
+          }
+          break;
+        }
+        case 3:
+          val = ReadX(address, instr);
+          break;
+        default:
+          UNREACHABLE();
+          break;
+      }
+
+      // Write to register.
+      if (use_w) {
+        set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+      } else {
+        set_register(rt, val, R31IsZR);
+      }
     }
   }
 

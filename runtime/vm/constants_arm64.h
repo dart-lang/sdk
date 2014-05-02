@@ -322,18 +322,21 @@ enum UnconditionalBranchRegOp {
   RET = BR | B22,
 };
 
-enum LoadStoreRegOp {
-  LoadStoreRegMask = 0x3a000000,
-  LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
-  STR = LoadStoreRegFixed,
-  LDR = LoadStoreRegFixed | B22,
-};
-
 // C3.3.5
 enum LoadRegLiteralOp {
   LoadRegLiteralMask = 0x3b000000,
   LoadRegLiteralFixed = LoadStoreFixed | B28,
   LDRpc = LoadRegLiteralFixed,
+};
+
+// C3.3.7-10
+enum LoadStoreRegOp {
+  LoadStoreRegMask = 0x3a000000,
+  LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
+  STR = LoadStoreRegFixed,
+  LDR = LoadStoreRegFixed | B22,
+  FSTR = STR | B26,
+  FLDR = LDR | B26,
 };
 
 // C3.4.1
@@ -524,6 +527,8 @@ enum InstructionFields {
   kVdBits = 5,
   kVnShift = 5,
   kVnBits = 5,
+  kVtShift = 0,
+  kVtBits = 5,
 
   // Immediates.
   kImm3Shift = 10,
@@ -692,6 +697,8 @@ class Instr {
                                         Bits(kVdShift, kVdBits)); }
   inline VRegister VnField() const { return static_cast<VRegister>(
                                         Bits(kVnShift, kVnBits)); }
+  inline VRegister VtField() const { return static_cast<VRegister>(
+                                        Bits(kVtShift, kVtBits)); }
 
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }

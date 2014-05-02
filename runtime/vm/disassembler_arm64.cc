@@ -312,6 +312,10 @@ int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
     int reg = instr->VnField();
     PrintVRegister(reg);
     return 2;
+  } else if (format[1] == 't') {
+    int reg = instr->VtField();
+    PrintVRegister(reg);
+    return 2;
   }
   UNREACHABLE();
   return -1;
@@ -554,14 +558,28 @@ void ARM64Decoder::DecodeMoveWide(Instr* instr) {
 
 
 void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
-  if (instr->Bits(25, 2) != 0) {
+  if (instr->Bit(23) != 0) {
+    // 128-bit ldr/str.
     Unknown(instr);
-    return;
   }
-  if (instr->Bit(22) == 1) {
-    Format(instr, "ldr'sz 'rt, 'memop");
+  if (instr->Bit(26) == 1) {
+    if (instr->Bits(30, 2) != 3) {
+      // Only 64-bit double variant supported.
+      Unknown(instr);
+    }
+    // SIMD or FP src/dst.
+    if (instr->Bit(22) == 1) {
+      Format(instr, "fldrd 'vt, 'memop");
+    } else {
+      Format(instr, "fstrd 'vt, 'memop");
+    }
   } else {
-    Format(instr, "str'sz 'rt, 'memop");
+    // Integer src/dst.
+    if (instr->Bit(22) == 1) {
+      Format(instr, "ldr'sz 'rt, 'memop");
+    } else {
+      Format(instr, "str'sz 'rt, 'memop");
+    }
   }
 }
 

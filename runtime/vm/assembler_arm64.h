@@ -623,6 +623,15 @@ class Assembler : public ValueObject {
     EmitFPIntCvtOp(FMOVRD, rd, static_cast<Register>(vn));
   }
 
+  void fldrd(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);
+  }
+  void fstrd(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDoubleWord);
+  }
+
   // Aliases.
   void mov(Register rd, Register rn) {
     if ((rd == SP) || (rn == SP)) {

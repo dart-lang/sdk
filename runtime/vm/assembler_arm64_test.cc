@@ -1370,6 +1370,114 @@ ASSEMBLER_TEST_RUN(Fmovdr, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fstrd(V1, Address(SP, -1*kWordSize, Address::PreIndex));
+  __ fldrd(V0, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ AddImmediate(SP, SP, -1 * kWordSize, kNoPP);
+  __ add(R2, SP, Operand(1));
+  __ fstrd(V1, Address(R2, -1));
+  __ fldrd(V0, Address(R2, -1));
+  __ AddImmediate(SP, SP, 1 * kWordSize, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  // Largest negative offset that can fit in the signed 9-bit immediate field.
+  __ fstrd(V1, Address(SP, -32*kWordSize, Address::PreIndex));
+  // Largest positive kWordSize aligned offset that we can fit.
+  __ fldrd(V0, Address(SP, 31*kWordSize, Address::PostIndex));
+  // Correction.
+  __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdLargeIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ sub(SP, SP, Operand(512*kWordSize));
+  __ fstrd(V1, Address(SP, 512*kWordSize, Address::Offset));
+  __ add(SP, SP, Operand(512*kWordSize));
+  __ fldrd(V0, Address(SP));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdLargeOffset, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ movz(R2, 0xfff8, 0);
+  __ movk(R2, 0xffff, 1);  // R2 <- -8 (int32_t).
+  // This should sign extend R2, and add to SP to get address,
+  // i.e. SP - kWordSize.
+  __ fstrd(V1, Address(SP, R2, SXTW));
+  __ sub(SP, SP, Operand(kWordSize));
+  __ fldrd(V0, Address(SP));
+  __ add(SP, SP, Operand(kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdExtReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ movz(R2, 10, 0);
+  __ sub(SP, SP, Operand(10*kWordSize));
+  // Store V1 into SP + R2 * kWordSize.
+  __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));
+  __ fldrd(V0, Address(SP, R2, UXTX, Address::Scaled));
+  __ add(SP, SP, Operand(10*kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.
