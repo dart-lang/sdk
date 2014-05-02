@@ -98,11 +98,15 @@ class CustomElement implements Element {
   void inserted() {}
   @deprecated
   void enteredView() {}
+  @deprecated
+  void attached() {}
 
   /** Invoked when this component is removed from the DOM tree. */
   void removed() {}
   @deprecated
   void leftView() {}
+  @deprecated
+  void detached() {}
 
   /** Invoked when any attribute of the component is modified. */
   void attributeChanged(String name, String oldValue, String newValue) =>
