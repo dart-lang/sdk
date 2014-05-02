@@ -421,11 +421,6 @@ class SourceVisitor implements AstVisitor {
     visit(node.arguments);
   }
 
-  visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    token(node.question);
-    visit(node.identifier);
-  }
-
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
     breakableNonSpace();

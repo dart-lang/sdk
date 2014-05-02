@@ -2718,6 +2718,15 @@ abstract class Element {
   Element get enclosingElement;
 
   /**
+   * Return a display name for the given element that includes the path to the compilation unit in
+   * which the type is defined.
+   *
+   * @param type the type for which an extended display name is to be returned
+   * @return a display name that can help distinguish between two types with the same name
+   */
+  String get extendedDisplayName;
+
+  /**
    * Return the kind of element that this is.
    *
    * @return the kind of this element
@@ -3093,6 +3102,16 @@ abstract class ElementImpl implements Element {
 
   @override
   Element get enclosingElement => _enclosingElement;
+
+  @override
+  String get extendedDisplayName {
+    String displayName = this.displayName;
+    Source source = this.source;
+    if (source != null) {
+      return "${displayName} (${source.fullName})";
+    }
+    return displayName;
+  }
 
   @override
   LibraryElement get library => getAncestor((element) => element is LibraryElement);
@@ -4446,6 +4465,18 @@ class FieldMember extends VariableMember implements FieldElement {
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /**
+   * The name of the method that can be implemented by a class to allow its instances to be invoked
+   * as if they were a function.
+   */
+  static final String CALL_METHOD_NAME = "call";
+
+  /**
+   * The name of the method that will be invoked if an attempt is made to invoke an undefined method
+   * on an object.
+   */
+  static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
+
+  /**
    * The name of the synthetic function defined for libraries that are deferred.
    */
   static final String LOAD_LIBRARY_NAME = "loadLibrary";
@@ -5026,7 +5057,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> typeParameters = TypeParameterTypeImpl.getTypes(this.typeParameters);
     for (ParameterElement parameter in parameters) {
       if (parameter.parameterKind == ParameterKind.NAMED) {
-        namedParameterTypes[parameter.name] = parameter.type.substitute2(typeArguments, typeParameters);
+        DartType type = parameter.type;
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute2(typeArguments, typeParameters);
+        }
+        namedParameterTypes[parameter.name] = type;
       }
     }
     return namedParameterTypes;
@@ -5042,7 +5077,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> types = new List<DartType>();
     for (ParameterElement parameter in parameters) {
       if (parameter.parameterKind == ParameterKind.REQUIRED) {
-        types.add(parameter.type.substitute2(typeArguments, typeParameters));
+        DartType type = parameter.type;
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute2(typeArguments, typeParameters);
+        }
+        types.add(type);
       }
     }
     return new List.from(types);
@@ -5058,7 +5097,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> types = new List<DartType>();
     for (ParameterElement parameter in parameters) {
       if (parameter.parameterKind == ParameterKind.POSITIONAL) {
-        types.add(parameter.type.substitute2(typeArguments, typeParameters));
+        DartType type = parameter.type;
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute2(typeArguments, typeParameters);
+        }
+        types.add(type);
       }
     }
     return new List.from(types);
@@ -5087,6 +5130,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // TODO(brianwilkerson) This is a patch. The return type should never be null and we need to
       // understand why it is and fix it.
       return DynamicTypeImpl.instance;
+    }
+    // If there are no arguments to substitute, or if the arguments size doesn't match the parameter
+    // size, return the base return type.
+    if (typeArguments.length == 0 || typeArguments.length != typeParameters.length) {
+      return baseReturnType;
     }
     return baseReturnType.substitute2(typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
   }
@@ -6627,7 +6675,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (supertype == null) {
       return null;
     }
-    return supertype.substitute2(typeArguments, classElement.type.typeArguments);
+    List<DartType> typeParameters = classElement.type.typeArguments;
+    if (typeArguments.length == 0 || typeArguments.length != typeParameters.length) {
+      return supertype;
+    }
+    return supertype.substitute2(typeArguments, typeParameters);
   }
 
   @override
@@ -7913,6 +7965,9 @@ abstract class Member implements Element {
   String get displayName => _baseElement.displayName;
 
   @override
+  String get extendedDisplayName => _baseElement.extendedDisplayName;
+
+  @override
   ElementKind get kind => _baseElement.kind;
 
   @override
@@ -8431,6 +8486,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get enclosingElement => null;
+
+  @override
+  String get extendedDisplayName => displayName;
 
   @override
   ElementKind get kind => ElementKind.ERROR;
@@ -10401,6 +10459,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   static List<TypeParameterType> EMPTY_ARRAY = new List<TypeParameterType>(0);
 
   /**
+   * The name of the type Type from dart.core.
+   */
+  static String _TYPE_CLASS_NAME = "Type";
+
+  /**
    * Return an array containing the type parameter types defined by the given array of type
    * parameter elements.
    *
@@ -10479,12 +10542,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new Set<TypeImpl_TypePair>());
 
   bool _isMoreSpecificThan(DartType s, Set<DartType> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // If s is of type Type from dart.core, return true
+    //
+    Element sElement = s.element;
+    LibraryElement sLibrary = sElement != null ? sElement.library : null;
+    if (sLibrary != null && sLibrary.isDartCore && s.name == _TYPE_CLASS_NAME) {
+      return true;
+    }
+    //
     // T is a type parameter and S is the upper bound of T.
     //
     DartType bound = element.bound;
     if (s == bound) {
       return true;
     }
+    //
     // T is a type parameter and S is Object.
     //
     if (s.isObject) {

@@ -74,6 +74,28 @@ class AnalysisCache {
   }
 
   /**
+   * Return the number of entries in this cache that have an AST associated with them.
+   *
+   * @return the number of entries in this cache that have an AST associated with them
+   */
+  int get astSize => _partitions[_partitions.length - 1].astSize;
+
+  /**
+   * Return information about each of the partitions in this cache.
+   *
+   * @return information about each of the partitions in this cache
+   */
+  List<AnalysisContextStatistics_PartitionData> get partitionData {
+    int count = _partitions.length;
+    List<AnalysisContextStatistics_PartitionData> data = new List<AnalysisContextStatistics_PartitionData>(count);
+    for (int i = 0; i < count; i++) {
+      CachePartition partition = _partitions[i];
+      data[i] = new AnalysisContextStatisticsImpl_PartitionDataImpl(partition.astSize, partition.map.length);
+    }
+    return data;
+  }
+
+  /**
    * Return an iterator returning all of the map entries mapping sources to cache entries.
    *
    * @return an iterator returning all of the map entries mapping sources to cache entries
@@ -165,155 +187,6 @@ class AnalysisCache {
 }
 
 /**
- * Container with statistics about the [AnalysisContext].
- */
-abstract class AnalysisContentStatistics {
-  /**
-   * Return the statistics for each kind of cached data.
-   *
-   * @return the statistics for each kind of cached data
-   */
-  List<AnalysisContentStatistics_CacheRow> get cacheRows;
-
-  /**
-   * Return the exceptions that caused some entries to have a state of [CacheState#ERROR].
-   *
-   * @return the exceptions that caused some entries to have a state of [CacheState#ERROR]
-   */
-  List<AnalysisException> get exceptions;
-
-  /**
-   * Return an array containing all of the sources in the cache.
-   *
-   * @return an array containing all of the sources in the cache
-   */
-  List<Source> get sources;
-}
-
-/**
- * Implementation of the [AnalysisContentStatistics].
- */
-class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
-  Map<String, AnalysisContentStatistics_CacheRow> _dataMap = new Map<String, AnalysisContentStatistics_CacheRow>();
-
-  List<Source> _sources = new List<Source>();
-
-  Set<AnalysisException> _exceptions = new Set<AnalysisException>();
-
-  void addSource(Source source) {
-    _sources.add(source);
-  }
-
-  @override
-  List<AnalysisContentStatistics_CacheRow> get cacheRows {
-    Iterable<AnalysisContentStatistics_CacheRow> items = _dataMap.values;
-    return new List.from(items);
-  }
-
-  @override
-  List<AnalysisException> get exceptions => new List.from(_exceptions);
-
-  @override
-  List<Source> get sources => new List.from(_sources);
-
-  void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
-  }
-
-  void putCacheItemInLibrary(DartEntry dartEntry, Source librarySource, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getStateInLibrary(descriptor, librarySource));
-  }
-
-  void _internalPutCacheItem(SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state) {
-    String rowName = rowDesc.toString();
-    AnalysisContentStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContentStatisticsImpl_CacheRowImpl;
-    if (row == null) {
-      row = new AnalysisContentStatisticsImpl_CacheRowImpl(rowName);
-      _dataMap[rowName] = row;
-    }
-    row._incState(state);
-    if (state == CacheState.ERROR) {
-      AnalysisException exception = dartEntry.exception;
-      if (exception != null) {
-        _exceptions.add(exception);
-      }
-    }
-  }
-}
-
-class AnalysisContentStatisticsImpl_CacheRowImpl implements AnalysisContentStatistics_CacheRow {
-  final String name;
-
-  int _errorCount = 0;
-
-  int _flushedCount = 0;
-
-  int _inProcessCount = 0;
-
-  int _invalidCount = 0;
-
-  int _validCount = 0;
-
-  AnalysisContentStatisticsImpl_CacheRowImpl(this.name);
-
-  @override
-  bool operator ==(Object obj) => obj is AnalysisContentStatisticsImpl_CacheRowImpl && obj.name == name;
-
-  @override
-  int get errorCount => _errorCount;
-
-  @override
-  int get flushedCount => _flushedCount;
-
-  @override
-  int get inProcessCount => _inProcessCount;
-
-  @override
-  int get invalidCount => _invalidCount;
-
-  @override
-  int get validCount => _validCount;
-
-  @override
-  int get hashCode => name.hashCode;
-
-  void _incState(CacheState state) {
-    if (state == CacheState.ERROR) {
-      _errorCount++;
-    }
-    if (state == CacheState.FLUSHED) {
-      _flushedCount++;
-    }
-    if (state == CacheState.IN_PROCESS) {
-      _inProcessCount++;
-    }
-    if (state == CacheState.INVALID) {
-      _invalidCount++;
-    }
-    if (state == CacheState.VALID) {
-      _validCount++;
-    }
-  }
-}
-
-/**
- * Information about single item in the cache.
- */
-abstract class AnalysisContentStatistics_CacheRow {
-  int get errorCount;
-
-  int get flushedCount;
-
-  int get inProcessCount;
-
-  int get invalidCount;
-
-  String get name;
-
-  int get validCount;
-}
-
-/**
  * The interface `AnalysisContext` defines the behavior of objects that represent a context in
  * which a single analysis can be performed and incrementally maintained. The context includes such
  * information as the version of the SDK being analyzed against as well as the package-root used to
@@ -348,6 +221,14 @@ abstract class AnalysisContentStatistics_CacheRow {
  * proposed future state, such as the state after a refactoring.
  */
 abstract class AnalysisContext {
+  /**
+   * Apply the given delta to change the level of analysis that will be performed for the sources
+   * known to this context.
+   *
+   * @param delta a description of the level of analysis that should be performed for some sources
+   */
+  void applyAnalysisDelta(AnalysisDelta delta);
+
   /**
    * Apply the changes specified by the given change set to this context. Any analysis results that
    * have been invalidated by these changes will be removed.
@@ -1022,7 +903,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisContextImpl() : super() {
     _resultRecorder = new AnalysisContextImpl_AnalysisTaskResultRecorder(this);
     _privatePartition = new UniversalCachePartition(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
-    _cache = _createCacheFromSourceFactory(null);
+    _cache = createCacheFromSourceFactory(null);
   }
 
   @override
@@ -1030,6 +911,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // This implementation assumes that the access to the cache does not need to be synchronized
     // because no other object can have access to this context while this method is being invoked.
     _cache.put(source, info);
+  }
+
+  @override
+  void applyAnalysisDelta(AnalysisDelta delta) {
+    ChangeSet changeSet = new ChangeSet();
+    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(delta.analysisLevels)) {
+      Source source = entry.getKey();
+      if (entry.getValue() == AnalysisLevel.NONE) {
+        changeSet.removedSource(source);
+      } else {
+        changeSet.addedSource(source);
+      }
+    }
+    applyChanges(changeSet);
   }
 
   @override
@@ -1629,9 +1524,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AnalysisContentStatistics get statistics {
+  AnalysisContextStatistics get statistics {
     bool hintsEnabled = _options.hint;
-    AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
+    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
     MapIterator<Source, SourceEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
       SourceEntry sourceEntry = iterator.value;
@@ -1673,6 +1568,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
       }
     }
+    statistics.partitionData = _cache.partitionData;
     return statistics;
   }
 
@@ -1937,8 +1833,27 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _coreLibrarySource = _sourceFactory.forUri(DartSdk.DART_CORE);
-    _cache = _createCacheFromSourceFactory(factory);
+    _cache = createCacheFromSourceFactory(factory);
     _invalidateAllLocalResolutionInformation();
+  }
+
+  /**
+   * Create an analysis cache based on the given source factory.
+   *
+   * @param factory the source factory containing the information needed to create the cache
+   * @return the cache that was created
+   */
+  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return new AnalysisCache(<CachePartition> [_privatePartition]);
+    }
+    DartSdk sdk = factory.dartSdk;
+    if (sdk == null) {
+      return new AnalysisCache(<CachePartition> [_privatePartition]);
+    }
+    return new AnalysisCache(<CachePartition> [
+        AnalysisEngine.instance.partitionManager.forSdk(sdk),
+        _privatePartition]);
   }
 
   /**
@@ -1969,8 +1884,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
         }
         DartEntryImpl dartCopy = unitEntry.writableCopy;
-        dartCopy.recordResolutionError();
-        dartCopy.exception = thrownException;
+        if (thrownException == null) {
+          dartCopy.recordResolutionError(new AnalysisException.con1("In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"));
+        } else {
+          dartCopy.recordResolutionError(thrownException);
+        }
         _cache.put(unitSource, dartCopy);
         _cache.remove(unitSource);
         if (thrownException != null) {
@@ -1997,10 +1915,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               }
               _cache.storedAst(source);
             } else {
-              dartCopy.recordResolutionError();
+              dartCopy.recordResolutionErrorInLibrary(librarySource, thrownException);
               _cache.remove(source);
             }
-            dartCopy.exception = thrownException;
             _cache.put(source, dartCopy);
             if (source != librarySource) {
               _workManager.add(source, SourcePriority.PRIORITY_PART);
@@ -2035,10 +1952,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
                 // the cache so that we won't attempt to re-analyze the sources until there's a
                 // good chance that we'll be able to do so without error.
                 //
-                dartCopy.recordResolutionError();
+                dartCopy.recordResolutionError(thrownException);
                 _cache.remove(source);
               }
-              dartCopy.exception = thrownException;
               _cache.put(source, dartCopy);
               if (source == unitSource) {
                 unitEntry = dartCopy;
@@ -2083,8 +1999,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
         }
         DartEntryImpl dartCopy = unitEntry.writableCopy;
-        dartCopy.recordResolutionError();
-        dartCopy.exception = thrownException;
+        if (thrownException == null) {
+          dartCopy.recordResolutionError(new AnalysisException.con1("In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"));
+        } else {
+          dartCopy.recordResolutionError(thrownException);
+        }
         _cache.put(unitSource, dartCopy);
         _cache.remove(unitSource);
         if (thrownException != null) {
@@ -2122,10 +2041,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               }
               _cache.storedAst(source);
             } else {
-              dartCopy.recordResolutionError();
+              dartCopy.recordResolutionErrorInLibrary(librarySource, thrownException);
               _cache.remove(source);
             }
-            dartCopy.exception = thrownException;
             _cache.put(source, dartCopy);
             if (source != librarySource) {
               _workManager.add(source, SourcePriority.PRIORITY_PART);
@@ -2160,10 +2078,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
                 // the cache so that we won't attempt to re-analyze the sources until there's a
                 // good chance that we'll be able to do so without error.
                 //
-                dartCopy.recordResolutionError();
+                dartCopy.recordResolutionError(thrownException);
                 _cache.remove(source);
               }
-              dartCopy.exception = thrownException;
               _cache.put(source, dartCopy);
               if (source == unitSource) {
                 unitEntry = dartCopy;
@@ -2625,31 +2542,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(new BuildDartElementModelTask(this, source, builder.librariesInCycle), false);
     } on AnalysisException catch (exception) {
       DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.recordBuildElementError();
-      dartCopy.exception = exception;
+      dartCopy.recordBuildElementErrorInLibrary(source, exception);
       _cache.put(source, dartCopy);
       AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", exception);
     }
     return new AnalysisContextImpl_TaskData(null, false);
-  }
-
-  /**
-   * Create an analysis cache based on the given source factory.
-   *
-   * @param factory the source factory containing the information needed to create the cache
-   * @return the cache that was created
-   */
-  AnalysisCache _createCacheFromSourceFactory(SourceFactory factory) {
-    if (factory == null) {
-      return new AnalysisCache(<CachePartition> [_privatePartition]);
-    }
-    DartSdk sdk = factory.dartSdk;
-    if (sdk == null) {
-      return new AnalysisCache(<CachePartition> [_privatePartition]);
-    }
-    return new AnalysisCache(<CachePartition> [
-        AnalysisEngine.instance.partitionManager.forSdk(sdk),
-        _privatePartition]);
   }
 
   /**
@@ -2669,9 +2566,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     if (unit == null) {
-      AnalysisEngine.instance.logger.logInformation2("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}", new AnalysisException());
+      AnalysisException exception = new AnalysisException.con1("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}");
+      AnalysisEngine.instance.logger.logInformation2(exception.toString(), exception);
       DartEntryImpl dartCopy = unitEntry.writableCopy;
-      dartCopy.recordResolutionError();
+      dartCopy.recordResolutionError(exception);
       _cache.put(unitSource, dartCopy);
       return new AnalysisContextImpl_TaskData(null, false);
     }
@@ -2866,10 +2764,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(new ResolveDartLibraryCycleTask(this, source, source, builder.librariesInCycle), false);
     } on AnalysisException catch (exception) {
       DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.recordResolutionError();
-      dartCopy.exception = exception;
+      dartCopy.recordResolutionError(exception);
       _cache.put(source, dartCopy);
-      AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", exception);
+      AnalysisEngine.instance.logger.logError2("Internal error trying to create a ResolveDartLibraryTask", exception);
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -3958,10 +3855,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new Set<LibraryElement>()));
             }
           } else {
-            dartCopy.recordBuildElementError();
+            dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
             _cache.remove(source);
           }
-          dartCopy.exception = thrownException;
           _cache.put(source, dartCopy);
           if (source != librarySource) {
             _workManager.add(librarySource, SourcePriority.PRIORITY_PART);
@@ -3978,6 +3874,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       PrintStringWriter writer = new PrintStringWriter();
       writer.println("Build element model results discarded for");
       for (ResolvableLibrary library in builtLibraries) {
+        Source librarySource = library.librarySource;
         for (Source source in library.compilationUnitSources) {
           DartEntry dartEntry = _getReadableDartEntry(source);
           if (dartEntry != null) {
@@ -3996,10 +3893,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               // the cache so that we won't attempt to re-analyze the sources until there's a
               // good chance that we'll be able to do so without error.
               //
-              dartCopy.recordBuildElementError();
+              dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
               _cache.remove(source);
             }
-            dartCopy.exception = thrownException;
             _cache.put(source, dartCopy);
             if (source == targetLibrary) {
               targetEntry = dartCopy;
@@ -4077,9 +3973,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
+        dartCopy.recordVerificationErrorInLibrary(librarySource, thrownException);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     } else {
@@ -4102,9 +3997,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-verify the source until there's a good chance
         // that we'll be able to do so without error.
         //
-        dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
+        dartCopy.recordVerificationErrorInLibrary(librarySource, thrownException);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     }
@@ -4142,8 +4036,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         thrownException = new AnalysisException.con1("GenerateDartHintsTask returned a null hint map without throwing an exception: ${librarySource.fullName}");
       }
       DartEntryImpl dartCopy = (sourceEntry as DartEntry).writableCopy;
-      dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.ERROR);
-      dartCopy.exception = thrownException;
+      dartCopy.recordHintErrorInLibrary(librarySource, thrownException);
       _cache.put(librarySource, dartCopy);
       throw thrownException;
     }
@@ -4177,9 +4070,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           ChangeNoticeImpl notice = _getNotice(unitSource);
           notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
         } else {
-          dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.ERROR);
+          dartCopy.recordHintErrorInLibrary(librarySource, thrownException);
         }
-        dartCopy.exception = thrownException;
         _cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       } else {
@@ -4203,9 +4095,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             // cache so that we won't attempt to re-analyze the sources until there's a good chance
             // that we'll be able to do so without error.
             //
-            dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.ERROR);
+            dartCopy.recordHintErrorInLibrary(librarySource, thrownException);
           }
-          dartCopy.exception = thrownException;
           _cache.put(unitSource, dartCopy);
           dartEntry = dartCopy;
         }
@@ -4240,8 +4131,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       sourceCopy.modificationTime = task.modificationTime;
       sourceCopy.setValue(SourceEntry.CONTENT, task.content);
     } else {
-      sourceCopy.exception = thrownException;
-      sourceCopy.recordContentError();
+      sourceCopy.recordContentError(thrownException);
       _workManager.remove(source);
     }
     _cache.put(source, sourceCopy);
@@ -4350,10 +4240,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _incrementalAnalysisCache = IncrementalAnalysisCache.verifyStructure(_incrementalAnalysisCache, source, task.compilationUnit);
       } else {
         _removeFromParts(source, dartEntry);
-        dartCopy.recordParseError();
+        dartCopy.recordParseError(thrownException);
         _cache.removedAst(source);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     } else {
@@ -4376,9 +4265,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        dartCopy.recordParseError();
+        dartCopy.recordParseError(thrownException);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     }
@@ -4432,10 +4320,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(htmlCopy.allErrors, lineInfo);
       } else {
-        htmlCopy.recordParseError();
+        htmlCopy.recordParseError(thrownException);
         _cache.removedAst(source);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4464,12 +4351,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
-        htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
-        htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
-        htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
+        htmlCopy.recordParseError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4517,9 +4400,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4538,9 +4420,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4588,9 +4469,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4609,9 +4489,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4660,9 +4539,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         notice.htmlUnit = task.resolvedUnit;
         notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4690,9 +4568,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4742,9 +4619,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         notice.htmlUnit = task.resolvedUnit;
         notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4772,9 +4648,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4822,10 +4697,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, task.resolvedUnit);
         _cache.storedAst(unitSource);
       } else {
-        dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
+        dartCopy.recordResolutionErrorInLibrary(librarySource, thrownException);
         _cache.removedAst(unitSource);
       }
-      dartCopy.exception = thrownException;
       _cache.put(unitSource, dartCopy);
       dartEntry = dartCopy;
     } else {
@@ -4850,9 +4724,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
+        dartCopy.recordResolutionErrorInLibrary(librarySource, thrownException);
       }
-      dartCopy.exception = thrownException;
       _cache.put(unitSource, dartCopy);
       dartEntry = dartCopy;
     }
@@ -4905,10 +4778,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         notice.htmlUnit = task.resolvedUnit;
         notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
         _cache.removedAst(source);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     } else {
@@ -4934,9 +4806,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        htmlCopy.recordResolutionError();
+        htmlCopy.recordResolutionError(thrownException);
       }
-      htmlCopy.exception = thrownException;
       _cache.put(source, htmlCopy);
       htmlEntry = htmlCopy;
     }
@@ -4990,10 +4861,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
         _removeFromParts(source, dartEntry);
-        dartCopy.recordScanError();
+        dartCopy.recordScanError(thrownException);
         _cache.removedAst(source);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     } else {
@@ -5016,9 +4886,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // cache so that we won't attempt to re-analyze the sources until there's a good chance
         // that we'll be able to do so without error.
         //
-        dartCopy.recordScanError();
+        dartCopy.recordScanError(thrownException);
       }
-      dartCopy.exception = thrownException;
       _cache.put(source, dartCopy);
       dartEntry = dartCopy;
     }
@@ -5181,7 +5050,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is HtmlEntry) {
       HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
       _invalidateAngularResolution(htmlCopy);
-      htmlCopy.recordContentError();
+      htmlCopy.recordContentError(new AnalysisException.con1("This source was marked as being deleted"));
       _cache.put(source, htmlCopy);
     } else if (sourceEntry is DartEntry) {
       Set<Source> libraries = new Set<Source>();
@@ -5195,7 +5064,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _invalidateLibraryResolution(librarySource);
       }
       DartEntryImpl dartCopy = sourceEntry.writableCopy;
-      dartCopy.recordContentError();
+      dartCopy.recordContentError(new AnalysisException.con1("This source was marked as being deleted"));
       _cache.put(source, dartCopy);
     }
     _workManager.remove(source);
@@ -5873,6 +5742,291 @@ class AnalysisContextImpl_TaskData {
 }
 
 /**
+ * The interface `AnalysisContextStatistics` defines access to statistics about a single
+ * [AnalysisContext].
+ */
+abstract class AnalysisContextStatistics {
+  /**
+   * Return the statistics for each kind of cached data.
+   */
+  List<AnalysisContextStatistics_CacheRow> get cacheRows;
+
+  /**
+   * Return the exceptions that caused some entries to have a state of [CacheState#ERROR].
+   */
+  List<AnalysisException> get exceptions;
+
+  /**
+   * Return information about each of the partitions in the cache.
+   */
+  List<AnalysisContextStatistics_PartitionData> get partitionData;
+
+  /**
+   * Return an array containing all of the sources in the cache.
+   */
+  List<Source> get sources;
+}
+
+/**
+ * Implementation of the [AnalysisContextStatistics].
+ */
+class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
+  Map<String, AnalysisContextStatistics_CacheRow> _dataMap = new Map<String, AnalysisContextStatistics_CacheRow>();
+
+  List<Source> _sources = new List<Source>();
+
+  Set<AnalysisException> _exceptions = new Set<AnalysisException>();
+
+  List<AnalysisContextStatistics_PartitionData> _partitionData;
+
+  void addSource(Source source) {
+    _sources.add(source);
+  }
+
+  @override
+  List<AnalysisContextStatistics_CacheRow> get cacheRows {
+    Iterable<AnalysisContextStatistics_CacheRow> items = _dataMap.values;
+    return new List.from(items);
+  }
+
+  @override
+  List<AnalysisException> get exceptions => new List.from(_exceptions);
+
+  @override
+  List<AnalysisContextStatistics_PartitionData> get partitionData => _partitionData;
+
+  @override
+  List<Source> get sources => new List.from(_sources);
+
+  void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
+    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
+  }
+
+  void putCacheItemInLibrary(DartEntry dartEntry, Source librarySource, DataDescriptor descriptor) {
+    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getStateInLibrary(descriptor, librarySource));
+  }
+
+  /**
+   * Set the partition data returned by this object to the given data.
+   */
+  void set partitionData(List<AnalysisContextStatistics_PartitionData> data) {
+    _partitionData = data;
+  }
+
+  void _internalPutCacheItem(SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state) {
+    String rowName = rowDesc.toString();
+    AnalysisContextStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContextStatisticsImpl_CacheRowImpl;
+    if (row == null) {
+      row = new AnalysisContextStatisticsImpl_CacheRowImpl(rowName);
+      _dataMap[rowName] = row;
+    }
+    row._incState(state);
+    if (state == CacheState.ERROR) {
+      AnalysisException exception = dartEntry.exception;
+      if (exception != null) {
+        _exceptions.add(exception);
+      }
+    }
+  }
+}
+
+class AnalysisContextStatisticsImpl_CacheRowImpl implements AnalysisContextStatistics_CacheRow {
+  final String name;
+
+  int _errorCount = 0;
+
+  int _flushedCount = 0;
+
+  int _inProcessCount = 0;
+
+  int _invalidCount = 0;
+
+  int _validCount = 0;
+
+  AnalysisContextStatisticsImpl_CacheRowImpl(this.name);
+
+  @override
+  bool operator ==(Object obj) => obj is AnalysisContextStatisticsImpl_CacheRowImpl && obj.name == name;
+
+  @override
+  int get errorCount => _errorCount;
+
+  @override
+  int get flushedCount => _flushedCount;
+
+  @override
+  int get inProcessCount => _inProcessCount;
+
+  @override
+  int get invalidCount => _invalidCount;
+
+  @override
+  int get validCount => _validCount;
+
+  @override
+  int get hashCode => name.hashCode;
+
+  void _incState(CacheState state) {
+    if (state == CacheState.ERROR) {
+      _errorCount++;
+    }
+    if (state == CacheState.FLUSHED) {
+      _flushedCount++;
+    }
+    if (state == CacheState.IN_PROCESS) {
+      _inProcessCount++;
+    }
+    if (state == CacheState.INVALID) {
+      _invalidCount++;
+    }
+    if (state == CacheState.VALID) {
+      _validCount++;
+    }
+  }
+}
+
+class AnalysisContextStatisticsImpl_PartitionDataImpl implements AnalysisContextStatistics_PartitionData {
+  final int astCount;
+
+  final int totalCount;
+
+  AnalysisContextStatisticsImpl_PartitionDataImpl(this.astCount, this.totalCount);
+}
+
+/**
+ * Information about single piece of data in the cache.
+ */
+abstract class AnalysisContextStatistics_CacheRow {
+  /**
+   * Return the number of entries whose state is [CacheState#ERROR].
+   */
+  int get errorCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState#FLUSHED].
+   */
+  int get flushedCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState#IN_PROCESS].
+   */
+  int get inProcessCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState#INVALID].
+   */
+  int get invalidCount;
+
+  /**
+   * Return the name of the data represented by this object.
+   */
+  String get name;
+
+  /**
+   * Return the number of entries whose state is [CacheState#VALID].
+   */
+  int get validCount;
+}
+
+/**
+ * Information about a single partition in the cache.
+ */
+abstract class AnalysisContextStatistics_PartitionData {
+  /**
+   * Return the number of entries in the partition that have an AST structure in one state or
+   * another.
+   */
+  int get astCount;
+
+  /**
+   * Return the total number of entries in the partition.
+   */
+  int get totalCount;
+}
+
+/**
+ * Instances of the class `AnalysisDelta` indicate changes to the types of analysis that
+ * should be performed.
+ */
+class AnalysisDelta {
+  /**
+   * A mapping from source to what type of analysis should be performed on that source.
+   */
+  Map<Source, AnalysisLevel> _analysisMap = new Map<Source, AnalysisLevel>();
+
+  /**
+   * Return a collection of the sources that have been added. This is equivalent to calling
+   * [getAnalysisLevels] and collecting all sources that do not have an analysis level of
+   * [AnalysisLevel#NONE].
+   *
+   * @return a collection of the sources
+   */
+  Iterable<Source> get addedSources {
+    List<Source> result = new List<Source>();
+    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
+      if (entry.getValue() != AnalysisLevel.NONE) {
+        result.add(entry.getKey());
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Return a mapping of sources to the level of analysis that should be performed.
+   *
+   * @return the analysis map
+   */
+  Map<Source, AnalysisLevel> get analysisLevels => _analysisMap;
+
+  /**
+   * Record that the specified source should be analyzed at the specified level.
+   *
+   * @param source the source
+   * @param level the level at which the given source should be analyzed
+   */
+  void setAnalysisLevel(Source source, AnalysisLevel level) {
+    _analysisMap[source] = level;
+  }
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    bool needsSeparator = _appendSources(builder, false, AnalysisLevel.ALL);
+    needsSeparator = _appendSources(builder, needsSeparator, AnalysisLevel.RESOLVED);
+    _appendSources(builder, needsSeparator, AnalysisLevel.NONE);
+    return builder.toString();
+  }
+
+  /**
+   * Append sources with the given analysis level, prefixed with a label and possibly a separator.
+   *
+   * @param builder the builder to which the sources are to be appended
+   * @param needsSeparator `true` if a separator is needed before the label
+   * @param level the analysis level of the sources to be appended
+   * @return `true` if future lists of sources will need a separator
+   */
+  bool _appendSources(JavaStringBuilder builder, bool needsSeparator, AnalysisLevel level) {
+    bool first = true;
+    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
+      if (entry.getValue() == level) {
+        if (first) {
+          first = false;
+          if (needsSeparator) {
+            builder.append("; ");
+          }
+          builder.append(level);
+          builder.append(" ");
+        } else {
+          builder.append(", ");
+        }
+        builder.append(entry.getKey().fullName);
+      }
+    }
+    return needsSeparator || !first;
+  }
+}
+
+/**
  * The unique instance of the class `AnalysisEngine` serves as the entry point for the
  * functionality provided by the analysis engine.
  */
@@ -6051,6 +6205,36 @@ class AnalysisException extends JavaException {
    * @param cause the underlying exception that caused this exception
    */
   AnalysisException.con3(Exception cause) : super.withCause(cause);
+}
+
+/**
+ * The enumeration `AnalysisLevel` encodes the different levels at which a source can be
+ * analyzed.
+ */
+class AnalysisLevel extends Enum<AnalysisLevel> {
+  /**
+   * Indicates a source should be fully analyzed.
+   */
+  static const AnalysisLevel ALL = const AnalysisLevel('ALL', 0);
+
+  /**
+   * Indicates a source should be resolved and that errors, warnings and hints are needed.
+   */
+  static const AnalysisLevel ERRORS = const AnalysisLevel('ERRORS', 1);
+
+  /**
+   * Indicates a source should be resolved, but that errors, warnings and hints are not needed.
+   */
+  static const AnalysisLevel RESOLVED = const AnalysisLevel('RESOLVED', 2);
+
+  /**
+   * Indicates a source is not of interest to the client.
+   */
+  static const AnalysisLevel NONE = const AnalysisLevel('NONE', 3);
+
+  static const List<AnalysisLevel> values = const [ALL, ERRORS, RESOLVED, NONE];
+
+  const AnalysisLevel(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -7817,6 +8001,30 @@ abstract class CachePartition {
   SourceEntry get(Source source) => _sourceMap[source];
 
   /**
+   * Return the number of entries in this partition that have an AST associated with them.
+   *
+   * @return the number of entries in this partition that have an AST associated with them
+   */
+  int get astSize {
+    int astSize = 0;
+    int count = _recentlyUsed.length;
+    for (int i = 0; i < count; i++) {
+      Source source = _recentlyUsed[i];
+      SourceEntry sourceEntry = _sourceMap[source];
+      if (sourceEntry is DartEntry) {
+        if (sourceEntry.anyParsedCompilationUnit != null) {
+          astSize++;
+        }
+      } else if (sourceEntry is HtmlEntry) {
+        if (sourceEntry.anyParsedUnit != null) {
+          astSize++;
+        }
+      }
+    }
+    return astSize;
+  }
+
+  /**
    * Return a table mapping the sources known to the context to the information known about the
    * source.
    *
@@ -8964,7 +9172,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.BUILT_UNIT) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       return CacheState.INVALID;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
@@ -9175,14 +9383,19 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to build the element model for the source
    * represented by this entry. This will set the state of all resolution-based information as being
    * in error, but will not change the state of any parse results.
+   *
+   * @param librarySource the source of the library in which the element model was being built
+   * @param exception the exception that shows where the error occurred
    */
-  void recordBuildElementError() {
+  void recordBuildElementErrorInLibrary(Source librarySource, AnalysisException exception) {
+    this.exception = exception;
     _element = null;
     _elementState = CacheState.ERROR;
     clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
     _clientServerState = CacheState.ERROR;
     _launchableState = CacheState.ERROR;
-    recordResolutionError();
+    DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.recordBuildElementError();
   }
 
   /**
@@ -9202,17 +9415,32 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @override
-  void recordContentError() {
-    super.recordContentError();
-    recordScanError();
+  void recordContentError(AnalysisException exception) {
+    super.recordContentError(exception);
+    recordScanError(exception);
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate hints for the source represented by
+   * this entry. This will set the state of all verification information as being in error.
+   *
+   * @param librarySource the source of the library in which hints were being generated
+   * @param exception the exception that shows where the error occurred
+   */
+  void recordHintErrorInLibrary(Source librarySource, AnalysisException exception) {
+    this.exception = exception;
+    DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.recordHintError();
   }
 
   /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordParseError() {
+  void recordParseError(AnalysisException exception) {
     _sourceKind = SourceKind.UNKNOWN;
     _sourceKindState = CacheState.ERROR;
     _parseErrors = AnalysisError.NO_ERRORS;
@@ -9226,7 +9454,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _importedLibrariesState = CacheState.ERROR;
     _includedParts = Source.EMPTY_ARRAY;
     _includedPartsState = CacheState.ERROR;
-    recordResolutionError();
+    recordResolutionError(exception);
   }
 
   /**
@@ -9286,8 +9514,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to resolve the source represented by this entry.
    * This will set the state of all resolution-based information as being in error, but will not
    * change the state of any parse results.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordResolutionError() {
+  void recordResolutionError(AnalysisException exception) {
+    this.exception = exception;
     _element = null;
     _elementState = CacheState.ERROR;
     clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
@@ -9295,7 +9526,28 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _launchableState = CacheState.ERROR;
     _publicNamespace = null;
     _publicNamespaceState = CacheState.ERROR;
-    _resolutionState.recordResolutionError();
+    _resolutionState.recordResolutionErrorsInAllLibraries();
+  }
+
+  /**
+   * Record that an error occurred while attempting to resolve the source represented by this entry.
+   * This will set the state of all resolution-based information as being in error, but will not
+   * change the state of any parse results.
+   *
+   * @param librarySource the source of the library in which resolution was being performed
+   * @param exception the exception that shows where the error occurred
+   */
+  void recordResolutionErrorInLibrary(Source librarySource, AnalysisException exception) {
+    this.exception = exception;
+    _element = null;
+    _elementState = CacheState.ERROR;
+    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
+    _clientServerState = CacheState.ERROR;
+    _launchableState = CacheState.ERROR;
+    _publicNamespace = null;
+    _publicNamespaceState = CacheState.ERROR;
+    DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.recordResolutionError();
   }
 
   /**
@@ -9324,14 +9576,17 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordScanError() {
-    setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+  @override
+  void recordScanError(AnalysisException exception) {
+    super.recordScanError(exception);
     _scanErrors = AnalysisError.NO_ERRORS;
     _scanErrorsState = CacheState.ERROR;
     _tokenStream = null;
     _tokenStreamState = CacheState.ERROR;
-    recordParseError();
+    recordParseError(exception);
   }
 
   /**
@@ -9364,6 +9619,20 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (_tokenStreamState == CacheState.IN_PROCESS) {
       _tokenStreamState = CacheState.INVALID;
     }
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate errors and warnings for the source
+   * represented by this entry. This will set the state of all verification information as being in
+   * error.
+   *
+   * @param librarySource the source of the library in which verification was being performed
+   * @param exception the exception that shows where the error occurred
+   */
+  void recordVerificationErrorInLibrary(Source librarySource, AnalysisException exception) {
+    this.exception = exception;
+    DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.recordVerificationError();
   }
 
   /**
@@ -9852,11 +10121,44 @@ class DartEntryImpl_ResolutionState {
   }
 
   /**
+   * Record that an error occurred while attempting to build the element model for the source
+   * represented by this state.
+   */
+  void recordBuildElementError() {
+    _builtUnitState = CacheState.ERROR;
+    _builtUnit = null;
+    _buildElementErrorsState = CacheState.ERROR;
+    _buildElementErrors = AnalysisError.NO_ERRORS;
+    recordResolutionError();
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate hints for the source represented
+   * by this entry. This will set the state of all verification information as being in error.
+   */
+  void recordHintError() {
+    _hints = AnalysisError.NO_ERRORS;
+    _hintsState = CacheState.ERROR;
+  }
+
+  /**
+   * Record that an error occurred while attempting to resolve the source represented by this
+   * state.
+   */
+  void recordResolutionError() {
+    _resolvedUnitState = CacheState.ERROR;
+    _resolvedUnit = null;
+    _resolutionErrorsState = CacheState.ERROR;
+    _resolutionErrors = AnalysisError.NO_ERRORS;
+    recordVerificationError();
+  }
+
+  /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all resolution-based information as being in error, but
    * will not change the state of any parse results.
    */
-  void recordResolutionError() {
+  void recordResolutionErrorsInAllLibraries() {
     _builtUnitState = CacheState.ERROR;
     _builtUnit = null;
     _buildElementErrorsState = CacheState.ERROR;
@@ -9865,12 +10167,9 @@ class DartEntryImpl_ResolutionState {
     _resolvedUnit = null;
     _resolutionErrorsState = CacheState.ERROR;
     _resolutionErrors = AnalysisError.NO_ERRORS;
-    _verificationErrorsState = CacheState.ERROR;
-    _verificationErrors = AnalysisError.NO_ERRORS;
-    _hintsState = CacheState.ERROR;
-    _hints = AnalysisError.NO_ERRORS;
+    recordVerificationError();
     if (_nextState != null) {
-      _nextState.recordResolutionError();
+      _nextState.recordResolutionErrorsInAllLibraries();
     }
   }
 
@@ -9894,6 +10193,17 @@ class DartEntryImpl_ResolutionState {
     if (_nextState != null) {
       _nextState.recordResolutionNotInProcess();
     }
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate errors and warnings for the source
+   * represented by this entry. This will set the state of all verification information as being
+   * in error.
+   */
+  void recordVerificationError() {
+    _verificationErrors = AnalysisError.NO_ERRORS;
+    _verificationErrorsState = CacheState.ERROR;
+    recordHintError();
   }
 
   /**
@@ -10723,35 +11033,51 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @override
-  void recordContentError() {
-    super.recordContentError();
-    recordParseError();
+  void recordContentError(AnalysisException exception) {
+    super.recordContentError(exception);
+    recordParseError(exception);
   }
 
   /**
    * Record that an error was encountered while attempting to parse the source associated with this
    * entry.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordParseError() {
-    setState(SourceEntry.LINE_INFO, CacheState.ERROR);
-    setState(HtmlEntry.PARSE_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
-    setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
-    recordResolutionError();
+  void recordParseError(AnalysisException exception) {
+    // If the scanning and parsing of HTML are separated, the following line can be removed.
+    recordScanError(exception);
+    _parseErrors = AnalysisError.NO_ERRORS;
+    _parseErrorsState = CacheState.ERROR;
+    _parsedUnit = null;
+    _parsedUnitState = CacheState.ERROR;
+    _referencedLibraries = Source.EMPTY_ARRAY;
+    _referencedLibrariesState = CacheState.ERROR;
+    recordResolutionError(exception);
   }
 
   /**
    * Record that an error was encountered while attempting to resolve the source associated with
    * this entry.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordResolutionError() {
-    setState(HtmlEntry.ANGULAR_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
-    setState(HtmlEntry.ELEMENT, CacheState.ERROR);
-    setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.HINTS, CacheState.ERROR);
-    setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
+  void recordResolutionError(AnalysisException exception) {
+    this.exception = exception;
+    _angularErrors = AnalysisError.NO_ERRORS;
+    _angularErrorsState = CacheState.ERROR;
+    _resolvedUnit = null;
+    _resolvedUnitState = CacheState.ERROR;
+    _element = null;
+    _elementState = CacheState.ERROR;
+    _resolutionErrors = AnalysisError.NO_ERRORS;
+    _resolutionErrorsState = CacheState.ERROR;
+    _hints = AnalysisError.NO_ERRORS;
+    _hintsState = CacheState.ERROR;
+    _polymerBuildErrors = AnalysisError.NO_ERRORS;
+    _polymerBuildErrorsState = CacheState.ERROR;
+    _polymerResolutionErrors = AnalysisError.NO_ERRORS;
+    _polymerResolutionErrorsState = CacheState.ERROR;
   }
 
   @override
@@ -11233,6 +11559,18 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void applyAnalysisDelta(AnalysisDelta delta) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-updateAnalysis");
+    _checkThread(instrumentation);
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      _basis.applyAnalysisDelta(delta);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @override
   void applyChanges(ChangeSet changeSet) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-applyChanges");
     _checkThread(instrumentation);
@@ -11696,7 +12034,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AnalysisContentStatistics get statistics => _basis.statistics;
+  AnalysisContextStatistics get statistics => _basis.statistics;
 
   @override
   TypeProvider get typeProvider => _basis.typeProvider;
@@ -11980,7 +12318,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /**
    * Returns a statistics about this context.
    */
-  AnalysisContentStatistics get statistics;
+  AnalysisContextStatistics get statistics;
 
   /**
    * Returns a type provider for this context or throws an exception if dart:core cannot be
@@ -14296,6 +14634,24 @@ class ScanDartTask extends AnalysisTask {
 }
 
 /**
+ * Instances of the class `SdkAnalysisContext` implement an [AnalysisContext] that only
+ * contains sources for a Dart SDK.
+ */
+class SdkAnalysisContext extends AnalysisContextImpl {
+  @override
+  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return super.createCacheFromSourceFactory(factory);
+    }
+    DartSdk sdk = factory.dartSdk;
+    if (sdk == null) {
+      throw new IllegalArgumentException("The source factory for an SDK analysis context must have a DartUriResolver");
+    }
+    return new AnalysisCache(<CachePartition> [AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
+  }
+}
+
+/**
  * Instances of the class `SdkCachePartition` implement a cache partition that contains all of
  * the sources in the SDK.
  */
@@ -14406,7 +14762,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   /**
    * The exception that caused one or more values to have a state of [CacheState#ERROR].
    */
-  AnalysisException exception;
+  AnalysisException _exception;
 
   /**
    * The state of the cached content.
@@ -14440,17 +14796,26 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   void fixExceptionState() {
     if (hasErrorState) {
-      if (exception == null) {
+      if (_exception == null) {
         //
         // This code should never be reached, but is a fail-safe in case an exception is not
         // recorded when it should be.
         //
-        exception = new AnalysisException.con1("State set to ERROR without setting an exception");
+        _exception = new AnalysisException.con1("State set to ERROR without setting an exception");
       }
     } else {
-      exception = null;
+      _exception = null;
     }
   }
+
+  /**
+   * Return the exception that caused one or more values to have a state of [CacheState#ERROR]
+   * .
+   *
+   * @return the exception that caused one or more values to be uncomputable
+   */
+  @override
+  AnalysisException get exception => _exception;
 
   /**
    * Return `true` if the source was explicitly added to the context or `false` if the
@@ -14500,10 +14865,26 @@ abstract class SourceEntryImpl implements SourceEntry {
    * Record that an error occurred while attempting to get the contents of the source represented by
    * this entry. This will set the state of all information, including any resolution-based
    * information, as being in error.
+   *
+   * @param exception the exception that shows where the error occurred
    */
-  void recordContentError() {
+  void recordContentError(AnalysisException exception) {
     _content = null;
     _contentState = CacheState.ERROR;
+    recordScanError(exception);
+  }
+
+  /**
+   * Record that an error occurred while attempting to scan or parse the entry represented by this
+   * entry. This will set the state of all information, including any resolution-based information,
+   * as being in error.
+   *
+   * @param exception the exception that shows where the error occurred
+   */
+  void recordScanError(AnalysisException exception) {
+    this.exception = exception;
+    _lineInfo = null;
+    _lineInfoState = CacheState.ERROR;
   }
 
   /**
@@ -14587,7 +14968,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   void copyFrom(SourceEntryImpl entry) {
     _modificationTime = entry._modificationTime;
     _flags = entry._flags;
-    exception = entry.exception;
+    _exception = entry._exception;
     _contentState = entry._contentState;
     _content = entry._content;
     _lineInfoState = entry._lineInfoState;
@@ -14608,6 +14989,19 @@ abstract class SourceEntryImpl implements SourceEntry {
    * @return `true` if the state of any data value is [CacheState#ERROR]
    */
   bool get hasErrorState => _contentState == CacheState.ERROR || _lineInfoState == CacheState.ERROR;
+
+  /**
+   * Set the exception that caused one or more values to have a state of [CacheState#ERROR] to
+   * the given exception.
+   *
+   * @param exception the exception that caused one or more values to be uncomputable
+   */
+  void set exception(AnalysisException exception) {
+    if (exception == null) {
+      throw new IllegalArgumentException("exception cannot be null");
+    }
+    this._exception = exception;
+  }
 
   /**
    * Set the value of the flag with the given index to the given value.

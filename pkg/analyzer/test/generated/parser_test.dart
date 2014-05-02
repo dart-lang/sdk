@@ -3821,6 +3821,18 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
+  void test_missingGet() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  int length {}", "  void foo() {}", "}"]), [ParserErrorCode.MISSING_GET]);
+    JUnitTestCase.assertNotNull(unit);
+    ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
+    NodeList<ClassMember> members = classDeclaration.members;
+    EngineTestCase.assertSizeOfList(2, members);
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, members[0]);
+    ClassMember member = members[1];
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, member);
+    JUnitTestCase.assertEquals("foo", (member as MethodDeclaration).name.name);
+  }
+
   void test_missingIdentifier_afterAnnotation() {
     MethodDeclaration method = ParserTestCase.parse3("parseClassMember", <Object> ["C"], "@override }", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
     JUnitTestCase.assertNull(method.documentationComment);
@@ -3880,6 +3892,11 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.operand);
     JUnitTestCase.assertTrue(expression.operand.isSynthetic);
     JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
+  }
+
+  void test_primaryExpression_argumentDefinitionTest() {
+    Expression expression = ParserTestCase.parse4("parsePrimaryExpression", "?a", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression);
   }
 
   void test_relationalExpression_missing_LHS() {
@@ -4211,6 +4228,10 @@ class RecoveryParserTest extends ParserTestCase {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_right);
       });
+      _ut.test('test_missingGet', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_missingGet);
+      });
       _ut.test('test_missingIdentifier_afterAnnotation', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_missingIdentifier_afterAnnotation);
@@ -4246,6 +4267,10 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_prefixExpression_missing_operand_minus', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_prefixExpression_missing_operand_minus);
+      });
+      _ut.test('test_primaryExpression_argumentDefinitionTest', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_primaryExpression_argumentDefinitionTest);
       });
       _ut.test('test_relationalExpression_missing_LHS', () {
         final __test = new RecoveryParserTest();
@@ -4308,19 +4333,6 @@ class ResolutionCopierTest extends EngineTestCase {
     Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
-  }
-
-  void test_visitArgumentDefinitionTest() {
-    String identifier = "p";
-    ArgumentDefinitionTest fromNode = AstFactory.argumentDefinitionTest(identifier);
-    DartType propagatedType = ElementFactory.classElement2("A", []).type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B", []).type;
-    fromNode.staticType = staticType;
-    ArgumentDefinitionTest toNode = AstFactory.argumentDefinitionTest(identifier);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitAsExpression() {
@@ -4491,10 +4503,10 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitImportDirective() {
-    ImportDirective fromNode = AstFactory.importDirective2("dart:uri", null, []);
+    ImportDirective fromNode = AstFactory.importDirective3("dart:uri", null, []);
     ImportElement element = new ImportElementImpl(0);
     fromNode.element = element;
-    ImportDirective toNode = AstFactory.importDirective2("dart:uri", null, []);
+    ImportDirective toNode = AstFactory.importDirective3("dart:uri", null, []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
@@ -4859,10 +4871,6 @@ class ResolutionCopierTest extends EngineTestCase {
       _ut.test('test_visitAnnotation', () {
         final __test = new ResolutionCopierTest();
         runJUnitTest(__test, __test.test_visitAnnotation);
-      });
-      _ut.test('test_visitArgumentDefinitionTest', () {
-        final __test = new ResolutionCopierTest();
-        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
       });
       _ut.test('test_visitAsExpression', () {
         final __test = new ResolutionCopierTest();
@@ -5420,12 +5428,6 @@ class SimpleParserTest extends ParserTestCase {
     String lexeme = "x";
     SimpleIdentifier identifier = ParserTestCase.parse4("parseArgument", lexeme, []);
     JUnitTestCase.assertEquals(lexeme, identifier.name);
-  }
-
-  void test_parseArgumentDefinitionTest() {
-    ArgumentDefinitionTest test = ParserTestCase.parse4("parseArgumentDefinitionTest", "?x", [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
-    JUnitTestCase.assertNotNull(test.question);
-    JUnitTestCase.assertNotNull(test.identifier);
   }
 
   void test_parseArgumentList_empty() {
@@ -10022,10 +10024,6 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseAnnotation_n3_a', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseAnnotation_n3_a);
-      });
-      _ut.test('test_parseArgumentDefinitionTest', () {
-        final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseArgumentDefinitionTest);
       });
       _ut.test('test_parseArgumentList_empty', () {
         final __test = new SimpleParserTest();

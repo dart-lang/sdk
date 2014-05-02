@@ -75,8 +75,6 @@ class AstFactory {
 
   static Annotation annotation2(Identifier name, SimpleIdentifier constructorName, ArgumentList arguments) => new Annotation(TokenFactory.tokenFromType(TokenType.AT), name, TokenFactory.tokenFromType(TokenType.PERIOD), constructorName, arguments);
 
-  static ArgumentDefinitionTest argumentDefinitionTest(String identifier) => new ArgumentDefinitionTest(TokenFactory.tokenFromType(TokenType.QUESTION), identifier3(identifier));
-
   static ArgumentList argumentList(List<Expression> arguments) => new ArgumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(arguments), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
   static AsExpression asExpression(Expression expression, TypeName type) => new AsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
@@ -230,9 +228,11 @@ class AstFactory {
 
   static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause(TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), list(types));
 
-  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), null, prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static ImportDirective importDirective(List<Annotation> metadata, String uri, bool isDeferred, String prefix, List<Combinator> combinators) => new ImportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri), !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED), prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
+  static ImportDirective importDirective2(String uri, bool isDeferred, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, isDeferred, prefix, combinators);
+
+  static ImportDirective importDirective3(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, false, prefix, combinators);
 
   static IndexExpression indexExpression(Expression array, Expression index) => new IndexExpression.forTarget(array, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
@@ -1630,11 +1630,6 @@ class NodeLocatorTest extends ParserTestCase {
 }
 
 class SimpleIdentifierTest extends ParserTestCase {
-  void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier = AstFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
-  }
-
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = AstFactory.catchClause("e", []).exceptionParameter;
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
@@ -1822,10 +1817,6 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   static dartSuite() {
     _ut.group('SimpleIdentifierTest', () {
-      _ut.test('test_inDeclarationContext_argumentDefinition', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_argumentDefinition);
-      });
       _ut.test('test_inDeclarationContext_catch_exception', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_catch_exception);
@@ -1982,10 +1973,6 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitAnnotation_constructor() {
     _assertSource("@A.c()", AstFactory.annotation2(AstFactory.identifier3("A"), AstFactory.identifier3("c"), AstFactory.argumentList([])));
-  }
-
-  void test_visitArgumentDefinitionTest() {
-    _assertSource("?a", AstFactory.argumentDefinitionTest("a"));
   }
 
   void test_visitArgumentList() {
@@ -2593,35 +2580,39 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_combinator() {
-    _assertSource("import 'a.dart' show A;", AstFactory.importDirective2("a.dart", null, [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
+    _assertSource("import 'a.dart' show A;", AstFactory.importDirective3("a.dart", null, [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_combinators() {
-    _assertSource("import 'a.dart' show A hide B;", AstFactory.importDirective2("a.dart", null, [
+    _assertSource("import 'a.dart' show A hide B;", AstFactory.importDirective3("a.dart", null, [
         AstFactory.showCombinator([AstFactory.identifier3("A")]),
         AstFactory.hideCombinator([AstFactory.identifier3("B")])]));
   }
 
+  void test_visitImportDirective_deferred() {
+    _assertSource("import 'a.dart' deferred as p;", AstFactory.importDirective2("a.dart", true, "p", []));
+  }
+
   void test_visitImportDirective_minimal() {
-    _assertSource("import 'a.dart';", AstFactory.importDirective2("a.dart", null, []));
+    _assertSource("import 'a.dart';", AstFactory.importDirective3("a.dart", null, []));
   }
 
   void test_visitImportDirective_prefix() {
-    _assertSource("import 'a.dart' as p;", AstFactory.importDirective2("a.dart", "p", []));
+    _assertSource("import 'a.dart' as p;", AstFactory.importDirective3("a.dart", "p", []));
   }
 
   void test_visitImportDirective_prefix_combinator() {
-    _assertSource("import 'a.dart' as p show A;", AstFactory.importDirective2("a.dart", "p", [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
+    _assertSource("import 'a.dart' as p show A;", AstFactory.importDirective3("a.dart", "p", [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_prefix_combinators() {
-    _assertSource("import 'a.dart' as p show A hide B;", AstFactory.importDirective2("a.dart", "p", [
+    _assertSource("import 'a.dart' as p show A hide B;", AstFactory.importDirective3("a.dart", "p", [
         AstFactory.showCombinator([AstFactory.identifier3("A")]),
         AstFactory.hideCombinator([AstFactory.identifier3("B")])]));
   }
 
   void test_visitImportDirective_withMetadata() {
-    ImportDirective directive = AstFactory.importDirective2("a.dart", null, []);
+    ImportDirective directive = AstFactory.importDirective3("a.dart", null, []);
     directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
     _assertSource("@deprecated import 'a.dart';", directive);
   }
@@ -3169,10 +3160,6 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitAnnotation_constructor', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitAnnotation_constructor);
-      });
-      _ut.test('test_visitArgumentDefinitionTest', () {
-        final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
       });
       _ut.test('test_visitArgumentList', () {
         final __test = new ToSourceVisitorTest();
@@ -3725,6 +3712,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitImportDirective_combinators', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitImportDirective_combinators);
+      });
+      _ut.test('test_visitImportDirective_deferred', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitImportDirective_deferred);
       });
       _ut.test('test_visitImportDirective_minimal', () {
         final __test = new ToSourceVisitorTest();
