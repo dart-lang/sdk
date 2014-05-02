@@ -245,7 +245,8 @@ class DartBackend extends Backend {
           tree.Unnamer unnamer = new tree.Unnamer();
           unnamer.unname(definition);
           compiler.tracer.traceGraph('Unnamer', definition);
-          node = dart_codegen.emit(element, treeElements, definition);
+          tree.Emitter emitter = new tree.Emitter();
+          node = emitter.emit(element, treeElements, definition);
         }
       }
       return new ElementAst(node, treeElements);

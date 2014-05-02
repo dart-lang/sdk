@@ -9,7 +9,6 @@ import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart' show 
 import 'dart:mirrors';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart' as tree;
 import '../../../sdk/lib/_internal/compiler/implementation/string_validator.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_tree_printer.dart' show TreePrinter;
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].
 void show(x) {
@@ -592,7 +591,7 @@ class AstBuilder extends Listener {
     Parameters parameters = pop();
     String name = pop(asName);
     TypeAnnotation returnType = popTypeAnnotation();
-    push(new FunctionDeclaration(name, parameters, body, returnType));
+    push(new FunctionStatement(name, parameters, body, returnType));
   }
   
   endFunctionBody(int count, Token begin, Token end) {
@@ -682,25 +681,15 @@ String unparseStatement(Statement stmt) {
   return buf.toString();
 }
 
-/// Converts [exp] to an instance of the frontend AST and unparses that.
-String frontUnparseExpression(Expression exp) {
-  tree.Node node = new TreePrinter().makeExpression(exp);
-  return tree.unparse(node);
-}
-/// Converts [stmt] to an instance of the frontend AST and unparses that.
-String frontUnparseStatement(Statement stmt) {
-  tree.Node node = new TreePrinter().makeStatement(stmt);
-  return tree.unparse(node);
-}
-
 /// Parses [code], unparses the resulting AST, then parses the unparsed text.
 /// The ASTs from the first and second parse are then compared for structural
 /// equality. Alternatively, if [expected] is not an empty string, the second
 /// parse must match the AST of parsing [expected].
 void checkFn(String code, String expected, Function parse, Function unparse) {
-  var firstParse = parse(code);
-  String unparsed = unparse(firstParse);
+  String unparsed = "";
   try {
+    var firstParse = parse(code);
+    unparsed = unparse(firstParse);
     var secondParse = parse(unparsed);
     var baseline = expected == "" ? firstParse : parse(expected);
     checkDeepEqual(baseline, secondParse);
@@ -709,13 +698,11 @@ void checkFn(String code, String expected, Function parse, Function unparse) {
   }
 }
 
-void checkExpression(String code, [String expected="", String expected2=""]) {
+void checkExpression(String code, [String expected=""]) {
   checkFn(code, expected, parseExpression, unparseExpression);
-  checkFn(code, expected2, parseExpression, frontUnparseExpression);
 }
-void checkStatement(String code, [String expected="", String expected2=""]) {
+void checkStatement(String code, [String expected=""]) {
   checkFn(code, expected, parseStatement, unparseStatement);
-  checkFn(code, expected2, parseStatement, frontUnparseStatement);
 }
 
 void debugTokens(String code) {
@@ -893,10 +880,6 @@ void main() {
   
   checkExpression(r"'${$x}'");
   checkExpression(r"'${$x}y'");
-  checkExpression("null + null");
-  
-  checkExpression("throw x");
-  checkStatement("throw x;");
   
   checkStatement("var x, y, z;");
   checkStatement("final x, y, z;");
@@ -948,11 +931,6 @@ void main() {
 
   checkStatement("do while(x); while (y);");
   checkStatement("{do; while(x); while (y);}");
-  
-  checkStatement('switch(x) { case 1: case 2: return y; }');
-  checkStatement('switch(x) { default: return y; }');
-  checkStatement('switch(x) { case 1: x=y; default: return y; }');
-  checkStatement('switch(x) { case 1: x=y; y=z; break; default: return y; }');
   
 }
 
