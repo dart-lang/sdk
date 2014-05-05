@@ -6,7 +6,7 @@ library barback.log;
 
 import 'package:source_maps/span.dart';
 
-import 'asset_id.dart';
+import 'asset/asset_id.dart';
 import 'errors.dart';
 
 /// The severity of a logged message.

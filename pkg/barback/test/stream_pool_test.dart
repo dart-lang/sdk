@@ -6,8 +6,8 @@ library barback.test.stream_pool_test;
 
 import 'dart:async';
 
-import 'package:barback/src/stream_pool.dart';
 import 'package:barback/src/utils.dart';
+import 'package:barback/src/utils/stream_pool.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import 'utils.dart';

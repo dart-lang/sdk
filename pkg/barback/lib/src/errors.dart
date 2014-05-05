@@ -6,8 +6,8 @@ library barback.errors;
 
 import 'package:stack_trace/stack_trace.dart';
 
-import 'asset_id.dart';
-import 'transformer.dart';
+import 'asset/asset_id.dart';
+import 'transformer/transformer.dart';
 import 'utils.dart';
 
 /// Error thrown when an asset with [id] cannot be found.

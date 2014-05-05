@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:convert' show Encoding;
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/cancelable_future.dart';
 import 'package:barback/src/utils.dart';
+import 'package:barback/src/utils/cancelable_future.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:stack_trace/stack_trace.dart';
