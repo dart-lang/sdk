@@ -308,8 +308,9 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
-      if (FLAG_code_comments &&
-          (FLAG_disassemble || FLAG_disassemble_optimized)) {
+      if (FLAG_code_comments ||
+          FLAG_disassemble ||
+          FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
           EmitSourceLine(instr);
         }
