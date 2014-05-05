@@ -29,9 +29,6 @@ bool get includePrivateMembers {
 }
 
 void set includePrivateMembers(bool value) {
-  if (_includePrivate != null) {
-    throw new StateError('includePrivate has already been set');
-  }
   if (value == null) throw new ArgumentError('includePrivate cannot be null');
   _includePrivate = value;
 }

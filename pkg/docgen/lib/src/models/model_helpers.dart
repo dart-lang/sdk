@@ -78,16 +78,15 @@ String getDefaultValueFromConstMirror(
 /// Returns a list of meta annotations assocated with a mirror.
 List<Annotation> createAnnotations(DeclarationMirror mirror,
     Library owningLibrary) {
-  var annotationMirrors = mirror.metadata
-      .where((e) => e is dart2js_mirrors.Dart2JsConstructedConstantMirror);
   var annotations = [];
-  annotationMirrors.forEach((annotation) {
-    var docgenAnnotation = new Annotation(annotation, owningLibrary);
+  for (dart2js_mirrors.ResolvedNode node in
+      dart2js_mirrors.BackDoor.metadataSyntaxOf(mirror)) {
+    var docgenAnnotation = new Annotation(node, owningLibrary);
     if (!_SKIPPED_ANNOTATIONS.contains(dart2js_util.qualifiedNameOf(
         docgenAnnotation.mirror))) {
       annotations.add(docgenAnnotation);
     }
-  });
+  }
   return annotations;
 }
 
@@ -157,6 +156,15 @@ Map<String, Map<String, DeclarationMirror>> calcExportedItems(
   // Determine the classes, variables and methods that are exported for a
   // specific dependency.
   void _populateExports(LibraryDependencyMirror export, bool showExport) {
+    var transitiveExports = calcExportedItems(export.targetLibrary);
+    exports['classes'].addAll(transitiveExports['classes']);
+    exports['methods'].addAll(transitiveExports['methods']);
+    exports['variables'].addAll(transitiveExports['variables']);
+    // If there is a show in the export, add only the show items to the
+    // library. Ex: "export foo show bar"
+    // Otherwise, add all items, and then remove the hidden ones.
+    // Ex: "export foo hide bar"
+
     if (!showExport) {
       // Add all items, and then remove the hidden ones.
       // Ex: "export foo hide bar"
@@ -199,10 +207,6 @@ Map<String, Map<String, DeclarationMirror>> calcExportedItems(
   Iterable<LibraryDependencyMirror> exportList =
       library.libraryDependencies.where((lib) => lib.isExport);
   for (LibraryDependencyMirror export in exportList) {
-    // If there is a show in the export, add only the show items to the
-    // library. Ex: "export foo show bar"
-    // Otherwise, add all items, and then remove the hidden ones.
-    // Ex: "export foo hide bar"
     _populateExports(export,
         export.combinators.any((combinator) => combinator.isShow));
   }

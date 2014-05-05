@@ -4,53 +4,111 @@
 
 library docgen.models.annotation;
 
-import '../exports/mirrors_util.dart' as dart2js_util;
 import '../exports/source_mirrors.dart';
+
+import '../exports/dart2js_mirrors.dart' show ResolvedNode;
 
 import '../library_helpers.dart';
 
 import 'library.dart';
 import 'mirror_based.dart';
 
+import 'dart:mirrors';
+import '../../../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+
 /// Holds the name of the annotation, and its parameters.
 class Annotation extends MirrorBased<ClassMirror> {
   /// The class of this annotation.
-  final ClassMirror mirror;
+  DeclarationMirror mirror;
+  Send node;
   final Library owningLibrary;
-  final List<String> parameters;
+  List<String> parameters;
 
-  Annotation(InstanceMirror originalMirror, this.owningLibrary)
-      : mirror = originalMirror.type,
-        parameters = _createParamaters(originalMirror);
+  Annotation(ResolvedNode resolvedNode, this.owningLibrary) {
+    parameters = [];
+    getMirrorForResolvedNode(resolvedNode, (m, n) { mirror = m; node = n;},
+        (String param) => parameters.add(param));
+  }
+
+  String getMirrorForResolvedNode(ResolvedNode node, callbackFunc,
+      paramCallbackFunc) {
+    ResolvedNodeMirrorFinder finder = new ResolvedNodeMirrorFinder(node,
+        callbackFunc, paramCallbackFunc);
+    finder.unparse(node.node);
+    return finder.result;
+  }
 
   Map toMap() => {
-    'name': getDocgenObject(mirror, owningLibrary).docName,
+    'name': owningLibrary.packagePrefix +
+        getDocgenObject(mirror, owningLibrary).docName,
     'parameters': parameters
   };
 }
 
-List<String> _createParamaters(InstanceMirror originalMirror) {
-  var curMirror = originalMirror.type;
-  Map<Symbol, DeclarationMirror> allDeclarations =
-      new Map.from(curMirror.declarations);
-  // This method assumes that our users aren't creating deep inheritance
-  // chains of custom annotation inheritance. If this is not the case,
-  // re-write this section for performance.
-  while (curMirror.superclass !=  null &&
-      curMirror.superclass.simpleName.toString() != 'Object') {
-    allDeclarations.addAll(curMirror.superclass.declarations);
-    curMirror = curMirror.superclass;
+class ResolvedNodeMirrorFinder extends Unparser {
+  final ResolvedNode resolvedNode;
+  final Function annotationMirrorCallback;
+  final Function parameterValueCallback;
+  int recursionLevel;
+
+  ResolvedNodeMirrorFinder(this.resolvedNode, this.annotationMirrorCallback,
+      this.parameterValueCallback) : recursionLevel = 0;
+
+  visitSend(Send node) {
+    if (recursionLevel == 0) {
+      var m = resolvedNode.resolvedMirror(node.selector);
+      annotationMirrorCallback(m, node);
+    } else {
+      Operator op = node.selector.asOperator();
+      String opString = op != null ? op.source : null;
+      bool spacesNeeded =
+          identical(opString, 'is') || identical(opString, 'as');
+      if (node.isPrefix) visit(node.selector);
+          unparseSendReceiver(node, spacesNeeded: spacesNeeded);
+          if (!node.isPrefix && !node.isIndex) visit(node.selector);
+          if (spacesNeeded) sb.write(' ');
+          // Also add a space for sequences like x + +1 and y - -y.
+          // TODO(ahe): remove case for '+' when we drop the support for it.
+          if (node.argumentsNode != null && (identical(opString, '-')
+              || identical(opString, '+'))) {
+            var beginToken = node.argumentsNode.getBeginToken();
+            if (beginToken != null &&
+                identical(beginToken.stringValue, opString)) {
+              sb.write(' ');
+            }
+          }
+    }
+    recursionLevel++;
+    visit(node.argumentsNode);
+    recursionLevel--;
   }
 
-  // TODO(efortuna): Some originalMirrors, such as the
-  // Dart2JsMapConstantMirror and Dart2JsListConstantMirror don't have a
-  // reflectee field, but we want the value of the parameter from them.
-  // Gross workaround is to assemble the object manually.
-  // See issue 18346.
-  return dart2js_util.variablesOf(allDeclarations)
-      .where((e) => e.isFinal &&
-      originalMirror.getField(e.simpleName).hasReflectee)
-        .map((e) => originalMirror.getField(e.simpleName).reflectee)
-        .where((e) => e != null)
-        .toList();
+  unparseNodeListFrom(NodeList node, var from) {
+    if (from.isEmpty) return;
+
+    visit(from.head);
+
+    for (var link = from.tail; !link.isEmpty; link = link.tail) {
+      if (recursionLevel >= 2) {
+        parameterValueCallback(sb.toString());
+        sb.clear();
+      }
+      visit(link.head);
+    }
+    if (recursionLevel >= 2) {
+      parameterValueCallback(sb.toString());
+      sb.clear();
+    }
+  }
+
+  visitNodeList(NodeList node) {
+    addToken(node.beginToken);
+    if (recursionLevel == 1) sb.clear();
+    if (node.nodes != null) {
+      recursionLevel++;
+      unparseNodeListFrom(node, node.nodes);
+      recursionLevel--;
+    }
+    if (node.endToken != null) add(node.endToken.value);
+  }
 }

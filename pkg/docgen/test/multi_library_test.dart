@@ -89,5 +89,18 @@ void main() {
 
         });
     });
+
+    test('multiple exported libraries.', () {
+      var lib_file = p.toUri(p.join(getMultiLibraryCodePath(), 'lib',
+          'test_lib2.dart'));
+      return getMirrorSystem([lib_file], false)
+        .then((mirrorSystem) {
+          var library = new Library(mirrorSystem.libraries[lib_file]);
+
+          // Test that libraries do recursive exports correctly.
+          expect(true, library.classes.keys.contains('Bar'));
+        });
+
+    });
   });
 }

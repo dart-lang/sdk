@@ -458,6 +458,19 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror with ContainerMixin {
   Uri get uri => _element.script.resourceUri;
 }
 
+class ResolvedNode {
+  final node;
+  final _elements;
+  final _mirrorSystem;
+  ResolvedNode(this.node, this._elements, this._mirrorSystem);
+
+  Mirror resolvedMirror(node) {
+    var element = _elements[node];
+    if (element == null) return null;
+    return _convertElementToDeclarationMirror(_mirrorSystem, element);
+  }
+}
+
 /**
  * Transitional class that allows access to features that have not yet
  * made it to the mirror API.
@@ -469,5 +482,34 @@ class BackDoor {
   static List<Mirror> compilationUnitsOf(Dart2JsLibraryMirror library) {
     return library._element.compilationUnits.toList().map(
         (cu) => new Dart2JsCompilationUnitMirror(cu, library)).toList();
+  }
+
+  static Iterable metadataSyntaxOf(Dart2JsElementMirror declaration) {
+    Compiler compiler = declaration.mirrorSystem.compiler;
+    return declaration._element.metadata.toList().map(
+        (MetadataAnnotation metadata) {
+      var node = metadata.parseNode(compiler);
+      Element annotatedElement = metadata.annotatedElement;
+      var context = annotatedElement.enclosingElement;
+      if (context == null) {
+        context = annotatedElement;
+      }
+      return new ResolvedNode(
+          node, context.treeElements, declaration.mirrorSystem);
+    });
+  }
+
+  static ResolvedNode initializerSyntaxOf(Dart2JsFieldMirror variable) {
+    var node = variable._variable.initializer;
+    if (node == null) return null;
+    return new ResolvedNode(
+        node, variable._variable.treeElements, variable.mirrorSystem);
+  }
+
+  static ResolvedNode defaultValueSyntaxOf(Dart2JsParameterMirror parameter) {
+    if (!parameter.hasDefaultValue) return null;
+    var node = parameter._element.initializer;
+    return new ResolvedNode(
+        node, parameter.owner._element.treeElements, parameter.mirrorSystem);
   }
 }
