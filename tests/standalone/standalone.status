@@ -11,6 +11,9 @@ package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
+[ $runtime == vm && $system == windows ]
+io/raw_secure_server_socket_test: Pass, Crash # Issue 18610
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 
