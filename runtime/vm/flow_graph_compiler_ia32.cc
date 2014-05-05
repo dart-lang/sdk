@@ -62,7 +62,9 @@ bool FlowGraphCompiler::SupportsSinCos() {
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
-  if (deopt_env_ == NULL) return DeoptInfo::null();
+  if (deopt_env_ == NULL) {
+    return DeoptInfo::null();
+  }
 
   intptr_t stack_height = compiler->StackSize();
   AllocateIncomingParametersRecursive(deopt_env_, &stack_height);

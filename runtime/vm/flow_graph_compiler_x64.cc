@@ -58,7 +58,9 @@ bool FlowGraphCompiler::SupportsSinCos() {
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
-  if (deopt_env_ == NULL) return DeoptInfo::null();
+  if (deopt_env_ == NULL) {
+    return DeoptInfo::null();
+  }
 
   intptr_t stack_height = compiler->StackSize();
   AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
@@ -155,7 +157,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assem->
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
-  if (FLAG_trap_on_deoptimization) __ int3();
+  if (FLAG_trap_on_deoptimization) {
+    __ int3();
+  }
 
   ASSERT(deopt_env() != NULL);
 

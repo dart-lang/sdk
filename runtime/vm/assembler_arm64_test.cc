@@ -1065,6 +1065,35 @@ ASSEMBLER_TEST_RUN(Mult_neg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ smulh(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Smulh_pos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ neg(R2, R2);
+  __ smulh(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Smulh_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Loading immediate values without the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
   __ LoadImmediate(R0, 42, kNoRegister);

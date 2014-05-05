@@ -97,12 +97,11 @@ enum VRegister {
 };
 
 // Register alias for floating point scratch register.
-const VRegister VTMP0 = V30;
-const VRegister VTMP1 = V31;
+const VRegister VTMP = V31;
 
 // Architecture independent aliases.
 typedef VRegister FpuRegister;
-const FpuRegister FpuTMP = VTMP0;
+const FpuRegister FpuTMP = VTMP;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
@@ -403,6 +402,8 @@ enum MiscDP3SourceOp {
   MiscDP3SourceMask = 0x1f000000,
   MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
   MADD = MiscDP3SourceFixed,
+  MSUB = MiscDP3SourceFixed | B15,
+  SMULH = MiscDP3SourceFixed | B31 | B22,
 };
 
 // C3.5.10
@@ -417,6 +418,13 @@ enum LogicalShiftOp {
   EON = LogicalShiftFixed | B30 | B21,
   ANDS = LogicalShiftFixed | B30 | B29,
   BICS = LogicalShiftFixed | B30 | B29 | B21,
+};
+
+// C3.6.25
+enum FPOneSourceOp {
+  FPOneSourceMask = 0x5f207c00,
+  FPOneSourceFixed = FPFixed | B21 | B14,
+  FMOVDD = FPOneSourceFixed | B22,
 };
 
 // C3.6.28
@@ -462,6 +470,7 @@ _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
+_V(FPOneSource)                                                                \
 _V(FPImm)                                                                      \
 _V(FPIntCvt)                                                                   \
 

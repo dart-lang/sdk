@@ -901,6 +901,12 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
     } else {
       Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
     }
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+             (instr->Bit(15) == 1)) {
+    Format(instr, "msub'sf 'rd, 'rn, 'rm, 'ra");
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
+             (instr->Bit(15) == 0)) {
+    Format(instr, "smulh 'rd, 'rn, 'rm");
   } else {
     Unknown(instr);
   }
@@ -970,11 +976,27 @@ void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
+  const int opc = instr->Bits(15, 2);
+
+  switch (opc) {
+    case 0:
+      Format(instr, "fmovdd 'vd, 'vn");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
 void ARM64Decoder::DecodeFP(Instr* instr) {
   if (instr->IsFPImmOp()) {
     DecodeFPImm(instr);
   } else if (instr->IsFPIntCvtOp()) {
     DecodeFPIntCvt(instr);
+  } else if (instr->IsFPOneSourceOp()) {
+    DecodeFPOneSource(instr);
   } else {
     Unknown(instr);
   }

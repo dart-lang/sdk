@@ -1915,13 +1915,13 @@ void Simulator::DecodeMiscDP2Source(Instr* instr) {
 
 
 void Simulator::DecodeMiscDP3Source(Instr* instr) {
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const Register ra = instr->RaField();
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
       (instr->Bit(15) == 0)) {
     // Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
-    const Register rd = instr->RdField();
-    const Register rn = instr->RnField();
-    const Register rm = instr->RmField();
-    const Register ra = instr->RaField();
     if (instr->SFField() == 1) {
       const int64_t rn_val = get_register(rn, R31IsZR);
       const int64_t rm_val = get_register(rm, R31IsZR);
@@ -1935,6 +1935,31 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
       const int32_t alu_out = ra_val + (rn_val * rm_val);
       set_wregister(rd, alu_out, R31IsZR);
     }
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+             (instr->Bit(15) == 1)) {
+    // Format(instr, "msub'sf 'rd, 'rn, 'rm, 'ra");
+    if (instr->SFField() == 1) {
+      const int64_t rn_val = get_register(rn, R31IsZR);
+      const int64_t rm_val = get_register(rm, R31IsZR);
+      const int64_t ra_val = get_register(ra, R31IsZR);
+      const int64_t alu_out = ra_val - (rn_val * rm_val);
+      set_register(rd, alu_out, R31IsZR);
+    } else {
+      const int32_t rn_val = get_wregister(rn, R31IsZR);
+      const int32_t rm_val = get_wregister(rm, R31IsZR);
+      const int32_t ra_val = get_wregister(ra, R31IsZR);
+      const int32_t alu_out = ra_val - (rn_val * rm_val);
+      set_wregister(rd, alu_out, R31IsZR);
+    }
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
+             (instr->Bit(15) == 0)) {
+    // Format(instr, "smulh 'rd, 'rn, 'rm");
+    const int64_t rn_val = get_register(rn, R31IsZR);
+    const int64_t rm_val = get_register(rm, R31IsZR);
+    const __int128 res =
+        static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
+    const int64_t alu_out = static_cast<int64_t>(res >> 64);
+    set_register(rd, alu_out, R31IsZR);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -2036,11 +2061,29 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
 }
 
 
+void Simulator::DecodeFPOneSource(Instr* instr) {
+  const int opc = instr->Bits(15, 2);
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  switch (opc) {
+    case 0:
+      // Format("fmovdd 'vd, 'vn");
+      set_vregisterd(vd, get_vregisterd(vn));
+      break;
+    default:
+      UnimplementedInstruction(instr);
+      break;
+  }
+}
+
+
 void Simulator::DecodeFP(Instr* instr) {
   if (instr->IsFPImmOp()) {
     DecodeFPImm(instr);
   } else if (instr->IsFPIntCvtOp()) {
     DecodeFPIntCvt(instr);
+  } else if (instr->IsFPOneSourceOp()) {
+    DecodeFPOneSource(instr);
   } else {
     UnimplementedInstruction(instr);
   }

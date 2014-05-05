@@ -577,7 +577,6 @@ void Assembler::LoadDImmediate(VRegister vd, double immd, Register pp) {
 
 void Assembler::AddImmediate(
     Register dest, Register rn, int64_t imm, Register pp) {
-  ASSERT(rn != TMP2);
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     add(dest, rn, op);
@@ -585,8 +584,63 @@ void Assembler::AddImmediate(
              Operand::Immediate) {
     sub(dest, rn, op);
   } else {
+    // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
+    ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm, pp);
     add(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::AddImmediateSetFlags(
+    Register dest, Register rn, int64_t imm, Register pp) {
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    adds(dest, rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    subs(dest, rn, op);
+  } else {
+    // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
+    ASSERT(rn != TMP2);
+    LoadImmediate(TMP2, imm, pp);
+    adds(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::AndImmediate(
+    Register rd, Register rn, int64_t imm, Register pp) {
+  Operand imm_op;
+  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
+    andi(rd, rn, imm);
+  } else {
+    LoadImmediate(TMP, imm, pp);
+    and_(rd, rn, Operand(TMP));
+  }
+}
+
+
+void Assembler::OrImmediate(
+    Register rd, Register rn, int64_t imm, Register pp) {
+  Operand imm_op;
+  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
+    orri(rd, rn, imm);
+  } else {
+    LoadImmediate(TMP, imm, pp);
+    orr(rd, rn, Operand(TMP));
+  }
+}
+
+
+void Assembler::XorImmediate(
+    Register rd, Register rn, int64_t imm, Register pp) {
+  Operand imm_op;
+  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
+    eori(rd, rn, imm);
+  } else {
+    LoadImmediate(TMP, imm, pp);
+    eor(rd, rn, Operand(TMP));
   }
 }
 

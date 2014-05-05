@@ -513,6 +513,12 @@ class Assembler : public ValueObject {
   void madd(Register rd, Register rn, Register rm, Register ra) {
     EmitMiscDP3Source(MADD, rd, rn, rm, ra, kDoubleWord);
   }
+  void msub(Register rd, Register rn, Register rm, Register ra) {
+    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
+  }
+  void smulh(Register rd, Register rn, Register rm) {
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
+  }
 
   // Move wide immediate.
   void movk(Register rd, uint16_t imm, int hw_idx) {
@@ -622,6 +628,9 @@ class Assembler : public ValueObject {
   void fmovrd(Register rd, VRegister vn) {
     EmitFPIntCvtOp(FMOVRD, rd, static_cast<Register>(vn));
   }
+  void fmovdd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FMOVDD, vd, vn);
+  }
 
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
@@ -641,7 +650,7 @@ class Assembler : public ValueObject {
     }
   }
   void mvn(Register rd, Register rm) {
-    orr(rd, ZR, Operand(rm));
+    orn(rd, ZR, Operand(rm));
   }
   void neg(Register rd, Register rm) {
     sub(rd, ZR, Operand(rm));
@@ -736,6 +745,11 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
+  void AddImmediateSetFlags(
+      Register dest, Register rn, int64_t imm, Register pp);
+  void AndImmediate(Register rd, Register rn, int64_t imm, Register pp);
+  void OrImmediate(Register rd, Register rn, int64_t imm, Register pp);
+  void XorImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void TestImmediate(Register rn, int64_t imm, Register pp);
   void CompareImmediate(Register rn, int64_t imm, Register pp);
 
@@ -1183,6 +1197,14 @@ class Assembler : public ValueObject {
         op |
         (static_cast<int32_t>(rd) << kRdShift) |
         (static_cast<int32_t>(rn) << kRnShift);
+    Emit(encoding);
+  }
+
+  void EmitFPOneSourceOp(FPOneSourceOp op, VRegister vd, VRegister vn) {
+    const int32_t encoding =
+      op |
+      (static_cast<int32_t>(vd) << kVdShift) |
+      (static_cast<int32_t>(vn) << kVnShift);
     Emit(encoding);
   }
 

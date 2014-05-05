@@ -22,6 +22,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, eliminate_type_checks);
@@ -53,14 +54,114 @@ bool FlowGraphCompiler::SupportsSinCos() {
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
-  UNIMPLEMENTED();
-  return NULL;
+  if (deopt_env_ == NULL) {
+    return DeoptInfo::null();
+  }
+
+  intptr_t stack_height = compiler->StackSize();
+  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
+
+  intptr_t slot_ix = 0;
+  Environment* current = deopt_env_;
+
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deopt_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
+
+  // Current PP, FP, and PC.
+  builder->AddPp(current->code(), slot_ix++);
+  builder->AddPcMarker(Code::Handle(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments(slot_ix);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
+       i--) {
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
+  }
+
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
+    // PP, FP, and PC.
+    builder->AddPp(current->code(), slot_ix++);
+    builder->AddPcMarker(previous->code(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
+
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder->AddReturnAddress(current->code(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Iterate on the outer environment.
+    previous = current;
+    current = current->outer();
+  }
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
+
+  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  builder->AddCallerPp(slot_ix++);
+  // PC marker.
+  builder->AddPcMarker(previous->code(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddCallerPc(slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(builder->CreateDeoptInfo(deopt_table));
+  return deopt_info.raw();
 }
 
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
-  UNIMPLEMENTED();
+  // Calls do not need stubs, they share a deoptimization trampoline.
+  ASSERT(reason() != ICData::kDeoptAtCall);
+  Assembler* assem = compiler->assembler();
+#define __ assem->
+  __ Comment("Deopt stub for id %" Pd "", deopt_id());
+  __ Bind(entry_label());
+  if (FLAG_trap_on_deoptimization) {
+    __ hlt(0);
+  }
+
+  ASSERT(deopt_env() != NULL);
+
+  __ BranchLink(&StubCode::DeoptimizeLabel(), PP);
+  set_pc_offset(assem->CodeSize());
+#undef __
 }
 
 
@@ -432,12 +533,87 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 }
 
 
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
+// - NULL -> return false.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - R0: object.
+// - R1: instantiator type arguments or raw_null.
+// - R2: instantiator or raw_null.
+// Returns:
+// - true or false in R0.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+
+  // Preserve instantiator (R2) and its type arguments (R1).
+  __ Push(R2);
+  __ Push(R1);
+
+  Label is_instance, is_not_instance;
+  // If type is instantiated and non-parameterized, we can inline code
+  // checking whether the tested instance is a Smi.
+  if (type.IsInstantiated()) {
+    // A null object is only an instance of Object and dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // dynamic at run time.
+    __ CompareObject(R0, Object::null_object(), PP);
+    __ b(&is_not_instance, EQ);
+  }
+
+  // Generate inline instanceof test.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(token_pos, type,
+                                        &is_instance, &is_not_instance);
+
+  // test_cache is null if there is no fall-through.
+  Label done;
+  if (!test_cache.IsNull()) {
+    // Generate runtime call.
+    // Load instantiator (R2) and its type arguments (R1).
+    __ ldr(R1, Address(SP, 0 * kWordSize));
+    __ ldr(R2, Address(SP, 1 * kWordSize));
+    __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+    __ Push(R0);  // Push the instance.
+    __ PushObject(type, PP);  // Push the type.
+    // Push instantiator (R2) and its type arguments (R1).
+    __ Push(R2);
+    __ Push(R1);
+    __ LoadObject(R0, test_cache, PP);
+    __ Push(R0);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    // Pop the parameters supplied to the runtime entry. The result of the
+    // instanceof runtime call will be left as the result of the operation.
+    __ Drop(5);
+    if (negate_result) {
+      __ Pop(R1);
+      __ LoadObject(R0, Bool::True(), PP);
+      __ CompareRegisters(R1, R0);
+      __ b(&done, NE);
+      __ LoadObject(R0, Bool::False(), PP);
+    } else {
+      __ Pop(R0);
+    }
+    __ b(&done);
+  }
+  __ Bind(&is_not_instance);
+  __ LoadObject(R0, Bool::Get(negate_result), PP);
+  __ b(&done);
+
+  __ Bind(&is_instance);
+  __ LoadObject(R0, Bool::Get(!negate_result), PP);
+  __ Bind(&done);
+  // Remove instantiator (R2) and its type arguments (R1).
+  __ Drop(2);
 }
 
 
@@ -757,7 +933,13 @@ void FlowGraphCompiler::CopyParameters() {
 
 
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // LR: return address.
+  // SP: receiver.
+  // Sequence node has one return node, its input is load field node.
+  __ Comment("Inlined Getter");
+  __ LoadFromOffset(R0, SP, 0 * kWordSize);
+  __ LoadFromOffset(R0, R0, offset - kHeapObjectTag);
+  __ ret();
 }
 
 
@@ -916,9 +1098,7 @@ void FlowGraphCompiler::CompileGraph() {
   AddCurrentDescriptor(PcDescriptors::kPatchCode,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
-  // This is patched up to a point in FrameEntry where the PP for the
-  // current function is in R13 instead of PP.
-  __ BranchPatchable(&StubCode::FixCallersTargetLabel(), R13);
+  __ BranchFixed(&StubCode::FixCallersTargetLabel());
 
   AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
                        Isolate::kNoDeoptId,
@@ -1006,7 +1186,22 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  // Each ICData propagated from unoptimized to optimized code contains the
+  // function that corresponds to the Dart function of that IC call. Due
+  // to inlining in optimized code, that function may not correspond to the
+  // top-level function (parsed_function().function()) which could be
+  // reoptimized and which counter needs to be incremented.
+  // Pass the function explicitly, it is used in IC stub.
+
+  __ LoadObject(R6, parsed_function().function(), PP);
+  __ LoadObject(R5, ic_data, PP);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 
@@ -1033,7 +1228,68 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  const String& name = String::Handle(ic_data.target_name());
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ic_data.arguments_descriptor());
+  ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  const MegamorphicCache& cache =
+      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  Label not_smi, load_cache;
+  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ tsti(R0, kSmiTagMask);
+  __ b(&not_smi, NE);
+  __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
+  __ b(&load_cache);
+
+  __ Bind(&not_smi);
+  __ LoadClassId(R0, R0);
+  __ SmiTag(R0);
+
+  // R0: class ID of the receiver (smi).
+  __ Bind(&load_cache);
+  __ LoadObject(R1, cache, PP);
+  __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset());
+  __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset());
+  // R2: cache buckets array.
+  // R1: mask.
+  __ mov(R3, R0);
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ add(R3, R3, Operand(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(R3, R3, Operand(R1));
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are 8 bytes, so LSL 2.
+  __ add(TMP, R2, Operand(R3, LSL, 2));
+  __ LoadFieldFromOffset(R4, TMP, base);
+
+  ASSERT(kIllegalCid == 0);
+  __ tst(R4, Operand(R4));
+  __ b(&call_target_function, EQ);
+  __ CompareRegisters(R4, R0);
+  __ b(&update, NE);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ add(TMP, R2, Operand(R3, LSL, 2));
+  __ LoadFieldFromOffset(R0, TMP, base + kWordSize);
+  __ LoadFieldFromOffset(R1, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R1, R1, Code::instructions_offset());
+  __ LoadObject(R5, ic_data, PP);
+  __ LoadObject(R4, arguments_descriptor, PP);
+  __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);
+  __ blr(R1);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
+  __ Drop(argument_count);
 }
 
 
@@ -1085,7 +1341,16 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(R4, arguments_descriptor, PP);
+  // Do not use the code from the function, but let the code be patched so that
+  // we can record the outgoing edges to other code.
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kOptStaticCall,
+                   locs);
+  AddStaticCallTarget(function);
+  __ Drop(argument_count);
 }
 
 
@@ -1093,7 +1358,28 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check,
                                                     intptr_t token_pos) {
-  UNIMPLEMENTED();
+  if (needs_number_check) {
+    ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
+    __ Push(reg);
+    __ PushObject(obj, PP);
+    if (is_optimizing()) {
+      __ BranchLinkPatchable(
+          &StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLinkPatchable(
+          &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
+    __ Drop(1);  // Discard constant.
+    __ Pop(reg);  // Restore 'reg'.
+    return;
+  }
+
+  __ CompareObject(reg, obj, PP);
 }
 
 
@@ -1186,7 +1472,43 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(is_optimizing());
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  Label match_found;
+  const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<CidTarget> sorted(len);
+  SortICDataByCount(ic_data, &sorted);
+  ASSERT(class_id_reg != R4);
+  ASSERT(len > 0);  // Why bother otherwise.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
+  __ LoadObject(R4, arguments_descriptor, PP);
+  for (intptr_t i = 0; i < len; i++) {
+    const bool is_last_check = (i == (len - 1));
+    Label next_test;
+    __ CompareImmediate(class_id_reg, sorted[i].cid, PP);
+    if (is_last_check) {
+      __ b(deopt, NE);
+    } else {
+      __ b(&next_test, NE);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kOptStaticCall,
+                     locs);
+    const Function& function = *sorted[i].target;
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (!is_last_check) {
+      __ b(&match_found);
+    }
+    __ Bind(&next_test);
+  }
+  __ Bind(&match_found);
 }
 
 
@@ -1233,12 +1555,151 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
 
 
 void ParallelMoveResolver::EmitMove(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister()) {
+    if (destination.IsRegister()) {
+      __ mov(destination.reg(), source.reg());
+    } else {
+      ASSERT(destination.IsStackSlot());
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ StoreToOffset(source.reg(), FP, dest_offset);
+    }
+  } else if (source.IsStackSlot()) {
+    if (destination.IsRegister()) {
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      __ LoadFromOffset(destination.reg(), FP, source_offset);
+    } else {
+      ASSERT(destination.IsStackSlot());
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadFromOffset(TMP, FP, source_offset);
+      __ StoreToOffset(TMP, FP, dest_offset);
+    }
+  } else if (source.IsFpuRegister()) {
+    if (destination.IsFpuRegister()) {
+      __ fmovdd(destination.fpu_reg(), source.fpu_reg());
+    } else {
+      if (destination.IsDoubleStackSlot()) {
+        const intptr_t dest_offset = destination.ToStackSlotOffset();
+        VRegister src = source.fpu_reg();
+        __ StoreDToOffset(src, FP, dest_offset);
+      } else {
+        ASSERT(destination.IsQuadStackSlot());
+        UNIMPLEMENTED();
+      }
+    }
+  } else if (source.IsDoubleStackSlot()) {
+    if (destination.IsFpuRegister()) {
+      const intptr_t dest_offset = source.ToStackSlotOffset();
+      const VRegister dst = destination.fpu_reg();
+      __ LoadDFromOffset(dst, FP, dest_offset);
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadDFromOffset(VTMP, FP, source_offset);
+      __ StoreDToOffset(VTMP, FP, dest_offset);
+    }
+  } else if (source.IsQuadStackSlot()) {
+    UNIMPLEMENTED();
+  } else {
+    ASSERT(source.IsConstant());
+    const Object& constant = source.constant();
+    if (destination.IsRegister()) {
+      __ LoadObject(destination.reg(), constant, PP);
+    } else if (destination.IsFpuRegister()) {
+      const VRegister dst = destination.fpu_reg();
+      __ LoadObject(TMP, constant, PP);
+      __ LoadDFieldFromOffset(dst, TMP, Double::value_offset());
+    } else {
+      ASSERT(destination.IsStackSlot());
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadObject(TMP, constant, PP);
+      __ StoreToOffset(TMP, FP, dest_offset);
+    }
+  }
+
+  move->Eliminate();
 }
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister() && destination.IsRegister()) {
+    ASSERT(source.reg() != TMP);
+    ASSERT(destination.reg() != TMP);
+    __ mov(TMP, source.reg());
+    __ mov(source.reg(), destination.reg());
+    __ mov(destination.reg(), TMP);
+  } else if (source.IsRegister() && destination.IsStackSlot()) {
+    Exchange(source.reg(), destination.ToStackSlotOffset());
+  } else if (source.IsStackSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), source.ToStackSlotOffset());
+  } else if (source.IsStackSlot() && destination.IsStackSlot()) {
+    Exchange(source.ToStackSlotOffset(), destination.ToStackSlotOffset());
+  } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
+    const VRegister dst = destination.fpu_reg();
+    const VRegister src = source.fpu_reg();
+    __ fmovdd(VTMP, src);
+    __ fmovdd(src, dst);
+    __ fmovdd(dst, VTMP);
+  } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
+    ASSERT(destination.IsDoubleStackSlot() ||
+           destination.IsQuadStackSlot() ||
+           source.IsDoubleStackSlot() ||
+           source.IsQuadStackSlot());
+    bool double_width = destination.IsDoubleStackSlot() ||
+                        source.IsDoubleStackSlot();
+    VRegister reg = source.IsFpuRegister() ? source.fpu_reg()
+                                          : destination.fpu_reg();
+    const intptr_t slot_offset = source.IsFpuRegister()
+        ? destination.ToStackSlotOffset()
+        : source.ToStackSlotOffset();
+
+    if (double_width) {
+      __ LoadDFromOffset(VTMP, FP, slot_offset);
+      __ StoreDToOffset(reg, FP, slot_offset);
+      __ fmovdd(reg, VTMP);
+    } else {
+      UNIMPLEMENTED();
+    }
+  } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
+    const intptr_t source_offset = source.ToStackSlotOffset();
+    const intptr_t dest_offset = destination.ToStackSlotOffset();
+
+    ScratchFpuRegisterScope ensure_scratch(this, VTMP);
+    VRegister scratch = ensure_scratch.reg();
+    __ LoadDFromOffset(VTMP, FP, source_offset);
+    __ LoadDFromOffset(scratch, FP, dest_offset);
+    __ StoreDToOffset(VTMP, FP, dest_offset);
+    __ StoreDToOffset(scratch, FP, source_offset);
+  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
+    UNIMPLEMENTED();
+  } else {
+    UNREACHABLE();
+  }
+
+  // The swap of source and destination has executed a move from source to
+  // destination.
+  move->Eliminate();
+
+  // Any unperformed (including pending) move with a source of either
+  // this move's source or destination needs to have their source
+  // changed to reflect the state of affairs after the swap.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& other_move = *moves_[i];
+    if (other_move.Blocks(source)) {
+      moves_[i]->set_src(destination);
+    } else if (other_move.Blocks(destination)) {
+      moves_[i]->set_src(source);
+    }
+  }
 }
 
 
