@@ -157,7 +157,7 @@ class Zone {
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Isolate.
-  explicit StackZone(BaseIsolate* isolate)
+  explicit StackZone(Isolate* isolate)
     : StackResource(isolate),
       zone_() {
 #ifdef DEBUG
@@ -167,14 +167,16 @@ class StackZone : public StackResource {
                    reinterpret_cast<intptr_t>(&zone_));
     }
 #endif
-    zone_.Link(isolate->current_zone());
-    isolate->set_current_zone(&zone_);
+    BaseIsolate* base_isolate = reinterpret_cast<BaseIsolate*>(isolate);
+    zone_.Link(base_isolate->current_zone());
+    base_isolate->set_current_zone(&zone_);
   }
 
   // Delete all memory associated with the zone.
   ~StackZone() {
-    ASSERT(isolate()->current_zone() == &zone_);
-    isolate()->set_current_zone(zone_.previous_);
+    BaseIsolate* base_isolate = reinterpret_cast<BaseIsolate*>(isolate());
+    ASSERT(base_isolate->current_zone() == &zone_);
+    base_isolate->set_current_zone(zone_.previous_);
 #ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",

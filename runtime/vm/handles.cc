@@ -80,7 +80,7 @@ int VMHandles::ZoneHandleCount() {
 }
 
 
-HandleScope::HandleScope(BaseIsolate* isolate) : StackResource(isolate) {
+HandleScope::HandleScope(Isolate* isolate) : StackResource(isolate) {
   ASSERT(isolate->no_handle_scope_depth() == 0);
   VMHandles* handles = isolate->current_zone()->handles();
   ASSERT(handles != NULL);
@@ -109,7 +109,7 @@ HandleScope::~HandleScope() {
 
 
 #if defined(DEBUG)
-NoHandleScope::NoHandleScope(BaseIsolate* isolate) : StackResource(isolate) {
+NoHandleScope::NoHandleScope(Isolate* isolate) : StackResource(isolate) {
   isolate->IncrementNoHandleScopeDepth();
 }
 

@@ -135,7 +135,7 @@ class TimerList : public ValueObject {
 // }
 class TimerScope : public StackResource {
  public:
-  TimerScope(bool flag, Timer* timer, BaseIsolate* isolate = NULL)
+  TimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
       : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
     if (flag_) {
       if (!timer_->running()) {
@@ -165,7 +165,7 @@ class TimerScope : public StackResource {
 
 class PauseTimerScope : public StackResource {
  public:
-  PauseTimerScope(bool flag, Timer* timer, BaseIsolate* isolate = NULL)
+  PauseTimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
       : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
     if (flag_) {
       if (timer_->running()) {
