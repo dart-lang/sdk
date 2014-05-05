@@ -83,7 +83,7 @@ class IsolateProfilerData {
 };
 
 
-class SampleVisitor {
+class SampleVisitor : public ValueObject {
  public:
   explicit SampleVisitor(Isolate* isolate) : isolate_(isolate), visited_(0) { }
   virtual ~SampleVisitor() {}
@@ -119,8 +119,12 @@ class Sample {
     timestamp_ = timestamp;
     tid_ = tid;
     isolate_ = isolate;
+    pc_marker_ = 0;
     vm_tag_ = VMTag::kInvalidTagId;
     user_tag_ = UserTags::kNoUserTag;
+    sp_ = 0;
+    fp_ = 0;
+    state_ = 0;
     for (intptr_t i = 0; i < kSampleFramesSize; i++) {
       pcs_[i] = 0;
     }
@@ -165,12 +169,73 @@ class Sample {
     user_tag_ = tag;
   }
 
+  uword pc_marker() const {
+    return pc_marker_;
+  }
+
+  void set_pc_marker(uword pc_marker) {
+    pc_marker_ = pc_marker;
+  }
+
+  uword sp() const {
+    return sp_;
+  }
+
+  void set_sp(uword sp) {
+    sp_ = sp;
+  }
+
+  uword fp() const {
+    return fp_;
+  }
+
+  void set_fp(uword fp) {
+    fp_ = fp;
+  }
+
+  void InsertCallerForTopFrame(uword pc) {
+    // The caller for the top frame is store at index 1.
+    // Shift all entries down by one.
+    for (intptr_t i = kSampleFramesSize - 1; i >= 2; i--) {
+      pcs_[i] = pcs_[i - 1];
+    }
+    // Insert caller for top frame.
+    pcs_[1] = pc;
+  }
+
+  bool processed() const {
+    return ProcessedBit::decode(state_);
+  }
+
+  void set_processed(bool processed) {
+    state_ = ProcessedBit::update(processed, state_);
+  }
+
+  bool leaf_frame_is_dart() const {
+    return LeafFrameIsDart::decode(state_);
+  }
+
+  void set_leaf_frame_is_dart(bool leaf_frame_is_dart) {
+    state_ = LeafFrameIsDart::update(leaf_frame_is_dart, state_);
+  }
+
  private:
+  enum StateBits {
+    kProcessedBit = 0,
+    kLeafFrameIsDartBit = 1,
+  };
+  class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
+  class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
+
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;
+  uword pc_marker_;
   uword vm_tag_;
   uword user_tag_;
+  uword sp_;
+  uword fp_;
+  uword state_;
   uword pcs_[kSampleFramesSize];
 };
 
@@ -207,25 +272,23 @@ class SampleBuffer {
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);
-    Sample sample;
     const intptr_t length = capacity();
     for (intptr_t i = 0; i < length; i++) {
-      // Copy the sample.
-      sample = *At(i);
-      if (sample.isolate() != visitor->isolate()) {
+      Sample* sample = At(i);
+      if (sample->isolate() != visitor->isolate()) {
         // Another isolate.
         continue;
       }
-      if (sample.timestamp() == 0) {
+      if (sample->timestamp() == 0) {
         // Empty.
         continue;
       }
-      if (sample.At(0) == 0) {
+      if (sample->At(0) == 0) {
         // No frames.
         continue;
       }
       visitor->IncrementVisited();
-      visitor->VisitSample(&sample);
+      visitor->VisitSample(sample);
     }
   }
 

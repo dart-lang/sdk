@@ -11,19 +11,24 @@
 
 namespace dart {
 
-// The class ReusableHandleScope is used in regions of the
-// virtual machine where isolate specific reusable handles are used.
-// This class asserts that we do not add code that will result in recursive
-// uses of reusable handles.
-// It is used as follows:
+// Classes registered in REUSABLE_HANDLE_LIST have an isolate specific reusable
+// handle. A guard class (Reusable*ClassName*HandleScope) should be used in
+// regions of the virtual machine where the isolate specific reusable handle
+// of that type is used. The class asserts that we do not add code that will
+// result in recursive uses of the class's reusable handle.
+//
+// Below is an example of a reusable array handle via the
+// REUSABLE_*CLASSNAME*_HANDLESCOPE macro:
+//
 // {
-//   ReusableHandleScope reused_handles(isolate);
+//   REUSABLE_ARRAY_HANDLESCOPE(isolate);
 //   ....
-//   .....
-//   code that uses isolate specific reusable handles.
-//   Array& funcs = reused_handles.ArrayHandle();
+//   ....
+//   Array& funcs = reused_array_handle.Handle();
+//   code that uses funcs
 //   ....
 // }
+//
 
 #if defined(DEBUG)
 #define REUSABLE_SCOPE(name)                                                   \
@@ -76,28 +81,31 @@ namespace dart {
 REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
 #undef REUSABLE_SCOPE
 
-#define REUSABLE_OBJECT_HANDLESCOPE(isolate)                                   \
-  ReusableObjectHandleScope reused_object_handle(isolate);
-#define REUSABLE_ERROR_HANDLESCOPE(isolate)                                    \
-  ReusableErrorHandleScope reused_error_handle(isolate);
-#define REUSABLE_ARRAY_HANDLESCOPE(isolate)                                    \
-  ReusableArrayHandleScope reused_array_handle(isolate);
-#define REUSABLE_STRING_HANDLESCOPE(isolate)                                   \
-  ReusableStringHandleScope reused_string_handle(isolate);
-#define REUSABLE_INSTANCE_HANDLESCOPE(isolate)                                 \
-  ReusableInstanceHandleScope reused_instance_handle(isolate);
-#define REUSABLE_FUNCTION_HANDLESCOPE(isolate)                                 \
-  ReusableFunctionHandleScope reused_function_handle(isolate);
-#define REUSABLE_FIELD_HANDLESCOPE(isolate)                                    \
-  ReusableFieldHandleScope reused_field_handle(isolate);
-#define REUSABLE_CLASS_HANDLESCOPE(isolate)                                    \
-  ReusableClassHandleScope reused_class_handle(isolate);
 #define REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate)                            \
   ReusableAbstractTypeHandleScope reused_abstract_type(isolate);
-#define REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate)                           \
-  ReusableTypeParameterHandleScope reused_type_parameter(isolate);
+#define REUSABLE_ARRAY_HANDLESCOPE(isolate)                                    \
+  ReusableArrayHandleScope reused_array_handle(isolate);
+#define REUSABLE_CLASS_HANDLESCOPE(isolate)                                    \
+  ReusableClassHandleScope reused_class_handle(isolate);
+#define REUSABLE_CODE_HANDLESCOPE(isolate)                                     \
+  ReusableCodeHandleScope reused_code_handle(isolate);
+#define REUSABLE_ERROR_HANDLESCOPE(isolate)                                    \
+  ReusableErrorHandleScope reused_error_handle(isolate);
+#define REUSABLE_FIELD_HANDLESCOPE(isolate)                                    \
+  ReusableFieldHandleScope reused_field_handle(isolate);
+#define REUSABLE_FUNCTION_HANDLESCOPE(isolate)                                 \
+  ReusableFunctionHandleScope reused_function_handle(isolate);
+#define REUSABLE_INSTANCE_HANDLESCOPE(isolate)                                 \
+  ReusableInstanceHandleScope reused_instance_handle(isolate);
+#define REUSABLE_OBJECT_HANDLESCOPE(isolate)                                   \
+  ReusableObjectHandleScope reused_object_handle(isolate);
+#define REUSABLE_STRING_HANDLESCOPE(isolate)                                   \
+  ReusableStringHandleScope reused_string_handle(isolate);
 #define REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate)                           \
   ReusableTypeArgumentsHandleScope reused_type_arguments_handle(isolate);
+#define REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate)                           \
+  ReusableTypeParameterHandleScope reused_type_parameter(isolate);
+
 
 }  // namespace dart
 

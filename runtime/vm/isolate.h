@@ -24,6 +24,7 @@ class AbstractType;
 class ApiState;
 class Array;
 class Class;
+class Code;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
@@ -80,8 +81,10 @@ class IsolateVisitor {
 };
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
+  V(AbstractType)                                                              \
   V(Array)                                                                     \
   V(Class)                                                                     \
+  V(Code)                                                                      \
   V(Error)                                                                     \
   V(Field)                                                                     \
   V(Function)                                                                  \
@@ -89,7 +92,6 @@ class IsolateVisitor {
   V(Object)                                                                    \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
-  V(AbstractType)                                                              \
   V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {

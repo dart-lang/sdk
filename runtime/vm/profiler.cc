@@ -13,6 +13,7 @@
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/profiler.h"
+#include "vm/reusable_handles.h"
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
@@ -910,6 +911,98 @@ class CodeRegionTable : public ValueObject {
 };
 
 
+class FixTopFrameVisitor : public SampleVisitor {
+ public:
+  explicit FixTopFrameVisitor(Isolate* isolate)
+      : SampleVisitor(isolate),
+        vm_isolate_(Dart::vm_isolate()) {
+  }
+
+  void VisitSample(Sample* sample) {
+    if (sample->processed()) {
+      // Already processed.
+      return;
+    }
+    REUSABLE_CODE_HANDLESCOPE(isolate());
+    // Mark that we've processed this sample.
+    sample->set_processed(true);
+    // Lookup code object for leaf frame.
+    Code& code = reused_code_handle.Handle();
+    code = FindCodeForPC(sample->At(0));
+    sample->set_leaf_frame_is_dart(!code.IsNull());
+    if (sample->pc_marker() == 0) {
+      // No pc marker. Nothing to do.
+      return;
+    }
+    if (!code.IsNull() && (code.compile_timestamp() > sample->timestamp())) {
+      // Code compiled after sample. Ignore.
+      return;
+    }
+    if (sample->leaf_frame_is_dart()) {
+      CheckForMissingDartFrame(code, sample);
+    }
+  }
+
+ private:
+  void CheckForMissingDartFrame(const Code& code, Sample* sample) const {
+    // Some stubs (and intrinsics) do not push a frame onto the stack leaving
+    // the frame pointer in the caller.
+    //
+    // PC -> STUB
+    // FP -> DART3  <-+
+    //       DART2  <-|  <- TOP FRAME RETURN ADDRESS.
+    //       DART1  <-|
+    //       .....
+    //
+    // In this case, traversing the linked stack frames will not collect a PC
+    // inside DART3. The stack will incorrectly be: STUB, DART2, DART1.
+    // In Dart code, after pushing the FP onto the stack, an IP in the current
+    // function is pushed onto the stack as well. This stack slot is called
+    // the PC marker. We can use the PC marker to insert DART3 into the stack
+    // so that it will correctly be: STUB, DART3, DART2, DART1. Note the
+    // inserted PC may not accurately reflect the true return address from STUB.
+    ASSERT(!code.IsNull());
+    if (sample->sp() == sample->fp()) {
+      // Haven't pushed pc marker yet.
+      return;
+    }
+    uword pc_marker = sample->pc_marker();
+    if (code.ContainsInstructionAt(pc_marker)) {
+      // PC marker is in the same code as pc, no missing frame.
+      return;
+    }
+    if (!ContainedInDartCodeHeaps(pc_marker)) {
+      // Not a valid PC marker.
+      return;
+    }
+    sample->InsertCallerForTopFrame(pc_marker);
+  }
+
+  bool ContainedInDartCodeHeaps(uword pc) const {
+    return isolate()->heap()->CodeContains(pc) ||
+           vm_isolate()->heap()->CodeContains(pc);
+  }
+
+  Isolate* vm_isolate() const {
+    return vm_isolate_;
+  }
+
+  RawCode* FindCodeForPC(uword pc) const {
+    // Check current isolate for pc.
+    if (isolate()->heap()->CodeContains(pc)) {
+      return Code::LookupCode(pc);
+    }
+    // Check VM isolate for pc.
+    if (vm_isolate()->heap()->CodeContains(pc)) {
+      return Code::LookupCodeInVmIsolate(pc);
+    }
+    return Code::null();
+  }
+
+  Isolate* vm_isolate_;
+};
+
+
 class CodeRegionTableBuilder : public SampleVisitor {
  public:
   CodeRegionTableBuilder(Isolate* isolate,
@@ -1356,6 +1449,12 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
                                      &dead_code_table,
                                      &tag_code_table);
       {
+        // Preprocess samples and fix the caller when the top PC is in a
+        // stub or intrinsic without a frame.
+        FixTopFrameVisitor fixTopFrame(isolate);
+        sample_buffer->VisitSamples(&fixTopFrame);
+      }
+      {
         // Build CodeRegion tables.
         ScopeStopwatch sw("CodeRegionTableBuilder");
         sample_buffer->VisitSamples(&builder);
@@ -1600,6 +1699,8 @@ class ProfilerNativeStackWalker : public ValueObject {
       // the isolates stack limit.
       lower_bound_ = original_sp_;
     }
+    // Store the PC marker for the top frame.
+    sample_->set_pc_marker(GetCurrentFramePcMarker(fp));
     int i = 0;
     for (; i < FLAG_profile_depth; i++) {
       if (FLAG_profile_verify_stack_walk) {
@@ -1662,6 +1763,13 @@ class ProfilerNativeStackWalker : public ValueObject {
     return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
   }
 
+  uword GetCurrentFramePcMarker(uword* fp) const {
+    if (!ValidFramePointer(fp)) {
+      return 0;
+    }
+    return *(fp + kPcMarkerSlotFromFp);
+  }
+
   bool ValidFramePointer(uword* fp) const {
     if (fp == NULL) {
       return false;
@@ -1671,7 +1779,6 @@ class ProfilerNativeStackWalker : public ValueObject {
     bool r = cursor >= lower_bound_ && cursor < stack_upper_;
     return r;
   }
-
 
   Sample* sample_;
   const uword stack_upper_;
@@ -1705,6 +1812,8 @@ void Profiler::RecordSampleInterruptCallback(
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
   sample->set_vm_tag(isolate->vm_tag());
   sample->set_user_tag(isolate->user_tag());
+  sample->set_sp(state.sp);
+  sample->set_fp(state.fp);
   if (FLAG_profile_native_stack) {
     // Collect native and Dart frames.
     uword stack_lower = 0;
