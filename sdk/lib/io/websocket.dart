@@ -144,13 +144,18 @@ abstract class WebSocket implements Stream, StreamSink {
    *
    * [protocol] should be the protocol negotiated by this handshake, if any.
    *
-   * If [serverSide] is `false`, the WebSocket will act as the client and mask
-   * the messages it sends. If it's `true`, it will act as the server and will
-   * not mask its messages.
+   * [serverSide] must be passed explicitly. If it's `false`, the WebSocket will
+   * act as the client and mask the messages it sends. If it's `true`, it will
+   * act as the server and will not mask its messages.
    */
   factory WebSocket.fromUpgradedSocket(Socket socket, {String protocol,
-        bool serverSide: true}) =>
-      new _WebSocketImpl._fromSocket(socket, protocol, serverSide);
+        bool serverSide}) {
+    if (serverSide == null) {
+      throw new ArgumentError("The serverSide argument must be passed "
+          "explicitly to WebSocket.fromUpgradedSocket.");
+    }
+    return new _WebSocketImpl._fromSocket(socket, protocol, serverSide);
+  }
 
   /**
    * Returns the current state of the connection.

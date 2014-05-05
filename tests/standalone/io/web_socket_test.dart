@@ -386,7 +386,8 @@ class SecurityConfiguration {
     });
   }
 
-  testFromSocket() {
+  testFromUpgradedSocket() {
+    asyncStart();
     createServer().then((server) {
       server.listen((request) {
         Expect.equals('Upgrade', request.headers.value(HttpHeaders.CONNECTION));
@@ -401,18 +402,17 @@ class SecurityConfiguration {
             ..headers.add(HttpHeaders.UPGRADE, "websocket")
             ..headers.add("Sec-WebSocket-Accept", accept);
         request.response.contentLength = 0;
-        return request.response.detachSocket()
-            .then((socket) => new WebSocket.fromUpgradedSocket(socket))
-            .then((websocket) {
+        request.response.detachSocket().then((socket) {
+          return new WebSocket.fromUpgradedSocket(socket, serverSide: true);
+        }).then((websocket) {
           websocket.add("Hello");
           websocket.close();
+          asyncEnd();
         });
       });
 
       var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
 
-      var client = new HttpClient();
-      var completer = new Completer();
       WebSocket.connect(url).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
@@ -442,7 +442,7 @@ class SecurityConfiguration {
     testUsePOST();
     testConnections(10, 3002, "Got tired");
     testIndividualUpgrade(5);
-    testFromSocket();
+    testFromUpgradedSocket();
   }
 }
 
