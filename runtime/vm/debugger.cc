@@ -1545,6 +1545,11 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   if (best_fit_index >= 0) {
     return desc.TokenPos(best_fit_index);
   }
+  // We didn't find a safe point in the given token range. Try and find
+  // a safe point in the remaining source code of the function.
+  if (last_token_pos < func.end_token_pos()) {
+    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos());
+  }
   return -1;
 }
 
