@@ -1614,6 +1614,11 @@ void ParallelMoveResolver::EmitMove(int index) {
       const VRegister dst = destination.fpu_reg();
       __ LoadObject(TMP, constant, PP);
       __ LoadDFieldFromOffset(dst, TMP, Double::value_offset());
+    } else if (destination.IsDoubleStackSlot()) {
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadObject(TMP, constant, PP);
+      __ LoadDFieldFromOffset(VTMP, TMP, Double::value_offset());
+      __ StoreDToOffset(VTMP, FP, dest_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();

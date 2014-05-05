@@ -1644,6 +1644,12 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ LoadObject(TMP, constant);
       __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
       __ vldrd(dst, Address(TMP, 0));
+    } else if (destination.IsDoubleStackSlot()) {
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadObject(TMP, constant);
+      __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
+      __ vldrd(DTMP, Address(TMP, 0));
+      __ StoreDToOffset(DTMP, FP, dest_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
