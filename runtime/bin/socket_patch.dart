@@ -824,6 +824,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
         var handler = eventHandlers[i];
         if (i == DESTROYED_EVENT) {
+          assert(isClosing);
           assert(!isClosed);
           isClosed = true;
           closeCompleter.complete();
@@ -873,7 +874,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     sendWriteEvents = write;
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
-    if (eventPort == null) {
+    if (eventPort == null && !isClosing) {
       int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
@@ -936,6 +937,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void connectToEventHandler() {
+    assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
       _SocketsObservatory.add(this);

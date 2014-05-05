@@ -334,6 +334,7 @@ bool Handle::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
 
 void Handle::HandleIssueError() {
   DWORD error = GetLastError();
+  ASSERT(event_handler_ != NULL);
   if (error == ERROR_BROKEN_PIPE) {
     event_handler_->HandleClosed(this);
   } else {
@@ -399,6 +400,7 @@ bool DirectoryWatchHandle::IssueRead() {
 
 void SocketHandle::HandleIssueError() {
   int error = WSAGetLastError();
+  ASSERT(event_handler_ != NULL);
   if (error == WSAECONNRESET) {
     event_handler_->HandleClosed(this);
   } else {
@@ -502,6 +504,17 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
 }
 
 
+static void DeleteIfClosed(Handle* handle) {
+  if (handle->IsClosed()) {
+    Dart_Port port = handle->port();
+    delete handle;
+    if (port != ILLEGAL_PORT) {
+      DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+    }
+  }
+}
+
+
 void ListenSocket::DoClose() {
   closesocket(socket());
   handle_ = INVALID_HANDLE_VALUE;
@@ -510,6 +523,7 @@ void ListenSocket::DoClose() {
     ClientSocket *client = Accept();
     if (client != NULL) {
       client->Close();
+      DeleteIfClosed(client);
     } else {
       break;
     }
@@ -955,18 +969,8 @@ void DatagramSocket::DoClose() {
 }
 
 
-static void DeleteIfClosed(Handle* handle) {
-  if (handle->IsClosed()) {
-    Dart_Port port = handle->port();
-    delete handle;
-    if (port != ILLEGAL_PORT) {
-      DartUtils::PostInt32(port, 1 << kDestroyedEvent);
-    }
-  }
-}
-
-
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
+  ASSERT(this != NULL);
   if (msg->id == kTimeoutId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
@@ -1289,6 +1293,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
                                         &key,
                                         &overlapped,
                                         static_cast<DWORD>(millis));
+
     if (!ok && overlapped == NULL) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.

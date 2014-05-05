@@ -224,7 +224,6 @@ class Handle {
 
   HANDLE handle() { return handle_; }
   Dart_Port port() { return port_; }
-  EventHandlerImplementation* event_handler() { return event_handler_; }
 
   void Lock();
   void Unlock();
@@ -439,6 +438,7 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
+    ASSERT(closed_ == true);
   };
 
   void Shutdown(int how);
