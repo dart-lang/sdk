@@ -14,8 +14,7 @@ show
     DartBackend;
 import
     '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
-show
-    Node, Identifier;
+show Identifier, Node, Send;
 import
     '../../../sdk/lib/_internal/compiler/implementation/mirror_renamer/mirror_renamer.dart'
 show
@@ -53,7 +52,8 @@ void testUniqueMinification() {
       Identifier identifier = node.asIdentifier();
       if (identifier != null) {
         String source = identifier.source;
-        if (mirrorRenamer.mirrorSystemGetNameNodes.first.selector == node)
+        Send send = mirrorRenamer.mirrorSystemGetNameNodes.first;
+        if (send.selector == node)
           continue;
         if (symbols.containsKey(renames[node])) {
           print(node);

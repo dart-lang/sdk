@@ -12,6 +12,7 @@ import "compiler_helper.dart";
 import "parser_helper.dart";
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -613,15 +614,15 @@ testConstructorArgumentMismatch() {
 testTopLevelFields() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("int a;");
-  VariableElement element = compiler.mainApp.find("a");
+  VariableElementX element = compiler.mainApp.find("a");
   Expect.equals(ElementKind.FIELD, element.kind);
   VariableDefinitions node = element.variables.parseNode(element, compiler);
   Identifier typeName = node.type.typeName;
   Expect.equals(typeName.source, 'int');
 
   compiler.parseScript("var b, c;");
-  VariableElement bElement = compiler.mainApp.find("b");
-  VariableElement cElement = compiler.mainApp.find("c");
+  VariableElementX bElement = compiler.mainApp.find("b");
+  VariableElementX cElement = compiler.mainApp.find("c");
   Expect.equals(ElementKind.FIELD, bElement.kind);
   Expect.equals(ElementKind.FIELD, cElement.kind);
   Expect.isTrue(bElement != cElement);

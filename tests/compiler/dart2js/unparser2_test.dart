@@ -83,4 +83,6 @@ class MessageCollector implements DiagnosticListener {
   void log(message) {
     messages.add(message);
   }
+
+  noSuchMethod(Invocation invocation) => throw 'unsupported operation';
 }

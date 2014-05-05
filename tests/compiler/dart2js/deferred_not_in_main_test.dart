@@ -40,13 +40,14 @@ void main() {
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var classes = compiler.backend.emitter.neededClasses;
+    var backend = compiler.backend;
+    var classes = backend.emitter.neededClasses;
     var lib1 = compiler.libraries["memory:lib1.dart"];
     var lib2 = compiler.libraries["memory:lib2.dart"];
     var foo1 = lib1.find("foo1");
     var foo2 = lib2.find("foo2");
 
-    var outputClassLists = compiler.backend.emitter.outputClassLists;
+    var outputClassLists = backend.emitter.outputClassLists;
 
     Expect.notEquals(mainOutputUnit, outputUnitForElement(foo2));
   }));

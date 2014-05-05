@@ -43,7 +43,8 @@ void main() {
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var classes = compiler.backend.emitter.neededClasses;
+    var backend = compiler.backend;
+    var classes = backend.emitter.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     var lib1 = compiler.libraries["memory:lib1.dart"];
     var foo1 = lib1.find("foo1");
@@ -54,7 +55,7 @@ void main() {
     var lib4 = compiler.libraries["memory:lib4.dart"];
     var bar1 = lib4.find("bar1");
     var bar2 = lib4.find("bar2");
-    var outputClassLists = compiler.backend.emitter.outputClassLists;
+    var outputClassLists = backend.emitter.outputClassLists;
 
     Expect.equals(mainOutputUnit, outputUnitForElement(main));
     Expect.notEquals(mainOutputUnit, outputUnitForElement(foo1));

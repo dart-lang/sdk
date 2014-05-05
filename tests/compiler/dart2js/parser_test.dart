@@ -259,8 +259,8 @@ void testOperatorParse() {
   FunctionExpression function = parseMember('operator -() => null;');
   Send name = function.name.asSend();
   Expect.isNotNull(name);
-  Expect.stringEquals('operator', name.receiver.source);
-  Expect.stringEquals('-', name.selector.source);
+  Expect.stringEquals('operator', name.receiver.toString());
+  Expect.stringEquals('-', name.selector.toString());
   Expect.isTrue(function.parameters.isEmpty);
   Expect.isNull(function.returnType);
   Expect.isNull(function.getOrSet);
@@ -285,6 +285,8 @@ class Collector implements DiagnosticListener {
   void log(message) {
     print(message);
   }
+
+  noSuchMethod(Invocation invocation) => throw 'unsupported operation';
 }
 
 void testMissingCloseParen() {

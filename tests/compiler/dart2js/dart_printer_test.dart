@@ -587,12 +587,13 @@ class AstBuilder extends Listener {
     push(statement);
   }
   
+  // TODO(kmillikin,asgerf): this code is currently untested.
   endFunctionDeclaration(Token end) {
     Statement body = pop();
     Parameters parameters = pop();
     String name = pop(asName);
     TypeAnnotation returnType = popTypeAnnotation();
-    push(new FunctionDeclaration(name, parameters, body, returnType));
+    push(new FunctionDeclaration(name, parameters, returnType));
   }
   
   endFunctionBody(int count, Token begin, Token end) {

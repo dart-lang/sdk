@@ -2075,8 +2075,9 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
 
 void generateOutput(String text) {
   for (WarningMessage message in compiler.warnings) {
-    var beginToken = message.node.getBeginToken();
-    var endToken = message.node.getEndToken();
+    Node node = message.node;
+    var beginToken = node.getBeginToken();
+    var endToken = node.getEndToken();
     int begin = beginToken.charOffset;
     int end = endToken.charOffset + endToken.charCount;
     SourceFile sourceFile = new StringSourceFile('analysis', text);

@@ -9,9 +9,10 @@ import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
-       show Element, ClassElement, MemberSignature, Name, PublicName;
+       show Element, ClassElement, MemberSignature, Name, PublicName,
+            DeclaredMember, Member;
 import "../../../sdk/lib/_internal/compiler/implementation/resolution/class_members.dart"
-  show SyntheticMember, ErroneousMember;
+  show DeclaredMember, ErroneousMember, SyntheticMember;
 
 void main() {
   testClassMembers();
@@ -90,7 +91,7 @@ MemberSignature checkMember(InterfaceType cls,
   }
 
   if (inheritedFrom != null) {
-    MemberSignature inherited = checkType == CHECK_CLASS
+    DeclaredMember inherited = checkType == CHECK_CLASS
         ? inheritedFrom.element.lookupClassMember(memberName)
         : inheritedFrom.element.lookupInterfaceMember(memberName);
     Expect.isNotNull(inherited,
@@ -111,19 +112,21 @@ MemberSignature checkMember(InterfaceType cls,
       Set<MemberSignature> members = new Set<MemberSignature>();
       List from = synthesizedFrom != null ? synthesizedFrom : erroneousFrom;
       for (InterfaceType type in from) {
-        MemberSignature inheritedMember =
+        DeclaredMember inheritedMember =
             type.element.lookupInterfaceMember(memberName);
         Expect.isNotNull(inheritedMember);
         members.add(inheritedMember.inheritFrom(type));
       }
       Expect.setEquals(members, member.declarations);
     } else if (declarer != null) {
-      Expect.equals(declarer, member.declarer,
-          "Unexpected declarer '${member.declarer}' of $memberKind member "
+      DeclaredMember declared = member;
+      Expect.equals(declarer, declared.declarer,
+          "Unexpected declarer '${declared.declarer}' of $memberKind member "
           "'$member'. Expected '${declarer}'.");
     } else {
-      Expect.equals(cls.element, member.element.getEnclosingClass());
-      Expect.equals(cls, member.declarer);
+      DeclaredMember declared = member;
+      Expect.equals(cls.element, declared.element.getEnclosingClass());
+      Expect.equals(cls, declared.declarer);
     }
     Expect.equals(isSetter, member.isSetter);
     Expect.equals(isGetter, member.isGetter);

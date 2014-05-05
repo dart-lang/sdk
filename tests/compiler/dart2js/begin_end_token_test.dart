@@ -25,7 +25,8 @@ void testNode(Node node, String expected, String text, [bool hard = true]) {
 }
 
 Node testExpression(String text, [String alternate]) {
-  var node = parseStatement('$text;').expression;
+  ExpressionStatement statement = parseStatement('$text;');
+  Expression node = statement.expression;
   testNode(node, alternate == null ? text : alternate, text);
   return node;
 }
