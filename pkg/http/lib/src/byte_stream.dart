@@ -23,7 +23,8 @@ class ByteStream extends StreamView<List<int>> {
   /// Collects the data of this stream in a [Uint8List].
   Future<Uint8List> toBytes() {
     var completer = new Completer();
-    var sink = new ByteConversionSink.withCallback(completer.complete);
+    var sink = new ByteConversionSink.withCallback((bytes) =>
+        completer.complete(new Uint8List.fromList(bytes)));
     listen(sink.add, onError: completer.completeError, onDone: sink.close,
         cancelOnError: true);
     return completer.future;

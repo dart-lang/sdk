@@ -1,5 +1,9 @@
 ## 0.11.0
 
+* The package no longer depends on `dart:io`. The `BrowserClient` class in
+  `package:http/browser_client.dart` can now be used to make requests on the
+  browser.
+
 * Change `MultipartFile.contentType` from `dart:io`'s `ContentType` type to
   `http_parser`'s `MediaType` type.
 

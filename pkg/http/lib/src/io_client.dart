@@ -5,22 +5,25 @@
 library io_client;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:stack_trace/stack_trace.dart';
 
 import 'base_client.dart';
 import 'base_request.dart';
 import 'exception.dart';
+import 'io.dart' as io;
 import 'streamed_response.dart';
 
 /// A `dart:io`-based HTTP client. This is the default client.
 class IOClient extends BaseClient {
   /// The underlying `dart:io` HTTP client.
-  HttpClient _inner;
+  var _inner;
 
   /// Creates a new HTTP client.
-  IOClient() : _inner = new HttpClient();
+  IOClient() {
+    io.assertSupported("IOClient");
+    _inner = io.newHttpClient();
+  }
 
   /// Sends an HTTP request and asynchronously returns the response.
   Future<StreamedResponse> send(BaseRequest request) {
@@ -50,7 +53,7 @@ class IOClient extends BaseClient {
       return new StreamedResponse(
           response.handleError((error) =>
               throw new ClientException(error.message, error.uri),
-              test: (error) => error is HttpException),
+              test: (error) => io.isHttpException(error)),
           response.statusCode,
           contentLength: contentLength,
           request: request,
@@ -59,7 +62,7 @@ class IOClient extends BaseClient {
           persistentConnection: response.persistentConnection,
           reasonPhrase: response.reasonPhrase);
     }).catchError((error) {
-      if (error is! HttpException) throw error;
+      if (!io.isHttpException(error)) throw error;
       throw new ClientException(error.message, error.uri);
     });
   }

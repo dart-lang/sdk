@@ -200,13 +200,7 @@ analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
-http/test/client_test: Fail, OK # Uses dart:io.
-http/test/http_test: Fail, OK # Uses dart:io.
-http/test/mock_client_test: Fail, OK # Uses dart:io.
-http/test/multipart_test: Fail, OK # Uses dart:io.
-http/test/request_test: Fail, OK # Uses dart:io.
-http/test/response_test: Fail, OK # Uses dart:io.
-http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
@@ -309,6 +303,7 @@ polymer_expressions/test/syntax_test: Skip
 polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
+http/test/html/*: Skip
 
 [ $runtime == safari || $runtime == safarimobilesim || $ie ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
@@ -350,3 +345,6 @@ analyzer/test/*: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
+
+[ $runtime == drt ]
+http/test/html/client_test: Skip # Issue 18566

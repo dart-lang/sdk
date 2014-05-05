@@ -5,7 +5,6 @@
 library request_test;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:unittest/unittest.dart';
@@ -13,30 +12,6 @@ import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
 void main() {
-  test('.send', () {
-    expect(startServer().then((_) {
-
-      var request = new http.Request('POST', serverUrl);
-      request.body = "hello";
-      request.headers['User-Agent'] = 'Dart';
-
-      expect(request.send().then((response) {
-        expect(response.statusCode, equals(200));
-        return response.stream.bytesToString();
-      }).whenComplete(stopServer), completion(parse(equals({
-        'method': 'POST',
-        'path': '/',
-        'headers': {
-          'content-type': ['text/plain; charset=utf-8'],
-          'accept-encoding': ['gzip'],
-          'user-agent': ['Dart'],
-          'content-length': ['5']
-        },
-        'body': 'hello'
-      }))));
-    }), completes);
-  });
-
   group('#contentLength', () {
     test('is computed from bodyBytes', () {
       var request = new http.Request('POST', dummyUrl);
@@ -74,8 +49,7 @@ void main() {
 
     test('is based on the content-type charset if it exists', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
-          'text/plain; charset=iso-8859-1';
+      request.headers['Content-Type'] = 'text/plain; charset=iso-8859-1';
       expect(request.encoding.name, equals(LATIN1.name));
     });
 
@@ -83,17 +57,16 @@ void main() {
         () {
       var request = new http.Request('POST', dummyUrl);
       request.encoding = LATIN1;
-      request.headers[HttpHeaders.CONTENT_TYPE] =
-          'text/plain; charset=utf-8';
+      request.headers['Content-Type'] = 'text/plain; charset=utf-8';
       expect(request.encoding.name, equals(UTF8.name));
 
-      request.headers.remove(HttpHeaders.CONTENT_TYPE);
+      request.headers.remove('Content-Type');
       expect(request.encoding.name, equals(LATIN1.name));
     });
 
     test('throws an error if the content-type charset is unknown', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'text/plain; charset=not-a-real-charset';
       expect(() => request.encoding, throwsFormatException);
     });
@@ -159,19 +132,19 @@ void main() {
 
     test("can't be read with the wrong content-type", () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] = 'text/plain';
+      request.headers['Content-Type'] = 'text/plain';
       expect(() => request.bodyFields, throwsStateError);
     });
 
     test("can't be set with the wrong content-type", () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] = 'text/plain';
+      request.headers['Content-Type'] = 'text/plain';
       expect(() => request.bodyFields = {}, throwsStateError);
     });
 
     test('defaults to empty', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/x-www-form-urlencoded';
       expect(request.bodyFields, isEmpty);
     });
@@ -184,7 +157,7 @@ void main() {
 
     test('changes when body changes', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/x-www-form-urlencoded';
       request.body = 'key%201=value&key+2=other%2bvalue';
       expect(request.bodyFields,
@@ -193,7 +166,7 @@ void main() {
 
     test('is encoded according to the given encoding', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/x-www-form-urlencoded';
       request.encoding = LATIN1;
       request.bodyFields = {"föø": "bãr"};
@@ -202,7 +175,7 @@ void main() {
 
     test('is decoded according to the given encoding', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/x-www-form-urlencoded';
       request.encoding = LATIN1;
       request.body = 'f%F6%F8=b%E3r';
@@ -210,65 +183,16 @@ void main() {
     });
   });
 
-  test('#followRedirects', () {
-    print("This test is known to be flaky, please ignore "
-          "(debug prints below added by sgjesse@)");
-    print("#followRedirects test starting server...");
-    expect(startServer().then((_) {
-      print("#followRedirects test server running");
-
-      var request = new http.Request('POST', serverUrl.resolve('/redirect'))
-          ..followRedirects = false;
-      var future = request.send().then((response) {
-        print("#followRedirects test response received");
-        expect(response.statusCode, equals(302));
-      });
-      expect(future.catchError((_) {}).then((_) {
-        print("#followRedirects test stopping server...");
-        stopServer();
-        print("#followRedirects test server stopped");
-      }), completes);
-
-      expect(future, completes);
-      print("#followRedirects test started");
-    }), completes);
-  });
-
-  test('#maxRedirects', () {
-    print("This test is known to be flaky, please ignore "
-          "(debug prints below added by sgjesse@)");
-    print("#maxRedirects test starting server...");
-    expect(startServer().then((_) {
-      print("#maxRedirects test server running");
-
-      var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
-        ..maxRedirects = 2;
-      var future = request.send().catchError((error) {
-        print("#maxRedirects test exception received");
-        expect(error, isRedirectLimitExceededException);
-        expect(error.redirects.length, equals(2));
-      });
-      expect(future.catchError((_) {}).then((_) {
-        print("#maxRedirects test stopping server...");
-        stopServer();
-        print("#maxRedirects test server stopped");
-      }), completes);
-
-      expect(future, completes);
-      print("#maxRedirects test started");
-    }), completes);
-  });
-
   group('content-type header', () {
     test('defaults to empty', () {
       var request = new http.Request('POST', dummyUrl);
-      expect(request.headers[HttpHeaders.CONTENT_TYPE], isNull);
+      expect(request.headers['Content-Type'], isNull);
     });
 
     test('defaults to empty if only encoding is set', () {
       var request = new http.Request('POST', dummyUrl);
       request.encoding = LATIN1;
-      expect(request.headers[HttpHeaders.CONTENT_TYPE], isNull);
+      expect(request.headers['Content-Type'], isNull);
     });
 
     test('name is case insensitive', () {
@@ -282,7 +206,7 @@ void main() {
         'bodyFields is set', () {
       var request = new http.Request('POST', dummyUrl);
       request.bodyFields = {'hello': 'world'};
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/x-www-form-urlencoded; charset=utf-8'));
     });
 
@@ -291,7 +215,7 @@ void main() {
       var request = new http.Request('POST', dummyUrl);
       request.encoding = LATIN1;
       request.bodyFields = {'hello': 'world'};
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/x-www-form-urlencoded; charset=iso-8859-1'));
     });
 
@@ -300,50 +224,50 @@ void main() {
       var request = new http.Request('POST', dummyUrl);
       request.encoding = LATIN1;
       request.body = 'hello, world';
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('text/plain; charset=iso-8859-1'));
     });
 
     test('is modified to include utf-8 if body is set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] = 'application/json';
+      request.headers['Content-Type'] = 'application/json';
       request.body = '{"hello": "world"}';
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/json; charset=utf-8'));
     });
 
     test('is modified to include the given encoding if encoding is set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] = 'application/json';
+      request.headers['Content-Type'] = 'application/json';
       request.encoding = LATIN1;
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/json; charset=iso-8859-1'));
     });
 
     test('has its charset overridden by an explicit encoding', () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/json; charset=utf-8';
       request.encoding = LATIN1;
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/json; charset=iso-8859-1'));
     });
 
     test("doen't have its charset overridden by setting bodyFields", () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/x-www-form-urlencoded; charset=iso-8859-1';
       request.bodyFields = {'hello': 'world'};
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/x-www-form-urlencoded; charset=iso-8859-1'));
     });
 
     test("doen't have its charset overridden by setting body", () {
       var request = new http.Request('POST', dummyUrl);
-      request.headers[HttpHeaders.CONTENT_TYPE] =
+      request.headers['Content-Type'] =
           'application/json; charset=iso-8859-1';
       request.body = '{"hello": "world"}';
-      expect(request.headers[HttpHeaders.CONTENT_TYPE],
+      expect(request.headers['Content-Type'],
           equals('application/json; charset=iso-8859-1'));
     });
   });
