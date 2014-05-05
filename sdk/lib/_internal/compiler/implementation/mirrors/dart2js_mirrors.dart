@@ -486,8 +486,7 @@ class BackDoor {
 
   static Iterable metadataSyntaxOf(Dart2JsElementMirror declaration) {
     Compiler compiler = declaration.mirrorSystem.compiler;
-    return declaration._element.metadata.toList().map(
-        (MetadataAnnotation metadata) {
+    return declaration._element.metadata.toList().map((metadata) {
       var node = metadata.parseNode(compiler);
       Element annotatedElement = metadata.annotatedElement;
       var context = annotatedElement.enclosingElement;
@@ -509,7 +508,8 @@ class BackDoor {
   static ResolvedNode defaultValueSyntaxOf(Dart2JsParameterMirror parameter) {
     if (!parameter.hasDefaultValue) return null;
     var node = parameter._element.initializer;
-    return new ResolvedNode(
-        node, parameter.owner._element.treeElements, parameter.mirrorSystem);
+    return new ResolvedNode(node,
+        (parameter.owner as Dart2JsElementMirror)._element.treeElements,
+        parameter.mirrorSystem);
   }
 }
