@@ -96,6 +96,7 @@ mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
+mirrors/private_types_test: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_function_type_test: RuntimeError # Issue 12607

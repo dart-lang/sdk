@@ -948,6 +948,8 @@ abstract class _LocalDeclarationMirror extends _LocalMirror
     return _qualifiedName;
   }
 
+  bool get isPrivate => _n(simpleName).startsWith('_');
+
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
@@ -977,7 +979,6 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
     return _owner;
   }
 
-  bool get isPrivate => false;
   bool get isStatic => false;
   bool get isTopLevel => false;
 
@@ -1051,7 +1052,6 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
       : super(reflectee, _s(simpleName));
 
   bool get isTopLevel => true;
-  bool get isPrivate => false;
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
@@ -1416,8 +1416,6 @@ class _LocalVariableMirror extends _LocalDeclarationMirror
                        this.isFinal,
                        this.isConst)
       : super(reflectee, _s(simpleName));
-
-  bool get isPrivate => _n(simpleName).startsWith('_');
 
   bool get isTopLevel => owner is LibraryMirror;
 
