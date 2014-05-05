@@ -18,6 +18,11 @@ class ClassViewElement extends ObservatoryElement {
     return cls.isolate.get(
         cls.id + "/eval?expr=${Uri.encodeComponent(text)}");
   }
+  
+  // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
+  Future<ServiceObject> retainedSize(String dummy) {
+    return cls.isolate.get(cls.id + "/retained");
+  }
 
   void refresh(var done) {
     cls.reload().whenComplete(done);

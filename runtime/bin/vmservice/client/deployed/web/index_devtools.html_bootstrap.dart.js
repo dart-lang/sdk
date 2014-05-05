@@ -4751,6 +4751,9 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     eval$1: [function(receiver, text) {
       return J.get$isolate$x(receiver._class_view_element$__$cls).get$1(J.$add$ns(J.get$id$x(receiver._class_view_element$__$cls), "/eval?expr=" + P.Uri__uriEncode(C.List_KIf, text, C.Utf8Codec_false, false)));
     }, "call$1", "get$eval", 2, 0, 333, 221, [], "eval"],
+    retainedSize$1: [function(receiver, dummy) {
+      return J.get$isolate$x(receiver._class_view_element$__$cls).get$1(J.$add$ns(J.get$id$x(receiver._class_view_element$__$cls), "/retained"));
+    }, "call$1", "get$retainedSize", 2, 0, 333, 334, [], "retainedSize"],
     refresh$1: [function(receiver, done) {
       J.reload$0$x(receiver._class_view_element$__$cls).whenComplete$1(done);
     }, "call$1", "get$refresh", 2, 0, 166, 328, [], "refresh"],
@@ -4772,7 +4775,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new ClassViewElement$created"]}
   },
-  "+ClassViewElement": [334],
+  "+ClassViewElement": [335],
   ObservatoryElement_ChangeNotifier1: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -4786,7 +4789,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$code: [function(receiver) {
       return receiver._service_ref_element$__$ref;
-    }, null, null, 1, 0, 335, "code", 304],
+    }, null, null, 1, 0, 336, "code", 304],
     refChanged$1: [function(receiver, oldValue) {
       Q.ServiceRefElement.prototype.refChanged$1.call(this, receiver, oldValue);
       this.notifyPropertyChange$3(receiver, C.Symbol_code, 0, 1);
@@ -4815,15 +4818,15 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
 ["code_view_element", "package:observatory/src/elements/code_view.dart", , F, {
   "^": "",
   CodeViewElement: {
-    "^": ["ObservatoryElement_ChangeNotifier2;_code_view_element$__$code%-336,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier2;_code_view_element$__$code%-337,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$code: [function(receiver) {
       return receiver._code_view_element$__$code;
-    }, null, null, 1, 0, 335, "code", 303, 326],
+    }, null, null, 1, 0, 336, "code", 303, 326],
     set$code: [function(receiver, value) {
       receiver._code_view_element$__$code = this.notifyPropertyChange$3(receiver, C.Symbol_code, receiver._code_view_element$__$code, value);
-    }, null, null, 3, 0, 337, 30, [], "code", 303],
+    }, null, null, 3, 0, 338, 30, [], "code", 303],
     enteredView$0: [function(receiver) {
       var t1;
       Z.ObservatoryElement.prototype.enteredView$0.call(this, receiver);
@@ -4845,19 +4848,19 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       if (node == null)
         return;
       return node;
-    }, "call$1", "get$_findJumpTarget", 2, 0, 338, 81, [], "_findJumpTarget"],
+    }, "call$1", "get$_findJumpTarget", 2, 0, 339, 81, [], "_findJumpTarget"],
     mouseOver$3: [function(receiver, e, detail, target) {
       var jt = this._findJumpTarget$1(receiver, target);
       if (jt == null)
         return;
       J.get$classes$x(jt).add$1(0, "highlight");
-    }, "call$3", "get$mouseOver", 6, 0, 339, 21, [], 340, [], 81, [], "mouseOver"],
+    }, "call$3", "get$mouseOver", 6, 0, 340, 21, [], 341, [], 81, [], "mouseOver"],
     mouseOut$3: [function(receiver, e, detail, target) {
       var jt = this._findJumpTarget$1(receiver, target);
       if (jt == null)
         return;
       J.get$classes$x(jt).remove$1(0, "highlight");
-    }, "call$3", "get$mouseOut", 6, 0, 339, 21, [], 340, [], 81, [], "mouseOut"],
+    }, "call$3", "get$mouseOut", 6, 0, 340, 21, [], 341, [], 81, [], "mouseOut"],
     "@": function() {
       return [C.CustomTag_INF];
     },
@@ -4876,24 +4879,24 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new CodeViewElement$created"]}
   },
-  "+CodeViewElement": [341],
+  "+CodeViewElement": [342],
   ObservatoryElement_ChangeNotifier2: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
   },
   CodeViewElement_enteredView_closure: {
-    "^": "Closure:337;",
+    "^": "Closure:338;",
     call$1: [function(c) {
       c.loadScript$0();
-    }, "call$1", null, 2, 0, 337, 285, [], "call"],
+    }, "call$1", null, 2, 0, 338, 285, [], "call"],
     $isFunction: true
   },
-  "+ CodeViewElement_enteredView_closure": [342]
+  "+ CodeViewElement_enteredView_closure": [343]
 }],
 ["collapsible_content_element", "package:observatory/src/elements/collapsible_content.dart", , R, {
   "^": "",
   CollapsibleContentElement: {
-    "^": ["ObservatoryElement_ChangeNotifier3;_collapsible_content_element$__$iconClass%-343,_collapsible_content_element$__$displayValue%-343,_collapsed%-331,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier3;_collapsible_content_element$__$iconClass%-344,_collapsible_content_element$__$displayValue%-344,_collapsed%-331,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$iconClass: [function(receiver) {
@@ -4910,11 +4913,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 32, 30, [], "displayValue", 303],
     get$collapsed: [function(receiver) {
       return receiver._collapsed;
-    }, null, null, 1, 0, 344, "collapsed"],
+    }, null, null, 1, 0, 345, "collapsed"],
     set$collapsed: [function(receiver, r) {
       receiver._collapsed = r;
       this._refresh$0(receiver);
-    }, null, null, 3, 0, 345, 346, [], "collapsed"],
+    }, null, null, 3, 0, 346, 347, [], "collapsed"],
     enteredView$0: [function(receiver) {
       Z.ObservatoryElement.prototype.enteredView$0.call(this, receiver);
       this._refresh$0(receiver);
@@ -4923,7 +4926,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       receiver._collapsed = receiver._collapsed !== true;
       this._refresh$0(receiver);
       this._refresh$0(receiver);
-    }, "call$3", "get$toggleDisplay", 6, 0, 339, 21, [], 340, [], 81, [], "toggleDisplay"],
+    }, "call$3", "get$toggleDisplay", 6, 0, 340, 21, [], 341, [], 81, [], "toggleDisplay"],
     _refresh$0: [function(receiver) {
       var t1, t2;
       t1 = receiver._collapsed;
@@ -4939,7 +4942,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "@": function() {
       return [C.CustomTag_gOG];
     },
-    static: {"^": "CollapsibleContentElement__openIconClass<-343,CollapsibleContentElement__closeIconClass<-343", CollapsibleContentElement$created: [function(receiver) {
+    static: {"^": "CollapsibleContentElement__openIconClass<-344,CollapsibleContentElement__closeIconClass<-344", CollapsibleContentElement$created: [function(receiver) {
         var t1, t2, t3, t4;
         t1 = $.get$Polymer__polymerSyntax();
         t2 = P.HashMap_HashMap(null, null, null, J.JSString, W.ShadowRoot);
@@ -4957,7 +4960,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new CollapsibleContentElement$created"]}
   },
-  "+CollapsibleContentElement": [347],
+  "+CollapsibleContentElement": [348],
   ObservatoryElement_ChangeNotifier3: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -4971,16 +4974,16 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$expanded: [function(receiver) {
       return receiver._curly_block_element$__$expanded;
-    }, null, null, 1, 0, 344, "expanded", 303, 304],
+    }, null, null, 1, 0, 345, "expanded", 303, 304],
     set$expanded: [function(receiver, value) {
       receiver._curly_block_element$__$expanded = this.notifyPropertyChange$3(receiver, C.Symbol_expanded, receiver._curly_block_element$__$expanded, value);
-    }, null, null, 3, 0, 345, 30, [], "expanded", 303],
+    }, null, null, 3, 0, 346, 30, [], "expanded", 303],
     get$busy: [function(receiver) {
       return receiver._curly_block_element$__$busy;
-    }, null, null, 1, 0, 344, "busy", 303, 304],
+    }, null, null, 1, 0, 345, "busy", 303, 304],
     set$busy: [function(receiver, value) {
       receiver._curly_block_element$__$busy = this.notifyPropertyChange$3(receiver, C.Symbol_busy, receiver._curly_block_element$__$busy, value);
-    }, null, null, 3, 0, 345, 30, [], "busy", 303],
+    }, null, null, 3, 0, 346, 30, [], "busy", 303],
     get$callback: [function(receiver) {
       return receiver._curly_block_element$__$callback;
     }, null, null, 1, 0, 125, "callback", 303, 326],
@@ -5009,7 +5012,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         t1 = receiver._curly_block_element$__$expanded;
         receiver._curly_block_element$__$expanded = this.notifyPropertyChange$3(receiver, C.Symbol_expanded, t1, t1 !== true);
       }
-    }, "call$3", "get$toggleExpand", 6, 0, 348, 116, [], 196, [], 285, [], "toggleExpand"],
+    }, "call$3", "get$toggleExpand", 6, 0, 349, 116, [], 196, [], 285, [], "toggleExpand"],
     "@": function() {
       return [C.CustomTag_wwi];
     },
@@ -5031,7 +5034,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new CurlyBlockElement$created"]}
   },
-  "+CurlyBlockElement": [349],
+  "+CurlyBlockElement": [350],
   PolymerElement_ChangeNotifier: {
     "^": "PolymerElement+ChangeNotifier;",
     $isObservable: true
@@ -6444,10 +6447,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isMirror: true
   },
   JsIsolateMirror_rootLibrary_closure: {
-    "^": "Closure:351;",
+    "^": "Closure:352;",
     call$1: [function(library) {
       return library.get$_isRoot();
-    }, "call$1", null, 2, 0, null, 350, [], "call"],
+    }, "call$1", null, 2, 0, null, 351, [], "call"],
     $isFunction: true
   },
   JsDeclarationMirror: {
@@ -6726,14 +6729,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isMirror: true
   },
   JsLibraryMirror___members_addToResult: {
-    "^": "Closure:352;result_0",
+    "^": "Closure:353;result_0",
     call$2: [function(key, value) {
       this.result_0.$indexSet(0, key, value);
     }, "call$2", null, 4, 0, null, 48, [], 30, [], "call"],
     $isFunction: true
   },
   JsLibraryMirror_declarations_addToResult: {
-    "^": "Closure:352;result_0",
+    "^": "Closure:353;result_0",
     call$2: [function(key, value) {
       this.result_0.$indexSet(0, key, value);
     }, "call$2", null, 4, 0, null, 48, [], 30, [], "call"],
@@ -6944,7 +6947,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isMirror: true
   },
   JsInstanceMirror_invoke_closure: {
-    "^": "Closure:353;defaultArguments_0",
+    "^": "Closure:354;defaultArguments_0",
     call$2: [function(symbol, value) {
       var parameter, t1;
       parameter = symbol.get$_name(symbol);
@@ -7139,7 +7142,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         typeVariable = init.metadata[parsedIndex];
         t1.push(new H.JsTypeVariableMirror(P.reflectClass(typeVariable.get$owner()), typeVariable, parsedIndex, null, H.s(J.get$name$x(typeVariable))));
       }
-    }, "call$1", null, 2, 0, null, 354, [], "call"],
+    }, "call$1", null, 2, 0, null, 355, [], "call"],
     $isFunction: true
   },
   JsTypeBoundClassMirror_typeArguments_addTypeArgument_closure: {
@@ -7161,7 +7164,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     call$1: [function(tv) {
       this.result_0.$indexSet(0, tv.get$simpleName(), tv);
       return tv;
-    }, "call$1", null, 2, 0, null, 355, [], "call"],
+    }, "call$1", null, 2, 0, null, 356, [], "call"],
     $isFunction: true
   },
   JsClassMirror: {
@@ -7462,7 +7465,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isMirror: true
   },
   JsClassMirror_declarations_addToResult: {
-    "^": "Closure:352;result_0",
+    "^": "Closure:353;result_0",
     call$2: [function(key, value) {
       this.result_0.$indexSet(0, key, value);
     }, "call$2", null, 4, 0, null, 48, [], 30, [], "call"],
@@ -7473,11 +7476,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     call$1: [function(tv) {
       this.result_1.$indexSet(0, tv.get$simpleName(), tv);
       return tv;
-    }, "call$1", null, 2, 0, null, 355, [], "call"],
+    }, "call$1", null, 2, 0, null, 356, [], "call"],
     $isFunction: true
   },
   JsClassMirror__getSuperinterfacesWithOwner_lookupType: {
-    "^": "Closure:356;owner_0",
+    "^": "Closure:357;owner_0",
     call$1: [function(i) {
       return H.typeMirrorFromRuntimeTypeRepresentation(this.owner_0, init.metadata[i]);
     }, "call$1", null, 2, 0, null, 321, [], "call"],
@@ -7751,7 +7754,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isMirror: true
   },
   JsParameterMirror_metadata_closure: {
-    "^": "Closure:357;",
+    "^": "Closure:358;",
     call$1: [function(i) {
       return H.reflect(init.metadata[i]);
     }, "call$1", null, 2, 0, null, 321, [], "call"],
@@ -7937,7 +7940,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isDeclarationMirror: true
   },
   typeMirrorFromRuntimeTypeRepresentation_getTypeArgument: {
-    "^": "Closure:358;box_0",
+    "^": "Closure:359;box_0",
     call$1: [function(index) {
       var typeVariable, t1, variableIndex;
       typeVariable = init.metadata[index];
@@ -7967,14 +7970,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   extractMetadata_closure: {
-    "^": "Closure:357;",
+    "^": "Closure:358;",
     call$1: [function(i) {
       return init.metadata[i];
     }, "call$1", null, 2, 0, null, 321, [], "call"],
     $isFunction: true
   },
   extractMetadata_closure0: {
-    "^": "Closure:357;",
+    "^": "Closure:358;",
     call$1: [function(i) {
       return init.metadata[i];
     }, "call$1", null, 2, 0, null, 321, [], "call"],
@@ -8064,10 +8067,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     return t1;
   }, "call$1", "extractKeys$closure", 2, 0, null, 156, []],
   computeReflectiveNames_closure: {
-    "^": "Closure:360;result_0",
+    "^": "Closure:361;result_0",
     call$2: [function(mangledName, reflectiveName) {
       this.result_0.$indexSet(0, reflectiveName, mangledName);
-    }, "call$2", null, 4, 0, null, 148, [], 359, [], "call"],
+    }, "call$2", null, 4, 0, null, 148, [], 360, [], "call"],
     $isFunction: true
   }
 }],
@@ -8378,7 +8381,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       this._sendError$2(error, stackTrace);
     }, function(error) {
       return this.addError$2(error, null);
-    }, "addError$1", "call$2", "call$1", "get$addError", 2, 2, 361, 84, 168, [], 169, []],
+    }, "addError$1", "call$2", "call$1", "get$addError", 2, 2, 362, 84, 168, [], 169, []],
     close$0: function(_) {
       var t1, doneFuture;
       t1 = this._state;
@@ -8561,7 +8564,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1._asyncComplete$1(value);
     }, function($receiver) {
       return this.complete$1($receiver, null);
-    }, "complete$0", "call$1", "call$0", "get$complete", 0, 2, 362, 84, 30, []],
+    }, "complete$0", "call$1", "call$0", "get$complete", 0, 2, 363, 84, 30, []],
     completeError$2: [function(error, stackTrace) {
       var t1;
       if (error == null)
@@ -8572,7 +8575,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1._asyncCompleteError$2(error, stackTrace);
     }, function(error) {
       return this.completeError$2(error, null);
-    }, "completeError$1", "call$2", "call$1", "get$completeError", 2, 2, 361, 84, 168, [], 169, []]
+    }, "completeError$1", "call$2", "call$1", "get$completeError", 2, 2, 362, 84, 168, [], 169, []]
   },
   _Future: {
     "^": "Object;_state,_zone<,_resultOrListeners,_nextListener@,_onValueCallback,_errorTestCallback,_onErrorCallback,_whenCompleteActionCallback",
@@ -8858,7 +8861,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   _Future__chainForeignFuture_closure0: {
-    "^": "Closure:363;target_1",
+    "^": "Closure:364;target_1",
     call$2: [function(error, stackTrace) {
       this.target_1._completeError$2(error, stackTrace);
     }, function(error) {
@@ -8888,7 +8891,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   _Future__propagateToListeners_handleValueCallback: {
-    "^": "Closure:344;box_1,listener_3,sourceValue_4,zone_5",
+    "^": "Closure:345;box_1,listener_3,sourceValue_4,zone_5",
     call$0: [function() {
       var e, s, exception, t1;
       try {
@@ -9003,11 +9006,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;box_2,listener_11",
     call$1: [function(ignored) {
       P._Future__propagateToListeners(this.box_2.source_4, this.listener_11);
-    }, "call$1", null, 2, 0, null, 364, [], "call"],
+    }, "call$1", null, 2, 0, null, 365, [], "call"],
     $isFunction: true
   },
   _Future__propagateToListeners_handleWhenCompleteCallback_closure0: {
-    "^": "Closure:363;box_0,listener_12",
+    "^": "Closure:364;box_0,listener_12",
     call$2: [function(error, stackTrace) {
       var t1, completeResult;
       t1 = this.box_0;
@@ -9036,7 +9039,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       return H.computeSignature(function(T) {
         return {func: "Stream__dynamic__T", ret: P.Stream, args: [{func: "dynamic__T", args: [T]}]};
       }, this.$receiver, "Stream");
-    }, 365, []],
+    }, 366, []],
     contains$1: function(_, needle) {
       var t1, future;
       t1 = {};
@@ -9147,11 +9150,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Stream_contains__closure0: {
-    "^": "Closure:345;box_0,future_6",
+    "^": "Closure:346;box_0,future_6",
     call$1: [function(isMatch) {
       if (isMatch === true)
         P._cancelAndValue(this.box_0.subscription_0, this.future_6, true);
-    }, "call$1", null, 2, 0, null, 366, [], "call"],
+    }, "call$1", null, 2, 0, null, 367, [], "call"],
     $isFunction: true
   },
   Stream_contains_closure0: {
@@ -9216,11 +9219,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Stream_any__closure0: {
-    "^": "Closure:345;box_0,future_6",
+    "^": "Closure:346;box_0,future_6",
     call$1: [function(isMatch) {
       if (isMatch === true)
         P._cancelAndValue(this.box_0.subscription_0, this.future_6, true);
-    }, "call$1", null, 2, 0, null, 366, [], "call"],
+    }, "call$1", null, 2, 0, null, 367, [], "call"],
     $isFunction: true
   },
   Stream_any_closure0: {
@@ -9758,7 +9761,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   _cancelAndErrorClosure_closure: {
-    "^": "Closure:367;subscription_0,future_1",
+    "^": "Closure:368;subscription_0,future_1",
     call$2: [function(error, stackTrace) {
       return P._cancelAndError(this.subscription_0, this.future_1, error, stackTrace);
     }, "call$2", null, 4, 0, null, 168, [], 169, [], "call"],
@@ -9841,7 +9844,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, 245, []],
     _handleError$2: [function(error, stackTrace) {
       this._addError$2(error, stackTrace);
-    }, "call$2", "get$_handleError", 4, 0, 368, 168, [], 169, []],
+    }, "call$2", "get$_handleError", 4, 0, 369, 168, [], 169, []],
     _handleDone$0: [function() {
       this._close$0();
     }, "call$0", "get$_handleDone", 0, 0, 124],
@@ -10796,14 +10799,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;this_0",
     call$1: [function(each) {
       return this.this_0.$index(0, each);
-    }, "call$1", null, 2, 0, null, 369, [], "call"],
+    }, "call$1", null, 2, 0, null, 370, [], "call"],
     $isFunction: true
   },
   _HashMap_containsValue_closure: {
     "^": "Closure:114;this_0,value_1",
     call$1: [function(each) {
       return J.$eq(this.this_0.$index(0, each), this.value_1);
-    }, "call$1", null, 2, 0, null, 369, [], "call"],
+    }, "call$1", null, 2, 0, null, 370, [], "call"],
     $isFunction: true
   },
   _HashMap_addAll_closure: {
@@ -11171,14 +11174,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;this_0",
     call$1: [function(each) {
       return this.this_0.$index(0, each);
-    }, "call$1", null, 2, 0, null, 369, [], "call"],
+    }, "call$1", null, 2, 0, null, 370, [], "call"],
     $isFunction: true
   },
   _LinkedHashMap_containsValue_closure: {
     "^": "Closure:114;this_0,value_1",
     call$1: [function(each) {
       return J.$eq(this.this_0.$index(0, each), this.value_1);
-    }, "call$1", null, 2, 0, null, 369, [], "call"],
+    }, "call$1", null, 2, 0, null, 370, [], "call"],
     $isFunction: true
   },
   _LinkedHashMap_addAll_closure: {
@@ -12257,7 +12260,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1.write$1(k);
       t1.write$1(": ");
       t1.write$1(v);
-    }, "call$2", null, 4, 0, null, 370, [], 120, [], "call"],
+    }, "call$2", null, 4, 0, null, 371, [], 120, [], "call"],
     $isFunction: true
   },
   ListQueue: {
@@ -12788,7 +12791,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }
   },
   SplayTreeMap_containsValue_visit: {
-    "^": "Closure:371;this_0,value_1,initialSplayCount_2",
+    "^": "Closure:372;this_0,value_1,initialSplayCount_2",
     call$1: [function(node) {
       var t1, t2, t3, t4;
       for (t1 = this.initialSplayCount_2, t2 = this.this_0, t3 = this.value_1; node != null;) {
@@ -13502,7 +13505,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   NoSuchMethodError_toString_closure: {
-    "^": "Closure:353;box_0",
+    "^": "Closure:354;box_0",
     call$2: [function(key, value) {
       var t1 = this.box_0;
       if (t1.i_1 > 0)
@@ -13660,21 +13663,21 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       }, "call$1", "DateTime__twoDigits$closure", 2, 0, null, 207, []]}
   },
   DateTime_parse_parseIntOrZero: {
-    "^": "Closure:373;",
-    call$1: [function(matched) {
-      if (matched == null)
-        return 0;
-      return H.Primitives_parseInt(matched, null, null);
-    }, "call$1", null, 2, 0, null, 372, [], "call"],
-    $isFunction: true
-  },
-  DateTime_parse_parseDoubleOrZero: {
     "^": "Closure:374;",
     call$1: [function(matched) {
       if (matched == null)
         return 0;
+      return H.Primitives_parseInt(matched, null, null);
+    }, "call$1", null, 2, 0, null, 373, [], "call"],
+    $isFunction: true
+  },
+  DateTime_parse_parseDoubleOrZero: {
+    "^": "Closure:375;",
+    call$1: [function(matched) {
+      if (matched == null)
+        return 0;
       return H.Primitives_parseDouble(matched, null);
-    }, "call$1", null, 2, 0, null, 372, [], "call"],
+    }, "call$1", null, 2, 0, null, 373, [], "call"],
     $isFunction: true
   },
   Duration: {
@@ -14700,7 +14703,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       }, "call$4$encoding$spaceToPlus", "Uri__uriEncode$closure", 4, 5, null, 218, 219, 220, [], 221, [], 222, [], 223, []]}
   },
   Uri_parse_isRegName: {
-    "^": "Closure:376;",
+    "^": "Closure:377;",
     call$1: [function(ch) {
       var t1;
       if (ch < 128) {
@@ -14711,11 +14714,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       } else
         t1 = false;
       return t1;
-    }, "call$1", null, 2, 0, null, 375, [], "call"],
+    }, "call$1", null, 2, 0, null, 376, [], "call"],
     $isFunction: true
   },
   Uri_parse_ipV6Address: {
-    "^": "Closure:377;uri_0",
+    "^": "Closure:378;uri_0",
     call$1: [function(index) {
       index = J.indexOf$2$asx(this.uri_0, "]", index);
       if (index === -1)
@@ -14725,7 +14728,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Uri__makeScheme_isSchemeLowerCharacter: {
-    "^": "Closure:376;",
+    "^": "Closure:377;",
     call$1: [function(ch) {
       var t1;
       if (ch < 128) {
@@ -14736,7 +14739,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       } else
         t1 = false;
       return t1;
-    }, "call$1", null, 2, 0, null, 375, [], "call"],
+    }, "call$1", null, 2, 0, null, 376, [], "call"],
     $isFunction: true
   },
   Uri__makePath_closure: {
@@ -14762,7 +14765,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Uri__normalize_isNormalizedHexDigit: {
-    "^": "Closure:376;",
+    "^": "Closure:377;",
     call$1: [function(digit) {
       var t1;
       if (!(48 <= digit && digit <= 57))
@@ -14770,18 +14773,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       else
         t1 = true;
       return t1;
-    }, "call$1", null, 2, 0, null, 378, [], "call"],
+    }, "call$1", null, 2, 0, null, 379, [], "call"],
     $isFunction: true
   },
   Uri__normalize_isLowerCaseHexDigit: {
-    "^": "Closure:376;",
+    "^": "Closure:377;",
     call$1: [function(digit) {
       return 97 <= digit && digit <= 102;
-    }, "call$1", null, 2, 0, null, 378, [], "call"],
+    }, "call$1", null, 2, 0, null, 379, [], "call"],
     $isFunction: true
   },
   Uri__normalize_isUnreserved: {
-    "^": "Closure:376;",
+    "^": "Closure:377;",
     call$1: [function(ch) {
       var t1;
       if (ch < 128) {
@@ -14792,11 +14795,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       } else
         t1 = false;
       return t1;
-    }, "call$1", null, 2, 0, null, 375, [], "call"],
+    }, "call$1", null, 2, 0, null, 376, [], "call"],
     $isFunction: true
   },
   Uri__normalize_normalizeHexDigit: {
-    "^": "Closure:377;component_1,isNormalizedHexDigit_2,isLowerCaseHexDigit_3",
+    "^": "Closure:378;component_1,isNormalizedHexDigit_2,isLowerCaseHexDigit_3",
     call$1: [function(index) {
       var t1, codeUnit;
       t1 = this.component_1;
@@ -14811,7 +14814,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Uri__normalize_decodeHexDigitPair: {
-    "^": "Closure:377;component_4",
+    "^": "Closure:378;component_4",
     call$1: [function(index) {
       var t1, $byte, i, codeUnit;
       for (t1 = this.component_4, $byte = 0, i = 0; i < 2; ++i) {
@@ -14847,13 +14850,13 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Uri_hashCode_combine: {
-    "^": "Closure:380;",
+    "^": "Closure:381;",
     call$2: [function(part, current) {
       var t1 = J.get$hashCode$(part);
       if (typeof t1 !== "number")
         return H.iae(t1);
       return current * 31 + t1 & 1073741823;
-    }, "call$2", null, 4, 0, null, 379, [], 250, [], "call"],
+    }, "call$2", null, 4, 0, null, 380, [], 250, [], "call"],
     $isFunction: true
   },
   Uri_parseIPv4Address_error: {
@@ -14872,7 +14875,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       if (t1.$lt($byte, 0) || t1.$gt($byte, 255))
         this.error_0.call$1("each part must be in the range of `0..255`");
       return $byte;
-    }, "call$1", null, 2, 0, null, 381, [], "call"],
+    }, "call$1", null, 2, 0, null, 382, [], "call"],
     $isFunction: true
   },
   Uri_parseIPv6Address_error: {
@@ -14883,7 +14886,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   Uri_parseIPv6Address_parseHex: {
-    "^": "Closure:382;host_0,error_1",
+    "^": "Closure:383;host_0,error_1",
     call$2: [function(start, end) {
       var value, t1;
       if (end - start > 4)
@@ -14913,7 +14916,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       var t1 = J.getInterceptor$n($byte);
       buffer.write$1(P.String_String$fromCharCode(C.JSString_methods.codeUnitAt$1("0123456789ABCDEF", t1.$shr($byte, 4))));
       buffer.write$1(P.String_String$fromCharCode(C.JSString_methods.codeUnitAt$1("0123456789ABCDEF", t1.$and($byte, 15))));
-    }, "call$2", null, 4, 0, null, 383, [], 384, [], "call"],
+    }, "call$2", null, 4, 0, null, 384, [], 385, [], "call"],
     $isFunction: true
   }
 }],
@@ -16347,14 +16350,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;",
     call$1: [function(xhr) {
       return J.get$responseText$x(xhr);
-    }, "call$1", null, 2, 0, null, 385, [], "call"],
+    }, "call$1", null, 2, 0, null, 386, [], "call"],
     $isFunction: true
   },
   HttpRequest_request_closure0: {
     "^": "Closure:296;xhr_0",
     call$2: [function(header, value) {
       this.xhr_0.setRequestHeader(header, value);
-    }, "call$2", null, 4, 0, null, 386, [], 30, [], "call"],
+    }, "call$2", null, 4, 0, null, 387, [], 30, [], "call"],
     $isFunction: true
   },
   HttpRequest_request_closure: {
@@ -16652,7 +16655,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:296;this_0",
     call$2: [function(k, v) {
       this.this_0.$indexSet(0, k, v);
-    }, "call$2", null, 4, 0, null, 370, [], 120, [], "call"],
+    }, "call$2", null, 4, 0, null, 371, [], 120, [], "call"],
     $isFunction: true
   },
   _ElementAttributeMap: {
@@ -16756,7 +16759,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:296;f_0",
     call$2: [function(prevValue, element) {
       return this.f_0.call$1(element) === true || prevValue === true;
-    }, "call$2", null, 4, 0, null, 387, [], 141, [], "call"],
+    }, "call$2", null, 4, 0, null, 388, [], 141, [], "call"],
     $isFunction: true
   },
   _ElementCssClassSet: {
@@ -18689,7 +18692,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new ErrorViewElement$created"]}
   },
-  "+ErrorViewElement": [388],
+  "+ErrorViewElement": [389],
   ObservatoryElement_ChangeNotifier4: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -18698,7 +18701,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
 ["eval_box_element", "package:observatory/src/elements/eval_box.dart", , L, {
   "^": "",
   EvalBoxElement: {
-    "^": ["ObservatoryElement_ChangeNotifier5;_eval_box_element$__$text%-343,_eval_box_element$__$lineMode%-343,_eval_box_element$__$callback%-389,_eval_box_element$__$results%-390,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier5;_eval_box_element$__$text%-344,_eval_box_element$__$lineMode%-344,_eval_box_element$__$callback%-390,_eval_box_element$__$results%-391,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$text: [function(receiver) {
@@ -18715,7 +18718,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 32, 30, [], "lineMode", 303],
     get$callback: [function(receiver) {
       return receiver._eval_box_element$__$callback;
-    }, null, null, 1, 0, 391, "callback", 303, 326],
+    }, null, null, 1, 0, 392, "callback", 303, 326],
     callback$0: function($receiver) {
       return this.get$callback($receiver).call$0();
     },
@@ -18724,13 +18727,13 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     },
     set$callback: [function(receiver, value) {
       receiver._eval_box_element$__$callback = this.notifyPropertyChange$3(receiver, C.Symbol_callback, receiver._eval_box_element$__$callback, value);
-    }, null, null, 3, 0, 392, 30, [], "callback", 303],
+    }, null, null, 3, 0, 393, 30, [], "callback", 303],
     get$results: [function(receiver) {
       return receiver._eval_box_element$__$results;
-    }, null, null, 1, 0, 393, "results", 303, 304],
+    }, null, null, 1, 0, 394, "results", 303, 304],
     set$results: [function(receiver, value) {
       receiver._eval_box_element$__$results = this.notifyPropertyChange$3(receiver, C.Symbol_results, receiver._eval_box_element$__$results, value);
-    }, null, null, 3, 0, 394, 30, [], "results", 303],
+    }, null, null, 3, 0, 395, 30, [], "results", 303],
     updateLineMode$3: [function(receiver, e, detail, target) {
       var t1 = H.interceptedTypeCast(J.get$target$x(e), "$isInputElement").value;
       t1 = this.notifyPropertyChange$3(receiver, C.Symbol_lineMode, receiver._eval_box_element$__$lineMode, t1);
@@ -18739,7 +18742,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         t1 = J.replaceAll$2$s(receiver._eval_box_element$__$text, "\n", " ");
         receiver._eval_box_element$__$text = this.notifyPropertyChange$3(receiver, C.Symbol_text, receiver._eval_box_element$__$text, t1);
       }
-    }, "call$3", "get$updateLineMode", 6, 0, 339, 21, [], 340, [], 81, [], "updateLineMode"],
+    }, "call$3", "get$updateLineMode", 6, 0, 340, 21, [], 341, [], 81, [], "updateLineMode"],
     eval$3: [function(receiver, e, detail, target) {
       var expr, t1, map;
       J.preventDefault$0$x(e);
@@ -18752,11 +18755,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         J.insert$2$ax(receiver._eval_box_element$__$results, 0, map);
         this.callback$1(receiver, expr).then$1(new L.EvalBoxElement_eval_closure(map));
       }
-    }, "call$3", "get$eval", 6, 0, 339, 21, [], 340, [], 81, [], "eval"],
+    }, "call$3", "get$eval", 6, 0, 340, 21, [], 341, [], 81, [], "eval"],
     selectExpr$1: [function(receiver, e) {
       var t1 = J.getAttribute$1$x(J.get$target$x(e), "expr");
       receiver._eval_box_element$__$text = this.notifyPropertyChange$3(receiver, C.Symbol_text, receiver._eval_box_element$__$text, t1);
-    }, "call$1", "get$selectExpr", 2, 0, 395, 21, [], "selectExpr"],
+    }, "call$1", "get$selectExpr", 2, 0, 396, 21, [], "selectExpr"],
     "@": function() {
       return [C.CustomTag_if9];
     },
@@ -18778,7 +18781,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new EvalBoxElement$created"]}
   },
-  "+EvalBoxElement": [396],
+  "+EvalBoxElement": [397],
   ObservatoryElement_ChangeNotifier5: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -18790,20 +18793,20 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 114, 56, [], "call"],
     $isFunction: true
   },
-  "+ EvalBoxElement_eval_closure": [342]
+  "+ EvalBoxElement_eval_closure": [343]
 }],
 ["eval_link_element", "package:observatory/src/elements/eval_link.dart", , R, {
   "^": "",
   EvalLinkElement: {
-    "^": ["PolymerElement_ChangeNotifier0;_eval_link_element$__$busy%-331,_eval_link_element$__$callback%-84,_eval_link_element$__$expr%-343,_eval_link_element$__$result%-330,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["PolymerElement_ChangeNotifier0;_eval_link_element$__$busy%-331,_eval_link_element$__$callback%-84,_eval_link_element$__$expr%-344,_eval_link_element$__$result%-330,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$busy: [function(receiver) {
       return receiver._eval_link_element$__$busy;
-    }, null, null, 1, 0, 344, "busy", 303, 304],
+    }, null, null, 1, 0, 345, "busy", 303, 304],
     set$busy: [function(receiver, value) {
       receiver._eval_link_element$__$busy = this.notifyPropertyChange$3(receiver, C.Symbol_busy, receiver._eval_link_element$__$busy, value);
-    }, null, null, 3, 0, 345, 30, [], "busy", 303],
+    }, null, null, 3, 0, 346, 30, [], "busy", 303],
     get$callback: [function(receiver) {
       return receiver._eval_link_element$__$callback;
     }, null, null, 1, 0, 125, "callback", 303, 326],
@@ -18837,7 +18840,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         receiver._eval_link_element$__$result = this.notifyPropertyChange$3(receiver, C.Symbol_result, receiver._eval_link_element$__$result, null);
         this.callback$1(receiver, receiver._eval_link_element$__$expr).then$1(new R.EvalLinkElement_evalNow_closure(receiver)).whenComplete$1(new R.EvalLinkElement_evalNow_closure0(receiver));
       }
-    }, "call$3", "get$evalNow", 6, 0, 348, 116, [], 196, [], 285, [], "evalNow"],
+    }, "call$3", "get$evalNow", 6, 0, 349, 116, [], 196, [], 285, [], "evalNow"],
     "@": function() {
       return [C.CustomTag_MUx];
     },
@@ -18860,7 +18863,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new EvalLinkElement$created"]}
   },
-  "+EvalLinkElement": [397],
+  "+EvalLinkElement": [398],
   PolymerElement_ChangeNotifier0: {
     "^": "PolymerElement+ChangeNotifier;",
     $isObservable: true
@@ -18875,7 +18878,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 307, 100, [], "call"],
     $isFunction: true
   },
-  "+ EvalLinkElement_evalNow_closure": [342],
+  "+ EvalLinkElement_evalNow_closure": [343],
   EvalLinkElement_evalNow_closure0: {
     "^": "Closure:125;this_1-84",
     call$0: [function() {
@@ -18886,7 +18889,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$0", null, 0, 0, 125, "call"],
     $isFunction: true
   },
-  "+ EvalLinkElement_evalNow_closure0": [342]
+  "+ EvalLinkElement_evalNow_closure0": [343]
 }],
 ["field_ref_element", "package:observatory/src/elements/field_ref.dart", , D, {
   "^": "",
@@ -18948,7 +18951,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new FieldViewElement$created"]}
   },
-  "+FieldViewElement": [398],
+  "+FieldViewElement": [399],
   ObservatoryElement_ChangeNotifier6: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -18962,10 +18965,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$qualified: [function(receiver) {
       return receiver._function_ref_element$__$qualified;
-    }, null, null, 1, 0, 344, "qualified", 303, 326],
+    }, null, null, 1, 0, 345, "qualified", 303, 326],
     set$qualified: [function(receiver, value) {
       receiver._function_ref_element$__$qualified = this.notifyPropertyChange$3(receiver, C.Symbol_qualified, receiver._function_ref_element$__$qualified, value);
-    }, null, null, 3, 0, 345, 30, [], "qualified", 303],
+    }, null, null, 3, 0, 346, 30, [], "qualified", 303],
     refChanged$1: [function(receiver, oldValue) {
       var refMap, t1, t2;
       Q.ServiceRefElement.prototype.refChanged$1.call(this, receiver, oldValue);
@@ -18990,22 +18993,22 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", "get$refChanged", 2, 0, 166, 239, [], "refChanged"],
     get$hasParent: [function(receiver) {
       return receiver._function_ref_element$__$hasParent;
-    }, null, null, 1, 0, 344, "hasParent", 303, 304],
+    }, null, null, 1, 0, 345, "hasParent", 303, 304],
     set$hasParent: [function(receiver, value) {
       receiver._function_ref_element$__$hasParent = this.notifyPropertyChange$3(receiver, C.Symbol_hasParent, receiver._function_ref_element$__$hasParent, value);
-    }, null, null, 3, 0, 345, 30, [], "hasParent", 303],
+    }, null, null, 3, 0, 346, 30, [], "hasParent", 303],
     get$hasClass: [function(receiver) {
       return receiver._function_ref_element$__$hasClass;
-    }, null, null, 1, 0, 344, "hasClass", 303, 304],
+    }, null, null, 1, 0, 345, "hasClass", 303, 304],
     set$hasClass: [function(receiver, value) {
       receiver._function_ref_element$__$hasClass = this.notifyPropertyChange$3(receiver, C.Symbol_hasClass, receiver._function_ref_element$__$hasClass, value);
-    }, null, null, 3, 0, 345, 30, [], "hasClass", 303],
+    }, null, null, 3, 0, 346, 30, [], "hasClass", 303],
     get$isDart: [function(receiver) {
       return receiver._function_ref_element$__$isDart;
-    }, null, null, 1, 0, 344, "isDart", 303, 304],
+    }, null, null, 1, 0, 345, "isDart", 303, 304],
     set$isDart: [function(receiver, value) {
       receiver._function_ref_element$__$isDart = this.notifyPropertyChange$3(receiver, C.Symbol_isDart, receiver._function_ref_element$__$isDart, value);
-    }, null, null, 3, 0, 345, 30, [], "isDart", 303],
+    }, null, null, 3, 0, 346, 30, [], "isDart", 303],
     "@": function() {
       return [C.CustomTag_qGx];
     },
@@ -19029,7 +19032,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new FunctionRefElement$created"]}
   },
-  "+FunctionRefElement": [399],
+  "+FunctionRefElement": [400],
   ServiceRefElement_ChangeNotifier: {
     "^": "ServiceRefElement+ChangeNotifier;",
     $isObservable: true
@@ -19038,7 +19041,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
 ["function_view_element", "package:observatory/src/elements/function_view.dart", , N, {
   "^": "",
   FunctionViewElement: {
-    "^": ["ObservatoryElement_ChangeNotifier7;_function_view_element$__$function%-323,_function_view_element$__$qualifiedName%-343,_function_view_element$__$kind%-343,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier7;_function_view_element$__$function%-323,_function_view_element$__$qualifiedName%-344,_function_view_element$__$kind%-344,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$$function: [function(receiver) {
@@ -19074,7 +19077,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       if (cls != null)
         return H.S(J.$index$asx(cls, "user_name")) + "." + H.S(J.$index$asx($function, "user_name"));
       return H.S(J.$index$asx($function, "user_name"));
-    }, "call$1", "get$_getQualifiedName", 2, 0, 400, 17, [], "_getQualifiedName"],
+    }, "call$1", "get$_getQualifiedName", 2, 0, 401, 17, [], "_getQualifiedName"],
     functionChanged$1: [function(receiver, oldValue) {
       var t1, t2;
       this.notifyPropertyChange$3(receiver, C.Symbol_qualifiedName, 0, 1);
@@ -19146,7 +19149,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new FunctionViewElement$created"]}
   },
-  "+FunctionViewElement": [401],
+  "+FunctionViewElement": [402],
   ObservatoryElement_ChangeNotifier7: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -19158,7 +19161,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Object;_data,_dataIndex",
     next$0: [function() {
       return new O.PixelReference(this._data, J.$add$ns(this._dataIndex, 4));
-    }, "call$0", "get$next", 0, 0, 402],
+    }, "call$0", "get$next", 0, 0, 403],
     get$index: function(_) {
       return J.$tdiv$n(this._dataIndex, 4);
     },
@@ -19171,7 +19174,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Object;address<,size"
   },
   HeapMapElement: {
-    "^": ["ObservatoryElement_ChangeNotifier8;_fragmentationCanvas%-84,_fragmentationData%-84,_pageHeight%-84,_classIdToColor%-84,_colorToClassId%-84,_classIdToName%-84,_heap_map_element$__$status%-343,_heap_map_element$__$fragmentation%-323,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier8;_fragmentationCanvas%-84,_fragmentationData%-84,_pageHeight%-84,_classIdToColor%-84,_colorToClassId%-84,_classIdToName%-84,_heap_map_element$__$status%-344,_heap_map_element$__$fragmentation%-323,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$status: [function(receiver) {
@@ -19203,7 +19206,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         packed = packed * 256 + component;
       }
       return packed;
-    }, "call$1", "get$_packColor", 2, 0, 403, 404, [], "_packColor"],
+    }, "call$1", "get$_packColor", 2, 0, 404, 405, [], "_packColor"],
     _addClass$3: [function(receiver, classId, $name, color) {
       var t1, t2;
       t1 = receiver._classIdToName;
@@ -19213,7 +19216,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       J.$indexSet$ax(t1, classId, t2[0]);
       J.$indexSet$ax(receiver._classIdToColor, classId, color);
       J.$indexSet$ax(receiver._colorToClassId, this._packColor$1(receiver, color), classId);
-    }, "call$3", "get$_addClass", 6, 0, 405, 406, [], 12, [], 404, [], "_addClass"],
+    }, "call$3", "get$_addClass", 6, 0, 406, 407, [], 12, [], 405, [], "_addClass"],
     _updateClassList$2: [function(receiver, classList, freeClassId) {
       var t1, member, t2, classId, rng, color, t3;
       for (t1 = J.get$iterator$ax(J.$index$asx(classList, "members")); t1.moveNext$0();) {
@@ -19237,18 +19240,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       }
       this._addClass$3(receiver, freeClassId, "Free", $.get$HeapMapElement__freeColor());
       this._addClass$3(receiver, 0, "", $.get$HeapMapElement__pageSeparationColor());
-    }, "call$2", "get$_updateClassList", 4, 0, 407, 408, [], 409, [], "_updateClassList"],
+    }, "call$2", "get$_updateClassList", 4, 0, 408, 409, [], 410, [], "_updateClassList"],
     _classIdToRGBA$1: [function(receiver, classId) {
       var rng = classId == null ? C.C__JSRandom : P._Random$(classId);
       return [rng.nextInt$1(128), rng.nextInt$1(128), rng.nextInt$1(128), 255];
-    }, "call$1", "get$_classIdToRGBA", 2, 0, 410, 406, [], "_classIdToRGBA"],
+    }, "call$1", "get$_classIdToRGBA", 2, 0, 411, 407, [], "_classIdToRGBA"],
     _classNameAt$1: [function(receiver, point) {
       var t1, t2, color;
       t1 = O.PixelReference$(receiver._fragmentationData, point);
       t2 = t1._dataIndex;
       color = J.getRange$2$ax(J.get$data$x(t1._data), t2, J.$add$ns(t2, 4));
       return J.$index$asx(receiver._classIdToName, J.$index$asx(receiver._colorToClassId, this._packColor$1(receiver, color)));
-    }, "call$1", "get$_classNameAt", 2, 0, 411, 412, [], "_classNameAt"],
+    }, "call$1", "get$_classNameAt", 2, 0, 412, 413, [], "_classNameAt"],
     _objectAt$1: [function(receiver, point) {
       var pagePixels, index, t1, pageIndex, pageOffset, pages, page, objects, t2, offset, size, i, t3;
       pagePixels = J.$mul$ns(receiver._pageHeight, J.get$width$x(receiver._fragmentationData));
@@ -19288,7 +19291,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       if (typeof t2 !== "number")
         return H.iae(t2);
       return new O.ObjectInfo(J.$add$ns(t1, pageOffset * t2), J.$mul$ns(size, J.$index$asx(receiver._heap_map_element$__$fragmentation, "unit_size_bytes")));
-    }, "call$1", "get$_objectAt", 2, 0, 413, 412, [], "_objectAt"],
+    }, "call$1", "get$_objectAt", 2, 0, 414, 413, [], "_objectAt"],
     _handleMouseMove$1: [function(receiver, $event) {
       var t1, info, addressString, t2, color, className;
       t1 = J.getInterceptor$x($event);
@@ -19301,11 +19304,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       className = J.$index$asx(receiver._classIdToName, J.$index$asx(receiver._colorToClassId, this._packColor$1(receiver, color)));
       t1 = J.$eq(className, "") ? "-" : H.S(className) + " " + addressString;
       receiver._heap_map_element$__$status = this.notifyPropertyChange$3(receiver, C.Symbol_status, receiver._heap_map_element$__$status, t1);
-    }, "call$1", "get$_handleMouseMove", 2, 0, 395, 312, [], "_handleMouseMove"],
+    }, "call$1", "get$_handleMouseMove", 2, 0, 396, 312, [], "_handleMouseMove"],
     _handleClick$1: [function(receiver, $event) {
       var address = J.toRadixString$1$n(this._objectAt$1(receiver, J.get$offset$x($event)).address, 16);
       J.set$hash$x(C.Window_methods.get$location(window), "/" + H.S(J.get$link$x(J.get$isolate$x(receiver._heap_map_element$__$fragmentation))) + "/address/" + address);
-    }, "call$1", "get$_handleClick", 2, 0, 395, 312, [], "_handleClick"],
+    }, "call$1", "get$_handleClick", 2, 0, 396, 312, [], "_handleClick"],
     _updateFragmentationData$0: [function(receiver) {
       var t1, pages, width, t2;
       t1 = receiver._heap_map_element$__$fragmentation;
@@ -19380,7 +19383,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t2 = receiver._fragmentationData;
       J.putImageData$7$x(t1, t2, 0, 0, 0, startY, J.get$width$x(t2), endY);
       P.Future_Future(new O.HeapMapElement__renderPages_closure(receiver, startPage), null);
-    }, "call$1", "get$_renderPages", 2, 0, 414, 415, [], "_renderPages"],
+    }, "call$1", "get$_renderPages", 2, 0, 415, 416, [], "_renderPages"],
     refresh$1: [function(receiver, done) {
       var t1 = receiver._heap_map_element$__$fragmentation;
       if (t1 == null)
@@ -19414,7 +19417,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new HeapMapElement$created"]}
   },
-  "+HeapMapElement": [416],
+  "+HeapMapElement": [417],
   ObservatoryElement_ChangeNotifier8: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -19426,7 +19429,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$0", null, 0, 0, 125, "call"],
     $isFunction: true
   },
-  "+ HeapMapElement__renderPages_closure": [342],
+  "+ HeapMapElement__renderPages_closure": [343],
   HeapMapElement_refresh_closure: {
     "^": "Closure:327;this_0-84",
     call$1: [function(response) {
@@ -19434,18 +19437,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1 = this.this_0;
       t2 = J.getInterceptor$x(t1);
       t2.set$_heap_map_element$__$fragmentation(t1, t2.notifyPropertyChange$3(t1, C.Symbol_fragmentation, t2.get$_heap_map_element$__$fragmentation(t1), response));
-    }, "call$1", null, 2, 0, 327, 417, [], "call"],
+    }, "call$1", null, 2, 0, 327, 418, [], "call"],
     $isFunction: true
   },
-  "+ HeapMapElement_refresh_closure": [342],
+  "+ HeapMapElement_refresh_closure": [343],
   HeapMapElement_refresh_closure0: {
     "^": "Closure:296;",
     call$2: [function(e, st) {
       N.Logger_Logger("").info$1(H.S(e) + " " + H.S(st));
-    }, "call$2", null, 4, 0, 296, 21, [], 418, [], "call"],
+    }, "call$2", null, 4, 0, 296, 21, [], 419, [], "call"],
     $isFunction: true
   },
-  "+ HeapMapElement_refresh_closure0": [342],
+  "+ HeapMapElement_refresh_closure0": [343],
   HeapMapElement_fragmentationChanged_closure: {
     "^": "Closure:125;this_0-84",
     call$0: [function() {
@@ -19453,20 +19456,20 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$0", null, 0, 0, 125, "call"],
     $isFunction: true
   },
-  "+ HeapMapElement_fragmentationChanged_closure": [342]
+  "+ HeapMapElement_fragmentationChanged_closure": [343]
 }],
 ["heap_profile_element", "package:observatory/src/elements/heap_profile.dart", , K, {
   "^": "",
   HeapProfileElement: {
-    "^": ["ObservatoryElement_ChangeNotifier9;_newPieDataTable%-84,_newPieChart%-84,_oldPieDataTable%-84,_oldPieChart%-84,_heap_profile_element$__$classTable%-419,_heap_profile_element$__$profile%-323,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier9;_newPieDataTable%-84,_newPieChart%-84,_oldPieDataTable%-84,_oldPieChart%-84,_heap_profile_element$__$classTable%-420,_heap_profile_element$__$profile%-323,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$classTable: [function(receiver) {
       return receiver._heap_profile_element$__$classTable;
-    }, null, null, 1, 0, 420, "classTable", 303, 304],
+    }, null, null, 1, 0, 421, "classTable", 303, 304],
     set$classTable: [function(receiver, value) {
       receiver._heap_profile_element$__$classTable = this.notifyPropertyChange$3(receiver, C.Symbol_classTable, receiver._heap_profile_element$__$classTable, value);
-    }, null, null, 3, 0, 421, 30, [], "classTable", 303],
+    }, null, null, 3, 0, 422, 30, [], "classTable", 303],
     get$profile: [function(receiver) {
       return receiver._heap_profile_element$__$profile;
     }, null, null, 1, 0, 325, "profile", 303, 326],
@@ -19539,7 +19542,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
           J.sort$0$ax(receiver._heap_profile_element$__$classTable);
         }
       }
-    }, "call$3", "get$changeSort", 6, 0, 422, 21, [], 340, [], 81, [], "changeSort", 304],
+    }, "call$3", "get$changeSort", 6, 0, 423, 21, [], 341, [], 81, [], "changeSort", 304],
     _classHasNoAllocations$1: [function(receiver, v) {
       var t1, newSpace, oldSpace;
       t1 = J.getInterceptor$asx(v);
@@ -19552,7 +19555,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         if (!J.$eq(t1.get$current(), 0))
           return false;
       return true;
-    }, "call$1", "get$_classHasNoAllocations", 2, 0, 423, 120, [], "_classHasNoAllocations"],
+    }, "call$1", "get$_classHasNoAllocations", 2, 0, 424, 120, [], "_classHasNoAllocations"],
     _combinedTableColumnValue$2: [function(receiver, v, index) {
       var t1;
       switch (index) {
@@ -19576,7 +19579,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
           return J.$add$ns(J.$add$ns(J.$add$ns(J.$index$asx(t1.$index(v, "new"), 2), J.$index$asx(t1.$index(v, "new"), 4)), J.$index$asx(t1.$index(v, "old"), 2)), J.$index$asx(t1.$index(v, "old"), 4));
       }
       throw H.wrapException(P.FallThroughError$());
-    }, "call$2", "get$_combinedTableColumnValue", 4, 0, 424, 120, [], 15, [], "_combinedTableColumnValue"],
+    }, "call$2", "get$_combinedTableColumnValue", 4, 0, 425, 120, [], 15, [], "_combinedTableColumnValue"],
     refresh$1: [function(receiver, done) {
       var t1 = receiver._heap_profile_element$__$profile;
       if (t1 == null)
@@ -19619,7 +19622,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       heap = J.$index$asx(J.$index$asx(t1, "heaps"), space);
       t1 = J.getInterceptor$asx(heap);
       return C.JSNumber_methods.toStringAsFixed$1(J.$div$n(J.$mul$ns(t1.$index(heap, "time"), 1000), t1.$index(heap, "collections")), 2) + " ms";
-    }, "call$1", "get$formattedAverage", 2, 0, 425, 426, [], "formattedAverage", 304],
+    }, "call$1", "get$formattedAverage", 2, 0, 426, 427, [], "formattedAverage", 304],
     formattedCollections$1: [function(receiver, newSpace) {
       var t1, space;
       t1 = receiver._heap_profile_element$__$profile;
@@ -19627,7 +19630,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return "";
       space = newSpace === true ? "new" : "old";
       return H.S(J.$index$asx(J.$index$asx(J.$index$asx(t1, "heaps"), space), "collections"));
-    }, "call$1", "get$formattedCollections", 2, 0, 425, 426, [], "formattedCollections", 304],
+    }, "call$1", "get$formattedCollections", 2, 0, 426, 427, [], "formattedCollections", 304],
     formattedTotalCollectionTime$1: [function(receiver, newSpace) {
       var t1, space;
       t1 = receiver._heap_profile_element$__$profile;
@@ -19635,7 +19638,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return "";
       space = newSpace === true ? "new" : "old";
       return J.toStringAsFixed$1$n(J.$index$asx(J.$index$asx(J.$index$asx(t1, "heaps"), space), "time"), 2) + " secs";
-    }, "call$1", "get$formattedTotalCollectionTime", 2, 0, 425, 426, [], "formattedTotalCollectionTime", 304],
+    }, "call$1", "get$formattedTotalCollectionTime", 2, 0, 426, 427, [], "formattedTotalCollectionTime", 304],
     HeapProfileElement$created$0: [function(receiver) {
       var t1 = new G.DataTable(P.JsObject_JsObject(J.$index$asx($.GoogleChart__api, "DataTable"), null));
       receiver._newPieDataTable = t1;
@@ -19669,7 +19672,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return receiver;
       }, null, null, 0, 0, 125, "new HeapProfileElement$created"]}
   },
-  "+HeapProfileElement": [427],
+  "+HeapProfileElement": [428],
   ObservatoryElement_ChangeNotifier9: {
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
@@ -19681,18 +19684,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1 = this.this_0;
       t2 = J.getInterceptor$x(t1);
       t2.set$_heap_profile_element$__$profile(t1, t2.notifyPropertyChange$3(t1, C.Symbol_profile, t2.get$_heap_profile_element$__$profile(t1), response));
-    }, "call$1", null, 2, 0, 327, 417, [], "call"],
+    }, "call$1", null, 2, 0, 327, 418, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_refresh_closure": [342],
+  "+ HeapProfileElement_refresh_closure": [343],
   HeapProfileElement_refresh_closure0: {
     "^": "Closure:296;",
     call$2: [function(e, st) {
       N.Logger_Logger("").info$1(H.S(e) + " " + H.S(st));
-    }, "call$2", null, 4, 0, 296, 21, [], 418, [], "call"],
+    }, "call$2", null, 4, 0, 296, 21, [], 419, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_refresh_closure0": [342],
+  "+ HeapProfileElement_refresh_closure0": [343],
   HeapProfileElement_refreshGC_closure: {
     "^": "Closure:327;this_0-84",
     call$1: [function(response) {
@@ -19700,18 +19703,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1 = this.this_0;
       t2 = J.getInterceptor$x(t1);
       t2.set$_heap_profile_element$__$profile(t1, t2.notifyPropertyChange$3(t1, C.Symbol_profile, t2.get$_heap_profile_element$__$profile(t1), response));
-    }, "call$1", null, 2, 0, 327, 417, [], "call"],
+    }, "call$1", null, 2, 0, 327, 418, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_refreshGC_closure": [342],
+  "+ HeapProfileElement_refreshGC_closure": [343],
   HeapProfileElement_refreshGC_closure0: {
     "^": "Closure:296;",
     call$2: [function(e, st) {
       N.Logger_Logger("").info$1(H.S(e) + " " + H.S(st));
-    }, "call$2", null, 4, 0, 296, 21, [], 418, [], "call"],
+    }, "call$2", null, 4, 0, 296, 21, [], 419, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_refreshGC_closure0": [342],
+  "+ HeapProfileElement_refreshGC_closure0": [343],
   HeapProfileElement_resetAccumulator_closure: {
     "^": "Closure:327;this_0-84",
     call$1: [function(response) {
@@ -19719,18 +19722,18 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       t1 = this.this_0;
       t2 = J.getInterceptor$x(t1);
       t2.set$_heap_profile_element$__$profile(t1, t2.notifyPropertyChange$3(t1, C.Symbol_profile, t2.get$_heap_profile_element$__$profile(t1), response));
-    }, "call$1", null, 2, 0, 327, 417, [], "call"],
+    }, "call$1", null, 2, 0, 327, 418, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_resetAccumulator_closure": [342],
+  "+ HeapProfileElement_resetAccumulator_closure": [343],
   HeapProfileElement_resetAccumulator_closure0: {
     "^": "Closure:296;",
     call$2: [function(e, st) {
       N.Logger_Logger("").info$1(H.S(e) + " " + H.S(st));
-    }, "call$2", null, 4, 0, 296, 21, [], 418, [], "call"],
+    }, "call$2", null, 4, 0, 296, 21, [], 419, [], "call"],
     $isFunction: true
   },
-  "+ HeapProfileElement_resetAccumulator_closure0": [342]
+  "+ HeapProfileElement_resetAccumulator_closure0": [343]
 }],
 ["html_common", "dart:html_common", , P, {
   "^": "",
@@ -19796,7 +19799,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   _convertDartToNative_PrepareForStructuredClone_readSlot: {
-    "^": "Closure:357;copies_3",
+    "^": "Closure:358;copies_3",
     call$1: [function(i) {
       var t1 = this.copies_3;
       if (i >= t1.length)
@@ -19806,7 +19809,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   _convertDartToNative_PrepareForStructuredClone_writeSlot: {
-    "^": "Closure:428;copies_4",
+    "^": "Closure:429;copies_4",
     call$2: [function(i, x) {
       var t1 = this.copies_4;
       if (i >= t1.length)
@@ -19914,7 +19917,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   convertNativeToDart_AcceptStructuredClone_readSlot: {
-    "^": "Closure:357;copies_2",
+    "^": "Closure:358;copies_2",
     call$1: [function(i) {
       var t1 = this.copies_2;
       if (i >= t1.length)
@@ -19924,7 +19927,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isFunction: true
   },
   convertNativeToDart_AcceptStructuredClone_writeSlot: {
-    "^": "Closure:428;copies_3",
+    "^": "Closure:429;copies_3",
     call$2: [function(i, x) {
       var t1 = this.copies_3;
       if (i >= t1.length)
@@ -20024,7 +20027,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     map$1: [function(_, f) {
       var t1 = this.readClasses$0();
       return H.MappedIterable_MappedIterable(t1, f, H.getRuntimeTypeArgument(t1, "IterableBase", 0), null);
-    }, "call$1", "get$map", 2, 0, 429, 127, []],
+    }, "call$1", "get$map", 2, 0, 430, 127, []],
     where$1: function(_, f) {
       var t1 = this.readClasses$0();
       return H.setRuntimeTypeInfo(new H.WhereIterable(t1, f), [H.getRuntimeTypeArgument(t1, "IterableBase", 0)]);
@@ -20253,7 +20256,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         t2.$indexSet(t1, "elements", null);
         done.call$0();
       }
-    }, "call$2", "get$expandEvent", 4, 0, 430, 431, [], 328, [], "expandEvent"],
+    }, "call$2", "get$expandEvent", 4, 0, 431, 432, [], 328, [], "expandEvent"],
     "@": function() {
       return [C.CustomTag_e2q];
     },
@@ -20290,7 +20293,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 114, 56, [], "call"],
     $isFunction: true
   },
-  "+ InstanceRefElement_expandEvent_closure": [342]
+  "+ InstanceRefElement_expandEvent_closure": [343]
 }],
 ["instance_view_element", "package:observatory/src/elements/instance_view.dart", , Z, {
   "^": "",
@@ -20309,7 +20312,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", "get$eval", 2, 0, 333, 221, [], "eval"],
     retainedSize$1: [function(receiver, dummy) {
       return J.get$isolate$x(receiver._instance_view_element$__$instance).get$1(J.$add$ns(J.get$id$x(receiver._instance_view_element$__$instance), "/retained"));
-    }, "call$1", "get$retainedSize", 2, 0, 333, 432, [], "retainedSize"],
+    }, "call$1", "get$retainedSize", 2, 0, 333, 334, [], "retainedSize"],
     refresh$1: [function(receiver, done) {
       J.reload$0$x(receiver._instance_view_element$__$instance).whenComplete$1(done);
     }, "call$1", "get$refresh", 2, 0, 166, 328, [], "refresh"],
@@ -20340,7 +20343,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
 ["isolate_profile_element", "package:observatory/src/elements/isolate_profile.dart", , X, {
   "^": "",
   ProfileCodeTrieNodeTreeRow: {
-    "^": ["TableTreeRow;profile>,root<-434,node<-434,tipKind@-343,tipParent@-343,tipExclusive@-343,tipTicks@-343,tipTime@-343,parent,depth-313,children-314,columns-315,_app$__$expander,_expanded,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", null, function() {
+    "^": ["TableTreeRow;profile>,root<-434,node<-434,tipKind@-344,tipParent@-344,tipExclusive@-344,tipTicks@-344,tipTime@-344,parent,depth-313,children-314,columns-315,_app$__$expander,_expanded,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", null, function() {
       return [C.C_Reflectable];
     }, function() {
       return [C.C_Reflectable];
@@ -20363,7 +20366,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, null, null],
     get$code: [function(_) {
       return J.get$code$x(this.node);
-    }, null, null, 1, 0, 335, "code", 303],
+    }, null, null, 1, 0, 336, "code", 303],
     onShow$0: function(_) {
       var t1, threshold, t2, t3, t4, t5, t6, childNode, t7;
       t1 = this.profile;
@@ -20423,7 +20426,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       }}
   },
   IsolateProfileElement: {
-    "^": ["ObservatoryElement_ChangeNotifier11;_isolate_profile_element$__$profile%-323,_isolate_profile_element$__$hideTagsChecked%-331,_isolate_profile_element$__$sampleCount%-343,_isolate_profile_element$__$refreshTime%-343,_isolate_profile_element$__$sampleRate%-343,_isolate_profile_element$__$sampleDepth%-343,_isolate_profile_element$__$displayCutoff%-343,_isolate_profile_element$__$timeSpan%-343,displayThreshold%-435,_isolate_profile_element$__$tagSelector%-343,_isolate_profile_element$_id=-84,tree%-436,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier11;_isolate_profile_element$__$profile%-323,_isolate_profile_element$__$hideTagsChecked%-331,_isolate_profile_element$__$sampleCount%-344,_isolate_profile_element$__$refreshTime%-344,_isolate_profile_element$__$sampleRate%-344,_isolate_profile_element$__$sampleDepth%-344,_isolate_profile_element$__$displayCutoff%-344,_isolate_profile_element$__$timeSpan%-344,displayThreshold%-435,_isolate_profile_element$__$tagSelector%-344,_isolate_profile_element$_id=-84,tree%-436,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }, null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
@@ -20436,10 +20439,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 327, 30, [], "profile", 303],
     get$hideTagsChecked: [function(receiver) {
       return receiver._isolate_profile_element$__$hideTagsChecked;
-    }, null, null, 1, 0, 344, "hideTagsChecked", 303, 304],
+    }, null, null, 1, 0, 345, "hideTagsChecked", 303, 304],
     set$hideTagsChecked: [function(receiver, value) {
       receiver._isolate_profile_element$__$hideTagsChecked = this.notifyPropertyChange$3(receiver, C.Symbol_hideTagsChecked, receiver._isolate_profile_element$__$hideTagsChecked, value);
-    }, null, null, 3, 0, 345, 30, [], "hideTagsChecked", 303],
+    }, null, null, 3, 0, 346, 30, [], "hideTagsChecked", 303],
     get$sampleCount: [function(receiver) {
       return receiver._isolate_profile_element$__$sampleCount;
     }, null, null, 1, 0, 308, "sampleCount", 303, 304],
@@ -20574,7 +20577,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
           N.Logger_Logger("").warning$3("toggleExpanded", e0, stackTrace);
         }
 
-    }, "call$3", "get$toggleExpanded", 6, 0, 422, 21, [], 340, [], 81, [], "toggleExpanded", 304],
+    }, "call$3", "get$toggleExpanded", 6, 0, 423, 21, [], 341, [], 81, [], "toggleExpanded", 304],
     "@": function() {
       return [C.CustomTag_IET];
     },
@@ -20617,7 +20620,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 327, 199, [], "call"],
     $isFunction: true
   },
-  "+ IsolateProfileElement_refresh_closure": [342]
+  "+ IsolateProfileElement_refresh_closure": [343]
 }],
 ["isolate_ref_element", "package:observatory/src/elements/isolate_ref.dart", , N, {
   "^": "",
@@ -20817,7 +20820,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", "get$refresh", 2, 0, 166, 328, [], "refresh"],
     resume$3: [function(receiver, a, b, c) {
       receiver._isolate_view_element$__$isolate.get$1("resume").then$1(new L.IsolateViewElement_resume_closure(receiver));
-    }, "call$3", "get$resume", 6, 0, 348, 116, [], 196, [], 285, [], "resume"],
+    }, "call$3", "get$resume", 6, 0, 349, 116, [], 196, [], 285, [], "resume"],
     "@": function() {
       return [C.CustomTag_M4v];
     },
@@ -20857,7 +20860,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 114, 444, [], "call"],
     $isFunction: true
   },
-  "+ IsolateViewElement__updateTagProfile_closure": [342],
+  "+ IsolateViewElement__updateTagProfile_closure": [343],
   IsolateViewElement_resume_closure: {
     "^": "Closure:114;this_0-84",
     call$1: [function(result) {
@@ -20865,7 +20868,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 114, 56, [], "call"],
     $isFunction: true
   },
-  "+ IsolateViewElement_resume_closure": [342]
+  "+ IsolateViewElement_resume_closure": [343]
 }],
 ["json_view_element", "package:observatory/src/elements/json_view.dart", , Z, {
   "^": "",
@@ -20976,7 +20979,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }
   },
   JsonViewElement: {
-    "^": ["ObservatoryElement_ChangeNotifier14;_json_view_element$__$map%-323,_json_view_element$__$mapAsString%-343,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier14;_json_view_element$__$map%-323,_json_view_element$__$mapAsString%-344,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$map: [function(receiver) {
@@ -21363,7 +21366,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
   },
   "+NavBarElement": [449],
   NavMenuElement: {
-    "^": ["ObservatoryElement_ChangeNotifier16;_nav_bar_element$__$link%-343,_nav_bar_element$__$anchor%-343,_nav_bar_element$__$last%-331,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier16;_nav_bar_element$__$link%-344,_nav_bar_element$__$anchor%-344,_nav_bar_element$__$last%-331,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$link: [function(receiver) {
@@ -21380,10 +21383,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 32, 30, [], "anchor", 303],
     get$last: [function(receiver) {
       return receiver._nav_bar_element$__$last;
-    }, null, null, 1, 0, 344, "last", 303, 326],
+    }, null, null, 1, 0, 345, "last", 303, 326],
     set$last: [function(receiver, value) {
       receiver._nav_bar_element$__$last = this.notifyPropertyChange$3(receiver, C.Symbol_last, receiver._nav_bar_element$__$last, value);
-    }, null, null, 3, 0, 345, 30, [], "last", 303],
+    }, null, null, 3, 0, 346, 30, [], "last", 303],
     "@": function() {
       return [C.CustomTag_mX6];
     },
@@ -21411,7 +21414,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isObservable: true
   },
   NavMenuItemElement: {
-    "^": ["ObservatoryElement_ChangeNotifier17;_nav_bar_element$__$link%-343,_nav_bar_element$__$anchor%-343,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier17;_nav_bar_element$__$link%-344,_nav_bar_element$__$anchor%-344,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$link: [function(receiver) {
@@ -21452,7 +21455,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isObservable: true
   },
   NavRefreshElement: {
-    "^": ["ObservatoryElement_ChangeNotifier18;_nav_bar_element$__$callback%-84,_nav_bar_element$__$active%-331,_nav_bar_element$__$label%-343,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["ObservatoryElement_ChangeNotifier18;_nav_bar_element$__$callback%-84,_nav_bar_element$__$active%-331,_nav_bar_element$__$label%-344,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$callback: [function(receiver) {
@@ -21469,10 +21472,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 114, 30, [], "callback", 303],
     get$active: [function(receiver) {
       return receiver._nav_bar_element$__$active;
-    }, null, null, 1, 0, 344, "active", 303, 326],
+    }, null, null, 1, 0, 345, "active", 303, 326],
     set$active: [function(receiver, value) {
       receiver._nav_bar_element$__$active = this.notifyPropertyChange$3(receiver, C.Symbol_active, receiver._nav_bar_element$__$active, value);
-    }, null, null, 3, 0, 345, 30, [], "active", 303],
+    }, null, null, 3, 0, 346, 30, [], "active", 303],
     get$label: [function(receiver) {
       return receiver._nav_bar_element$__$label;
     }, null, null, 1, 0, 308, "label", 303, 326],
@@ -21486,7 +21489,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
       receiver._nav_bar_element$__$active = this.notifyPropertyChange$3(receiver, C.Symbol_active, t1, true);
       if (receiver._nav_bar_element$__$callback != null)
         this.callback$1(receiver, this.get$refreshDone(receiver));
-    }, "call$3", "get$buttonClick", 6, 0, 339, 21, [], 340, [], 81, [], "buttonClick"],
+    }, "call$3", "get$buttonClick", 6, 0, 340, 21, [], 341, [], 81, [], "buttonClick"],
     refreshDone$0: [function(receiver) {
       receiver._nav_bar_element$__$active = this.notifyPropertyChange$3(receiver, C.Symbol_active, receiver._nav_bar_element$__$active, false);
     }, "call$0", "get$refreshDone", 0, 0, 124, "refreshDone"],
@@ -21521,10 +21524,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$last: [function(receiver) {
       return receiver._nav_bar_element$__$last;
-    }, null, null, 1, 0, 344, "last", 303, 326],
+    }, null, null, 1, 0, 345, "last", 303, 326],
     set$last: [function(receiver, value) {
       receiver._nav_bar_element$__$last = this.notifyPropertyChange$3(receiver, C.Symbol_last, receiver._nav_bar_element$__$last, value);
-    }, null, null, 3, 0, 345, 30, [], "last", 303],
+    }, null, null, 3, 0, 346, 30, [], "last", 303],
     "@": function() {
       return [C.CustomTag_Ujp];
     },
@@ -21555,10 +21558,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$last: [function(receiver) {
       return receiver._nav_bar_element$__$last;
-    }, null, null, 1, 0, 344, "last", 303, 326],
+    }, null, null, 1, 0, 345, "last", 303, 326],
     set$last: [function(receiver, value) {
       receiver._nav_bar_element$__$last = this.notifyPropertyChange$3(receiver, C.Symbol_last, receiver._nav_bar_element$__$last, value);
-    }, null, null, 3, 0, 345, 30, [], "last", 303],
+    }, null, null, 3, 0, 346, 30, [], "last", 303],
     get$isolate: [function(receiver) {
       return receiver._nav_bar_element$__$isolate;
     }, null, null, 1, 0, 302, "isolate", 303, 326],
@@ -21601,10 +21604,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 327, 30, [], "library", 303],
     get$last: [function(receiver) {
       return receiver._nav_bar_element$__$last;
-    }, null, null, 1, 0, 344, "last", 303, 326],
+    }, null, null, 1, 0, 345, "last", 303, 326],
     set$last: [function(receiver, value) {
       receiver._nav_bar_element$__$last = this.notifyPropertyChange$3(receiver, C.Symbol_last, receiver._nav_bar_element$__$last, value);
-    }, null, null, 3, 0, 345, 30, [], "last", 303],
+    }, null, null, 3, 0, 346, 30, [], "last", 303],
     "@": function() {
       return [C.CustomTag_ECG];
     },
@@ -21641,10 +21644,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 327, 30, [], "cls", 303],
     get$last: [function(receiver) {
       return receiver._nav_bar_element$__$last;
-    }, null, null, 1, 0, 344, "last", 303, 326],
+    }, null, null, 1, 0, 345, "last", 303, 326],
     set$last: [function(receiver, value) {
       receiver._nav_bar_element$__$last = this.notifyPropertyChange$3(receiver, C.Symbol_last, receiver._nav_bar_element$__$last, value);
-    }, null, null, 3, 0, 345, 30, [], "last", 303],
+    }, null, null, 3, 0, 346, 30, [], "last", 303],
     "@": function() {
       return [C.CustomTag_lGg];
     },
@@ -21678,10 +21681,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }],
     get$devtools: [function(receiver) {
       return receiver._observatory_application_element$__$devtools;
-    }, null, null, 1, 0, 344, "devtools", 303, 326],
+    }, null, null, 1, 0, 345, "devtools", 303, 326],
     set$devtools: [function(receiver, value) {
       receiver._observatory_application_element$__$devtools = this.notifyPropertyChange$3(receiver, C.Symbol_devtools, receiver._observatory_application_element$__$devtools, value);
-    }, null, null, 3, 0, 345, 30, [], "devtools", 303],
+    }, null, null, 3, 0, 346, 30, [], "devtools", 303],
     get$app: [function(receiver) {
       return receiver._observatory_application_element$__$app;
     }, null, null, 1, 0, 458, "app", 303, 304],
@@ -21850,7 +21853,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return true;
       }
       return false;
-    }, "call$0", "get$deliverChanges", 0, 0, 344],
+    }, "call$0", "get$deliverChanges", 0, 0, 345],
     get$hasObservers: function(receiver) {
       var t1, t2;
       t1 = receiver.change_notifier$ChangeNotifier$_changes;
@@ -22557,7 +22560,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
           this._recordChange$1(new G.ListChangeRecord(this, t3, removed, len, t2));
         }
       C.JSArray_methods.set$length(t1, value);
-    }, null, null, 3, 0, 357, 30, [], "length", 303],
+    }, null, null, 3, 0, 358, 30, [], "length", 303],
     $index: [function(_, index) {
       var t1 = this._list;
       if (index >>> 0 !== index || index >= t1.length)
@@ -22596,10 +22599,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, 15, [], 30, [], "[]=", 303],
     get$isEmpty: [function(_) {
       return P.ListMixin.prototype.get$isEmpty.call(this, this);
-    }, null, null, 1, 0, 344, "isEmpty", 303],
+    }, null, null, 1, 0, 345, "isEmpty", 303],
     get$isNotEmpty: [function(_) {
       return P.ListMixin.prototype.get$isNotEmpty.call(this, this);
-    }, null, null, 1, 0, 344, "isNotEmpty", 303],
+    }, null, null, 1, 0, 345, "isNotEmpty", 303],
     setAll$2: function(_, index, iterable) {
       var t1, len, t2;
       t1 = J.getInterceptor(iterable);
@@ -22800,7 +22803,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return true;
       }
       return false;
-    }, "call$0", "get$deliverListChanges", 0, 0, 344],
+    }, "call$0", "get$deliverListChanges", 0, 0, 345],
     $isObservableList: true,
     static: {ObservableList$: function($length, $E) {
         var t1 = H.setRuntimeTypeInfo([], [$E]);
@@ -22857,11 +22860,11 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     get$isEmpty: [function(_) {
       var t1 = this._observable_map$_map;
       return t1.get$length(t1) === 0;
-    }, null, null, 1, 0, 344, "isEmpty", 303],
+    }, null, null, 1, 0, 345, "isEmpty", 303],
     get$isNotEmpty: [function(_) {
       var t1 = this._observable_map$_map;
       return t1.get$length(t1) !== 0;
-    }, null, null, 1, 0, 344, "isNotEmpty", 303],
+    }, null, null, 1, 0, 345, "isNotEmpty", 303],
     containsValue$1: [function(value) {
       return this._observable_map$_map.containsValue$1(value);
     }, "call$1", "get$containsValue", 2, 0, 470, 30, [], "containsValue", 303],
@@ -23406,7 +23409,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:296;result_0",
     call$2: [function(k, v) {
       this.result_0.$indexSet(0, R._toObservableDeep(k), R._toObservableDeep(v));
-    }, "call$2", null, 4, 0, null, 370, [], 120, [], "call"],
+    }, "call$2", null, 4, 0, null, 371, [], 120, [], "call"],
     $isFunction: true
   }
 }],
@@ -24908,14 +24911,14 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;v_0",
     call$1: [function(k) {
       return J.$eq(this.v_0.$index(0, k), true);
-    }, "call$1", null, 2, 0, null, 370, [], "call"],
+    }, "call$1", null, 2, 0, null, 371, [], "call"],
     $isFunction: true
   },
   _styleAttributeConverter_closure: {
     "^": "Closure:114;v_0",
     call$1: [function(k) {
       return H.S(k) + ": " + H.S(this.v_0.$index(0, k));
-    }, "call$1", null, 2, 0, null, 370, [], "call"],
+    }, "call$1", null, 2, 0, null, 371, [], "call"],
     $isFunction: true
   },
   PolymerExpressions: {
@@ -26911,19 +26914,19 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 1, 0, 469, "pos", 303, 326],
     set$pos: [function(receiver, value) {
       receiver._script_inset_element$__$pos = this.notifyPropertyChange$3(receiver, C.Symbol_pos, receiver._script_inset_element$__$pos, value);
-    }, null, null, 3, 0, 357, 30, [], "pos", 303],
+    }, null, null, 3, 0, 358, 30, [], "pos", 303],
     get$endPos: [function(receiver) {
       return receiver._script_inset_element$__$endPos;
     }, null, null, 1, 0, 469, "endPos", 303, 326],
     set$endPos: [function(receiver, value) {
       receiver._script_inset_element$__$endPos = this.notifyPropertyChange$3(receiver, C.Symbol_endPos, receiver._script_inset_element$__$endPos, value);
-    }, null, null, 3, 0, 357, 30, [], "endPos", 303],
+    }, null, null, 3, 0, 358, 30, [], "endPos", 303],
     get$coverage: [function(receiver) {
       return receiver._script_inset_element$__$coverage;
-    }, null, null, 1, 0, 344, "coverage", 303, 326],
+    }, null, null, 1, 0, 345, "coverage", 303, 326],
     set$coverage: [function(receiver, value) {
       receiver._script_inset_element$__$coverage = this.notifyPropertyChange$3(receiver, C.Symbol_coverage, receiver._script_inset_element$__$coverage, value);
-    }, null, null, 3, 0, 345, 30, [], "coverage", 303],
+    }, null, null, 3, 0, 346, 30, [], "coverage", 303],
     get$lines: [function(receiver) {
       return receiver._script_inset_element$__$lines;
     }, null, null, 1, 0, 497, "lines", 303, 304],
@@ -27009,7 +27012,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, "call$1", null, 2, 0, 114, 115, [], "call"],
     $isFunction: true
   },
-  "+ ScriptInsetElement__updateProperties_closure": [342]
+  "+ ScriptInsetElement__updateProperties_closure": [343]
 }],
 ["script_ref_element", "package:observatory/src/elements/script_ref.dart", , A, {
   "^": "",
@@ -27022,7 +27025,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 1, 0, 469, "pos", 303, 326],
     set$pos: [function(receiver, value) {
       receiver._script_ref_element$__$pos = this.notifyPropertyChange$3(receiver, C.Symbol_pos, receiver._script_ref_element$__$pos, value);
-    }, null, null, 3, 0, 357, 30, [], "pos", 303],
+    }, null, null, 3, 0, 358, 30, [], "pos", 303],
     get$hoverText: [function(receiver) {
       var t1 = receiver._service_ref_element$__$ref;
       if (t1 == null)
@@ -27107,10 +27110,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 496, 30, [], "script", 303],
     get$showCoverage: [function(receiver) {
       return receiver._script_view_element$__$showCoverage;
-    }, null, null, 1, 0, 344, "showCoverage", 303, 326],
+    }, null, null, 1, 0, 345, "showCoverage", 303, 326],
     set$showCoverage: [function(receiver, value) {
       receiver._script_view_element$__$showCoverage = this.notifyPropertyChange$3(receiver, C.Symbol_showCoverage, receiver._script_view_element$__$showCoverage, value);
-    }, null, null, 3, 0, 345, 30, [], "showCoverage", 303],
+    }, null, null, 3, 0, 346, 30, [], "showCoverage", 303],
     enteredView$0: [function(receiver) {
       var t1;
       Z.ObservatoryElement.prototype.enteredView$0.call(this, receiver);
@@ -27415,16 +27418,16 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 508, 30, [], "uptime", 303],
     get$assertsEnabled: [function() {
       return this._service$__$assertsEnabled;
-    }, null, null, 1, 0, 344, "assertsEnabled", 303, 304],
+    }, null, null, 1, 0, 345, "assertsEnabled", 303, 304],
     set$assertsEnabled: [function(value) {
       this._service$__$assertsEnabled = F.notifyPropertyChangeHelper(this, C.Symbol_assertsEnabled, this._service$__$assertsEnabled, value);
-    }, null, null, 3, 0, 345, 30, [], "assertsEnabled", 303],
+    }, null, null, 3, 0, 346, 30, [], "assertsEnabled", 303],
     get$typeChecksEnabled: [function() {
       return this._service$__$typeChecksEnabled;
-    }, null, null, 1, 0, 344, "typeChecksEnabled", 303, 304],
+    }, null, null, 1, 0, 345, "typeChecksEnabled", 303, 304],
     set$typeChecksEnabled: [function(value) {
       this._service$__$typeChecksEnabled = F.notifyPropertyChangeHelper(this, C.Symbol_typeChecksEnabled, this._service$__$typeChecksEnabled, value);
-    }, null, null, 3, 0, 345, 30, [], "typeChecksEnabled", 303],
+    }, null, null, 3, 0, 346, 30, [], "typeChecksEnabled", 303],
     _parseObjectId$1: function(id) {
       var m, t1, t2, t3;
       m = $.get$VM__currentObjectMatcher().matchAsPrefix$1(0, id);
@@ -27612,7 +27615,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         return P._Future$immediateError(D.ServiceObject_ServiceObject$_fromMap(this.this_0, t1), null, null);
       }
 
-    }, "call$1", null, 2, 0, null, 417, [], "call"],
+    }, "call$1", null, 2, 0, null, 418, [], "call"],
     $isFunction: true
   },
   VM_getAsMap_closure0: {
@@ -27788,28 +27791,28 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     },
     get$pausedOnStart: [function() {
       return this._service$__$pausedOnStart;
-    }, null, null, 1, 0, 344, "pausedOnStart", 303, 304],
+    }, null, null, 1, 0, 345, "pausedOnStart", 303, 304],
     set$pausedOnStart: [function(value) {
       this._service$__$pausedOnStart = F.notifyPropertyChangeHelper(this, C.Symbol_pausedOnStart, this._service$__$pausedOnStart, value);
-    }, null, null, 3, 0, 345, 30, [], "pausedOnStart", 303],
+    }, null, null, 3, 0, 346, 30, [], "pausedOnStart", 303],
     get$pausedOnExit: [function() {
       return this._service$__$pausedOnExit;
-    }, null, null, 1, 0, 344, "pausedOnExit", 303, 304],
+    }, null, null, 1, 0, 345, "pausedOnExit", 303, 304],
     set$pausedOnExit: [function(value) {
       this._service$__$pausedOnExit = F.notifyPropertyChangeHelper(this, C.Symbol_pausedOnExit, this._service$__$pausedOnExit, value);
-    }, null, null, 3, 0, 345, 30, [], "pausedOnExit", 303],
+    }, null, null, 3, 0, 346, 30, [], "pausedOnExit", 303],
     get$running: [function() {
       return this._service$__$running;
-    }, null, null, 1, 0, 344, "running", 303, 304],
+    }, null, null, 1, 0, 345, "running", 303, 304],
     set$running: [function(value) {
       this._service$__$running = F.notifyPropertyChangeHelper(this, C.Symbol_running, this._service$__$running, value);
-    }, null, null, 3, 0, 345, 30, [], "running", 303],
+    }, null, null, 3, 0, 346, 30, [], "running", 303],
     get$idle: [function() {
       return this._service$__$idle;
-    }, null, null, 1, 0, 344, "idle", 303, 304],
+    }, null, null, 1, 0, 345, "idle", 303, 304],
     set$idle: [function(value) {
       this._service$__$idle = F.notifyPropertyChangeHelper(this, C.Symbol_idle, this._service$__$idle, value);
-    }, null, null, 3, 0, 345, 30, [], "idle", 303],
+    }, null, null, 3, 0, 346, 30, [], "idle", 303],
     relativeLink$1: [function(id) {
       return H.S(this._service$_id) + "/" + H.S(id);
     }, "call$1", "get$relativeLink", 2, 0, 512, 513, [], "relativeLink", 303],
@@ -27915,25 +27918,25 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 1, 0, 469, "newHeapUsed", 303, 304],
     set$newHeapUsed: [function(value) {
       this._service$__$newHeapUsed = F.notifyPropertyChangeHelper(this, C.Symbol_newHeapUsed, this._service$__$newHeapUsed, value);
-    }, null, null, 3, 0, 357, 30, [], "newHeapUsed", 303],
+    }, null, null, 3, 0, 358, 30, [], "newHeapUsed", 303],
     get$oldHeapUsed: [function() {
       return this._service$__$oldHeapUsed;
     }, null, null, 1, 0, 469, "oldHeapUsed", 303, 304],
     set$oldHeapUsed: [function(value) {
       this._service$__$oldHeapUsed = F.notifyPropertyChangeHelper(this, C.Symbol_oldHeapUsed, this._service$__$oldHeapUsed, value);
-    }, null, null, 3, 0, 357, 30, [], "oldHeapUsed", 303],
+    }, null, null, 3, 0, 358, 30, [], "oldHeapUsed", 303],
     get$newHeapCapacity: [function() {
       return this._service$__$newHeapCapacity;
     }, null, null, 1, 0, 469, "newHeapCapacity", 303, 304],
     set$newHeapCapacity: [function(value) {
       this._service$__$newHeapCapacity = F.notifyPropertyChangeHelper(this, C.Symbol_newHeapCapacity, this._service$__$newHeapCapacity, value);
-    }, null, null, 3, 0, 357, 30, [], "newHeapCapacity", 303],
+    }, null, null, 3, 0, 358, 30, [], "newHeapCapacity", 303],
     get$oldHeapCapacity: [function() {
       return this._service$__$oldHeapCapacity;
     }, null, null, 1, 0, 469, "oldHeapCapacity", 303, 304],
     set$oldHeapCapacity: [function(value) {
       this._service$__$oldHeapCapacity = F.notifyPropertyChangeHelper(this, C.Symbol_oldHeapCapacity, this._service$__$oldHeapCapacity, value);
-    }, null, null, 3, 0, 357, 30, [], "oldHeapCapacity", 303],
+    }, null, null, 3, 0, 358, 30, [], "oldHeapCapacity", 303],
     get$fileAndLine: [function(_) {
       return this._service$__$fileAndLine;
     }, null, null, 1, 0, 308, "fileAndLine", 303, 304],
@@ -28261,7 +28264,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     deliverChanges$0: [function(_) {
       var t1 = this._service$_map;
       return t1.deliverChanges$0(t1);
-    }, "call$0", "get$deliverChanges", 0, 0, 344],
+    }, "call$0", "get$deliverChanges", 0, 0, 345],
     notifyChange$1: function(_, record) {
       var t1 = this._service$_map;
       return t1.notifyChange$1(t1, record);
@@ -28424,7 +28427,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isObservable: true
   },
   ScriptLine: {
-    "^": ["Object;line<-313,text>-343", function() {
+    "^": ["Object;line<-313,text>-344", function() {
       return [C.C_Reflectable];
     }, function() {
       return [C.C_Reflectable];
@@ -28454,7 +28457,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         this.notifyChange$1(this, t1);
       }
       this._service$__$firstTokenPos = value;
-    }, null, null, 3, 0, 357, 30, [], "firstTokenPos", 303],
+    }, null, null, 3, 0, 358, 30, [], "firstTokenPos", 303],
     get$lastTokenPos: [function() {
       return this._service$__$lastTokenPos;
     }, null, null, 1, 0, 469, "lastTokenPos", 303, 304],
@@ -28466,7 +28469,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         this.notifyChange$1(this, t1);
       }
       this._service$__$lastTokenPos = value;
-    }, null, null, 3, 0, 357, 30, [], "lastTokenPos", 303],
+    }, null, null, 3, 0, 358, 30, [], "lastTokenPos", 303],
     get$canCache: function() {
       return true;
     },
@@ -28599,7 +28602,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isCodeTick: true
   },
   PcDescriptor: {
-    "^": ["ChangeNotifier;address<,deoptId<-313,tokenPos<-313,tryIndex<-313,kind>-343,_service$__$script,_service$__$formattedLine,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", null, function() {
+    "^": ["ChangeNotifier;address<,deoptId<-313,tokenPos<-313,tryIndex<-313,kind>-344,_service$__$script,_service$__$formattedLine,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", null, function() {
       return [C.C_Reflectable];
     }, function() {
       return [C.C_Reflectable];
@@ -28652,7 +28655,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     $isPcDescriptor: true
   },
   CodeInstruction: {
-    "^": ["ChangeNotifier;address<-313,machine<-343,human<-343,_service$__$jumpTarget,descriptors@-524,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", function() {
+    "^": ["ChangeNotifier;address<-313,machine<-344,human<-344,_service$__$jumpTarget,descriptors@-524,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records", function() {
       return [C.C_ObservableProperty];
     }, function() {
       return [C.C_ObservableProperty];
@@ -28675,10 +28678,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 526, 30, [], "jumpTarget", 303],
     get$isComment: [function() {
       return J.$eq(this.address, 0);
-    }, null, null, 1, 0, 344, "isComment", 303],
+    }, null, null, 1, 0, 345, "isComment", 303],
     get$hasDescriptors: [function() {
       return J.$gt$n(J.get$length$asx(this.descriptors), 0);
-    }, null, null, 1, 0, 344, "hasDescriptors", 303],
+    }, null, null, 1, 0, 345, "hasDescriptors", 303],
     formattedAddress$0: [function() {
       var t1, t2;
       t1 = this.address;
@@ -28824,7 +28827,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 1, 0, 469, "totalSamplesInProfile", 303, 304],
     set$totalSamplesInProfile: [function(value) {
       this._service$__$totalSamplesInProfile = F.notifyPropertyChangeHelper(this, C.Symbol_totalSamplesInProfile, this._service$__$totalSamplesInProfile, value);
-    }, null, null, 3, 0, 357, 30, [], "totalSamplesInProfile", 303],
+    }, null, null, 3, 0, 358, 30, [], "totalSamplesInProfile", 303],
     get$formattedInclusiveTicks: [function() {
       return this._service$__$formattedInclusiveTicks;
     }, null, null, 1, 0, 308, "formattedInclusiveTicks", 303, 304],
@@ -28952,10 +28955,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     },
     get$hasDisassembly: [function() {
       return this._service$__$hasDisassembly;
-    }, null, null, 1, 0, 344, "hasDisassembly", 303, 304],
+    }, null, null, 1, 0, 345, "hasDisassembly", 303, 304],
     set$hasDisassembly: [function(value) {
       this._service$__$hasDisassembly = F.notifyPropertyChangeHelper(this, C.Symbol_hasDisassembly, this._service$__$hasDisassembly, value);
-    }, null, null, 3, 0, 345, 30, [], "hasDisassembly", 303],
+    }, null, null, 3, 0, 346, 30, [], "hasDisassembly", 303],
     _processDisassembly$1: function(disassembly) {
       var t1, t2, t3, i, t4, machine, human, address, t5;
       t1 = this.instructions;
@@ -29028,7 +29031,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     },
     get$isDartCode: [function() {
       return J.$eq(this._service$__$kind, C.CodeKind_Dart);
-    }, null, null, 1, 0, 344, "isDartCode", 303],
+    }, null, null, 1, 0, 345, "isDartCode", 303],
     $isCode: true,
     static: {Code_formatPercent: [function(a, total) {
         return C.JSNumber_methods.toStringAsFixed$1(100 * J.$div$n(a, total), 2) + "%";
@@ -29069,7 +29072,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
         D._upgradeObservableList(v, this.owner_1);
       else if (t2)
         D._upgradeObservableMap(v, this.owner_1);
-    }, "call$2", null, 4, 0, null, 370, [], 120, [], "call"],
+    }, "call$2", null, 4, 0, null, 371, [], 120, [], "call"],
     $isFunction: true
   }
 }],
@@ -29359,10 +29362,10 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 3, 0, 307, 30, [], "ref", 303],
     get$internal: [function(receiver) {
       return receiver._service_ref_element$__$internal;
-    }, null, null, 1, 0, 344, "internal", 303, 326],
+    }, null, null, 1, 0, 345, "internal", 303, 326],
     set$internal: [function(receiver, value) {
       receiver._service_ref_element$__$internal = this.notifyPropertyChange$3(receiver, C.Symbol_internal, receiver._service_ref_element$__$internal, value);
-    }, null, null, 3, 0, 345, 30, [], "internal", 303],
+    }, null, null, 3, 0, 346, 30, [], "internal", 303],
     refChanged$1: [function(receiver, oldValue) {
       this.notifyPropertyChange$3(receiver, C.Symbol_url, "", this.get$url(receiver));
       this.notifyPropertyChange$3(receiver, C.Symbol_name, [], this.get$name(receiver));
@@ -29395,7 +29398,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     }, null, null, 1, 0, 308, "name"],
     get$nameIsEmpty: [function(receiver) {
       return J.get$isEmpty$asx(this.get$name(receiver));
-    }, null, null, 1, 0, 344, "nameIsEmpty"],
+    }, null, null, 1, 0, 345, "nameIsEmpty"],
     "@": function() {
       return [C.CustomTag_sww];
     },
@@ -29424,15 +29427,15 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
 ["sliding_checkbox_element", "package:observatory/src/elements/sliding_checkbox.dart", , Q, {
   "^": "",
   SlidingCheckboxElement: {
-    "^": ["PolymerElement_ChangeNotifier1;_sliding_checkbox_element$__$checked%-331,_sliding_checkbox_element$__$checkedText%-343,_sliding_checkbox_element$__$uncheckedText%-343,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
+    "^": ["PolymerElement_ChangeNotifier1;_sliding_checkbox_element$__$checked%-331,_sliding_checkbox_element$__$checkedText%-344,_sliding_checkbox_element$__$uncheckedText%-344,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_records,polymer$Polymer$_declaration,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$syntax,polymer$Polymer$_shadowRoots,polymer$Polymer$$-324", null, null, null, null, null, null, null, null, null, null, null, null, null, null, function() {
       return [C.C_Reflectable];
     }],
     get$checked: [function(receiver) {
       return receiver._sliding_checkbox_element$__$checked;
-    }, null, null, 1, 0, 344, "checked", 303, 326],
+    }, null, null, 1, 0, 345, "checked", 303, 326],
     set$checked: [function(receiver, value) {
       receiver._sliding_checkbox_element$__$checked = this.notifyPropertyChange$3(receiver, C.Symbol_checked, receiver._sliding_checkbox_element$__$checked, value);
-    }, null, null, 3, 0, 345, 30, [], "checked", 303],
+    }, null, null, 3, 0, 346, 30, [], "checked", 303],
     get$checkedText: [function(receiver) {
       return receiver._sliding_checkbox_element$__$checkedText;
     }, null, null, 1, 0, 308, "checkedText", 303, 326],
@@ -29448,7 +29451,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     change$3: [function(receiver, e, details, target) {
       var t1 = J.get$checked$x((receiver.shadowRoot || receiver.webkitShadowRoot).querySelector("#slide-switch"));
       receiver._sliding_checkbox_element$__$checked = this.notifyPropertyChange$3(receiver, C.Symbol_checked, receiver._sliding_checkbox_element$__$checked, t1);
-    }, "call$3", "get$change", 6, 0, 339, 21, [], 544, [], 81, [], "change"],
+    }, "call$3", "get$change", 6, 0, 340, 21, [], 544, [], 81, [], "change"],
     "@": function() {
       return [C.CustomTag_NTs];
     },
@@ -30452,7 +30455,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;",
     call$1: [function(k) {
       return H.S(k) + "[template]";
-    }, "call$1", null, 2, 0, null, 370, [], "call"],
+    }, "call$1", null, 2, 0, null, 371, [], "call"],
     $isFunction: true
   },
   _TemplateBinding: {
@@ -30812,7 +30815,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     "^": "Closure:114;this_1",
     call$1: [function(r) {
       return this.this_1._valueChanged$1(J.get$newValue$x(J.get$last$ax(r)));
-    }, "call$1", null, 2, 0, null, 346, [], "call"],
+    }, "call$1", null, 2, 0, null, 347, [], "call"],
     $isFunction: true
   },
   _BoundNodes: {
@@ -30921,7 +30924,7 @@ init.mangledGlobalNames = {CollapsibleContentElement__closeIconClass: "_closeIco
     call$1: [function(r) {
       var t1 = this.this_0;
       return t1.valueChanged$1(J.get$value$x(t1._observer));
-    }, "call$1", null, 2, 0, null, 346, [], "call"],
+    }, "call$1", null, 2, 0, null, 347, [], "call"],
     $isFunction: true
   }
 }],
@@ -33130,6 +33133,7 @@ D.ServiceObject,
 J.JSBool,
 Q.ServiceRefElement,
 {func: "Future__String", ret: [P.Future, D.ServiceObject], args: [J.JSString]},
+"dummy",
 Z.ObservatoryElement_ChangeNotifier1,
 {func: "Code_", ret: D.Code},
 D.Code,
@@ -33228,7 +33232,6 @@ K.ObservatoryElement_ChangeNotifier9,
 {func: "Iterable__dynamic__String", ret: P.Iterable, args: [{func: "dynamic__String", args: [J.JSString]}]},
 {func: "void__bool_dynamic", void: true, args: [J.JSBool, null]},
 "expand",
-"dummy",
 Z.ObservatoryElement_ChangeNotifier10,
 D.CodeTrieNode,
 J.JSDouble,

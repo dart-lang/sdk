@@ -562,6 +562,12 @@
             <div class="memberValue">{{ cls.vmName }}</div>
           </div>
         </template>
+        <div class="memberItem">
+          <div class="memberName">retained size<br>(all instances)</div>
+          <div class="memberValue">
+            <eval-link callback="{{ retainedSize }}"></eval-link>
+          </div>
+        </div>
       </div>
     </div>
 

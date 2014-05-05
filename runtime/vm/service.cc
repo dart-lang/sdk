@@ -1066,6 +1066,20 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesRetained(Isolate* isolate, const Class& cls,
+                                  JSONStream* js) {
+  if (js->num_arguments() != 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
+  return true;
+}
+
+
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
@@ -1104,6 +1118,8 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesDispatchers(isolate, cls, js);
     } else if (!strcmp(second, "types")) {
       return HandleClassesTypes(isolate, cls, js);
+    } else if (!strcmp(second, "retained")) {
+      return HandleClassesRetained(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
