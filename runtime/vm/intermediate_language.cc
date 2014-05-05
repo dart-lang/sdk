@@ -1385,8 +1385,8 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
     MathUnaryInstr* math_unary =
         new MathUnaryInstr(MathUnaryInstr::kDoubleSquare,
                            new Value(left()->definition()),
-                           Isolate::kNoDeoptId);
-    flow_graph->InsertBefore(this, math_unary, NULL, Definition::kValue);
+                           DeoptimizationTarget());
+    flow_graph->InsertBefore(this, math_unary, env(), Definition::kValue);
     return math_unary;
   }
 
