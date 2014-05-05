@@ -46,18 +46,18 @@ abstract class ListIterable<E> extends IterableBase<E>
   bool get isEmpty => length == 0;
 
   E get first {
-    if (length == 0) throw new StateError("No elements");
+    if (length == 0) throw IterableElementError.noElement();
     return elementAt(0);
   }
 
   E get last {
-    if (length == 0) throw new StateError("No elements");
+    if (length == 0) throw IterableElementError.noElement();
     return elementAt(length - 1);
   }
 
   E get single {
-    if (length == 0) throw new StateError("No elements");
-    if (length > 1) throw new StateError("Too many elements");
+    if (length == 0) throw IterableElementError.noElement();
+    if (length > 1) throw IterableElementError.tooMany();
     return elementAt(0);
   }
 
@@ -104,7 +104,7 @@ abstract class ListIterable<E> extends IterableBase<E>
       }
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   dynamic lastWhere(bool test(E element), { Object orElse() }) {
@@ -117,7 +117,7 @@ abstract class ListIterable<E> extends IterableBase<E>
       }
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E singleWhere(bool test(E element)) {
@@ -128,7 +128,7 @@ abstract class ListIterable<E> extends IterableBase<E>
       E element = elementAt(i);
       if (test(element)) {
         if (matchFound) {
-          throw new StateError("More than one matching element");
+          throw IterableElementError.tooMany();
         }
         matchFound = true;
         match = element;
@@ -138,7 +138,7 @@ abstract class ListIterable<E> extends IterableBase<E>
       }
     }
     if (matchFound) return match;
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   String join([String separator = ""]) {
@@ -175,7 +175,7 @@ abstract class ListIterable<E> extends IterableBase<E>
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
   E reduce(E combine(var value, E element)) {
-    if (length == 0) throw new StateError("No elements");
+    if (length == 0) throw IterableElementError.noElement();
     E value = elementAt(0);
     for (int i = 1; i < length; i++) {
       value = combine(value, elementAt(i));
@@ -661,11 +661,11 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   int get length => 0;
 
-  E get first { throw new StateError("No elements"); }
+  E get first { throw IterableElementError.noElement(); }
 
-  E get last { throw new StateError("No elements"); }
+  E get last { throw IterableElementError.noElement(); }
 
-  E get single { throw new StateError("No elements"); }
+  E get single { throw IterableElementError.noElement(); }
 
   E elementAt(int index) { throw new RangeError.value(index); }
 
@@ -677,17 +677,17 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   E firstWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E lastWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E singleWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   String join([String separator = ""]) => "";
@@ -697,7 +697,7 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
   Iterable map(f(E element)) => const EmptyIterable();
 
   E reduce(E combine(E value, E element)) {
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   fold(var initialValue, combine(var previousValue, E element)) {
@@ -774,7 +774,7 @@ class IterableMixinWorkaround {
   static dynamic reduce(Iterable iterable,
                         dynamic combine(previousValue, element)) {
     Iterator iterator = iterable.iterator;
-    if (!iterator.moveNext()) throw new StateError("No elements");
+    if (!iterator.moveNext()) throw IterableElementError.noElement();
     var value = iterator.current;
     while (iterator.moveNext()) {
       value = combine(value, iterator.current);
@@ -824,7 +824,7 @@ class IterableMixinWorkaround {
   static dynamic first(Iterable iterable) {
     Iterator it = iterable.iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     return it.current;
   }
@@ -832,7 +832,7 @@ class IterableMixinWorkaround {
   static dynamic last(Iterable iterable) {
     Iterator it = iterable.iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     dynamic result;
     do {
@@ -843,9 +843,9 @@ class IterableMixinWorkaround {
 
   static dynamic single(Iterable iterable) {
     Iterator it = iterable.iterator;
-    if (!it.moveNext()) throw new StateError("No elements");
+    if (!it.moveNext()) throw IterableElementError.noElement();
     dynamic result = it.current;
-    if (it.moveNext()) throw new StateError("More than one element");
+    if (it.moveNext()) throw IterableElementError.tooMany();
     return result;
   }
 
@@ -856,7 +856,7 @@ class IterableMixinWorkaround {
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   static dynamic lastWhere(Iterable iterable,
@@ -872,7 +872,7 @@ class IterableMixinWorkaround {
     }
     if (foundMatching) return result;
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   static dynamic lastWhereList(List list,
@@ -884,7 +884,7 @@ class IterableMixinWorkaround {
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   static dynamic singleWhere(Iterable iterable, bool test(dynamic value)) {
@@ -893,14 +893,14 @@ class IterableMixinWorkaround {
     for (dynamic element in iterable) {
       if (test(element)) {
         if (foundMatching) {
-          throw new StateError("More than one matching element");
+          throw IterableElementError.tooMany();
         }
         result = element;
         foundMatching = true;
       }
     }
     if (foundMatching) return result;
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   static dynamic elementAt(Iterable iterable, int index) {
@@ -1058,7 +1058,7 @@ class IterableMixinWorkaround {
       otherStart = 0;
     }
     if (otherStart + length > otherList.length) {
-      throw new StateError("Not enough elements");
+      throw IterableElementError.tooFew();
     }
     Lists.copy(otherList, otherStart, list, start, length);
   }
@@ -1164,4 +1164,16 @@ class IterableMixinWorkaround {
     }
     return result;
   }
+}
+
+/**
+ * Creates errors throw by [Iterable] when the element count is wrong.
+ */
+abstract class IterableElementError {
+  /** Error thrown thrown by, e.g., [Iterable.first] when there is no result. */
+  static StateError noElement() => new StateError("No element");
+  /** Error thrown by, e.g., [Iterable.single] if there are too many results. */
+  static StateError tooMany() => new StateError("Too many elements");
+  /** Error thrown by, e.g., [List.setRange] if there are too few elements. */
+  static StateError tooFew() => new StateError("Too few elements");
 }

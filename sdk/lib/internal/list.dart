@@ -307,6 +307,49 @@ class ReversedListIterable<E> extends ListIterable<E> {
 }
 
 /**
+ * Creates errors thrown by unmodifiable lists when they are attempted modified.
+ *
+ * This class creates [UnsupportedError]s with specialized messages.
+ */
+abstract class UnmodifiableListError {
+  /** Error thrown when trying to add elements to an unmodifiable list. */
+  static UnsupportedError add()
+      => new UnsupportedError("Cannot add to unmodifiable List");
+
+  /** Error thrown when trying to add elements to an unmodifiable list. */
+  static UnsupportedError change()
+      => new UnsupportedError(
+             "Cannot change the content of an unmodifiable List");
+
+  /** Error thrown when trying to change the length of an unmodifiable list. */
+  static UnsupportedError length()
+      => new UnsupportedError("Cannot change length of unmodifiable List");
+
+  /** Error thrown when trying to remove elements from an unmodifiable list. */
+  static UnsupportedError remove()
+      => new UnsupportedError("Cannot remove from unmodifiable List");
+}
+
+/**
+ * Creates errors thrown by non-growable lists when they are attempted modified.
+ *
+ * This class creates [UnsupportedError]s with specialized messages.
+ */
+abstract class NonGrowableListError {
+  /** Error thrown when trying to add elements to an non-growable list. */
+  static UnsupportedError add()
+      => new UnsupportedError("Cannot add to non-growable List");
+
+  /** Error thrown when trying to change the length of an non-growable list. */
+  static UnsupportedError length()
+      => new UnsupportedError("Cannot change length of non-growable List");
+
+  /** Error thrown when trying to remove elements from an non-growable list. */
+  static UnsupportedError remove()
+      => new UnsupportedError("Cannot remove from non-growable List");
+}
+
+/**
  * Converts a growable list to a fixed length list with the same elements.
  *
  * For internal use only.
