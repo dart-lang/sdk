@@ -279,6 +279,7 @@ class ObjectPointerVisitor;
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
+  V(DartNativeWrappersLibName, "dart.nativewrappers")                          \
   V(DartAsync, "dart:async")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \

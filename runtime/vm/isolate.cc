@@ -968,6 +968,19 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     typeargsRef.AddProperty("id", "typearguments");
     typeargsRef.AddProperty("name", "canonical type arguments");
   }
+  {
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(object_store()->libraries());
+    intptr_t num_libs = libs.Length();
+    Library &lib = Library::Handle();
+
+    JSONArray lib_array(&jsobj, "libraries");
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      lib_array.AddValue(lib);
+    }
+  }
 }
 
 

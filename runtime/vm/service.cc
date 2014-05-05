@@ -1299,7 +1299,7 @@ static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
   JSONArray members(&jsobj, "members");
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  int num_libs = libs.Length();
+  intptr_t num_libs = libs.Length();
   Library &lib = Library::Handle();
   Script& script = Script::Handle();
   for (intptr_t i = 0; i < num_libs; i++) {

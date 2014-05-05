@@ -107,82 +107,101 @@
 
     <br>
 
-    <div class="content">
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">root library</div>
-          <div class="memberValue">
-            <function-ref ref="{{ isolate.rootLib }}"></function-ref>
-          </div>
-        </div>
-        <div class="memberItem">
-          <template if="{{ isolate.entry != null }}">
-            <div class="memberName">entry</div>
-            <div class="memberValue">
-              <function-ref ref="{{ isolate.entry }}"></function-ref>
-            </div>
-          </template>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">id</div>
-          <div class="memberValue">{{ isolate.mainPort }}</div>
-        </div>
-        <br>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+    <div class="content-centered">
+      <div class="flex-row">
 
+        <div class="flex-item-fixed-6-12">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">root library</div>
+              <div class="memberValue">
+                <library-ref ref="{{ isolate.rootLib }}"></library-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <template if="{{ isolate.entry != null }}">
+                <div class="memberName">entry</div>
+                <div class="memberValue">
+                  <function-ref ref="{{ isolate.entry }}"></function-ref>
+                </div>
+              </template>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">id</div>
+              <div class="memberValue">{{ isolate.mainPort }}</div>
+            </div>
+            <br>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="flex-item-fixed-6-12">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">new heap</div>
+              <div class="memberValue">
+                {{ isolate.newHeapUsed | formatSize }}
+                of
+                {{ isolate.newHeapCapacity | formatSize }}
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">old heap</div>
+              <div class="memberValue">
+                {{ isolate.oldHeapUsed | formatSize }}
+                of
+                {{ isolate.oldHeapCapacity | formatSize }}
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- flex row -->
+    </div> <!-- content -->
 
     <hr>
 
     <div class="content">
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">new heap</div>
-          <div class="memberValue">
-            {{ isolate.newHeapUsed | formatSize }}
-            of
-            {{ isolate.newHeapCapacity | formatSize }}
-          </div>
+      libraries ({{ isolate.libraries.length }})
+      <curly-block>
+        <div class="memberList">
+          <template repeat="{{ lib in isolate.libraries }}">
+            <div class="memberItem">
+              <div class="memberName">
+                <library-ref ref="{{ lib }}"></library-ref>
+              </div>
+            </div>
+          </template>
         </div>
-        <div class="memberItem">
-          <div class="memberName">old heap</div>
-          <div class="memberValue">
-            {{ isolate.oldHeapUsed | formatSize }}
-            of
-            {{ isolate.oldHeapCapacity | formatSize }}
-          </div>
-        </div>
-      </div>
-
-      <br>
-
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-          </div>
-        </div>
-      </div>
+      </curly-block>
     </div>
 
     <hr>

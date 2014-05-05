@@ -9116,6 +9116,8 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   const String& native_flds_lib_url = Symbols::DartNativeWrappers();
   const Library& native_flds_lib = Library::Handle(
       Library::NewLibraryHelper(native_flds_lib_url, false));
+  const String& native_flds_lib_name = Symbols::DartNativeWrappersLibName();
+  native_flds_lib.SetName(native_flds_lib_name);
   native_flds_lib.Register();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
   static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";

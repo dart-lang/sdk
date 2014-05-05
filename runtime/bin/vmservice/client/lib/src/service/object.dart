@@ -577,6 +577,8 @@ class Isolate extends ServiceObjectOwner {
   }
 
   @observable ServiceMap rootLib;
+  @observable ObservableList<ServiceMap> libraries =
+      new ObservableList<ServiceMap>();
   @observable ObservableMap topFrame;
 
   @observable String name;
@@ -667,6 +669,12 @@ class Isolate extends ServiceObjectOwner {
     running = map['topFrame'] != null;
     idle = !pausedOnStart && !pausedOnExit && !running;
     error = map['error'];
+
+    libraries.clear();
+    for (var lib in map['libraries']) {
+      libraries.add(lib);
+    }
+    libraries.sort((a,b) => a.name.compareTo(b.name));
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -852,7 +860,6 @@ class ScriptLine {
 class Script extends ServiceObject {
   @reflectable final lines = new ObservableList<ScriptLine>();
   @reflectable final hits = new ObservableMap<int, int>();
-  @observable ServiceObject library;
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
