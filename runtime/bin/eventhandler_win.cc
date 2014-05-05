@@ -332,13 +332,30 @@ bool Handle::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
 }
 
 
+static void HandleClosed(Handle* handle) {
+  if (!handle->IsClosing()) {
+    int event_mask = 1 << kCloseEvent;
+    DartUtils::PostInt32(handle->port(), event_mask);
+  }
+}
+
+
+static void HandleError(Handle* handle) {
+  handle->set_last_error(WSAGetLastError());
+  handle->MarkError();
+  if (!handle->IsClosing()) {
+    int event_mask = 1 << kErrorEvent;
+    DartUtils::PostInt32(handle->port(), event_mask);
+  }
+}
+
+
 void Handle::HandleIssueError() {
   DWORD error = GetLastError();
-  ASSERT(event_handler_ != NULL);
   if (error == ERROR_BROKEN_PIPE) {
-    event_handler_->HandleClosed(this);
+    HandleClosed(this);
   } else {
-    event_handler_->HandleError(this);
+    HandleError(this);
   }
   SetLastError(error);
 }
@@ -400,11 +417,10 @@ bool DirectoryWatchHandle::IssueRead() {
 
 void SocketHandle::HandleIssueError() {
   int error = WSAGetLastError();
-  ASSERT(event_handler_ != NULL);
   if (error == WSAECONNRESET) {
-    event_handler_->HandleClosed(this);
+    HandleClosed(this);
   } else {
-    event_handler_->HandleError(this);
+    HandleError(this);
   }
   WSASetLastError(error);
 }
@@ -547,7 +563,7 @@ ClientSocket* ListenSocket::Accept() {
   if (!IsClosing()) {
     while (pending_accept_count() < 5) {
       if (!IssueAccept()) {
-        event_handler_->HandleError(this);
+        HandleError(this);
       }
     }
   }
@@ -1079,24 +1095,6 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
   }
 
   DeleteIfClosed(listen_socket);
-}
-
-
-void EventHandlerImplementation::HandleClosed(Handle* handle) {
-  if (!handle->IsClosing()) {
-    int event_mask = 1 << kCloseEvent;
-    DartUtils::PostInt32(handle->port(), event_mask);
-  }
-}
-
-
-void EventHandlerImplementation::HandleError(Handle* handle) {
-  handle->set_last_error(WSAGetLastError());
-  handle->MarkError();
-  if (!handle->IsClosing()) {
-    int event_mask = 1 << kErrorEvent;
-    DartUtils::PostInt32(handle->port(), event_mask);
-  }
 }
 
 

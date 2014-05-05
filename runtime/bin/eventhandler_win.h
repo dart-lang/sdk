@@ -511,8 +511,6 @@ class EventHandlerImplementation {
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, OverlappedBuffer* buffer);
-  void HandleClosed(Handle* handle);
-  void HandleError(Handle* handle);
   void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleRecvFrom(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);
