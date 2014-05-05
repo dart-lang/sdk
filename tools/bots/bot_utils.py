@@ -264,8 +264,9 @@ class GSUtil(object):
     else:
       gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
-    run(gsutil_command + gsutil_args, env=env,
-        shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and sys.platform == 'win32'))
+    return run(gsutil_command + gsutil_args, env=env,
+               shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and
+                      sys.platform == 'win32'))
 
   def upload(self, local_path, remote_path, recursive=False, public=False):
     assert remote_path.startswith('gs://')
@@ -277,6 +278,13 @@ class GSUtil(object):
       args += ['-R']
     args += [local_path, remote_path]
     self.execute(args)
+
+  def cat(self, remote_path):
+    assert remote_path.startswith('gs://')
+
+    args = ['cat', remote_path]
+    (stdout, _, _) = self.execute(args)
+    return stdout
 
   def setGroupReadACL(self, remote_path, group):
     args = ['acl', 'ch', '-g', '%s:R' % group, remote_path]
