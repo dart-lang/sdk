@@ -14,6 +14,7 @@ import '../ir/ir_nodes.dart' as ir;
 import 'dart_tree.dart' as tree;
 import '../util/util.dart';
 import '../mirror_renamer/mirror_renamer.dart';
+import 'dart_codegen.dart' as dart_codegen;
 
 import '../scanner/scannerlib.dart' show StringToken,
                                          Keyword,
