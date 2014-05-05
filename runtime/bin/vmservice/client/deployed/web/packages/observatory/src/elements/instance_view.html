@@ -52,6 +52,12 @@
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
           </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
+          </div>
           <template if="{{ instance['type_class'] != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>

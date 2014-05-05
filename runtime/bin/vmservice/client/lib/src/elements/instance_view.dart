@@ -20,6 +20,11 @@ class InstanceViewElement extends ObservatoryElement {
         instance.id + "/eval?expr=${Uri.encodeComponent(text)}");
   }
 
+  // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
+  Future<ServiceObject> retainedSize(String dummy) {
+    return instance.isolate.get(instance.id + "/retained");
+  }
+
   void refresh(var done) {
     instance.reload().whenComplete(done);
   }

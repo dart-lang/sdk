@@ -7,8 +7,8 @@
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script src="packages/browser/interop.js"></script>
   
-  <script src="index_devtools.html_bootstrap.dart.js"></script>
-  
+  <script type="application/dart" src="index_devtools.html_bootstrap.dart"></script>
+  <script src="packages/browser/dart.js"></script>
 </head>
 <body><polymer-element name="observatory-element">
   
@@ -1422,6 +1422,12 @@
           <div class="memberItem">
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
           </div>
           <template if="{{ instance['type_class'] != null }}">
             <div class="memberItem">

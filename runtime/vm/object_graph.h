@@ -61,6 +61,12 @@ class ObjectGraph {
   // (including 'root' itself).
   void IterateObjectsFrom(const Object& root, Visitor* visitor);
 
+  // The number of bytes retained by 'obj'.
+  intptr_t SizeRetainedByInstance(const Object& obj);
+
+  // The number of bytes retained by the set of all objects of the given class.
+  intptr_t SizeRetainedByClass(intptr_t class_id);
+
  private:
   Isolate* isolate_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);

@@ -360,9 +360,14 @@ TEST_CASE(Service_Objects) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   ObjectIdRing* ring = isolate->object_id_ring();
-  const String& str = String::Handle(String::New("value"));
-  intptr_t str_id = ring->GetIdForObject(str.raw());
-  Dart_Handle valid_id = Dart_NewInteger(str_id);
+  const Array& arr = Array::Handle(Array::New(1, Heap::kOld));
+  {
+    HANDLESCOPE(isolate);
+    const String& str = String::Handle(String::New("value", Heap::kOld));
+    arr.SetAt(0, str);
+  }
+  intptr_t arr_id = ring->GetIdForObject(arr.raw());
+  Dart_Handle valid_id = Dart_NewInteger(arr_id);
   EXPECT_VALID(valid_id);
   EXPECT_VALID(Dart_SetField(lib, NewString("validId"), valid_id));
 
@@ -461,10 +466,15 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("size");
   handler.filterMsg("id");
   EXPECT_STREQ(
-      "{\"type\":\"String\","
-      "\"class\":{\"type\":\"@Class\","
-      "\"user_name\":\"_OneByteString\"},\"fields\":[],"
-      "\"valueAsString\":\"\\\"value\\\"\"}",
+      "{\"type\":\"Array\","
+      "\"class\":{\"type\":\"@Class\",\"user_name\":\"_List\"},"
+      "\"fields\":[],"
+      "\"length\":1,"
+      "\"elements\":[{"
+          "\"index\":0,"
+          "\"value\":{\"type\":\"@String\","
+          "\"class\":{\"type\":\"@Class\",\"user_name\":\"_OneByteString\"},"
+          "\"valueAsString\":\"\\\"value\\\"\"}}]}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -542,6 +552,16 @@ TEST_CASE(Service_Objects) {
       "\"request\":{\"arguments\":[\"objects\",\"int-123\",\"eval\",\"foo\"],"
       "\"option_keys\":[\"expr\"],\"option_values\":[\"this+99\"]}}",
       handler.msg());
+
+  // Retained by single instance.
+  service_msg = Eval(lib,
+                     "[port, ['objects', '$validId', 'retained'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"objects\\/int-%" Pd "\"",
+                   arr.raw()->Size() + arr.At(0)->Size());
 }
 
 

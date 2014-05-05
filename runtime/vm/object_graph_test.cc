@@ -53,8 +53,10 @@ TEST_CASE(ObjectGraph) {
   b.SetAt(0, c);
   b.SetAt(1, d);
   a.SetAt(1, d);
+  intptr_t a_size = a.raw()->Size();
   intptr_t b_size = b.raw()->Size();
   intptr_t c_size = c.raw()->Size();
+  intptr_t d_size = d.raw()->Size();
   {
     // No more allocation; raw pointers ahead.
     NoGCScope no_gc_scope;
@@ -86,6 +88,8 @@ TEST_CASE(ObjectGraph) {
       EXPECT_EQ(b_size + c_size,
                 with.size() - without.size());
     }
+    EXPECT_EQ(a_size + b_size + c_size + d_size,
+              graph.SizeRetainedByInstance(a));
   }
 }
 

@@ -146,4 +146,64 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
   Unmarker::UnmarkAll(isolate_);
 }
 
+
+class SizeVisitor : public ObjectGraph::Visitor {
+ public:
+  SizeVisitor() : size_(0) { }
+  intptr_t size() const { return size_; }
+  virtual bool ShouldSkip(RawObject* obj) const { return false; }
+  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
+    RawObject* obj = it->Get();
+    if (ShouldSkip(obj)) {
+      return kBacktrack;
+    }
+    size_ += obj->Size();
+    return kProceed;
+  }
+ private:
+  intptr_t size_;
+};
+
+
+class SizeExcludingObjectVisitor : public SizeVisitor {
+ public:
+  explicit SizeExcludingObjectVisitor(const Object& skip) : skip_(skip) { }
+  virtual bool ShouldSkip(RawObject* obj) const { return obj == skip_.raw(); }
+ private:
+  const Object& skip_;
+};
+
+
+class SizeExcludingClassVisitor : public SizeVisitor {
+ public:
+  explicit SizeExcludingClassVisitor(intptr_t skip) : skip_(skip) { }
+  virtual bool ShouldSkip(RawObject* obj) const {
+    return obj->GetClassId() == skip_;
+  }
+ private:
+  const intptr_t skip_;
+};
+
+
+intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
+  SizeVisitor total;
+  IterateObjects(&total);
+  intptr_t size_total = total.size();
+  SizeExcludingObjectVisitor excluding_obj(obj);
+  IterateObjects(&excluding_obj);
+  intptr_t size_excluding_obj = excluding_obj.size();
+  return size_total - size_excluding_obj;
+}
+
+
+intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
+  SizeVisitor total;
+  IterateObjects(&total);
+  intptr_t size_total = total.size();
+  SizeExcludingClassVisitor excluding_class(class_id);
+  IterateObjects(&excluding_class);
+  intptr_t size_excluding_class = excluding_class.size();
+  return size_total - size_excluding_class;
+}
+
 }  // namespace dart

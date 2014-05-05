@@ -19,6 +19,7 @@
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -886,6 +887,12 @@ static bool HandleInstanceCommands(Isolate* isolate,
         Object::Handle(instance.Evaluate(expr_str,
                                          Array::empty_array(),
                                          Array::empty_array()));
+    result.PrintJSON(js, true);
+    return true;
+  } else if (strcmp(action, "retained") == 0) {
+    ObjectGraph graph(isolate);
+    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+    const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
     return true;
   }
