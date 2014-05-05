@@ -4801,37 +4801,38 @@ class SsaBuilder extends ResolvedVisitor {
     }
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
-      FunctionElement element = elements[node.expression].implementation;
-      FunctionElement function = sourceElement;
+      FunctionElement targetConstructor =
+          elements[node.expression].implementation;
+      FunctionElement redirectingConstructor = sourceElement;
       List<HInstruction> inputs = <HInstruction>[];
-      FunctionSignature calleeSignature = element.functionSignature;
-      FunctionSignature callerSignature = function.functionSignature;
-      callerSignature.forEachRequiredParameter((Element element) {
+      FunctionSignature targetSignature = targetConstructor.functionSignature;
+      FunctionSignature redirectingSignature =
+          redirectingConstructor.functionSignature;
+      redirectingSignature.forEachRequiredParameter((Element element) {
         inputs.add(localsHandler.readLocal(element));
       });
-      List<Element> calleeOptionals =
-          calleeSignature.orderedOptionalParameters;
-      List<Element> callerOptionals =
-          callerSignature.orderedOptionalParameters;
+      List<Element> targetOptionals =
+          targetSignature.orderedOptionalParameters;
+      List<Element> redirectingOptionals =
+          redirectingSignature.orderedOptionalParameters;
       int i = 0;
-      for (; i < callerOptionals.length; i++) {
-        inputs.add(localsHandler.readLocal(callerOptionals[i]));
+      for (; i < redirectingOptionals.length; i++) {
+        inputs.add(localsHandler.readLocal(redirectingOptionals[i]));
       }
-      for (; i < calleeOptionals.length; i++) {
-        inputs.add(handleConstantForOptionalParameter(calleeOptionals[i]));
+      for (; i < targetOptionals.length; i++) {
+        inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
       }
 
-      if (backend.classNeedsRti(element.getEnclosingClass())) {
-        ClassElement cls = function.getEnclosingClass();
-        Link<DartType> typeVariable = cls.typeVariables;
-        InterfaceType type = elements.getType(node.expression);
-        type.typeArguments.forEach((DartType argument) {
+      ClassElement targetClass = targetConstructor.getEnclosingClass();
+      if (backend.classNeedsRti(targetClass)) {
+        ClassElement cls = redirectingConstructor.getEnclosingClass();
+        InterfaceType targetType =
+            redirectingConstructor.computeTargetType(cls.thisType);
+        targetType.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument));
-          typeVariable = typeVariable.tail;
         });
-        assert(typeVariable.isEmpty);
       }
-      pushInvokeStatic(node, element, inputs);
+      pushInvokeStatic(node, targetConstructor, inputs);
       value = pop();
     } else if (node.expression == null) {
       value = graph.addConstantNull(compiler);
