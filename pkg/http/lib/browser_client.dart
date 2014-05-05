@@ -6,7 +6,6 @@ library http.browser_client;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:typed_data';
 
 import 'package:stack_trace/stack_trace.dart';
 
@@ -66,7 +65,7 @@ class BrowserClient extends BaseClient {
         });
 
         reader.onError.first.then((error) {
-          completer.complete(
+          completer.completeError(
               new ClientException(error.toString(), request.url),
               new Chain.current());
         });

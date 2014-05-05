@@ -1,3 +1,8 @@
+## 0.11.0+1
+
+* Fix a bug in handling errors in decoding XMLHttpRequest responses for
+  `BrowserClient`.
+
 ## 0.11.0
 
 * The package no longer depends on `dart:io`. The `BrowserClient` class in
