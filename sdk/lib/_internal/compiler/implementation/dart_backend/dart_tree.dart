@@ -268,7 +268,7 @@ class Builder extends ir.Visitor<Expression> {
     // TODO(kmillikin): Allow continuations to have multiple uses.  This could
     // arise due to the representation of local control flow or due to
     // optimization.
-    assert(node.continuation.hasAtMostOneUse);
+    if (!node.continuation.hasAtMostOneUse) return bailout();
     return visit(node.body);
   }
 
@@ -297,7 +297,7 @@ class Builder extends ir.Visitor<Expression> {
   Expression visitInvokeContinuation(ir.InvokeContinuation node) {
     // TODO(kmillikin): Support non-return continuations.  These could arise
     // due to local control flow or due to inlining or other optimization.
-    assert(node.continuation.definition == returnContinuation);
+    if (node.continuation.definition != returnContinuation) return bailout();
     assert(node.arguments.length == 1);
     return new Return(variables[node.arguments[0].definition]);
   }
