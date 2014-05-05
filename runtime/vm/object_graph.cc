@@ -113,37 +113,38 @@ class Unmarker : public ObjectVisitor {
 };
 
 
-ObjectGraph::ObjectGraph(Isolate* isolate) : isolate_(isolate) {
+ObjectGraph::ObjectGraph(Isolate* isolate)
+    : StackResource(isolate) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
-  ASSERT(isolate_ != Dart::vm_isolate());
-  isolate_->heap()->WriteProtectCode(false);
+  ASSERT(isolate != Dart::vm_isolate());
+  isolate->heap()->WriteProtectCode(false);
 }
 
 
 ObjectGraph::~ObjectGraph() {
-  isolate_->heap()->WriteProtectCode(true);
+  isolate()->heap()->WriteProtectCode(true);
 }
 
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoGCScope no_gc_scope_;
-  Stack stack(isolate_);
-  isolate_->VisitObjectPointers(&stack, false, false);
+  Stack stack(isolate());
+  isolate()->VisitObjectPointers(&stack, false, false);
   stack.TraverseGraph(visitor);
-  Unmarker::UnmarkAll(isolate_);
+  Unmarker::UnmarkAll(isolate());
 }
 
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
   NoGCScope no_gc_scope_;
-  Stack stack(isolate_);
+  Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
   stack.TraverseGraph(visitor);
   // TODO(koda): Optimize if we only visited a small subgraph.
-  Unmarker::UnmarkAll(isolate_);
+  Unmarker::UnmarkAll(isolate());
 }
 
 

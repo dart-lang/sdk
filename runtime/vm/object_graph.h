@@ -5,6 +5,7 @@
 #ifndef VM_OBJECT_GRAPH_H_
 #define VM_OBJECT_GRAPH_H_
 
+#include "vm/allocation.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -15,7 +16,7 @@ class Isolate;
 // Example uses:
 // - find a retaining path from the isolate roots to a particular object, or
 // - determine how much memory is retained by some particular object(s).
-class ObjectGraph {
+class ObjectGraph : public StackResource {
  public:
   class Stack;
 
@@ -45,11 +46,11 @@ class ObjectGraph {
     };
     virtual ~Visitor() { }
     // Visits the object pointed to by *it. The iterator is only valid
-    // during this call. This method must not allocate from the heap.
+    // during this call. This method must not allocate from the heap or
+    // trigger GC in any way.
     virtual Direction VisitObject(StackIterator* it) = 0;
   };
 
-  // No GC is allowed during the lifetime of an ObjectGraph instance.
   explicit ObjectGraph(Isolate* isolate);
   ~ObjectGraph();
 
@@ -68,7 +69,6 @@ class ObjectGraph {
   intptr_t SizeRetainedByClass(intptr_t class_id);
 
  private:
-  Isolate* isolate_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };
 
