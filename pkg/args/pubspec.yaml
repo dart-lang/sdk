@@ -1,5 +1,5 @@
 name: args
-version: 0.10.0+2
+version: 0.11.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/args
@@ -10,6 +10,6 @@ description: >
 dependencies:
   collection: ">=0.9.0 <0.10.0"
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
+  unittest: ">=0.9.0 <0.11.0"
 environment:
   sdk: ">=1.0.0 <2.0.0"

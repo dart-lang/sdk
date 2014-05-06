@@ -286,15 +286,32 @@ class ArgParser {
    */
   final Map<String, ArgParser> commands;
 
-  /** Creates a new ArgParser. */
-  factory ArgParser() =>
-      new ArgParser._(<String, Option>{}, <String, ArgParser>{});
+  /**
+   * Whether or not this parser parses options that appear after non-option
+   * arguments.
+   */
+  final bool allowTrailingOptions;
 
-  ArgParser._(Map<String, Option> options, Map<String, ArgParser> commands) :
+  /**
+   * Creates a new ArgParser.
+   *
+   * If [allowTrailingOptions] is set, the parser will continue parsing even
+   * after it finds an argument that is neither an option nor a command.
+   * This allows options to be specified after regular arguments. Defaults to
+   * `false`.
+   */
+  factory ArgParser({bool allowTrailingOptions}) =>
+      new ArgParser._(<String, Option>{}, <String, ArgParser>{},
+          allowTrailingOptions: allowTrailingOptions);
+
+  ArgParser._(Map<String, Option> options, Map<String, ArgParser> commands,
+      {bool allowTrailingOptions}) :
     this._options = options,
     this.options = new UnmodifiableMapView(options),
     this._commands = commands,
-    this.commands = new UnmodifiableMapView(commands);
+    this.commands = new UnmodifiableMapView(commands),
+    this.allowTrailingOptions = allowTrailingOptions != null ?
+        allowTrailingOptions : false;
 
   /**
    * Defines a command.
@@ -366,20 +383,9 @@ class ArgParser {
   /**
    * Parses [args], a list of command-line arguments, matches them against the
    * flags and options defined by this parser, and returns the result.
-   *
-   * If [allowTrailingOptions] is set, the parser will continue parsing even
-   * after it finds an argument that is neither an option nor a command.
-   * This allows options to be specified after regular arguments.
-   *
-   * [allowTrailingOptions] is false by default, so when a non-option,
-   * non-command argument is encountered, it and all remaining arguments,
-   * even those that look like options are passed to the innermost command.
    */
-  ArgResults parse(List<String> args, {bool allowTrailingOptions}) {
-    if (allowTrailingOptions == null) allowTrailingOptions = false;
-    return new Parser(null, this, args.toList(), null, null,
-        allowTrailingOptions: allowTrailingOptions).parse();
-  }
+  ArgResults parse(List<String> args) =>
+      new Parser(null, this, args.toList(), null, null).parse();
 
   /**
    * Generates a string displaying usage information for the defined options.

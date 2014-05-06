@@ -129,12 +129,17 @@ abstract class PubCommand {
   /// only needs to be set in leaf commands.
   bool get takesArguments => false;
 
+  /// Override this and return `false` to disallow trailing options from being
+  /// parsed after a non-option argument is parsed.
+  bool get allowTrailingOptions => true;
+
   /// Alternate names for this command. These names won't be used in the
   /// documentation, but they will work when invoked on the command line.
   final aliases = const <String>[];
 
   /// The [ArgParser] for this command.
-  final commandParser = new ArgParser();
+  ArgParser get commandParser => _commandParser;
+  ArgParser _commandParser;
 
   /// Subcommands exposed by this command.
   ///
@@ -150,6 +155,8 @@ abstract class PubCommand {
   bool get isOffline => false;
 
   PubCommand() {
+    _commandParser = new ArgParser(allowTrailingOptions: allowTrailingOptions);
+
     // Allow "--help" after a command to get command help.
     commandParser.addFlag('help', abbr: 'h', negatable: false,
         help: 'Print usage information for this command.');
@@ -263,7 +270,7 @@ _initCommands() {
 
 /// Creates the top-level [ArgParser] used to parse the pub command line.
 ArgParser _initArgParser() {
-  var argParser = new ArgParser();
+  var argParser = new ArgParser(allowTrailingOptions: true);
 
   // Add the global options.
   argParser.addFlag('help', abbr: 'h', negatable: false,

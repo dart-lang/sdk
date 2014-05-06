@@ -28,9 +28,6 @@ class Parser {
    */
   final Parser parent;
 
-  /** If `true`, parsing will continue after a non-option argument. */
-  final bool allowTrailingOptions;
-
   /** The grammar being parsed. */
   final ArgParser grammar;
 
@@ -43,8 +40,7 @@ class Parser {
   /** The accumulated parsed options. */
   final Map<String, dynamic> results = <String, dynamic>{};
 
-  Parser(this.commandName, this.grammar, this.args, this.parent, rest,
-      {this.allowTrailingOptions: false}) {
+  Parser(this.commandName, this.grammar, this.args, this.parent, rest) {
     if (rest != null) this.rest.addAll(rest);
   }
 
@@ -79,8 +75,7 @@ class Parser {
       if (command != null) {
         validate(rest.isEmpty, 'Cannot specify arguments before a command.');
         var commandName = args.removeAt(0);
-        var commandParser = new Parser(commandName, command, args, this, rest,
-            allowTrailingOptions: allowTrailingOptions);
+        var commandParser = new Parser(commandName, command, args, this, rest);
         commandResults = commandParser.parse();
 
         // All remaining arguments were passed to command so clear them here.
@@ -96,7 +91,7 @@ class Parser {
 
       // This argument is neither option nor command, so stop parsing unless
       // the [allowTrailingOptions] option is set.
-      if (!allowTrailingOptions) break;
+      if (!grammar.allowTrailingOptions) break;
       rest.add(args.removeAt(0));
     }
 

@@ -53,6 +53,15 @@ void main() {
 
         throwsFormat(parser, ['--verbose=true']);
       });
+
+      test('are case-sensitive', () {
+        var parser = new ArgParser();
+        parser.addFlag('verbose');
+        parser.addFlag('Verbose');
+        var results = parser.parse(['--verbose']);
+        expect(results['verbose'], isTrue);
+        expect(results['Verbose'], isFalse);
+      });
     });
 
     group('flags negated with "no-"', () {
@@ -295,6 +304,15 @@ void main() {
         // The '?!' means this can only be understood as '--apple b?!c'.
         throwsFormat(parser, ['-ab?!c']);
       });
+
+      test('are case-sensitive', () {
+        var parser = new ArgParser();
+        parser.addFlag('file', abbr: 'f');
+        parser.addFlag('force', abbr: 'F');
+        var results = parser.parse(['-f']);
+        expect(results['file'], isTrue);
+        expect(results['force'], isFalse);
+      });
     });
 
     group('options', () {
@@ -384,6 +402,15 @@ void main() {
         var args = parser.parse(['']);
         expect(args['define'], equals(['0']));
       });
+
+      test('are case-sensitive', () {
+        var parser = new ArgParser();
+        parser.addOption('verbose', defaultsTo: 'no');
+        parser.addOption('Verbose', defaultsTo: 'no');
+        var results = parser.parse(['--verbose', 'chatty']);
+        expect(results['verbose'], equals('chatty'));
+        expect(results['Verbose'], equals('no'));
+      });
     });
 
     group('remaining args', () {
@@ -397,10 +424,10 @@ void main() {
         expect(results['woof'], isTrue);
         expect(results['meow'], equals('v'));
         expect(results['tweet'], equals('bird'));
-        expect(results.rest, orderedEquals(['not', 'option']));
+        expect(results.rest, equals(['not', 'option']));
       });
 
-      test('stops parsing at "--"', () {
+      test('consumes "--" and stops', () {
         var parser = new ArgParser();
         parser.addFlag('woof', defaultsTo: false);
         parser.addOption('meow', defaultsTo: 'kitty');
@@ -408,16 +435,16 @@ void main() {
         var results = parser.parse(['--woof', '--', '--meow']);
         expect(results['woof'], isTrue);
         expect(results['meow'], equals('kitty'));
-        expect(results.rest, orderedEquals(['--meow']));
+        expect(results.rest, equals(['--meow']));
       });
 
-      test('handles options with case-sensitivity', () {
+      test('leaves "--" if not the first non-option', () {
         var parser = new ArgParser();
-        parser.addFlag('recurse', defaultsTo: false, abbr:'R');
-        var results = parser.parse(['-R']);
-        expect(results['recurse'], isTrue);
-        expect(results.rest, [ ]);
-        throwsFormat(parser, ['-r']);
+        parser.addFlag('woof');
+
+        var results = parser.parse(['--woof', 'stop', '--', 'arg']);
+        expect(results['woof'], isTrue);
+        expect(results.rest, equals(['stop', '--', 'arg']));
       });
     });
   });
