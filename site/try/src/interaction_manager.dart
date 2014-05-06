@@ -55,7 +55,8 @@ import 'compilation_unit.dart' show
     CompilationUnit;
 
 import 'selection.dart' show
-    TrySelection;
+    TrySelection,
+    isCollapsed;
 
 import 'editor.dart' as editor;
 
@@ -229,7 +230,7 @@ class InitialState extends InteractionState {
       case KeyCode.ENTER: {
         event.preventDefault();
         Selection selection = window.getSelection();
-        if (selection.isCollapsed && selection.anchorNode is Text) {
+        if (isCollapsed(selection) && selection.anchorNode is Text) {
           Text text = selection.anchorNode;
           int offset = selection.anchorOffset;
           text.insertData(offset, '\n');

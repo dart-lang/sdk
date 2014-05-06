@@ -177,7 +177,7 @@ buildUI() {
       ..appendText('Save');
 
   cacheStatusElement = document.getElementById('appcache-status');
-  updateCacheStatus();
+  updateCacheStatus(null);
 
   var section = document.querySelector('article[class="homepage"]>section');
 

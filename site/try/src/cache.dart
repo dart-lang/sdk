@@ -20,21 +20,30 @@ import 'ui.dart' show
 
 /// Called when the window has finished loading.
 void onLoad(Event event) {
-  window.applicationCache.onUpdateReady.listen((_) => updateCacheStatus());
-  window.applicationCache.onCached.listen((_) => updateCacheStatus());
-  window.applicationCache.onChecking.listen((_) => updateCacheStatus());
-  window.applicationCache.onDownloading.listen((_) => updateCacheStatus());
-  window.applicationCache.onError.listen((_) => updateCacheStatus());
-  window.applicationCache.onNoUpdate.listen((_) => updateCacheStatus());
-  window.applicationCache.onObsolete.listen((_) => updateCacheStatus());
+  if (!ApplicationCache.supported) return;
+  window.applicationCache.onUpdateReady.listen(updateCacheStatus);
+  window.applicationCache.onCached.listen(updateCacheStatus);
+  window.applicationCache.onChecking.listen(updateCacheStatus);
+  window.applicationCache.onDownloading.listen(updateCacheStatus);
+  window.applicationCache.onError.listen(updateCacheStatus);
+  window.applicationCache.onNoUpdate.listen(updateCacheStatus);
+  window.applicationCache.onObsolete.listen(updateCacheStatus);
   window.applicationCache.onProgress.listen(onCacheProgress);
 }
 
-onCacheProgress(ProgressEvent event) {
-  if (!event.lengthComputable) {
-    updateCacheStatus();
-    return;
+void onCacheProgress(Event event) {
+  if (event is ProgressEvent) {
+    // Firefox doesn't fire a ProgressEvent on cache progress.  Just a plain
+    // Event with type == "progress".
+    if (event.lengthComputable) {
+      updateCacheStatusFromEvent(event);
+      return;
+    }
   }
+  updateCacheStatus(null);
+}
+
+void updateCacheStatusFromEvent(ProgressEvent event) {
   cacheStatusElement.nodes.clear();
   cacheStatusElement.appendText('Downloading SDK ');
   var progress = '${event.loaded} of ${event.total}';
@@ -62,7 +71,7 @@ String cacheStatus() {
   return '?';
 }
 
-void updateCacheStatus() {
+void updateCacheStatus(_) {
   cacheStatusElement.nodes.clear();
   int status = window.applicationCache.status;
   if (status == ApplicationCache.UPDATEREADY) {

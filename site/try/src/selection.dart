@@ -23,8 +23,8 @@ class TrySelection {
   int globalOffset = -1;
 
   TrySelection(this.root, Selection selection)
-      : this.anchorNode = selection.isCollapsed ? selection.anchorNode : null,
-        this.anchorOffset = selection.isCollapsed ? selection.anchorOffset : -1;
+      : anchorNode = isCollapsed(selection) ? selection.anchorNode : null,
+        anchorOffset = isCollapsed(selection) ? selection.anchorOffset : -1;
 
   Text addNodeFromSubstring(int start,
                             int end,
@@ -73,4 +73,10 @@ class TrySelection {
 
     return -1;
   }
+}
+
+bool isCollapsed(Selection selection) {
+  // Firefox and Chrome don't agree on if the selection is collapsed if there
+  // is no node selected.
+  return selection.isCollapsed && selection.anchorNode != null;
 }

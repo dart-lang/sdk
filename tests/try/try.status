@@ -2,8 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Not dart2js on chrome or drt.
-[ $compiler != dart2js || ($runtime != drt && $runtime != chrome) ]
+# Try Dart is tested on the following configurations:
+# dart2js-drt (Content Shell --dump-render-tree)
+# dart2js-chrome
+# dart2js-ff (Firefox)
+[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff) ]
 *: Skip
 
 [ $csp ]
