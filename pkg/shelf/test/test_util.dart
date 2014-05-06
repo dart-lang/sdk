@@ -9,6 +9,12 @@ import 'dart:async';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/src/util.dart';
 
+// "hello,"
+const HELLO_BYTES = const [104, 101, 108, 108, 111, 44];
+
+// " world"
+const WORLD_BYTES = const [32, 119, 111, 114, 108, 100];
+
 /// A simple, synchronous handler for [Request].
 ///
 /// By default, replies with a status code 200, empty headers, and

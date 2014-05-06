@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 
 import 'message.dart';
+import 'util.dart';
 
 /// The response returned by a [Handler].
 class Response extends Message {
@@ -53,7 +54,7 @@ class Response extends Message {
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
   /// Content-Type header, it will be set to "application/octet-stream".
-  Response.ok(body, {Map<String, String> headers, Encoding encoding, 
+  Response.ok(body, {Map<String, String> headers, Encoding encoding,
     Map<String, Object> context})
       : this(200, body: body, headers: headers, encoding: encoding,
           context: context);
@@ -118,7 +119,7 @@ class Response extends Message {
 
   /// Constructs a helper constructor for redirect responses.
   Response._redirect(int statusCode, location, body,
-      Map<String, String> headers, Encoding encoding, 
+      Map<String, String> headers, Encoding encoding,
       { Map<String, Object> context })
       : this(statusCode,
             body: body,
@@ -133,7 +134,7 @@ class Response extends Message {
   /// information used to determine whether the requested resource has changed
   /// since the last request. It indicates that the resource has not changed and
   /// the old value should be used.
-  Response.notModified({Map<String, String> headers, 
+  Response.notModified({Map<String, String> headers,
     Map<String, Object> context})
       : this(304, headers: _addHeader(
             headers, 'date', formatHttpDate(new DateTime.now())),
@@ -169,7 +170,7 @@ class Response extends Message {
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
   /// Content-Type header, it will be set to "application/octet-stream".
-  Response.notFound(body, {Map<String, String> headers, Encoding encoding, 
+  Response.notFound(body, {Map<String, String> headers, Encoding encoding,
     Map<String, Object> context})
       : this(404, body: body, headers: headers,
           context: context);
@@ -214,6 +215,26 @@ class Response extends Message {
     if (statusCode < 100) {
       throw new ArgumentError("Invalid status code: $statusCode.");
     }
+  }
+
+  /// Creates a new [Response] by copying existing values and applying specified
+  /// changes.
+  ///
+  /// New key-value pairs in [context] and [headers] will be added to the copied
+  /// [Response].
+  ///
+  /// If [context] or [headers] includes a key that already exists, the
+  /// key-value pair will replace the corresponding entry in the copied
+  /// [Response].
+  ///
+  /// All other context and header values from the [Response] will be included
+  /// in the copied [Response] unchanged.
+  Response change({Map<String, String> headers, Map<String, Object> context}) {
+    headers = updateMap(this.headers, headers);
+    context = updateMap(this.context, context);
+
+    return new Response(this.statusCode, body: this.read(), headers: headers,
+        context: context);
   }
 }
 

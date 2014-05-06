@@ -23,3 +23,17 @@ catchTopLevelErrors(callback(), void onError(error, StackTrace stackTrace)) {
     return callback();
   }
 }
+
+/// Returns a [Map] with the values from [original] and the values from
+/// [updates].
+///
+/// For keys that are the same between [original] and [updates], the value in
+/// [updates] is used.
+///
+/// If [updates] is `null` or empty, [original] is returned unchanged.
+Map updateMap(Map original, Map updates) {
+  if (updates == null || updates.isEmpty) return original;
+
+  return new Map.from(original)
+      ..addAll(updates);
+}

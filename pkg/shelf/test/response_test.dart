@@ -7,62 +7,23 @@ library shelf.response_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf.dart' hide Request;
 import 'package:unittest/unittest.dart';
 
+import 'test_util.dart';
+
 void main() {
-  group("readAsString", () {
-    test("supports a null body", () {
-      var response = new Response(200);
-      expect(response.readAsString(), completion(equals("")));
-    });
-
-    test("supports a String body", () {
+  group("supports a String body", () {
+    test("readAsString", () {
       var response = new Response.ok("hello, world");
       expect(response.readAsString(), completion(equals("hello, world")));
     });
 
-    test("supports a Stream<List<int>> body", () {
-      var controller = new StreamController();
-      var response = new Response.ok(controller.stream);
-      expect(response.readAsString(), completion(equals("hello, world")));
+    test("read", () {
+      var helloWorldBytes = new List.from(HELLO_BYTES)..addAll(WORLD_BYTES);
 
-      controller.add([104, 101, 108, 108, 111, 44]);
-      return new Future(() {
-        controller
-          ..add([32, 119, 111, 114, 108, 100])
-          ..close();
-      });
-    });
-  });
-
-  group("read", () {
-    test("supports a null body", () {
-      var response = new Response(200);
-      expect(response.read().toList(), completion(isEmpty));
-    });
-
-    test("supports a String body", () {
       var response = new Response.ok("hello, world");
-      expect(response.read().toList(), completion(equals([[
-        104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100
-      ]])));
-    });
-
-    test("supports a Stream<List<int>> body", () {
-      var controller = new StreamController();
-      var response = new Response.ok(controller.stream);
-      expect(response.read().toList(), completion(equals([
-        [104, 101, 108, 108, 111, 44],
-        [32, 119, 111, 114, 108, 100]
-      ])));
-
-      controller.add([104, 101, 108, 108, 111, 44]);
-      return new Future(() {
-        controller
-          ..add([32, 119, 111, 114, 108, 100])
-          ..close();
-      });
+      expect(response.read().toList(), completion(equals([helloWorldBytes])));
     });
   });
 
@@ -155,6 +116,31 @@ void main() {
       expect(new Response.ok("okay!", headers: {
         'last-modified': 'Sun, 06 Nov 1994 08:49:37 GMT'
       }).lastModified, equals(DateTime.parse("1994-11-06 08:49:37z")));
+    });
+  });
+
+  group('change', () {
+    test('with no arguments returns instance with equal values', () {
+      var controller = new StreamController();
+
+      var request = new Response(345, body: 'hèllo, world', encoding: LATIN1,
+          headers: {'header1': 'header value 1'},
+          context: {'context1': 'context value 1'});
+
+      var copy = request.change();
+
+      expect(copy.statusCode, request.statusCode);
+      expect(copy.readAsString(), completion('hèllo, world'));
+      expect(copy.headers, same(request.headers));
+      expect(copy.encoding, request.encoding);
+      expect(copy.context, same(request.context));
+
+      controller.add(HELLO_BYTES);
+      return new Future(() {
+        controller
+          ..add(WORLD_BYTES)
+          ..close();
+      });
     });
   });
 }
