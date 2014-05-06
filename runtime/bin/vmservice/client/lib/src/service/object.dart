@@ -284,6 +284,28 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
+  Future<ObservableMap> _processMap(ObservableMap map) {
+    // Verify that the top level response is a service map.
+    if (!_isServiceMap(map)) {
+      return new Future.error(
+            new ServiceObject._fromMap(this, toObservable({
+        'type': 'ServiceException',
+        'id': '',
+        'kind': 'FormatException',
+        'response': map,
+        'message': 'Top level service responses must be service maps.',
+      })));
+    }
+    // Preemptively capture ServiceError and ServiceExceptions.
+    if (map['type'] == 'ServiceError') {
+      return new Future.error(new ServiceObject._fromMap(this, map));
+    } else if (map['type'] == 'ServiceException') {
+      return new Future.error(new ServiceObject._fromMap(this, map));
+    }
+    // map is now guaranteed to be a non-error/exception ServiceObject.
+    return new Future.value(map);
+  }
+
   /// Gets [id] as an [ObservableMap] from the service directly. If
   /// an error occurs, the future is completed as an error with a
   /// ServiceError or ServiceException. Therefore any chained then() calls
@@ -292,34 +314,19 @@ abstract class VM extends ServiceObjectOwner {
     return getString(id).then((response) {
       try {
         var map = toObservable(JSON.decode(response));
-        // Verify that the top level response is a service map.
-        if (!_isServiceMap(map)) {
-          return new Future.error(
-                new ServiceObject._fromMap(this, toObservable({
-            'type': 'ServiceException',
-            'id': '',
-            'kind': 'FormatException',
-            'response': map,
-            'message': 'Top level service responses must be service maps.',
-          })));
-        }
-        // Preemptively capture ServiceError and ServiceExceptions.
-        if (map['type'] == 'ServiceError') {
-          return new Future.error(new ServiceObject._fromMap(this, map));
-        } else if (map['type'] == 'ServiceException') {
-          return new Future.error(new ServiceObject._fromMap(this, map));
-        }
-        // map is now guaranteed to be a non-error/exception ServiceObject.
-        return map;
+        return _processMap(map);
       } catch (e, st) {
-        print(e);
-        print(st);
         return new Future.error(
               new ServiceObject._fromMap(this, toObservable({
           'type': 'ServiceException',
           'id': '',
           'kind': 'DecodeException',
-          'response': response,
+          'response':
+              'This is likely a result of a known V8 bug. Although the '
+              'the bug has been fixed the fix may not be in your Chrome'
+              ' version. For more information see dartbug.com/18385. '
+              'Observatory is still functioning and you should try your'
+              ' action again.',
           'message': 'Could not decode JSON: $e',
         })));
       }
