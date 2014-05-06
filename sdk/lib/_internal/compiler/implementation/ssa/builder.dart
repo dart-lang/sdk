@@ -1492,8 +1492,10 @@ class SsaBuilder extends ResolvedVisitor {
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
-        bodyElement.origin = new ConstructorBodyElementX(constructor.origin);
-        bodyElement.origin.patch = bodyElement;
+        ConstructorBodyElementX patch = bodyElement;
+        ConstructorBodyElementX origin =
+            new ConstructorBodyElementX(constructor.origin);
+        origin.applyPatch(patch);
         classElement.origin.addBackendMember(bodyElement.origin);
       }
     }

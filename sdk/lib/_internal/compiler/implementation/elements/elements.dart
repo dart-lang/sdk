@@ -247,18 +247,55 @@ abstract class Element implements Spannable {
 
   FunctionElement asFunctionElement();
 
+  /// Is [:true:] if this element has a corresponding patch.
+  ///
+  /// If [:true:] this element has a non-null [patch] field.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
   bool get isPatched;
+
+  /// Is [:true:] if this element is a patch.
+  ///
+  /// If [:true:] this element has a non-null [origin] field.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
   bool get isPatch;
+
+  /// Is [:true:] if this element defines the implementation for the entity of
+  /// this element.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
   bool get isImplementation;
+
+  /// Is [:true:] if this element introduces the entity of this element.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
   bool get isDeclaration;
+
+  /// Returns the element which defines the implementation for the entity of
+  /// this element.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
+  Element get implementation;
+
+  /// Returns the element which introduces the entity of this element.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
+  Element get declaration;
+
+  /// Returns the patch for this element if this element is patched.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
+  Element get patch;
+
+  /// Returns the origin for this element if this element is a patch.
+  ///
+  /// See [:patch_parser.dart:] for a description of the terminology.
+  Element get origin;
+
   bool get isSynthesized;
   bool get isForwardingConstructor;
   bool get isMixinApplication;
-
-  Element get implementation;
-  Element get declaration;
-  Element get patch;
-  Element get origin;
 
   bool hasFixedBackendName();
   String fixedBackendName();
@@ -842,8 +879,6 @@ abstract class FunctionElement extends Element
   InterfaceType computeTargetType(InterfaceType newType);
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set patch(FunctionElement value);
-  void set origin(FunctionElement value);
   void set defaultImplementation(FunctionElement value);
 
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
@@ -915,8 +950,6 @@ abstract class ClassElement extends TypeDeclarationElement
   // TODO(kasperl): These are bit fishy. Do we really need them?
   void set supertype(DartType value);
   void set interfaces(Link<DartType> value);
-  void set patch(ClassElement value);
-  void set origin(ClassElement value);
   void set supertypeLoadState(int value);
   void set resolutionState(int value);
   void set nativeTagInfo(String value);
