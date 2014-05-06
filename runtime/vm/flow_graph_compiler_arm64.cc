@@ -902,7 +902,7 @@ void FlowGraphCompiler::CopyParameters() {
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(R5, ic_data, PP);
     __ LeaveDartFrame();  // The arguments are still on the stack.
-    __ Branch(&StubCode::CallNoSuchMethodFunctionLabel(), PP);
+    __ BranchFixed(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
     __ hlt(0);
   } else if (check_correct_named_args) {
@@ -944,7 +944,16 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
 
 
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // LR: return address.
+  // SP+1: receiver.
+  // SP+0: value.
+  // Sequence node has one store node and one return NULL node.
+  __ Comment("Inlined Setter");
+  __ LoadFromOffset(R0, SP, 1 * kWordSize);  // Receiver.
+  __ LoadFromOffset(R1, SP, 0 * kWordSize);  // Value.
+  __ StoreIntoObject(R0, FieldAddress(R0, offset), R1);
+  __ LoadObject(R0, Object::null_object(), PP);
+  __ ret();
 }
 
 
@@ -988,6 +997,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // may be patched at the AddCurrentDescriptor below.
     new_pp = R13;
 
+    // Set up pool pointer in new_pp.
     __ LoadPoolPointer(new_pp);
 
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
@@ -1065,7 +1075,7 @@ void FlowGraphCompiler::CompileGraph() {
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(R5, ic_data, PP);
         __ LeaveDartFrame();  // The arguments are still on the stack.
-        __ Branch(&StubCode::CallNoSuchMethodFunctionLabel(), PP);
+        __ BranchFixed(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
         __ hlt(0);
       } else {

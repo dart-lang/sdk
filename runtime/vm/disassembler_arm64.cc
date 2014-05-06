@@ -312,6 +312,10 @@ int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
     int reg = instr->VnField();
     PrintVRegister(reg);
     return 2;
+  } else if (format[1] == 'm') {
+    int reg = instr->VmField();
+    PrintVRegister(reg);
+    return 2;
   } else if (format[1] == 't') {
     int reg = instr->VtField();
     PrintVRegister(reg);
@@ -916,6 +920,8 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
 void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
+    Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
   } else {
     Unknown(instr);
   }
@@ -966,10 +972,14 @@ void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
     Unknown(instr);
     return;
   }
-  if (instr->Bits(16, 3) == 6) {
+  if (instr->Bits(16, 5) == 2) {
+    Format(instr, "scvtfd 'vd, 'vn");
+  } else if (instr->Bits(16, 5) == 6) {
     Format(instr, "fmovrd 'rd, 'vn");
-  } else if (instr->Bits(16, 3) == 7) {
+  } else if (instr->Bits(16, 5) == 7) {
     Format(instr, "fmovdr 'vd, 'rn");
+  } else if (instr->Bits(16, 5) == 24) {
+    Format(instr, "fcvtzds 'rd, 'vn");
   } else {
     Unknown(instr);
   }
@@ -990,6 +1000,48 @@ void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeFPTwoSource(Instr* instr) {
+  if (instr->Bits(22, 2) != 1) {
+    Unknown(instr);
+    return;
+  }
+  const int opc = instr->Bits(12, 4);
+
+  switch (opc) {
+    case 0:
+      Format(instr, "fmuld 'vd, 'vn, 'vm");
+      break;
+    case 1:
+      Format(instr, "fdivd 'vd, 'vn, 'vm");
+      break;
+    case 2:
+      Format(instr, "faddd 'vd, 'vn, 'vm");
+      break;
+    case 3:
+      Format(instr, "fsubd 'vd, 'vn, 'vm");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
+void ARM64Decoder::DecodeFPCompare(Instr* instr) {
+  if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
+    Format(instr, "fcmpd 'vn, 'vm");
+  } else if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 1)) {
+    if (instr->VmField() == V0) {
+      Format(instr, "fcmpd 'vn, #0.0");
+    } else {
+      Unknown(instr);
+    }
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeFP(Instr* instr) {
   if (instr->IsFPImmOp()) {
     DecodeFPImm(instr);
@@ -997,6 +1049,10 @@ void ARM64Decoder::DecodeFP(Instr* instr) {
     DecodeFPIntCvt(instr);
   } else if (instr->IsFPOneSourceOp()) {
     DecodeFPOneSource(instr);
+  } else if (instr->IsFPTwoSourceOp()) {
+    DecodeFPTwoSource(instr);
+  } else if (instr->IsFPCompareOp()) {
+    DecodeFPCompare(instr);
   } else {
     Unknown(instr);
   }

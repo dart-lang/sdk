@@ -359,11 +359,6 @@ void SimulatorDebugger::Debug() {
         OS::Print("Z flag: %d; ", sim_->z_flag_);
         OS::Print("C flag: %d; ", sim_->c_flag_);
         OS::Print("V flag: %d\n", sim_->v_flag_);
-        OS::Print("FPSCR: ");
-        OS::Print("N flag: %d; ", sim_->fp_n_flag_);
-        OS::Print("Z flag: %d; ", sim_->fp_z_flag_);
-        OS::Print("C flag: %d; ", sim_->fp_c_flag_);
-        OS::Print("V flag: %d\n", sim_->fp_v_flag_);
       } else if (strcmp(cmd, "gdb") == 0) {
         OS::Print("relinquishing control to gdb\n");
         OS::DebugBreak();
@@ -479,10 +474,6 @@ Simulator::Simulator() {
     vregisters_[i].lo = 0;
     vregisters_[i].hi = 0;
   }
-  fp_n_flag_ = false;
-  fp_z_flag_ = false;
-  fp_c_flag_ = false;
-  fp_v_flag_ = false;
 
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
@@ -1967,31 +1958,41 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
 
 
 void Simulator::DecodeConditionalSelect(Instr* instr) {
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const int64_t rm_val64 = get_register(rm, R31IsZR);
+  const int32_t rm_val32 = get_wregister(rm, R31IsZR);
+  const int64_t rn_val64 = get_register(rn, instr->RnMode());
+  const int32_t rn_val32 = get_wregister(rn, instr->RnMode());
+  int64_t result64 = 0;
+  int32_t result32 = 0;
+
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     // Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
-    const Register rd = instr->RdField();
-    const Register rn = instr->RnField();
-    const Register rm = instr->RmField();
-    if (instr->SFField() == 1) {
-      int64_t res = 0;
-      if (ConditionallyExecute(instr)) {
-        res = get_register(rn, instr->RnMode());
-      } else {
-        res = get_register(rm, R31IsZR);
-      }
-      set_register(rd, res, instr->RdMode());
-    } else {
-      int32_t res = 0;
-      if (ConditionallyExecute(instr)) {
-        res = get_wregister(rn, instr->RnMode());
-      } else {
-        res = get_wregister(rm, R31IsZR);
-      }
-      set_wregister(rd, res, instr->RdMode());
+    result64 = rm_val64;
+    result32 = rm_val32;
+    if (ConditionallyExecute(instr)) {
+      result64 = rn_val64;
+      result32 = rn_val32;
     }
-
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
+    // Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    result64 = rm_val64 + 1;
+    result32 = rm_val32 + 1;
+    if (ConditionallyExecute(instr)) {
+      result64 = rn_val64;
+      result32 = rn_val32;
+    }
   } else {
     UnimplementedInstruction(instr);
+    return;
+  }
+
+  if (instr->SFField() == 1) {
+    set_register(rd, result64, instr->RdMode());
+  } else {
+    set_wregister(rd, result32, instr->RdMode());
   }
 }
 
@@ -2038,23 +2039,33 @@ void Simulator::DecodeFPImm(Instr* instr) {
 
 
 void Simulator::DecodeFPIntCvt(Instr* instr) {
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+
   if ((instr->SFField() != 1) || (instr->Bit(29) != 0) ||
       (instr->Bits(22, 2) != 1)) {
     UnimplementedInstruction(instr);
     return;
   }
-  if (instr->Bits(16, 3) == 6) {
+  if (instr->Bits(16, 5) == 2) {
+    // Format(instr, "scvtfd 'vd, 'vn");
+    const int64_t rn_val = get_register(rn, instr->RnMode());
+    const double vn_dbl = static_cast<double>(rn_val);
+    set_vregisterd(vd, bit_cast<int64_t, double>(vn_dbl));
+  } else if (instr->Bits(16, 5) == 6) {
     // Format(instr, "fmovrd 'rd, 'vn");
-    const VRegister vn = instr->VnField();
-    const Register rd = instr->RdField();
     const int64_t vn_val = get_vregisterd(vn);
     set_register(rd, vn_val, R31IsZR);
-  } else if (instr->Bits(16, 3) == 7) {
+  } else if (instr->Bits(16, 5) == 7) {
     // Format(instr, "fmovdr 'vd, 'rn");
-    const VRegister vd = instr->VdField();
-    const Register rn = instr->RnField();
     const int64_t rn_val = get_register(rn, R31IsZR);
     set_vregisterd(vd, rn_val);
+  } else if (instr->Bits(16, 5) == 24) {
+    // Format(instr, "fcvtzds 'rd, 'vn");
+    const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+    set_register(rd, static_cast<int64_t>(vn_val), instr->RdMode());
   } else {
     UnimplementedInstruction(instr);
   }
@@ -2077,6 +2088,86 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
 }
 
 
+void Simulator::DecodeFPTwoSource(Instr* instr) {
+  if (instr->Bits(22, 2) != 1) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  const VRegister vm = instr->VmField();
+  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+  const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm));
+  const int opc = instr->Bits(12, 4);
+  double result;
+
+  switch (opc) {
+    case 0:
+      // Format(instr, "fmuld 'vd, 'vn, 'vm");
+      result = vn_val * vm_val;
+      break;
+    case 1:
+      // Format(instr, "fdivd 'vd, 'vn, 'vm");
+      result = vn_val / vm_val;
+      break;
+    case 2:
+      // Format(instr, "faddd 'vd, 'vn, 'vm");
+      result = vn_val + vm_val;
+      break;
+    case 3:
+      // Format(instr, "fsubd 'vd, 'vn, 'vm");
+      result = vn_val - vm_val;
+      break;
+    default:
+      // Unknown(instr);
+      break;
+  }
+
+  set_vregisterd(vd, bit_cast<int64_t, double>(result));
+}
+
+
+void Simulator::DecodeFPCompare(Instr* instr) {
+  const VRegister vn = instr->VnField();
+  const VRegister vm = instr->VmField();
+  const double vn_val = get_vregisterd(vn);
+  double vm_val;
+
+  if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
+    // Format(instr, "fcmpd 'vn, 'vm");
+    vm_val = get_vregisterd(vm);
+  } else if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 1)) {
+    if (instr->VmField() == V0) {
+      // Format(instr, "fcmpd 'vn, #0.0");
+      vm_val = 0.0;
+    } else {
+      UnimplementedInstruction(instr);
+      return;
+    }
+  } else {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  n_flag_ = false;
+  z_flag_ = false;
+  c_flag_ = false;
+  v_flag_ = false;
+
+  if (isnan(vn_val) || isnan(vm_val)) {
+    c_flag_ = true;
+    v_flag_ = true;
+  } else if (vn_val == vm_val) {
+    z_flag_ = true;
+    c_flag_ = true;
+  } else if (vn_val < vm_val) {
+    n_flag_ = true;
+  } else {
+    c_flag_ = true;
+  }
+}
+
+
 void Simulator::DecodeFP(Instr* instr) {
   if (instr->IsFPImmOp()) {
     DecodeFPImm(instr);
@@ -2084,6 +2175,10 @@ void Simulator::DecodeFP(Instr* instr) {
     DecodeFPIntCvt(instr);
   } else if (instr->IsFPOneSourceOp()) {
     DecodeFPOneSource(instr);
+  } else if (instr->IsFPTwoSourceOp()) {
+    DecodeFPTwoSource(instr);
+  } else if (instr->IsFPCompareOp()) {
+    DecodeFPCompare(instr);
   } else {
     UnimplementedInstruction(instr);
   }

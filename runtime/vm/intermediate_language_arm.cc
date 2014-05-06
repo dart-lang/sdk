@@ -291,11 +291,11 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
     if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
-      QRegister dst = locs()->out(0).fpu_reg();
+      const QRegister dst = locs()->out(0).fpu_reg();
       __ veorq(dst, dst, dst);
     } else {
-      DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
-      Register temp = locs()->temp(0).reg();
+      const DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
+      const Register temp = locs()->temp(0).reg();
       __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
     }
   }
@@ -3609,9 +3609,9 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(bool opt) const {
 
 
 void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
-  DRegister right = EvenDRegisterOf(locs()->in(1).fpu_reg());
-  DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
+  const DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  const DRegister right = EvenDRegisterOf(locs()->in(1).fpu_reg());
+  const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
   switch (op_kind()) {
     case Token::kADD: __ vaddd(result, left, right); break;
     case Token::kSUB: __ vsubd(result, left, right); break;

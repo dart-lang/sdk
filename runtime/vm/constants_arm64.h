@@ -193,6 +193,11 @@ enum Condition {
   kMaxCondition = 16,
 };
 
+static inline Condition InvertCondition(Condition c) {
+  const int32_t i = static_cast<int32_t>(c) ^ 0x1;
+  return static_cast<Condition>(i);
+}
+
 enum Bits {
   B0  =  (1 << 0), B1  =  (1 << 1), B2  =  (1 << 2), B3  =  (1 << 3),
   B4  =  (1 << 4), B5  =  (1 << 5), B6  =  (1 << 6), B7  =  (1 << 7),
@@ -384,6 +389,7 @@ enum ConditionalSelectOp {
   ConditionalSelectMask = 0x1fe00000,
   ConditionalSelectFixed = DPRegisterFixed | B28 | B23,
   CSEL = ConditionalSelectFixed,
+  CSINC = ConditionalSelectFixed | B10,
 };
 
 // C3.5.8
@@ -420,11 +426,29 @@ enum LogicalShiftOp {
   BICS = LogicalShiftFixed | B30 | B29 | B21,
 };
 
+// C.3.6.22
+enum FPCompareOp {
+  FPCompareMask = 0xffa0fc07,
+  FPCompareFixed = FPFixed | B21 | B13,
+  FCMPD = FPCompareFixed | B22,
+  FCMPZD = FPCompareFixed | B22 | B3,
+};
+
 // C3.6.25
 enum FPOneSourceOp {
   FPOneSourceMask = 0x5f207c00,
   FPOneSourceFixed = FPFixed | B21 | B14,
   FMOVDD = FPOneSourceFixed | B22,
+};
+
+// C3.6.26
+enum FPTwoSourceOp {
+  FPTwoSourceMask = 0xff200c00,
+  FPTwoSourceFixed = FPFixed | B21 | B11,
+  FMULD = FPTwoSourceFixed | B22,
+  FDIVD = FPTwoSourceFixed | B22 | B12,
+  FADDD = FPTwoSourceFixed | B22 | B13,
+  FSUBD = FPTwoSourceFixed | B22 | B13 | B12,
 };
 
 // C3.6.28
@@ -435,12 +459,14 @@ enum FPImmOp {
   FMOVDI = FPImmFixed | B22,
 };
 
-// C3.6.29
+// C3.6.30
 enum FPIntCvtOp {
   FPIntCvtMask = 0x5f20fc00,
   FPIntCvtFixed = FPFixed | B21,
   FMOVRD = FPIntCvtFixed | B31 | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B31 | B22 | B18 | B17 | B16,
+  FCVTZDS = FPIntCvtFixed | B31 | B22 | B20 | B19,
+  SCVTFD = FPIntCvtFixed | B31 | B22 | B17,
 };
 
 
@@ -471,8 +497,10 @@ _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
 _V(FPOneSource)                                                                \
+_V(FPTwoSource)                                                                \
 _V(FPImm)                                                                      \
 _V(FPIntCvt)                                                                   \
+_V(FPCompare)                                                                  \
 
 
 enum Shift {
@@ -534,6 +562,8 @@ enum InstructionFields {
   kVdBits = 5,
   kVnShift = 5,
   kVnBits = 5,
+  kVmShift = 16,
+  kVmBits = 5,
   kVtShift = 0,
   kVtBits = 5,
 
@@ -704,6 +734,8 @@ class Instr {
                                         Bits(kVdShift, kVdBits)); }
   inline VRegister VnField() const { return static_cast<VRegister>(
                                         Bits(kVnShift, kVnBits)); }
+  inline VRegister VmField() const { return static_cast<VRegister>(
+                                        Bits(kVmShift, kVmBits)); }
   inline VRegister VtField() const { return static_cast<VRegister>(
                                         Bits(kVtShift, kVtBits)); }
 

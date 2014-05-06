@@ -919,12 +919,9 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
-  const intptr_t offset = CodeSize();
-
   Comment("EnterOsrFrame");
   adr(TMP, -CodeSize());
 
-  AddImmediate(TMP, TMP, -offset, kNoPP);
   StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
 
   // Setup pool pointer for this dart function.

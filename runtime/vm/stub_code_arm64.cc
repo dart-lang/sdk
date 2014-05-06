@@ -399,6 +399,38 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   R2: smi-tagged argument count, may be zero.
+//   FP[kParamEndSlotFromFp + 1]: last argument.
+static void PushArgumentsArray(Assembler* assembler) {
+  // Allocate array to store arguments of caller.
+  __ LoadObject(R1, Object::null_object(), PP);
+  // R1: null element type for raw Array.
+  // R2: smi-tagged argument count, may be zero.
+  __ BranchLink(&StubCode::AllocateArrayLabel(), PP);
+  // R0: newly allocated array.
+  // R2: smi-tagged argument count, may be zero (was preserved by the stub).
+  __ Push(R0);  // Array is in R0 and on top of stack.
+  __ add(R1, FP, Operand(R2, LSL, 2));
+  __ AddImmediate(R1, R1, kParamEndSlotFromFp * kWordSize, PP);
+  __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag, PP);
+  // R1: address of first argument on stack.
+  // R3: address of first argument in array.
+
+  Label loop, loop_exit;
+  __ CompareRegisters(R2, ZR);
+  __ b(&loop_exit, LE);
+  __ Bind(&loop);
+  __ ldr(R7, Address(R1));
+  __ AddImmediate(R1, R1, -kWordSize, PP);
+  __ AddImmediate(R3, R3, kWordSize, PP);
+  __ AddImmediateSetFlags(R2, R2, -Smi::RawValue(1), PP);
+  __ str(R7, Address(R3, -kWordSize));
+  __ b(&loop, GE);
+  __ Bind(&loop_exit);
+}
+
+
 DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                            intptr_t deopt_reason,
                            uword saved_registers_address);
@@ -1178,8 +1210,40 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
+// Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
+// from the entry code of a dart function after an error in passed argument
+// name or number is detected.
+// Input parameters:
+//  LR : return address.
+//  SP : address of last argument.
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
-  __ Stop("GenerateCallNoSuchMethodFunctionStub");
+  __ EnterStubFrame(true);
+
+  // Load the receiver.
+  __ LoadFieldFromOffset(R2, R4, ArgumentsDescriptor::count_offset());
+  __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
+  __ LoadFromOffset(R6, TMP, kParamEndSlotFromFp * kWordSize);
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  __ PushObject(Object::null_object(), PP);
+  __ Push(R6);
+  __ Push(R5);
+  __ Push(R4);
+
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry, 4);
+  // Remove arguments.
+  __ Drop(4);
+  __ Pop(R0);  // Get result into R0.
+  __ LeaveStubFrame();
+  __ ret();
 }
 
 

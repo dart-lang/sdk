@@ -560,6 +560,15 @@ class Assembler : public ValueObject {
   void csel(Register rd, Register rn, Register rm, Condition cond) {
     EmitCoditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
   }
+  void csinc(Register rd, Register rn, Register rm, Condition cond) {
+    EmitCoditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cinc(Register rd, Register rn, Condition cond) {
+    csinc(rd, rn, rn, InvertCondition(cond));
+  }
+  void cset(Register rd, Condition cond) {
+    csinc(rd, ZR, ZR, InvertCondition(cond));
+  }
 
   // Comparison.
   // rn cmp o.
@@ -623,15 +632,32 @@ class Assembler : public ValueObject {
     return true;
   }
   void fmovdr(VRegister vd, Register rn) {
-    EmitFPIntCvtOp(FMOVDR, static_cast<Register>(vd), rn);
+    ASSERT(rn != R31);
+    ASSERT(rn != SP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(FMOVDR, static_cast<Register>(vd), crn);
   }
   void fmovrd(Register rd, VRegister vn) {
-    EmitFPIntCvtOp(FMOVRD, rd, static_cast<Register>(vn));
+    ASSERT(rd != R31);
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FMOVRD, crd, static_cast<Register>(vn));
+  }
+  void scvtfd(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != SP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn);
+  }
+  void fcvtzds(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
   }
   void fmovdd(VRegister vd, VRegister vn) {
     EmitFPOneSourceOp(FMOVDD, vd, vn);
   }
-
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
     EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);
@@ -639,6 +665,24 @@ class Assembler : public ValueObject {
   void fstrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
     EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDoubleWord);
+  }
+  void fcmpd(VRegister vn, VRegister vm) {
+    EmitFPCompareOp(FCMPD, vn, vm);
+  }
+  void fcmpzd(VRegister vn) {
+    EmitFPCompareOp(FCMPZD, vn, V0);
+  }
+  void fmuld(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FMULD, vd, vn, vm);
+  }
+  void fdivd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FDIVD, vd, vn, vm);
+  }
+  void faddd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FADDD, vd, vn, vm);
+  }
+  void fsubd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FSUBD, vd, vn, vm);
   }
 
   // Aliases.
@@ -1202,9 +1246,27 @@ class Assembler : public ValueObject {
 
   void EmitFPOneSourceOp(FPOneSourceOp op, VRegister vd, VRegister vn) {
     const int32_t encoding =
-      op |
-      (static_cast<int32_t>(vd) << kVdShift) |
-      (static_cast<int32_t>(vn) << kVnShift);
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift);
+    Emit(encoding);
+  }
+
+  void EmitFPTwoSourceOp(FPTwoSourceOp op,
+                         VRegister vd, VRegister vn, VRegister vm) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift) |
+        (static_cast<int32_t>(vm) << kVmShift);
+    Emit(encoding);
+  }
+
+  void EmitFPCompareOp(FPCompareOp op, VRegister vn, VRegister vm) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vn) << kVnShift) |
+        (static_cast<int32_t>(vm) << kVmShift);
     Emit(encoding);
   }
 

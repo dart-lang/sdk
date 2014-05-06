@@ -129,36 +129,15 @@ stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 vm/regress_16873_test: Skip # Pass, Slow
 
 # Unimplemented features
-vm/load_to_load_forwarding_vm_test: Crash
 vm/string_polymorphic_test: Crash
-vm/optimized_identical_test: Crash
 vm/optimization_test: Crash
 vm/math_vm_test: Crash
 vm/deopt_hoisted_smi_check_vm_test:Crash
 vm/reusable_boxes_test: Crash
 vm/allocation_sinking_vm_test: Crash
 double_modulo_test: Crash
-double_nan_comparison_test: Crash
-number_identity_test: Crash
 modulo_test: Crash
-double_int_addition_test: Crash
 guess_cid_test: Crash
-number_identity2_test: Crash
 arithmetic_canonicalization_test: Crash
-mint_arithmetic_test: Crash
-assign_op_test: Crash
 try_catch_optimized1_test: Crash
 arithmetic_test: Crash
-named_parameters_with_conversions_test: Crash
-branch_canonicalization_test: Crash
-no_such_method_dispatcher_test: Pass, Crash  # Passes in checked mode.
-issue7513_test: Crash
-
-# Bugs
-null_test/none: Skip # Timeout, Crash
-local_function_test: Crash
-invocation_mirror_test: Crash
-call_test: Crash
-interceptor_test: Crash
-closure_call_wrong_argument_count_negative_test: Crash
-call_closurization_test: Crash

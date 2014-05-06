@@ -161,9 +161,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // TODO(zra): replace with cinc(result, ZR, ZR, true_condition)
-  __ LoadImmediate(TMP, 1, kNoPP);
-  __ csel(result, TMP, ZR, true_condition);
+  __ cset(result, true_condition);
 
   if (is_power_of_two_kind) {
     const intptr_t shift =
@@ -284,7 +282,10 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
 
 
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (!locs()->out(0).IsInvalid()) {
+    const VRegister dst = locs()->out(0).fpu_reg();
+    __ LoadDImmediate(dst, Double::Cast(value()).value(), PP);
+  }
 }
 
 
@@ -451,13 +452,39 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+static Condition TokenKindToDoubleCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQ;
+    case Token::kNE: return NE;
+    case Token::kLT: return LT;
+    case Token::kGT: return GT;
+    case Token::kLTE: return LE;
+    case Token::kGTE: return GE;
+    default:
+      UNREACHABLE();
+      return VS;
+  }
+}
+
+
+static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
+                                        LocationSummary* locs,
+                                        Token::Kind kind) {
+  VRegister left = locs->in(0).fpu_reg();
+  VRegister right = locs->in(1).fpu_reg();
+  __ fcmpd(left, right);
+  Condition true_condition = TokenKindToDoubleCondition(kind);
+  return true_condition;
+}
+
+
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
   } else {
-    UNIMPLEMENTED();
-    return VS;
+    ASSERT(operation_cid() == kDoubleCid);
+    return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
 
@@ -1030,6 +1057,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataUint32ArrayCid:
       __ ldr(result, element_address, kUnsignedWord);
+      __ SmiTag(result);
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
@@ -1257,7 +1285,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid: {
       VRegister in2 = locs()->in(2).fpu_reg();
       __ add(index.reg(), index.reg(), Operand(array));
-      __ StoreDFieldToOffset(in2, index.reg(), 0);
+      __ StoreDToOffset(in2, index.reg(), 0);
       break;
     }
     case kTypedDataFloat64x2ArrayCid:
@@ -2790,13 +2818,35 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+    new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  return summary;
 }
 
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptBinaryDoubleOp);
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  if (left_cid == kSmiCid) {
+    __ tsti(right, kSmiTagMask);
+  } else if (right_cid == kSmiCid) {
+    __ tsti(left, kSmiTagMask);
+  } else {
+    __ orr(TMP, left, Operand(right));
+    __ tsti(TMP, kSmiTagMask);
+  }
+  __ b(deopt, EQ);
 }
 
 
@@ -2832,13 +2882,50 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  CompileType* value_type = value()->Type();
+  const intptr_t value_cid = value_type->ToCid();
+  const Register value = locs()->in(0).reg();
+  const VRegister result = locs()->out(0).fpu_reg();
+
+  if (value_cid == kDoubleCid) {
+    __ LoadDFieldFromOffset(result, value, Double::value_offset());
+  } else if (value_cid == kSmiCid) {
+    __ Asr(TMP, value, kSmiTagSize);  // Untag input before conversion.
+    __ scvtfd(result, TMP);
+  } else {
+    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+                                          ICData::kDeoptBinaryDoubleOp);
+    if (value_type->is_nullable() &&
+        (value_type->ToNullableCid() == kDoubleCid)) {
+      __ CompareObject(value, Object::null_object(), PP);
+      __ b(deopt, EQ);
+      // It must be double now.
+      __ LoadDFieldFromOffset(result, value, Double::value_offset());
+    } else {
+      Label is_smi, done;
+      __ tsti(value, kSmiTagMask);
+      __ b(&is_smi, EQ);
+      __ CompareClassId(value, kDoubleCid);
+      __ b(deopt, NE);
+      __ LoadDFieldFromOffset(result, value, Double::value_offset());
+      __ b(&done);
+      __ Bind(&is_smi);
+      __ Asr(TMP, value, kSmiTagSize);  // Copy and untag.
+      __ scvtfd(result, TMP);
+      __ Bind(&done);
+    }
+  }
 }
 
 
@@ -2909,13 +2996,28 @@ void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const VRegister left = locs()->in(0).fpu_reg();
+  const VRegister right = locs()->in(1).fpu_reg();
+  const VRegister result = locs()->out(0).fpu_reg();
+  switch (op_kind()) {
+    case Token::kADD: __ faddd(result, left, right); break;
+    case Token::kSUB: __ fsubd(result, left, right); break;
+    case Token::kMUL: __ fmuld(result, left, right); break;
+    case Token::kDIV: __ fdivd(result, left, right); break;
+    default: UNREACHABLE();
+  }
 }
 
 

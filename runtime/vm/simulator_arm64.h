@@ -120,10 +120,6 @@ class Simulator {
   bool v_flag_;
 
   simd_value_t vregisters_[kNumberOfVRegisters];
-  bool fp_n_flag_;
-  bool fp_z_flag_;
-  bool fp_c_flag_;
-  bool fp_v_flag_;
 
   // Simulator support.
   int64_t last_pc_;
