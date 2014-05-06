@@ -401,7 +401,7 @@ class Namer implements ClosureNamer {
       signature.orderedOptionalParameters.forEach((Element element) {
         buffer.write('\$${safeName(element.name)}');
       });
-      methodName = '$methodName$buffer';
+      return getMappedInstanceName('$methodName$buffer');
     }
     if (name == closureInvocationSelectorName) return methodName;
     return getMappedInstanceName(methodName);
