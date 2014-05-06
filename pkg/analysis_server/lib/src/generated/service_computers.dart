@@ -12,8 +12,10 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/scanner.dart' show Token;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'service_interfaces.dart';
+import 'package:analyzer/src/generated/element.dart' as pae;
+import 'package:analyzer/src/generated/element.dart' show DartType;
+import 'package:analyzer/src/generated/source.dart';
+import 'service_interfaces.dart' as psi;
 
 /**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].
@@ -21,14 +23,14 @@ import 'service_interfaces.dart';
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
 
-  List<HighlightRegion> _regions = [];
+  List<psi.HighlightRegion> _regions = [];
 
   DartUnitHighlightsComputer(this._unit);
 
   /**
    * Returns the computed [HighlightRegion]s, not `null`.
    */
-  List<HighlightRegion> compute() {
+  List<psi.HighlightRegion> compute() {
     _unit.accept(new RecursiveAstVisitor_DartUnitHighlightsComputer_compute(this));
     return new List.from(_regions);
   }
@@ -76,39 +78,39 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_typeParameter(node)) {
       return;
     }
-    _addRegion_node(node, HighlightType.IDENTIFIER_DEFAULT);
+    _addRegion_node(node, psi.HighlightType.IDENTIFIER_DEFAULT);
   }
 
   void _addIdentifierRegion_annotation(Annotation node) {
     ArgumentList arguments = node.arguments;
     if (arguments == null) {
-      _addRegion_node(node, HighlightType.ANNOTATION);
+      _addRegion_node(node, psi.HighlightType.ANNOTATION);
     } else {
-      _addRegion_nodeStart_tokenEnd(node, arguments.beginToken, HighlightType.ANNOTATION);
-      _addRegion_token(arguments.endToken, HighlightType.ANNOTATION);
+      _addRegion_nodeStart_tokenEnd(node, arguments.beginToken, psi.HighlightType.ANNOTATION);
+      _addRegion_token(arguments.endToken, psi.HighlightType.ANNOTATION);
     }
   }
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! ClassElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.ClassElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.CLASS);
+    return _addRegion_node(node, psi.HighlightType.CLASS);
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! ConstructorElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.ConstructorElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.CONSTRUCTOR);
+    return _addRegion_node(node, psi.HighlightType.CONSTRUCTOR);
   }
 
   bool _addIdentifierRegion_dynamicType(SimpleIdentifier node) {
     // should be variable
-    Element element = node.staticElement;
-    if (element is! VariableElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.VariableElement) {
       return false;
     }
     // has propagated type
@@ -121,51 +123,51 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // OK
-    return _addRegion_node(node, HighlightType.DYNAMIC_TYPE);
+    return _addRegion_node(node, psi.HighlightType.DYNAMIC_TYPE);
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+    pae.Element element = node.bestElement;
+    if (element is pae.FieldFormalParameterElement) {
+      element = (element as pae.FieldFormalParameterElement).field;
     }
-    if (element is FieldElement) {
-      if ((element as FieldElement).isStatic) {
-        return _addRegion_node(node, HighlightType.FIELD_STATIC);
+    if (element is pae.FieldElement) {
+      if ((element as pae.FieldElement).isStatic) {
+        return _addRegion_node(node, psi.HighlightType.FIELD_STATIC);
       } else {
-        return _addRegion_node(node, HighlightType.FIELD);
+        return _addRegion_node(node, psi.HighlightType.FIELD);
       }
     }
-    if (element is PropertyAccessorElement) {
-      if ((element as PropertyAccessorElement).isStatic) {
-        return _addRegion_node(node, HighlightType.FIELD_STATIC);
+    if (element is pae.PropertyAccessorElement) {
+      if ((element as pae.PropertyAccessorElement).isStatic) {
+        return _addRegion_node(node, psi.HighlightType.FIELD_STATIC);
       } else {
-        return _addRegion_node(node, HighlightType.FIELD);
+        return _addRegion_node(node, psi.HighlightType.FIELD);
       }
     }
     return false;
   }
 
   bool _addIdentifierRegion_function(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! FunctionElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.FunctionElement) {
       return false;
     }
-    HighlightType type;
+    psi.HighlightType type;
     if (node.inDeclarationContext()) {
-      type = HighlightType.FUNCTION_DECLARATION;
+      type = psi.HighlightType.FUNCTION_DECLARATION;
     } else {
-      type = HighlightType.FUNCTION;
+      type = psi.HighlightType.FUNCTION;
     }
     return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! FunctionTypeAliasElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.FunctionTypeAliasElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.FUNCTION_TYPE_ALIAS);
+    return _addRegion_node(node, psi.HighlightType.FUNCTION_TYPE_ALIAS);
   }
 
   bool _addIdentifierRegion_getterSetterDeclaration(SimpleIdentifier node) {
@@ -175,117 +177,117 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // should be property accessor
-    Element element = node.staticElement;
-    if (element is! PropertyAccessorElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.PropertyAccessorElement) {
       return false;
     }
     // getter or setter
-    PropertyAccessorElement propertyAccessorElement = element as PropertyAccessorElement;
+    pae.PropertyAccessorElement propertyAccessorElement = element as pae.PropertyAccessorElement;
     if (propertyAccessorElement.isGetter) {
-      return _addRegion_node(node, HighlightType.GETTER_DECLARATION);
+      return _addRegion_node(node, psi.HighlightType.GETTER_DECLARATION);
     } else {
-      return _addRegion_node(node, HighlightType.SETTER_DECLARATION);
+      return _addRegion_node(node, psi.HighlightType.SETTER_DECLARATION);
     }
   }
 
   bool _addIdentifierRegion_importPrefix(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! PrefixElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.PrefixElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.IMPORT_PREFIX);
+    return _addRegion_node(node, psi.HighlightType.IMPORT_PREFIX);
   }
 
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
     String name = node.name;
     if (name == "void") {
-      return _addRegion_node(node, HighlightType.KEYWORD);
+      return _addRegion_node(node, psi.HighlightType.KEYWORD);
     }
     return false;
   }
 
   bool _addIdentifierRegion_localVariable(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! LocalVariableElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.LocalVariableElement) {
       return false;
     }
     // OK
-    HighlightType type;
+    psi.HighlightType type;
     if (node.inDeclarationContext()) {
-      type = HighlightType.LOCAL_VARIABLE_DECLARATION;
+      type = psi.HighlightType.LOCAL_VARIABLE_DECLARATION;
     } else {
-      type = HighlightType.LOCAL_VARIABLE;
+      type = psi.HighlightType.LOCAL_VARIABLE;
     }
     return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
-    if (element is! MethodElement) {
+    pae.Element element = node.bestElement;
+    if (element is! pae.MethodElement) {
       return false;
     }
-    MethodElement methodElement = element as MethodElement;
+    pae.MethodElement methodElement = element as pae.MethodElement;
     bool isStatic = methodElement.isStatic;
     // OK
-    HighlightType type;
+    psi.HighlightType type;
     if (node.inDeclarationContext()) {
       if (isStatic) {
-        type = HighlightType.METHOD_DECLARATION_STATIC;
+        type = psi.HighlightType.METHOD_DECLARATION_STATIC;
       } else {
-        type = HighlightType.METHOD_DECLARATION;
+        type = psi.HighlightType.METHOD_DECLARATION;
       }
     } else {
       if (isStatic) {
-        type = HighlightType.METHOD_STATIC;
+        type = psi.HighlightType.METHOD_STATIC;
       } else {
-        type = HighlightType.METHOD;
+        type = psi.HighlightType.METHOD;
       }
     }
     return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_parameter(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! ParameterElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.ParameterElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.PARAMETER);
+    return _addRegion_node(node, psi.HighlightType.PARAMETER);
   }
 
   bool _addIdentifierRegion_topLevelVariable(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! TopLevelVariableElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.TopLevelVariableElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.TOP_LEVEL_VARIABLE);
+    return _addRegion_node(node, psi.HighlightType.TOP_LEVEL_VARIABLE);
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is! TypeParameterElement) {
+    pae.Element element = node.staticElement;
+    if (element is! pae.TypeParameterElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.TYPE_PARAMETER);
+    return _addRegion_node(node, psi.HighlightType.TYPE_PARAMETER);
   }
 
-  void _addRegion(int offset, int length, HighlightType type) {
+  void _addRegion(int offset, int length, psi.HighlightType type) {
     _regions.add(new HighlightRegionImpl(offset, length, type));
   }
 
-  bool _addRegion_node(AstNode node, HighlightType type) {
+  bool _addRegion_node(AstNode node, psi.HighlightType type) {
     int offset = node.offset;
     int length = node.length;
     _addRegion(offset, length, type);
     return true;
   }
 
-  void _addRegion_nodeStart_tokenEnd(AstNode a, Token b, HighlightType type) {
+  void _addRegion_nodeStart_tokenEnd(AstNode a, Token b, psi.HighlightType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
   }
 
-  void _addRegion_token(Token token, HighlightType type) {
+  void _addRegion_token(Token token, psi.HighlightType type) {
     if (token != null) {
       int offset = token.offset;
       int length = token.length;
@@ -293,7 +295,7 @@ class DartUnitHighlightsComputer {
     }
   }
 
-  void _addRegion_tokenStart_tokenEnd(Token a, Token b, HighlightType type) {
+  void _addRegion_tokenStart_tokenEnd(Token a, Token b, psi.HighlightType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
@@ -306,14 +308,14 @@ class DartUnitHighlightsComputer {
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  List<NavigationRegion> _regions = [];
+  List<psi.NavigationRegion> _regions = [];
 
   DartUnitNavigationComputer(this._unit);
 
   /**
    * Returns the computed [NavigationRegion]s, not `null`.
    */
-  List<NavigationRegion> compute() {
+  List<psi.NavigationRegion> compute() {
     _unit.accept(new RecursiveAstVisitor_DartUnitNavigationComputer_compute(this));
     return new List.from(_regions);
   }
@@ -322,15 +324,15 @@ class DartUnitNavigationComputer {
    * If the given [Element] is not `null`, then creates a corresponding
    * [NavigationRegion].
    */
-  void _addRegion(int offset, int length, Element element) {
-    NavigationTarget target = _createTarget(element);
+  void _addRegion(int offset, int length, pae.Element element) {
+    psi.Element target = _createTarget(element);
     if (target == null) {
       return;
     }
-    _regions.add(new NavigationRegionImpl(offset, length, <NavigationTarget> [target]));
+    _regions.add(new NavigationRegionImpl(offset, length, <psi.Element> [target]));
   }
 
-  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
+  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, pae.Element element) {
     int offset = a.offset;
     int length = b.end - offset;
     _addRegion(offset, length, element);
@@ -340,7 +342,7 @@ class DartUnitNavigationComputer {
    * If the given [Element] is not `null`, then creates a corresponding
    * [NavigationRegion].
    */
-  void _addRegionForNode(AstNode node, Element element) {
+  void _addRegionForNode(AstNode node, pae.Element element) {
     int offset = node.offset;
     int length = node.length;
     _addRegion(offset, length, element);
@@ -350,53 +352,50 @@ class DartUnitNavigationComputer {
    * If the given [Element] is not `null`, then creates a corresponding
    * [NavigationRegion].
    */
-  void _addRegionForToken(Token token, Element element) {
+  void _addRegionForToken(Token token, pae.Element element) {
     int offset = token.offset;
     int length = token.length;
     _addRegion(offset, length, element);
   }
 
   /**
-   * Returns the [NavigationTarget] for the given [Element], maybe `null` if
-   * `null` was given.
+   * Returns the [com.google.dart.server.Element] for the given [Element], maybe
+   * `null` if `null` was given.
    */
-  NavigationTarget _createTarget(Element element) {
+  psi.Element _createTarget(pae.Element element) {
     if (element == null) {
       return null;
     }
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+    if (element is pae.FieldFormalParameterElement) {
+      element = (element as pae.FieldFormalParameterElement).field;
     }
-    int nameOffset = element.nameOffset;
-    int nameLength = element.displayName.length;
-    if (nameOffset == -1) {
-      nameLength = 0;
-    }
-    return new NavigationTargetImpl(element.source, _getElementId(element), nameOffset, nameLength);
+    return ElementImpl.create(element);
   }
-
-  String _getElementId(Element element) => element.location.encoding;
 }
 
 /**
  * A computer for [Outline]s in a Dart [CompilationUnit].
  */
 class DartUnitOutlineComputer {
+  static String _UNITTEST_LIBRARY = "unittest";
+
+  final Source _source;
+
   final CompilationUnit _unit;
 
-  DartUnitOutlineComputer(this._unit);
+  DartUnitOutlineComputer(this._source, this._unit);
 
   /**
    * Returns the computed [Outline]s, not `null`.
    */
-  Outline compute() {
+  psi.Outline compute() {
     OutlineImpl unitOutline = _newUnitOutline();
-    List<Outline> unitChildren = [];
+    List<psi.Outline> unitChildren = [];
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
         ClassDeclaration classDeclartion = unitMember;
         OutlineImpl classOutline = _newClassOutline(unitOutline, unitChildren, classDeclartion);
-        List<Outline> classChildren = [];
+        List<psi.Outline> classChildren = [];
         for (ClassMember classMember in classDeclartion.members) {
           if (classMember is ConstructorDeclaration) {
             ConstructorDeclaration constructorDeclaration = classMember;
@@ -437,16 +436,59 @@ class DartUnitOutlineComputer {
     return unitOutline;
   }
 
-  void _addLocalFunctionOutlines(OutlineImpl parenet, FunctionBody body) {
-    List<Outline> localOutlines = [];
-    body.accept(new RecursiveAstVisitor_DartUnitOutlineComputer_addLocalFunctionOutlines(this, parenet, localOutlines));
-    parenet.children = new List.from(localOutlines);
+  void _addLocalFunctionOutlines(OutlineImpl parent, FunctionBody body) {
+    List<psi.Outline> localOutlines = [];
+    body.accept(new RecursiveAstVisitor_DartUnitOutlineComputer_addLocalFunctionOutlines(this, parent, localOutlines));
+    parent.children = new List.from(localOutlines);
+  }
+
+  bool _addUnitTestOutlines(OutlineImpl parent, List<psi.Outline> children, MethodInvocation node) {
+    psi.ElementKind unitTestKind = null;
+    if (_isUnitTestFunctionInvocation(node, "group")) {
+      unitTestKind = psi.ElementKind.UNIT_TEST_GROUP;
+    } else if (_isUnitTestFunctionInvocation(node, "test")) {
+      unitTestKind = psi.ElementKind.UNIT_TEST_CASE;
+    } else {
+      return false;
+    }
+    ArgumentList argumentList = node.argumentList;
+    if (argumentList != null) {
+      List<Expression> arguments = argumentList.arguments;
+      if (arguments.length == 2 && arguments[1] is FunctionExpression) {
+        // prepare name
+        String name;
+        int nameOffset;
+        int nameLength;
+        {
+          Expression nameNode = arguments[0];
+          if (nameNode is SimpleStringLiteral) {
+            SimpleStringLiteral nameLiteral = arguments[0] as SimpleStringLiteral;
+            name = nameLiteral.value;
+            nameOffset = nameLiteral.valueOffset;
+            nameLength = name.length;
+          } else {
+            name = "??????????";
+            nameOffset = nameNode.offset;
+            nameLength = nameNode.length;
+          }
+        }
+        // add a new outline
+        FunctionExpression functionExpression = arguments[1] as FunctionExpression;
+        SourceRegionImpl sourceRegion = new SourceRegionImpl(node.offset, node.length);
+        ElementImpl element = new ElementImpl(null, _source, unitTestKind, name, nameOffset, nameLength, null, null, false, false, false);
+        OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
+        children.add(outline);
+        _addLocalFunctionOutlines(outline, functionExpression.body);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Returns the [AstNode]'s source region.
    */
-  SourceRegion _getSourceRegion(AstNode node) {
+  psi.SourceRegion _getSourceRegion(AstNode node) {
     int endOffset = node.end;
     // prepare position of the node among its siblings
     int firstOffset;
@@ -490,21 +532,45 @@ class DartUnitOutlineComputer {
     return new SourceRegionImpl(prevSiblingEnd, endOffset - prevSiblingEnd);
   }
 
-  OutlineImpl _newClassOutline(Outline unitOutline, List<Outline> unitChildren, ClassDeclaration classDeclaration) {
+  /**
+   * Returns `true` if the given [MethodInvocation] is invocation of the function with
+   * the given name from the "unittest" library.
+   */
+  bool _isUnitTestFunctionInvocation(MethodInvocation node, String name) {
+    SimpleIdentifier methodName = node.methodName;
+    if (methodName != null) {
+      pae.Element element = methodName.staticElement;
+      if (element is pae.FunctionElement) {
+        pae.FunctionElement functionElement = element;
+        if (name == functionElement.name) {
+          pae.LibraryElement libraryElement = functionElement.library;
+          return libraryElement != null && _UNITTEST_LIBRARY == libraryElement.name;
+        }
+      }
+    }
+    return false;
+  }
+
+  OutlineImpl _newClassOutline(psi.Outline unitOutline, List<psi.Outline> unitChildren, ClassDeclaration classDeclaration) {
     SimpleIdentifier nameNode = classDeclaration.name;
     String name = nameNode.name;
-    OutlineImpl outline = new OutlineImpl(unitOutline, _getSourceRegion(classDeclaration), OutlineKind.CLASS, name, nameNode.offset, name.length, null, null, classDeclaration.isAbstract, StringUtilities.startsWithChar(name, 0x5F), false);
+    ElementImpl element = new ElementImpl(ElementImpl.createId(classDeclaration.element), _source, psi.ElementKind.CLASS, name, nameNode.offset, name.length, null, null, classDeclaration.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(classDeclaration);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
     unitChildren.add(outline);
     return outline;
   }
 
-  void _newClassTypeAlias(Outline unitOutline, List<Outline> unitChildren, ClassTypeAlias alias) {
+  void _newClassTypeAlias(psi.Outline unitOutline, List<psi.Outline> unitChildren, ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
-    unitChildren.add(new OutlineImpl(unitOutline, _getSourceRegion(alias), OutlineKind.CLASS_TYPE_ALIAS, name, nameNode.offset, nameNode.length, null, null, alias.isAbstract, StringUtilities.startsWithChar(name, 0x5F), false));
+    ElementImpl element = new ElementImpl(ElementImpl.createId(alias.element), _source, psi.ElementKind.CLASS_TYPE_ALIAS, name, nameNode.offset, nameNode.length, null, null, alias.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(alias);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
+    unitChildren.add(outline);
   }
 
-  void _newConstructorOutline(OutlineImpl classOutline, List<Outline> children, ConstructorDeclaration constructorDeclaration) {
+  void _newConstructorOutline(OutlineImpl classOutline, List<psi.Outline> children, ConstructorDeclaration constructorDeclaration) {
     Identifier returnType = constructorDeclaration.returnType;
     String name = returnType.name;
     int offset = returnType.offset;
@@ -519,70 +585,234 @@ class DartUnitOutlineComputer {
       length = constructorNameNode.length;
     }
     FormalParameterList parameters = constructorDeclaration.parameters;
-    OutlineImpl outline = new OutlineImpl(classOutline, _getSourceRegion(constructorDeclaration), OutlineKind.CONSTRUCTOR, name, offset, length, parameters != null ? parameters.toSource() : "", null, false, isPrivate, false);
+    ElementImpl element = new ElementImpl(ElementImpl.createId(constructorDeclaration.element), _source, psi.ElementKind.CONSTRUCTOR, name, offset, length, parameters != null ? parameters.toSource() : "", null, false, false, isPrivate);
+    psi.SourceRegion sourceRegion = _getSourceRegion(constructorDeclaration);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
     _addLocalFunctionOutlines(outline, constructorDeclaration.body);
   }
 
-  void _newField(OutlineImpl classOutline, List<Outline> children, String fieldTypeName, VariableDeclaration field, bool isStatic) {
+  void _newField(OutlineImpl classOutline, List<psi.Outline> children, String fieldTypeName, VariableDeclaration field, bool isStatic) {
     SimpleIdentifier nameNode = field.name;
     String name = nameNode.name;
-    children.add(new OutlineImpl(classOutline, _getSourceRegion(field), OutlineKind.FIELD, name, nameNode.offset, nameNode.length, null, fieldTypeName, false, StringUtilities.startsWithChar(name, 0x5F), isStatic));
+    ElementImpl element = new ElementImpl(ElementImpl.createId(field.element), _source, psi.ElementKind.FIELD, name, nameNode.offset, nameNode.length, null, fieldTypeName, false, isStatic, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(field);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
+    children.add(outline);
   }
 
-  void _newFunctionOutline(Outline unitOutline, List<Outline> unitChildren, FunctionDeclaration functionDeclaration) {
+  void _newFunctionOutline(psi.Outline parent, List<psi.Outline> children, FunctionDeclaration functionDeclaration) {
     TypeName returnType = functionDeclaration.returnType;
     SimpleIdentifier nameNode = functionDeclaration.name;
     String name = nameNode.name;
     FunctionExpression functionExpression = functionDeclaration.functionExpression;
     FormalParameterList parameters = functionExpression.parameters;
-    OutlineKind kind;
+    psi.ElementKind kind;
     if (functionDeclaration.isGetter) {
-      kind = OutlineKind.GETTER;
+      kind = psi.ElementKind.GETTER;
     } else if (functionDeclaration.isSetter) {
-      kind = OutlineKind.SETTER;
+      kind = psi.ElementKind.SETTER;
     } else {
-      kind = OutlineKind.FUNCTION;
+      kind = psi.ElementKind.FUNCTION;
     }
-    OutlineImpl outline = new OutlineImpl(unitOutline, _getSourceRegion(functionDeclaration), kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, StringUtilities.startsWithChar(name, 0x5F), false);
-    unitChildren.add(outline);
+    ElementImpl element = new ElementImpl(ElementImpl.createId(functionDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(functionDeclaration);
+    OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
+    children.add(outline);
     _addLocalFunctionOutlines(outline, functionExpression.body);
   }
 
-  void _newFunctionTypeAliasOutline(Outline unitOutline, List<Outline> unitChildren, FunctionTypeAlias alias) {
+  void _newFunctionTypeAliasOutline(psi.Outline unitOutline, List<psi.Outline> unitChildren, FunctionTypeAlias alias) {
     TypeName returnType = alias.returnType;
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
     FormalParameterList parameters = alias.parameters;
-    unitChildren.add(new OutlineImpl(unitOutline, _getSourceRegion(alias), OutlineKind.FUNCTION_TYPE_ALIAS, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, StringUtilities.startsWithChar(name, 0x5F), false));
+    ElementImpl element = new ElementImpl(ElementImpl.createId(alias.element), _source, psi.ElementKind.FUNCTION_TYPE_ALIAS, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(alias);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
+    unitChildren.add(outline);
   }
 
-  void _newMethodOutline(OutlineImpl classOutline, List<Outline> children, MethodDeclaration methodDeclaration) {
+  void _newMethodOutline(OutlineImpl classOutline, List<psi.Outline> children, MethodDeclaration methodDeclaration) {
     TypeName returnType = methodDeclaration.returnType;
     SimpleIdentifier nameNode = methodDeclaration.name;
     String name = nameNode.name;
     FormalParameterList parameters = methodDeclaration.parameters;
-    OutlineKind kind;
+    psi.ElementKind kind;
     if (methodDeclaration.isGetter) {
-      kind = OutlineKind.GETTER;
+      kind = psi.ElementKind.GETTER;
     } else if (methodDeclaration.isSetter) {
-      kind = OutlineKind.SETTER;
+      kind = psi.ElementKind.SETTER;
     } else {
-      kind = OutlineKind.METHOD;
+      kind = psi.ElementKind.METHOD;
     }
-    OutlineImpl outline = new OutlineImpl(classOutline, _getSourceRegion(methodDeclaration), kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", methodDeclaration.isAbstract, StringUtilities.startsWithChar(name, 0x5F), methodDeclaration.isStatic);
+    ElementImpl element = new ElementImpl(ElementImpl.createId(methodDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", methodDeclaration.isAbstract, methodDeclaration.isStatic, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(methodDeclaration);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
     _addLocalFunctionOutlines(outline, methodDeclaration.body);
   }
 
-  OutlineImpl _newUnitOutline() => new OutlineImpl(null, new SourceRegionImpl(_unit.offset, _unit.length), OutlineKind.COMPILATION_UNIT, null, 0, 0, null, null, false, false, false);
+  OutlineImpl _newUnitOutline() {
+    ElementImpl element = new ElementImpl(ElementImpl.createId(_unit.element), _source, psi.ElementKind.COMPILATION_UNIT, null, 0, 0, null, null, false, false, false);
+    return new OutlineImpl(null, element, new SourceRegionImpl(_unit.offset, _unit.length));
+  }
+}
+
+/**
+ * A concrete implementation of [Element].
+ */
+class ElementImpl implements psi.Element {
+  /**
+   * Creates an [ElementImpl] instance for the given
+   * [com.google.dart.engine.element.Element].
+   */
+  static ElementImpl create(pae.Element element) {
+    // prepare name
+    String name = element.displayName;
+    int nameOffset = element.nameOffset;
+    int nameLength = name != null ? name.length : 0;
+    // prepare element kind specific information
+    psi.ElementKind outlineKind;
+    bool isAbstract = false;
+    bool isStatic = false;
+    bool isPrivate = element.isPrivate;
+    while (true) {
+      if (element.kind == pae.ElementKind.CLASS) {
+        outlineKind = psi.ElementKind.CLASS;
+        isAbstract = (element as pae.ClassElement).isAbstract;
+      } else if (element.kind == pae.ElementKind.COMPILATION_UNIT) {
+        outlineKind = psi.ElementKind.COMPILATION_UNIT;
+        nameOffset = -1;
+        nameLength = 0;
+      } else if (element.kind == pae.ElementKind.CONSTRUCTOR) {
+        outlineKind = psi.ElementKind.CONSTRUCTOR;
+        String className = element.enclosingElement.name;
+        if (name.length != 0) {
+          name = "${className}.${name}";
+        } else {
+          name = className;
+        }
+      } else if (element.kind == pae.ElementKind.FUNCTION) {
+        outlineKind = psi.ElementKind.FUNCTION;
+      } else if (element.kind == pae.ElementKind.FUNCTION_TYPE_ALIAS) {
+        outlineKind = psi.ElementKind.FUNCTION_TYPE_ALIAS;
+      } else if (element.kind == pae.ElementKind.LIBRARY) {
+        outlineKind = psi.ElementKind.LIBRARY;
+      } else if (element.kind == pae.ElementKind.METHOD) {
+        outlineKind = psi.ElementKind.METHOD;
+        isAbstract = (element as pae.MethodElement).isAbstract;
+      } else {
+        outlineKind = psi.ElementKind.UNKNOWN;
+      }
+      break;
+    }
+    // extract return type and parameters from toString()
+    // TODO(scheglov) we need a way to get this information directly from an Element
+    String parameters;
+    String returnType;
+    {
+      String str = element.toString();
+      // return type
+      String rightArrow = pae.Element.RIGHT_ARROW;
+      int returnIndex = str.lastIndexOf(rightArrow);
+      if (returnIndex != -1) {
+        returnType = str.substring(returnIndex + rightArrow.length);
+        str = str.substring(0, returnIndex);
+      } else {
+        returnType = null;
+      }
+      // parameters
+      int parametersIndex = str.indexOf("(");
+      if (parametersIndex != -1) {
+        parameters = str.substring(parametersIndex);
+      } else {
+        parameters = null;
+      }
+    }
+    // new element
+    return new ElementImpl(createId(element), element.source, outlineKind, name, nameOffset, nameLength, parameters, returnType, isAbstract, isStatic, isPrivate);
+  }
+
+  /**
+   * Returns an identifier of the given [Element], maybe `null` if `null` given.
+   */
+  static String createId(pae.Element element) {
+    if (element == null) {
+      return null;
+    }
+    return element.location.encoding;
+  }
+
+  final String id;
+
+  final Source source;
+
+  final psi.ElementKind kind;
+
+  final String name;
+
+  final int offset;
+
+  final int length;
+
+  final String parameters;
+
+  final String returnType;
+
+  final bool isAbstract;
+
+  final bool isPrivate;
+
+  final bool isStatic;
+
+  ElementImpl(this.id, this.source, this.kind, this.name, this.offset, this.length, this.parameters, this.returnType, this.isAbstract, this.isStatic, this.isPrivate);
+
+  @override
+  bool operator ==(Object obj) {
+    if (identical(obj, this)) {
+      return true;
+    }
+    if (obj is! ElementImpl) {
+      return false;
+    }
+    ElementImpl other = obj as ElementImpl;
+    return other.kind == kind && (other.source == source) && (name == other.name);
+  }
+
+  @override
+  int get hashCode {
+    if (name == null) {
+      return source.hashCode;
+    }
+    return ObjectUtilities.combineHashCodes(source.hashCode, name.hashCode);
+  }
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[name=");
+    builder.append(name);
+    builder.append(", kind=");
+    builder.append(kind);
+    builder.append(", offset=");
+    builder.append(offset);
+    builder.append(", length=");
+    builder.append(length);
+    builder.append(", parameters=");
+    builder.append(parameters);
+    builder.append(", return=");
+    builder.append(returnType);
+    builder.append("]");
+    return builder.toString();
+  }
 }
 
 /**
  * A concrete implementation of [HighlightRegion].
  */
-class HighlightRegionImpl extends SourceRegionImpl implements HighlightRegion {
-  final HighlightType type;
+class HighlightRegionImpl extends SourceRegionImpl implements psi.HighlightRegion {
+  final psi.HighlightType type;
 
   HighlightRegionImpl(int offset, int length, this.type) : super(offset, length);
 
@@ -603,8 +833,8 @@ class HighlightRegionImpl extends SourceRegionImpl implements HighlightRegion {
 /**
  * A concrete implementation of [NavigationRegion].
  */
-class NavigationRegionImpl extends SourceRegionImpl implements NavigationRegion {
-  final List<NavigationTarget> targets;
+class NavigationRegionImpl extends SourceRegionImpl implements psi.NavigationRegion {
+  final List<psi.Element> targets;
 
   NavigationRegionImpl(int offset, int length, this.targets) : super(offset, length);
 
@@ -620,64 +850,18 @@ class NavigationRegionImpl extends SourceRegionImpl implements NavigationRegion 
 }
 
 /**
- * A concrete implementation of [NavigationTarget].
- */
-class NavigationTargetImpl implements NavigationTarget {
-  final Source source;
-
-  final String elementId;
-
-  final int offset;
-
-  final int length;
-
-  NavigationTargetImpl(this.source, this.elementId, this.offset, this.length);
-
-  @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
-    builder.append(", source=");
-    builder.append(source);
-    builder.append(", element=");
-    builder.append(elementId);
-    builder.append("]");
-    return builder.toString();
-  }
-}
-
-/**
  * A concrete implementation of [Outline].
  */
-class OutlineImpl implements Outline {
-  final Outline parent;
+class OutlineImpl implements psi.Outline {
+  final psi.Outline parent;
 
-  final SourceRegion sourceRegion;
+  final psi.Element element;
 
-  final OutlineKind kind;
+  final psi.SourceRegion sourceRegion;
 
-  final String name;
+  List<psi.Outline> children = psi.Outline.EMPTY_ARRAY;
 
-  final int offset;
-
-  final int length;
-
-  final String parameters;
-
-  final String returnType;
-
-  final bool isAbstract;
-
-  final bool isPrivate;
-
-  final bool isStatic;
-
-  List<Outline> children = Outline.EMPTY_ARRAY;
-
-  OutlineImpl(this.parent, this.sourceRegion, this.kind, this.name, this.offset, this.length, this.parameters, this.returnType, this.isAbstract, this.isPrivate, this.isStatic);
+  OutlineImpl(this.parent, this.element, this.sourceRegion);
 
   @override
   bool operator ==(Object obj) {
@@ -688,27 +872,22 @@ class OutlineImpl implements Outline {
       return false;
     }
     OutlineImpl other = obj as OutlineImpl;
-    return (other.parent == parent) && other.offset == offset;
+    return (other.element == element) && (other.parent == parent);
   }
 
   @override
-  int get hashCode => offset;
+  int get hashCode {
+    if (parent == null) {
+      return element.hashCode;
+    }
+    return ObjectUtilities.combineHashCodes(parent.hashCode, element.hashCode);
+  }
 
   @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[name=");
-    builder.append(name);
-    builder.append(", kind=");
-    builder.append(kind);
-    builder.append(", offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
-    builder.append(", parameters=");
-    builder.append(parameters);
-    builder.append(", return=");
-    builder.append(returnType);
+    builder.append("[element=");
+    builder.append(element);
     builder.append(", children=[");
     builder.append(StringUtils.join(children, ", "));
     builder.append("]]");
@@ -729,134 +908,134 @@ class RecursiveAstVisitor_DartUnitHighlightsComputer_compute extends RecursiveAs
 
   @override
   Object visitAsExpression(AsExpression node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.asOperator, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.asOperator, psi.HighlightType.BUILT_IN);
     return super.visitAsExpression(node);
   }
 
   @override
   Object visitBooleanLiteral(BooleanLiteral node) {
-    DartUnitHighlightsComputer_this._addRegion_node(node, HighlightType.LITERAL_BOOLEAN);
+    DartUnitHighlightsComputer_this._addRegion_node(node, psi.HighlightType.LITERAL_BOOLEAN);
     return super.visitBooleanLiteral(node);
   }
 
   @override
   Object visitCatchClause(CatchClause node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.onKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.onKeyword, psi.HighlightType.BUILT_IN);
     return super.visitCatchClause(node);
   }
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.abstractKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.abstractKeyword, psi.HighlightType.BUILT_IN);
     return super.visitClassDeclaration(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.factoryKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.factoryKeyword, psi.HighlightType.BUILT_IN);
     return super.visitConstructorDeclaration(node);
   }
 
   @override
   Object visitDoubleLiteral(DoubleLiteral node) {
-    DartUnitHighlightsComputer_this._addRegion_node(node, HighlightType.LITERAL_DOUBLE);
+    DartUnitHighlightsComputer_this._addRegion_node(node, psi.HighlightType.LITERAL_DOUBLE);
     return super.visitDoubleLiteral(node);
   }
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitExportDirective(node);
   }
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.staticKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.staticKeyword, psi.HighlightType.BUILT_IN);
     return super.visitFieldDeclaration(node);
   }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.propertyKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.propertyKeyword, psi.HighlightType.BUILT_IN);
     return super.visitFunctionDeclaration(node);
   }
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitFunctionTypeAlias(node);
   }
 
   @override
   Object visitHideCombinator(HideCombinator node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitHideCombinator(node);
   }
 
   @override
   Object visitImplementsClause(ImplementsClause node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitImplementsClause(node);
   }
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.deferredToken, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.asToken, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.deferredToken, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.asToken, psi.HighlightType.BUILT_IN);
     return super.visitImportDirective(node);
   }
 
   @override
   Object visitIntegerLiteral(IntegerLiteral node) {
-    DartUnitHighlightsComputer_this._addRegion_node(node, HighlightType.LITERAL_INTEGER);
+    DartUnitHighlightsComputer_this._addRegion_node(node, psi.HighlightType.LITERAL_INTEGER);
     return super.visitIntegerLiteral(node);
   }
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitLibraryDirective(node);
   }
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.modifierKeyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.operatorKeyword, HighlightType.BUILT_IN);
-    DartUnitHighlightsComputer_this._addRegion_token(node.propertyKeyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.externalKeyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.modifierKeyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.operatorKeyword, psi.HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.propertyKeyword, psi.HighlightType.BUILT_IN);
     return super.visitMethodDeclaration(node);
   }
 
   @override
   Object visitNativeClause(NativeClause node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitNativeClause(node);
   }
 
   @override
   Object visitNativeFunctionBody(NativeFunctionBody node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.nativeToken, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.nativeToken, psi.HighlightType.BUILT_IN);
     return super.visitNativeFunctionBody(node);
   }
 
   @override
   Object visitPartDirective(PartDirective node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitPartDirective(node);
   }
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
-    DartUnitHighlightsComputer_this._addRegion_tokenStart_tokenEnd(node.partToken, node.ofToken, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_tokenStart_tokenEnd(node.partToken, node.ofToken, psi.HighlightType.BUILT_IN);
     return super.visitPartOfDirective(node);
   }
 
   @override
   Object visitShowCombinator(ShowCombinator node) {
-    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    DartUnitHighlightsComputer_this._addRegion_token(node.keyword, psi.HighlightType.BUILT_IN);
     return super.visitShowCombinator(node);
   }
 
@@ -868,7 +1047,7 @@ class RecursiveAstVisitor_DartUnitHighlightsComputer_compute extends RecursiveAs
 
   @override
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
-    DartUnitHighlightsComputer_this._addRegion_node(node, HighlightType.LITERAL_STRING);
+    DartUnitHighlightsComputer_this._addRegion_node(node, psi.HighlightType.LITERAL_STRING);
     return super.visitSimpleStringLiteral(node);
   }
 
@@ -877,7 +1056,7 @@ class RecursiveAstVisitor_DartUnitHighlightsComputer_compute extends RecursiveAs
     DartType type = node.type;
     if (type != null) {
       if (type.isDynamic && node.name.name == "dynamic") {
-        DartUnitHighlightsComputer_this._addRegion_node(node, HighlightType.TYPE_NAME_DYNAMIC);
+        DartUnitHighlightsComputer_this._addRegion_node(node, psi.HighlightType.TYPE_NAME_DYNAMIC);
         return null;
       }
     }
@@ -904,9 +1083,9 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    ExportElement exportElement = node.element;
+    pae.ExportElement exportElement = node.element;
     if (exportElement != null) {
-      Element element = exportElement.exportedLibrary;
+      pae.Element element = exportElement.exportedLibrary;
       DartUnitNavigationComputer_this._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
     }
     return super.visitExportDirective(node);
@@ -914,9 +1093,9 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    ImportElement importElement = node.element;
+    pae.ImportElement importElement = node.element;
     if (importElement != null) {
-      Element element = importElement.importedLibrary;
+      pae.Element element = importElement.importedLibrary;
       DartUnitNavigationComputer_this._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
     }
     return super.visitImportDirective(node);
@@ -962,23 +1141,66 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
 class RecursiveAstVisitor_DartUnitOutlineComputer_addLocalFunctionOutlines extends RecursiveAstVisitor<Object> {
   final DartUnitOutlineComputer DartUnitOutlineComputer_this;
 
-  OutlineImpl parenet;
+  OutlineImpl parent;
 
-  List<Outline> localOutlines;
+  List<psi.Outline> localOutlines;
 
-  RecursiveAstVisitor_DartUnitOutlineComputer_addLocalFunctionOutlines(this.DartUnitOutlineComputer_this, this.parenet, this.localOutlines) : super();
+  RecursiveAstVisitor_DartUnitOutlineComputer_addLocalFunctionOutlines(this.DartUnitOutlineComputer_this, this.parent, this.localOutlines) : super();
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    DartUnitOutlineComputer_this._newFunctionOutline(parenet, localOutlines, node);
+    DartUnitOutlineComputer_this._newFunctionOutline(parent, localOutlines, node);
     return null;
+  }
+
+  @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    bool handled = DartUnitOutlineComputer_this._addUnitTestOutlines(parent, localOutlines, node);
+    if (handled) {
+      return null;
+    }
+    return super.visitMethodInvocation(node);
+  }
+}
+
+/**
+ * A concrete implementation of [SearchResult].
+ */
+class SearchResultImpl implements psi.SearchResult {
+  final List<psi.Element> path;
+
+  final Source source;
+
+  final psi.SearchResultKind kind;
+
+  final int offset;
+
+  final int length;
+
+  SearchResultImpl(this.path, this.source, this.kind, this.offset, this.length);
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[source=");
+    builder.append(source);
+    builder.append(", kind=");
+    builder.append(kind);
+    builder.append(", offset=");
+    builder.append(offset);
+    builder.append(", length=");
+    builder.append(length);
+    builder.append(", path=");
+    builder.append(path);
+    builder.append("]");
+    return builder.toString();
   }
 }
 
 /**
  * A concrete implementation of [SourceRegion].
  */
-class SourceRegionImpl implements SourceRegion {
+class SourceRegionImpl implements psi.SourceRegion {
   final int offset;
 
   final int length;
@@ -993,10 +1215,10 @@ class SourceRegionImpl implements SourceRegion {
     if (identical(obj, this)) {
       return true;
     }
-    if (obj is! SourceRegion) {
+    if (obj is! psi.SourceRegion) {
       return false;
     }
-    SourceRegion other = obj as SourceRegion;
+    psi.SourceRegion other = obj as psi.SourceRegion;
     return other.offset == offset && other.length == length;
   }
 

@@ -1256,7 +1256,7 @@ class CorrectionUtils {
    */
   int getLineNext(int index) {
     int length = _buffer.length;
-    // skip whitespace characters
+    // skip to the end of the line
     while (index < length) {
       int c = _buffer.codeUnitAt(index);
       if (c == 0xD || c == 0xA) {
@@ -1444,7 +1444,7 @@ class CorrectionUtils {
     if (expression == null) {
       return null;
     }
-    DartType type = expression.staticType;
+    DartType type = expression.bestType;
     String typeSource = getTypeSource2(type);
     if ("dynamic" == typeSource) {
       return null;

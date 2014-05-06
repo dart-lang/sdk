@@ -9,6 +9,154 @@ library service.interfaces;
 
 import 'package:analyzer/src/generated/java_core.dart' show Enum, StringUtils;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analysis_services/src/generated/proposal.dart';
+
+/**
+ * The interface `Element` defines the behavior of objects that represent an information for
+ * an element.
+ */
+abstract class Element {
+  /**
+   * An empty array of elements.
+   */
+  static final List<Element> EMPTY_ARRAY = new List<Element>(0);
+
+  /**
+   * Return the id of the element, may be `null` if there is no resolution information
+   * associated with this element.
+   *
+   * @return the id of the element
+   */
+  String get id;
+
+  /**
+   * Return the kind of the element.
+   *
+   * @return the kind of the element
+   */
+  ElementKind get kind;
+
+  /**
+   * Return the length of the element's name.
+   *
+   * @return the length of the element's name
+   */
+  int get length;
+
+  /**
+   * Return the name of the element.
+   *
+   * @return the name of the element
+   */
+  String get name;
+
+  /**
+   * Return the offset to the beginning of the element's name.
+   *
+   * @return the offset to the beginning of the element's name
+   */
+  int get offset;
+
+  /**
+   * Return the parameter list for the element, or `null` if the element is not a constructor,
+   * method or function. If the element has zero arguments, the string `"()"` will be
+   * returned.
+   *
+   * @return the parameter list for the element
+   */
+  String get parameters;
+
+  /**
+   * Return the return type of the element, or `null` if the element is not a method or
+   * function. If the element does not have a declared return type then an empty string will be
+   * returned.
+   *
+   * @return the return type of the element
+   */
+  String get returnType;
+
+  /**
+   * Return the source containing the element, not `null`.
+   *
+   * @return the source containing the element
+   */
+  Source get source;
+
+  /**
+   * Return `true` if the element is abstract.
+   *
+   * @return `true` if the element is abstract
+   */
+  bool get isAbstract;
+
+  /**
+   * Return `true` if the element is private.
+   *
+   * @return `true` if the element is private
+   */
+  bool get isPrivate;
+
+  /**
+   * Return `true` if the element is a class member and is a static element.
+   *
+   * @return `true` if the element is a static element
+   */
+  bool get isStatic;
+}
+
+/**
+ * The enumeration `ElementKind` defines the various kinds of [Element]s.
+ */
+class ElementKind extends Enum<ElementKind> {
+  static const ElementKind CLASS = const ElementKind('CLASS', 0);
+
+  static const ElementKind CLASS_TYPE_ALIAS = const ElementKind('CLASS_TYPE_ALIAS', 1);
+
+  static const ElementKind COMPILATION_UNIT = const ElementKind('COMPILATION_UNIT', 2);
+
+  static const ElementKind CONSTRUCTOR = const ElementKind('CONSTRUCTOR', 3);
+
+  static const ElementKind GETTER = const ElementKind('GETTER', 4);
+
+  static const ElementKind FIELD = const ElementKind('FIELD', 5);
+
+  static const ElementKind FUNCTION = const ElementKind('FUNCTION', 6);
+
+  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 7);
+
+  static const ElementKind LIBRARY = const ElementKind('LIBRARY', 8);
+
+  static const ElementKind METHOD = const ElementKind('METHOD', 9);
+
+  static const ElementKind SETTER = const ElementKind('SETTER', 10);
+
+  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 11);
+
+  static const ElementKind UNKNOWN = const ElementKind('UNKNOWN', 12);
+
+  static const ElementKind UNIT_TEST_CASE = const ElementKind('UNIT_TEST_CASE', 13);
+
+  static const ElementKind UNIT_TEST_GROUP = const ElementKind('UNIT_TEST_GROUP', 14);
+
+  static const List<ElementKind> values = const [
+      CLASS,
+      CLASS_TYPE_ALIAS,
+      COMPILATION_UNIT,
+      CONSTRUCTOR,
+      GETTER,
+      FIELD,
+      FUNCTION,
+      FUNCTION_TYPE_ALIAS,
+      LIBRARY,
+      METHOD,
+      SETTER,
+      TOP_LEVEL_VARIABLE,
+      UNKNOWN,
+      UNIT_TEST_CASE,
+      UNIT_TEST_GROUP];
+
+  const ElementKind(String name, int ordinal) : super(name, ordinal);
+}
 
 /**
  * The interface `HighlightRegion` defines the behavior of objects representing a particular
@@ -167,6 +315,20 @@ class ListSourceSet implements SourceSet {
 }
 
 /**
+ * The interface `MinorRefactoringsConsumer` defines the behavior of objects that consume
+ * minor refactorings [CorrectionProposal]s.
+ */
+abstract class MinorRefactoringsConsumer {
+  /**
+   * A set [CorrectionProposal]s has been computed.
+   *
+   * @param proposals an array of computed [CorrectionProposal]s
+   * @param isLastResult is `true` if this is the last set of results
+   */
+  void computedProposals(List<CorrectionProposal> proposals, bool isLastResult);
+}
+
+/**
  * The interface `NavigationRegion` defines the behavior of objects representing a list of
  * elements with which a source region is associated.
  */
@@ -177,45 +339,11 @@ abstract class NavigationRegion implements SourceRegion {
   static final List<NavigationRegion> EMPTY_ARRAY = new List<NavigationRegion>(0);
 
   /**
-   * Return the identifiers of the elements associated with the region.
+   * Return the elements associated with the region.
    *
-   * @return the identifiers of the elements associated with the region
+   * @return the elements associated with the region
    */
-  List<NavigationTarget> get targets;
-}
-
-/**
- * The interface `NavigationTarget` defines the behavior of objects that provide information
- * about the target of a navigation region.
- */
-abstract class NavigationTarget {
-  /**
-   * Return the id of the element to which this target will navigate.
-   *
-   * @return the id of the element to which this target will navigate
-   */
-  String get elementId;
-
-  /**
-   * Return the length of the region to which the target will navigate.
-   *
-   * @return the length of the region to which the target will navigate
-   */
-  int get length;
-
-  /**
-   * Return the offset to the region to which the target will navigate.
-   *
-   * @return the offset to the region to which the target will navigate
-   */
-  int get offset;
-
-  /**
-   * Return the source containing the element to which this target will navigate.
-   *
-   * @return the source containing the element to which this target will navigate
-   */
-  Source get source;
+  List<Element> get targets;
 }
 
 /**
@@ -237,8 +365,8 @@ class NotificationKind extends Enum<NotificationKind> {
 }
 
 /**
- * The interface `Outline` defines the behavior of objects that represent an outline for a
- * single source.
+ * The interface `Outline` defines the behavior of objects that represent an outline for an
+ * element.
  */
 abstract class Outline {
   /**
@@ -247,49 +375,19 @@ abstract class Outline {
   static final List<Outline> EMPTY_ARRAY = new List<Outline>(0);
 
   /**
-   * Return an array containing the children of the element. The array will be empty if the element
-   * has no children.
+   * Return an array containing the children outline. The array will be empty if the outline has no
+   * children.
    *
    * @return an array containing the children of the element
    */
   List<Outline> get children;
 
   /**
-   * Return the kind of the element.
+   * Return the information about the element.
    *
-   * @return the kind of the element
+   * @return the information about the element
    */
-  OutlineKind get kind;
-
-  /**
-   * Return the length of the element's name.
-   *
-   * @return the length of the element's name
-   */
-  int get length;
-
-  /**
-   * Return the name of the element.
-   *
-   * @return the name of the element
-   */
-  String get name;
-
-  /**
-   * Return the offset to the beginning of the element's name.
-   *
-   * @return the offset to the beginning of the element's name
-   */
-  int get offset;
-
-  /**
-   * Return the parameter list for the element, or `null` if the element is not a constructor,
-   * method or function. If the element has zero arguments, the string `"()"` will be
-   * returned.
-   *
-   * @return the parameter list for the element
-   */
-  String get parameters;
+  Element get element;
 
   /**
    * Return the outline that either physically or logically encloses this outline. This will be
@@ -300,83 +398,168 @@ abstract class Outline {
   Outline get parent;
 
   /**
-   * Return the return type of the element, or `null` if the element is not a method or
-   * function. If the element does not have a declared return type then an empty string will be
-   * returned.
+   * Return the source range associated with this outline.
    *
-   * @return the return type of the element
-   */
-  String get returnType;
-
-  /**
-   * Return the element's source range.
-   *
-   * @return the element's source range
+   * @return the source range associated with this outline
    */
   SourceRegion get sourceRegion;
-
-  /**
-   * Return `true` if the element is abstract.
-   *
-   * @return `true` if the element is abstract
-   */
-  bool get isAbstract;
-
-  /**
-   * Return `true` if the element is private.
-   *
-   * @return `true` if the element is private
-   */
-  bool get isPrivate;
-
-  /**
-   * Return `true` if the element is a class member and is a static element.
-   *
-   * @return `true` if the element is a static element
-   */
-  bool get isStatic;
 }
 
 /**
- * The enumeration `OutlineKind` defines the various kinds of [Outline] items.
+ * The interface `SearchResult` defines the behavior of objects that represent a search
+ * result.
  */
-class OutlineKind extends Enum<OutlineKind> {
-  static const OutlineKind CLASS = const OutlineKind('CLASS', 0);
+abstract class SearchResult {
+  /**
+   * An empty array of [SearchResult]s.
+   */
+  static final List<SearchResult> EMPTY_ARRAY = new List<SearchResult>(0);
 
-  static const OutlineKind CLASS_TYPE_ALIAS = const OutlineKind('CLASS_TYPE_ALIAS', 1);
+  /**
+   * Return the kind to this result.
+   *
+   * @return the kind of this result
+   */
+  SearchResultKind get kind;
 
-  static const OutlineKind CONSTRUCTOR = const OutlineKind('CONSTRUCTOR', 2);
+  /**
+   * Return the length of the result.
+   *
+   * @return the length of the result
+   */
+  int get length;
 
-  static const OutlineKind GETTER = const OutlineKind('GETTER', 3);
+  /**
+   * Return the offset to the beginning of the result in [getSource].
+   *
+   * @return the offset to the beginning of the result
+   */
+  int get offset;
 
-  static const OutlineKind FIELD = const OutlineKind('FIELD', 4);
+  /**
+   * Return the path to this result starting with the element that encloses it, then for its
+   * enclosing element, etc up to the library.
+   *
+   * @return the path to this result
+   */
+  List<Element> get path;
 
-  static const OutlineKind FUNCTION = const OutlineKind('FUNCTION', 5);
+  /**
+   * Return the source containing the result.
+   *
+   * @return the source containing the result
+   */
+  Source get source;
+}
 
-  static const OutlineKind FUNCTION_TYPE_ALIAS = const OutlineKind('FUNCTION_TYPE_ALIAS', 6);
+/**
+ * The enumeration `SearchResultKind` defines the various kinds of [SearchResult].
+ */
+class SearchResultKind extends Enum<SearchResultKind> {
+  /**
+   * A reference to a constructor.
+   */
+  static const SearchResultKind CONSTRUCTOR_REFERENCE = const SearchResultKind('CONSTRUCTOR_REFERENCE', 0);
 
-  static const OutlineKind METHOD = const OutlineKind('METHOD', 7);
+  /**
+   * A reference to a field (from field formal parameter).
+   */
+  static const SearchResultKind FIELD_REFERENCE = const SearchResultKind('FIELD_REFERENCE', 1);
 
-  static const OutlineKind SETTER = const OutlineKind('SETTER', 8);
+  /**
+   * A reference to a field in which it is read.
+   */
+  static const SearchResultKind FIELD_READ = const SearchResultKind('FIELD_READ', 2);
 
-  static const OutlineKind TOP_LEVEL_VARIABLE = const OutlineKind('TOP_LEVEL_VARIABLE', 9);
+  /**
+   * A reference to a field in which it is written.
+   */
+  static const SearchResultKind FIELD_WRITE = const SearchResultKind('FIELD_WRITE', 3);
 
-  static const OutlineKind COMPILATION_UNIT = const OutlineKind('COMPILATION_UNIT', 10);
+  /**
+   * A reference to a function in which it is invoked.
+   */
+  static const SearchResultKind FUNCTION_INVOCATION = const SearchResultKind('FUNCTION_INVOCATION', 4);
 
-  static const List<OutlineKind> values = const [
-      CLASS,
-      CLASS_TYPE_ALIAS,
-      CONSTRUCTOR,
-      GETTER,
-      FIELD,
-      FUNCTION,
-      FUNCTION_TYPE_ALIAS,
-      METHOD,
-      SETTER,
-      TOP_LEVEL_VARIABLE,
-      COMPILATION_UNIT];
+  /**
+   * A reference to a function in which it is referenced.
+   */
+  static const SearchResultKind FUNCTION_REFERENCE = const SearchResultKind('FUNCTION_REFERENCE', 5);
 
-  const OutlineKind(String name, int ordinal) : super(name, ordinal);
+  /**
+   * A reference to a method in which it is invoked.
+   */
+  static const SearchResultKind METHOD_INVOCATION = const SearchResultKind('METHOD_INVOCATION', 6);
+
+  /**
+   * A reference to a method in which it is referenced.
+   */
+  static const SearchResultKind METHOD_REFERENCE = const SearchResultKind('METHOD_REFERENCE', 7);
+
+  /**
+   * A reference to a property accessor.
+   */
+  static const SearchResultKind PROPERTY_ACCESSOR_REFERENCE = const SearchResultKind('PROPERTY_ACCESSOR_REFERENCE', 8);
+
+  /**
+   * A reference to a type.
+   */
+  static const SearchResultKind TYPE_REFERENCE = const SearchResultKind('TYPE_REFERENCE', 9);
+
+  /**
+   * A declaration of a variable.
+   */
+  static const SearchResultKind VARIABLE_DECLARATION = const SearchResultKind('VARIABLE_DECLARATION', 10);
+
+  /**
+   * A reference to a variable in which it is read.
+   */
+  static const SearchResultKind VARIABLE_READ = const SearchResultKind('VARIABLE_READ', 11);
+
+  /**
+   * A reference to a variable in which it is both read and written.
+   */
+  static const SearchResultKind VARIABLE_READ_WRITE = const SearchResultKind('VARIABLE_READ_WRITE', 12);
+
+  /**
+   * A reference to a variable in which it is written.
+   */
+  static const SearchResultKind VARIABLE_WRITE = const SearchResultKind('VARIABLE_WRITE', 13);
+
+  static const List<SearchResultKind> values = const [
+      CONSTRUCTOR_REFERENCE,
+      FIELD_REFERENCE,
+      FIELD_READ,
+      FIELD_WRITE,
+      FUNCTION_INVOCATION,
+      FUNCTION_REFERENCE,
+      METHOD_INVOCATION,
+      METHOD_REFERENCE,
+      PROPERTY_ACCESSOR_REFERENCE,
+      TYPE_REFERENCE,
+      VARIABLE_DECLARATION,
+      VARIABLE_READ,
+      VARIABLE_READ_WRITE,
+      VARIABLE_WRITE];
+
+  const SearchResultKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `SearchReferencesConsumer` defines the behavior of objects that consume
+ * [SearchResult]s.
+ */
+abstract class SearchResultsConsumer {
+  /**
+   * [SearchResult]s have been computed.
+   *
+   * @param contextId the identifier of the context to search within
+   * @param source the [Source] with element
+   * @param offset the offset within the `source`
+   * @param searchResults an array of [SearchResult]s computed so far
+   * @param isLastResult is `true` if this is the last set of results
+   */
+  void computedReferences(String contextId, Source source, int offset, List<SearchResult> searchResults, bool isLastResult);
 }
 
 /**

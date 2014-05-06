@@ -228,6 +228,11 @@ class CorrectionKind extends Enum<CorrectionKind> {
  * Proposal for some change.
  */
 class CorrectionProposal {
+  /**
+   * An empty array of [CorrectionProposal]s.
+   */
+  static List<CorrectionProposal> EMPTY_ARRAY = new List<CorrectionProposal>(0);
+
   final CorrectionKind kind;
 
   String _name;

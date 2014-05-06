@@ -12,6 +12,11 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+
+abstract class SearchFilter {
+  bool passes(SearchMatch match);
+}
+
 class SearchMatch {
   final Element element = null;
   final SourceRange sourceRange = null;
