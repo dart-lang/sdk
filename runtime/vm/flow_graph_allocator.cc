@@ -230,12 +230,6 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     kill_[graph_entry_->postorder_number()]->Add(vreg);
     live_in_[graph_entry_->postorder_number()]->Remove(vreg);
   }
-
-  // Update initial live_in sets to match live_out sets. Has to be
-  // done in a separate path because of backwards branches.
-  for (intptr_t i = 0; i < block_count; i++) {
-    UpdateLiveIn(*postorder_[i]);
-  }
 }
 
 
