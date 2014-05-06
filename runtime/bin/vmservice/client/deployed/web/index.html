@@ -2057,12 +2057,14 @@
       <thead>
         <tr>
           <th on-click="{{changeSort}}" class="clickable" title="Class">{{ classTable.getColumnLabel(0) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Size">{{ classTable.getColumnLabel(3) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Instances">{{ classTable.getColumnLabel(4) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Current Size">{{ classTable.getColumnLabel(5) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Current Instances">{{ classTable.getColumnLabel(6) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Size">{{ classTable.getColumnLabel(3) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Instances">{{ classTable.getColumnLabel(4) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Size">{{ classTable.getColumnLabel(5) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Instances">{{ classTable.getColumnLabel(6) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Size">{{ classTable.getColumnLabel(7) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Instances">{{ classTable.getColumnLabel(8) }}</th>
         </tr>
       </thead>
       <tbody>
@@ -2074,6 +2076,8 @@
           <td title="{{ classTable.getValue(row, 4) }}">{{ classTable.getFormattedValue(row, 4) }}</td>
           <td title="{{ classTable.getValue(row, 5) }}">{{ classTable.getFormattedValue(row, 5) }}</td>
           <td title="{{ classTable.getValue(row, 6) }}">{{ classTable.getFormattedValue(row, 6) }}</td>
+          <td title="{{ classTable.getValue(row, 7) }}">{{ classTable.getFormattedValue(row, 7) }}</td>
+          <td title="{{ classTable.getValue(row, 8) }}">{{ classTable.getFormattedValue(row, 8) }}</td>
         </tr>
       </tbody>
     </table>

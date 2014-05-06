@@ -2367,21 +2367,21 @@ tM:[function(a,b){var z,y
 z=this.zU
 if(a>>>0!==a||a>=z.length)return H.e(z,a)
 z=J.U8(z[a])
-if(b>>>0!==b||b>=7)return H.e(z,b)
+if(b>>>0!==b||b>=9)return H.e(z,b)
 y=z[b]
 return this.oH[b].xy.$1(y)},"$2","gls",4,0,97,98,[],99,[],"getFormattedValue",82],
 Qs:[function(a){var z,y
 if(!J.de(a,this.pT)){z=this.oH
-if(a>>>0!==a||a>=7)return H.e(z,a)
+if(a>>>0!==a||a>=9)return H.e(z,a)
 return z[a].ph+"\u2003"}z=this.oH
-if(a>>>0!==a||a>=7)return H.e(z,a)
+if(a>>>0!==a||a>=9)return H.e(z,a)
 z=z[a]
 y=this.jV?"\u25bc":"\u25b2"
 return z.ph+y},"$1","gpo",2,0,18,99,[],"getColumnLabel",82],
 TK:[function(a,b){var z=this.zU
 if(a>>>0!==a||a>=z.length)return H.e(z,a)
 z=J.U8(z[a])
-if(b>>>0!==b||b>=7)return H.e(z,b)
+if(b>>>0!==b||b>=9)return H.e(z,b)
 return z[b]},"$2","gyY",4,0,100,98,[],99,[],"getValue",82]},
 Nu:{
 "^":"Tp:75;a",
@@ -2391,12 +2391,12 @@ y=z.zU
 if(a>>>0!==a||a>=y.length)return H.e(y,a)
 x=J.U8(y[a])
 w=z.pT
-if(w>>>0!==w||w>=7)return H.e(x,w)
+if(w>>>0!==w||w>=9)return H.e(x,w)
 v=x[w]
 if(b>>>0!==b||b>=y.length)return H.e(y,b)
 y=J.U8(y[b])
 w=z.pT
-if(w>>>0!==w||w>=7)return H.e(y,w)
+if(w>>>0!==w||w>=9)return H.e(y,w)
 u=y[w]
 if(z.jV)return J.oE(u,v)
 else return J.oE(v,u)},
@@ -10184,7 +10184,7 @@ z.vR=P.zV(J.UQ($.NR,"PieChart"),[y])
 a.CO=z
 z.bG.u(0,"title","Old Space")
 this.uB(a)},"$0","gQd",0,0,21,"enteredView"],
-hZ:[function(a){var z,y,x,w,v,u,t,s,r,q
+hZ:[function(a){var z,y,x,w,v,u,t,s,r,q,p,o
 z=a.Ol
 if(z==null||!J.x(J.UQ(z,"members")).$iszM||J.de(J.q8(J.UQ(a.Ol,"members")),0))return
 a.nc.lb()
@@ -10197,19 +10197,21 @@ u=this.VI(a,y,3)
 t=this.VI(a,y,4)
 s=this.VI(a,y,5)
 r=this.VI(a,y,6)
-J.qK(a.nc,new G.Ni([x,w,v,u,t,s,r]))}J.Yl(a.nc)
+q=this.VI(a,y,7)
+p=this.VI(a,y,8)
+J.qK(a.nc,new G.Ni([x,w,v,u,t,s,r,q,p]))}J.Yl(a.nc)
 a.GQ.lb()
-q=J.UQ(J.UQ(a.Ol,"heaps"),"new")
-z=J.U6(q)
-J.qK(a.GQ,["Used",z.t(q,"used")])
-J.qK(a.GQ,["Free",J.xH(z.t(q,"capacity"),z.t(q,"used"))])
-J.qK(a.GQ,["External",z.t(q,"external")])
+o=J.UQ(J.UQ(a.Ol,"heaps"),"new")
+z=J.U6(o)
+J.qK(a.GQ,["Used",z.t(o,"used")])
+J.qK(a.GQ,["Free",J.xH(z.t(o,"capacity"),z.t(o,"used"))])
+J.qK(a.GQ,["External",z.t(o,"external")])
 a.Oc.lb()
-q=J.UQ(J.UQ(a.Ol,"heaps"),"old")
-z=J.U6(q)
-J.qK(a.Oc,["Used",z.t(q,"used")])
-J.qK(a.Oc,["Free",J.xH(z.t(q,"capacity"),z.t(q,"used"))])
-J.qK(a.Oc,["External",z.t(q,"external")])
+o=J.UQ(J.UQ(a.Ol,"heaps"),"old")
+z=J.U6(o)
+J.qK(a.Oc,["Used",z.t(o,"used")])
+J.qK(a.Oc,["Free",J.xH(z.t(o,"capacity"),z.t(o,"used"))])
+J.qK(a.Oc,["External",z.t(o,"external")])
 this.uB(a)},"$0","gYs",0,0,21,"_updateChartData"],
 uB:[function(a){var z=a.J0
 if(z==null)return
@@ -10229,16 +10231,18 @@ for(z=J.GP(x);z.G();)if(!J.de(z.gl(),0))return!1
 return!0},"$1","gbU",2,0,196,70,[],"_classHasNoAllocations"],
 VI:[function(a,b,c){var z
 switch(c){case 0:return J.UQ(J.UQ(b,"class"),"user_name")
-case 1:z=J.U6(b)
-return J.WB(J.UQ(z.t(b,"new"),7),J.UQ(z.t(b,"old"),7))
-case 2:z=J.U6(b)
-return J.WB(J.UQ(z.t(b,"new"),6),J.UQ(z.t(b,"old"),6))
-case 3:return J.UQ(J.UQ(b,"old"),7)
-case 4:return J.UQ(J.UQ(b,"old"),6)
-case 5:z=J.U6(b)
-return J.WB(J.WB(J.WB(J.UQ(z.t(b,"new"),3),J.UQ(z.t(b,"new"),5)),J.UQ(z.t(b,"old"),3)),J.UQ(z.t(b,"old"),5))
-case 6:z=J.U6(b)
-return J.WB(J.WB(J.WB(J.UQ(z.t(b,"new"),2),J.UQ(z.t(b,"new"),4)),J.UQ(z.t(b,"old"),2)),J.UQ(z.t(b,"old"),4))}throw H.b(P.hS())},"$2","gcY",4,0,197,70,[],73,[],"_combinedTableColumnValue"],
+case 1:return J.UQ(J.UQ(b,"new"),7)
+case 2:return J.UQ(J.UQ(b,"new"),6)
+case 3:z=J.U6(b)
+return J.WB(J.UQ(z.t(b,"new"),3),J.UQ(z.t(b,"new"),5))
+case 4:z=J.U6(b)
+return J.WB(J.UQ(z.t(b,"new"),2),J.UQ(z.t(b,"new"),4))
+case 5:return J.UQ(J.UQ(b,"old"),7)
+case 6:return J.UQ(J.UQ(b,"old"),6)
+case 7:z=J.U6(b)
+return J.WB(J.UQ(z.t(b,"old"),3),J.UQ(z.t(b,"old"),5))
+case 8:z=J.U6(b)
+return J.WB(J.UQ(z.t(b,"old"),2),J.UQ(z.t(b,"old"),4))}throw H.b(P.hS())},"$2","gcY",4,0,197,70,[],73,[],"_combinedTableColumnValue"],
 pA:[function(a,b){var z=a.Ol
 if(z==null)return
 J.QP(z).cv("/allocationprofile").ml(new K.nx(a)).OA(new K.jm()).YM(b)},"$1","gvC",2,0,26,106,[],"refresh"],
@@ -10281,7 +10285,7 @@ a.Oc=z
 z.Gl("string","Type")
 a.Oc.Gl("number","Size")
 z=H.VM([],[G.Ni])
-z=this.ct(a,C.M5,a.nc,new G.Vz([new G.Kt("Class",G.My()),new G.Kt("Accumulator",G.AF()),new G.Kt("Accumulator",G.Vj()),new G.Kt("Accumulator (Old space)",G.AF()),new G.Kt("Accumulator (Old space)",G.Vj()),new G.Kt("Current",G.AF()),new G.Kt("Current",G.Vj())],z,[],0,!0,null,null))
+z=this.ct(a,C.M5,a.nc,new G.Vz([new G.Kt("Class",G.My()),new G.Kt("Accumulator Size (New)",G.AF()),new G.Kt("Accumulator (New)",G.Vj()),new G.Kt("Current Size (New)",G.AF()),new G.Kt("Current (New)",G.Vj()),new G.Kt("Accumulator Size (Old)",G.AF()),new G.Kt("Accumulator (Old)",G.Vj()),new G.Kt("Current Size (Old)",G.AF()),new G.Kt("Current (Old)",G.Vj())],z,[],0,!0,null,null))
 a.nc=z
 z.sxp(1)},null,null,0,0,22,"created"],
 "@":function(){return[C.dA]},
