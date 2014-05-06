@@ -11739,14 +11739,13 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
                      EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  jsobj.AddProperty("is_optimized", is_optimized());
-  jsobj.AddProperty("is_alive", is_alive());
+  jsobj.AddProperty("isOptimized", is_optimized());
+  jsobj.AddProperty("isAlive", is_alive());
   jsobj.AddProperty("kind", "Dart");
   const String& name = String::Handle(Name());
   const String& pretty_name = String::Handle(PrettyName());
-  const char* name_prefix = is_optimized() ? "*" : "";
-  jsobj.AddPropertyF("name", "%s%s", name_prefix, name.ToCString());
-  jsobj.AddPropertyF("user_name", "%s%s", name_prefix, pretty_name.ToCString());
+  jsobj.AddProperty("name", name.ToCString());
+  jsobj.AddProperty("user_name", pretty_name.ToCString());
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);

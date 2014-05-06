@@ -1205,6 +1205,7 @@ class Code extends ServiceObject {
   @observable ServiceMap objectPool;
   @observable ServiceMap function;
   @observable Script script;
+  @observable bool isOptimized = false;
   String name;
   String vmName;
 
@@ -1321,6 +1322,7 @@ class Code extends ServiceObject {
   void _update(ObservableMap m, bool mapIsRef) {
     name = m['user_name'];
     vmName = m['name'];
+    isOptimized = m['isOptimized'] != null ? m['isOptimized'] : false;
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);

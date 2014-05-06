@@ -11,13 +11,21 @@ abstract class TableTreeRow extends Observable {
   @observable final List<String> columns = [];
   static const arrowRight = '\u2192';
   static const arrowDownRight = '\u21b3';
+  static const showExpanderStyle = 'cursor: pointer;';
+  static const hideExpanderStyle = 'visibility:hidden;';
+
   // TODO(johnmccutchan): Move expander display decisions into html once
   // tables and templates are better supported.
   @observable String expander = arrowRight;
+  @observable String expanderStyle = showExpanderStyle;
 
   TableTreeRow(TableTreeRow parent) :
       parent = parent,
-      depth = parent != null ? parent.depth+1 : 0;
+      depth = parent != null ? parent.depth+1 : 0 {
+    if (!hasChildren()) {
+      expanderStyle = hideExpanderStyle;
+    }
+  }
 
   bool _expanded = false;
   bool get expanded => _expanded;
@@ -40,6 +48,8 @@ abstract class TableTreeRow extends Observable {
     expanded = !expanded;
     return expanded;
   }
+
+  bool hasChildren();
 
   /// Fired when the tree row is expanded. Add children rows here.
   void onShow();

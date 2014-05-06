@@ -643,7 +643,12 @@
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <template if="{{ code.isDartCode }}">
-      <a href="{{ url }}">{{ name }}</a>
+        <template if="{{ code.isOptimized }}">
+          <a href="{{ url }}">*{{ name }}</a>
+        </template>
+        <template if="{{ !code.isOptimized }}">
+          <a href="{{ url }}">{{ name }}</a>
+        </template>
     </template>
     <template if="{{ !code.isDartCode }}">
       <span>{{ name }}</span>
@@ -706,14 +711,25 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <div class="content">
-      <h1>Code for {{ code.name }}</h1>
+      <template if="{{ code.isDartCode &amp;&amp; code.isOptimized }}">
+        <h1>Optimized code for {{ code.name }}</h1>
+      </template>
+      <template if="{{ !(code.isDartCode &amp;&amp; code.isOptimized) }}">
+        <h1>Code for {{ code.name }}</h1>
+      </template>
       <div class="memberList">
         <div class="memberItem">
-          <div class="memberName">kind</div>
+          <div class="memberName">Kind</div>
           <div class="memberValue">{{code.kind}}</div>
         </div>
+        <template if="{{ code.isDartCode }}">
+          <div class="memberItem">
+            <div class="memberName">Optimized</div>
+            <div class="memberValue">{{code.isOptimized}}</div>
+          </div>
+        </template>
         <div class="memberItem">
-          <div class="memberName">function</div>
+          <div class="memberName">Function</div>
           <div class="memberValue">
             <function-ref ref="{{code.function}}">
             </function-ref>
@@ -1918,7 +1934,7 @@
         <tbody>
           <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
             <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-              <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
+              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
               <div style="position: relative;display: inline">
                 {{row.columns[0]}}
               </div>
