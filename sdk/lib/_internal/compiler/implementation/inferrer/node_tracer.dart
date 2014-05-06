@@ -189,7 +189,7 @@ abstract class TracerVisitor<T extends TypeInformation>
         flow.users.forEach((user) {
           if (user is !DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
-          if (inferrer._returnsListElementTypeSet.contains(user.selector)) {
+          if (returnsListElementTypeSet.contains(user.selector)) {
             addNewEscapeInformation(user);
           } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
             bailout('Escape from a list via [${user.selector.name}]');
