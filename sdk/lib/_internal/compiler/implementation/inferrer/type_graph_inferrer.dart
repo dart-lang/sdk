@@ -29,34 +29,6 @@ part 'map_tracer.dart';
 bool _VERBOSE = false;
 bool _PRINT_SUMMARY = false;
 
-/**
- * A set of selector names that [List] implements, that we know return
- * their element type.
- */
-Set<Selector> returnsListElementTypeSet = new Set<Selector>.from(
-  <Selector>[
-    new Selector.getter('first', null),
-    new Selector.getter('last', null),
-    new Selector.getter('single', null),
-    new Selector.call('singleWhere', null, 1),
-    new Selector.call('elementAt', null, 1),
-    new Selector.index(),
-    new Selector.call('removeAt', null, 1),
-    new Selector.call('removeLast', null, 0)
-  ]);
-
-bool returnsListElementType(Selector selector) {
-  return (selector.mask != null) &&
-         selector.mask.isContainer &&
-         returnsListElementTypeSet.contains(selector.asUntyped);
-}
-
-bool returnsMapValueType(Selector selector) {
-  return (selector.mask != null) &&
-         selector.mask.isMap &&
-         selector.isIndex();
-}
-
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
 
@@ -495,6 +467,34 @@ class TypeGraphInferrerEngine
 
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
+
+  /**
+   * A set of selector names that [List] implements, that we know return
+   * their element type.
+   */
+  final Set<Selector> _returnsListElementTypeSet = new Set<Selector>.from(
+    <Selector>[
+      new Selector.getter('first', null),
+      new Selector.getter('last', null),
+      new Selector.getter('single', null),
+      new Selector.call('singleWhere', null, 1),
+      new Selector.call('elementAt', null, 1),
+      new Selector.index(),
+      new Selector.call('removeAt', null, 1),
+      new Selector.call('removeLast', null, 0)
+    ]);
+
+  bool returnsListElementType(Selector selector) {
+    return (selector.mask != null) &&
+           selector.mask.isContainer &&
+           _returnsListElementTypeSet.contains(selector.asUntyped);
+  }
+
+  bool returnsMapValueType(Selector selector) {
+    return (selector.mask != null) &&
+           selector.mask.isMap &&
+           selector.isIndex();
+  }
 
   void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
@@ -1117,12 +1117,12 @@ class TypeGraphInferrer implements TypesInferrer {
     if (selector.isSetter() || selector.isIndexSet()) {
       return compiler.typesTask.dynamicType;
     }
-    if (returnsListElementType(selector)) {
+    if (inferrer.returnsListElementType(selector)) {
       ContainerTypeMask mask = selector.mask;
       TypeMask elementType = mask.elementType;
       return elementType == null ? compiler.typesTask.dynamicType : elementType;
     }
-    if (returnsMapValueType(selector)) {
+    if (inferrer.returnsMapValueType(selector)) {
       MapTypeMask mask = selector.mask;
       TypeMask valueType = mask.valueType;
       return valueType == null ? compiler.typesTask.dynamicType

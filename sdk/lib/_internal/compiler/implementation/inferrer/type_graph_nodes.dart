@@ -684,10 +684,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return const TypeMask.nonNullEmpty();
       }
 
-      if (returnsListElementType(typedSelector)) {
+      if (inferrer.returnsListElementType(typedSelector)) {
         ContainerTypeMask mask = receiver.type;
         return mask.elementType;
-      } else if (returnsMapValueType(typedSelector)) {
+      } else if (inferrer.returnsMapValueType(typedSelector)) {
         if (typedSelector.mask.isDictionary &&
             arguments.positional[0].type.isValue) {
           DictionaryTypeMask mask = typedSelector.mask;
