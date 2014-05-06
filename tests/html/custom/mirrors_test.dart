@@ -22,8 +22,8 @@ main() {
   setUp(() => customElementsReady.then((_) {
     if (!registered) {
       registered = true;
-      document.register(A.tag, A);
-      document.register(B.tag, B);
+      document.registerElement(A.tag, A);
+      document.registerElement(B.tag, B);
     }
   }));
 

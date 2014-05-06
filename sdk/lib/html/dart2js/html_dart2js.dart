@@ -7752,10 +7752,14 @@ class Document extends Node  native "Document"
   ElementList queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
-  /// Checks if [register] is supported on the current platform.
-  bool get supportsRegister {
+  /// Checks if [registerElement] is supported on the current platform.
+  bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
   }
+
+  /// *Deprecated*: use [supportsRegisterElement] instead.
+  @deprecated
+  bool get supportsRegister => supportsRegisterElement;
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
@@ -9317,7 +9321,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *          // Perform any element initialization.
    *       }
    *     }
-   *     document.register('x-custom', CustomElement);
+   *     document.registerElement('x-custom', CustomElement);
    */
   Element.created() : super._created() {
     // Validate that this is a custom element & perform any additional
@@ -14352,7 +14356,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
    *     }
    *
    *     main() {
-   *       document.register('x-foo', FooElement);
+   *       document.registerElement('x-foo', FooElement);
    *       var myFoo = new Element.tag('x-foo');
    *       // prints 'FooElement created!' to the console.
    *     }
@@ -14369,7 +14373,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
    *     }
    *
    *     main() {
-   *       document.register('x-bar', BarElement);
+   *       document.registerElement('x-bar', BarElement);
    *       var myBar = new Element.tag('input', 'x-bar');
    *       // prints 'BarElement created!' to the console.
    *     }
@@ -14378,9 +14382,17 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * `<input is="x-bar"></input>`
    *
    */
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void registerElement(String tag, Type customElementClass,
+      {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
+  }
+
+  /** *Deprecated*: use [registerElement] instead. */
+  @deprecated
+  @Experimental()
+  void register(String tag, Type customElementClass, {String extendsTag}) {
+    return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
   /**

@@ -46,7 +46,7 @@ main() {
   group('register', () {
     test('register', () {
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
 
       var element = new Element.tag(tag);
       expect(element, isNotNull);
@@ -56,13 +56,13 @@ main() {
 
     test('register twice', () {
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
       expect(() {
-        document.register(tag, CustomType);
+        document.registerElement(tag, CustomType);
       }, throws, reason: 'Cannot register a tag more than once.');
 
       var newTag = nextTag;
-      document.register(newTag, CustomType);
+      document.registerElement(newTag, CustomType);
 
       var element = new Element.tag(newTag);
       expect(element, isNotNull);
@@ -71,19 +71,19 @@ main() {
 
     test('register null', () {
       expect(() {
-        document.register(nextTag, null);
+        document.registerElement(nextTag, null);
       }, throws, reason: 'Cannot register a null type.');
     });
 
     test('register native', () {
       expect(() {
-        document.register(nextTag, BodyElement);
+        document.registerElement(nextTag, BodyElement);
       }, throws, reason: 'Cannot register a native element.');
     });
 
     test('register non-element', () {
       expect(() {
-        document.register(nextTag, NotAnElement);
+        document.registerElement(nextTag, NotAnElement);
       }, throws, reason: 'Cannot register a non-element.');
     });
   });
@@ -105,7 +105,7 @@ main() {
         firedOnPre = true;
       });
 
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
       upgradeCustomElements(dom);
 
       var postElement = dom.children[0];
@@ -132,7 +132,7 @@ main() {
   group('innerHtml', () {
     test('query', () {
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
       var element = new DivElement();
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
@@ -147,7 +147,7 @@ main() {
 
     test('query id', () {
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
       var element = new DivElement();
       element.setInnerHtml('<$tag id="someid"></$tag>',
           treeSanitizer: new NullTreeSanitizer());
@@ -165,7 +165,7 @@ main() {
     test('created', () {
       int oldCount = customCreatedCount;
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
       var element = new DivElement();
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
@@ -178,7 +178,7 @@ main() {
   group('mixins', () {
     test('can invoke mixin methods', () {
       var tag = nextTag;
-      document.register(tag, CustomType);
+      document.registerElement(tag, CustomType);
 
       var element = new Element.tag(tag);
       element.invokeMixinMethod();

@@ -65,15 +65,15 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.register(B.tag, B);
-        document.register(C.tag, C);
-        ErrorConstructorElement.register();
+        document.registerElement(B.tag, B);
+        document.registerElement(C.tag, C);
+        ErrorConstructorElement.registerElement();
       }
     });
   });
 
   test('transfer created callback', () {
-    document.register(A.tag, A);
+    document.registerElement(A.tag, A);
     var x = new A();
     expect(A.createdInvocations, 1);
   });
@@ -107,7 +107,8 @@ main() {
 
   test('cannot register without created', () {
     expect(() {
-      document.register(MissingCreatedElement.tag, MissingCreatedElement);
+      document.registerElement(MissingCreatedElement.tag,
+          MissingCreatedElement);
     }, throws);
   });
 
@@ -149,7 +150,8 @@ main() {
 
   test('cannot register created with params', () {
     expect(() {
-      document.register('x-created-with-params', CreatedWithParametersElement);
+      document.registerElement('x-created-with-params',
+          CreatedWithParametersElement);
     }, throws);
   });
 
@@ -171,7 +173,7 @@ class NestedElement extends HtmlElement {
   NestedElement.created() : super.created();
 
   static void register() {
-    document.register(tag, NestedElement);
+    document.registerElement(tag, NestedElement);
   }
 
   static void test() {
@@ -203,7 +205,7 @@ class AccessWhileUpgradingElement extends HtmlElement {
   }
 
   static void register() {
-    document.register(tag, AccessWhileUpgradingElement);
+    document.registerElement(tag, AccessWhileUpgradingElement);
   }
 
   static void test() {
@@ -239,7 +241,7 @@ class ErrorConstructorElement extends HtmlElement {
   }
 
   static void register() {
-    document.register(tag, ErrorConstructorElement);
+    document.registerElement(tag, ErrorConstructorElement);
   }
 }
 
@@ -254,7 +256,7 @@ class NestedCreatedConstructorElement extends HtmlElement {
   NestedCreatedConstructorElement.created() : super.created();
 
   static void register() {
-    document.register(tag, NestedCreatedConstructorElement);
+    document.registerElement(tag, NestedCreatedConstructorElement);
   }
 
   // Try to run the created constructor, and record the results.

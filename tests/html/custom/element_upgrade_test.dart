@@ -40,7 +40,7 @@ main() {
         upgrader.upgrade(e);
       };
 
-      document.register('custom-element', CustomElement);
+      document.registerElement('custom-element', CustomElement);
     }
   }));
 
