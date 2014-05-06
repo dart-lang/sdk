@@ -133,6 +133,10 @@ abstract class WebSocket implements Stream, StreamSink {
                                    {List<String> protocols: const []}) =>
       _WebSocketImpl.connect(url, protocols);
 
+  @Deprecated('This constructor will be removed in Dart 2.0. Use `implements`'
+      ' instead of `extends` if implementing this abstract class.')
+  WebSocket();
+
   /**
    * Creates a WebSocket from an already-upgraded socket.
    *
