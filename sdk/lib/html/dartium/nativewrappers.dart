@@ -4,8 +4,8 @@
 
 library nativewrappers;
 
-class NativeFieldWrapperClass1 {
-  NativeFieldWrapperClass1() {
+class NativeFieldWrapperClass2 {
+  NativeFieldWrapperClass2() {
     throw new UnsupportedError(
         "Generative constructors not supported on native types.");
   }
