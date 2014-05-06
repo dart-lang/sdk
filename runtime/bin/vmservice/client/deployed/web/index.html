@@ -451,6 +451,32 @@
 </polymer-element>
 
 
+<polymer-element name="eval-link">
+  <template>
+    <style>
+      .idle {
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        color: #aaa;
+        cursor: wait;
+      }
+    </style>
+
+    <template if="{{ busy }}">
+      <span class="busy">[evaluate]</span>
+    </template>
+    <template if="{{ !busy }}">
+      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
+    </template>
+    <template if="{{ result != null }}">
+      = <instance-ref ref="{{ result }}"></instance-ref>
+    </template>
+
+  </template>
+  
+</polymer-element>
 <polymer-element name="field-ref" extends="service-ref">
   <template>
   <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
@@ -839,32 +865,6 @@
       <br>
       <div class="well">{{ error.message }}</div>
     </div>
-  </template>
-  
-</polymer-element>
-<polymer-element name="eval-link">
-  <template>
-    <style>
-      .idle {
-        color: #0489c3;
-        cursor: pointer;
-      }
-      .busy {
-        color: #aaa;
-        cursor: wait;
-      }
-    </style>
-
-    <template if="{{ busy }}">
-      <span class="busy">[evaluate]</span>
-    </template>
-    <template if="{{ !busy }}">
-      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
-    </template>
-    <template if="{{ result != null }}">
-      = <instance-ref ref="{{ result }}"></instance-ref>
-    </template>
-
   </template>
   
 </polymer-element>
