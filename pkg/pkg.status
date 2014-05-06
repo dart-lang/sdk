@@ -341,6 +341,16 @@ analyzer/test/*: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
+http/test/html/client_test: Fail # Issue 18648
+http/test/html/streamed_request_test: Fail # Issue 18648
+http/test/mock_client_test: Fail # Issue 18648
+http/test/multipart_test: Fail # Issue 18648
+http/test/request_test: Fail # Issue 18648
+http/test/response_test: Fail # Issue 18648
+oauth2/test/authorization_code_grant_test: Fail # Issue 18648
+oauth2/test/client_test: Fail # Issue 18648
+oauth2/test/credentials_test: Fail # Issue 18648
+oauth2/test/handle_access_token_response_test: Fail # Issue 18648
 
 [ $runtime == drt ]
 http/test/html/client_test: Skip # Issue 18566
