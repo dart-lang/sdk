@@ -92,6 +92,8 @@ abstract class InteractionManager {
 
   void onInput(Event event);
 
+  // TODO(ahe): Rename to onKeyDown (as it is called in response to keydown
+  // event).
   void onKeyUp(KeyboardEvent event);
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer);
@@ -228,13 +230,28 @@ class InitialState extends InteractionState {
   void onUnmodifiedKeyUp(KeyboardEvent event) {
     switch (event.keyCode) {
       case KeyCode.ENTER: {
-        event.preventDefault();
         Selection selection = window.getSelection();
-        if (isCollapsed(selection) && selection.anchorNode is Text) {
-          Text text = selection.anchorNode;
-          int offset = selection.anchorOffset;
-          text.insertData(offset, '\n');
-          selection.collapse(text, offset + 1);
+        if (isCollapsed(selection)) {
+          event.preventDefault();
+          Node node = selection.anchorNode;
+          if (node is Text) {
+            Text text = node;
+            int offset = selection.anchorOffset;
+            // If at end-of-file, insert an extra newline.  The the extra
+            // newline ensures that the next line isn't empty.  At least Chrome
+            // behaves as if "\n" is just a single line. "\nc" (where c is any
+            // character) is two lines, according to Chrome.
+            String newline = isAtEndOfFile(text, offset) ? '\n\n' : '\n';
+            text.insertData(offset, newline);
+            selection.collapse(text, offset + 1);
+          } else if (node is Element) {
+            node.appendText('\n\n');
+            selection.collapse(node.firstChild, 1);
+          } else {
+            window.console
+                ..error('Unexpected node')
+                ..dir(node);
+          }
         }
         break;
       }
@@ -262,8 +279,46 @@ class InitialState extends InteractionState {
     Selection selection = window.getSelection();
     TrySelection trySelection = new TrySelection(mainEditorPane, selection);
 
+    Set<Node> normalizedNodes = new Set<Node>();
     for (MutationRecord record in mutations) {
-      normalizeMutationRecord(record, trySelection);
+      normalizeMutationRecord(record, trySelection, normalizedNodes);
+    }
+
+    if (normalizedNodes.length == 1) {
+      Node node = normalizedNodes.single;
+      if (node is Element && node.classes.contains('lineNumber')) {
+        print('Single line change: ${node.outerHtml}');
+
+        String currentText = node.text;
+
+        trySelection = new TrySelection(node, selection);
+        trySelection.updateText(currentText);
+
+        editor.isMalformedInput = false;
+        int offset = 0;
+        List<Node> nodes = <Node>[];
+
+        String state = '';
+        Element previousLine = node.previousElementSibling;
+        if (previousLine != null) {
+          state = previousLine.getAttribute('dart-state');
+        }
+        for (String line in splitLines(currentText)) {
+          List<Node> lineNodes = <Node>[];
+          state = tokenizeAndHighlight(
+              line, state, offset, trySelection, lineNodes);
+          offset += line.length;
+          nodes.add(makeLine(lineNodes, state));
+        }
+
+        node.parent.insertAllBefore(nodes, node);
+        node.remove();
+        trySelection.adjust(selection);
+
+        // Discard highlighting mutations.
+        observer.takeRecords();
+        return;
+      }
     }
 
     String currentText = mainEditorPane.text;
@@ -278,14 +333,12 @@ class InitialState extends InteractionState {
     List<Node> nodes = <Node>[];
 
     String state = '';
-    for (String line in currentText.split(new RegExp('^', multiLine: true))) {
+    for (String line in splitLines(currentText)) {
       List<Node> lineNodes = <Node>[];
       state =
           tokenizeAndHighlight(line, state, offset, trySelection, lineNodes);
       offset += line.length;
-      nodes.add(new SpanElement()
-          ..nodes.addAll(lineNodes)
-          ..classes.add('lineNumber'));
+      nodes.add(makeLine(lineNodes, state));
     }
 
     mainEditorPane
@@ -785,17 +838,60 @@ bool isUnterminatedMultiLineToken(UnterminatedToken token) {
       token.start == 'r"""';
 }
 
-void normalizeMutationRecord(MutationRecord record, TrySelection selection) {
-  if (record.addedNodes.isEmpty) return;
+void normalizeMutationRecord(MutationRecord record,
+                             TrySelection selection,
+                             Set<Node> normalizedNodes) {
   for (Node node in record.addedNodes) {
     if (node.parent == null) continue;
     StringBuffer buffer = new StringBuffer();
     int selectionOffset = htmlToText(node, buffer, selection);
     Text newNode = new Text('$buffer');
     node.replaceWith(newNode);
+    normalizedNodes.add(findLine(newNode));
     if (selectionOffset != -1) {
       selection.anchorNode = newNode;
       selection.anchorOffset = selectionOffset;
     }
   }
+  if (!record.removedNodes.isEmpty) {
+    normalizedNodes.add(findLine(record.target));
+  }
+  if (record.type == "characterData") {
+    normalizedNodes.add(findLine(record.target));
+  }
+}
+
+// Finds the line of [node] (a parent node with CSS class 'lineNumber').
+// If no such parent exists, return mainEditorPane if it is a parent.
+// Otherwise return [node].
+Node findLine(Node node) {
+  for (Node n = node; n != null; n = n.parent) {
+    if (n is Element && n.classes.contains('lineNumber')) return n;
+    if (n == mainEditorPane) return n;
+  }
+  return node;
+}
+
+Element makeLine(List<Node> lineNodes, String state) {
+  // Using a div element here (anything with display=block) generally messes up
+  // editing and navigation.  We would like to use a block element here so
+  // error messages show as expected.  But no such luck.  Fortunately, there
+  // are strong indications that the current solution for displaying errors
+  // isn't good enough anyways.
+  return new SpanElement()
+      ..setAttribute('dart-state', state)
+      ..nodes.addAll(lineNodes)
+      ..classes.add('lineNumber');
+}
+
+bool isAtEndOfFile(Text text, int offset) {
+  Node line = findLine(text);
+  return
+      line.nextNode == null &&
+      text.parent.nextNode == null &&
+      offset == text.length;
+}
+
+List<String> splitLines(String text) {
+  return text.split(new RegExp('^', multiLine: true));
 }

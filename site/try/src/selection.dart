@@ -34,7 +34,7 @@ class TrySelection {
 
     Text textNode = new Text(text.substring(start, end));
 
-    if (start <= globalOffset && globalOffset < end) {
+    if (start <= globalOffset && globalOffset <= end) {
       anchorNode = textNode;
       anchorOffset = globalOffset - start;
     }

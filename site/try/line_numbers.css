@@ -5,9 +5,6 @@
 
 .mainEditorPane {
   padding: 0px;
-}
-
-div {
   counter-reset: dart-line-number;
 }
 
