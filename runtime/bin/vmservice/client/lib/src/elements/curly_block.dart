@@ -13,6 +13,11 @@ class CurlyBlockElement extends PolymerElement {
   @observable bool expanded = false;
   @observable bool busy = false;
   @published var callback = null;
+  @published bool expand = false;
+
+  void expandChanged(oldValue) {
+    expanded = expand;
+  }
 
   void doneCallback() {
     expanded = !expanded;
@@ -20,6 +25,7 @@ class CurlyBlockElement extends PolymerElement {
   }
 
   void toggleExpand(var a, var b, var c) {
+    assert(callback == null || expand == false);
     if (busy) {
       return;
     }

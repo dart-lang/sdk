@@ -12,7 +12,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('library-view')
 class LibraryViewElement extends ObservatoryElement {
-  @published ServiceMap library;
+  @published Library library;
 
   LibraryViewElement.created() : super.created();
 

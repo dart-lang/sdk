@@ -6,6 +6,11 @@
   <template>
     <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
     <style>
+      nav {
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+      }
       nav ul {
         display: inline-table;
         position: relative;
@@ -13,7 +18,7 @@
         padding-left: 0;
         margin-left: 0;
         width: 100%;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background-color: #0489c3;
@@ -21,13 +26,21 @@
       nav ul:after {
         content: ""; clear: both; display: block;
       }
+      .vertical-spacer {
+        height: 40px;
+        background-color: #0489c3;
+      }
     </style>
     <nav>
       <ul>
         <content></content>
       </ul>
     </nav>
-    <br>
+    <div class="vertical-spacer">
+    </div>
+    <template if="{{ pad }}">
+      <br>
+    </template>
   </template>
 </polymer-element>
 
@@ -54,7 +67,7 @@
         margin: 0;
         padding: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -97,7 +110,7 @@
         padding: 0;
         margin-left: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -161,7 +174,7 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}"
                      anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}"

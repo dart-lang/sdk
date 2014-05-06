@@ -103,7 +103,7 @@
     <div class="content">
       <template if="{{ cls['fields'].isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['fields'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ field in cls['fields'] }}">
               <div class="memberItem">
@@ -118,12 +118,12 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
 
       <template if="{{ cls['functions'].isNotEmpty }}">
         functions ({{ cls['functions'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['functions'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ function in cls['functions'] }}">
               <div class="memberItem">
@@ -134,7 +134,7 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
     </div>
 

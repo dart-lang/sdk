@@ -7,8 +7,8 @@
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script src="packages/browser/interop.js"></script>
   
-  <script type="application/dart" src="index_devtools.html_bootstrap.dart"></script>
-  <script src="packages/browser/dart.js"></script>
+  <script src="index_devtools.html_bootstrap.dart.js"></script>
+  
 </head>
 <body><polymer-element name="observatory-element">
   
@@ -17,6 +17,11 @@
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <style>
+      nav {
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+      }
       nav ul {
         display: inline-table;
         position: relative;
@@ -24,7 +29,7 @@
         padding-left: 0;
         margin-left: 0;
         width: 100%;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background-color: #0489c3;
@@ -32,13 +37,21 @@
       nav ul:after {
         content: ""; clear: both; display: block;
       }
+      .vertical-spacer {
+        height: 40px;
+        background-color: #0489c3;
+      }
     </style>
     <nav>
       <ul>
         <content></content>
       </ul>
     </nav>
-    <br>
+    <div class="vertical-spacer">
+    </div>
+    <template if="{{ pad }}">
+      <br>
+    </template>
   </template>
 </polymer-element>
 
@@ -65,7 +78,7 @@
         margin: 0;
         padding: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -108,7 +121,7 @@
         padding: 0;
         margin-left: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -172,7 +185,7 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="allocation profile"></nav-menu-item>
@@ -206,7 +219,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ msg.isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <template if="{{ msg['breakpoints'].isEmpty }}">
@@ -581,7 +594,7 @@
     <div class="content">
       <template if="{{ cls['fields'].isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['fields'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ field in cls['fields'] }}">
               <div class="memberItem">
@@ -596,12 +609,12 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
 
       <template if="{{ cls['functions'].isNotEmpty }}">
         functions ({{ cls['functions'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['functions'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ function in cls['functions'] }}">
               <div class="memberItem">
@@ -612,7 +625,7 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
     </div>
 
@@ -805,9 +818,10 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
-        <h1>{{ error.kind }}</h1>
-        <div class="well">{{ error.message }}</div>
+    <div class="content-centered">
+      <h1>{{ error.kind }}</h1>
+      <br>
+      <div class="well">{{ error.message }}</div>
     </div>
   </template>
   
@@ -851,7 +865,7 @@
       <template if="{{ field['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ field.hashLink }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -981,7 +995,7 @@
       <template if="{{ function['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ function.hashLink }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -1083,18 +1097,26 @@
     .hover {
       position: fixed;
       z-index: 999;
+      height: 16px;
       width: 100%;
       background: #ffffff;
     }
+    .spacer {
+      height: 16px;
+      background-color: red;
+    }
   </style>
-  <nav-bar>
+  <nav-bar pad="{{ false }}">
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
-    <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ fragmentation.isolate.relativeHashLink('heapmap') }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
   <div class="hover">
     <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="spacer">
+    <!-- Make sure no data is covered by hover bar initially -->
   </div>
   <div class="flex-row">
     <canvas id="fragmentation" width="1px" height="1px"></canvas>
@@ -1350,7 +1372,7 @@
 
     <div class="content">
       libraries ({{ isolate.libraries.length }})
-      <curly-block>
+      <curly-block expand="{{ isolate.libraries.length <= 8 }}">
         <div class="memberList">
           <template repeat="{{ lib in isolate.libraries }}">
             <div class="memberItem">
@@ -1470,7 +1492,7 @@
       <div class="content">
         <template if="{{ instance['fields'].isNotEmpty }}">
           fields ({{ instance['fields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['fields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['fields'] }}">
                 <div class="memberItem">
@@ -1483,12 +1505,12 @@
                 </div>
               </template>
             </div>
-          </curly-block>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['nativeFields'].isNotEmpty }}">
           native fields ({{ instance['nativeFields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['nativeFields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['nativeFields'] }}">
                 <div class="memberItem">
@@ -1497,12 +1519,12 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['elements'].isNotEmpty }}">
           elements ({{ instance['elements'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['elements'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ element in instance['elements'] }}">
                 <div class="memberItem">
@@ -1514,7 +1536,7 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
       </div>
 
@@ -1557,18 +1579,8 @@
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">url</div>
-          <div class="memberValue">{{ library['url'] }}</div>
+          <div class="memberValue">{{ library.url }}</div>
         </div>
-        <template if="{{ library['imports'].length > 0 }}">
-          <div class="memberItem">
-            <div class="memberName">imports</div>
-            <div class="memberValue">
-              <template repeat="{{ import in library['imports'] }}">
-                <library-ref ref="{{ import }}"></library-ref>
-              </template>
-            </div>
-          </div>
-        </template>
         <template if="{{ library.name != library.vmName }}">
           <div class="memberItem">
             <div class="memberName">vm name</div>
@@ -1581,11 +1593,27 @@
     <hr>
 
     <div class="content">
-      <template if="{{ library['scripts'].isNotEmpty }}">
-        scripts ({{ library['scripts'].length }})
-        <curly-block>
+      <template if="{{ library.imports.isNotEmpty }}">
+        imports ({{ library.imports.length }})
+        <curly-block expand="{{ library.imports.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ script in library['scripts'] }}">
+            <template repeat="{{ imp in library.imports }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <library-ref ref="{{ imp }}"></library-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+        <br>
+      </template>
+
+      <template if="{{ library.scripts.isNotEmpty }}">
+        scripts ({{ library.scripts.length }})
+        <curly-block expand="{{ library.scripts.length <= 8 }}">
+          <div class="memberList">
+            <template repeat="{{ script in library.scripts }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <script-ref ref="{{ script }}"></script-ref>
@@ -1594,13 +1622,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['classes'].isNotEmpty }}">
-        classes ({{ library['classes'].length }})
-        <curly-block>
+      <template if="{{ library.classes.isNotEmpty }}">
+        classes ({{ library.classes.length }})
+        <curly-block expand="{{ library.classes.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ cls in library['classes'] }}">
+            <template repeat="{{ cls in library.classes }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <class-ref ref="{{ cls }}"></class-ref>
@@ -1609,13 +1638,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['variables'].isNotEmpty }}">
-        variables ({{ library['variables'].length }})
-        <curly-block>
+      <template if="{{ library.variables.isNotEmpty }}">
+        variables ({{ library.variables.length }})
+        <curly-block expand="{{ library.variables.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ field in library['variables'] }}">
+            <template repeat="{{ field in library.variables }}">
               <div class="memberItem">
                 <div class="memberName">
                   <field-ref ref="{{ field }}"></field-ref>
@@ -1629,13 +1659,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['functions'].isNotEmpty }}">
-        functions ({{ library['functions'].length }})
-        <curly-block>
+      <template if="{{ library.functions.isNotEmpty }}">
+        functions ({{ library.functions.length }})
+        <curly-block expand="{{ library.functions.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ function in library['functions'] }}">
+            <template repeat="{{ function in library.functions }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <function-ref ref="{{ function }}"></function-ref>
@@ -1644,6 +1675,7 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
     </div>
 
@@ -1747,7 +1779,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ profile.isolate.relativeHashLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <style>
@@ -1960,7 +1992,7 @@
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ profile.isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -2095,7 +2127,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ trace.isolate.relativeHashLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <template if="{{ trace['members'].isEmpty }}">
@@ -2182,10 +2214,13 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
-        <h1>{{ exception.kind }}</h1>
-        <div class="well">{{ exception.message }}</div>
+    <div class="content-centered">
+      <h1>{{ exception.kind }}</h1>
+      <br>
+      <div class="well">{{ exception.message }}</div>
+      <template if="{{ exception.response != '' }}">
         <div class="well">{{ exception.response }}</div>
+      </template>
     </div>
   </template>
   
@@ -2196,8 +2231,9 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
+    <div class="content-centered">
       <h1>{{ error.kind }}</h1>
+      <br>
       <div class="well">{{ error.message }}</div>
     </div>
   </template>

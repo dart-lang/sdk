@@ -9,7 +9,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ trace.isolate.relativeHashLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <template if="{{ trace['members'].isEmpty }}">

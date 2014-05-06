@@ -191,7 +191,7 @@
 
     <div class="content">
       libraries ({{ isolate.libraries.length }})
-      <curly-block>
+      <curly-block expand="{{ isolate.libraries.length <= 8 }}">
         <div class="memberList">
           <template repeat="{{ lib in isolate.libraries }}">
             <div class="memberItem">

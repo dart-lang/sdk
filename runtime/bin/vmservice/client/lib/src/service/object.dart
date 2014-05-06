@@ -30,6 +30,7 @@ abstract class ServiceObject extends Observable {
   @reflectable String get link => isolate.relativeLink(_id);
 
   /// The complete service url of this object with a '#/' prefix.
+  // TODO(turnidge): Figure out why using a getter here messes up polymer.
   @reflectable String get hashLink => '#/${link}';
   @reflectable set hashLink(var o) { /* silence polymer */ }
 
@@ -72,6 +73,9 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner);
+        break;
+      case 'Library':
+        obj = new Library._empty(owner);
         break;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
@@ -576,9 +580,9 @@ class Isolate extends ServiceObjectOwner {
       });
   }
 
-  @observable ServiceMap rootLib;
-  @observable ObservableList<ServiceMap> libraries =
-      new ObservableList<ServiceMap>();
+  @observable Library rootLib;
+  @observable ObservableList<Library> libraries =
+      new ObservableList<Library>();
   @observable ObservableMap topFrame;
 
   @observable String name;
@@ -739,10 +743,10 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   bool get canCache {
     return (_serviceType == 'Class' ||
             _serviceType == 'Function' ||
-            _serviceType == 'Library') &&
+            _serviceType == 'Field') &&
            !_id.startsWith(objectIdRingPrefix);
   }
-  bool get immutable => canCache;
+  bool get immutable => false;
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -848,6 +852,49 @@ class ServiceException extends ServiceObject {
     response = map['response'];
     name = 'ServiceException $kind';
     vmName = name;
+  }
+}
+
+class Library extends ServiceObject {
+  @observable String url;
+  @reflectable final imports = new ObservableList<Library>();
+  @reflectable final scripts = new ObservableList<Script>();
+  @reflectable final classes = new ObservableList<ServiceMap>();
+  @reflectable final variables = new ObservableList<ServiceMap>();
+  @reflectable final functions = new ObservableList<ServiceMap>();
+
+  bool get canCache => true;
+  bool get immutable => false;
+
+  Library._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    url = map['url'];
+    var shortUrl = url;
+    if (url.startsWith('file://') ||
+        url.startsWith('http://')) {
+      shortUrl = url.substring(url.lastIndexOf('/') + 1);
+    }
+    name = map['user_name'];
+    if (name.isEmpty) {
+      name = shortUrl;
+    }
+    vmName = map['name'];
+    if (mapIsRef) {
+      return;
+    }
+    _loaded = true;
+    _upgradeCollection(map, isolate);
+    imports.clear();
+    imports.addAll(map['imports']);
+    scripts.clear();
+    scripts.addAll(map['scripts']);
+    classes.clear();
+    classes.addAll(map['classes']);
+    variables.clear();
+    variables.addAll(map['variables']);
+    functions.clear();
+    functions.addAll(map['functions']);
   }
 }
 

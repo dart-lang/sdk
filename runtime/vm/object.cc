@@ -9332,11 +9332,11 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("user_name", library_name);
   jsobj.AddProperty("name", library_name);
+  const char* library_url = String::Handle(url()).ToCString();
+  jsobj.AddProperty("url", library_url);
   if (ref) {
     return;
   }
-  const char* library_url = String::Handle(url()).ToCString();
-  jsobj.AddProperty("url", library_url);
   {
     JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
