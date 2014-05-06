@@ -18,12 +18,43 @@ class Foo extends HtmlElement {
     invocations.add('created');
   }
 
+  void attached() {
+    invocations.add('attached');
+  }
+
   void enteredView() {
-    invocations.add('entered');
+    // Deprecated name. Should never be called since we override "attached".
+    invocations.add('enteredView');
+  }
+
+  void detached() {
+    invocations.add('detached');
   }
 
   void leftView() {
-    invocations.add('left');
+    // Deprecated name. Should never be called since we override "detached".
+    invocations.add('leftView');
+  }
+
+  void attributeChanged(String name, String oldValue, String newValue) {
+    invocations.add('attribute changed');
+  }
+}
+
+
+// Test that the deprecated callbacks still work.
+class FooOldCallbacks extends HtmlElement {
+  factory FooOldCallbacks() => null;
+  FooOldCallbacks.created() : super.created() {
+    invocations.add('created');
+  }
+
+  void enteredView() {
+    invocations.add('enteredView');
+  }
+
+  void leftView() {
+    invocations.add('leftView');
   }
 
   void attributeChanged(String name, String oldValue, String newValue) {
@@ -35,7 +66,7 @@ main() {
   useHtmlIndividualConfiguration();
 
   // Adapted from Blink's
-  // fast/dom/custom/entered-left-document.html test.
+  // fast/dom/custom/attached-detached-document.html test.
 
   var docA = document;
   var docB = document.implementation.createHtmlDocument('');
@@ -47,6 +78,7 @@ main() {
     if (registeredTypes) return;
     registeredTypes = true;
     document.register('x-a', Foo);
+    document.register('x-a-old', FooOldCallbacks);
   }));
 
   group('standard_events', () {
@@ -60,37 +92,83 @@ main() {
       expect(invocations, ['created']);
     });
 
-    test('entered', () {
+    test('attached', () {
       document.body.append(a);
       customElementsTakeRecords();
-      expect(invocations, ['entered']);
+      expect(invocations, ['attached']);
     });
 
-    test('left', () {
+    test('detached', () {
       a.remove();
       customElementsTakeRecords();
-      expect(invocations, ['left']);
+      expect(invocations, ['detached']);
     });
 
     var div = new DivElement();
-    test('nesting does not trigger entered', () {
+    test('nesting does not trigger attached', () {
       div.append(a);
       customElementsTakeRecords();
       expect(invocations, []);
     });
 
-    test('nested entering triggers entered', () {
+    test('nested entering triggers attached', () {
       document.body.append(div);
       customElementsTakeRecords();
-      expect(invocations, ['entered']);
+      expect(invocations, ['attached']);
     });
 
-    test('nested leaving triggers left', () {
+    test('nested leaving triggers detached', () {
       div.remove();
       customElementsTakeRecords();
-      expect(invocations, ['left']);
+      expect(invocations, ['detached']);
     });
   });
+
+
+  // TODO(jmesserly): remove after deprecation period.
+  group('standard_events -- old callback names', () {
+    var a;
+    setUp(() {
+      invocations = [];
+    });
+
+    test('Created', () {
+      a = new Element.tag('x-a-old');
+      expect(invocations, ['created']);
+    });
+
+    test('enteredView', () {
+      document.body.append(a);
+      customElementsTakeRecords();
+      expect(invocations, ['enteredView']);
+    });
+
+    test('leftView', () {
+      a.remove();
+      customElementsTakeRecords();
+      expect(invocations, ['leftView']);
+    });
+
+    var div = new DivElement();
+    test('nesting does not trigger enteredView', () {
+      div.append(a);
+      customElementsTakeRecords();
+      expect(invocations, []);
+    });
+
+    test('nested entering triggers enteredView', () {
+      document.body.append(div);
+      customElementsTakeRecords();
+      expect(invocations, ['enteredView']);
+    });
+
+    test('nested leaving triggers leftView', () {
+      div.remove();
+      customElementsTakeRecords();
+      expect(invocations, ['leftView']);
+    });
+  });
+
 
   group('viewless_document', () {
     var a;
@@ -110,7 +188,7 @@ main() {
     test('Entered document without a view', () {
       docB.body.append(a);
       expect(invocations, [],
-          reason: 'entered callback should not be invoked when entering a '
+          reason: 'attached callback should not be invoked when entering a '
           'document without a view');
     });
 
@@ -124,16 +202,16 @@ main() {
     test('Entered document with a view', () {
       document.body.append(a);
       customElementsTakeRecords();
-      expect(invocations, ['entered'],
-          reason: 'entered callback should be invoked when entering a document '
+      expect(invocations, ['attached'],
+          reason: 'attached callback should be invoked when entering a document '
           'with a view');
     });
 
     test('Left document with a view', () {
       a.remove();
       customElementsTakeRecords();
-      expect(invocations, ['left'],
-          reason: 'left callback should be invoked when leaving a document '
+      expect(invocations, ['detached'],
+          reason: 'detached callback should be invoked when leaving a document '
           'with a view');
     });
 
@@ -165,14 +243,14 @@ main() {
       upgradeCustomElements(s);
 
       expect(invocations, ['created'],
-          reason: 'the entered callback should not be invoked when entering a '
+          reason: 'the attached callback should not be invoked when entering a '
           'Shadow DOM subtree not in the document');
     });
 
     test('Leaves Shadow DOM that is not in a document', () {
       s.innerHtml = '';
       expect(invocations, [],
-          reason: 'the left callback should not be invoked when leaving a '
+          reason: 'the detached callback should not be invoked when leaving a '
           'Shadow DOM subtree not in the document');
     });
 
@@ -182,15 +260,15 @@ main() {
 
       document.body.append(div);
       customElementsTakeRecords();
-      expect(invocations, ['created', 'entered'],
-            reason: 'the entered callback should be invoked when inserted into '
+      expect(invocations, ['created', 'attached'],
+            reason: 'the attached callback should be invoked when inserted into '
             'a document with a view as part of Shadow DOM');
 
       div.remove();
       customElementsTakeRecords();
 
-      expect(invocations, ['created', 'entered', 'left'],
-          reason: 'the left callback should be invoked when removed from a '
+      expect(invocations, ['created', 'attached', 'detached'],
+          reason: 'the detached callback should be invoked when removed from a '
           'document with a view as part of Shadow DOM');
     });
   });
@@ -208,14 +286,14 @@ main() {
       upgradeCustomElements(div);
 
       expect(invocations, ['created'],
-          reason: 'the entered callback should not be invoked when inserted '
+          reason: 'the attached callback should not be invoked when inserted '
           'into a disconnected subtree');
     });
 
     test('Leaves a disconnected subtree of DOM', () {
       div.innerHtml = '';
       expect(invocations, [],
-          reason: 'the left callback should not be invoked when removed from a '
+          reason: 'the detached callback should not be invoked when removed from a '
           'disconnected subtree');
     });
 
@@ -225,8 +303,8 @@ main() {
       invocations = [];
       document.body.append(div);
       customElementsTakeRecords();
-      expect(invocations, ['entered'],
-          reason: 'the entered callback should be invoked when inserted into a '
+      expect(invocations, ['attached'],
+          reason: 'the attached callback should be invoked when inserted into a '
           'document with a view as part of a subtree');
     });
   });
