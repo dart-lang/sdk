@@ -1026,6 +1026,11 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
         reader->Read<Dart_NativeEntryResolver>();
     ASSERT(resolver == NULL);
     library.set_native_entry_resolver(resolver);
+    // The symbol resolver is not serialized.
+    Dart_NativeEntrySymbol symbol_resolver =
+        reader->Read<Dart_NativeEntrySymbol>();
+    ASSERT(symbol_resolver == NULL);
+    library.set_native_entry_symbol_resolver(symbol_resolver);
     // The cache of loaded scripts is not serialized.
     library.raw_ptr()->loaded_scripts_ = Array::null();
 
@@ -1074,6 +1079,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     // We do not serialize the native resolver over, this needs to be explicitly
     // set after deserialization.
     writer->Write<Dart_NativeEntryResolver>(NULL);
+    // We do not serialize the native entry symbol, this needs to be explicitly
+    // set after deserialization.
+    writer->Write<Dart_NativeEntrySymbol>(NULL);
     // We do not write the loaded_scripts_ cache to the snapshot. It gets
     // set to NULL when reading the library from the snapshot, and will
     // be rebuilt lazily.

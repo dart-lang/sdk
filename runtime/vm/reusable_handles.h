@@ -95,8 +95,13 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableFieldHandleScope reused_field_handle(isolate);
 #define REUSABLE_FUNCTION_HANDLESCOPE(isolate)                                 \
   ReusableFunctionHandleScope reused_function_handle(isolate);
+#define REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(isolate)                    \
+  ReusableGrowableObjectArrayHandleScope                                       \
+      reused_growable_object_array_handle(isolate)
 #define REUSABLE_INSTANCE_HANDLESCOPE(isolate)                                 \
   ReusableInstanceHandleScope reused_instance_handle(isolate);
+#define REUSABLE_LIBRARY_HANDLESCOPE(isolate)                                  \
+  ReusableLibraryHandleScope reused_library_handle(isolate);
 #define REUSABLE_OBJECT_HANDLESCOPE(isolate)                                   \
   ReusableObjectHandleScope reused_object_handle(isolate);
 #define REUSABLE_STRING_HANDLESCOPE(isolate)                                   \

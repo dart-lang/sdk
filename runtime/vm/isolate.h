@@ -40,6 +40,7 @@ class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
 class InterruptableThreadState;
+class Library;
 class LongJumpScope;
 class MessageHandler;
 class Mutex;
@@ -88,7 +89,9 @@ class IsolateVisitor {
   V(Error)                                                                     \
   V(Field)                                                                     \
   V(Function)                                                                  \
+  V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
+  V(Library)                                                                   \
   V(Object)                                                                    \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
