@@ -318,6 +318,7 @@ class ObjectPointerVisitor;
   V(TempParam, ":temp_param")                                                  \
   V(UserTag, "UserTag")                                                        \
   V(_UserTag, "_UserTag")                                                      \
+  V(Default, "Default")                                                        \
   V(StubPrefix, "[Stub] ")                                                     \
 
 

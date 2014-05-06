@@ -6876,7 +6876,6 @@ class UserTag : public Instance {
   }
 
   void MakeActive() const;
-  static void ClearActive();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUserTag));
@@ -6884,6 +6883,7 @@ class UserTag : public Instance {
 
   static RawUserTag* New(const String& label,
                          Heap::Space space = Heap::kOld);
+  static RawUserTag* DefaultTag();
 
   static bool TagTableIsFull(Isolate* isolate);
   static RawUserTag* FindTagById(uword tag_id);

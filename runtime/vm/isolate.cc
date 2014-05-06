@@ -343,7 +343,7 @@ Isolate::Isolate()
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   set_vm_tag(VMTag::kIdleTagId);
-  set_user_tag(UserTags::kNoUserTag);
+  set_user_tag(UserTags::kDefaultUserTag);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
@@ -1010,12 +1010,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
   intptr_t user_tag = tag.tag();
   set_user_tag(static_cast<uword>(user_tag));
   current_tag_ = tag.raw();
-}
-
-
-void Isolate::clear_current_tag() {
-  set_user_tag(UserTags::kNoUserTag);
-  current_tag_ = UserTag::null();
 }
 
 

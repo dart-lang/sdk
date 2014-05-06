@@ -1630,6 +1630,7 @@ class RawUserTag : public RawInstance {
   uword tag_;
 
   friend class SnapshotReader;
+  friend class Object;
 
  public:
   uword tag() const { return tag_; }

@@ -18666,13 +18666,6 @@ void UserTag::MakeActive() const {
 }
 
 
-void UserTag::ClearActive() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  isolate->clear_current_tag();
-}
-
-
 RawUserTag* UserTag::New(const String& label, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
@@ -18700,6 +18693,23 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
   }
   result.set_label(label);
   AddTagToIsolate(isolate, result);
+  return result.raw();
+}
+
+
+RawUserTag* UserTag::DefaultTag() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(isolate->object_store() != NULL);
+  if (isolate->object_store()->default_tag() != UserTag::null()) {
+    // Already created.
+    return isolate->object_store()->default_tag();
+  }
+  // Create default tag.
+  const UserTag& result = UserTag::Handle(isolate,
+                                          UserTag::New(Symbols::Default()));
+  ASSERT(result.tag() == UserTags::kDefaultUserTag);
+  isolate->object_store()->set_default_tag(result);
   return result.raw();
 }
 

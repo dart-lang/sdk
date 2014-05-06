@@ -1655,16 +1655,29 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   const Immediate& isolate_address =
       Immediate(reinterpret_cast<int64_t>(isolate));
   __ movq(RBX, isolate_address);
-  // RAX: UserTag.
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  // RAX: Current user tag.
+  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
+  // R10: UserTag.
+  __ movq(R10, Address(RSP, + 1 * kWordSize));
   // Set Isolate::current_tag_.
-  __ movq(Address(RBX, Isolate::current_tag_offset()), RAX);
-  // RAX: UserTag's tag.
-  __ movq(RAX, FieldAddress(RAX, UserTag::tag_offset()));
+  __ movq(Address(RBX, Isolate::current_tag_offset()), R10);
+  // R10: UserTag's tag.
+  __ movq(R10, FieldAddress(R10, UserTag::tag_offset()));
   // Set Isolate::user_tag_.
-  __ movq(Address(RBX, Isolate::user_tag_offset()), RAX);
+  __ movq(Address(RBX, Isolate::user_tag_offset()), R10);
+  __ ret();
+}
+
+
+void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
+  // RBX: Address of default tag.
+  Isolate* isolate = Isolate::Current();
+  const Immediate& default_tag_addr =
+      Immediate(reinterpret_cast<int64_t>(isolate->object_store()) +
+                                          ObjectStore::default_tag_offset());
+  __ movq(RBX, default_tag_addr);
   // Set return value.
-  __ LoadObject(RAX, Object::null_object(), PP);
+  __ movq(RAX, Address(RBX, 0));
   __ ret();
 }
 
@@ -1677,23 +1690,6 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ movq(RBX, isolate_address);
   // Set return value to Isolate::current_tag_.
   __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
-  __ ret();
-}
-
-
-void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
-  // RBX: Isolate.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& isolate_address =
-      Immediate(reinterpret_cast<int64_t>(isolate));
-  __ movq(RBX, isolate_address);
-  // Set return value to Isolate::current_tag_.
-  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
-  // Clear Isolate::current_tag_.
-  __ LoadObject(RCX, Object::null_object(), PP);
-  __ movq(Address(RBX, Isolate::current_tag_offset()), RCX);
-  // Clear Isolate::user_tag_.
-  __ movq(Address(RBX, Isolate::user_tag_offset()), Immediate(0));
   __ ret();
 }
 

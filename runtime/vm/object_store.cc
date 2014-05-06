@@ -72,7 +72,8 @@ ObjectStore::ObjectStore()
     out_of_memory_(Instance::null()),
     preallocated_stack_trace_(Stacktrace::null()),
     lookup_port_handler_(Function::null()),
-    handle_message_function_(Function::null()) {
+    handle_message_function_(Function::null()),
+    default_tag_(UserTag::null()) {
 }
 
 

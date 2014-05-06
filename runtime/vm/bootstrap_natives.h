@@ -355,9 +355,9 @@ namespace dart {
   V(LibraryPrefix_load, 1)                                                     \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
+  V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
-  V(Profiler_clearCurrentTag, 0)                                               \
 
 
 class BootstrapNatives : public AllStatic {

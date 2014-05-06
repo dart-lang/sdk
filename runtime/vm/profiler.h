@@ -121,7 +121,7 @@ class Sample {
     isolate_ = isolate;
     pc_marker_ = 0;
     vm_tag_ = VMTag::kInvalidTagId;
-    user_tag_ = UserTags::kNoUserTag;
+    user_tag_ = UserTags::kDefaultUserTag;
     sp_ = 0;
     fp_ = 0;
     state_ = 0;

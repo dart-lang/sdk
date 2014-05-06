@@ -492,7 +492,6 @@ class Isolate : public BaseIsolate {
 
   RawUserTag* current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
-  void clear_current_tag();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
