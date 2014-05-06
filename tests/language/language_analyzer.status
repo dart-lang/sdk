@@ -459,9 +459,19 @@ deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 
 # Issue 18562- 'is', 'as' and 'catch' aren't type annotations, thus we don't
 # generate the "The deferred types cannot be used in a declaration" warning
-deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
-deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
-deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
+#deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
+#deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
+#deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
+
+# Deferred loading support, tests marked as failing until support is enabled by default.
+deferred_closurize_load_library_test: Pass, Fail
+deferred_not_loaded_check_test/*: Pass, Fail
+deferred_shadow_load_library_test: Pass, Fail
+deferred_constraints_constants_test/*: Pass, Fail
+deferred_load_library_wrong_args_test/*: Pass, Fail
+deferred_constraints_type_annotation_test/*: Pass, Fail
+deferred_load_inval_code_test: Pass, Fail
+deferred_not_loaded_check_test: Pass, Fail
 
 # Issues to be fixed now that type parameters have been fixed
 # (issues 14221, 15553)
