@@ -67,7 +67,7 @@ main() {
         registered = true;
         document.registerElement(B.tag, B);
         document.registerElement(C.tag, C);
-        ErrorConstructorElement.registerElement();
+        ErrorConstructorElement.register();
       }
     });
   });
