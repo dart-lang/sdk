@@ -133,7 +133,8 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
+SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd,
+                                                      bool is_listening) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
@@ -142,7 +143,11 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   if (sd == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new SocketData for the file descriptor is inserted.
-    sd = new SocketData(fd);
+    if (is_listening) {
+      sd = new ListeningSocketData(fd);
+    } else {
+      sd = new SocketData(fd);
+    }
     entry->value = sd;
   }
   ASSERT(fd == sd->fd());
@@ -192,36 +197,41 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg[i].id);
+      SocketData* sd = GetSocketData(
+          msg[i].id, (msg[i].data & (1 << kListeningSocket)) != 0);
       if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownReadCommand));
+        ASSERT(!sd->IsListeningSocket());
         // Close the socket for reading.
         VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_RD));
       } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
+        ASSERT(!sd->IsListeningSocket());
         // Close the socket for writing.
         VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_WR));
       } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources and move on to
         // next message.
-        RemoveFromEpollInstance(epoll_fd_, sd);
-        intptr_t fd = sd->fd();
-        sd->Close();
-        socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
-        delete sd;
+        if (sd->RemovePort(msg[i].dart_port)) {
+          RemoveFromEpollInstance(epoll_fd_, sd);
+          intptr_t fd = sd->fd();
+          sd->Close();
+          socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          delete sd;
+        }
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
         int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
-        for (int i = 0; i < count; i++) {
-          if (sd->ReturnToken()) {
-            AddToEpollInstance(epoll_fd_, sd);
-          }
+        if (sd->ReturnToken(msg[i].dart_port, count)) {
+          AddToEpollInstance(epoll_fd_, sd);
         }
       } else {
         // Setup events to wait for.
-        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
-        AddToEpollInstance(epoll_fd_, sd);
+        if (sd->AddPort(msg[i].dart_port)) {
+          sd->SetMask(msg[i].data);
+          AddToEpollInstance(epoll_fd_, sd);
+        }
       }
     }
   }
@@ -282,11 +292,11 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
       if (event_mask != 0) {
+        Dart_Port port = sd->port();
         if (sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromEpollInstance(epoll_fd_, sd);
         }
-        Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
       }

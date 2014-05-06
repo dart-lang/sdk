@@ -349,6 +349,13 @@ void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_GetSocketId)(Dart_NativeArguments args) {
+  intptr_t id =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  Dart_SetReturnValue(args, Dart_NewInteger(id));
+}
+
+
 void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
   intptr_t id =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
