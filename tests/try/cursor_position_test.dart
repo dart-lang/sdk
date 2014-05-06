@@ -50,7 +50,7 @@ void main() {
   runTests(tests.iterator, completerForAsyncTest());
 }
 
-void simulateEnterKeyDown(Interaction interaction) {
+void simulateEnterKeyDown(InteractionManager interaction) {
   interaction.onKeyUp(
       new MockKeyboardEvent('keydown', keyCode: KeyCode.ENTER));
 }
