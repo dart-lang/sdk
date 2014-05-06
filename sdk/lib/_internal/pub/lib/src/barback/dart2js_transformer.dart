@@ -279,19 +279,23 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
 
   /// A [CompilerOutputProvider] for dart2js.
   EventSink<String> provideOutput(String name, String extension) {
-    // Dart2js uses an empty string for the name of the entrypoint library.
-    // We only expect to get output files associated with that right now. For
-    // other files, we'd need some logic to determine the right relative path
-    // for it.
-    assert(name == "");
-
     // TODO(rnystrom): Do this more cleanly. See: #17403.
     if (!generateSourceMaps && extension.endsWith(".map")) {
       return new NullSink<String>();
     }
 
     var primaryId = _transform.primaryInput.id;
-    var id = new AssetId(primaryId.package, "${primaryId.path}.$extension");
+
+    // Dart2js uses an empty string for the name of the entrypoint library.
+    // Otherwise, it's the name of a deferred library.
+    var outPath;
+    if (name == "") {
+      outPath = _transform.primaryInput.id.path;
+    } else {
+      outPath = path.join(path.dirname(_transform.primaryInput.id.path), name);
+    }
+
+    var id = new AssetId(primaryId.package, "$outPath.$extension");
 
     // Make a sink that dart2js can write to.
     var sink = new StreamController<String>();

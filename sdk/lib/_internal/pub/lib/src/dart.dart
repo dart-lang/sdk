@@ -82,10 +82,11 @@ Future compile(String entrypoint, CompilerProvider provider, {
     if (terse) options.add('--terse');
     if (toDart) options.add('--output-type=dart');
 
+    var sourceUrl = path.toUri(entrypoint);
+    options.add("--out=$sourceUrl.js");
+
     // Add the source map URLs.
     if (includeSourceMapUrls) {
-      var sourceUrl = path.toUri(entrypoint);
-      options.add("--out=$sourceUrl.js");
       options.add("--source-map=$sourceUrl.js.map");
     }
 
