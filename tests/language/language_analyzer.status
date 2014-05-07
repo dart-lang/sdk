@@ -183,9 +183,6 @@ override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
-# missing warning for assignment to method
-assign_top_method_test/01: MissingStaticWarning # Issue 16672
-
 abstract_object_method_test: StaticWarning
 application_negative_test: CompileTimeError
 bad_constructor_test/05: CompileTimeError
