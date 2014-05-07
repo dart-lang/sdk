@@ -59,7 +59,7 @@ class IrBuilderTask extends CompilerTask {
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
-          } else if (element.isDeferredLoaderGetter()) {
+          } else if (element.isDeferredLoaderGetter) {
             // TODO(sigurdm): Build ir for deferred loader functions.
           } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
               kind == ElementKind.FUNCTION ||
@@ -75,7 +75,7 @@ class IrBuilderTask extends CompilerTask {
           if (function != null) {
             assert(() {
               // In host-checked mode, serialize and de-serialize the IrNode.
-              LibraryElement library = element.declaration.getLibrary();
+              LibraryElement library = element.declaration.library;
               IrConstantPool constantPool = IrConstantPool.forLibrary(library);
               List<int> data = function.pickle(constantPool);
               function = new Unpickler(compiler, constantPool).unpickle(data);
@@ -121,11 +121,11 @@ class IrBuilderTask extends CompilerTask {
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
-    if (element.isGetter() || element.isSetter()) return false;
-    if (element.enclosingElement.isClass()) return false;
+    if (element.isGetter || element.isSetter) return false;
+    if (element.enclosingElement.isClass) return false;
 
     // TODO(lry): support native functions (also in [visitReturn]).
-    if (function.isNative()) return false;
+    if (function.isNative) return false;
 
     return true;
   }
@@ -141,7 +141,7 @@ class IrBuilderTask extends CompilerTask {
       FunctionElement functionElement = element;
       if (functionElement.patch != null) element = functionElement.patch;
     }
-    return element.getCompilationUnit().script.file;
+    return element.compilationUnit.script.file;
   }
 }
 
@@ -238,7 +238,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression function = element.parseNode(compiler);
     assert(function != null);
-    assert(!function.modifiers.isExternal());
+    assert(!function.modifiers.isExternal);
     assert(elements[function] != null);
 
     root = current = null;
@@ -553,16 +553,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support static fields. (separate IR instruction?)
-    if (element.isField() || element.isGetter()) return giveup();
+    if (element.isField || element.isGetter) return giveup();
     // TODO(kmillikin): support static setters.
-    if (element.isSetter()) return giveup();
+    if (element.isSetter) return giveup();
     // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor()) return giveup();
+    if (element.isConstructor) return giveup();
     // TODO(lry): support foreign functions.
     if (element.isForeign(compiler)) return giveup();
     // TODO(lry): for elements that could not be resolved emit code to throw a
     // [NoSuchMethodError].
-    if (element.isErroneous()) return giveup();
+    if (element.isErroneous) return giveup();
     // TODO(lry): generate IR for object identicality.
     if (element == compiler.identicalFunction) giveup();
 

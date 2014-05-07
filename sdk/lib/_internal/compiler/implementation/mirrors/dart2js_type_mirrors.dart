@@ -30,7 +30,7 @@ abstract class Dart2JsTypeMirror
   Dart2JsDeclarationMirror get owner => library;
 
   Dart2JsLibraryMirror get library {
-    return mirrorSystem._getLibrary(_type.element.getLibrary());
+    return mirrorSystem._getLibrary(_type.element.library);
   }
 
   bool get hasReflectedType => throw new UnimplementedError();
@@ -124,7 +124,7 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeMirror {
   }
 
   Iterable<Dart2JsMemberMirror> _getDeclarationMirrors(Element element) {
-    if (element.isTypeVariable()) {
+    if (element.isTypeVariable) {
       assert(invariant(_element, _element == element.enclosingElement,
           message: 'Foreigned type variable element $element.'));
       for (Dart2JsTypeVariableMirror mirror in typeVariables) {
@@ -226,7 +226,7 @@ class Dart2JsInterfaceTypeMirror
   Map<Symbol, MethodMirror> get instanceMembers => null;
   Map<Symbol, MethodMirror> get staticMembers => null;
 
-  bool get isAbstract => _element.modifiers.isAbstract();
+  bool get isAbstract => _element.modifiers.isAbstract;
 
   bool operator ==(other) {
     if (identical(this, other)) {
@@ -271,7 +271,7 @@ class Dart2JsTypedefMirror
   var _definition;
 
   Dart2JsTypedefMirror(Dart2JsMirrorSystem system, TypedefType _typedef)
-      : this._library = system._getLibrary(_typedef.element.getLibrary()),
+      : this._library = system._getLibrary(_typedef.element.library),
         super(system, _typedef);
 
   Dart2JsTypedefMirror.fromLibrary(Dart2JsLibraryMirror library,
@@ -383,7 +383,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
   bool get isFunction => true;
 
   MethodMirror get callMethod => _convertElementMethodToMethodMirror(
-      mirrorSystem._getLibrary(_type.element.getLibrary()),
+      mirrorSystem._getLibrary(_type.element.library),
       _type.element);
 
   ClassMirror get originalDeclaration =>

@@ -244,7 +244,7 @@ class DeferredLoadTask extends CompilerTask {
         // information. Therefore it is neccessary to check if there is a prefix
         // here.
         Element maybePrefix = library.find(import.prefix.toString());
-        if (maybePrefix != null && maybePrefix.isPrefix()) {
+        if (maybePrefix != null && maybePrefix.isPrefix) {
           PrefixElement prefix = maybePrefix;
           prefix.markAsDeferred(import);
         }
@@ -268,10 +268,10 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Returns a [Link] of every [Import] that imports [element] into [library].
   Link<Import> _getImports(Element element, LibraryElement library) {
-    if (element.isMember()) {
-      element = element.getEnclosingClass();
+    if (element.isMember) {
+      element = element.enclosingClass;
     }
-    if (element.isAccessor()) {
+    if (element.isAccessor) {
       element = (element as FunctionElement).abstractField;
     }
     return library.getImportsFor(element);
@@ -308,9 +308,9 @@ class DeferredLoadTask extends CompilerTask {
         compiler.enqueuer.resolution.getCachedElements(element);
     if (elements == null) return;
     for (Element dependency in elements.allElements) {
-      if (Elements.isLocal(dependency) && !dependency.isFunction()) continue;
+      if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
       if (Elements.isUnresolved(dependency)) continue;
-      if (dependency.isStatement()) continue;
+      if (dependency.isStatement) continue;
       elementDependencies.add(dependency);
     }
     elements.forEachConstantNode((Node n, _) {
@@ -336,18 +336,18 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(constant.computeType(compiler).element);
       }
     }
-    if (element.isClass()) {
+    if (element.isClass) {
       // If we see a class, add everything its instance members refer
       // to.  Static members are not relevant.
       ClassElement cls = element.declaration;
       cls.forEachLocalMember((Element e) {
-        if (!e.isInstanceMember()) return;
+        if (!e.isInstanceMember) return;
         _collectDependencies(e.implementation, elements, constants);
       });
       if (cls.implementation != cls) {
         // TODO(ahe): Why doesn't ClassElement.forEachLocalMember do this?
         cls.implementation.forEachLocalMember((Element e) {
-          if (!e.isInstanceMember()) return;
+          if (!e.isInstanceMember) return;
           _collectDependencies(e.implementation, elements, constants);
         });
       }
@@ -356,15 +356,15 @@ class DeferredLoadTask extends CompilerTask {
       }
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) ||
-               element.isConstructor()) {
+               element.isConstructor) {
       _collectDependencies(element, elements, constants);
     }
-    if (element.isGenerativeConstructor()) {
+    if (element.isGenerativeConstructor) {
       // When instantiating a class, we record a reference to the
       // constructor, not the class itself.  We must add all the
       // instance members of the constructor's class.
       ClassElement implementation =
-          element.getEnclosingClass().implementation;
+          element.enclosingClass.implementation;
       _collectAllElementsAndConstantsResolvedFrom(
           implementation, elements, constants);
     }
@@ -419,7 +419,7 @@ class DeferredLoadTask extends CompilerTask {
     _collectAllElementsAndConstantsResolvedFrom(
         element, dependentElements, constants);
 
-    LibraryElement library = element.getLibrary();
+    LibraryElement library = element.library;
     for (Element dependency in dependentElements) {
       if (_isExplicitlyDeferred(dependency, library)) {
         for (Import deferredImport in _getImports(dependency, library)) {
@@ -485,7 +485,7 @@ class DeferredLoadTask extends CompilerTask {
           for (MirrorUsage usage in mirrorUsages) {
             if (usage.targets != null) {
               for (Element dependency in usage.targets) {
-                if (dependency.isLibrary()) {
+                if (dependency.isLibrary) {
                   LibraryElement library = dependency;
                   library.forEachLocalMember(mapDependenciesIfResolved);
                 } else {
@@ -697,7 +697,7 @@ class DeferredLoadTask extends CompilerTask {
       return;
     }
     if (main == null) return;
-    LibraryElement mainLibrary = main.getLibrary();
+    LibraryElement mainLibrary = main.library;
     _importedDeferredBy = new Map<Import, Set<Element>>();
     _constantsDeferredBy = new Map<Import, Set<Constant>>();
     _importedDeferredBy[_fakeMainImport] = _mainElements;
@@ -855,7 +855,7 @@ class DeferredLoadTask extends CompilerTask {
     Element element = elements[send];
     // The DeferredLoaderGetter is not deferred, therefore we do not return the
     // prefix.
-    if (element != null && element.isDeferredLoaderGetter()) return null;
+    if (element != null && element.isDeferredLoaderGetter) return null;
 
     ast.Node firstNode(ast.Node node) {
       if (node is! ast.Send) {
@@ -875,7 +875,7 @@ class DeferredLoadTask extends CompilerTask {
     ast.Node identifier = first.asIdentifier();
     if (identifier == null) return null;
     Element maybePrefix = elements[identifier];
-    if (maybePrefix != null && maybePrefix.isPrefix()) {
+    if (maybePrefix != null && maybePrefix.isPrefix) {
       PrefixElement prefixElement = maybePrefix;
       if (prefixElement.isDeferred) {
         return prefixElement;

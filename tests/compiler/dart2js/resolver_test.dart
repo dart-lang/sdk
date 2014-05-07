@@ -631,7 +631,7 @@ testTopLevelFields() {
   VariableDefinitions cNode = cElement.variables.parseNode(cElement, compiler);
   Expect.equals(bNode, cNode);
   Expect.isNull(bNode.type);
-  Expect.isTrue(bNode.modifiers.isVar());
+  Expect.isTrue(bNode.modifiers.isVar);
 }
 
 resolveConstructor(String script, String statement, String className,
@@ -647,10 +647,10 @@ resolveConstructor(String script, String statement, String className,
   Element element;
   if (constructor != '') {
     element = classElement.lookupConstructor(
-        new Selector.callConstructor(constructor, classElement.getLibrary()));
+        new Selector.callConstructor(constructor, classElement.library));
   } else {
     element = classElement.lookupConstructor(
-        new Selector.callDefaultConstructor(classElement.getLibrary()));
+        new Selector.callDefaultConstructor(classElement.library));
   }
 
   FunctionExpression tree = element.parseNode(compiler);

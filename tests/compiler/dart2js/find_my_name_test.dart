@@ -36,9 +36,9 @@ testClass(String code, MockCompiler compiler) {
   cls.parseNode(compiler);
   cls.forEachLocalMember((Element e) {
     String name = e.name;
-    if (e.isConstructor()) {
+    if (e.isConstructor) {
       name = Elements.reconstructConstructorName(e).replaceFirst(r'$', '.');
     }
-    Expect.equals(code.indexOf(name, skip), e.position().charOffset);
+    Expect.equals(code.indexOf(name, skip), e.position.charOffset);
   });
 }

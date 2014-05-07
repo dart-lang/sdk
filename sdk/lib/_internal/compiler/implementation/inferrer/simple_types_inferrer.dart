@@ -275,27 +275,27 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void updateSideEffects(SideEffects sideEffects,
                          Selector selector,
                          Element callee) {
-    if (callee.isField()) {
-      if (callee.isInstanceMember()) {
-        if (selector.isSetter()) {
+    if (callee.isField) {
+      if (callee.isInstanceMember) {
+        if (selector.isSetter) {
           sideEffects.setChangesInstanceProperty();
-        } else if (selector.isGetter()) {
+        } else if (selector.isGetter) {
           sideEffects.setDependsOnInstancePropertyStore();
         } else {
           sideEffects.setAllSideEffects();
           sideEffects.setDependsOnSomething();
         }
       } else {
-        if (selector.isSetter()) {
+        if (selector.isSetter) {
           sideEffects.setChangesStaticProperty();
-        } else if (selector.isGetter()) {
+        } else if (selector.isGetter) {
           sideEffects.setDependsOnStaticPropertyStore();
         } else {
           sideEffects.setAllSideEffects();
           sideEffects.setDependsOnSomething();
         }
       }
-    } else if (callee.isGetter() && !selector.isGetter()) {
+    } else if (callee.isGetter && !selector.isGetter) {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
@@ -361,12 +361,12 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     ast.Node astNode = node;
     var elements = compiler.enqueuer.resolution.getCachedElements(owner);
     if (astNode.asSendSet() != null) {
-      if (selector.isSetter() || selector.isIndexSet()) {
+      if (selector.isSetter || selector.isIndexSet) {
         elements.setSelector(node, selector);
-      } else if (selector.isGetter() || selector.isIndex()) {
+      } else if (selector.isGetter || selector.isIndex) {
         elements.setGetterSelectorInComplexSendSet(node, selector);
       } else {
-        assert(selector.isOperator());
+        assert(selector.isOperator);
         elements.setOperatorSelectorInComplexSendSet(node, selector);
       }
     } else if (astNode.asSend() != null) {
@@ -385,10 +385,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   bool isNativeElement(Element element) {
-    if (element.isNative()) return true;
-    return element.isMember()
-        && element.getEnclosingClass().isNative()
-        && element.isField();
+    if (element.isNative) return true;
+    return element.isMember
+        && element.enclosingClass.isNative
+        && element.isField;
   }
 
   void analyze(Element element, ArgumentsTypes arguments);
@@ -432,7 +432,7 @@ class SimpleTypeInferrerVisitor<T>
                             InferrerEngine<T, TypeSystem<T>> inferrer,
                             [LocalsHandler<T> handler])
     : this.internal(element,
-        element.getOutermostEnclosingMemberOrTopLevel().implementation,
+        element.outermostEnclosingMemberOrTopLevel.implementation,
         inferrer, compiler, handler);
 
   void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
@@ -443,7 +443,7 @@ class SimpleTypeInferrerVisitor<T>
   T run() {
     var node = analyzedElement.parseNode(compiler);
     ast.Expression initializer;
-    if (analyzedElement.isField()) {
+    if (analyzedElement.isField) {
       VariableElement fieldElement = analyzedElement;
       initializer = fieldElement.initializer;
       if (initializer == null) {
@@ -465,7 +465,7 @@ class SimpleTypeInferrerVisitor<T>
     closureData.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
-    if (analyzedElement.isField()) {
+    if (analyzedElement.isField) {
       return visit(initializer);
     }
 
@@ -477,18 +477,18 @@ class SimpleTypeInferrerVisitor<T>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (analyzedElement.isNative()) {
+    if (analyzedElement.isNative) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;
     }
 
-    if (analyzedElement.isGenerativeConstructor()) {
+    if (analyzedElement.isGenerativeConstructor) {
       isThisExposed = false;
       signature.forEachParameter((element) {
         T parameterType = inferrer.typeOfElement(element);
         if (element.kind == ElementKind.FIELD_PARAMETER) {
-          if (element.fieldElement.modifiers.isFinal()) {
+          if (element.fieldElement.modifiers.isFinal) {
             inferrer.recordTypeOfFinalField(
                 node,
                 analyzedElement,
@@ -504,7 +504,7 @@ class SimpleTypeInferrerVisitor<T>
         }
         locals.update(element, parameterType, node);
       });
-      ClassElement cls = analyzedElement.getEnclosingClass();
+      ClassElement cls = analyzedElement.enclosingClass;
       if (analyzedElement.isSynthesized) {
         node = analyzedElement;
         synthesizeForwardingCall(node, analyzedElement.targetConstructor);
@@ -520,7 +520,7 @@ class SimpleTypeInferrerVisitor<T>
             && !seenSuperConstructorCall
             && !cls.isObject(compiler)) {
           Selector selector =
-              new Selector.callDefaultConstructor(analyzedElement.getLibrary());
+              new Selector.callDefaultConstructor(analyzedElement.library);
           FunctionElement target = cls.superclass.lookupConstructor(selector);
           analyzeSuperConstructorCall(target, new ArgumentsTypes([], {}));
           synthesizeForwardingCall(analyzedElement, target);
@@ -532,7 +532,7 @@ class SimpleTypeInferrerVisitor<T>
         // Iterate over all instance fields, and give a null type to
         // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, field) {
-          if (field.modifiers.isFinal()) return;
+          if (field.modifiers.isFinal) return;
           T type = locals.fieldScope.readField(field);
           if (type == null && field.initializer == null) {
             inferrer.recordTypeOfNonFinalField(node, field, types.nullType);
@@ -637,7 +637,7 @@ class SimpleTypeInferrerVisitor<T>
       elementType = elementType == null
           ? types.nonNullEmpty()
           : types.simplifyPhi(null, null, elementType);
-      T containerType = node.isConst()
+      T containerType = node.isConst
           ? types.constListType
           : types.growableListType;
       return types.allocateList(
@@ -660,7 +660,7 @@ class SimpleTypeInferrerVisitor<T>
         valueTypes.add(visit(entry.value));
       }
 
-      T type = node.isConst() ? types.constMapType : types.mapType;
+      T type = node.isConst ? types.constMapType : types.mapType;
       return types.allocateMap(type,
                                node,
                                outermostElement,
@@ -672,18 +672,18 @@ class SimpleTypeInferrerVisitor<T>
   bool isThisOrSuper(ast.Node node) => node.isThis() || node.isSuper();
 
   bool isInClassOrSubclass(Element element) {
-    ClassElement cls = outermostElement.getEnclosingClass();
-    ClassElement enclosing = element.getEnclosingClass();
+    ClassElement cls = outermostElement.enclosingClass;
+    ClassElement enclosing = element.enclosingClass;
     return (enclosing == cls) || compiler.world.isSubclass(cls, enclosing);
   }
 
   void checkIfExposesThis(Selector selector) {
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, (element) {
-      if (element.isField()) {
-        if (!selector.isSetter()
+      if (element.isField) {
+        if (!selector.isSetter
             && isInClassOrSubclass(element)
-            && !element.modifiers.isFinal()
+            && !element.modifiers.isFinal
             && locals.fieldScope.readField(element) == null
             && element.initializer == null) {
           // If the field is being used before this constructor
@@ -704,18 +704,18 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   bool get inInstanceContext {
-    return (outermostElement.isInstanceMember() && !outermostElement.isField())
-        || outermostElement.isGenerativeConstructor();
+    return (outermostElement.isInstanceMember && !outermostElement.isField)
+        || outermostElement.isGenerativeConstructor;
   }
 
   bool treatAsInstanceMember(Element element) {
     return (Elements.isUnresolved(element) && inInstanceContext)
-        || (element != null && element.isInstanceMember());
+        || (element != null && element.isInstanceMember);
   }
 
   T visitSendSet(ast.SendSet node) {
     Element element = elements[node];
-    if (!Elements.isUnresolved(element) && element.impliesType()) {
+    if (!Elements.isUnresolved(element) && element.impliesType) {
       node.visitChildren(this);
       return types.dynamicType;
     }
@@ -826,8 +826,8 @@ class SimpleTypeInferrerVisitor<T>
             node, setterSelector, element,
             new ArgumentsTypes<T>([newType], null));
       } else if (Elements.isUnresolved(element)
-                 || element.isSetter()
-                 || element.isField()) {
+                 || element.isSetter
+                 || element.isField) {
         getterType = handleDynamicSend(
             node, getterSelector, receiverType, null);
         newType = handleDynamicSend(
@@ -865,8 +865,8 @@ class SimpleTypeInferrerVisitor<T>
       // Code will always throw.
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
-    } else if (Elements.isUnresolved(element) || element.isSetter()) {
-      if (analyzedElement.isGenerativeConstructor()
+    } else if (Elements.isUnresolved(element) || element.isSetter) {
+      if (analyzedElement.isGenerativeConstructor
           && (node.asSendSet() != null)
           && (node.asSendSet().receiver != null)
           && node.asSendSet().receiver.isThis()) {
@@ -877,19 +877,19 @@ class SimpleTypeInferrerVisitor<T>
         // its type.
         if (targets.length == 1) {
           Element single = targets.first;
-          if (single.isField()) {
+          if (single.isField) {
             locals.updateField(single, rhsType);
           }
         }
       }
       handleDynamicSend(
           node, setterSelector, receiverType, arguments);
-    } else if (element.isField()) {
-      if (element.modifiers.isFinal()) {
+    } else if (element.isField) {
+      if (element.modifiers.isFinal) {
         inferrer.recordTypeOfFinalField(
             node, outermostElement, element, rhsType);
       } else {
-        if (analyzedElement.isGenerativeConstructor()) {
+        if (analyzedElement.isGenerativeConstructor) {
           locals.updateField(element, rhsType);
         }
         if (visitingInitializers) {
@@ -924,8 +924,8 @@ class SimpleTypeInferrerVisitor<T>
       // `noSuchMethod` handler.
       return handleDynamicSend(node, selector, superType, arguments);
     } else if (node.isPropertyAccess
-              || element.isFunction()
-              || element.isGenerativeConstructor()) {
+              || element.isFunction
+              || element.isGenerativeConstructor) {
       return handleStaticSend(node, selector, element, arguments);
     } else {
       return inferrer.registerCalledClosure(
@@ -942,7 +942,7 @@ class SimpleTypeInferrerVisitor<T>
     if (length != null) {
       return length.value;
     } else if (element != null
-               && element.isField()
+               && element.isField
                && Elements.isStaticOrTopLevelField(element)
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
@@ -998,15 +998,15 @@ class SimpleTypeInferrerVisitor<T>
       FunctionElement constructor = element;
       constructor = constructor.redirectionTarget;
       T elementType = inferrer.returnTypeOfElement(
-          constructor.getEnclosingClass().lookupMember('[]'));
+          constructor.enclosingClass.lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateList(
-          types.nonNullExact(constructor.getEnclosingClass()), node,
+          types.nonNullExact(constructor.enclosingClass), node,
           outermostElement, elementType, length));
-    } else if (element.isFunction() || element.isConstructor()) {
+    } else if (element.isFunction || element.isConstructor) {
       return returnType;
     } else {
-      assert(element.isField() || element.isGetter());
+      assert(element.isField || element.isGetter);
       return inferrer.registerCalledClosure(
           node, selector, inferrer.typeOfElement(element),
           outermostElement, arguments, sideEffects, inLoop);
@@ -1081,7 +1081,7 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
-    if (element != null && element.isFunction()) {
+    if (element != null && element.isFunction) {
       assert(Elements.isLocal(element));
       // This only works for function statements. We need a
       // more sophisticated type system with function types to support
@@ -1262,7 +1262,7 @@ class SimpleTypeInferrerVisitor<T>
     Selector selector = elements.getSelector(identifier);
 
     T receiverType;
-    if (element != null && element.isInstanceMember()) {
+    if (element != null && element.isInstanceMember) {
       receiverType = thisType;
     } else {
       receiverType = types.dynamicType;

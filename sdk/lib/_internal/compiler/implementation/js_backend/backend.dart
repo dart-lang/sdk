@@ -322,22 +322,22 @@ class JavaScriptBackend extends Backend {
   }
 
   bool usedByBackend(Element element) {
-    if (element.isParameter()
-        || element.isFieldParameter()
-        || element.isField()) {
+    if (element.isParameter
+        || element.isFieldParameter
+        || element.isField) {
       if (usedByBackend(element.enclosingElement)) return true;
     }
     return helpersUsed.contains(element.declaration);
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isParameter() || element.isFieldParameter()) {
+    if (element.isParameter || element.isFieldParameter) {
       if (invokedReflectively(element.enclosingElement)) return true;
     }
 
-    if (element.isField()) {
+    if (element.isField) {
       if (Elements.isStaticOrTopLevel(element)
-          && (element.modifiers.isFinal() || element.modifiers.isConst())) {
+          && (element.modifiers.isFinal || element.modifiers.isConst)) {
         return false;
       }
     }
@@ -368,20 +368,20 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isInterceptedMethod(Element element) {
-    if (!element.isInstanceMember()) return false;
-    if (element.isGenerativeConstructorBody()) {
-      return Elements.isNativeOrExtendsNative(element.getEnclosingClass());
+    if (!element.isInstanceMember) return false;
+    if (element.isGenerativeConstructorBody) {
+      return Elements.isNativeOrExtendsNative(element.enclosingClass);
     }
     return interceptedElements[element.name] != null;
   }
 
   bool fieldHasInterceptedGetter(Element element) {
-    assert(element.isField());
+    assert(element.isField);
     return interceptedElements[element.name] != null;
   }
 
   bool fieldHasInterceptedSetter(Element element) {
-    assert(element.isField());
+    assert(element.isField);
     return interceptedElements[element.name] != null;
   }
 
@@ -407,7 +407,7 @@ class JavaScriptBackend extends Backend {
           return elements
               .where((element) =>
                   classesMixedIntoInterceptedClasses.contains(
-                      element.getEnclosingClass()))
+                      element.enclosingClass))
               .toSet();
         });
 
@@ -431,7 +431,7 @@ class JavaScriptBackend extends Backend {
       // determine if the given selector applies to them.
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
-        ClassElement classElement = element.getEnclosingClass();
+        ClassElement classElement = element.enclosingClass;
         if (Elements.isNativeOrExtendsNative(classElement)
             || interceptedClasses.contains(classElement)) {
           result.add(classElement);
@@ -466,7 +466,7 @@ class JavaScriptBackend extends Backend {
 
   bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
     return specialOperatorEqClasses.contains(
-        operatorEqfunction.getEnclosingClass());
+        operatorEqfunction.enclosingClass);
   }
 
   void initializeHelperClasses() {
@@ -528,7 +528,7 @@ class JavaScriptBackend extends Backend {
     jsIndexableClass.ensureResolved(compiler);
     jsIndexableLength = compiler.lookupElementIn(
         jsIndexableClass, 'length');
-    if (jsIndexableLength != null && jsIndexableLength.isAbstractField()) {
+    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
       AbstractFieldElement element = jsIndexableLength;
       jsIndexableLength = element.getter;
     }
@@ -581,11 +581,11 @@ class JavaScriptBackend extends Backend {
     if (interceptorClass == null) return;
     interceptorClass.ensureResolved(compiler);
     compiler.objectClass.forEachMember((_, Element member) {
-      if (member.isGenerativeConstructor()) return;
+      if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
-      assert(interceptorMember.getEnclosingClass() == interceptorClass);
+      assert(interceptorMember.enclosingClass == interceptorClass);
     });
   }
 
@@ -759,7 +759,7 @@ class JavaScriptBackend extends Backend {
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
           return implementation.lookupConstructor(
             new Selector.callConstructor(
-                name, mapLiteralClass.getLibrary(), arity),
+                name, mapLiteralClass.library, arity),
             (element) {
               compiler.internalError(mapLiteralClass,
                   "Map literal class $mapLiteralClass missing "
@@ -900,7 +900,7 @@ class JavaScriptBackend extends Backend {
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
-    if (element.isTypedef()) {
+    if (element.isTypedef) {
       typedefTypeLiterals.add(element);
     }
     customElementsAnalysis.registerTypeLiteral(element, enqueuer);
@@ -1006,7 +1006,7 @@ class JavaScriptBackend extends Backend {
       enqueueInResolution(
           compiler.findHelper('functionTypeTestMetaHelper'), elements);
     }
-    if (type.element.isNative()) {
+    if (type.element.isNative) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
@@ -1094,7 +1094,7 @@ class JavaScriptBackend extends Backend {
     // then the class of the type variable does too.
     ClassElement contextClass = Types.getClassContext(type);
     if (contextClass != null) {
-      assert(contextClass == enclosingElement.getEnclosingClass().declaration);
+      assert(contextClass == enclosingElement.enclosingClass.declaration);
       rti.registerRtiDependency(type.element, contextClass);
     }
   }
@@ -1110,7 +1110,7 @@ class JavaScriptBackend extends Backend {
 
   bool isDefaultNoSuchMethodImplementation(Element element) {
     assert(element.name == Compiler.NO_SUCH_METHOD);
-    ClassElement classElement = element.getEnclosingClass();
+    ClassElement classElement = element.enclosingClass;
     return classElement == compiler.objectClass
         || classElement == jsInterceptorClass
         || classElement == jsNullClass;
@@ -1118,7 +1118,7 @@ class JavaScriptBackend extends Backend {
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');
-    ClassElement classElement = element.getEnclosingClass();
+    ClassElement classElement = element.enclosingClass;
     return classElement == compiler.objectClass
         || classElement == jsInterceptorClass
         || classElement == jsNullClass;
@@ -1178,7 +1178,7 @@ class JavaScriptBackend extends Backend {
     Element element = work.element;
     var kind = element.kind;
     if (kind == ElementKind.TYPEDEF) return;
-    if (element.isConstructor() && element.getEnclosingClass() == jsNullClass) {
+    if (element.isConstructor && element.enclosingClass == jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return;
     }
@@ -1215,7 +1215,7 @@ class JavaScriptBackend extends Backend {
 
   ClassElement defaultSuperclass(ClassElement element) {
     // Native classes inherit from Interceptor.
-    return element.isNative() ? jsInterceptorClass : compiler.objectClass;
+    return element.isNative ? jsInterceptorClass : compiler.objectClass;
   }
 
   /**
@@ -1586,7 +1586,7 @@ class JavaScriptBackend extends Backend {
       mustRetainMetadata = true;
     } else if (element == getIsolateAffinityTagMarker) {
       needToInitializeIsolateAffinityTag = true;
-    } else if (element.isDeferredLoaderGetter()) {
+    } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (compiler.loadLibraryFunction == null) {
         compiler.loadLibraryFunction =
@@ -1673,7 +1673,7 @@ class JavaScriptBackend extends Backend {
     if (symbols != null) symbolsUsed.addAll(symbols);
     if (targets != null) {
       for (Element target in targets) {
-        if (target.isAbstractField()) {
+        if (target.isAbstractField) {
           AbstractFieldElement field = target;
           targetsUsed.add(field.getter);
           targetsUsed.add(field.setter);
@@ -1713,8 +1713,8 @@ class JavaScriptBackend extends Backend {
     /// convenience.
     bool registerNameOf(Element element) {
       symbolsUsed.add(element.name);
-      if (element.isConstructor()) {
-        symbolsUsed.add(element.getEnclosingClass().name);
+      if (element.isConstructor) {
+        symbolsUsed.add(element.enclosingClass.name);
       }
       return true;
     }
@@ -1799,9 +1799,9 @@ class JavaScriptBackend extends Backend {
 
     void addFieldsInContainer(ScopeContainerElement container) {
       container.forEachLocalMember((Element member) {
-        if (!member.isInstanceMember() && member.isField()) {
+        if (!member.isInstanceMember && member.isField) {
           staticFields.add(member);
-        } else if (member.isClass()) {
+        } else if (member.isClass) {
           addFieldsInContainer(member);
         }
       });
@@ -1809,9 +1809,9 @@ class JavaScriptBackend extends Backend {
 
     for (Element target in targetsUsed) {
       if (target == null) continue;
-      if (target.isField()) {
+      if (target.isField) {
         staticFields.add(target);
-      } else if (target.isLibrary() || target.isClass()) {
+      } else if (target.isLibrary || target.isClass) {
         addFieldsInContainer(target);
       }
     }
@@ -1850,7 +1850,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
-    LibraryElement library = element.getLibrary();
+    LibraryElement library = element.library;
     if (!library.isPlatformLibrary && !library.canUseNative) return;
     bool hasNoInline = false;
     bool hasNoThrows = false;

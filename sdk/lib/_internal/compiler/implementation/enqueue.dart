@@ -22,7 +22,7 @@ class EnqueueTask extends CompilerTask {
       element = element.declaration;
       String name = element.name;
       ScopeContainerElement container = null;
-      if (element.isLibrary()) {
+      if (element.isLibrary) {
         LibraryElement library = element;
         // Don't include private implementation libraries.  These
         // libraries contain special classes that cause problems
@@ -33,7 +33,7 @@ class EnqueueTask extends CompilerTask {
           // TODO(ahe): Is this right?  Is this necessary?
           name = library.getLibraryOrScriptName();
         }
-      } else if (element.isClass()) {
+      } else if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
         container = cls;
@@ -124,7 +124,7 @@ abstract class Enqueuer {
           // classes; a native abstract class may have non-abstract subclasses
           // not declared to the program.  Instances of these classes are
           // indistinguishable from the abstract class.
-          || cls.isNative()) {
+          || cls.isNative) {
         universe.instantiatedClasses.add(cls);
       }
       onRegisterInstantiatedClass(cls);
@@ -162,19 +162,19 @@ abstract class Enqueuer {
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
-    if (!member.isInstanceMember()) return;
+    if (!member.isInstanceMember) return;
 
     String memberName = member.name;
 
     if (member.kind == ElementKind.FIELD) {
-      // The obvious thing to test here would be "member.isNative()",
+      // The obvious thing to test here would be "member.isNative",
       // however, that only works after metadata has been parsed/analyzed,
       // and that may not have happened yet.
       // So instead we use the enclosing class, which we know have had
       // its metadata parsed and analyzed.
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
-      if (cls.isNative()) {
+      if (cls.isNative) {
         compiler.world.registerUsedElement(member);
         nativeEnqueuer.handleFieldAnnotations(member);
         if (universe.hasInvokedGetter(member, compiler) ||
@@ -328,27 +328,27 @@ abstract class Enqueuer {
     if (Elements.isUnresolved(element)) {
       // Ignore.
     } else if (element.isSynthesized
-               && element.getLibrary().isPlatformLibrary) {
+               && element.library.isPlatformLibrary) {
       // TODO(ahe): Work-around for http://dartbug.com/11205.
-    } else if (element.isConstructor()) {
-      ClassElement cls = element.declaration.getEnclosingClass();
+    } else if (element.isConstructor) {
+      ClassElement cls = element.declaration.enclosingClass;
       registerInstantiatedType(cls.rawType, elements);
       registerStaticUse(element.declaration);
-    } else if (element.isClass()) {
+    } else if (element.isClass) {
       ClassElement cls = element.declaration;
       registerInstantiatedClass(cls, elements);
       // Make sure that even abstract classes are considered instantiated.
       universe.instantiatedClasses.add(cls);
-    } else if (element.impliesType()) {
+    } else if (element.impliesType) {
       // Don't enqueue typedefs, and type variables.
     } else if (Elements.isStaticOrTopLevel(element)) {
       registerStaticUse(element.declaration);
-    } else if (element.isInstanceMember()) {
+    } else if (element.isInstanceMember) {
       Selector selector = new Selector.fromElement(element, compiler);
       registerSelectorUse(selector);
-      if (element.isField()) {
+      if (element.isField) {
         Selector selector =
-            new Selector.setter(element.name, element.getLibrary());
+            new Selector.setter(element.name, element.library);
         registerInvokedSetter(selector);
       }
     }
@@ -410,11 +410,11 @@ abstract class Enqueuer {
   void handleUnseenSelector(String methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.appliesUnnamed(member, compiler)) {
-        if (member.isFunction() && selector.isGetter()) {
+        if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member, compiler.globalDependencies);
         }
-        if (member.isField() && member.getEnclosingClass().isNative()) {
-          if (selector.isGetter() || selector.isCall()) {
+        if (member.isField && member.enclosingClass.isNative) {
+          if (selector.isGetter || selector.isCall) {
             nativeEnqueuer.registerFieldLoad(member);
             // We have to also handle storing to the field because we only get
             // one look at each member and there might be a store we have not
@@ -422,7 +422,7 @@ abstract class Enqueuer {
             // TODO(sra): Process fields for storing separately.
             nativeEnqueuer.registerFieldStore(member);
           } else {
-            assert(selector.isSetter());
+            assert(selector.isSetter);
             nativeEnqueuer.registerFieldStore(member);
             // We have to also handle loading from the field because we only get
             // one look at each member and there might be a load we have not
@@ -436,7 +436,7 @@ abstract class Enqueuer {
       }
       return false;
     });
-    if (selector.isGetter()) {
+    if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
         if (selector.appliesUnnamed(member, compiler)) {
           registerClosurizedMember(member, compiler.globalDependencies);
@@ -472,9 +472,9 @@ abstract class Enqueuer {
   }
 
   void registerSelectorUse(Selector selector) {
-    if (selector.isGetter()) {
+    if (selector.isGetter) {
       registerInvokedGetter(selector);
-    } else if (selector.isSetter()) {
+    } else if (selector.isSetter) {
       registerInvokedSetter(selector);
     } else {
       registerInvocation(selector);
@@ -507,7 +507,7 @@ abstract class Enqueuer {
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
-           !type.element.enclosingElement.isTypedef());
+           !type.element.enclosingElement.isTypedef);
     compiler.backend.registerIsCheck(type, this, elements);
   }
 
@@ -537,7 +537,7 @@ abstract class Enqueuer {
   }
 
   void registerClosurizedMember(Element element, TreeElements elements) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     registerIfGeneric(element, elements);
     registerBoundClosure();
     universe.closurizedMembers.add(element);
@@ -618,14 +618,14 @@ class ResolutionEnqueuer extends Enqueuer {
 
   TreeElements getCachedElements(Element element) {
     // TODO(ngeoffray): Get rid of this check.
-    if (element.enclosingElement.isClosure()) {
+    if (element.enclosingElement.isClosure) {
       closureMapping.ClosureClassElement cls = element.enclosingElement;
       element = cls.methodElement;
-    } else if (element.isGenerativeConstructorBody()) {
+    } else if (element.isGenerativeConstructorBody) {
       ConstructorBodyElement body = element;
       element = body.constructor;
     }
-    Element owner = element.getOutermostEnclosingMemberOrTopLevel();
+    Element owner = element.outermostEnclosingMemberOrTopLevel;
     if (owner == null) {
       owner = element;
     }
@@ -648,9 +648,9 @@ class ResolutionEnqueuer extends Enqueuer {
     // Enable isolate support if we start using something from the isolate
     // library, or timers for the async library.  We exclude constant fields,
     // which are ending here because their initializing expression is compiled.
-    LibraryElement library = element.getLibrary();
+    LibraryElement library = element.library;
     if (!compiler.hasIsolateSupport() &&
-        (!element.isField() || !element.modifiers.isConst())) {
+        (!element.isField || !element.modifiers.isConst)) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);
@@ -664,7 +664,7 @@ class ResolutionEnqueuer extends Enqueuer {
       }
     }
 
-    if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
+    if (element.isGetter && element.name == Compiler.RUNTIME_TYPE) {
       // Enable runtime type support if we discover a getter called runtimeType.
       // We have to enable runtime type before hitting the codegen, so
       // that constructors know whether they need to generate code for
@@ -759,9 +759,9 @@ class CodegenEnqueuer extends Enqueuer {
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
-    if (element.isField() && element.isInstanceMember()) {
+    if (element.isField && element.isInstanceMember) {
       if (!compiler.enableTypeAssertions
-          || element.enclosingElement.isClosure()) {
+          || element.enclosingElement.isClosure) {
         return;
       }
     }

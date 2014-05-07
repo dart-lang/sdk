@@ -130,7 +130,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
       ClassElement element = input.instructionType.singleClass(compiler);
-      if (element != null && element.isNative()) {
+      if (element != null && element.isNative) {
         constantInterceptor = element;
       }
     }
@@ -139,7 +139,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // If we just happen to be in an instance method of the constant
     // interceptor, `this` is a shorter alias.
-    if (constantInterceptor == work.element.getEnclosingClass() &&
+    if (constantInterceptor == work.element.enclosingClass &&
         graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
@@ -263,13 +263,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     Selector selector = node.selector;
     HInstruction instruction;
-    if (selector.isGetter()) {
+    if (selector.isGetter) {
       instruction = new HInvokeDynamicGetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
           node.instructionType);
-    } else if (selector.isSetter()) {
+    } else if (selector.isSetter) {
       instruction = new HInvokeDynamicSetter(
           selector,
           node.element,

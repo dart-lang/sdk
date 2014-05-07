@@ -617,7 +617,7 @@ class CodeEmitterTask extends CompilerTask {
 
   /// In minified mode we want to keep the name for the most common core types.
   bool _isNativeTypeNeedingReflectionName(Element element) {
-    if (!element.isClass()) return false;
+    if (!element.isClass) return false;
     return (element == compiler.intClass ||
             element == compiler.doubleClass ||
             element == compiler.numClass ||
@@ -658,8 +658,8 @@ class CodeEmitterTask extends CompilerTask {
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
     String name = elementOrSelector.name;
-    if (elementOrSelector.isGetter()) return name;
-    if (elementOrSelector.isSetter()) {
+    if (elementOrSelector.isGetter) return name;
+    if (elementOrSelector.isSetter) {
       if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
       String base = mangledName.substring(namer.setterPrefix.length);
       String getter = '${namer.getterPrefix}$base';
@@ -670,15 +670,15 @@ class CodeEmitterTask extends CompilerTask {
       // marking the function as invokable by reflection.
       return '$name=';
     }
-    if (elementOrSelector is Element && elementOrSelector.isClosure()) {
+    if (elementOrSelector is Element && elementOrSelector.isClosure) {
       // Closures are synthesized and their name might conflict with existing
       // globals. Assign an illegal name, and make sure they don't clash
       // with each other.
       return " $mangledName";
     }
     if (elementOrSelector is Selector
-        || elementOrSelector.isFunction()
-        || elementOrSelector.isConstructor()) {
+        || elementOrSelector.isFunction
+        || elementOrSelector.isConstructor) {
       int requiredParameterCount;
       int optionalParameterCount;
       String namedArguments = '';
@@ -690,7 +690,7 @@ class CodeEmitterTask extends CompilerTask {
         namedArguments = namedParametersAsReflectionNames(selector);
       } else {
         FunctionElement function = elementOrSelector;
-        if (function.isConstructor()) {
+        if (function.isConstructor) {
           isConstructor = true;
           name = Elements.reconstructConstructorName(function);
         }
@@ -704,7 +704,7 @@ class CodeEmitterTask extends CompilerTask {
           }
           Selector selector = new Selector.call(
               function.name,
-              function.getLibrary(),
+              function.library,
               requiredParameterCount,
               names);
           namedArguments = namedParametersAsReflectionNames(selector);
@@ -726,9 +726,9 @@ class CodeEmitterTask extends CompilerTask {
       return (isConstructor) ? 'new $suffix' : suffix;
     }
     Element element = elementOrSelector;
-    if (element.isGenerativeConstructorBody()) {
+    if (element.isGenerativeConstructorBody) {
       return null;
-    } else if (element.isClass()) {
+    } else if (element.isClass) {
       ClassElement cls = element;
       if (cls.isUnnamedMixinApplication) return null;
       return cls.name;
@@ -819,7 +819,7 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitStaticFunctions() {
     bool isStaticFunction(Element element) =>
-        !element.isInstanceMember() && !element.isField();
+        !element.isInstanceMember && !element.isField;
 
     Iterable<Element> elements =
         backend.generatedCode.keys.where(isStaticFunction);
@@ -1133,7 +1133,7 @@ class CodeEmitterTask extends CompilerTask {
       String noSuchMethodName = Compiler.NO_SUCH_METHOD;
       Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
       for (ClassElement element in neededClasses) {
-        if (!element.isNative()) continue;
+        if (!element.isNative) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
         if (noSuchMethodSelector.applies(member, compiler)) {
@@ -1186,7 +1186,7 @@ class CodeEmitterTask extends CompilerTask {
       } else if (Elements.isNativeOrExtendsNative(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
-        if (!element.isNative()) {
+        if (!element.isNative) {
           assert(invariant(element,
                            !compiler.deferredLoadTask.isDeferred(element)));
           outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
@@ -1375,7 +1375,7 @@ mainBuffer.add(r'''
         for (Element element in elementDescriptors.keys) {
           // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
           // not see libraries that only have fields.
-          if (element.isLibrary()) {
+          if (element.isLibrary) {
             LibraryElement library = element;
             ClassBuilder builder = new ClassBuilder(namer);
             if (classEmitter.emitFields(
@@ -1433,7 +1433,7 @@ mainBuffer.add(r'''
             Elements.sortedByPosition(elementDescriptors.keys);
 
         Iterable<Element> pendingStatics = sortedElements.where((element) {
-            return !element.isLibrary() &&
+            return !element.isLibrary &&
                 elementDescriptors[element].values.any((descriptor) =>
                     descriptor != null);
         });
@@ -1443,7 +1443,7 @@ mainBuffer.add(r'''
                 element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
 
         for (LibraryElement library in sortedElements.where((element) =>
-            element.isLibrary())) {
+            element.isLibrary)) {
           writeLibraryDescriptors(library);
           elementDescriptors[library] = const {};
         }
@@ -1588,7 +1588,7 @@ if (typeof $printHelperName === "function") {
       if (!compiler.useContentSecurityPolicy) {
         mainBuffer.write("""
 {
-  var message = 
+  var message =
       'Deprecation: Automatic generation of output for Content Security\\n' +
       'Policy is deprecated and will be removed with the next development\\n' +
       'release. Use the --csp option to generate CSP restricted output.';
@@ -1645,15 +1645,15 @@ if (typeof $printHelperName === "function") {
   }
 
   ClassBuilder getElementDecriptor(Element element) {
-    Element owner = element.getLibrary();
-    if (!element.isTopLevel() && !element.isNative()) {
+    Element owner = element.library;
+    if (!element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
       ClassElement cls =
-          element.getEnclosingClassOrCompilationUnit().declaration;
+          element.enclosingClassOrCompilationUnit.declaration;
       if (compiler.codegenWorld.instantiatedClasses.contains(cls)
-          && !cls.isNative()) {
+          && !cls.isNative) {
         owner = cls;
       }
     }

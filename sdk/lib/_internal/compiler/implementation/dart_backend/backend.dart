@@ -154,7 +154,7 @@ class DartBackend extends Backend {
     for (final library in compiler.libraries.values) {
       if (!library.isPlatformLibrary) continue;
       library.implementation.forEachLocalMember((Element element) {
-        if (element.isClass()) {
+        if (element.isClass) {
           ClassElement classElement = element;
           // Make sure we parsed the class to initialize its local members.
           // TODO(smok): Figure out if there is a better way to fill local
@@ -179,7 +179,7 @@ class DartBackend extends Backend {
       });
       for (Element export in library.exports) {
         if (!library.isInternalLibrary &&
-            export.getLibrary().isInternalLibrary) {
+            export.library.isInternalLibrary) {
           // If an element of an internal library is reexported by a platform
           // library, we have to import the reexporting library instead of the
           // internal library, because the internal library is an
@@ -191,7 +191,7 @@ class DartBackend extends Backend {
     // As of now names of named optionals are not renamed. Therefore add all
     // field names used as named optionals into [fixedMemberNames].
     for (final element in resolvedElements.keys) {
-      if (!element.isConstructor()) continue;
+      if (!element.isConstructor) continue;
       Link<Element> optionalParameters =
           element.computeSignature(compiler).optionalParameters;
       for (final optional in optionalParameters) {
@@ -220,10 +220,10 @@ class DartBackend extends Backend {
      */
     bool shouldOutput(Element element) {
       return (element.kind != ElementKind.VOID
-          && isUserLibrary(element.getLibrary())
+          && isUserLibrary(element.library)
           && !element.isSynthesized
           && element is !AbstractFieldElement)
-          || element.getLibrary() == mirrorHelperLibrary;
+          || element.library == mirrorHelperLibrary;
     }
 
     final elementAsts = new Map<Element, ElementAst>();
@@ -300,16 +300,16 @@ class DartBackend extends Backend {
       if (!shouldOutput(element) || treeElements == null) return;
       ElementAst elementAst = parse(element, treeElements);
 
-      if (element.isMember()) {
-        ClassElement enclosingClass = element.getEnclosingClass();
-        assert(enclosingClass.isClass());
-        assert(enclosingClass.isTopLevel());
+      if (element.isMember) {
+        ClassElement enclosingClass = element.enclosingClass;
+        assert(enclosingClass.isClass);
+        assert(enclosingClass.isTopLevel);
         assert(shouldOutput(enclosingClass));
         addClass(enclosingClass);
         classMembers[enclosingClass].add(element);
         processElement(element, elementAst);
       } else {
-        if (element.isTopLevel()) {
+        if (element.isTopLevel) {
           addTopLevel(element, elementAst);
         }
       }
@@ -335,7 +335,7 @@ class DartBackend extends Backend {
     for (ClassElement classElement in classMembers.keys) {
       if (emitNoMembersFor.contains(classElement)) continue;
       for (Element member in classMembers[classElement]) {
-        if (member.isConstructor()) continue NextClassElement;
+        if (member.isConstructor) continue NextClassElement;
       }
       if (classElement.constructors.isEmpty) continue NextClassElement;
 
@@ -373,11 +373,11 @@ class DartBackend extends Backend {
     makePlaceholders(element) {
       bool oldUseHelper = useMirrorHelperLibrary;
       useMirrorHelperLibrary = (useMirrorHelperLibrary
-                               && element.getLibrary() != mirrorHelperLibrary);
+                               && element.library != mirrorHelperLibrary);
       collector.collect(element);
       useMirrorHelperLibrary = oldUseHelper;
 
-      if (element.isClass()) {
+      if (element.isClass) {
         classMembers[element].forEach(makePlaceholders);
       }
     }
@@ -409,7 +409,7 @@ class DartBackend extends Backend {
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
-        if (topLevel.isClass() && !emitNoMembersFor.contains(topLevel)) {
+        if (topLevel.isClass && !emitNoMembersFor.contains(topLevel)) {
           // TODO(antonm): add some class info.
           sortedClassMembers[topLevel].forEach(outputElement);
         } else {
@@ -423,7 +423,7 @@ class DartBackend extends Backend {
     final topLevelNodes = <Node>[];
     for (final element in sortedTopLevels) {
       topLevelNodes.add(elementAsts[element].ast);
-      if (element.isClass() && !element.isMixinApplication) {
+      if (element.isClass && !element.isMixinApplication) {
         final members = <Node>[];
         for (final member in sortedClassMembers[element]) {
           members.add(elementAsts[member].ast);
@@ -484,7 +484,7 @@ class DartBackend extends Backend {
   void registerTypeLiteral(Element element,
                            Enqueuer enqueuer,
                            TreeElements elements) {
-    if (element.isClass()) {
+    if (element.isClass) {
       usedTypeLiterals.add(element);
     }
   }
@@ -497,7 +497,7 @@ class DartBackend extends Backend {
 
   void registerMirrorHelperElement(Element element, Node node) {
     if (mirrorHelperLibrary != null
-        && element.getLibrary() == mirrorHelperLibrary) {
+        && element.library == mirrorHelperLibrary) {
       mirrorRenamer.registerHelperElement(element, node);
     }
   }
@@ -568,8 +568,8 @@ class ReferencedElementCollector extends Visitor {
     assert(invariant(typeAnnotation, type != null,
         message: "Missing type for type annotation: $treeElements."));
     Element typeElement = type.element;
-    if (typeElement.isTypedef()) newTypedefElementCallback(typeElement);
-    if (typeElement.isClass()) newClassElementCallback(typeElement);
+    if (typeElement.isTypedef) newTypedefElementCallback(typeElement);
+    if (typeElement.isClass) newClassElementCallback(typeElement);
     typeAnnotation.visitChildren(this);
   }
 
@@ -589,9 +589,9 @@ List sorted(Iterable l, comparison) {
 }
 
 compareElements(e0, e1) {
-  int result = compareBy((e) => e.getLibrary().canonicalUri.toString())(e0, e1);
+  int result = compareBy((e) => e.library.canonicalUri.toString())(e0, e1);
   if (result != 0) return result;
-  return compareBy((e) => e.position().charOffset)(e0, e1);
+  return compareBy((e) => e.position.charOffset)(e0, e1);
 }
 
 List<Element> sortElements(Iterable<Element> elements) =>

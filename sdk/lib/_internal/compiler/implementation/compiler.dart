@@ -261,7 +261,7 @@ abstract class Backend {
 
   bool isDefaultNoSuchMethodImplementation(Element element) {
     assert(element.name == Compiler.NO_SUCH_METHOD);
-    ClassElement classElement = element.getEnclosingClass();
+    ClassElement classElement = element.enclosingClass;
     return classElement == compiler.objectClass;
   }
 
@@ -772,7 +772,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.getCompilationUnit().script.readableUri;
+      Uri uri = node.annotatedElement.compilationUnit.script.readableUri;
       return spanFromTokens(node.beginToken, node.endToken, uri);
     } else {
       throw 'No error location.';
@@ -972,7 +972,7 @@ abstract class Compiler implements DiagnosticListener {
   Element get unnamedListConstructor {
     if (_unnamedListConstructor != null) return _unnamedListConstructor;
     Selector callConstructor = new Selector.callConstructor(
-        "", listClass.getLibrary());
+        "", listClass.library);
     return _unnamedListConstructor =
         listClass.lookupConstructor(callConstructor);
   }
@@ -981,7 +981,7 @@ abstract class Compiler implements DiagnosticListener {
   Element get filledListConstructor {
     if (_filledListConstructor != null) return _filledListConstructor;
     Selector callConstructor = new Selector.callConstructor(
-        "filled", listClass.getLibrary());
+        "filled", listClass.library);
     return _filledListConstructor =
         listClass.lookupConstructor(callConstructor);
   }
@@ -1080,10 +1080,10 @@ abstract class Compiler implements DiagnosticListener {
                        "library."});
         }
       } else {
-        if (main.isErroneous()) {
+        if (main.isErroneous) {
           reportFatalError(main, MessageKind.GENERIC,
               {'text': "Cannot determine which '$MAIN' to use."});
-        } else if (!main.isFunction()) {
+        } else if (!main.isFunction) {
           reportFatalError(main, MessageKind.GENERIC,
               {'text': "'$MAIN' is not a function."});
         }
@@ -1209,7 +1209,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
-    if (element.isClass()) {
+    if (element.isClass) {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
@@ -1240,7 +1240,7 @@ abstract class Compiler implements DiagnosticListener {
         // TODO(ngeoffray, floitsch): we should also ensure that the
         // class IsolateMessage is instantiated. Currently, just enabling
         // isolate support works.
-        world.enableIsolateSupport(main.getLibrary());
+        world.enableIsolateSupport(main.library);
         world.registerInstantiatedClass(listClass, globalDependencies);
         world.registerInstantiatedClass(stringClass, globalDependencies);
       }
@@ -1273,22 +1273,22 @@ abstract class Compiler implements DiagnosticListener {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
-      if (e.isClass() ||
-          e.isField() ||
-          e.isTypeVariable() ||
-          e.isTypedef() ||
+      if (e.isClass ||
+          e.isField ||
+          e.isTypeVariable ||
+          e.isTypedef ||
           identical(e.kind, ElementKind.ABSTRACT_FIELD)) {
         resolved.remove(e);
       }
       if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
-        ClassElement enclosingClass = e.getEnclosingClass();
+        ClassElement enclosingClass = e.enclosingClass;
         resolved.remove(e);
 
       }
-      if (identical(e.getLibrary(), jsHelperLibrary)) {
+      if (identical(e.library, jsHelperLibrary)) {
         resolved.remove(e);
       }
-      if (identical(e.getLibrary(), interceptorsLibrary)) {
+      if (identical(e.library, interceptorsLibrary)) {
         resolved.remove(e);
       }
     }
@@ -1302,12 +1302,12 @@ abstract class Compiler implements DiagnosticListener {
 
   TreeElements analyzeElement(Element element) {
     assert(invariant(element,
-           element.impliesType() ||
-           element.isField() ||
-           element.isFunction() ||
-           element.isGenerativeConstructor() ||
-           element.isGetter() ||
-           element.isSetter(),
+           element.impliesType ||
+           element.isField ||
+           element.isFunction ||
+           element.isGenerativeConstructor ||
+           element.isGetter ||
+           element.isSetter,
            message: 'Unexpected element kind: ${element.kind}'));
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
@@ -1460,7 +1460,7 @@ abstract class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.getCompilationUnit().script.readableUri;
+      uri = currentElement.compilationUnit.script.readableUri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -1474,9 +1474,9 @@ abstract class Compiler implements DiagnosticListener {
     if (Elements.isErroneousElement(element)) {
       element = element.enclosingElement;
     }
-    if (element.position() == null &&
-        !element.isLibrary() &&
-        !element.isCompilationUnit()) {
+    if (element.position == null &&
+        !element.isLibrary &&
+        !element.isCompilationUnit) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is
       // not a good error location, but cancel really is "internal
@@ -1488,8 +1488,8 @@ abstract class Compiler implements DiagnosticListener {
     if (element == null) {
       element = currentElement;
     }
-    Token position = element.position();
-    Uri uri = element.getCompilationUnit().script.readableUri;
+    Token position = element.position;
+    Uri uri = element.compilationUnit.script.readableUri;
     return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
@@ -1502,7 +1502,7 @@ abstract class Compiler implements DiagnosticListener {
     if (position == null) return spanFromElement(element);
     Token token = position.token;
     if (token == null) return spanFromElement(element);
-    Uri uri = element.getCompilationUnit().script.readableUri;
+    Uri uri = element.compilationUnit.script.readableUri;
     return spanFromTokens(token, token, uri);
   }
 
@@ -1576,19 +1576,19 @@ abstract class Compiler implements DiagnosticListener {
 
   void reportUnusedCode() {
     void checkLive(member) {
-      if (member.isFunction()) {
+      if (member.isFunction) {
         if (!enqueuer.resolution.isLive(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,
                      {'name': member.name});
         }
-      } else if (member.isClass()) {
+      } else if (member.isClass) {
         if (!member.isResolved) {
           reportHint(member, MessageKind.UNUSED_CLASS,
                      {'name': member.name});
         } else {
           member.forEachLocalMember(checkLive);
         }
-      } else if (member.isTypedef()) {
+      } else if (member.isTypedef) {
         if (!member.isResolved) {
           reportHint(member, MessageKind.UNUSED_TYPEDEF,
                      {'name': member.name});
@@ -1644,7 +1644,7 @@ abstract class Compiler implements DiagnosticListener {
       return true;
     }
     if (element == null) return false;
-    Uri libraryUri = element.getLibrary().canonicalUri;
+    Uri libraryUri = element.library.canonicalUri;
     if (libraryUri.scheme == 'package') {
       for (Uri uri in entrypoints) {
         if (uri.scheme != 'package') continue;
@@ -1675,7 +1675,7 @@ abstract class Compiler implements DiagnosticListener {
   /// the canonical URI of the library itself.
   Uri getCanonicalUri(Element element) {
     if (element == null) return null;
-    Uri libraryUri = element.getLibrary().canonicalUri;
+    Uri libraryUri = element.library.canonicalUri;
     if (libraryUri.scheme == 'package') {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {

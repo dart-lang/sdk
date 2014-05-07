@@ -20,10 +20,10 @@ import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
 
 GenericType instantiate(TypeDeclarationElement element,
                         List<DartType> arguments) {
-  if (element.isClass()) {
+  if (element.isClass) {
     return new InterfaceType(element, new Link<DartType>.fromList(arguments));
   } else {
-    assert(element.isTypedef());
+    assert(element.isTypedef);
     return new TypedefType(element, new Link<DartType>.fromList(arguments));
   }
 }
@@ -80,9 +80,9 @@ class TypeEnvironment {
   Element getElement(String name) {
     var element = compiler.mainApp.find(name);
     Expect.isNotNull(element);
-    if (element.isClass()) {
+    if (element.isClass) {
       element.ensureResolved(compiler);
-    } else if (element.isTypedef()) {
+    } else if (element.isTypedef) {
       element.computeType(compiler);
     }
     return element;

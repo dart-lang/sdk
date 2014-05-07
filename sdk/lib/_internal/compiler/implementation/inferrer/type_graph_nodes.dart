@@ -251,8 +251,8 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
 
   factory ElementTypeInformation(Element element) {
     var assignments = null;
-    if (element.enclosingElement.isInstanceMember() &&
-        (element.isParameter() || element.isFieldParameter())) {
+    if (element.enclosingElement.isInstanceMember &&
+        (element.isParameter || element.isFieldParameter)) {
       assignments = new ParameterAssignments();
     }
     return new ElementTypeInformation.internal(element, assignments);
@@ -295,7 +295,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
     if (abandonInferencing) return type;
     if (disableHandleSpecialCases) return null;
 
-    if (element.isParameter()) {
+    if (element.isParameter) {
       Element enclosing = element.enclosingElement;
       if (Elements.isLocal(enclosing)) {
         // Do not infer types for parameters of closures. We do not
@@ -303,7 +303,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
         // traced.
         giveUp(inferrer, clearAssignments: false);
         return type;
-      } else if (enclosing.isInstanceMember() &&
+      } else if (enclosing.isInstanceMember &&
                  (enclosing.name == Compiler.NO_SUCH_METHOD ||
                   enclosing.name == Compiler.CALL_OPERATOR_NAME)) {
         // Do not infer types for parameters of [noSuchMethod] and
@@ -320,9 +320,9 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
         return type;
       }
     }
-    if (element.isField() ||
-        element.isParameter() ||
-        element.isFieldParameter()) {
+    if (element.isField ||
+        element.isParameter ||
+        element.isFieldParameter) {
       if (!inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
         // Do not infer types for fields and parameters being assigned
         // by synthesized calls.
@@ -335,13 +335,13 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
       // also give up on inferring to make sure this element never
       // goes in the work queue.
       giveUp(inferrer);
-      if (element.isField()) {
+      if (element.isField) {
         return inferrer.typeOfNativeBehavior(
             native.NativeBehavior.ofFieldLoad(element, inferrer.compiler)).type;
       } else {
-        assert(element.isFunction() ||
-               element.isGetter() ||
-               element.isSetter());
+        assert(element.isFunction ||
+               element.isGetter ||
+               element.isSetter);
         TypedElement typedElement = element;
         var elementType = typedElement.type;
         if (elementType.kind != TypeKind.FUNCTION) {
@@ -371,15 +371,15 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
     // Parameters are being explicitly checked in the method.
-    if (element.isParameter() || element.isFieldParameter()) return mask;
+    if (element.isParameter || element.isFieldParameter) return mask;
     if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
       return mask;
     }
-    if (element.isGenerativeConstructor() || element.isSetter()) return mask;
+    if (element.isGenerativeConstructor || element.isSetter) return mask;
     var type = element.computeType(compiler);
-    if (element.isFunction() ||
-        element.isGetter() ||
-        element.isFactoryConstructor()) {
+    if (element.isFunction ||
+        element.isGetter ||
+        element.isFactoryConstructor) {
       type = type.returnType;
     }
     return new TypeMaskSystem(compiler).narrowType(mask, type);
@@ -398,23 +398,23 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
     return visitor.visitElementTypeInformation(this);
   }
 
-  Element get owner => element.getOutermostEnclosingMemberOrTopLevel();
+  Element get owner => element.outermostEnclosingMemberOrTopLevel;
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     // The number of assignments of parameters of instance methods is
     // not stable. Therefore such a parameter cannot be stable.
-    if (element.isParameter() && element.enclosingElement.isInstanceMember()) {
+    if (element.isParameter && element.enclosingElement.isInstanceMember) {
       return false;
     }
 
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
-    if (element.isField() &&
-        !(element.modifiers.isConst() || element.modifiers.isFinal())) {
+    if (element.isField &&
+        !(element.modifiers.isConst || element.modifiers.isFinal)) {
       return false;
     }
 
-    if (element.isFunction()) return false;
+    if (element.isFunction) return false;
 
     return super.hasStableType(inferrer);
   }
@@ -579,7 +579,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!selector.mask.containsOnlyInt(compiler)) {
       return null;
     }
-    if (!selector.isCall() && !selector.isOperator()) return null;
+    if (!selector.isCall && !selector.isOperator) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 

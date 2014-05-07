@@ -72,7 +72,7 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
     String selectorName = selector.name;
     if (currentUser == info.receiver) {
       if (!okMapSelectorsSet.contains(selectorName)) {
-        if (selector.isCall()) {
+        if (selector.isCall) {
           int positionalLength = info.arguments.positional.length;
           if (selectorName == 'addAll') {
             // All keys and values from the argument flow into
@@ -106,16 +106,16 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
             bailout('Map used in a not-ok selector [$selectorName]');
             return;
           }
-        } else if (selector.isIndexSet()) {
+        } else if (selector.isIndexSet) {
           keyAssignments.add(info.arguments.positional[0]);
           valueAssignments.add(info.arguments.positional[1]);
-        } else if (!selector.isIndex()) {
+        } else if (!selector.isIndex) {
           bailout('Map used in a not-ok selector [$selectorName]');
           return;
         }
       }
-    } else if (selector.isCall() &&
-               !info.targets.every((element) => element.isFunction())) {
+    } else if (selector.isCall &&
+               !info.targets.every((element) => element.isFunction)) {
       bailout('Passed to a closure');
       return;
     }

@@ -362,15 +362,15 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     String nameString = element.name;
     String modifiersString = "${element.modifiers}";
     String kindString = "function";
-    if (currentElement.isClass()) {
+    if (currentElement.isClass) {
       kindString = "method";
-    } else if (currentElement.isField() ||
-               currentElement.isFunction() ||
-               currentElement.isConstructor()) {
+    } else if (currentElement.isField ||
+               currentElement.isFunction ||
+               currentElement.isConstructor) {
       kindString = "closure";
       nameString = "<unnamed>";
     }
-    if (element.isConstructor()) {
+    if (element.isConstructor) {
       nameString = element.name == ""
           ? "${element.enclosingElement.name}"
           : "${element.enclosingElement.name}.${element.name}";

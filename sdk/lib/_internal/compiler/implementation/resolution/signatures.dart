@@ -57,10 +57,10 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     if (definition is NodeList) {
       internalError(node, 'optional parameters are not implemented');
     }
-    if (node.modifiers.isConst()) {
+    if (node.modifiers.isConst) {
       compiler.reportError(node, MessageKind.FORMAL_DECLARED_CONST);
     }
-    if (node.modifiers.isStatic()) {
+    if (node.modifiers.isStatic) {
       compiler.reportError(node, MessageKind.FORMAL_DECLARED_STATIC);
     }
 
@@ -175,11 +175,11 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       Identifier name = getParameterName(node);
       validateName(name);
       Element fieldElement =
-          enclosingElement.getEnclosingClass().lookupLocalMember(name.source);
+          enclosingElement.enclosingClass.lookupLocalMember(name.source);
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
-      } else if (!fieldElement.isInstanceMember()) {
+      } else if (!fieldElement.isInstanceMember) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }
       element = new FieldParameterElementX(enclosingElement,
@@ -208,11 +208,11 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   Element visitFunctionExpression(FunctionExpression node) {
     // This is a function typed parameter.
     Modifiers modifiers = currentDefinitions.modifiers;
-    if (modifiers.isFinal()) {
+    if (modifiers.isFinal) {
       compiler.reportError(modifiers,
           MessageKind.FINAL_FUNCTION_TYPE_PARAMETER);
     }
-    if (modifiers.isVar()) {
+    if (modifiers.isVar) {
       compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
 
@@ -251,12 +251,12 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {
-      if (!element.isGetter()) {
+      if (!element.isGetter) {
         compiler.reportError(element, MessageKind.MISSING_FORMALS);
       }
     } else {
-      if (element.isGetter()) {
-        if (!identical(formalParameters.getEndToken().next.stringValue,
+      if (element.isGetter) {
+        if (!identical(formalParameters.endToken.next.stringValue,
                        // TODO(ahe): Remove the check for native keyword.
                        'native')) {
           compiler.reportError(formalParameters,
@@ -269,8 +269,8 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       parameters = parametersBuilder.toLink();
     }
     DartType returnType;
-    if (element.isFactoryConstructor()) {
-      returnType = element.getEnclosingClass().thisType;
+    if (element.isFactoryConstructor) {
+      returnType = element.enclosingClass.thisType;
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {
@@ -280,7 +280,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       returnType = visitor.resolveReturnType(returnNode);
     }
 
-    if (element.isSetter() && (requiredParameterCount != 1 ||
+    if (element.isSetter && (requiredParameterCount != 1 ||
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
       if (formalParameters != null) {

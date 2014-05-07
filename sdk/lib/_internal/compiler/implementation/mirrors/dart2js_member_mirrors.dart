@@ -94,12 +94,12 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       simpleName = '$simpleName=';
     } else if (function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
-      if (function.modifiers.isConst()) {
+      if (function.modifiers.isConst) {
         kind = Dart2JsMethodKind.CONST;
       } else {
         kind = Dart2JsMethodKind.GENERATIVE;
       }
-    } else if (function.modifiers.isFactory()) {
+    } else if (function.modifiers.isFactory) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
       kind = Dart2JsMethodKind.FACTORY;
     } else if (realName == 'unary-') {
@@ -132,7 +132,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   bool get isSynthetic => false;
 
-  bool get isStatic => _function.modifiers.isStatic();
+  bool get isStatic => _function.modifiers.isStatic;
 
   List<ParameterMirror> get parameters {
     return _parametersFromFunctionSignature(this,
@@ -188,11 +188,11 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
 
   bool get isTopLevel => owner is LibraryMirror;
 
-  bool get isStatic => _variable.modifiers.isStatic();
+  bool get isStatic => _variable.modifiers.isStatic;
 
-  bool get isFinal => _variable.modifiers.isFinal();
+  bool get isFinal => _variable.modifiers.isFinal;
 
-  bool get isConst => _variable.modifiers.isConst();
+  bool get isConst => _variable.modifiers.isConst;
 
   TypeMirror get type => owner._getTypeMirror(_variable.type);
 

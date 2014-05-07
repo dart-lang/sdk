@@ -799,7 +799,7 @@ class ElementListener extends Listener {
   bool allowLibraryTags() {
     // Library tags are only allowed in the library file itself, not
     // in sourced files.
-    LibraryElement library = compilationUnitElement.getLibrary();
+    LibraryElement library = compilationUnitElement.library;
     return !compilationUnitElement.hasMembers
       && library.entryCompilationUnit == compilationUnitElement;
   }
@@ -1219,7 +1219,7 @@ class ElementListener extends Listener {
     if (!allowLibraryTags()) {
       recoverableError(tag, 'Library tags not allowed here.');
     }
-    compilationUnitElement.getImplementationLibrary().addTag(tag, listener);
+    compilationUnitElement.implementationLibrary.addTag(tag, listener);
   }
 
   void pushNode(Node node) {
@@ -2095,24 +2095,24 @@ class PartialFunctionElement extends FunctionElementX {
       beginToken = beginToken,
       _position = ElementX.findNameToken(
           beginToken,
-          modifiers.isFactory() ||
+          modifiers.isFactory ||
             identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
           name, enclosing.name);
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
-      if (isMember() && modifiers.isFactory()) {
+      if (isMember && modifiers.isFactory) {
         p.parseFactoryMethod(beginToken);
       } else {
         p.parseFunction(beginToken, getOrSet);
       }
     }
-    cachedNode = parse(listener, getCompilationUnit(), parseFunction);
+    cachedNode = parse(listener, compilationUnit, parseFunction);
     return cachedNode;
   }
 
-  Token position() => _position;
+  Token get position => _position;
 }
 
 class PartialFieldList extends VariableList {
@@ -2128,12 +2128,12 @@ class PartialFieldList extends VariableList {
     if (definitions != null) return definitions;
     listener.withCurrentElement(element, () {
       definitions = parse(listener,
-                          element.getCompilationUnit(),
+                          element.compilationUnit,
                           (p) => p.parseVariablesDeclaration(beginToken));
 
-      if (!definitions.modifiers.isVar() &&
-          !definitions.modifiers.isFinal() &&
-          !definitions.modifiers.isConst() &&
+      if (!definitions.modifiers.isVar &&
+          !definitions.modifiers.isFinal &&
+          !definitions.modifiers.isConst &&
           definitions.type == null) {
         listener.reportError(
             definitions,
@@ -2170,12 +2170,12 @@ class PartialTypedefElement extends TypedefElementX {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
-                       getCompilationUnit(),
+                       compilationUnit,
                        (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
 
-  Token position() => findMyName(token);
+  Token get position => findMyName(token);
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.
@@ -2199,7 +2199,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     Metadata metadata = parse(listener,
-                              annotatedElement.getCompilationUnit(),
+                              annotatedElement.compilationUnit,
                               (p) => p.parseMetadata(beginToken));
     cachedNode = metadata.expression;
     return cachedNode;

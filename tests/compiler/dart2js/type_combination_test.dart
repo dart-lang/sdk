@@ -679,7 +679,7 @@ void main() {
   MockCompiler compiler = new MockCompiler();
   JavaScriptBackend backend = compiler.backend;
   compiler.interceptorsLibrary.forEachLocalMember((element) {
-    if (element.isClass()) {
+    if (element.isClass) {
       compiler.enqueuer.resolution.registerInstantiatedClass(
           element, compiler.globalDependencies);
     }

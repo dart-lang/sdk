@@ -2013,7 +2013,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
        !elements.isEmpty;
        elements = elements.tail) {
     element = elements.head;
-    if (element.isClass()) {
+    if (element.isClass) {
       ClassElement classElement = element;
       classElement.ensureResolved(compiler);
       classElement.forEachLocalMember((Element e) {

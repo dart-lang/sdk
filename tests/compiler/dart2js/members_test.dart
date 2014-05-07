@@ -25,7 +25,7 @@ MemberSignature getMember(InterfaceType cls, String name,
                           {bool isSetter: false,
                            int checkType: CHECK_INTERFACE}) {
   Name memberName =
-      new Name(name, cls.element.getLibrary(), isSetter: isSetter);
+      new Name(name, cls.element.library, isSetter: isSetter);
   MemberSignature member = checkType == CHECK_CLASS
         ? cls.element.lookupClassMember(memberName)
         : cls.element.lookupInterfaceMember(memberName);
@@ -125,7 +125,7 @@ MemberSignature checkMember(InterfaceType cls,
           "'$member'. Expected '${declarer}'.");
     } else {
       DeclaredMember declared = member;
-      Expect.equals(cls.element, declared.element.getEnclosingClass());
+      Expect.equals(cls.element, declared.element.enclosingClass);
       Expect.equals(cls, declared.declarer);
     }
     Expect.equals(isSetter, member.isSetter);

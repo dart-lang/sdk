@@ -123,7 +123,7 @@ class SsaInstructionSelection extends HBaseVisitor {
         if (interceptor == receiverArgument) {
           // TODO(15933): Make automatically generated property extraction
           // closures work with the dummy receiver optimization.
-          if (!selector.isGetter()) {
+          if (!selector.isGetter) {
             Constant constant = new DummyConstant(
                 receiverArgument.instructionType);
             HConstant dummy = graph.addConstant(constant, compiler);

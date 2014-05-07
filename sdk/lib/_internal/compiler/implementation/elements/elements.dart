@@ -194,33 +194,33 @@ abstract class Element implements Spannable {
   /// This method will go away!
   @deprecated DartType computeType(Compiler compiler);
 
-  bool isFunction();
-  bool isConstructor();
-  bool isClosure();
-  bool isMember();
-  bool isInstanceMember();
+  bool get isFunction;
+  bool get isConstructor;
+  bool get isClosure;
+  bool get isMember;
+  bool get isInstanceMember;
 
-  bool isFactoryConstructor();
-  bool isGenerativeConstructor();
-  bool isGenerativeConstructorBody();
-  bool isCompilationUnit();
-  bool isClass();
-  bool isPrefix();
-  bool isVariable();
-  bool isParameter();
-  bool isStatement();
-  bool isTypedef();
-  bool isTypeVariable();
-  bool isField();
-  bool isFieldParameter();
-  bool isAbstractField();
-  bool isGetter();
-  bool isSetter();
-  bool isAccessor();
-  bool isLibrary();
-  bool isErroneous();
-  bool isAmbiguous();
-  bool isWarnOnUse();
+  bool get isFactoryConstructor;
+  bool get isGenerativeConstructor;
+  bool get isGenerativeConstructorBody;
+  bool get isCompilationUnit;
+  bool get isClass;
+  bool get isPrefix;
+  bool get isVariable;
+  bool get isParameter;
+  bool get isStatement;
+  bool get isTypedef;
+  bool get isTypeVariable;
+  bool get isField;
+  bool get isFieldParameter;
+  bool get isAbstractField;
+  bool get isGetter;
+  bool get isSetter;
+  bool get isAccessor;
+  bool get isLibrary;
+  bool get isErroneous;
+  bool get isAmbiguous;
+  bool get isWarnOnUse;
 
   /// Returns true if this [Element] is a top level element.
   /// That is, if it is not defined within the scope of a class.
@@ -228,22 +228,22 @@ abstract class Element implements Spannable {
   /// This means whether the enclosing element is a compilation unit.
   /// With the exception of [ClosureClassElement] that is considered top level
   /// as all other classes.
-  bool isTopLevel();
-  bool isAssignable();
-  bool isNative();
-  bool isDeferredLoaderGetter();
+  bool get isTopLevel;
+  bool get isAssignable;
+  bool get isNative;
+  bool get isDeferredLoaderGetter;
 
-  bool impliesType();
+  bool get impliesType;
 
-  Token position();
+  Token get position;
 
-  CompilationUnitElement getCompilationUnit();
-  LibraryElement getLibrary();
-  LibraryElement getImplementationLibrary();
-  ClassElement getEnclosingClass();
-  Element getEnclosingClassOrCompilationUnit();
-  Element getEnclosingMember();
-  Element getOutermostEnclosingMemberOrTopLevel();
+  CompilationUnitElement get compilationUnit;
+  LibraryElement get library;
+  LibraryElement get implementationLibrary;
+  ClassElement get enclosingClass;
+  Element get enclosingClassOrCompilationUnit;
+  Element get enclosingMember;
+  Element get outermostEnclosingMemberOrTopLevel;
 
   FunctionElement asFunctionElement();
 
@@ -297,8 +297,8 @@ abstract class Element implements Spannable {
   bool get isForwardingConstructor;
   bool get isMixinApplication;
 
-  bool hasFixedBackendName();
-  String fixedBackendName();
+  bool get hasFixedBackendName;
+  String get fixedBackendName;
 
   bool get isAbstract;
   bool isForeign(Compiler compiler);
@@ -323,15 +323,15 @@ abstract class Element implements Spannable {
 
 class Elements {
   static bool isUnresolved(Element e) {
-    return e == null || e.isErroneous();
+    return e == null || e.isErroneous;
   }
-  static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+  static bool isErroneousElement(Element e) => e != null && e.isErroneous;
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
                         DiagnosticListener listener,
                         Spannable spannable) {
-    if (element != null && element.isWarnOnUse()) {
+    if (element != null && element.isWarnOnUse) {
       WarnOnUseElement wrappedElement = element;
       element = wrappedElement.unwrap(listener, spannable);
     }
@@ -345,7 +345,7 @@ class Elements {
 
   static bool isLocal(Element element) {
     return !Elements.isUnresolved(element)
-            && !element.isInstanceMember()
+            && !element.isInstanceMember
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
             && (identical(element.kind, ElementKind.VARIABLE) ||
@@ -355,7 +355,7 @@ class Elements {
 
   static bool isInstanceField(Element element) {
     return !Elements.isUnresolved(element)
-           && element.isInstanceMember()
+           && element.isInstanceMember
            && (identical(element.kind, ElementKind.FIELD)
                || identical(element.kind, ElementKind.GETTER)
                || identical(element.kind, ElementKind.SETTER));
@@ -365,13 +365,13 @@ class Elements {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
     if (!Elements.isUnresolved(element)
-        && element.modifiers.isStatic()) {
+        && element.modifiers.isStatic) {
       return true;
     }
     return !Elements.isUnresolved(element)
-           && !element.isAmbiguous()
-           && !element.isInstanceMember()
-           && !element.isPrefix()
+           && !element.isAmbiguous
+           && !element.isInstanceMember
+           && !element.isPrefix
            && element.enclosingElement != null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
@@ -381,15 +381,15 @@ class Elements {
 
   static bool isInStaticContext(Element element) {
     if (isUnresolved(element)) return true;
-    if (element.enclosingElement.isClosure()) {
+    if (element.enclosingElement.isClosure) {
       var closureClass = element.enclosingElement;
       element = closureClass.methodElement;
     }
-    Element outer = element.getOutermostEnclosingMemberOrTopLevel();
+    Element outer = element.outermostEnclosingMemberOrTopLevel;
     if (isUnresolved(outer)) return true;
-    if (outer.isTopLevel()) return true;
-    if (outer.isGenerativeConstructor()) return false;
-    if (outer.isInstanceMember()) return false;
+    if (outer.isTopLevel) return true;
+    if (outer.isGenerativeConstructor) return false;
+    if (outer.isInstanceMember) return false;
     return true;
   }
 
@@ -407,13 +407,13 @@ class Elements {
 
   static bool isInstanceMethod(Element element) {
     return !Elements.isUnresolved(element)
-           && element.isInstanceMember()
+           && element.isInstanceMember
            && (identical(element.kind, ElementKind.FUNCTION));
   }
 
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative()) return true;
+    if (element.isNative) return true;
     assert(element.resolutionState == STATE_DONE);
     return isNativeOrExtendsNative(element.superclass);
   }
@@ -439,7 +439,7 @@ class Elements {
 
   static String reconstructConstructorNameSourceString(Element element) {
     if (element.name == '') {
-      return element.getEnclosingClass().name;
+      return element.enclosingClass.name;
     } else {
       return reconstructConstructorName(element);
     }
@@ -447,7 +447,7 @@ class Elements {
 
   // TODO(johnniwinther): Remove this method.
   static String reconstructConstructorName(Element element) {
-    String className = element.getEnclosingClass().name;
+    String className = element.enclosingClass.name;
     if (element.name == '') {
       return className;
     } else {
@@ -570,12 +570,12 @@ class Elements {
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
     if (identical(a, b)) return 0;
-    int r = a.getLibrary().compareTo(b.getLibrary());
+    int r = a.library.compareTo(b.library);
     if (r != 0) return r;
-    r = a.getCompilationUnit().compareTo(b.getCompilationUnit());
+    r = a.compilationUnit.compareTo(b.compilationUnit);
     if (r != 0) return r;
-    Token positionA = a.position();
-    Token positionB = b.position();
+    Token positionA = a.position;
+    Token positionB = b.position;
     int offsetA = positionA == null ? -1 : positionA.charOffset;
     int offsetB = positionB == null ? -1 : positionB.charOffset;
     r = offsetA.compareTo(offsetB);
@@ -621,12 +621,12 @@ class Elements {
   static bool isConstructorOfTypedArraySubclass(Element element,
                                                 Compiler compiler) {
     if (compiler.typedDataLibrary == null) return false;
-    if (!element.isConstructor()) return false;
+    if (!element.isConstructor) return false;
     FunctionElement constructor = element;
     constructor = constructor.redirectionTarget;
-    ClassElement cls = constructor.getEnclosingClass();
-    return cls.getLibrary() == compiler.typedDataLibrary
-        && cls.isNative()
+    ClassElement cls = constructor.enclosingClass;
+    return cls.library == compiler.typedDataLibrary
+        && cls.isNative
         && compiler.world.isSubtype(compiler.typedDataClass, cls)
         && compiler.world.isSubtype(compiler.listClass, cls)
         && constructor.name == '';

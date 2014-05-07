@@ -413,7 +413,7 @@ class MockCompiler extends Compiler {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
-    visitor.scope = new LibraryScope(element.getLibrary());
+    visitor.scope = new LibraryScope(element.library);
     return visitor.mapping;
   }
 

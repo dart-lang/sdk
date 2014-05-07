@@ -1194,7 +1194,7 @@ class ConcreteTypesInferrer
         compiler.listClass.lookupConstructor(
             new Selector.callConstructor(
                 '',
-                compiler.listClass.getLibrary())).implementation;
+                compiler.listClass.library)).implementation;
     emptyConcreteType = new ConcreteType.empty(compiler.maxConcreteTypeSize,
                                                baseTypes);
     nullConcreteType = singletonConcreteType(const NullBaseType());
@@ -1288,7 +1288,7 @@ class ConcreteTypesInferrer
     result = (result == null) ? emptyConcreteType : result;
     if (selector != null) {
       Element enclosing = field.enclosingElement;
-      if (enclosing.isClass()) {
+      if (enclosing.isClass) {
         ClassElement cls = enclosing;
         TypeMask receiverMask = new TypeMask.exact(cls.declaration);
         TypeMask resultMask = types.concreteTypeToTypeMask(result);
@@ -1413,7 +1413,7 @@ class ConcreteTypesInferrer
    * Add all templates of [methodOrField] to the workqueue.
    */
   void invalidate(Element methodOrField) {
-    if (methodOrField.isField()) {
+    if (methodOrField.isField) {
       workQueue.add(new InferenceWorkItem(
           methodOrField, new ConcreteTypesEnvironment()));
     } else {
@@ -1826,7 +1826,7 @@ class ConcreteTypesInferrer
         new InferenceWorkItem(element, new ConcreteTypesEnvironment()));
     while (!workQueue.isEmpty) {
       currentWorkItem = workQueue.remove();
-      if (currentWorkItem.method.isField()) {
+      if (currentWorkItem.method.isField) {
         analyzeFieldInitialization(currentWorkItem.method);
       } else {
         Map<ConcreteTypesEnvironment, ConcreteType> template =
@@ -1974,7 +1974,7 @@ class ConcreteTypesInferrer
   Element getRealCaller(Element allegedCaller) {
     Element currentMethod = currentWorkItem.method;
     if ((currentMethod != allegedCaller)
-        && currentMethod.isFunction()
+        && currentMethod.isFunction
         && closures.contains(currentMethod)) {
       return currentMethod;
     } else {
@@ -1996,7 +1996,7 @@ class ConcreteTypesInferrer
       if (selector != null && selector.name == 'JS') {
         return null;
       }
-      if (callee.isField()) {  // toplevel closure call
+      if (callee.isField) {  // toplevel closure call
         getFieldType(selector, callee);  // trigger toplevel field analysis
         addFieldReader(callee, caller);
         ConcreteType result = emptyConcreteType;
@@ -2009,8 +2009,8 @@ class ConcreteTypesInferrer
       } else {  // method or constructor call
         addCaller(callee, caller);
         ClassElement receiverClass = null;
-        if (callee.isGenerativeConstructor()) {
-          receiverClass = callee.getEnclosingClass();
+        if (callee.isGenerativeConstructor) {
+          receiverClass = callee.enclosingClass;
         } else if (node is Send) {
           Send send = node;
           if (send.receiver != null) {
@@ -2025,24 +2025,24 @@ class ConcreteTypesInferrer
         return getSendReturnType(selector, callee, receiverClass, arguments);
       }
     } else if (selector.kind == SelectorKind.GETTER) {
-      if (callee.isField()) {
+      if (callee.isField) {
         addFieldReader(callee, caller);
         return getFieldType(selector, callee);
-      } else if (callee.isGetter()) {
-        Element enclosing = callee.enclosingElement.isCompilationUnit()
+      } else if (callee.isGetter) {
+        Element enclosing = callee.enclosingElement.isCompilationUnit
             ? null : callee.enclosingElement;
         addCaller(callee, caller);
         ArgumentsTypes noArguments = new ArgumentsTypes([], new Map());
         return getSendReturnType(selector, callee, enclosing, noArguments);
-      } else if (callee.isFunction()) {
+      } else if (callee.isFunction) {
         addClosure(callee, null, null);
         return singletonConcreteType(baseTypes.functionBaseType);
       }
     } else if (selector.kind == SelectorKind.SETTER) {
       ConcreteType argumentType = arguments.positional.first;
-      if (callee.isField()) {
+      if (callee.isField) {
         augmentFieldType(callee, argumentType);
-      } else if (callee.isSetter()) {
+      } else if (callee.isSetter) {
         FunctionElement setter = callee;
         // TODO(polux): A setter always returns void so there's no need to
         // invalidate its callers even if it is called with new arguments.
@@ -2050,7 +2050,7 @@ class ConcreteTypesInferrer
         // exceptions for instance, we need to do it by uncommenting the
         // following line.
         // inferrer.addCaller(setter, currentMethod);
-        Element enclosing = callee.enclosingElement.isCompilationUnit()
+        Element enclosing = callee.enclosingElement.isCompilationUnit
             ? null : callee.enclosingElement;
         return getSendReturnType(selector, setter, enclosing,
             new ArgumentsTypes([argumentType], new Map()));
@@ -2088,15 +2088,15 @@ class ConcreteTypesInferrer
     ConcreteType result = emptyConcreteType;
 
     void augmentResult(ClassElement baseReceiverType, Element member) {
-      if (member.isField()) {
+      if (member.isField) {
         addFieldReader(member, caller);
         result = result.union(getFieldType(selector, member));
-      } else if (member.isGetter()) {
+      } else if (member.isGetter) {
         addCaller(member, caller);
         ArgumentsTypes noArguments = new ArgumentsTypes([], new Map());
         result = result.union(
             getSendReturnType(selector, member, baseReceiverType, noArguments));
-      } else if (member.isFunction()) {
+      } else if (member.isFunction) {
         addClosure(member, receiverType, null);
         result = result.union(
             singletonConcreteType(baseTypes.functionBaseType));
@@ -2109,7 +2109,7 @@ class ConcreteTypesInferrer
       addDynamicCaller(selector, caller);
       Set<Element> members = getMembersBySelector(selector);
       for (Element member in members) {
-        if (!(member.isField() || member.isGetter())) continue;
+        if (!(member.isField || member.isGetter)) continue;
         for (ClassElement cls in
             getReflexiveSubtypesOf(member.enclosingElement)) {
           augmentResult(cls, member);
@@ -2139,9 +2139,9 @@ class ConcreteTypesInferrer
     ConcreteType argumentType = arguments.positional.first;
 
     void augmentField(ClassElement receiverType, Element setterOrField) {
-      if (setterOrField.isField()) {
+      if (setterOrField.isField) {
         augmentFieldType(setterOrField, argumentType);
-      } else if (setterOrField.isSetter()) {
+      } else if (setterOrField.isSetter) {
         // A setter always returns void so there's no need to invalidate its
         // callers even if it is called with new arguments. However, if we
         // start to record more than returned types, like exceptions for
@@ -2158,8 +2158,8 @@ class ConcreteTypesInferrer
       // Same remark as above
       // addDynamicCaller(selector, caller);
       for (Element member in getMembersBySelector(selector)) {
-        if (!(member.isField() || member.isSetter())) continue;
-        Element cls = member.getEnclosingClass();
+        if (!(member.isField || member.isSetter)) continue;
+        Element cls = member.enclosingClass;
         augmentField(cls, member);
       }
     } else {
@@ -2187,7 +2187,7 @@ class ConcreteTypesInferrer
       addDynamicCaller(selector, caller);
       Set<Element> elements = getMembersBySelector(selector);
       for (Element element in elements) {
-        if (element.isFunction()) {
+        if (element.isFunction) {
           FunctionElement method = element;
           addCaller(method, caller);
           for (ClassElement cls in
@@ -2196,7 +2196,7 @@ class ConcreteTypesInferrer
                 getSendReturnType(selector, method, cls, arguments));
           }
         } else { // closure call
-          assert(element.isField());
+          assert(element.isField);
           for (FunctionElement function in closures.functionElements) {
             addCaller(function, caller);
             result = result.union(
@@ -2211,7 +2211,7 @@ class ConcreteTypesInferrer
           ClassElement cls = classBaseReceiverType.element;
           Element method = cls.lookupSelector(selector, compiler);
           if (method != null) {
-            if (method.isFunction()) {
+            if (method.isFunction) {
               assert(method is FunctionElement);
               method = method.implementation;
               addCaller(method, caller);
@@ -2266,9 +2266,9 @@ class ConcreteTypesInferrer
       final result = currentWorkItem.environment.lookupType(element);
       if (result != null) return result;
     }
-    if (element.isParameter() || element.isFieldParameter()) {
+    if (element.isParameter || element.isFieldParameter) {
       return inferredParameterTypes[element];
-    } else if (element.isField()) {
+    } else if (element.isField) {
       return inferredFieldTypes[element];
     }
     throw new ArgumentError("unexpected element type");
@@ -2331,7 +2331,7 @@ class TypeInferrerVisitor extends SimpleTypeInferrerVisitor<ConcreteType> {
     elementType = elementType == null
         ? types.nonNullEmpty()
         : types.simplifyPhi(null, null, elementType);
-    ConcreteType containerType = node.isConst()
+    ConcreteType containerType = node.isConst
         ? types.constListType
         : types.growableListType;
     return types.allocateList(

@@ -47,7 +47,7 @@ class RuntimeTypes {
 
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
-    if (!element.isClass() || !dependency.isClass()) return;
+    if (!element.isClass || !dependency.isClass) return;
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);
@@ -396,7 +396,7 @@ class RuntimeTypes {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
     String name = namer.uniqueNameForTypeConstantElement(type.element);
-    if (!type.element.isClass()) return name;
+    if (!type.element.isClass) return name;
     InterfaceType interface = type;
     Link<DartType> variables = interface.element.typeVariables;
     // Type constants can currently only be raw types, so there is no point
@@ -412,7 +412,7 @@ class RuntimeTypes {
 
   // TODO(karlklose): maybe precompute this value and store it in typeChecks?
   bool isTrivialSubstitution(ClassElement cls, ClassElement check) {
-    if (cls.isClosure()) {
+    if (cls.isClosure) {
       // TODO(karlklose): handle closures.
       return true;
     }
@@ -584,7 +584,7 @@ class RuntimeTypes {
   }
 
   static int getTypeVariableIndex(TypeVariableElement variable) {
-    ClassElement classElement = variable.getEnclosingClass();
+    ClassElement classElement = variable.enclosingClass;
     Link<DartType> variables = classElement.typeVariables;
     for (int index = 0; !variables.isEmpty;
          index++, variables = variables.tail) {

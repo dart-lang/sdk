@@ -265,7 +265,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     Selector selector = node.selector;
     HInstruction input = node.inputs[1];
 
-    if (selector.isCall() || selector.isOperator()) {
+    if (selector.isCall || selector.isOperator) {
       Element target;
       if (input.isExtendableArray(compiler)) {
         if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
@@ -312,7 +312,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         result.element = target;
         return result;
       }
-    } else if (selector.isGetter()) {
+    } else if (selector.isGetter) {
       if (selector.asUntyped.applies(backend.jsIndexableLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
@@ -333,13 +333,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null
-        && element.isFunction()
+        && element.isFunction
         // If we found out that the only target is a [:noSuchMethod:],
         // we just ignore it.
         && element.name == selector.name) {
       FunctionElement method = element;
 
-      if (method.isNative()) {
+      if (method.isNative) {
         HInstruction folded = tryInlineNativeMethod(node, method);
         if (folded != null) return folded;
       } else {
@@ -577,7 +577,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isRawCheck) {
       return node;
-    } else if (element.isTypedef()) {
+    } else if (element.isTypedef) {
       return node;
     } else if (element == compiler.functionClass) {
       return node;
@@ -743,7 +743,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
-    if (field.getEnclosingClass().isNative()) {
+    if (field.enclosingClass.isNative) {
       type = TypeMaskFactory.fromNativeBehavior(
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
@@ -764,7 +764,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction receiver = node.getDartReceiver(compiler);
     VariableElement field =
         findConcreteFieldForDynamicAccess(receiver, node.selector);
-    if (field == null || !field.isAssignable()) return node;
+    if (field == null || !field.isAssignable) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
     // interceptor.
@@ -1604,7 +1604,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     Element element = type.element;
     if (!instruction.isRawCheck) {
       return;
-    } else if (element.isTypedef()) {
+    } else if (element.isTypedef) {
       return;
     }
 
@@ -1911,7 +1911,7 @@ class MemorySet {
   void registerFieldValueUpdate(Element element,
                                 HInstruction receiver,
                                 HInstruction value) {
-    if (element.isNative()) return; // TODO(14955): Remove this restriction?
+    if (element.isNative) return; // TODO(14955): Remove this restriction?
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
     nonEscapingReceivers.remove(value);
@@ -1929,7 +1929,7 @@ class MemorySet {
   void registerFieldValue(Element element,
                           HInstruction receiver,
                           HInstruction value) {
-    if (element.isNative()) return; // TODO(14955): Remove this restriction?
+    if (element.isNative) return; // TODO(14955): Remove this restriction?
     Map<HInstruction, HInstruction> map = fieldValues.putIfAbsent(
         element, () => <HInstruction, HInstruction> {});
     map[receiver] = value;

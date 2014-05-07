@@ -57,7 +57,7 @@ class PartialClassElement extends ClassElementX {
     return cachedNode;
   }
 
-  Token position() => beginToken;
+  Token get position => beginToken;
 
   // TODO(johnniwinther): Ensure that modifiers are always available.
   Modifiers get modifiers =>
@@ -72,7 +72,7 @@ class MemberListener extends NodeListener {
   MemberListener(DiagnosticListener listener,
                  Element enclosingElement)
       : this.enclosingElement = enclosingElement,
-        super(listener, enclosingElement.getCompilationUnit());
+        super(listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement == null ||

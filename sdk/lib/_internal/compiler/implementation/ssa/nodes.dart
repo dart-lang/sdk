@@ -1392,7 +1392,7 @@ abstract class HInvokeDynamic extends HInvoke {
 class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
     : super(selector, null, inputs, type) {
-    assert(selector.isClosureCall());
+    assert(selector.isClosureCall);
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
@@ -1505,7 +1505,7 @@ class HFieldGet extends HFieldAccess {
             {bool isAssignable})
       : this.isAssignable = (isAssignable != null)
             ? isAssignable
-            : element.isAssignable(),
+            : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -1522,7 +1522,7 @@ class HFieldGet extends HFieldAccess {
     // [HFieldGet].
     JavaScriptBackend backend = compiler.backend;
     bool interceptor =
-        backend.isInterceptorClass(sourceElement.getEnclosingClass());
+        backend.isInterceptorClass(sourceElement.enclosingClass);
     return interceptor && sourceElement is ThisElement;
   }
 
@@ -2055,7 +2055,7 @@ class HThis extends HParameterValue {
   bool isCodeMotionInvariant() => true;
   bool isInterceptor(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.isInterceptorClass(sourceElement.getEnclosingClass());
+    return backend.isInterceptorClass(sourceElement.enclosingClass);
   }
 }
 
@@ -2183,7 +2183,7 @@ class HStatic extends HInstruction {
     assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
-    if (element.isAssignable()) {
+    if (element.isAssignable) {
       sideEffects.setDependsOnStaticPropertyStore();
     }
     setUseGvn();
@@ -2195,7 +2195,7 @@ class HStatic extends HInstruction {
   int typeCode() => HInstruction.STATIC_TYPECODE;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
-  bool isCodeMotionInvariant() => !element.isAssignable();
+  bool isCodeMotionInvariant() => !element.isAssignable;
 }
 
 class HInterceptor extends HInstruction {

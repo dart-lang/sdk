@@ -117,7 +117,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// the resolver to suppress hints about using new Symbol or
   /// MirrorSystem.getName.
   bool hasMirrorUsage(Element element) {
-    LibraryElement library = element.getLibrary();
+    LibraryElement library = element.library;
     // Internal libraries always have implicit mirror usage.
     return library.isInternalLibrary
         || (librariesWithUsage != null
@@ -136,7 +136,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
-              analyzer, mapping.currentElement.getLibrary(), named.expression,
+              analyzer, mapping.currentElement.library, named.expression,
               value, mapping);
 
       if (named.name.source == 'symbols') {
@@ -435,14 +435,14 @@ class MirrorUsageBuilder {
   /// Find the first non-implementation interface of constant.
   DartType apiTypeOf(Constant constant) {
     DartType type = constant.computeType(compiler);
-    LibraryElement library = type.element.getLibrary();
+    LibraryElement library = type.element.library;
     if (type.kind == TypeKind.INTERFACE && library.isInternalLibrary) {
       InterfaceType interface = type;
       ClassElement cls = type.element;
       cls.ensureResolved(compiler);
       for (DartType supertype in cls.allSupertypes) {
         if (supertype.kind == TypeKind.INTERFACE
-            && !supertype.element.getLibrary().isInternalLibrary) {
+            && !supertype.element.library.isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);
         }
       }
@@ -526,7 +526,7 @@ class MirrorUsageBuilder {
     for (String identifier in identifiers) {
       Element e = findLocalMemberIn(current, identifier);
       if (e == null) {
-        if (current.isLibrary()) {
+        if (current.isLibrary) {
           LibraryElement library = current;
           compiler.reportHint(
               spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
@@ -549,7 +549,7 @@ class MirrorUsageBuilder {
   Element findLocalMemberIn(Element element, String name) {
     if (element is ScopeContainerElement) {
       ScopeContainerElement scope = element;
-      if (element.isClass()) {
+      if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
       }

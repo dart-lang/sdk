@@ -188,7 +188,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     Map cachedTreeElements =
         cachedCompiler.enqueuer.resolution.resolvedElements;
     cachedTreeElements.forEach((element, treeElements) {
-      if (element.getLibrary().isPlatformLibrary) {
+      if (element.library.isPlatformLibrary) {
         compiler.enqueuer.resolution.resolvedElements[element] =
             treeElements;
       }

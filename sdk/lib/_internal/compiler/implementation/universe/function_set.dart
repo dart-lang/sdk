@@ -17,7 +17,7 @@ class FunctionSet {
       => new FunctionSetNode(name);
 
   void add(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
@@ -25,7 +25,7 @@ class FunctionSet {
   }
 
   void remove(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
@@ -35,7 +35,7 @@ class FunctionSet {
   }
 
   bool contains(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
@@ -215,7 +215,7 @@ class FullFunctionSetQuery extends FunctionSetQuery {
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {
-          ClassElement cls = element.getEnclosingClass();
+          ClassElement cls = element.enclosingClass;
           return compiler.world.isUsedAsMixin(cls)
               ? ([cls]..addAll(compiler.world.mixinUses[cls]))
               : [cls];

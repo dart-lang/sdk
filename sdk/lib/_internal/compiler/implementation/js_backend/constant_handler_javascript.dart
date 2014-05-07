@@ -113,10 +113,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
     return initialVariableValues.keys.where((element) {
       return element.kind == ElementKind.FIELD &&
-             !element.isInstanceMember() &&
-             !element.modifiers.isFinal() &&
+             !element.isInstanceMember &&
+             !element.modifiers.isFinal &&
              // The const fields are all either emitted elsewhere or inlined.
-             !element.modifiers.isConst();
+             !element.modifiers.isConst;
     });
   }
 

@@ -1043,12 +1043,12 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   bool visitTypeVariableType(TypeVariableType t, DartType s) {
     // Identity check is handled in [isSubtype].
     DartType bound = t.element.bound;
-    if (bound.element.isTypeVariable()) {
+    if (bound.element.isTypeVariable) {
       // The bound is potentially cyclic so we need to be extra careful.
       Link<TypeVariableElement> seenTypeVariables =
           const Link<TypeVariableElement>();
       seenTypeVariables = seenTypeVariables.prepend(t.element);
-      while (bound.element.isTypeVariable()) {
+      while (bound.element.isTypeVariable) {
         TypeVariableElement element = bound.element;
         if (identical(bound.element, s.element)) {
           // [t] extends [s].
