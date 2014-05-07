@@ -595,7 +595,7 @@ class LocalsHandler<T> {
 
 abstract class InferrerVisitor
     <T, E extends MinimalInferrerEngine<T>> extends ResolvedVisitor<T> {
-  final Element analyzedElement;
+  final AstElement analyzedElement;
   final TypeSystem<T> types;
   final E inferrer;
   final Map<TargetElement, List<LocalsHandler<T>>> breaksFor =
@@ -622,7 +622,7 @@ abstract class InferrerVisitor
     }
   }
 
-  InferrerVisitor(Element analyzedElement,
+  InferrerVisitor(AstElement analyzedElement,
                   this.inferrer,
                   this.types,
                   Compiler compiler,
@@ -632,7 +632,7 @@ abstract class InferrerVisitor
       super(compiler.enqueuer.resolution.getCachedElements(analyzedElement),
             compiler) {
     if (handler != null) return;
-    Node node = analyzedElement.parseNode(compiler);
+    Node node = analyzedElement.node;
     FieldInitializationScope<T> fieldScope =
         analyzedElement.isGenerativeConstructor
             ? new FieldInitializationScope<T>(types)

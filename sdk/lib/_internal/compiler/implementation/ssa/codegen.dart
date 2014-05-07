@@ -15,11 +15,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
 
-  js.Node attachPosition(js.Node node, Element element) {
+  js.Node attachPosition(js.Node node, AstElement element) {
     // TODO(sra): Attaching positions might be cleaner if the source position
     // was on a wrapping node.
     SourceFile sourceFile = sourceFileOfElement(element);
-    ast.Node expression = element.implementation.parseNode(backend.compiler);
+    AstElement implementation = element.implementation;
+    ast.Node expression = implementation.node;
     Token beginToken;
     Token endToken;
     if (expression == null) {

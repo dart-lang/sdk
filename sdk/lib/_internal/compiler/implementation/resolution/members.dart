@@ -1247,7 +1247,7 @@ class InitializerResolver {
         MessageKind.ALREADY_INITIALIZED, {'fieldName': field.name});
   }
 
-  void checkForDuplicateInitializers(VariableElement field, Node init) {
+  void checkForDuplicateInitializers(VariableElementX field, Node init) {
     // [field] can be null if it could not be resolved.
     if (field == null) return;
     String name = field.name;
@@ -2967,9 +2967,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     VariableList variables = new VariableList.node(node, type);
     VariableDefinitionsVisitor visitor =
-        new VariableDefinitionsVisitor(compiler, node, this,
-                                       ElementKind.VARIABLE,
-                                       variables);
+        new VariableDefinitionsVisitor(compiler, node, this, variables);
 
     Modifiers modifiers = node.modifiers;
     void reportExtraModifier(String modifier) {
@@ -3806,8 +3804,8 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.functionSignature = signature;
 
     scope = new MethodScope(scope, element);
-    signature.forEachParameter((Element element) {
-      defineElement(element.parseNode(compiler), element);
+    signature.forEachParameter((ParameterElement element) {
+      defineElement(element.node, element);
     });
 
     element.alias = signature.type;
@@ -4063,7 +4061,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     LinkBuilder<DartType> typeVariablesBuilder = new LinkBuilder<DartType>();
     element.typeVariables.forEach((TypeVariableType type) {
       TypeVariableElementX typeVariableElement = new TypeVariableElementX(
-          type.name, mixinApplication, type.element.parseNode(compiler));
+          type.name, mixinApplication, type.element.node);
       TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
       typeVariablesBuilder.addLast(typeVariable);
     });
@@ -4412,13 +4410,11 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
-  ElementKind kind;
   VariableList variables;
 
   VariableDefinitionsVisitor(Compiler compiler,
                              this.definitions,
                              this.resolver,
-                             this.kind,
                              this.variables)
       : super(compiler) {
   }
@@ -4455,8 +4451,8 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = visit(link.head);
-      VariableElement element = new VariableElementX(
-          name.source, kind, resolver.enclosingElement,
+      VariableElement element = new LocalVariableElementX(
+          name.source, resolver.enclosingElement,
           variables, name.token);
       resolver.defineElement(link.head, element);
       if (definitions.modifiers.isConst) {

@@ -129,7 +129,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   Constant compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
                                           {bool isConst: false}) {
-    Node node = element.parseNode(compiler);
+    Node node = element.node;
     if (pendingVariables.contains(element)) {
       if (isConst) {
         compiler.reportFatalError(
@@ -849,9 +849,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     // Assign arguments to parameters.
     FunctionSignature signature = constructor.functionSignature;
     int index = 0;
-    signature.orderedForEachParameter((Element parameter) {
+    signature.orderedForEachParameter((ParameterElement parameter) {
       Constant argument = arguments[index++];
-      Node node = parameter.parseNode(compiler);
+      Node node = parameter.node;
       potentiallyCheckType(node, parameter, argument);
       definitions[parameter] = argument;
       if (parameter.kind == ElementKind.FIELD_PARAMETER) {

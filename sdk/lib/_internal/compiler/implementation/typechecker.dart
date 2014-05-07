@@ -9,10 +9,10 @@ class TypeCheckerTask extends CompilerTask {
   String get name => "Type checker";
 
   void check(TreeElements elements) {
-    Element element = elements.currentElement;
+    AstElement element = elements.currentElement;
     compiler.withCurrentElement(element, () {
       measure(() {
-        Node tree = element.parseNode(compiler);
+        Node tree = element.node;
         TypeCheckerVisitor visitor =
             new TypeCheckerVisitor(compiler, elements, compiler.types);
         if (element.isField) {

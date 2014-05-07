@@ -182,8 +182,6 @@ abstract class Element implements Spannable {
   Element get enclosingElement;
   Link<MetadataAnnotation> get metadata;
 
-  Node parseNode(DiagnosticListener listener);
-
   /// Do not use [computeType] outside of the resolver; instead retrieve the
   /// type from the corresponding field:
   /// - `type` for fields, variables, type variable, and function elements.
@@ -791,7 +789,7 @@ abstract class PrefixElement extends Element {
 }
 
 abstract class TypedefElement extends Element
-    implements TypeDeclarationElement {
+    implements AstElement, TypeDeclarationElement {
   TypedefType get thisType;
   TypedefType get rawType;
   DartType get alias;
@@ -805,7 +803,8 @@ abstract class TypedefElement extends Element
   void checkCyclicReference(Compiler compiler);
 }
 
-abstract class VariableElement extends Element implements TypedElement {
+abstract class VariableElement extends Element
+    implements TypedElement, AstElement {
   Expression get initializer;
 }
 
@@ -856,7 +855,7 @@ abstract class FunctionSignature {
 }
 
 abstract class FunctionElement extends Element
-    implements TypedElement, ClosureContainer {
+    implements AstElement, TypedElement, ClosureContainer {
   FunctionExpression get node;
   DartType get type;
   FunctionSignature get functionSignature;
@@ -899,7 +898,7 @@ abstract class ConstructorBodyElement extends FunctionElement {
  * [TypeDeclarationElement] defines the common interface for class/interface
  * declarations and typedefs.
  */
-abstract class TypeDeclarationElement extends Element {
+abstract class TypeDeclarationElement extends Element implements AstElement {
   GenericType get thisType;
   GenericType get rawType;
 
@@ -1067,7 +1066,8 @@ abstract class TargetElement extends Element {
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.
-abstract class TypeVariableElement extends Element implements TypedElement {
+abstract class TypeVariableElement extends Element
+    implements AstElement, TypedElement {
   /// The [type] defined by the type variable.
   TypeVariableType get type;
 
@@ -1096,6 +1096,13 @@ abstract class VoidElement extends Element {}
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
   DartType get type;
+}
+
+/// An [Element] that (potentially) has a node.
+///
+/// Synthesized elements may return `null` from [node].
+abstract class AstElement extends Element {
+  Node get node;
 }
 
 /// A [MemberSignature] is a member of an interface.

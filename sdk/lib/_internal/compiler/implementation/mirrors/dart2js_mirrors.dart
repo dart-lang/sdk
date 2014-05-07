@@ -163,12 +163,14 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * element node or element position as indicator.
    */
   Token getBeginToken() {
-    // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _element.parseNode(mirrorSystem.compiler);
-    if (node == null) {
-      return _element.position;
+    Element element = _element;
+    if (element is AstElement) {
+      Node node = element.node;
+      if (node != null) {
+        return node.getBeginToken();
+      }
     }
-    return node.getBeginToken();
+    return element.position;
   }
 
   /**
@@ -176,12 +178,14 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * element node or element position as indicator.
    */
   Token getEndToken() {
-    // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _element.parseNode(mirrorSystem.compiler);
-    if (node == null) {
-      return _element.position;
+    Element element = _element;
+    if (element is AstElement) {
+      Node node = element.node;
+      if (node != null) {
+        return node.getEndToken();
+      }
     }
-    return node.getEndToken();
+    return element.position;
   }
 
   /**

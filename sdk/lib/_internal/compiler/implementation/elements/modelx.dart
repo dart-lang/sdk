@@ -1029,6 +1029,12 @@ class TypedefElementX extends ElementX
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
+  Typedef get node {
+    assert(invariant(this, cachedNode != null,
+        message: "Node has not been computed for $this."));
+    return cachedNode;
+  }
+
   /**
    * Function signature for a typedef of a function type. The signature is
    * kept to provide full information about parameter names through the mirror
@@ -1121,6 +1127,12 @@ class VariableElementX extends ElementX with AnalyzableElement
     variables.metadata = variables.metadata.prepend(annotation);
   }
 
+  VariableDefinitions get node {
+    assert(invariant(this, definitionsCache != null,
+        message: "Node has not been computed for $this."));
+    return definitionsCache;
+  }
+
   Expression get initializer {
     assert(invariant(this, definitionsCache != null,
         message: "Initializer has not been computed for $this."));
@@ -1131,6 +1143,13 @@ class VariableElementX extends ElementX with AnalyzableElement
     if (definitionsCache != null) return definitionsCache;
 
     VariableDefinitions definitions = variables.parseNode(this, listener);
+    createDefinitions(definitions);
+    return definitionsCache;
+  }
+
+  void createDefinitions(VariableDefinitions definitions) {
+    assert(invariant(this, definitionsCache == null,
+        message: "VariableDefinitions has already been computed for $this."));
     Expression node;
     int count = 0;
     for (Link<Node> link = definitions.definitions.nodes;
@@ -1149,10 +1168,7 @@ class VariableElementX extends ElementX with AnalyzableElement
       }
       count++;
     }
-    if (node == null) {
-      listener.internalError(definitions,
-                             "Could not find '$name'.");
-    }
+    invariant(definitions, node != null, message: "Could not find '$name'.");
     if (count == 1) {
       definitionsCache = definitions;
     } else {
@@ -1164,7 +1180,6 @@ class VariableElementX extends ElementX with AnalyzableElement
               const Link<Node>().prepend(node),
               definitions.definitions.endToken));
     }
-    return definitionsCache;
   }
 
   DartType computeType(Compiler compiler) {
@@ -1189,6 +1204,16 @@ class VariableElementX extends ElementX with AnalyzableElement
   Token get position => token;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+}
+
+class LocalVariableElementX extends VariableElementX {
+  LocalVariableElementX(String name,
+                        Element enclosingElement,
+                        VariableList variables,
+                        Token token)
+      : super(name, ElementKind.VARIABLE, enclosingElement, variables, token) {
+    createDefinitions(variables.definitions);
+  }
 }
 
 class FieldElementX extends VariableElementX implements FieldElement {
@@ -1689,6 +1714,8 @@ class SynthesizedConstructorElementX extends FunctionElementX {
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
       : this('', superMember, enclosing, true);
+
+  FunctionExpression get node => null;
 
   Token get position => enclosingElement.position;
 
@@ -2436,11 +2463,11 @@ class TargetElementX extends ElementX implements TargetElement {
 }
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
-  final Node cachedNode;
+  final Node node;
   TypeVariableType typeCache;
   DartType boundCache;
 
-  TypeVariableElementX(String name, Element enclosing, this.cachedNode)
+  TypeVariableElementX(String name, Element enclosing, this.node)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
   TypeVariableType computeType(compiler) => type;
@@ -2457,11 +2484,11 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
     return boundCache;
   }
 
-  Node parseNode(compiler) => cachedNode;
+  Node parseNode(compiler) => node;
 
   String toString() => "${enclosingElement.toString()}.${name}";
 
-  Token get position => cachedNode.getBeginToken();
+  Token get position => node.getBeginToken();
 
   accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
 }

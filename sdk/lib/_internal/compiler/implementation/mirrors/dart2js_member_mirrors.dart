@@ -10,7 +10,7 @@ part of dart2js.mirrors;
 
 abstract class Dart2JsMemberMirror extends Dart2JsElementMirror {
 
-  Dart2JsMemberMirror(Dart2JsMirrorSystem system, Element element)
+  Dart2JsMemberMirror(Dart2JsMirrorSystem system, AstElement element)
       : super(system, element);
 
   bool get isStatic => false;

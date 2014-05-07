@@ -1434,7 +1434,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HGraph buildCheckedSetter(VariableElement field) {
-    openFunction(field, field.parseNode(compiler));
+    openFunction(field, field.node);
     HInstruction thisInstruction = localsHandler.readThis();
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
@@ -1450,7 +1450,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
-    ast.Node node = variable.parseNode(compiler);
+    ast.Node node = variable.node;
     openFunction(variable, node);
     assert(variable.initializer != null);
     visit(variable.initializer);
@@ -1853,7 +1853,7 @@ class SsaBuilder extends ResolvedVisitor {
         (ClassElement enclosingClass, VariableElement member) {
           compiler.withCurrentElement(member, () {
             TreeElements definitions = member.treeElements;
-            ast.Node node = member.parseNode(compiler);
+            ast.Node node = member.node;
             ast.Expression initializer = member.initializer;
             if (initializer == null) {
               // Unassigned fields of native classes are not initialized to

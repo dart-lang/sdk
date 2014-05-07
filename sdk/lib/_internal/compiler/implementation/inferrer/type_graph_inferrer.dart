@@ -667,7 +667,7 @@ class TypeGraphInferrerEngine
 
     if (element.isField) {
       VariableElement fieldElement = element;
-      ast.Node node = fieldElement.parseNode(compiler);
+      ast.Node node = fieldElement.node;
       if (element.modifiers.isFinal || element.modifiers.isConst) {
         // If [element] is final and has an initializer, we record
         // the inferred type.

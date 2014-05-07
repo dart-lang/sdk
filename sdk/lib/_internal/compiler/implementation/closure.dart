@@ -87,6 +87,12 @@ class ClosureFieldElement extends ElementX implements VariableElement {
                       ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
 
+  Node get node {
+    throw new SpannableAssertionFailure(
+        variableElement,
+        'Should not access node of ClosureFieldElement.');
+  }
+
   Expression get initializer {
     throw new SpannableAssertionFailure(
         variableElement,

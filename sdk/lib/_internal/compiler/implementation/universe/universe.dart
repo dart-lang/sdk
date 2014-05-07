@@ -472,8 +472,8 @@ class Selector {
     // that we can call [addArgumentsToList].
     Link computeCallNodesFromParameters() {
       LinkBuilder builder = new LinkBuilder();
-      signature.forEachRequiredParameter((Element element) {
-        Node node = element.parseNode(compiler);
+      signature.forEachRequiredParameter((ParameterElement element) {
+        Node node = element.node;
         mapping[node] = element;
         builder.addLast(node);
       });
@@ -483,8 +483,8 @@ class Selector {
           builder.addLast(new NamedArgument(null, null, element.initializer));
         });
       } else {
-        signature.forEachOptionalParameter((Element element) {
-          Node node = element.parseNode(compiler);
+        signature.forEachOptionalParameter((ParameterElement element) {
+          Node node = element.node;
           mapping[node] = element;
           builder.addLast(node);
         });

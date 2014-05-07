@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 import 'dart2jslib.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
+import 'elements/modelx.dart' show ClassElementX, FunctionElementX;
 import 'js_backend/js_backend.dart';
 import 'resolution/resolution.dart' show ResolverVisitor;
 import 'scanner/scannerlib.dart';
@@ -347,7 +348,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushing = false;
   }
 
-  processClass(ClassElement classElement, cause) {
+  processClass(ClassElementX classElement, cause) {
     assert(!registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
@@ -409,7 +410,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     element.setNative(name);
   }
 
-  bool isNativeMethod(Element element) {
+  bool isNativeMethod(FunctionElementX element) {
     if (!element.library.canUseNative) return false;
     // Native method?
     return compiler.withCurrentElement(element, () {

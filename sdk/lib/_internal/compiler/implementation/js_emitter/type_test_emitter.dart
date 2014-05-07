@@ -52,10 +52,11 @@ class TypeTestEmitter extends CodeEmitterHelper {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
-    void generateFunctionTypeSignature(Element method, FunctionType type) {
+    void generateFunctionTypeSignature(FunctionElement method,
+                                       FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      Node node = method.parseNode(compiler);
+      Node node = method.node;
       ClosureClassMap closureData =
           compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {

@@ -441,7 +441,7 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T run() {
-    var node = analyzedElement.parseNode(compiler);
+    var node = analyzedElement.node;
     ast.Expression initializer;
     if (analyzedElement.isField) {
       VariableElement fieldElement = analyzedElement;
@@ -690,7 +690,7 @@ class SimpleTypeInferrerVisitor<T>
           // actually had a chance to initialize it, say it can be
           // null.
           inferrer.recordTypeOfNonFinalField(
-              analyzedElement.parseNode(compiler), element,
+              analyzedElement.node, element,
               types.nullType);
         }
         // Accessing a field does not expose [:this:].

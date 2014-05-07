@@ -21,6 +21,7 @@ import 'elements/modelx.dart'
          AnalyzableElement,
          DeferredLoaderGetterElementX,
          SynthesizedCallMethodElementX;
+import 'helpers/helpers.dart';
 import 'js_backend/js_backend.dart' as js_backend;
 import 'native_handler.dart' as native;
 import 'scanner/scannerlib.dart';

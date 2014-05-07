@@ -156,10 +156,6 @@ class DartBackend extends Backend {
       library.implementation.forEachLocalMember((Element element) {
         if (element.isClass) {
           ClassElement classElement = element;
-          // Make sure we parsed the class to initialize its local members.
-          // TODO(smok): Figure out if there is a better way to fill local
-          // members.
-          element.parseNode(compiler);
           classElement.forEachLocalMember((member) {
             final name = member.name;
             // Skip operator names.
@@ -228,16 +224,16 @@ class DartBackend extends Backend {
 
     final elementAsts = new Map<Element, ElementAst>();
 
-    ElementAst parse(Element element, TreeElements treeElements) {
+    ElementAst parse(AstElement element, TreeElements treeElements) {
       Node node;
       if (!compiler.irBuilder.hasIr(element)) {
-        node = element.parseNode(compiler);
+        node = element.node;
       } else {
         ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         tree.Builder builder = new tree.Builder(compiler);
         tree.FunctionDefinition definition = builder.build(function);
         if (definition == null) {
-          node = element.parseNode(compiler);
+          node = element.node;
         } else {
           compiler.tracer.traceCompilation(element.name, null, compiler);
           compiler.tracer.traceGraph('Tree builder', definition);
@@ -269,22 +265,22 @@ class DartBackend extends Backend {
       elementAsts[element] = elementAst;
     }
 
-    addTopLevel(element, elementAst) {
+    addTopLevel(AstElement element, ElementAst elementAst) {
       if (topLevelElements.contains(element)) return;
       topLevelElements.add(element);
       processElement(element, elementAst);
     }
 
-    addClass(classElement) {
+    addClass(ClassElement classElement) {
       addTopLevel(classElement,
-                  new ElementAst(classElement.parseNode(compiler),
+                  new ElementAst(classElement.node,
                                  classElement.treeElements));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element, new ElementAst(element.parseNode(compiler),
+      addTopLevel(element, new ElementAst(element.node,
                                           element.treeElements));
     };
     newClassElementCallback = (ClassElement classElement) {
@@ -342,7 +338,7 @@ class DartBackend extends Backend {
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
       // and then overwrite necessary parts.
-      var classNode = classElement.parseNode(compiler);
+      var classNode = classElement.node;
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(
               classElement.name, null, classElement, false);
