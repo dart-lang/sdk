@@ -3256,7 +3256,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ tst(left, ShifterOperand(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
     __ tst(right, ShifterOperand(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ tst(left, ShifterOperand(kSmiTagMask));

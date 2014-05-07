@@ -3207,7 +3207,9 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(bool opt) const {
   intptr_t right_cid = right()->Type()->ToCid();
   ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
   const intptr_t kNumInputs = 2;
-  const bool need_temp = (left_cid != kSmiCid) && (right_cid != kSmiCid);
+  const bool need_temp = (left()->definition() != right()->definition())
+                      &&(left_cid != kSmiCid)
+                      && (right_cid != kSmiCid);
   const intptr_t kNumTemps = need_temp ? 1 : 0;
   LocationSummary* summary =
     new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -3225,7 +3227,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ testl(left, Immediate(kSmiTagMask));
+  } else  if (left_cid == kSmiCid) {
     __ testl(right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ testl(left, Immediate(kSmiTagMask));
