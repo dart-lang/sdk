@@ -968,13 +968,16 @@ class CodeEmitterTask extends CompilerTask {
 
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
-  jsAst.Expression buildIsolateSetupClosure(Element appMain,
-                                            Element isolateMain) {
+  String buildIsolateSetupClosure(CodeBuffer buffer,
+                                  Element appMain,
+                                  Element isolateMain) {
     jsAst.Expression mainAccess = namer.isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    return js('function(a){ #(#, a); }',
-        [namer.elementAccess(isolateMain), mainAccess]);
+    jsAst.Expression setup = js('function(a){ #(#, a); }',
+            [namer.elementAccess(isolateMain), mainAccess]);
+
+    return '(' + jsAst.prettyPrint(setup, compiler).getText() + ')';
   }
 
   /**
@@ -1028,13 +1031,14 @@ class CodeEmitterTask extends CompilerTask {
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
-    jsAst.Expression mainCallClosure = null;
+    String mainCallClosure = null;
     if (compiler.hasIsolateSupport()) {
       Element isolateMain =
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
-      mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
+      mainCallClosure = buildIsolateSetupClosure(buffer, main, isolateMain);
     } else {
-      mainCallClosure = namer.elementAccess(main);
+      // TODO(sra): Replace with AST.
+      mainCallClosure = '${namer.isolateAccess(main)}';
     }
 
     if (backend.needToInitializeIsolateAffinityTag) {
@@ -1056,8 +1060,8 @@ class CodeEmitterTask extends CompilerTask {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    jsAst.Statement invokeMain = js.statement('''
-(function (callback) {
+    buffer.write('''
+;(function (callback) {
   if (typeof document === "undefined") {
     callback(null);
     return;
@@ -1081,15 +1085,11 @@ class CodeEmitterTask extends CompilerTask {
   init.currentScript = currentScript;
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(#, []);
+    dartMainRunner(${mainCallClosure}, []);
   } else {
-    #([]);
+    ${mainCallClosure}([]);
   }
-})$N''', [mainCallClosure, mainCallClosure]);
-
-    buffer.write(';');
-    buffer.write(jsAst.prettyPrint(invokeMain, compiler));
-    buffer.write(N);
+})$N''');
     addComment('END invoke [main].', buffer);
   }
 
@@ -1216,34 +1216,34 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitConvertToFastObjectFunction() {
-    List<jsAst.Statement> debugCode = <jsAst.Statement>[];
+    // Create an instance that uses 'properties' as prototype. This should make
+    // 'properties' a fast object.
+    mainBuffer.add(r'''function convertToFastObject(properties) {
+  function MyClass() {};
+  MyClass.prototype = properties;
+  new MyClass();
+''');
     if (DEBUG_FAST_OBJECTS) {
-      debugCode.add(js.statement(r'''
-        // The following only works on V8 when run with option
-        // "--allow-natives-syntax".  We use'new Function' because the
-         // miniparser does not understand V8 native syntax.
-        if (typeof print === "function") {
-          var HasFastProperties =
-            new Function("a", "return %HasFastProperties(a)");
-          print("Size of global object: "
+      ClassElement primitives =
+          compiler.findHelper('Primitives');
+      FunctionElement printHelper =
+          compiler.lookupElementIn(
+              primitives, 'printString');
+      // TODO(sra): Replace with AST.
+      String printHelperName = namer.isolateAccess(printHelper);
+      mainBuffer.add('''
+// The following only works on V8 when run with option "--allow-natives-syntax".
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of global object: "
                    + String(Object.getOwnPropertyNames(properties).length)
-                   + ", fast properties " + HasFastProperties(properties));
-        }'''));
+                   + ", fast properties " + %HasFastProperties(properties));
+}
+''');
     }
-
-    jsAst.Statement convertToFastObject = js.statement(r'''
-      function convertToFastObject(properties) {
-        // Create an instance that uses 'properties' as prototype. This should
-        // make 'properties' a fast object.
-        function MyClass() {};
-        MyClass.prototype = properties;
-        new MyClass();
-        #;
-        return properties;
-      }''', [debugCode]);
-
-    mainBuffer.add(jsAst.prettyPrint(convertToFastObject, compiler));
-    mainBuffer.add(N);
+mainBuffer.add(r'''
+  return properties;
+}
+''');
   }
 
   void writeLibraryDescriptors(LibraryElement library) {
@@ -1511,40 +1511,44 @@ class CodeEmitterTask extends CompilerTask {
         mainBuffer.add('$globalObject = convertToFastObject($globalObject)$N');
       }
       if (DEBUG_FAST_OBJECTS) {
-        mainBuffer.add(r'''
-          // The following only works on V8 when run with option
-          // "--allow-natives-syntax".  We use'new Function' because the
-          // miniparser does not understand V8 native syntax.
-          if (typeof print === "function") {
-            var HasFastProperties =
-              new Function("a", "return %HasFastProperties(a)");
-            print("Size of global helper object: "
+        ClassElement primitives =
+            compiler.findHelper('Primitives');
+        FunctionElement printHelper =
+            compiler.lookupElementIn(
+                primitives, 'printString');
+        // TODO(sra): Replace with AST.
+        String printHelperName = namer.isolateAccess(printHelper);
+
+        mainBuffer.add('''
+// The following only works on V8 when run with option "--allow-natives-syntax".
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of global helper object: "
                    + String(Object.getOwnPropertyNames(H).length)
-                   + ", fast properties " + HasFastProperties(H));
-            print("Size of global platform object: "
+                   + ", fast properties " + %HasFastProperties(H));
+  $printHelperName("Size of global platform object: "
                    + String(Object.getOwnPropertyNames(P).length)
-                   + ", fast properties " + HasFastProperties(P));
-            print("Size of global dart:html object: "
+                   + ", fast properties " + %HasFastProperties(P));
+  $printHelperName("Size of global dart:html object: "
                    + String(Object.getOwnPropertyNames(W).length)
-                   + ", fast properties " + HasFastProperties(W));
-            print("Size of isolate properties object: "
-                   + String(Object.getOwnPropertyNames($).length)
-                   + ", fast properties " + HasFastProperties($));
-           print("Size of constant object: "
+                   + ", fast properties " + %HasFastProperties(W));
+  $printHelperName("Size of isolate properties object: "
+                   + String(Object.getOwnPropertyNames(\$).length)
+                   + ", fast properties " + %HasFastProperties(\$));
+  $printHelperName("Size of constant object: "
                    + String(Object.getOwnPropertyNames(C).length)
-                   + ", fast properties " + HasFastProperties(C));
-           var names = Object.getOwnPropertyNames($);
-           for (var i = 0; i < names.length; i++) {
-             print("$." + names[i]);
-           }
-         }
+                   + ", fast properties " + %HasFastProperties(C));
+  var names = Object.getOwnPropertyNames(\$);
+  for (var i = 0; i < names.length; i++) {
+    $printHelperName("\$." + names[i]);
+  }
+}
 ''');
         for (String object in Namer.userGlobalObjects) {
         mainBuffer.add('''
-          if (typeof print === "function") {
-             print("Size of $object: "
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of $object: "
                    + String(Object.getOwnPropertyNames($object).length)
-                   + ", fast properties " + HasFastProperties($object));
+                   + ", fast properties " + %HasFastProperties($object));
 }
 ''');
         }

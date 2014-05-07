@@ -734,7 +734,8 @@ class Namer implements ClosureNamer {
    * guaranteed to be a valid JS-id. Globals and static fields are furthermore
    * guaranteed to be unique.
    *
-   * For accessing statics consider calling [elementAccess] instead.
+   * For accessing statics consider calling
+   * [isolateAccess] or [isolatePropertyAccess] instead.
    */
   // TODO(ahe): This is an internal method to the Namer (and its subclasses)
   // and should not be call from outside.
@@ -857,6 +858,10 @@ class Namer implements ClosureNamer {
   String getStaticClosureName(Element element) {
     assert(Elements.isStaticOrTopLevelFunction(element));
     return getMappedGlobalName("${getNameX(element)}\$closure");
+  }
+
+  String isolateAccess(Element element) {
+    return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
   jsAst.Expression isolateLazyInitializerAccess(Element element) {
