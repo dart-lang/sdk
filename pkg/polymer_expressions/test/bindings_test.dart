@@ -82,8 +82,9 @@ main() => dirtyCheckZone().run(() {
           '<template><input id="i1" value={{x}}></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
 
+      var el;
       return new Future(() {
-        var el = testDiv.query("#i1");
+        el = testDiv.query("#i1");
         var subscription = el.onInput.listen(expectAsync((_) {}, count: 1));
         el.focus();
 
@@ -113,8 +114,19 @@ main() => dirtyCheckZone().run(() {
         // selection will be preserved.
         expect(el.selectionStart, 4);
         expect(el.selectionEnd, 4);
-
         subscription.cancel();
+      }).then(_nextMicrotask).then((_) {
+        // Nothing changes on the next micro task.
+        expect(el.selectionStart, 4);
+        expect(el.selectionEnd, 4);
+      }).then((_) => window.animationFrame).then((_) {
+        // ... or on the next animation frame.
+        expect(el.selectionStart, 4);
+        expect(el.selectionEnd, 4);
+      }).then(_afterTimeout).then((_) {
+        // ... or later.
+        expect(el.selectionStart, 4);
+        expect(el.selectionEnd, 4);
       });
     });
 
@@ -142,6 +154,7 @@ main() => dirtyCheckZone().run(() {
 });
 
 _nextMicrotask(_) => new Future(() {});
+_afterTimeout(_) => new Future.delayed(new Duration(milliseconds: 30), () {});
 
 @reflectable
 class NotifyModel extends ChangeNotifier {

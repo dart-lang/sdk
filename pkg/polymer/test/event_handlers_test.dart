@@ -17,8 +17,8 @@ class XTest extends PolymerElement {
   int _testCount = 0;
   String _lastEvent;
   String _lastMessage;
-  List list1 = [];
-  List list2 = [];
+  List list1 = toObservable([]);
+  List list2 = toObservable([]);
   Future _onTestDone;
 
   XTest.created() : super.created();

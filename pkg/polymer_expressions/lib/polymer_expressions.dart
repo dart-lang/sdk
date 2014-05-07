@@ -123,8 +123,9 @@ class _Binding extends Bindable {
   }
 
   _setValue(v) {
+    var oldValue = _value;
     _value = _convertValue(v, _scope, _converter);
-    if (_callback != null) _callback(_value);
+    if (_callback != null && oldValue != _value) _callback(_value);
   }
 
   static _convertValue(v, scope, converter) {
@@ -145,7 +146,8 @@ class _Binding extends Bindable {
 
   set value(v) {
     try {
-      assign(_expr, v, _scope);
+      var newValue = assign(_expr, v, _scope);
+      _value = _convertValue(newValue, _scope, _converter);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_expr': $e", s);
