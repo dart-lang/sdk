@@ -6309,7 +6309,7 @@ class DataListElement extends HtmlElement native "HTMLDataListElement" {
 
 @DocsEditable()
 @DomName('Clipboard')
-class DataTransfer extends Interceptor native "Clipboard" {
+class DataTransfer extends Interceptor native "Clipboard,DataTransfer" {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
