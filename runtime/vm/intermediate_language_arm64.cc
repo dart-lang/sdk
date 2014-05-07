@@ -668,8 +668,8 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
   } else {
-    UNIMPLEMENTED();
-    return VS;
+    ASSERT(operation_cid() == kDoubleCid);
+    return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
 
@@ -1833,12 +1833,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(zra): Implement these when we add simd loads and stores.
     {
       __ Bind(&store_float32x4);
-      __ hlt(0);  // Unimplemented.
+      __ Stop("Float32x4 Unimplemented");
     }
 
     {
       __ Bind(&store_float64x2);
-      __ hlt(0);  // Unimplemented.
+      __ Stop("Float64x2 Unimplemented");
     }
 
     __ Bind(&store_pointer);
@@ -2102,12 +2102,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(zra): Implement these when we add simd loads and stores.
     {
       __ Bind(&load_float32x4);
-      __ hlt(0);  // Unimplemented.
+      __ Stop("Float32x4 Unimplemented");
     }
 
     {
       __ Bind(&load_float64x2);
-      __ hlt(0);  // Unimplemented.
+      __ Stop("Float64x2 Unimplemented");
     }
 
     __ Bind(&load_pointer);
@@ -3357,13 +3357,41 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
+    const intptr_t kNumInputs = 1;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::FpuRegisterLocation(V0));
+    summary->set_out(0, Location::FpuRegisterLocation(V0));
+    return summary;
+  }
+  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
+         (kind() == MathUnaryInstr::kDoubleSquare));
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (kind() == MathUnaryInstr::kSqrt) {
+    VRegister val = locs()->in(0).fpu_reg();
+    VRegister result = locs()->out(0).fpu_reg();
+    __ fsqrtd(result, val);
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    VRegister val = locs()->in(0).fpu_reg();
+    VRegister result = locs()->out(0).fpu_reg();
+    __ fmuld(result, val, val);
+  } else {
+    ASSERT((kind() == MathUnaryInstr::kSin) ||
+           (kind() == MathUnaryInstr::kCos));
+    __ CallRuntime(TargetFunction(), InputCount());
+  }
 }
 
 
@@ -3413,46 +3441,118 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  VRegister result = locs()->out(0).fpu_reg();
+  VRegister value = locs()->in(0).fpu_reg();
+  __ fnegd(result, value);
 }
 
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::WritableRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
 }
 
 
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  VRegister result = locs()->out(0).fpu_reg();
+  __ SmiUntag(value);
+  __ scvtfd(result, value);
 }
 
 
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::RegisterLocation(R1));
+  result->set_out(0, Location::RegisterLocation(R0));
+  return result;
 }
 
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Register result = locs()->out(0).reg();
+  const Register value_obj = locs()->in(0).reg();
+  ASSERT(result == R0);
+  ASSERT(result != value_obj);
+  __ LoadDFieldFromOffset(VTMP, value_obj, Double::value_offset());
+
+  Label do_call, done;
+  // First check for NaN. Checking for minint after the conversion doesn't work
+  // on ARM64 because fcvtzds gives 0 for NaN.
+  __ fcmpd(VTMP, VTMP);
+  __ b(&do_call, VS);
+
+  __ fcvtzds(result, VTMP);
+  // Overflow is signaled with minint.
+
+  // Check for overflow and that it fits into Smi.
+  __ CompareImmediate(result, 0xC000000000000000, PP);
+  __ b(&do_call, MI);
+  __ SmiTag(result);
+  __ b(&done);
+  __ Bind(&do_call);
+  __ Push(value_obj);
+  ASSERT(instance_call()->HasICData());
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT((ic_data.NumberOfChecks() == 1));
+  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+
+  const intptr_t kNumberOfArguments = 1;
+  compiler->GenerateStaticCall(deopt_id(),
+                               instance_call()->token_pos(),
+                               target,
+                               kNumberOfArguments,
+                               Object::null_array(),  // No argument names.,
+                               locs());
+  __ Bind(&done);
 }
 
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new LocationSummary(
+      kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
+  return result;
 }
 
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
+  const Register result = locs()->out(0).reg();
+  const VRegister value = locs()->in(0).fpu_reg();
+  // First check for NaN. Checking for minint after the conversion doesn't work
+  // on ARM64 because fcvtzds gives 0 for NaN.
+  // TODO(zra): Check spec that this is true.
+  __ fcmpd(value, value);
+  __ b(deopt, VS);
+
+  __ fcvtzds(result, value);
+  // Check for overflow and that it fits into Smi.
+  __ CompareImmediate(result, 0xC000000000000000, PP);
+  __ b(deopt, MI);
+  __ SmiTag(result);
 }
 
 
@@ -3490,13 +3590,97 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT((InputCount() == 1) || (InputCount() == 2));
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::FpuRegisterLocation(V0));
+  if (InputCount() == 2) {
+    result->set_in(1, Location::FpuRegisterLocation(V1));
+  }
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    result->AddTemp(Location::FpuRegisterLocation(V30));
+  }
+  result->set_out(0, Location::FpuRegisterLocation(V0));
+  return result;
 }
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // For pow-function return NaN if exponent is NaN.
+  Label skip_call;
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    // Pseudo code:
+    // if (exponent == 0.0) return 1.0;
+    // if (base == 1.0) return 1.0;
+    // if (base.isNaN || exponent.isNaN) {
+    //    return double.NAN;
+    // }
+    // if (base != -Infinity && exponent == 0.5) {
+    //   if (base == 0.0) return 0.0;
+    //   return sqrt(value);
+    // }
+    const VRegister base = locs()->in(0).fpu_reg();
+    const VRegister exp = locs()->in(1).fpu_reg();
+    const VRegister result = locs()->out(0).fpu_reg();
+    const VRegister saved_base = locs()->temp(0).fpu_reg();
+    ASSERT((base == result) && (result != saved_base));
+
+    Label try_sqrt, check_base, return_nan;
+    __ fmovdd(saved_base, base);
+    __ LoadDImmediate(VTMP, 0.0, PP);
+    __ LoadDImmediate(result, 1.0, PP);
+    // exponent == 0.0 -> return 1.0;
+    __ fcmpd(exp, VTMP);
+    __ b(&check_base, VS);  // NaN -> check base.
+    __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
+
+    __ Bind(&check_base);
+    // Note: 'exp' could be NaN.
+    // base == 1.0 -> return 1.0;
+    __ fcmpd(saved_base, result);
+    __ b(&return_nan, VS);
+    __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
+
+    __ fcmpd(saved_base, exp);
+    __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
+
+    __ Bind(&return_nan);
+    __ LoadDImmediate(result, NAN, PP);
+    __ b(&skip_call);
+
+    Label do_pow, return_zero;
+    __ Bind(&try_sqrt);
+
+    // Before calling pow, check if we could use sqrt instead of pow.
+    __ LoadDImmediate(result, -INFINITY, PP);
+
+    // base == -Infinity -> call pow;
+    __ fcmpd(saved_base, result);
+    __ b(&do_pow, EQ);
+
+    // exponent == 0.5 ?
+    __ LoadDImmediate(result, 0.5, PP);
+    __ fcmpd(exp, result);
+    __ b(&do_pow, NE);
+
+    // base == 0 -> return 0;
+    __ fcmpd(base, VTMP);
+    __ b(&return_zero, EQ);
+
+    __ fsqrtd(result, saved_base);
+    __ b(&skip_call);
+
+    __ Bind(&return_zero);
+    __ fmovdd(result, VTMP);
+    __ b(&skip_call);
+
+    __ Bind(&do_pow);
+    __ fmovdd(base, saved_base);  // Restore base.
+  }
+
+  __ CallRuntime(TargetFunction(), InputCount());
+  __ Bind(&skip_call);
 }
 
 
@@ -3550,12 +3734,79 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    // Output is a pair of registers.
+    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                       Location::RequiresRegister()));
+    return summary;
+  }
   UNIMPLEMENTED();
   return NULL;
 }
 
 
 void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  }
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    const Register left = locs()->in(0).reg();
+    const Register right = locs()->in(1).reg();
+    ASSERT(locs()->out(0).IsPairLocation());
+    const PairLocation* pair = locs()->out(0).AsPairLocation();
+    const Register result_div = pair->At(0).reg();
+    const Register result_mod = pair->At(1).reg();
+    const Range* right_range = InputAt(1)->definition()->range();
+    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      // Handle divide by zero in runtime.
+      __ CompareRegisters(right, ZR);
+      __ b(deopt, EQ);
+    }
+
+    __ Asr(result_mod, left, kSmiTagSize);  // SmiUntag left.
+    __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right.
+
+    __ sdiv(result_div, result_mod, TMP);
+
+    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+    // case we cannot tag the result.
+    __ CompareImmediate(result_div, 0x4000000000000000, PP);
+    __ b(deopt, EQ);
+    // result_mod <- left - right * result_div.
+    __ msub(result_mod, TMP, result_div, result_mod);
+    __ SmiTag(result_div);
+    __ SmiTag(result_mod);
+    // Correct MOD result:
+    //  res = left % right;
+    //  if (res < 0) {
+    //    if (right < 0) {
+    //      res = res - right;
+    //    } else {
+    //      res = res + right;
+    //    }
+    //  }
+    Label done;
+    __ CompareRegisters(result_mod, ZR);;
+    __ b(&done, GE);
+    // Result is negative, adjust it.
+    __ CompareRegisters(right, ZR);
+    __ sub(TMP2, result_mod, Operand(right));
+    __ add(TMP, result_mod, Operand(right));
+    __ csel(result_mod, TMP, TMP2, GE);
+    __ Bind(&done);
+
+    return;
+  }
+  if (kind() == MergedMathInstr::kSinCos) {
+    UNIMPLEMENTED();
+  }
   UNIMPLEMENTED();
 }
 

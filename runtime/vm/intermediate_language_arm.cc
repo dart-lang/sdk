@@ -5021,8 +5021,8 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
-  Register result = locs()->out(0).reg();
-  DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  const Register result = locs()->out(0).reg();
+  const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   // First check for NaN. Checking for minint after the conversion doesn't work
   // on ARM because vcvtid gives 0 for NaN.
   __ vcmpd(value, value);
@@ -5128,11 +5128,11 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     //   if (base == 0.0) return 0.0;
     //   return sqrt(value);
     // }
-    DRegister base = EvenDRegisterOf(locs()->in(0).fpu_reg());
-    DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
-    DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
-    Register temp = locs()->temp(0).reg();
-    DRegister saved_base = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+    const DRegister base = EvenDRegisterOf(locs()->in(0).fpu_reg());
+    const DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
+    const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
+    const Register temp = locs()->temp(0).reg();
+    const DRegister saved_base = EvenDRegisterOf(locs()->temp(1).fpu_reg());
     ASSERT((base == result) && (result != saved_base));
 
     Label try_sqrt, check_base, return_nan;

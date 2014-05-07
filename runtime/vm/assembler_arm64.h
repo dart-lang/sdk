@@ -658,6 +658,15 @@ class Assembler : public ValueObject {
   void fmovdd(VRegister vd, VRegister vn) {
     EmitFPOneSourceOp(FMOVDD, vd, vn);
   }
+  void fabsd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FABSD, vd, vn);
+  }
+  void fnegd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FNEGD, vd, vn);
+  }
+  void fsqrtd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FSQRTD, vd, vn);
+  }
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
     EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);

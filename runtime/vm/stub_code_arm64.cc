@@ -1611,7 +1611,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
-  __ Stop("GenerateTwoArgsUnoptimizedStaticCallStub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
 }
 
 

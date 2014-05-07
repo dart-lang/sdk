@@ -126,18 +126,8 @@ stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 
 # arm64 port is WIP. No issue numbers until we're a bit further along.
 [ $compiler == none && $runtime == vm && $arch == simarm64 ]
-vm/regress_16873_test: Skip # Pass, Slow
+arithmetic_test: Skip # Timeout, Bug?
 
 # Unimplemented features
-vm/string_polymorphic_test: Crash
-vm/optimization_test: Crash
-vm/math_vm_test: Crash
-vm/deopt_hoisted_smi_check_vm_test:Crash
-vm/reusable_boxes_test: Crash
-vm/allocation_sinking_vm_test: Crash
-double_modulo_test: Crash
-modulo_test: Crash
-guess_cid_test: Crash
-arithmetic_canonicalization_test: Crash
-try_catch_optimized1_test: Crash
-arithmetic_test: Crash
+vm/reusable_boxes_test: Crash  # Needs Float32x4, Float64x2
+vm/allocation_sinking_vm_test: Crash  # Needs Float32x4, Float64x2

@@ -1577,6 +1577,71 @@ ASSEMBLER_TEST_RUN(Scvtfd, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fabsd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FabsdPos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
+  __ LoadDImmediate(V1, -42.0, kNoPP);
+  __ fabsd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FabsdNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fnegd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FnegdPos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
+  __ LoadDImmediate(V1, -42.0, kNoPP);
+  __ fnegd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FnegdNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
+  __ LoadDImmediate(V1, 64.0, kNoPP);
+  __ fsqrtd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fsqrtd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(8.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
   __ LoadDImmediate(V1, 84.0, kNoPP);
   __ LoadDImmediate(V2, 0.5, kNoPP);

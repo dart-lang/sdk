@@ -993,8 +993,17 @@ void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
     case 0:
       Format(instr, "fmovdd 'vd, 'vn");
       break;
+    case 1:
+      Format(instr, "fabsd 'vd, 'vn");
+      break;
+    case 2:
+      Format(instr, "fnegd 'vd, 'vn");
+      break;
+    case 3:
+      Format(instr, "fsqrtd 'vd, 'vn");
+      break;
     default:
-      Unknown(instr);
+      UNREACHABLE();
       break;
   }
 }

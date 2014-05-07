@@ -1185,22 +1185,34 @@ void Simulator::DoRedirectedCall(Instr* instr) {
     } else if (redirection->call_kind() == kLeafRuntimeCall) {
       ASSERT((0 <= redirection->argument_count()) &&
              (redirection->argument_count() <= 8));
-      int64_t r0 = get_register(R0);
-      int64_t r1 = get_register(R1);
-      int64_t r2 = get_register(R2);
-      int64_t r3 = get_register(R3);
-      int64_t r4 = get_register(R4);
-      int64_t r5 = get_register(R5);
-      int64_t r6 = get_register(R6);
-      int64_t r7 = get_register(R7);
       SimulatorLeafRuntimeCall target =
           reinterpret_cast<SimulatorLeafRuntimeCall>(external);
-      r0 = target(r0, r1, r2, r3, r4, r5, r6, r7);
-      set_register(R0, r0);  // Set returned result from function.
+      const int64_t r0 = get_register(R0);
+      const int64_t r1 = get_register(R1);
+      const int64_t r2 = get_register(R2);
+      const int64_t r3 = get_register(R3);
+      const int64_t r4 = get_register(R4);
+      const int64_t r5 = get_register(R5);
+      const int64_t r6 = get_register(R6);
+      const int64_t r7 = get_register(R7);
+      const int64_t res = target(r0, r1, r2, r3, r4, r5, r6, r7);
+      set_register(R0, res);  // Set returned result from function.
       set_register(R1, icount_);  // Zap unused result register.
     } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
-      // TODO(zra): leaf float runtime calls.
-      UNIMPLEMENTED();
+      ASSERT((0 <= redirection->argument_count()) &&
+             (redirection->argument_count() <= 8));
+      SimulatorLeafFloatRuntimeCall target =
+          reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
+      const double d0 = bit_cast<double, int64_t>(get_vregisterd(V0));
+      const double d1 = bit_cast<double, int64_t>(get_vregisterd(V1));
+      const double d2 = bit_cast<double, int64_t>(get_vregisterd(V2));
+      const double d3 = bit_cast<double, int64_t>(get_vregisterd(V3));
+      const double d4 = bit_cast<double, int64_t>(get_vregisterd(V4));
+      const double d5 = bit_cast<double, int64_t>(get_vregisterd(V5));
+      const double d6 = bit_cast<double, int64_t>(get_vregisterd(V6));
+      const double d7 = bit_cast<double, int64_t>(get_vregisterd(V7));
+      const double res = target(d0, d1, d2, d3, d4, d5, d6, d7);
+      set_vregisterd(V0, bit_cast<int64_t, double>(res));
     } else if (redirection->call_kind() == kBootstrapNativeCall) {
       NativeArguments* arguments;
       arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
@@ -2076,15 +2088,33 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
   const int opc = instr->Bits(15, 2);
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
+  const int64_t vn_val = get_vregisterd(vn);
+  const double vn_dbl = bit_cast<double, int64_t>(vn_val);
+
+  int64_t res_val = 0;
   switch (opc) {
     case 0:
       // Format("fmovdd 'vd, 'vn");
-      set_vregisterd(vd, get_vregisterd(vn));
+      res_val = get_vregisterd(vn);
+      break;
+    case 1:
+      // Format("fabsd 'vd, 'vn");
+      res_val = bit_cast<int64_t, double>(fabs(vn_dbl));
+      break;
+    case 2:
+      // Format("fnegd 'vd, 'vn");
+      res_val = bit_cast<int64_t, double>(-vn_dbl);
+      break;
+    case 3:
+      // Format("fsqrtd 'vd, 'vn");
+      res_val = bit_cast<int64_t, double>(sqrt(vn_dbl));
       break;
     default:
-      UnimplementedInstruction(instr);
+      UNREACHABLE();
       break;
   }
+
+  set_vregisterd(vd, res_val);
 }
 
 

@@ -439,6 +439,9 @@ enum FPOneSourceOp {
   FPOneSourceMask = 0x5f207c00,
   FPOneSourceFixed = FPFixed | B21 | B14,
   FMOVDD = FPOneSourceFixed | B22,
+  FABSD = FPOneSourceFixed | B22 | B15,
+  FNEGD = FPOneSourceFixed | B22 | B16,
+  FSQRTD = FPOneSourceFixed | B22 | B16 | B15,
 };
 
 // C3.6.26
