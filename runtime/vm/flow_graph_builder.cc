@@ -1037,11 +1037,6 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
 // <Expression> ::= Literal { literal: Instance }
 void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  return;
-}
-
-
-void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
   ReturnDefinition(new ConstantInstr(node->literal()));
 }
 
@@ -1423,28 +1418,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
-
-  // Eliminate the test if it can be performed successfully at compile time.
-  if ((node->left() != NULL) &&
-      node->left()->IsLiteralNode() &&
-      type.IsInstantiated()) {
-    const Instance& literal_value = node->left()->AsLiteralNode()->literal();
-    ConstantInstr* result = NULL;
-
-    Error& malformed_error = Error::Handle();
-    if (literal_value.IsInstanceOf(type,
-                                   TypeArguments::Handle(),
-                                   &malformed_error)) {
-      result = new ConstantInstr(Bool::Get(!negate_result));
-    } else {
-      result = new ConstantInstr(Bool::Get(negate_result));
-    }
-    ASSERT(malformed_error.IsNull());
-
-    ReturnDefinition(result);
-    return;
-  }
-
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
