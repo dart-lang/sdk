@@ -18,6 +18,9 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 polymer/test/build/script_compactor_test: Pass, Slow
 
+[ $compiler == dart2js && $browser ]
+polymer/test/attr_mustache_test: CompileTimeError # Issue 18667
+
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
 analysis_server/test/domain_context_test: Pass, Timeout
@@ -112,11 +115,6 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-[ $runtime == jsshell ]
-# Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
-# See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
-# Likely to get patched only on some versions of Firefox.
-typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
@@ -138,7 +136,7 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
 
@@ -205,13 +203,7 @@ analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
-http/test/client_test: Fail, OK # Uses dart:io.
-http/test/http_test: Fail, OK # Uses dart:io.
-http/test/mock_client_test: Fail, OK # Uses dart:io.
-http/test/multipart_test: Fail, OK # Uses dart:io.
-http/test/request_test: Fail, OK # Uses dart:io.
-http/test/response_test: Fail, OK # Uses dart:io.
-http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
@@ -221,10 +213,6 @@ intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
 intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
-oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
-oauth2/test/client_test: Fail, OK # Uses dart:io.
-oauth2/test/credentials_test: Fail, OK # Uses dart:io.
-oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
@@ -314,8 +302,9 @@ polymer_expressions/test/syntax_test: Skip
 polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
+http/test/html/*: Skip
 
-[ $runtime == safari || $ie ]
+[ $runtime == safari || $runtime == safarimobilesim || $ie ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
 polymer_expressions/test/bindings_test: Fail # Issue 16568
 
@@ -339,7 +328,7 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == safari || $runtime == chrome || $runtime == ff || $ie ]
+[ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
@@ -355,3 +344,18 @@ analyzer/test/*: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
+
+# No typed_data on IE9.
+http/test/html/client_test: Fail
+http/test/html/streamed_request_test: Skip
+http/test/mock_client_test: Fail
+http/test/multipart_test: Fail
+http/test/request_test: Fail
+http/test/response_test: Fail
+oauth2/test/authorization_code_grant_test: Fail
+oauth2/test/client_test: Fail
+oauth2/test/credentials_test: Fail
+oauth2/test/handle_access_token_response_test: Fail
+
+[ $runtime == drt ]
+http/test/html/client_test: Skip # Issue 18566

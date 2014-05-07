@@ -279,6 +279,7 @@ class ObjectPointerVisitor;
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
+  V(DartNativeWrappersLibName, "dart.nativewrappers")                          \
   V(DartAsync, "dart:async")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
@@ -317,6 +318,7 @@ class ObjectPointerVisitor;
   V(TempParam, ":temp_param")                                                  \
   V(UserTag, "UserTag")                                                        \
   V(_UserTag, "_UserTag")                                                      \
+  V(Default, "Default")                                                        \
   V(StubPrefix, "[Stub] ")                                                     \
 
 

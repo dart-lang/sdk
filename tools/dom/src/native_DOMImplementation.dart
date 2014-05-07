@@ -417,7 +417,7 @@ class _Utils {
 
   static void initializeCustomElement(HtmlElement element) native "Utils_initializeCustomElement";
 
-  static void changeElementWrapper(HtmlElement element, Type type) native "Utils_changeElementWrapper";
+  static Element changeElementWrapper(HtmlElement element, Type type) native "Utils_changeElementWrapper";
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements

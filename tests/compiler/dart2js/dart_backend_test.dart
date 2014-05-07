@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'parser_helper.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' as leg;
@@ -451,6 +450,8 @@ class DynoMap implements Map<Element, ElementAst> {
   get resolvedElements => compiler.enqueuer.resolution.resolvedElements;
   ElementAst operator[](Element element) =>
       new ElementAst(element.parseNode(compiler), resolvedElements[element]);
+
+  noSuchMethod(Invocation invocation) => throw 'unimplemented method';
 }
 
 PlaceholderCollector collectPlaceholders(compiler, element) =>
@@ -471,7 +472,9 @@ main() {
   compiler.processQueue(compiler.enqueuer.resolution, mainElement);
   PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
   FunctionExpression mainNode = mainElement.parseNode(compiler);
-  FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
+  Block body = mainNode.body;
+  FunctionDeclaration functionDeclaration = body.statements.nodes.head;
+  FunctionExpression fooNode = functionDeclaration.function;
   LocalPlaceholder fooPlaceholder =
       collector.functionScopes[mainElement].localPlaceholders.first;
   Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));

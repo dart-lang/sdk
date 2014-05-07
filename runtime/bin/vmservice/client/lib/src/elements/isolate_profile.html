@@ -11,7 +11,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ profile.isolate.relativeHashLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <style>
@@ -152,7 +152,7 @@
             <td on-click="{{toggleExpanded}}"
                 class="{{ coloring(row) }}"
                 style="{{ padding(row) }}">
-              <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
+              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
               <div style="position: relative;display: inline">
                 {{row.columns[0]}}
               </div>

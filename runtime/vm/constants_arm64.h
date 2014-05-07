@@ -97,12 +97,11 @@ enum VRegister {
 };
 
 // Register alias for floating point scratch register.
-const VRegister VTMP0 = V30;
-const VRegister VTMP1 = V31;
+const VRegister VTMP = V31;
 
 // Architecture independent aliases.
 typedef VRegister FpuRegister;
-const FpuRegister FpuTMP = VTMP0;
+const FpuRegister FpuTMP = VTMP;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
@@ -143,6 +142,8 @@ const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
     (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
     (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R19;
+const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
@@ -164,9 +165,7 @@ const RegList kDartVolatileCpuRegs =
 const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R18;
 const int kDartVolatileCpuRegCount = 17;  // Excluding R16 and R17.
-const VRegister kDartFirstVolatileFpuReg = V0;
-const VRegister kDartLastVolatileFpuReg = V7;
-const int kDartVolatileFpuRegCount = 8;
+const int kDartVolatileFpuRegCount = 24;
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == SP)) ? R31 : r;
@@ -193,6 +192,11 @@ enum Condition {
   NV = 15,  // special condition (refer to section C1.2.3)
   kMaxCondition = 16,
 };
+
+static inline Condition InvertCondition(Condition c) {
+  const int32_t i = static_cast<int32_t>(c) ^ 0x1;
+  return static_cast<Condition>(i);
+}
 
 enum Bits {
   B0  =  (1 << 0), B1  =  (1 << 1), B2  =  (1 << 2), B3  =  (1 << 3),
@@ -259,6 +263,9 @@ enum MainOp {
 
   DPSimd2Mask = 0x1e000000,
   DPSimd2Fixed = B28 | DPSimd1Fixed,
+
+  FPMask = 0x5e000000,
+  FPFixed = B28 | B27 | B26 | B25,
 };
 
 // C3.2.1
@@ -317,18 +324,21 @@ enum UnconditionalBranchRegOp {
   RET = BR | B22,
 };
 
-enum LoadStoreRegOp {
-  LoadStoreRegMask = 0x3a000000,
-  LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
-  STR = LoadStoreRegFixed,
-  LDR = LoadStoreRegFixed | B22,
-};
-
 // C3.3.5
 enum LoadRegLiteralOp {
   LoadRegLiteralMask = 0x3b000000,
   LoadRegLiteralFixed = LoadStoreFixed | B28,
   LDRpc = LoadRegLiteralFixed,
+};
+
+// C3.3.7-10
+enum LoadStoreRegOp {
+  LoadStoreRegMask = 0x3a000000,
+  LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
+  STR = LoadStoreRegFixed,
+  LDR = LoadStoreRegFixed | B22,
+  FSTR = STR | B26,
+  FLDR = LDR | B26,
 };
 
 // C3.4.1
@@ -379,6 +389,7 @@ enum ConditionalSelectOp {
   ConditionalSelectMask = 0x1fe00000,
   ConditionalSelectFixed = DPRegisterFixed | B28 | B23,
   CSEL = ConditionalSelectFixed,
+  CSINC = ConditionalSelectFixed | B10,
 };
 
 // C3.5.8
@@ -397,6 +408,8 @@ enum MiscDP3SourceOp {
   MiscDP3SourceMask = 0x1f000000,
   MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
   MADD = MiscDP3SourceFixed,
+  MSUB = MiscDP3SourceFixed | B15,
+  SMULH = MiscDP3SourceFixed | B31 | B22,
 };
 
 // C3.5.10
@@ -413,6 +426,50 @@ enum LogicalShiftOp {
   BICS = LogicalShiftFixed | B30 | B29 | B21,
 };
 
+// C.3.6.22
+enum FPCompareOp {
+  FPCompareMask = 0xffa0fc07,
+  FPCompareFixed = FPFixed | B21 | B13,
+  FCMPD = FPCompareFixed | B22,
+  FCMPZD = FPCompareFixed | B22 | B3,
+};
+
+// C3.6.25
+enum FPOneSourceOp {
+  FPOneSourceMask = 0x5f207c00,
+  FPOneSourceFixed = FPFixed | B21 | B14,
+  FMOVDD = FPOneSourceFixed | B22,
+};
+
+// C3.6.26
+enum FPTwoSourceOp {
+  FPTwoSourceMask = 0xff200c00,
+  FPTwoSourceFixed = FPFixed | B21 | B11,
+  FMULD = FPTwoSourceFixed | B22,
+  FDIVD = FPTwoSourceFixed | B22 | B12,
+  FADDD = FPTwoSourceFixed | B22 | B13,
+  FSUBD = FPTwoSourceFixed | B22 | B13 | B12,
+};
+
+// C3.6.28
+enum FPImmOp {
+  FPImmMask = 0x5f201c00,
+  FPImmFixed = FPFixed | B21 | B12,
+  FMOVSI = FPImmFixed,
+  FMOVDI = FPImmFixed | B22,
+};
+
+// C3.6.30
+enum FPIntCvtOp {
+  FPIntCvtMask = 0x5f20fc00,
+  FPIntCvtFixed = FPFixed | B21,
+  FMOVRD = FPIntCvtFixed | B31 | B22 | B18 | B17,
+  FMOVDR = FPIntCvtFixed | B31 | B22 | B18 | B17 | B16,
+  FCVTZDS = FPIntCvtFixed | B31 | B22 | B20 | B19,
+  SCVTFD = FPIntCvtFixed | B31 | B22 | B17,
+};
+
+
 #define APPLY_OP_LIST(_V)                                                      \
 _V(DPImmediate)                                                                \
 _V(CompareBranch)                                                              \
@@ -420,6 +477,7 @@ _V(LoadStore)                                                                  \
 _V(DPRegister)                                                                 \
 _V(DPSimd1)                                                                    \
 _V(DPSimd2)                                                                    \
+_V(FP)                                                                         \
 _V(CompareAndBranch)                                                           \
 _V(ConditionalBranch)                                                          \
 _V(ExceptionGen)                                                               \
@@ -438,6 +496,11 @@ _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
+_V(FPOneSource)                                                                \
+_V(FPTwoSource)                                                                \
+_V(FPImm)                                                                      \
+_V(FPIntCvt)                                                                   \
+_V(FPCompare)                                                                  \
 
 
 enum Shift {
@@ -494,11 +557,23 @@ enum InstructionFields {
   kRtShift = 0,
   kRtBits = 5,
 
+  // V Registers.
+  kVdShift = 0,
+  kVdBits = 5,
+  kVnShift = 5,
+  kVnBits = 5,
+  kVmShift = 16,
+  kVmBits = 5,
+  kVtShift = 0,
+  kVtBits = 5,
+
   // Immediates.
   kImm3Shift = 10,
   kImm3Bits = 3,
   kImm6Shift = 10,
   kImm6Bits = 6,
+  kImm8Shift = 13,
+  kImm8Bits = 8,
   kImm9Shift = 12,
   kImm9Bits = 9,
   kImm12Shift = 10,
@@ -655,10 +730,19 @@ class Instr {
   inline Register RtField() const { return static_cast<Register>(
                                         Bits(kRtShift, kRtBits)); }
 
+  inline VRegister VdField() const { return static_cast<VRegister>(
+                                        Bits(kVdShift, kVdBits)); }
+  inline VRegister VnField() const { return static_cast<VRegister>(
+                                        Bits(kVnShift, kVnBits)); }
+  inline VRegister VmField() const { return static_cast<VRegister>(
+                                        Bits(kVmShift, kVmBits)); }
+  inline VRegister VtField() const { return static_cast<VRegister>(
+                                        Bits(kVtShift, kVtBits)); }
+
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
   inline int Imm6Field() const { return Bits(kImm6Shift, kImm6Bits); }
-
+  inline int Imm8Field() const { return Bits(kImm8Shift, kImm8Bits); }
   inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
   // Sign-extended Imm9Field()
   inline int64_t SImm9Field() const {
@@ -800,6 +884,20 @@ class Instr {
     }
     UNREACHABLE();
     return 0;
+  }
+
+  static int64_t VFPExpandImm(uint8_t imm8) {
+    const int64_t sign =
+        static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
+    const int64_t hi_exp =
+        static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
+    const int64_t mid_exp =
+        (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
+    const int64_t low_exp =
+        static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
+    const int64_t frac =
+        static_cast<int64_t>(imm8 & 0x0f) << 48;
+    return sign | hi_exp | mid_exp | low_exp | frac;
   }
 
   // Instructions are read out of a code stream. The only way to get a

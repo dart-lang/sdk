@@ -6,8 +6,8 @@ library barback.test.stream_replayer_test;
 
 import 'dart:async';
 
-import 'package:barback/src/stream_replayer.dart';
 import 'package:barback/src/utils.dart';
+import 'package:barback/src/utils/stream_replayer.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

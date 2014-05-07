@@ -52,6 +52,28 @@ class ServiceObjectViewElement extends ObservatoryElement {
         HeapMapElement element = new Element.tag('heap-map');
         element.fragmentation = object;
         return element;
+      case 'LibraryPrefix':
+      case 'TypeRef':
+      case 'TypeParameter':
+      case 'BoundedType':
+      case 'Int32x4':
+      case 'Float32x4':
+      case 'Float64x4':
+      case 'TypedData':
+      case 'ExternalTypedData':
+      case 'Capability':
+      case 'ReceivePort':
+      case 'SendPort':
+      case 'Stacktrace':
+      case 'JSRegExp':
+      case 'WeakProperty':
+      case 'MirrorReference':
+      case 'UserTag':
+        // TODO(turnidge): The types above this comment are instance
+        // types and should be handled by the InstanceViewElement.  We
+        // need to go through these and make sure that they print in a
+        // reasonable way.
+      case 'Type':
       case 'Array':
       case 'Bool':
       case 'Closure':
@@ -59,8 +81,9 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'GrowableObjectArray':
       case 'Instance':
       case 'Smi':
+      case 'Mint':
+      case 'Bigint':
       case 'String':
-      case 'Type':
         InstanceViewElement element = new Element.tag('instance-view');
         element.instance = object;
         return element;

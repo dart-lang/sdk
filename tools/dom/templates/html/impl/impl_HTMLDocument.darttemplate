@@ -219,7 +219,7 @@ $endif
    *     }
    *
    *     main() {
-   *       document.register('x-foo', FooElement);
+   *       document.registerElement('x-foo', FooElement);
    *       var myFoo = new Element.tag('x-foo');
    *       // prints 'FooElement created!' to the console.
    *     }
@@ -236,7 +236,7 @@ $endif
    *     }
    *
    *     main() {
-   *       document.register('x-bar', BarElement);
+   *       document.registerElement('x-bar', BarElement);
    *       var myBar = new Element.tag('input', 'x-bar');
    *       // prints 'BarElement created!' to the console.
    *     }
@@ -245,16 +245,22 @@ $endif
    * `<input is="x-bar"></input>`
    *
    */
+  void registerElement(String tag, Type customElementClass,
+      {String extendsTag}) {
 $if DART2JS
-  void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
-  }
 $else
-  void register(String tag, Type customElementClass, {String extendsTag}) {
     _Utils.register(this, tag, customElementClass, extendsTag);
-  }
 $endif
+  }
+
+  /** *Deprecated*: use [registerElement] instead. */
+  @deprecated
+  @Experimental()
+  void register(String tag, Type customElementClass, {String extendsTag}) {
+    return registerElement(tag, customElementClass, extendsTag: extendsTag);
+  }
 
   /**
    * Static factory designed to expose `visibilitychange` events to event

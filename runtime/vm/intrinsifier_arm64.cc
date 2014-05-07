@@ -413,7 +413,7 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
+void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   return;
 }
 

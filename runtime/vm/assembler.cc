@@ -13,7 +13,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, code_comments, true,
+DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
 DEFINE_FLAG(bool, use_far_branches, false,
@@ -210,7 +210,7 @@ void Assembler::Unreachable(const char* message) {
 
 
 void Assembler::Comment(const char* format, ...) {
-  if (FLAG_code_comments && (FLAG_disassemble || FLAG_disassemble_optimized)) {
+  if (FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized) {
     char buffer[1024];
 
     va_list args;

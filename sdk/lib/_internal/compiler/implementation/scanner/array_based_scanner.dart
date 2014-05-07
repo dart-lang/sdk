@@ -16,19 +16,6 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
 
   /**
-   * Appends a token whose kind is determined by [info] and content is defined
-   * by the String [value].
-   *
-   * This method is invoked for class names, field names, method names, types,
-   * etc.
-   */
-  void appendStringToken(PrecedenceInfo info, String value) {
-    tail.next = new StringToken.fromString(info, value, tokenStart,
-                                           canonicalize: true);
-    tail = tail.next;
-  }
-
-  /**
    * Appends a fixed token whose kind and content is determined by [info].
    * Appends an *operator* token from [info].
    *

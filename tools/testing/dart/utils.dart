@@ -208,6 +208,11 @@ class Locations {
         'safari': const {
           'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
         },
+        'safarimobilesim': const {
+          'macos': '/Applications/Xcode.app/Contents/Developer/Platforms/'
+                   'iPhoneSimulator.platform/Developer/Applications/'
+                   'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
+        },
         'ie9': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
         },

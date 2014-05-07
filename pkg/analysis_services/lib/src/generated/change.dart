@@ -7,6 +7,7 @@
 
 library services.change;
 
+import 'dart:collection';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/source.dart';
 
@@ -118,7 +119,7 @@ class SourceChange extends Change {
 
   final List<Edit> edits = [];
 
-  Map<String, List<Edit>> _editGroups = {};
+  Map<String, List<Edit>> _editGroups = new LinkedHashMap();
 
   /**
    * @param name the name of this change to display in UI

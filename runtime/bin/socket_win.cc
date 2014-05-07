@@ -46,8 +46,11 @@ bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
 }
 
 
+static Mutex* init_mutex = new Mutex();
+static bool socket_initialized = false;
+
 bool Socket::Initialize() {
-  static bool socket_initialized = false;
+  MutexLocker lock(init_mutex);
   if (socket_initialized) return true;
   int err;
   WSADATA winsock_data;
@@ -152,19 +155,73 @@ intptr_t Socket::Create(RawAddr addr) {
 
 
 intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
-  ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
-  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
+  ClientSocket* handle = reinterpret_cast<ClientSocket*>(fd);
   SOCKET s = handle->socket();
-  SocketAddress::SetAddrPort(&addr, port);
-  int status = connect(s, &addr.addr, SocketAddress::GetAddrLength(&addr));
-  if (status == SOCKET_ERROR) {
-    DWORD rc = WSAGetLastError();
-    ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
-    client_socket->Close();
+
+  RawAddr bind_addr;
+  memset(&bind_addr, 0, sizeof(bind_addr));
+  bind_addr.ss.ss_family = addr.ss.ss_family;
+  if (addr.ss.ss_family == AF_INET) {
+    bind_addr.in.sin_addr.s_addr = INADDR_ANY;
+  } else {
+    bind_addr.in6.sin6_addr = in6addr_any;
+  }
+  int status = bind(
+      s, &bind_addr.addr, SocketAddress::GetAddrLength(&bind_addr));
+  if (status != NO_ERROR) {
+    int rc = WSAGetLastError();
+    delete handle;
+    closesocket(s);
     SetLastError(rc);
     return -1;
   }
-  return fd;
+
+  SocketAddress::SetAddrPort(&addr, port);
+
+  LPFN_CONNECTEX connectEx = NULL;
+  GUID guid_connect_ex = WSAID_CONNECTEX;
+  DWORD bytes;
+  status = WSAIoctl(s,
+                    SIO_GET_EXTENSION_FUNCTION_POINTER,
+                    &guid_connect_ex,
+                    sizeof(guid_connect_ex),
+                    &connectEx,
+                    sizeof(connectEx),
+                    &bytes,
+                    NULL,
+                    NULL);
+  DWORD rc;
+  if (status != SOCKET_ERROR) {
+    handle->EnsureInitialized(EventHandler::delegate());
+
+    OverlappedBuffer* overlapped = OverlappedBuffer::AllocateConnectBuffer();
+
+    status = connectEx(s,
+                       &addr.addr,
+                       SocketAddress::GetAddrLength(&addr),
+                       NULL,
+                       0,
+                       NULL,
+                       overlapped->GetCleanOverlapped());
+
+
+    if (status == TRUE) {
+      handle->ConnectComplete(overlapped);
+      return fd;
+    } else if (WSAGetLastError() == ERROR_IO_PENDING) {
+      return fd;
+    }
+    rc = WSAGetLastError();
+    // Cleanup in case of error.
+    OverlappedBuffer::DisposeBuffer(overlapped);
+  } else {
+    rc = WSAGetLastError();
+  }
+  handle->Close();
+  delete handle;
+  SetLastError(rc);
+  return -1;
 }
 
 
@@ -219,14 +276,10 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
-static Mutex* getaddrinfo_mutex = new Mutex();
 AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
                                                   int type,
                                                   OSError** os_error) {
   Initialize();
-
-  // getaddrinfo is not thread-safe on Windows. Use a mutex to get around it.
-  MutexLocker locker(getaddrinfo_mutex);
 
   // Perform a name lookup for a host name.
   struct addrinfo hints;

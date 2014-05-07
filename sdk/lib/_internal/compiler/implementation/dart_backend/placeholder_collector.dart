@@ -320,6 +320,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void makeElementPlaceholder(Node node, Element element) {
+    assert(node != null);
     assert(element != null);
     if (identical(element, entryFunction)) return;
     if (identical(element.getLibrary(), coreLibrary)) return;

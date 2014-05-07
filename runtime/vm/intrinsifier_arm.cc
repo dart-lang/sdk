@@ -1723,44 +1723,37 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // R1: Isolate.
   Isolate* isolate = Isolate::Current();
   __ LoadImmediate(R1, reinterpret_cast<uword>(isolate));
-  // R0: UserTag.
-  __ ldr(R0, Address(SP, + 0 * kWordSize));
+  // R0: Current user tag.
+  __ ldr(R0, Address(R1, Isolate::current_tag_offset()));
+  // R2: UserTag.
+  __ ldr(R2, Address(SP, + 0 * kWordSize));
   // Set Isolate::current_tag_.
-  __ str(R0, Address(R1, Isolate::current_tag_offset()));
-  // R0: UserTag's tag.
-  __ ldr(R0, FieldAddress(R0, UserTag::tag_offset()));
+  __ str(R2, Address(R1, Isolate::current_tag_offset()));
+  // R2: UserTag's tag.
+  __ ldr(R2, FieldAddress(R2, UserTag::tag_offset()));
   // Set Isolate::user_tag_.
-  __ str(R0, Address(R1, Isolate::user_tag_offset()));
-  // Set return value.
-  const int32_t raw_null = reinterpret_cast<int32_t>(Object::null());
-  __ LoadImmediate(R0, raw_null);
+  __ str(R2, Address(R1, Isolate::user_tag_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
+  Isolate* isolate = Isolate::Current();
+  // Set return value to default tag address.
+  __ LoadImmediate(R0,
+      reinterpret_cast<uword>(isolate->object_store()) +
+                              ObjectStore::default_tag_offset());
+  __ ldr(R0, Address(R0, 0));
   __ Ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  // R1: Isolate.
+  // R1: Default tag address.
   Isolate* isolate = Isolate::Current();
   __ LoadImmediate(R1, reinterpret_cast<uword>(isolate));
   // Set return value to Isolate::current_tag_.
   __ ldr(R0, Address(R1, Isolate::current_tag_offset()));
-  __ Ret();
-}
-
-
-void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
-  // R1: Isolate.
-  Isolate* isolate = Isolate::Current();
-  __ LoadImmediate(R1, reinterpret_cast<uword>(isolate));
-  // Set return value to Isolate::current_tag_.
-  __ ldr(R0, Address(R1, Isolate::current_tag_offset()));
-  // Clear Isolate::current_tag_.
-  const int32_t raw_null = reinterpret_cast<int32_t>(UserTag::null());
-  __ LoadImmediate(R2, raw_null);
-  __ str(R2, Address(R1, Isolate::current_tag_offset()));
-  // Clear Isolate::user_tag_.
-  __ eor(R2, R2, ShifterOperand(R2));
-  __ str(R2, Address(R1, Isolate::user_tag_offset()));
   __ Ret();
 }
 

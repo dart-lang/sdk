@@ -27,6 +27,9 @@ import 'decoration.dart' show
     info,
     warning;
 
+import 'selection.dart' show
+    isCollapsed;
+
 const String INDENT = '\u{a0}\u{a0}';
 
 Set<String> seenIdentifiers;
@@ -106,7 +109,7 @@ num minSuggestionWidth = 0;
 /// exists.
 Element getElementAtSelection() {
   Selection selection = window.getSelection();
-  if (!selection.isCollapsed) return null;
+  if (!isCollapsed(selection)) return null;
   var anchorNode = selection.anchorNode;
   if (!mainEditorPane.contains(anchorNode)) return null;
   if (mainEditorPane == anchorNode) return null;

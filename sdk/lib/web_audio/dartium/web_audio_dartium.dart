@@ -231,43 +231,9 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   void noteOn(num when) => _blink.Native_AudioBufferSourceNode_noteOn_Callback(this, when);
 
-  void start([num when, num grainOffset, num grainDuration]) {
-    if (grainDuration != null) {
-      _start_1(when, grainOffset, grainDuration);
-      return;
-    }
-    if (grainOffset != null) {
-      _start_2(when, grainOffset);
-      return;
-    }
-    if (when != null) {
-      _start_3(when);
-      return;
-    }
-    _start_4();
-    return;
-  }
+  void start([num when, num grainOffset, num grainDuration]) => _blink.Native_AudioBufferSourceNode_start(this, when, grainOffset, grainDuration);
 
-  void _start_1(when, grainOffset, grainDuration) => _blink.Native_AudioBufferSourceNode__start_1_Callback(this, when, grainOffset, grainDuration);
-
-  void _start_2(when, grainOffset) => _blink.Native_AudioBufferSourceNode__start_2_Callback(this, when, grainOffset);
-
-  void _start_3(when) => _blink.Native_AudioBufferSourceNode__start_3_Callback(this, when);
-
-  void _start_4() => _blink.Native_AudioBufferSourceNode__start_4_Callback(this);
-
-  void stop([num when]) {
-    if (when != null) {
-      _stop_1(when);
-      return;
-    }
-    _stop_2();
-    return;
-  }
-
-  void _stop_1(when) => _blink.Native_AudioBufferSourceNode__stop_1_Callback(this, when);
-
-  void _stop_2() => _blink.Native_AudioBufferSourceNode__stop_2_Callback(this);
+  void stop([num when]) => _blink.Native_AudioBufferSourceNode_stop(this, when);
 
   /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
@@ -300,12 +266,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
-  factory AudioContext() {
-    return AudioContext._create_1();
-  }
-
-  @DocsEditable()
-  static AudioContext _create_1() => _blink.Native_AudioContext__create_1constructorCallback();
+  factory AudioContext() => _blink.Native_AudioContext_AudioContext();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -350,53 +311,17 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   AudioBufferSourceNode createBufferSource() => _blink.Native_AudioContext_createBufferSource_Callback(this);
 
-  ChannelMergerNode createChannelMerger([int numberOfInputs]) {
-    if (numberOfInputs != null) {
-      return _createChannelMerger_1(numberOfInputs);
-    }
-    return _createChannelMerger_2();
-  }
+  ChannelMergerNode createChannelMerger([int numberOfInputs]) => _blink.Native_AudioContext_createChannelMerger(this, numberOfInputs);
 
-  ChannelMergerNode _createChannelMerger_1(numberOfInputs) => _blink.Native_AudioContext__createChannelMerger_1_Callback(this, numberOfInputs);
-
-  ChannelMergerNode _createChannelMerger_2() => _blink.Native_AudioContext__createChannelMerger_2_Callback(this);
-
-  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
-    if (numberOfOutputs != null) {
-      return _createChannelSplitter_1(numberOfOutputs);
-    }
-    return _createChannelSplitter_2();
-  }
-
-  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) => _blink.Native_AudioContext__createChannelSplitter_1_Callback(this, numberOfOutputs);
-
-  ChannelSplitterNode _createChannelSplitter_2() => _blink.Native_AudioContext__createChannelSplitter_2_Callback(this);
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) => _blink.Native_AudioContext_createChannelSplitter(this, numberOfOutputs);
 
   @DomName('AudioContext.createConvolver')
   @DocsEditable()
   ConvolverNode createConvolver() => _blink.Native_AudioContext_createConvolver_Callback(this);
 
-  DelayNode createDelay([num maxDelayTime]) {
-    if (maxDelayTime != null) {
-      return _createDelay_1(maxDelayTime);
-    }
-    return _createDelay_2();
-  }
+  DelayNode createDelay([num maxDelayTime]) => _blink.Native_AudioContext_createDelay(this, maxDelayTime);
 
-  DelayNode _createDelay_1(maxDelayTime) => _blink.Native_AudioContext__createDelay_1_Callback(this, maxDelayTime);
-
-  DelayNode _createDelay_2() => _blink.Native_AudioContext__createDelay_2_Callback(this);
-
-  DelayNode createDelayNode([num maxDelayTime]) {
-    if (maxDelayTime != null) {
-      return _createDelayNode_1(maxDelayTime);
-    }
-    return _createDelayNode_2();
-  }
-
-  DelayNode _createDelayNode_1(maxDelayTime) => _blink.Native_AudioContext__createDelayNode_1_Callback(this, maxDelayTime);
-
-  DelayNode _createDelayNode_2() => _blink.Native_AudioContext__createDelayNode_2_Callback(this);
+  DelayNode createDelayNode([num maxDelayTime]) => _blink.Native_AudioContext_createDelayNode(this, maxDelayTime);
 
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
@@ -410,21 +335,7 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   GainNode createGainNode() => _blink.Native_AudioContext_createGainNode_Callback(this);
 
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
-    if (numberOfOutputChannels != null) {
-      return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (numberOfInputChannels != null) {
-      return _createJavaScriptNode_2(bufferSize, numberOfInputChannels);
-    }
-    return _createJavaScriptNode_3(bufferSize);
-  }
-
-  ScriptProcessorNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) => _blink.Native_AudioContext__createJavaScriptNode_1_Callback(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
-
-  ScriptProcessorNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) => _blink.Native_AudioContext__createJavaScriptNode_2_Callback(this, bufferSize, numberOfInputChannels);
-
-  ScriptProcessorNode _createJavaScriptNode_3(bufferSize) => _blink.Native_AudioContext__createJavaScriptNode_3_Callback(this, bufferSize);
+  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) => _blink.Native_AudioContext_createJavaScriptNode(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
@@ -451,26 +362,7 @@ class AudioContext extends EventTarget {
   @Experimental() // untriaged
   PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => _blink.Native_AudioContext_createPeriodicWave_Callback(this, real, imag);
 
-  ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
-    if (numberOfOutputChannels != null) {
-      return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (numberOfInputChannels != null) {
-      return _createScriptProcessor_2(bufferSize, numberOfInputChannels);
-    }
-    if (bufferSize != null) {
-      return _createScriptProcessor_3(bufferSize);
-    }
-    return _createScriptProcessor_4();
-  }
-
-  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) => _blink.Native_AudioContext__createScriptProcessor_1_Callback(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
-
-  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) => _blink.Native_AudioContext__createScriptProcessor_2_Callback(this, bufferSize, numberOfInputChannels);
-
-  ScriptProcessorNode _createScriptProcessor_3(bufferSize) => _blink.Native_AudioContext__createScriptProcessor_3_Callback(this, bufferSize);
-
-  ScriptProcessorNode _createScriptProcessor_4() => _blink.Native_AudioContext__createScriptProcessor_4_Callback(this);
+  ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) => _blink.Native_AudioContext_createScriptProcessor(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
@@ -631,21 +523,7 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   int get numberOfOutputs => _blink.Native_AudioNode_numberOfOutputs_Getter(this);
 
-  void _connect(destination, int output, [int input]) {
-    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
-      _connect_1(destination, output, input);
-      return;
-    }
-    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
-      _connect_2(destination, output);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _connect_1(destination, output, input) => _blink.Native_AudioNode__connect_1_Callback(this, destination, output, input);
-
-  void _connect_2(destination, output) => _blink.Native_AudioNode__connect_2_Callback(this, destination, output);
+  void _connect(destination, int output, [int input]) => _blink.Native_AudioNode__connect(this, destination, output, input);
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
@@ -1101,12 +979,7 @@ class OfflineAudioContext extends AudioContext {
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable()
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
-    return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
-  }
-
-  @DocsEditable()
-  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) => _blink.Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => _blink.Native_OfflineAudioContext_OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1184,31 +1057,9 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   void setPeriodicWave(PeriodicWave periodicWave) => _blink.Native_OscillatorNode_setPeriodicWave_Callback(this, periodicWave);
 
-  void start([num when]) {
-    if (when != null) {
-      _start_1(when);
-      return;
-    }
-    _start_2();
-    return;
-  }
+  void start([num when]) => _blink.Native_OscillatorNode_start(this, when);
 
-  void _start_1(when) => _blink.Native_OscillatorNode__start_1_Callback(this, when);
-
-  void _start_2() => _blink.Native_OscillatorNode__start_2_Callback(this);
-
-  void stop([num when]) {
-    if (when != null) {
-      _stop_1(when);
-      return;
-    }
-    _stop_2();
-    return;
-  }
-
-  void _stop_1(when) => _blink.Native_OscillatorNode__stop_1_Callback(this, when);
-
-  void _stop_2() => _blink.Native_OscillatorNode__stop_2_Callback(this);
+  void stop([num when]) => _blink.Native_OscillatorNode_stop(this, when);
 
   /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')

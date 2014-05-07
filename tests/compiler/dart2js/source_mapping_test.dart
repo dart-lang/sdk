@@ -8,14 +8,15 @@ import "package:async_helper/async_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import "mock_compiler.dart";
-import 'parser_helper.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
+  JavaScriptBackend backend = compiler.backend;
   return compiler.runCompiler(uri).then((_) {
-    return compiler.backend.emitter.mainBuffer;
+    return backend.emitter.mainBuffer;
   });
 }
 

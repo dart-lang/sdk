@@ -45,17 +45,21 @@ class HeapProfileElement extends ObservatoryElement {
     _oldPieDataTable.addColumn('number', 'Size');
     var columns = [
       new SortedTableColumn('Class'),
-      new SortedTableColumn.withFormatter('Accumulator',
+      new SortedTableColumn.withFormatter('Accumulator Size (New)',
                                           Utils.formatSize),
-      new SortedTableColumn.withFormatter('Accumulator',
+      new SortedTableColumn.withFormatter('Accumulator (New)',
                                           Utils.formatCommaSeparated),
-      new SortedTableColumn.withFormatter('Accumulator (Old space)',
+      new SortedTableColumn.withFormatter('Current Size (New)',
                                           Utils.formatSize),
-      new SortedTableColumn.withFormatter('Accumulator (Old space)',
+      new SortedTableColumn.withFormatter('Current (New)',
                                           Utils.formatCommaSeparated),
-      new SortedTableColumn.withFormatter('Current',
+      new SortedTableColumn.withFormatter('Accumulator Size (Old)',
                                           Utils.formatSize),
-      new SortedTableColumn.withFormatter('Current',
+      new SortedTableColumn.withFormatter('Accumulator (Old)',
+                                          Utils.formatCommaSeparated),
+      new SortedTableColumn.withFormatter('Current Size (Old)',
+                                          Utils.formatSize),
+      new SortedTableColumn.withFormatter('Current (Old)',
                                           Utils.formatCommaSeparated)
     ];
     classTable = new SortedTable(columns);
@@ -91,7 +95,9 @@ class HeapProfileElement extends ObservatoryElement {
                  _combinedTableColumnValue(cls, 3),
                  _combinedTableColumnValue(cls, 4),
                  _combinedTableColumnValue(cls, 5),
-                 _combinedTableColumnValue(cls, 6)];
+                 _combinedTableColumnValue(cls, 6),
+                 _combinedTableColumnValue(cls, 7),
+                 _combinedTableColumnValue(cls, 8)];
       classTable.addRow(new SortedTableRow(row));
     }
     classTable.sort();
@@ -143,29 +149,29 @@ class HeapProfileElement extends ObservatoryElement {
 
   dynamic _combinedTableColumnValue(Map v, int index) {
     assert(index >= 0);
-    assert(index < 7);
+    assert(index < 9);
     switch (index) {
       case 0:
         return v['class']['user_name'];
       case 1:
-        return v['new'][ACCUMULATED_SIZE] +
-               v['old'][ACCUMULATED_SIZE];
+        return v['new'][ACCUMULATED_SIZE];
       case 2:
-        return v['new'][ACCUMULATED] +
-               v['old'][ACCUMULATED];
+        return v['new'][ACCUMULATED];
       case 3:
-        return v['old'][ACCUMULATED_SIZE];
-      case 4:
-        return v['old'][ACCUMULATED];
-      case 5:
         return v['new'][LIVE_AFTER_GC_SIZE] +
-               v['new'][ALLOCATED_SINCE_GC_SIZE] +
-               v['old'][LIVE_AFTER_GC_SIZE] +
-               v['old'][ALLOCATED_SINCE_GC_SIZE];
-      case 6:
+               v['new'][ALLOCATED_SINCE_GC_SIZE];
+      case 4:
         return v['new'][LIVE_AFTER_GC] +
-               v['new'][ALLOCATED_SINCE_GC] +
-               v['old'][LIVE_AFTER_GC] +
+               v['new'][ALLOCATED_SINCE_GC];
+      case 5:
+        return v['old'][ACCUMULATED_SIZE];
+      case 6:
+        return v['old'][ACCUMULATED];
+      case 7:
+        return v['old'][LIVE_AFTER_GC_SIZE] +
+               v['old'][ALLOCATED_SINCE_GC_SIZE];
+      case 8:
+        return  v['old'][LIVE_AFTER_GC] +
                v['old'][ALLOCATED_SINCE_GC];
     }
     throw new FallThroughError();

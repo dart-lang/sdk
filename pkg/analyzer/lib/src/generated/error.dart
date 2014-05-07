@@ -534,17 +534,26 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   static const CompileTimeErrorCode CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE = const CompileTimeErrorCode.con1('CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE', 20, "'const' variables must be constant value");
 
   /**
+   * 5 Variables: A constant variable must be initialized to a compile-time constant or a
+   * compile-time error occurs.
+   *
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  static const CompileTimeErrorCode CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY = const CompileTimeErrorCode.con1('CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY', 21, "Constant values from a deferred library cannot be used to initialized a 'const' variable");
+
+  /**
    * 7.5 Instance Variables: It is a compile-time error if an instance variable is declared to be
    * constant.
    */
-  static const CompileTimeErrorCode CONST_INSTANCE_FIELD = const CompileTimeErrorCode.con1('CONST_INSTANCE_FIELD', 21, "Only static fields can be declared as 'const'");
+  static const CompileTimeErrorCode CONST_INSTANCE_FIELD = const CompileTimeErrorCode.con1('CONST_INSTANCE_FIELD', 22, "Only static fields can be declared as 'const'");
 
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant map literal is an
    * instance of a class that implements the operator <i>==</i> unless the key is a string or
    * integer.
    */
-  static const CompileTimeErrorCode CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = const CompileTimeErrorCode.con1('CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS', 22, "The constant map entry key expression type '%s' cannot override the == operator");
+  static const CompileTimeErrorCode CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = const CompileTimeErrorCode.con1('CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS', 23, "The constant map entry key expression type '%s' cannot override the == operator");
 
   /**
    * 5 Variables: A constant variable must be initialized to a compile-time constant (12.1) or a
@@ -552,45 +561,45 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the uninitialized final variable
    */
-  static const CompileTimeErrorCode CONST_NOT_INITIALIZED = const CompileTimeErrorCode.con1('CONST_NOT_INITIALIZED', 23, "The const variable '%s' must be initialized");
+  static const CompileTimeErrorCode CONST_NOT_INITIALIZED = const CompileTimeErrorCode.con1('CONST_NOT_INITIALIZED', 24, "The const variable '%s' must be initialized");
 
   /**
    * 12.11.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2, where e, e1 and e2
    * are constant expressions that evaluate to a boolean value.
    */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_BOOL', 24, "An expression of type 'bool' was expected");
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_BOOL', 25, "An expression of type 'bool' was expected");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where e1 and e2 are
    * constant expressions that evaluate to a numeric, string or boolean value or to null.
    */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_BOOL_NUM_STRING', 25, "An expression of type 'bool', 'num', 'String' or 'null' was expected");
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_BOOL_NUM_STRING', 26, "An expression of type 'bool', 'num', 'String' or 'null' was expected");
 
   /**
    * 12.11.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2, e1 | e2, e1 >> e2 or e1
    * << e2, where e, e1 and e2 are constant expressions that evaluate to an integer value or to
    * null.
    */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_INT', 26, "An expression of type 'int' was expected");
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_INT', 27, "An expression of type 'int' was expected");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 * e2, e1 / e2, e1 ~/
    * e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2, where e, e1 and e2 are constant
    * expressions that evaluate to a numeric value or to null..
    */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_NUM', 27, "An expression of type 'num' was expected");
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = const CompileTimeErrorCode.con1('CONST_EVAL_TYPE_NUM', 28, "An expression of type 'num' was expected");
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION = const CompileTimeErrorCode.con1('CONST_EVAL_THROWS_EXCEPTION', 28, "Evaluation of this constant expression causes exception");
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION = const CompileTimeErrorCode.con1('CONST_EVAL_THROWS_EXCEPTION', 29, "Evaluation of this constant expression causes exception");
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE = const CompileTimeErrorCode.con1('CONST_EVAL_THROWS_IDBZE', 29, "Evaluation of this constant expression throws IntegerDivisionByZeroException");
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE = const CompileTimeErrorCode.con1('CONST_EVAL_THROWS_IDBZE', 30, "Evaluation of this constant expression throws IntegerDivisionByZeroException");
 
   /**
    * 12.11.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>, &hellip;,
@@ -603,7 +612,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
    * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
    */
-  static const CompileTimeErrorCode CONST_WITH_INVALID_TYPE_PARAMETERS = const CompileTimeErrorCode.con1('CONST_WITH_INVALID_TYPE_PARAMETERS', 30, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+  static const CompileTimeErrorCode CONST_WITH_INVALID_TYPE_PARAMETERS = const CompileTimeErrorCode.con1('CONST_WITH_INVALID_TYPE_PARAMETERS', 31, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
 
   /**
    * 12.11.2 Const: If <i>e</i> is of the form <i>const T(a<sub>1</sub>, &hellip;, a<sub>n</sub>,
@@ -611,13 +620,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * compile-time error if the type <i>T</i> does not declare a constant constructor with the same
    * name as the declaration of <i>T</i>.
    */
-  static const CompileTimeErrorCode CONST_WITH_NON_CONST = const CompileTimeErrorCode.con1('CONST_WITH_NON_CONST', 31, "The constructor being called is not a 'const' constructor");
+  static const CompileTimeErrorCode CONST_WITH_NON_CONST = const CompileTimeErrorCode.con1('CONST_WITH_NON_CONST', 32, "The constructor being called is not a 'const' constructor");
 
   /**
    * 12.11.2 Const: In all of the above cases, it is a compile-time error if <i>a<sub>i</sub>, 1
    * &lt;= i &lt;= n + k</i>, is not a compile-time constant expression.
    */
-  static const CompileTimeErrorCode CONST_WITH_NON_CONSTANT_ARGUMENT = const CompileTimeErrorCode.con1('CONST_WITH_NON_CONSTANT_ARGUMENT', 32, "Arguments of a constant creation must be constant expressions");
+  static const CompileTimeErrorCode CONST_WITH_NON_CONSTANT_ARGUMENT = const CompileTimeErrorCode.con1('CONST_WITH_NON_CONSTANT_ARGUMENT', 33, "Arguments of a constant creation must be constant expressions");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
@@ -630,12 +639,12 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the non-type element
    */
-  static const CompileTimeErrorCode CONST_WITH_NON_TYPE = const CompileTimeErrorCode.con1('CONST_WITH_NON_TYPE', 33, "The name '%s' is not a class");
+  static const CompileTimeErrorCode CONST_WITH_NON_TYPE = const CompileTimeErrorCode.con1('CONST_WITH_NON_TYPE', 34, "The name '%s' is not a class");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> includes any type parameters.
    */
-  static const CompileTimeErrorCode CONST_WITH_TYPE_PARAMETERS = const CompileTimeErrorCode.con1('CONST_WITH_TYPE_PARAMETERS', 34, "The constant creation cannot use a type parameter");
+  static const CompileTimeErrorCode CONST_WITH_TYPE_PARAMETERS = const CompileTimeErrorCode.con1('CONST_WITH_TYPE_PARAMETERS', 35, "The constant creation cannot use a type parameter");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of a constant
@@ -644,7 +653,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param typeName the name of the type
    * @param constructorName the name of the requested constant constructor
    */
-  static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR = const CompileTimeErrorCode.con1('CONST_WITH_UNDEFINED_CONSTRUCTOR', 35, "The class '%s' does not have a constant constructor '%s'");
+  static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR = const CompileTimeErrorCode.con1('CONST_WITH_UNDEFINED_CONSTRUCTOR', 36, "The class '%s' does not have a constant constructor '%s'");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of a constant
@@ -652,32 +661,32 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param typeName the name of the type
    */
-  static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = const CompileTimeErrorCode.con1('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 36, "The class '%s' does not have a default constant constructor");
+  static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = const CompileTimeErrorCode.con1('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 37, "The class '%s' does not have a default constant constructor");
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are specified in the signature
    * of a function type alias.
    */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS', 37, "Default values aren't allowed in typedefs");
+  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS', 38, "Default values aren't allowed in typedefs");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the parameter and describes
    * its type as a function type. It is a compile-time error if any default values are specified in
    * the signature of such a function type.
    */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER', 38, "Default values aren't allowed in function type parameters");
+  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER', 39, "Default values aren't allowed in function type parameters");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly specifies a default value
    * for an optional parameter.
    */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR', 39, "Default values aren't allowed in factory constructors that redirect to another constructor");
+  static const CompileTimeErrorCode DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR = const CompileTimeErrorCode.con1('DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR', 40, "Default values aren't allowed in factory constructors that redirect to another constructor");
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
    */
-  static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT = const CompileTimeErrorCode.con1('DUPLICATE_CONSTRUCTOR_DEFAULT', 40, "The default constructor is already defined");
+  static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT = const CompileTimeErrorCode.con1('DUPLICATE_CONSTRUCTOR_DEFAULT', 41, "The default constructor is already defined");
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
@@ -685,7 +694,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param duplicateName the name of the duplicate entity
    */
-  static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME = const CompileTimeErrorCode.con1('DUPLICATE_CONSTRUCTOR_NAME', 41, "The constructor with name '%s' is already defined");
+  static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME = const CompileTimeErrorCode.con1('DUPLICATE_CONSTRUCTOR_NAME', 42, "The constructor with name '%s' is already defined");
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
@@ -698,7 +707,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param duplicateName the name of the duplicate entity
    */
-  static const CompileTimeErrorCode DUPLICATE_DEFINITION = const CompileTimeErrorCode.con1('DUPLICATE_DEFINITION', 42, "The name '%s' is already defined");
+  static const CompileTimeErrorCode DUPLICATE_DEFINITION = const CompileTimeErrorCode.con1('DUPLICATE_DEFINITION', 43, "The name '%s' is already defined");
 
   /**
    * 7. Classes: It is a compile-time error if a class has an instance member and a static member
@@ -710,21 +719,21 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param name the name of the conflicting members
    * @see #DUPLICATE_DEFINITION
    */
-  static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE = const CompileTimeErrorCode.con1('DUPLICATE_DEFINITION_INHERITANCE', 43, "The name '%s' is already defined in '%s'");
+  static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE = const CompileTimeErrorCode.con1('DUPLICATE_DEFINITION_INHERITANCE', 44, "The name '%s' is already defined in '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a compile-time error if <i>q<sub>i</sub> =
    * q<sub>j</sub></i> for any <i>i != j</i> [where <i>q<sub>i</sub></i> is the label for a named
    * argument].
    */
-  static const CompileTimeErrorCode DUPLICATE_NAMED_ARGUMENT = const CompileTimeErrorCode.con1('DUPLICATE_NAMED_ARGUMENT', 44, "The argument for the named parameter '%s' was already specified");
+  static const CompileTimeErrorCode DUPLICATE_NAMED_ARGUMENT = const CompileTimeErrorCode.con1('DUPLICATE_NAMED_ARGUMENT', 45, "The argument for the named parameter '%s' was already specified");
 
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
    * @param uri the uri pointing to a library
    */
-  static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY = const CompileTimeErrorCode.con1('EXPORT_INTERNAL_LIBRARY', 45, "The library '%s' is internal and cannot be exported");
+  static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY = const CompileTimeErrorCode.con1('EXPORT_INTERNAL_LIBRARY', 46, "The library '%s' is internal and cannot be exported");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -732,7 +741,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param uri the uri pointing to a non-library declaration
    */
-  static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY = const CompileTimeErrorCode.con1('EXPORT_OF_NON_LIBRARY', 46, "The exported library '%s' must not have a part-of directive");
+  static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY = const CompileTimeErrorCode.con1('EXPORT_OF_NON_LIBRARY', 47, "The exported library '%s' must not have a part-of directive");
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
@@ -740,7 +749,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param typeName the name of the superclass that was not found
    */
-  static const CompileTimeErrorCode EXTENDS_NON_CLASS = const CompileTimeErrorCode.con1('EXTENDS_NON_CLASS', 47, "Classes can only extend other classes");
+  static const CompileTimeErrorCode EXTENDS_NON_CLASS = const CompileTimeErrorCode.con1('EXTENDS_NON_CLASS', 48, "Classes can only extend other classes");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
@@ -759,7 +768,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param typeName the name of the type that cannot be extended
    * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
-  static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('EXTENDS_DISALLOWED_CLASS', 48, "Classes cannot extend '%s'");
+  static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('EXTENDS_DISALLOWED_CLASS', 49, "Classes cannot extend '%s'");
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
@@ -769,7 +778,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @see #IMPLEMENTS_DEFERRED_CLASS
    * @see #MIXIN_DEFERRED_CLASS
    */
-  static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS = const CompileTimeErrorCode.con1('EXTENDS_DEFERRED_CLASS', 49, "This class cannot extend the deferred class '%s'");
+  static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS = const CompileTimeErrorCode.con1('EXTENDS_DEFERRED_CLASS', 50, "This class cannot extend the deferred class '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
@@ -781,21 +790,21 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param requiredCount the maximum number of positional arguments
    * @param argumentCount the actual number of positional arguments given
    */
-  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS = const CompileTimeErrorCode.con1('EXTRA_POSITIONAL_ARGUMENTS', 50, "%d positional arguments expected, but %d found");
+  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS = const CompileTimeErrorCode.con1('EXTRA_POSITIONAL_ARGUMENTS', 51, "%d positional arguments expected, but %d found");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if more than one initializer corresponding to a given instance variable appears in
    * <i>k</i>'s list.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS = const CompileTimeErrorCode.con1('FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS', 51, "The field '%s' cannot be initialized twice in the same constructor");
+  static const CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS = const CompileTimeErrorCode.con1('FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS', 52, "The field '%s' cannot be initialized twice in the same constructor");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = const CompileTimeErrorCode.con1('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 52, "Fields cannot be initialized in both the parameter list and the initializers");
+  static const CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = const CompileTimeErrorCode.con1('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 53, "Fields cannot be initialized in both the parameter list and the initializers");
 
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has is initialized by
@@ -804,19 +813,19 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the field in question
    */
-  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES = const CompileTimeErrorCode.con1('FINAL_INITIALIZED_MULTIPLE_TIMES', 53, "'%s' is a final field and so can only be set once");
+  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES = const CompileTimeErrorCode.con1('FINAL_INITIALIZED_MULTIPLE_TIMES', 54, "'%s' is a final field and so can only be set once");
 
   /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZER_FACTORY_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_FACTORY_CONSTRUCTOR', 54, "Initializing formal fields cannot be used in factory constructors");
+  static const CompileTimeErrorCode FIELD_INITIALIZER_FACTORY_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_FACTORY_CONSTRUCTOR', 55, "Initializing formal fields cannot be used in factory constructors");
 
   /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 55, "Initializing formal fields can only be used in constructors");
+  static const CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 56, "Initializing formal fields can only be used in constructors");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
@@ -825,7 +834,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR', 56, "The redirecting constructor cannot have a field initializer");
+  static const CompileTimeErrorCode FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR = const CompileTimeErrorCode.con1('FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR', 57, "The redirecting constructor cannot have a field initializer");
 
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
@@ -833,7 +842,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the conflicting name of the getter and method
    */
-  static const CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME = const CompileTimeErrorCode.con1('GETTER_AND_METHOD_WITH_SAME_NAME', 57, "'%s' cannot be used to name a getter, there is already a method with the same name");
+  static const CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME = const CompileTimeErrorCode.con1('GETTER_AND_METHOD_WITH_SAME_NAME', 58, "'%s' cannot be used to name a getter, there is already a method with the same name");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
@@ -843,7 +852,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @see #EXTENDS_DEFERRED_CLASS
    * @see #MIXIN_DEFERRED_CLASS
    */
-  static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_DEFERRED_CLASS', 58, "This class cannot implement the deferred class '%s'");
+  static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_DEFERRED_CLASS', 59, "This class cannot implement the deferred class '%s'");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
@@ -862,13 +871,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param typeName the name of the type that cannot be implemented
    * @see #EXTENDS_DISALLOWED_CLASS
    */
-  static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_DISALLOWED_CLASS', 59, "Classes cannot implement '%s'");
+  static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_DISALLOWED_CLASS', 60, "Classes cannot implement '%s'");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class includes
    * type dynamic.
    */
-  static const CompileTimeErrorCode IMPLEMENTS_DYNAMIC = const CompileTimeErrorCode.con1('IMPLEMENTS_DYNAMIC', 60, "Classes cannot implement 'dynamic'");
+  static const CompileTimeErrorCode IMPLEMENTS_DYNAMIC = const CompileTimeErrorCode.con1('IMPLEMENTS_DYNAMIC', 61, "Classes cannot implement 'dynamic'");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
@@ -877,7 +886,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param typeName the name of the interface that was not found
    */
-  static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_NON_CLASS', 61, "Classes can only implement other classes");
+  static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_NON_CLASS', 62, "Classes can only implement other classes");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears more than once in
@@ -885,7 +894,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param className the name of the class that is implemented more than once
    */
-  static const CompileTimeErrorCode IMPLEMENTS_REPEATED = const CompileTimeErrorCode.con1('IMPLEMENTS_REPEATED', 62, "'%s' can only be implemented once");
+  static const CompileTimeErrorCode IMPLEMENTS_REPEATED = const CompileTimeErrorCode.con1('IMPLEMENTS_REPEATED', 63, "'%s' can only be implemented once");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the superclass of a class <i>C</i> appears
@@ -893,7 +902,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param className the name of the class that appears in both "extends" and "implements" clauses
    */
-  static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_SUPER_CLASS', 63, "'%s' cannot be used in both 'extends' and 'implements' clauses");
+  static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS = const CompileTimeErrorCode.con1('IMPLEMENTS_SUPER_CLASS', 64, "'%s' cannot be used in both 'extends' and 'implements' clauses");
 
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the right hand side of
@@ -905,14 +914,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the type in question
    */
-  static const CompileTimeErrorCode IMPLICIT_THIS_REFERENCE_IN_INITIALIZER = const CompileTimeErrorCode.con1('IMPLICIT_THIS_REFERENCE_IN_INITIALIZER', 64, "Only static members can be accessed in initializers");
-
-  /**
-   * Speculative.
-   *
-   * TODO (jwren) Revisit to remove after we know for sure that this won't be in the Spec.
-   */
-  static const CompileTimeErrorCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = const CompileTimeErrorCode.con1('IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION', 65, "The library '%s' defines a top-level function named 'loadLibrary' and therefore cannot be deferred");
+  static const CompileTimeErrorCode IMPLICIT_THIS_REFERENCE_IN_INITIALIZER = const CompileTimeErrorCode.con1('IMPLICIT_THIS_REFERENCE_IN_INITIALIZER', 65, "Only static members can be accessed in initializers");
 
   /**
    * SDK implementation libraries can be imported only by other SDK libraries.
@@ -998,31 +1000,41 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   static const CompileTimeErrorCode INVALID_ANNOTATION = const CompileTimeErrorCode.con1('INVALID_ANNOTATION', 74, "Annotation can be only constant variable or constant constructor invocation");
 
   /**
+   * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
+   * character @, followed by a constant expression that must be either a reference to a
+   * compile-time constant variable, or a call to a constant constructor.
+   *
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  static const CompileTimeErrorCode INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY = const CompileTimeErrorCode.con1('INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY', 75, "Constant values from a deferred library cannot be used as annotations");
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    *
    * See TODOs in ConstantVisitor
    */
-  static const CompileTimeErrorCode INVALID_CONSTANT = const CompileTimeErrorCode.con1('INVALID_CONSTANT', 75, "Invalid constant value");
+  static const CompileTimeErrorCode INVALID_CONSTANT = const CompileTimeErrorCode.con1('INVALID_CONSTANT', 76, "Invalid constant value");
 
   /**
    * 7.6 Constructors: It is a compile-time error if the name of a constructor is not a constructor
    * name.
    */
-  static const CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME = const CompileTimeErrorCode.con1('INVALID_CONSTRUCTOR_NAME', 76, "Invalid constructor name");
+  static const CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME = const CompileTimeErrorCode.con1('INVALID_CONSTRUCTOR_NAME', 77, "Invalid constructor name");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>M</i> is not the name of the immediately
    * enclosing class.
    */
-  static const CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS = const CompileTimeErrorCode.con1('INVALID_FACTORY_NAME_NOT_A_CLASS', 77, "The name of the immediately enclosing class expected");
+  static const CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS = const CompileTimeErrorCode.con1('INVALID_FACTORY_NAME_NOT_A_CLASS', 78, "The name of the immediately enclosing class expected");
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
    * initializer, in a factory constructor, or in a static method or variable initializer, or in the
    * initializer of an instance variable.
    */
-  static const CompileTimeErrorCode INVALID_REFERENCE_TO_THIS = const CompileTimeErrorCode.con1('INVALID_REFERENCE_TO_THIS', 78, "Invalid reference to 'this' expression");
+  static const CompileTimeErrorCode INVALID_REFERENCE_TO_THIS = const CompileTimeErrorCode.con1('INVALID_REFERENCE_TO_THIS', 79, "Invalid reference to 'this' expression");
 
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant list literal includes
@@ -1030,7 +1042,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @name the name of the type parameter
    */
-  static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST = const CompileTimeErrorCode.con1('INVALID_TYPE_ARGUMENT_IN_CONST_LIST', 79, "Constant list literals cannot include a type parameter as a type argument, such as '%s'");
+  static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST = const CompileTimeErrorCode.con1('INVALID_TYPE_ARGUMENT_IN_CONST_LIST', 80, "Constant list literals cannot include a type parameter as a type argument, such as '%s'");
 
   /**
    * 12.7 Maps: It is a compile time error if the type arguments of a constant map literal include a
@@ -1038,7 +1050,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @name the name of the type parameter
    */
-  static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP = const CompileTimeErrorCode.con1('INVALID_TYPE_ARGUMENT_IN_CONST_MAP', 80, "Constant map literals cannot include a type parameter as a type argument, such as '%s'");
+  static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP = const CompileTimeErrorCode.con1('INVALID_TYPE_ARGUMENT_IN_CONST_MAP', 81, "Constant map literals cannot include a type parameter as a type argument, such as '%s'");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -1053,7 +1065,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param uri the URI that is invalid
    * @see #URI_DOES_NOT_EXIST
    */
-  static const CompileTimeErrorCode INVALID_URI = const CompileTimeErrorCode.con1('INVALID_URI', 81, "Invalid URI syntax: '%s'");
+  static const CompileTimeErrorCode INVALID_URI = const CompileTimeErrorCode.con1('INVALID_URI', 82, "Invalid URI syntax: '%s'");
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
@@ -1064,7 +1076,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param labelName the name of the unresolvable label
    */
-  static const CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = const CompileTimeErrorCode.con1('LABEL_IN_OUTER_SCOPE', 82, "Cannot reference label '%s' declared in an outer method");
+  static const CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = const CompileTimeErrorCode.con1('LABEL_IN_OUTER_SCOPE', 83, "Cannot reference label '%s' declared in an outer method");
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
@@ -1075,7 +1087,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param labelName the name of the unresolvable label
    */
-  static const CompileTimeErrorCode LABEL_UNDEFINED = const CompileTimeErrorCode.con1('LABEL_UNDEFINED', 83, "Cannot reference undefined label '%s'");
+  static const CompileTimeErrorCode LABEL_UNDEFINED = const CompileTimeErrorCode.con1('LABEL_UNDEFINED', 84, "Cannot reference undefined label '%s'");
 
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
@@ -1089,7 +1101,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 84, "The element type '%s' cannot be assigned to the list type '%s'");
+  static const CompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 85, "The element type '%s' cannot be assigned to the list type '%s'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -1103,7 +1115,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 85, "The element type '%s' cannot be assigned to the map key type '%s'");
+  static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 86, "The element type '%s' cannot be assigned to the map key type '%s'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -1117,13 +1129,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 86, "The element type '%s' cannot be assigned to the map value type '%s'");
+  static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = const CompileTimeErrorCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 87, "The element type '%s' cannot be assigned to the map value type '%s'");
 
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member with the same name
    * as <i>C</i>.
    */
-  static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME = const CompileTimeErrorCode.con1('MEMBER_WITH_CLASS_NAME', 87, "Class members cannot have the same name as the enclosing class");
+  static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME = const CompileTimeErrorCode.con1('MEMBER_WITH_CLASS_NAME', 88, "Class members cannot have the same name as the enclosing class");
 
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
@@ -1131,17 +1143,17 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the conflicting name of the getter and method
    */
-  static const CompileTimeErrorCode METHOD_AND_GETTER_WITH_SAME_NAME = const CompileTimeErrorCode.con1('METHOD_AND_GETTER_WITH_SAME_NAME', 88, "'%s' cannot be used to name a method, there is already a getter with the same name");
+  static const CompileTimeErrorCode METHOD_AND_GETTER_WITH_SAME_NAME = const CompileTimeErrorCode.con1('METHOD_AND_GETTER_WITH_SAME_NAME', 89, "'%s' cannot be used to name a method, there is already a getter with the same name");
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
    */
-  static const CompileTimeErrorCode MISSING_CONST_IN_LIST_LITERAL = const CompileTimeErrorCode.con1('MISSING_CONST_IN_LIST_LITERAL', 89, "List literals must be prefixed with 'const' when used as a constant expression");
+  static const CompileTimeErrorCode MISSING_CONST_IN_LIST_LITERAL = const CompileTimeErrorCode.con1('MISSING_CONST_IN_LIST_LITERAL', 90, "List literals must be prefixed with 'const' when used as a constant expression");
 
   /**
    * 12.1 Constants: A constant expression is ... a constant map literal.
    */
-  static const CompileTimeErrorCode MISSING_CONST_IN_MAP_LITERAL = const CompileTimeErrorCode.con1('MISSING_CONST_IN_MAP_LITERAL', 90, "Map literals must be prefixed with 'const' when used as a constant expression");
+  static const CompileTimeErrorCode MISSING_CONST_IN_MAP_LITERAL = const CompileTimeErrorCode.con1('MISSING_CONST_IN_MAP_LITERAL', 91, "Map literals must be prefixed with 'const' when used as a constant expression");
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
@@ -1149,7 +1161,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param typeName the name of the mixin that is invalid
    */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR = const CompileTimeErrorCode.con1('MIXIN_DECLARES_CONSTRUCTOR', 91, "The class '%s' cannot be used as a mixin because it declares a constructor");
+  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR = const CompileTimeErrorCode.con1('MIXIN_DECLARES_CONSTRUCTOR', 92, "The class '%s' cannot be used as a mixin because it declares a constructor");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if the with clause of a mixin application
@@ -1159,7 +1171,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @see #EXTENDS_DEFERRED_CLASS
    * @see #IMPLEMENTS_DEFERRED_CLASS
    */
-  static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = const CompileTimeErrorCode.con1('MIXIN_DEFERRED_CLASS', 92, "This class cannot mixin the deferred class '%s'");
+  static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = const CompileTimeErrorCode.con1('MIXIN_DEFERRED_CLASS', 93, "This class cannot mixin the deferred class '%s'");
 
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class whose superclass is not
@@ -1167,7 +1179,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param typeName the name of the mixin that is invalid
    */
-  static const CompileTimeErrorCode MIXIN_INHERITS_FROM_NOT_OBJECT = const CompileTimeErrorCode.con1('MIXIN_INHERITS_FROM_NOT_OBJECT', 93, "The class '%s' cannot be used as a mixin because it extends a class other than Object");
+  static const CompileTimeErrorCode MIXIN_INHERITS_FROM_NOT_OBJECT = const CompileTimeErrorCode.con1('MIXIN_INHERITS_FROM_NOT_OBJECT', 94, "The class '%s' cannot be used as a mixin because it extends a class other than Object");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
@@ -1186,43 +1198,43 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param typeName the name of the type that cannot be extended
    * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
-  static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('MIXIN_OF_DISALLOWED_CLASS', 94, "Classes cannot mixin '%s'");
+  static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS = const CompileTimeErrorCode.con1('MIXIN_OF_DISALLOWED_CLASS', 95, "Classes cannot mixin '%s'");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not denote a class or mixin
    * available in the immediately enclosing scope.
    */
-  static const CompileTimeErrorCode MIXIN_OF_NON_CLASS = const CompileTimeErrorCode.con1('MIXIN_OF_NON_CLASS', 95, "Classes can only mixin other classes");
+  static const CompileTimeErrorCode MIXIN_OF_NON_CLASS = const CompileTimeErrorCode.con1('MIXIN_OF_NON_CLASS', 96, "Classes can only mixin other classes");
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin refers to super.
    */
-  static const CompileTimeErrorCode MIXIN_REFERENCES_SUPER = const CompileTimeErrorCode.con1('MIXIN_REFERENCES_SUPER', 96, "The class '%s' cannot be used as a mixin because it references 'super'");
+  static const CompileTimeErrorCode MIXIN_REFERENCES_SUPER = const CompileTimeErrorCode.con1('MIXIN_REFERENCES_SUPER', 97, "The class '%s' cannot be used as a mixin because it references 'super'");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not denote a class available
    * in the immediately enclosing scope.
    */
-  static const CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS = const CompileTimeErrorCode.con1('MIXIN_WITH_NON_CLASS_SUPERCLASS', 97, "Mixin can only be applied to class");
+  static const CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS = const CompileTimeErrorCode.con1('MIXIN_WITH_NON_CLASS_SUPERCLASS', 98, "Mixin can only be applied to class");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
    */
-  static const CompileTimeErrorCode MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS = const CompileTimeErrorCode.con1('MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS', 98, "Constructor may have at most one 'this' redirection");
+  static const CompileTimeErrorCode MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS = const CompileTimeErrorCode.con1('MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS', 99, "Constructor may have at most one 'this' redirection");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Then <i>k</i> may
    * include at most one superinitializer in its initializer list or a compile time error occurs.
    */
-  static const CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS = const CompileTimeErrorCode.con1('MULTIPLE_SUPER_INITIALIZERS', 99, "Constructor may have at most one 'super' initializer");
+  static const CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS = const CompileTimeErrorCode.con1('MULTIPLE_SUPER_INITIALIZERS', 100, "Constructor may have at most one 'super' initializer");
 
   /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
    * character @, followed by a constant expression that must be either a reference to a
    * compile-time constant variable, or a call to a constant constructor.
    */
-  static const CompileTimeErrorCode NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS = const CompileTimeErrorCode.con1('NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS', 100, "Annotation creation must have arguments");
+  static const CompileTimeErrorCode NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS = const CompileTimeErrorCode.con1('NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS', 101, "Annotation creation must have arguments");
 
   /**
    * 7.6.1 Generative Constructors: If no superinitializer is provided, an implicit superinitializer
@@ -1232,7 +1244,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i> does not declare a
    * generative constructor named <i>S</i> (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT = const CompileTimeErrorCode.con1('NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT', 101, "The class '%s' does not have a default constructor");
+  static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT = const CompileTimeErrorCode.con1('NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT', 102, "The class '%s' does not have a default constructor");
 
   /**
    * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it implicitly has a
@@ -1241,13 +1253,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i> does not declare a
    * generative constructor named <i>S</i> (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT = const CompileTimeErrorCode.con1('NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT', 102, "The class '%s' does not have a default constructor");
+  static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT = const CompileTimeErrorCode.con1('NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT', 103, "The class '%s' does not have a default constructor");
 
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant map literal that has
    * no explicit type arguments appears in a place where a statement is expected.
    */
-  static const CompileTimeErrorCode NON_CONST_MAP_AS_EXPRESSION_STATEMENT = const CompileTimeErrorCode.con1('NON_CONST_MAP_AS_EXPRESSION_STATEMENT', 103, "A non-constant map literal without type arguments cannot be used as an expression statement");
+  static const CompileTimeErrorCode NON_CONST_MAP_AS_EXPRESSION_STATEMENT = const CompileTimeErrorCode.con1('NON_CONST_MAP_AS_EXPRESSION_STATEMENT', 104, "A non-constant map literal without type arguments cannot be used as an expression statement");
 
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) { label<sub>11</sub> &hellip;
@@ -1257,45 +1269,58 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip; label<sub>njn</sub> case e<sub>n</sub>:
    * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
    * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
+   *
+   * TODO (jwren) For this and all other NON_CONSTANT_* error codes we need a corresponding
+   * NON_CONSTANT_*_FROM_DEFERRED_LIBRARY, see NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY or
+   * CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION = const CompileTimeErrorCode.con1('NON_CONSTANT_CASE_EXPRESSION', 104, "Case expressions must be constant");
+  static const CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION = const CompileTimeErrorCode.con1('NON_CONSTANT_CASE_EXPRESSION', 105, "Case expressions must be constant");
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
    * parameter is not a compile-time constant.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE = const CompileTimeErrorCode.con1('NON_CONSTANT_DEFAULT_VALUE', 105, "Default values of an optional parameter must be constant");
+  static const CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE = const CompileTimeErrorCode.con1('NON_CONSTANT_DEFAULT_VALUE', 106, "Default values of an optional parameter must be constant");
+
+  /**
+   * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
+   * parameter is not a compile-time constant.
+   *
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  static const CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY = const CompileTimeErrorCode.con1('NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY', 107, "Constant values from a deferred library cannot be used as a default parameter value");
 
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list literal is not a
    * compile-time constant.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT = const CompileTimeErrorCode.con1('NON_CONSTANT_LIST_ELEMENT', 106, "'const' lists must have all constant values");
+  static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT = const CompileTimeErrorCode.con1('NON_CONSTANT_LIST_ELEMENT', 108, "'const' lists must have all constant values");
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_MAP_KEY = const CompileTimeErrorCode.con1('NON_CONSTANT_MAP_KEY', 107, "The keys in a map must be constant");
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_KEY = const CompileTimeErrorCode.con1('NON_CONSTANT_MAP_KEY', 109, "The keys in a map must be constant");
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE = const CompileTimeErrorCode.con1('NON_CONSTANT_MAP_VALUE', 108, "The values in a 'const' map must be constant");
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE = const CompileTimeErrorCode.con1('NON_CONSTANT_MAP_VALUE', 110, "The values in a 'const' map must be constant");
 
   /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
    * character @, followed by a constant expression that must be either a reference to a
    * compile-time constant variable, or a call to a constant constructor.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR = const CompileTimeErrorCode.con1('NON_CONSTANT_ANNOTATION_CONSTRUCTOR', 109, "Annotation creation can use only 'const' constructor");
+  static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR = const CompileTimeErrorCode.con1('NON_CONSTANT_ANNOTATION_CONSTRUCTOR', 111, "Annotation creation can use only 'const' constructor");
 
   /**
    * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a
    * constant constructor must be a potentially constant expression, or a compile-time error occurs.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER = const CompileTimeErrorCode.con1('NON_CONSTANT_VALUE_IN_INITIALIZER', 110, "Initializer expressions in constant constructors must be constants");
+  static const CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER = const CompileTimeErrorCode.con1('NON_CONSTANT_VALUE_IN_INITIALIZER', 112, "Initializer expressions in constant constructors must be constants");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
@@ -1306,7 +1331,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param requiredCount the expected number of required arguments
    * @param argumentCount the actual number of positional arguments given
    */
-  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS = const CompileTimeErrorCode.con1('NOT_ENOUGH_REQUIRED_ARGUMENTS', 111, "%d required argument(s) expected, but %d found");
+  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS = const CompileTimeErrorCode.con1('NOT_ENOUGH_REQUIRED_ARGUMENTS', 113, "%d required argument(s) expected, but %d found");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
@@ -1314,17 +1339,17 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode.con1('NON_GENERATIVE_CONSTRUCTOR', 112, "The generative constructor '%s' expected, but factory found");
+  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode.con1('NON_GENERATIVE_CONSTRUCTOR', 114, "The generative constructor '%s' expected, but factory found");
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.
    */
-  static const CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS = const CompileTimeErrorCode.con1('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS', 113, "");
+  static const CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS = const CompileTimeErrorCode.con1('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS', 115, "");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional parameter in an operator.
    */
-  static const CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR = const CompileTimeErrorCode.con1('OPTIONAL_PARAMETER_IN_OPERATOR', 114, "Optional parameters are not allowed when defining an operator");
+  static const CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR = const CompileTimeErrorCode.con1('OPTIONAL_PARAMETER_IN_OPERATOR', 116, "Optional parameters are not allowed when defining an operator");
 
   /**
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
@@ -1332,25 +1357,25 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param uri the uri pointing to a non-library declaration
    */
-  static const CompileTimeErrorCode PART_OF_NON_PART = const CompileTimeErrorCode.con1('PART_OF_NON_PART', 115, "The included part '%s' must have a part-of directive");
+  static const CompileTimeErrorCode PART_OF_NON_PART = const CompileTimeErrorCode.con1('PART_OF_NON_PART', 117, "The included part '%s' must have a part-of directive");
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a top-level member
    * named <i>p</i>.
    */
-  static const CompileTimeErrorCode PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER = const CompileTimeErrorCode.con1('PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER', 116, "The name '%s' is already used as an import prefix and cannot be used to name a top-level element");
+  static const CompileTimeErrorCode PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER = const CompileTimeErrorCode.con1('PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER', 118, "The name '%s' is already used as an import prefix and cannot be used to name a top-level element");
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named optional parameter
    * begins with an '_' character.
    */
-  static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER = const CompileTimeErrorCode.con1('PRIVATE_OPTIONAL_PARAMETER', 117, "Named optional parameters cannot start with an underscore");
+  static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER = const CompileTimeErrorCode.con1('PRIVATE_OPTIONAL_PARAMETER', 119, "Named optional parameters cannot start with an underscore");
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time constant expression
    * depends on itself.
    */
-  static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT = const CompileTimeErrorCode.con1('RECURSIVE_COMPILE_TIME_CONSTANT', 118, "");
+  static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT = const CompileTimeErrorCode.con1('RECURSIVE_COMPILE_TIME_CONSTANT', 120, "");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
@@ -1361,13 +1386,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * https://code.google.com/p/dart/issues/detail?id=954
    */
-  static const CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT = const CompileTimeErrorCode.con1('RECURSIVE_CONSTRUCTOR_REDIRECT', 119, "Cycle in redirecting generative constructors");
+  static const CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT = const CompileTimeErrorCode.con1('RECURSIVE_CONSTRUCTOR_REDIRECT', 121, "Cycle in redirecting generative constructors");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory constructor redirects to
    * itself, either directly or indirectly via a sequence of redirections.
    */
-  static const CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT = const CompileTimeErrorCode.con1('RECURSIVE_FACTORY_REDIRECT', 120, "Cycle in redirecting factory constructors");
+  static const CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT = const CompileTimeErrorCode.con1('RECURSIVE_FACTORY_REDIRECT', 122, "Cycle in redirecting factory constructors");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
@@ -1380,7 +1405,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param className the name of the class that implements itself recursively
    * @param strImplementsPath a string representation of the implements loop
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE', 121, "'%s' cannot be a superinterface of itself: %s");
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE', 123, "'%s' cannot be a superinterface of itself: %s");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
@@ -1392,7 +1417,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param className the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS', 122, "'%s' cannot extend itself");
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS', 124, "'%s' cannot extend itself");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
@@ -1404,49 +1429,49 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param className the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS', 123, "'%s' cannot implement itself");
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS = const CompileTimeErrorCode.con1('RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS', 125, "'%s' cannot implement itself");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
-  static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR = const CompileTimeErrorCode.con1('REDIRECT_TO_MISSING_CONSTRUCTOR', 124, "The constructor '%s' could not be found in '%s'");
+  static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR = const CompileTimeErrorCode.con1('REDIRECT_TO_MISSING_CONSTRUCTOR', 126, "The constructor '%s' could not be found in '%s'");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
-  static const CompileTimeErrorCode REDIRECT_TO_NON_CLASS = const CompileTimeErrorCode.con1('REDIRECT_TO_NON_CLASS', 125, "The name '%s' is not a type and cannot be used in a redirected constructor");
+  static const CompileTimeErrorCode REDIRECT_TO_NON_CLASS = const CompileTimeErrorCode.con1('REDIRECT_TO_NON_CLASS', 127, "The name '%s' is not a type and cannot be used in a redirected constructor");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
-  static const CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = const CompileTimeErrorCode.con1('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 126, "Constant factory constructor cannot delegate to a non-constant constructor");
+  static const CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = const CompileTimeErrorCode.con1('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 128, "Constant factory constructor cannot delegate to a non-constant constructor");
 
   /**
    * 5 Variables: A local variable may only be referenced at a source code location that is after
    * its initializer, if any, is complete, or a compile-time error occurs.
    */
-  static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION = const CompileTimeErrorCode.con1('REFERENCED_BEFORE_DECLARATION', 127, "Local variables cannot be referenced before they are declared");
+  static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION = const CompileTimeErrorCode.con1('REFERENCED_BEFORE_DECLARATION', 129, "Local variables cannot be referenced before they are declared");
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
    * enclosed within a on-catch clause.
    */
-  static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = const CompileTimeErrorCode.con1('RETHROW_OUTSIDE_CATCH', 128, "rethrow must be inside of a catch clause");
+  static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = const CompileTimeErrorCode.con1('RETHROW_OUTSIDE_CATCH', 130, "rethrow must be inside of a catch clause");
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
-  static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode.con1('RETURN_IN_GENERATIVE_CONSTRUCTOR', 129, "Constructors cannot return a value");
+  static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode.con1('RETURN_IN_GENERATIVE_CONSTRUCTOR', 131, "Constructors cannot return a value");
 
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred import is used in
    * another import clause.
    */
-  static const CompileTimeErrorCode SHARED_DEFERRED_PREFIX = const CompileTimeErrorCode.con1('SHARED_DEFERRED_PREFIX', 130, "The prefix of a deferred import cannot be used in other import directives");
+  static const CompileTimeErrorCode SHARED_DEFERRED_PREFIX = const CompileTimeErrorCode.con1('SHARED_DEFERRED_PREFIX', 132, "The prefix of a deferred import cannot be used in other import directives");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -1456,19 +1481,19 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * initializer list, in class Object, in a factory constructor, or in a static method or variable
    * initializer.
    */
-  static const CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = const CompileTimeErrorCode.con1('SUPER_IN_INVALID_CONTEXT', 131, "Invalid context for 'super' invocation");
+  static const CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = const CompileTimeErrorCode.con1('SUPER_IN_INVALID_CONTEXT', 133, "Invalid context for 'super' invocation");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
    */
-  static const CompileTimeErrorCode SUPER_IN_REDIRECTING_CONSTRUCTOR = const CompileTimeErrorCode.con1('SUPER_IN_REDIRECTING_CONSTRUCTOR', 132, "The redirecting constructor cannot have a 'super' initializer");
+  static const CompileTimeErrorCode SUPER_IN_REDIRECTING_CONSTRUCTOR = const CompileTimeErrorCode.con1('SUPER_IN_REDIRECTING_CONSTRUCTOR', 134, "The redirecting constructor cannot have a 'super' initializer");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if a generative constructor of class Object includes a superinitializer.
    */
-  static const CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = const CompileTimeErrorCode.con1('SUPER_INITIALIZER_IN_OBJECT', 133, "");
+  static const CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = const CompileTimeErrorCode.con1('SUPER_INITIALIZER_IN_OBJECT', 135, "");
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
@@ -1487,19 +1512,19 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param boundingTypeName the name of the bounding type
    * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
-  static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = const CompileTimeErrorCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 134, "'%s' does not extend '%s'");
+  static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = const CompileTimeErrorCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 136, "'%s' does not extend '%s'");
 
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via another typedef, is a
    * compile time error.
    */
-  static const CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF = const CompileTimeErrorCode.con1('TYPE_ALIAS_CANNOT_REFERENCE_ITSELF', 135, "Type alias cannot reference itself directly or recursively via another typedef");
+  static const CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF = const CompileTimeErrorCode.con1('TYPE_ALIAS_CANNOT_REFERENCE_ITSELF', 137, "Type alias cannot reference itself directly or recursively via another typedef");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
    * scope, optionally followed by type arguments.
    */
-  static const CompileTimeErrorCode UNDEFINED_CLASS = const CompileTimeErrorCode.con1('UNDEFINED_CLASS', 136, "Undefined class '%s'");
+  static const CompileTimeErrorCode UNDEFINED_CLASS = const CompileTimeErrorCode.con1('UNDEFINED_CLASS', 138, "Undefined class '%s'");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
@@ -1507,7 +1532,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = const CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 137, "The class '%s' does not have a generative constructor '%s'");
+  static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = const CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 139, "The class '%s' does not have a generative constructor '%s'");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
@@ -1515,7 +1540,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = const CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT', 138, "The class '%s' does not have a default generative constructor");
+  static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = const CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT', 140, "The class '%s' does not have a default generative constructor");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -1527,7 +1552,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the requested named parameter
    */
-  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = const CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 139, "The named parameter '%s' is not defined");
+  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = const CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 141, "The named parameter '%s' is not defined");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -1542,7 +1567,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param uri the URI pointing to a non-existent file
    * @see #INVALID_URI
    */
-  static const CompileTimeErrorCode URI_DOES_NOT_EXIST = const CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 140, "Target of URI does not exist: '%s'");
+  static const CompileTimeErrorCode URI_DOES_NOT_EXIST = const CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 142, "Target of URI does not exist: '%s'");
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
@@ -1554,7 +1579,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
-  static const CompileTimeErrorCode URI_WITH_INTERPOLATION = const CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 141, "URIs cannot use string interpolation");
+  static const CompileTimeErrorCode URI_WITH_INTERPOLATION = const CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 143, "URIs cannot use string interpolation");
 
   /**
    * 7.1.1 Operators: It is a compile-time error if the arity of the user-declared operator []= is
@@ -1567,7 +1592,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param expectedNumberOfParameters the number of parameters expected
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 142, "Operator '%s' should declare exactly %d parameter(s), but %d found");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 144, "Operator '%s' should declare exactly %d parameter(s), but %d found");
 
   /**
    * 7.1.1 Operators: It is a compile time error if the arity of the user-declared operator - is not
@@ -1575,13 +1600,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 143, "Operator '-' should declare 0 or 1 parameter, but %d found");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 145, "Operator '-' should declare 0 or 1 parameter, but %d found");
 
   /**
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 144, "Setters should declare exactly one required parameter");
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = const CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 146, "Setters should declare exactly one required parameter");
 
   static const List<CompileTimeErrorCode> values = const [
       AMBIGUOUS_EXPORT,
@@ -1605,6 +1630,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       CONST_FORMAL_PARAMETER,
       CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+      CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
       CONST_INSTANCE_FIELD,
       CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
       CONST_NOT_INITIALIZED,
@@ -1649,7 +1675,6 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       IMPLEMENTS_REPEATED,
       IMPLEMENTS_SUPER_CLASS,
       IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-      IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
       IMPORT_INTERNAL_LIBRARY,
       IMPORT_OF_NON_LIBRARY,
       INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -1659,6 +1684,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       INITIALIZING_FORMAL_FOR_STATIC_FIELD,
       INSTANCE_MEMBER_ACCESS_FROM_STATIC,
       INVALID_ANNOTATION,
+      INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
       INVALID_CONSTANT,
       INVALID_CONSTRUCTOR_NAME,
       INVALID_FACTORY_NAME_NOT_A_CLASS,
@@ -1690,6 +1716,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
       NON_CONSTANT_CASE_EXPRESSION,
       NON_CONSTANT_DEFAULT_VALUE,
+      NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
       NON_CONSTANT_LIST_ELEMENT,
       NON_CONSTANT_MAP_KEY,
       NON_CONSTANT_MAP_VALUE,
@@ -2140,6 +2167,11 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   static const HintCode IS_NOT_INT = const HintCode.con1('IS_NOT_INT', 10, "When compiled to JS, this test might return false when the left hand side is a double");
 
   /**
+   * Deferred libraries shouldn't define a top level function 'loadLibrary'.
+   */
+  static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = const HintCode.con1('IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION', 11, "The library '%s' defines a top-level function named 'loadLibrary' which is hidden by deferring this library");
+
+  /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#INVALID_ASSIGNMENT]
    * would have been generated, if we used propagated information for the warnings.
    *
@@ -2147,7 +2179,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param lhsTypeName the name of the left hand side type
    * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
    */
-  static const HintCode INVALID_ASSIGNMENT = const HintCode.con1('INVALID_ASSIGNMENT', 11, "A value of type '%s' cannot be assigned to a variable of type '%s'");
+  static const HintCode INVALID_ASSIGNMENT = const HintCode.con1('INVALID_ASSIGNMENT', 12, "A value of type '%s' cannot be assigned to a variable of type '%s'");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do not have a non-void
@@ -2156,39 +2188,39 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param returnType the name of the declared return type
    */
-  static const HintCode MISSING_RETURN = const HintCode.con2('MISSING_RETURN', 12, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
+  static const HintCode MISSING_RETURN = const HintCode.con2('MISSING_RETURN', 13, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
 
   /**
    * A getter with the override annotation does not override an existing getter.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 13, "Getter does not override an inherited getter");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 14, "Getter does not override an inherited getter");
 
   /**
    * A method with the override annotation does not override an existing method.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 14, "Method does not override an inherited method");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 15, "Method does not override an inherited method");
 
   /**
    * A setter with the override annotation does not override an existing setter.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 15, "Setter does not override an inherited setter");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 16, "Setter does not override an inherited setter");
 
   /**
    * Hint for classes that override equals, but not hashCode.
    *
    * @param className the name of the current class
    */
-  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 16, "The class '%s' overrides 'operator==', but not 'get hashCode'");
+  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 17, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
-  static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 17, "Tests for non-null should be done with '!= null'");
+  static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 18, "Tests for non-null should be done with '!= null'");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
-  static const HintCode TYPE_CHECK_IS_NULL = const HintCode.con1('TYPE_CHECK_IS_NULL', 18, "Tests for null should be done with '== null'");
+  static const HintCode TYPE_CHECK_IS_NULL = const HintCode.con1('TYPE_CHECK_IS_NULL', 19, "Tests for null should be done with '== null'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
@@ -2200,7 +2232,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  static const HintCode UNDEFINED_GETTER = const HintCode.con1('UNDEFINED_GETTER', 19, "There is no such getter '%s' in '%s'");
+  static const HintCode UNDEFINED_GETTER = const HintCode.con1('UNDEFINED_GETTER', 20, "There is no such getter '%s' in '%s'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
@@ -2210,7 +2242,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  static const HintCode UNDEFINED_METHOD = const HintCode.con1('UNDEFINED_METHOD', 20, "The method '%s' is not defined for the class '%s'");
+  static const HintCode UNDEFINED_METHOD = const HintCode.con1('UNDEFINED_METHOD', 21, "The method '%s' is not defined for the class '%s'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
@@ -2220,7 +2252,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  static const HintCode UNDEFINED_OPERATOR = const HintCode.con1('UNDEFINED_OPERATOR', 21, "There is no such operator '%s' in '%s'");
+  static const HintCode UNDEFINED_OPERATOR = const HintCode.con1('UNDEFINED_OPERATOR', 22, "There is no such operator '%s' in '%s'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
@@ -2232,27 +2264,27 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  static const HintCode UNDEFINED_SETTER = const HintCode.con1('UNDEFINED_SETTER', 22, "There is no such setter '%s' in '%s'");
+  static const HintCode UNDEFINED_SETTER = const HintCode.con1('UNDEFINED_SETTER', 23, "There is no such setter '%s' in '%s'");
 
   /**
    * Unnecessary cast.
    */
-  static const HintCode UNNECESSARY_CAST = const HintCode.con1('UNNECESSARY_CAST', 23, "Unnecessary cast");
+  static const HintCode UNNECESSARY_CAST = const HintCode.con1('UNNECESSARY_CAST', 24, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 24, "Unnecessary type check, the result is always false");
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 25, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 25, "Unnecessary type check, the result is always true");
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 26, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static const HintCode UNUSED_IMPORT = const HintCode.con1('UNUSED_IMPORT', 26, "Unused import");
+  static const HintCode UNUSED_IMPORT = const HintCode.con1('UNUSED_IMPORT', 27, "Unused import");
 
   /**
    * Hint for cases where the source expects a method or function to return a non-void result, but
@@ -2260,7 +2292,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param name the name of the method or function that returns void
    */
-  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 27, "The result of '%s' is being used, even though it is declared to be 'void'");
+  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 28, "The result of '%s' is being used, even though it is declared to be 'void'");
 
   static const List<HintCode> values = const [
       ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -2274,6 +2306,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       IS_INT,
       IS_NOT_DOUBLE,
       IS_NOT_INT,
+      IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
       INVALID_ASSIGNMENT,
       MISSING_RETURN,
       OVERRIDE_ON_NON_OVERRIDING_GETTER,

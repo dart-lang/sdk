@@ -24,6 +24,7 @@ class AbstractType;
 class ApiState;
 class Array;
 class Class;
+class Code;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
@@ -39,6 +40,7 @@ class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
 class InterruptableThreadState;
+class Library;
 class LongJumpScope;
 class MessageHandler;
 class Mutex;
@@ -80,16 +82,19 @@ class IsolateVisitor {
 };
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
+  V(AbstractType)                                                              \
   V(Array)                                                                     \
   V(Class)                                                                     \
+  V(Code)                                                                      \
   V(Error)                                                                     \
   V(Field)                                                                     \
   V(Function)                                                                  \
+  V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
+  V(Library)                                                                   \
   V(Object)                                                                    \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
-  V(AbstractType)                                                              \
   V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {
@@ -490,7 +495,6 @@ class Isolate : public BaseIsolate {
 
   RawUserTag* current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
-  void clear_current_tag();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \

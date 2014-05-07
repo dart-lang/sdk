@@ -96,6 +96,7 @@ mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
+mirrors/private_types_test: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_function_type_test: RuntimeError # Issue 12607
@@ -118,7 +119,7 @@ mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -128,7 +129,7 @@ mirrors/null_test: Fail # http://dartbug.com/16831
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
+[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 

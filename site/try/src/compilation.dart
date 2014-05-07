@@ -293,7 +293,10 @@ self.importScripts("$url");
   void consolePrint(message) {
     if (window.parent != window) {
       // Test support.
-      window.parent.postMessage('$message\n', '/');
+      // TODO(ahe): Use '/' instead of '*' when Firefox is upgraded to version
+      // 30 across build bots.  Support for '/' was added in version 29, and we
+      // support the two most recent versions.
+      window.parent.postMessage('$message\n', '*');
     }
     console.appendText('$message\n');
   }

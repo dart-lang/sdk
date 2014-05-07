@@ -395,6 +395,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 }
 
 
+// Tries to merge MathUnary operations, in this case sinus and cosinus.
 void FlowGraphOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
   if (!FlowGraphCompiler::SupportsSinCos()) {
@@ -411,8 +412,8 @@ void FlowGraphOptimizer::TryMergeMathUnary(
       continue;
     }
     const intptr_t kind = curr_instr->kind();
-    ASSERT((kind == MethodRecognizer::kMathSin) ||
-           (kind == MethodRecognizer::kMathCos));
+    ASSERT((kind == MathUnaryInstr::kSin) ||
+           (kind == MathUnaryInstr::kCos));
     // Check if there is sin/cos binop with same inputs.
     const intptr_t other_kind = (kind == MethodRecognizer::kMathSin) ?
         MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
@@ -488,8 +489,8 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
         }
       } else if (it.Current()->IsMathUnary()) {
         MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
-        if ((math_unary->kind() == MethodRecognizer::kMathSin) ||
-            (math_unary->kind() == MethodRecognizer::kMathCos)) {
+        if ((math_unary->kind() == MathUnaryInstr::kSin) ||
+            (math_unary->kind() == MathUnaryInstr::kCos)) {
           if (math_unary->HasUses()) {
             sin_cos_merge.Add(math_unary);
           }
@@ -4100,11 +4101,24 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
-      (recognized_kind == MethodRecognizer::kMathSin) ||
-      (recognized_kind == MethodRecognizer::kMathCos)) {
+  MathUnaryInstr::MathUnaryKind unary_kind;
+  switch (recognized_kind) {
+    case MethodRecognizer::kMathSqrt:
+      unary_kind = MathUnaryInstr::kSqrt;
+      break;
+    case MethodRecognizer::kMathSin:
+      unary_kind = MathUnaryInstr::kSin;
+      break;
+    case MethodRecognizer::kMathCos:
+      unary_kind = MathUnaryInstr::kCos;
+      break;
+    default:
+      unary_kind = MathUnaryInstr::kIllegal;
+      break;
+  }
+  if (unary_kind != MathUnaryInstr::kIllegal) {
     MathUnaryInstr* math_unary =
-        new MathUnaryInstr(recognized_kind,
+        new MathUnaryInstr(unary_kind,
                            new Value(call->ArgumentAt(0)),
                            call->deopt_id());
     ReplaceCall(call, math_unary);
@@ -4365,7 +4379,8 @@ class RangeAnalysis : public ValueObject {
 
   void ConstrainValueAfterBranch(Definition* defn, Value* use);
   void ConstrainValueAfterCheckArrayBound(Definition* defn,
-                                          CheckArrayBoundInstr* check);
+                                          CheckArrayBoundInstr* check,
+                                          intptr_t use_index);
 
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
@@ -4657,19 +4672,28 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
     } else if (use->instruction()->IsCheckArrayBound()) {
       ConstrainValueAfterCheckArrayBound(
           defn,
-          use->instruction()->AsCheckArrayBound());
+          use->instruction()->AsCheckArrayBound(),
+          use->use_index());
     }
   }
 }
 
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
-    Definition* defn, CheckArrayBoundInstr* check) {
-  Definition* length = check->length()->definition();
-
-  Range* constraint_range = new Range(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromDefinition(length, -1));
+    Definition* defn, CheckArrayBoundInstr* check, intptr_t use_index) {
+  Range* constraint_range = NULL;
+  if (use_index == CheckArrayBoundInstr::kIndexPos) {
+    Definition* length = check->length()->definition();
+    constraint_range = new Range(
+        RangeBoundary::FromConstant(0),
+        RangeBoundary::FromDefinition(length, -1));
+  } else {
+    ASSERT(use_index == CheckArrayBoundInstr::kLengthPos);
+    Definition* index = check->index()->definition();
+    constraint_range = new Range(
+        RangeBoundary::FromDefinition(index, 1),
+        RangeBoundary::MaxSmi());
+  }
   InsertConstraintFor(defn, constraint_range, check);
 }
 
@@ -7159,6 +7183,7 @@ void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
   cp.Analyze();
   cp.VisitBranches();
   cp.Transform();
+  cp.EliminateRedundantBranches();
 }
 
 
@@ -7594,6 +7619,9 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
                                           Integer::Cast(left),
                                           Integer::Cast(right));
       SetValue(instr, Bool::Get(result));
+    } else if (left.IsDouble() && right.IsDouble()) {
+      // TODO(srdjan): Implement.
+      SetValue(instr, non_constant_);
     } else {
       SetValue(instr, non_constant_);
     }
@@ -8062,6 +8090,11 @@ void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitUnboxedConstant(UnboxedConstantInstr* instr) {
+  SetValue(instr, instr->value());
+}
+
+
 void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
   // Should not be used outside of range analysis.
   UNREACHABLE();
@@ -8433,6 +8466,85 @@ void ConstantPropagator::VisitBranches() {
 }
 
 
+static bool IsEmptyBlock(BlockEntryInstr* block) {
+  return block->next()->IsGoto() &&
+      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
+}
+
+
+// Traverses a chain of empty blocks and returns the first reachable non-empty
+// block that is not dominated by the start block. The empty blocks are added
+// to the supplied bit vector.
+static BlockEntryInstr* FindFirstNonEmptySuccessor(
+    TargetEntryInstr* block,
+    BitVector* empty_blocks) {
+  BlockEntryInstr* current = block;
+  while (IsEmptyBlock(current) && block->Dominates(current)) {
+    ASSERT(!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
+    empty_blocks->Add(current->preorder_number());
+    current = current->next()->AsGoto()->successor();
+  }
+  return current;
+}
+
+
+void ConstantPropagator::EliminateRedundantBranches() {
+  // Canonicalize branches that have no side-effects and where true- and
+  // false-targets are the same.
+  bool changed = false;
+  BitVector* empty_blocks = new BitVector(graph_->preorder().length());
+  for (BlockIterator b = graph_->postorder_iterator();
+       !b.Done();
+       b.Advance()) {
+    BlockEntryInstr* block = b.Current();
+    BranchInstr* branch = block->last_instruction()->AsBranch();
+    empty_blocks->Clear();
+    if ((branch != NULL) && branch->Effects().IsNone()) {
+      ASSERT(branch->previous() != NULL);  // Not already eliminated.
+      BlockEntryInstr* if_true =
+          FindFirstNonEmptySuccessor(branch->true_successor(), empty_blocks);
+      BlockEntryInstr* if_false =
+          FindFirstNonEmptySuccessor(branch->false_successor(), empty_blocks);
+      if (if_true == if_false) {
+        // Replace the branch with a jump to the common successor.
+        // Drop the comparison, which does not have side effects
+        JoinEntryInstr* join = if_true->AsJoinEntry();
+        if (join->phis() == NULL) {
+          GotoInstr* jump = new GotoInstr(if_true->AsJoinEntry());
+          jump->InheritDeoptTarget(branch);
+
+          Instruction* previous = branch->previous();
+          branch->set_previous(NULL);
+          previous->LinkTo(jump);
+
+          // Remove uses from branch and all the empty blocks that
+          // are now unreachable.
+          branch->UnuseAllInputs();
+          for (BitVector::Iterator it(empty_blocks); !it.Done(); it.Advance()) {
+            BlockEntryInstr* empty_block = graph_->preorder()[it.Current()];
+            empty_block->ClearAllInstructions();
+          }
+
+          changed = true;
+
+          if (FLAG_trace_constant_propagation) {
+            OS::Print("Eliminated branch in B%" Pd " common target B%" Pd "\n",
+                      block->block_id(), join->block_id());
+          }
+        }
+      }
+    }
+  }
+
+  if (changed) {
+    graph_->DiscoverBlocks();
+    // TODO(fschneider): Update dominator tree in place instead of recomputing.
+    GrowableArray<BitVector*> dominance_frontier;
+    graph_->ComputeDominators(&dominance_frontier);
+  }
+}
+
+
 void ConstantPropagator::Transform() {
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== Before constant propagation ====\n");
@@ -8450,24 +8562,16 @@ void ConstantPropagator::Transform() {
        !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
-    JoinEntryInstr* join = block->AsJoinEntry();
     if (!reachable_->Contains(block->preorder_number())) {
       if (FLAG_trace_constant_propagation) {
         OS::Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
-      if (join != NULL) {
-        for (PhiIterator it(join); !it.Done(); it.Advance()) {
-          it.Current()->UnuseAllInputs();
-        }
-      }
-      block->UnuseAllInputs();
-      for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-        it.Current()->UnuseAllInputs();
-      }
+      block->ClearAllInstructions();
       continue;
     }
 
+    JoinEntryInstr* join = block->AsJoinEntry();
     if (join != NULL) {
       // Remove phi inputs corresponding to unreachable predecessor blocks.
       // Predecessors will be recomputed (in block id order) after removing

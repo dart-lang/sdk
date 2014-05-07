@@ -397,6 +397,19 @@ class ObjectStore {
     handle_message_function_ = function.raw();
   }
 
+  RawUserTag* default_tag() const {
+    return default_tag_;
+  }
+  void set_default_tag(const UserTag& tag) {
+    // Only set once.
+    ASSERT(default_tag_ == UserTag::null());
+    ASSERT(!tag.IsNull());
+    default_tag_ = tag.raw();
+  }
+  static intptr_t default_tag_offset() {
+    return OFFSET_OF(ObjectStore, default_tag_);
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -480,6 +493,7 @@ class ObjectStore {
   RawStacktrace* preallocated_stack_trace_;
   RawFunction* lookup_port_handler_;
   RawFunction* handle_message_function_;
+  RawUserTag* default_tag_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&handle_message_function_);
   }

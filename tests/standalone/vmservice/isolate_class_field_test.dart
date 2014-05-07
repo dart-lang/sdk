@@ -30,7 +30,7 @@ class BananaClassTest {
     Expect.equals('Field', field['type']);
     Expect.equals('final_fixed_length_list', field['user_name']);
     Expect.equals('final_fixed_length_list', field['name']);
-    Expect.equals('Float32List', field['guard_class']['user_name']);
+    Expect.equals('_Float32Array', field['guard_class']['user_name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
@@ -44,7 +44,7 @@ class BananaClassTest {
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('Float32List', field['guard_class']['user_name']);
+    Expect.equals('_Float32Array', field['guard_class']['user_name']);
     Expect.equals('variable', field['guard_length']);
   }
 
@@ -55,7 +55,7 @@ class BananaClassTest {
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('String', field['guard_class']['user_name']);
+    Expect.equals('_OneByteString', field['guard_class']['user_name']);
     Expect.equals(false, field['guard_nullable']);
     Expect.equals('variable', field['guard_length']);
   }
@@ -86,7 +86,7 @@ class BadBananaClassTest {
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('double', field['guard_class']['user_name']);
+    Expect.equals('_Double', field['guard_class']['user_name']);
     Expect.equals(true, field['guard_nullable']);
     Expect.equals('variable', field['guard_length']);
   }
@@ -98,7 +98,7 @@ class BadBananaClassTest {
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(true, field['final']);
-    Expect.equals('int', field['guard_class']['user_name']);
+    Expect.equals('_Smi', field['guard_class']['user_name']);
     Expect.equals(false, field['guard_nullable']);
     Expect.equals('variable', field['guard_length']);
   }
@@ -107,7 +107,7 @@ class BadBananaClassTest {
     Expect.equals('Field', field['type']);
     Expect.equals('final_fixed_length_list', field['user_name']);
     Expect.equals('final_fixed_length_list', field['name']);
-    Expect.equals('Float32List', field['guard_class']['user_name']);
+    Expect.equals('_Float32Array', field['guard_class']['user_name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
@@ -118,7 +118,7 @@ class BadBananaClassTest {
     Expect.equals('Field', field['type']);
     Expect.equals('fixed_length_array', field['user_name']);
     Expect.equals('fixed_length_array', field['name']);
-    Expect.equals('List', field['guard_class']['user_name']);
+    Expect.equals('_List', field['guard_class']['user_name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);

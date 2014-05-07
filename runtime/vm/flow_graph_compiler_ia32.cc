@@ -12,6 +12,7 @@
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -61,7 +62,9 @@ bool FlowGraphCompiler::SupportsSinCos() {
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
-  if (deopt_env_ == NULL) return DeoptInfo::null();
+  if (deopt_env_ == NULL) {
+    return DeoptInfo::null();
+  }
 
   intptr_t stack_height = compiler->StackSize();
   AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
@@ -1649,6 +1652,30 @@ void ParallelMoveResolver::EmitMove(int index) {
       } else {
         __ LoadObjectSafely(destination.reg(), constant);
       }
+    } else if (destination.IsFpuRegister()) {
+      const Double& constant = Double::Cast(source.constant());
+      uword addr = FlowGraphBuilder::FindDoubleConstant(constant.value());
+      if (addr == 0) {
+        __ pushl(EAX);
+        __ LoadObject(EAX, constant);
+        __ movsd(destination.fpu_reg(),
+            FieldAddress(EAX, Double::value_offset()));
+        __ popl(EAX);
+      } else {
+        __ movsd(destination.fpu_reg(), Address::Absolute(addr));
+      }
+    } else if (destination.IsDoubleStackSlot()) {
+      const Double& constant = Double::Cast(source.constant());
+      uword addr = FlowGraphBuilder::FindDoubleConstant(constant.value());
+      if (addr == 0) {
+        __ pushl(EAX);
+        __ LoadObject(EAX, constant);
+        __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+        __ popl(EAX);
+      } else {
+        __ movsd(XMM0, Address::Absolute(addr));
+      }
+      __ movsd(destination.ToStackSlotAddress(), XMM0);
     } else {
       ASSERT(destination.IsStackSlot());
       StoreObject(destination.ToStackSlotAddress(), source.constant());

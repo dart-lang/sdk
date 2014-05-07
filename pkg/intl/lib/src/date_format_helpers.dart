@@ -85,6 +85,11 @@ class _DateBuilder {
  * dates from strings simpler. It is general enough to operate on either
  * lists or strings.
  */
+// TODO(alanknight): With the improvements to the collection libraries
+// since this was written we might be able to get rid of it entirely
+// in favor of e.g. aString.split('') giving us an iterable of one-character
+// strings, or else make the implementation trivial. And consider renaming,
+// as _Stream is now just confusing with the system Streams.
 class _Stream {
   var contents;
   int index = 0;
@@ -103,6 +108,15 @@ class _Stream {
     var result = peek(howMany);
     index += howMany;
     return result;
+  }
+
+  /**
+   * Does the input start with the given string, if we start from the
+   * current position.
+   */
+  bool startsWith(String pattern) {
+    if (contents is String) return contents.startsWith(pattern, index);
+    return pattern == peek(pattern.length);
   }
 
   /**

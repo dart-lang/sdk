@@ -99,10 +99,10 @@ def SrcSteps(build_info):
   with bot.BuildStep('Upload artifacts'):
     bot_name, _ = bot.GetBotName()
     channel = bot_utils.GetChannelFromName(bot_name)
-#    if channel != bot_utils.Channel.BLEEDING_EDGE:
-    ArchiveArtifacts(tarfile, builddir, channel, build_info.builder_tag)
-#    else:
-#      print 'Not uploading artifacts on bleeding edge'
+    if channel != bot_utils.Channel.BLEEDING_EDGE:
+     ArchiveArtifacts(tarfile, builddir, channel, build_info.builder_tag)
+    else:
+      print 'Not uploading artifacts on bleeding edge'
 
 if __name__ == '__main__':
   # We pass in None for build_step to avoid building the sdk.

@@ -47,23 +47,23 @@ main() {
 
   setUp(() => customElementsReady);
 
-  test('Testing document.register() basic behaviors', () {
-    document.register(Foo.tag, Foo);
+  test('Testing document.registerElement() basic behaviors', () {
+    document.registerElement(Foo.tag, Foo);
 
     // Cannot register an existing dart:html type.
-    expect(() => document.register('x-bad-a', HtmlElement), throws);
+    expect(() => document.registerElement('x-bad-a', HtmlElement), throws);
 
     // Invalid user type.  Doesn't inherit from HtmlElement.
-    expect(() => document.register('x-bad-b', BadB), throws);
+    expect(() => document.registerElement('x-bad-b', BadB), throws);
 
     // Not a type.
-    expect(() => document.register('x-bad-c', null), throws);
+    expect(() => document.registerElement('x-bad-c', null), throws);
 
     // Cannot register system type.
-    expect(() => document.register('x-bad-d', Object), throws);
+    expect(() => document.registerElement('x-bad-d', Object), throws);
 
     // Must extend HtmlElement, not just implement it.
-    expect(() => document.register(BadE.tag, BadE), throws);
+    expect(() => document.registerElement(BadE.tag, BadE), throws);
 
     // Constructor initiated instantiation
     var createdFoo = new Foo();
@@ -104,14 +104,14 @@ main() {
     expect(someProperty[container.firstChild], someProperty[parsedFoo]);
 
     // Having another constructor
-    document.register(Bar.tag, Bar);
+    document.registerElement(Bar.tag, Bar);
     var createdBar = new Bar();
     expect(createdBar is Bar, isTrue);
     expect(createdBar is Foo, isFalse);
     expect(createdBar.tagName, "X-BAR");
 
     // Having a subclass
-    document.register(Baz.tag, Baz);
+    document.registerElement(Baz.tag, Baz);
     var createdBaz = new Baz();
     expect(createdBaz.tagName, "X-BAZ");
     expect(createdBaz.thisIsACustomClass, isTrue);

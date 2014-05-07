@@ -104,11 +104,9 @@ buildUI() {
   buildCode(interaction);
 
   (mainEditorPane = new DivElement())
-      ..classes.add('well')
+      ..classes.addAll(['well', 'mainEditorPane'])
       ..style.backgroundColor = currentTheme.background.color
       ..style.color = currentTheme.foreground.color
-      ..style.overflow = 'visible'
-      ..style.whiteSpace = 'pre'
       ..style.font = codeFont
       ..spellcheck = false;
 
@@ -179,7 +177,7 @@ buildUI() {
       ..appendText('Save');
 
   cacheStatusElement = document.getElementById('appcache-status');
-  updateCacheStatus();
+  updateCacheStatus(null);
 
   var section = document.querySelector('article[class="homepage"]>section');
 

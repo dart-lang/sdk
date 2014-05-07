@@ -75,7 +75,7 @@ void main() {
   });
 
   test('Request is populated correctly', () {
-    var path = '/foo/bar?qs=value#anchor';
+    var path = '/foo/bar?qs=value';
 
     _scheduleServer((request) {
       expect(request.contentLength, 0);

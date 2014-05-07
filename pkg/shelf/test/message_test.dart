@@ -10,10 +10,16 @@ import 'dart:convert';
 import 'package:shelf/src/message.dart';
 import 'package:unittest/unittest.dart';
 
+import 'test_util.dart';
+
 class _TestMessage extends Message {
   _TestMessage(Map<String, String> headers, Map<String, Object> context,
         Stream<List<int>> body)
       : super(body, headers: headers, context: context);
+
+  Message change({Map<String, String> headers, Map<String, Object> context}) {
+    throw new UnimplementedError();
+  }
 }
 
 Message _createMessage({Map<String, String> headers,
@@ -76,10 +82,10 @@ void main() {
       var request = _createMessage(body: controller.stream);
       expect(request.readAsString(), completion(equals("hello, world")));
 
-      controller.add([104, 101, 108, 108, 111, 44]);
+      controller.add(HELLO_BYTES);
       return new Future(() {
         controller
-          ..add([32, 119, 111, 114, 108, 100])
+          ..add(WORLD_BYTES)
           ..close();
       });
     });
@@ -114,14 +120,14 @@ void main() {
       var controller = new StreamController();
       var request = _createMessage(body: controller.stream);
       expect(request.read().toList(), completion(equals([
-        [104, 101, 108, 108, 111, 44],
-        [32, 119, 111, 114, 108, 100]
+        HELLO_BYTES,
+        WORLD_BYTES
       ])));
 
-      controller.add([104, 101, 108, 108, 111, 44]);
+      controller.add(HELLO_BYTES);
       return new Future(() {
         controller
-          ..add([32, 119, 111, 114, 108, 100])
+          ..add(WORLD_BYTES)
           ..close();
       });
     });

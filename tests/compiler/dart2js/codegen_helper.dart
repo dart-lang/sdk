@@ -27,10 +27,11 @@ Future<Map<String, String>> generate(String code,
   return compiler.run(uri).then((success) {
     Expect.isTrue(success);
     Map<String, String> result = new Map<String, String>();
-    for (var element in compiler.backend.generatedCode.keys) {
+    var backend = compiler.backend;
+    for (var element in backend.generatedCode.keys) {
       if (element.getCompilationUnit().script.readableUri != uri) continue;
       var name = element.name;
-      var code = compiler.backend.assembleCode(element);
+      var code = backend.assembleCode(element);
       result[name] = code;
     }
     return result;

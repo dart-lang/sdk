@@ -803,6 +803,28 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_constInitializedWithNonConstValueFromDeferredClass() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "const V = 1;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "const B = a.V;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
+  }
+
+  void test_constInitializedWithNonConstValueFromDeferredClass_nested() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "const V = 1;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "const B = a.V + 1;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
+  }
+
   void test_constInstanceField() {
     Source source = addSource(EngineTestCase.createSource(["class C {", "  const int f = 0;", "}"]));
     resolve(source);
@@ -1801,17 +1823,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_importDeferredLibraryWithLoadFunction() {
-    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "loadLibrary() {}", "f() {}"]));
-    Source source = addSource(EngineTestCase.createSource([
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "main() { lib1.f(); }"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
-    verify([source]);
-  }
-
   void test_importInternalLibrary() {
     Source source = addSource(EngineTestCase.createSource(["import 'dart:_interceptors';"]));
     resolve(source);
@@ -2051,6 +2062,45 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
+  void test_invalidAnnotationFromDeferredLibrary() {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", EngineTestCase.createSource([
+        "library lib1;",
+        "class V { const V(); }",
+        "const v = const V();"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.v main () {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
+  }
+
+  void test_invalidAnnotationFromDeferredLibrary_constructor() {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class C { const C(); }"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.C() main () {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
+  }
+
+  void test_invalidAnnotationFromDeferredLibrary_namedConstructor() {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class C { const C.name(); }"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.C.name() main () {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
   }
 
   void test_invalidConstructorName_notEnclosingClassName_defined() {
@@ -2627,6 +2677,28 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int y;", "  m([x = y]) {}", "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE]);
+    verify([source]);
+  }
+
+  void test_nonConstantDefaultValueFromDeferredLibrary() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "const V = 1;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f({x : a.V}) {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
+    verify([source]);
+  }
+
+  void test_nonConstantDefaultValueFromDeferredLibrary_nested() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "const V = 1;"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f({x : a.V + 1}) {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
     verify([source]);
   }
 
@@ -3874,6 +3946,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constInitializedWithNonConstValue);
       });
+      _ut.test('test_constInitializedWithNonConstValueFromDeferredClass', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constInitializedWithNonConstValueFromDeferredClass);
+      });
+      _ut.test('test_constInitializedWithNonConstValueFromDeferredClass_nested', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constInitializedWithNonConstValueFromDeferredClass_nested);
+      });
       _ut.test('test_constInitializedWithNonConstValue_missingConstInListLiteral', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constInitializedWithNonConstValue_missingConstInListLiteral);
@@ -4294,10 +4374,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_superConstructorInvocation);
       });
-      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
-      });
       _ut.test('test_importInternalLibrary', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_importInternalLibrary);
@@ -4357,6 +4433,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_instanceMemberAccessFromStatic_method', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_method);
+      });
+      _ut.test('test_invalidAnnotationFromDeferredLibrary', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotationFromDeferredLibrary);
+      });
+      _ut.test('test_invalidAnnotationFromDeferredLibrary_constructor', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotationFromDeferredLibrary_constructor);
+      });
+      _ut.test('test_invalidAnnotationFromDeferredLibrary_namedConstructor', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotationFromDeferredLibrary_namedConstructor);
       });
       _ut.test('test_invalidAnnotation_getter', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -4709,6 +4797,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_nonConstantAnnotationConstructor_unnamed', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonConstantAnnotationConstructor_unnamed);
+      });
+      _ut.test('test_nonConstantDefaultValueFromDeferredLibrary', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_nonConstantDefaultValueFromDeferredLibrary);
+      });
+      _ut.test('test_nonConstantDefaultValueFromDeferredLibrary_nested', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_nonConstantDefaultValueFromDeferredLibrary_nested);
       });
       _ut.test('test_nonConstantDefaultValue_function_named', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5288,7 +5384,7 @@ class ElementResolverTest extends EngineTestCase {
   void fail_visitImportDirective_combinators_noPrefix() {
     JUnitTestCase.fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be resolved
-    ImportDirective directive = AstFactory.importDirective2(null, null, [AstFactory.showCombinator2(["A"])]);
+    ImportDirective directive = AstFactory.importDirective3(null, null, [AstFactory.showCombinator2(["A"])]);
     _resolveNode(directive, []);
     _listener.assertNoErrors();
   }
@@ -5298,7 +5394,7 @@ class ElementResolverTest extends EngineTestCase {
     // Need to set up the imported library so that the identifiers can be resolved
     String prefixName = "p";
     _definingLibrary.imports = <ImportElement> [ElementFactory.importFor(null, ElementFactory.prefix(prefixName), [])];
-    ImportDirective directive = AstFactory.importDirective2(null, prefixName, [
+    ImportDirective directive = AstFactory.importDirective3(null, prefixName, [
         AstFactory.showCombinator2(["A"]),
         AstFactory.hideCombinator2(["B"])]);
     _resolveNode(directive, []);
@@ -5468,7 +5564,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_noCombinators_noPrefix() {
-    ImportDirective directive = AstFactory.importDirective2(null, null, []);
+    ImportDirective directive = AstFactory.importDirective3(null, null, []);
     directive.element = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), null, []);
     _resolveNode(directive, []);
     _listener.assertNoErrors();
@@ -5478,7 +5574,7 @@ class ElementResolverTest extends EngineTestCase {
     String prefixName = "p";
     ImportElement importElement = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), ElementFactory.prefix(prefixName), []);
     _definingLibrary.imports = <ImportElement> [importElement];
-    ImportDirective directive = AstFactory.importDirective2(null, prefixName, []);
+    ImportDirective directive = AstFactory.importDirective3(null, prefixName, []);
     directive.element = importElement;
     _resolveNode(directive, []);
     _listener.assertNoErrors();
@@ -6460,6 +6556,115 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_deadCode_statementAfterBreak_inDefaultCase() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(v) {",
+        "  switch(v) {",
+        "    case 1:",
+        "    default:",
+        "      break;",
+        "      var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterBreak_inForEachStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  var list;",
+        "  for(var l in list) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterBreak_inForStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  for(;;) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterBreak_inSwitchCase() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(v) {",
+        "  switch(v) {",
+        "    case 1:",
+        "      break;",
+        "      var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterBreak_inWhileStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(v) {",
+        "  while(v) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterContinue_inForEachStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  var list;",
+        "  for(var l in list) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterContinue_inForStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  for(;;) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterContinue_inWhileStatement() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(v) {",
+        "  while(v) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
   void test_deadCode_statementAfterReturn_function() {
     Source source = addSource(EngineTestCase.createSource([
         "f() {",
@@ -6774,6 +6979,17 @@ class HintCodeTest extends ResolverTestCase {
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}", "class B {}"]));
     resolve(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT]);
+    verify([source]);
+  }
+
+  void test_importDeferredLibraryWithLoadFunction() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "loadLibrary() {}", "f() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"]));
+    resolve(source);
+    assertErrors(source, [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
     verify([source]);
   }
 
@@ -7343,6 +7559,38 @@ class HintCodeTest extends ResolverTestCase {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_deadCode_deadOperandLHS_or_nested);
       });
+      _ut.test('test_deadCode_statementAfterBreak_inDefaultCase', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterBreak_inDefaultCase);
+      });
+      _ut.test('test_deadCode_statementAfterBreak_inForEachStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterBreak_inForEachStatement);
+      });
+      _ut.test('test_deadCode_statementAfterBreak_inForStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterBreak_inForStatement);
+      });
+      _ut.test('test_deadCode_statementAfterBreak_inSwitchCase', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterBreak_inSwitchCase);
+      });
+      _ut.test('test_deadCode_statementAfterBreak_inWhileStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterBreak_inWhileStatement);
+      });
+      _ut.test('test_deadCode_statementAfterContinue_inForEachStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterContinue_inForEachStatement);
+      });
+      _ut.test('test_deadCode_statementAfterContinue_inForStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterContinue_inForStatement);
+      });
+      _ut.test('test_deadCode_statementAfterContinue_inWhileStatement', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterContinue_inWhileStatement);
+      });
       _ut.test('test_deadCode_statementAfterReturn_function', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_deadCode_statementAfterReturn_function);
@@ -7442,6 +7690,10 @@ class HintCodeTest extends ResolverTestCase {
       _ut.test('test_duplicateImport3', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_duplicateImport3);
+      });
+      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
       });
       _ut.test('test_invalidAssignment_instanceVariable', () {
         final __test = new HintCodeTest();
@@ -8990,7 +9242,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
     Library library = resolver.createLibrary(librarySource);
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();
-    listener.addAll(resolver.errorListener);
+    listener.addAll2(resolver.errorListener);
     listener.assertErrorsWithCodes(expectedErrorCodes);
     return element;
   }
@@ -9495,27 +9747,6 @@ class NonErrorResolverTest extends ResolverTestCase {
     addNamedSource("/lib.dart", EngineTestCase.createSource(["library lib;", "class N {}"]));
     resolve(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_argumentDefinitionTestNonParameter_formalParameter() {
-    Source source = addSource(EngineTestCase.createSource(["f(var v) {", "  return ?v;", "}"]));
-    resolve(source);
-    assertErrors(source, [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
-    verify([source]);
-  }
-
-  void test_argumentDefinitionTestNonParameter_namedParameter() {
-    Source source = addSource(EngineTestCase.createSource(["f({var v : 0}) {", "  return ?v;", "}"]));
-    resolve(source);
-    assertErrors(source, [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
-    verify([source]);
-  }
-
-  void test_argumentDefinitionTestNonParameter_optionalParameter() {
-    Source source = addSource(EngineTestCase.createSource(["f([var v]) {", "  return ?v;", "}"]));
-    resolve(source);
-    assertErrors(source, [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     verify([source]);
   }
 
@@ -10583,17 +10814,6 @@ class NonErrorResolverTest extends ResolverTestCase {
 
   void test_implicitThisReferenceInInitializer_typeParameter() {
     Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  var v;", "  A(p) : v = (p is T);", "}"]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_importDeferredLibraryWithLoadFunction() {
-    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f() {}"]));
-    Source source = addSource(EngineTestCase.createSource([
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "main() { lib1.f(); }"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -12495,6 +12715,19 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_returnOfInvalidType_typeParameter_18468() {
+    // This test verifies that T << Type where T is a type parameter and Type is the type Type from
+    // core, this particular test case comes from issue 18468 which depends on this fact.
+    //
+    // A test cannot be added to TypeParameterTypeImplTest since the types returned out of the
+    // TestTypeProvider don't have a mock 'dart.core' enclosing library element.
+    // See TypeParameterTypeImpl.isMoreSpecificThan().
+    Source source = addSource(EngineTestCase.createSource(["class Foo<T> {", "  Type get t => T;", "}"]));
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_void() {
     Source source = addSource(EngineTestCase.createSource([
         "void f1() {}",
@@ -13295,18 +13528,6 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_ambiguousExport_sameDeclaration);
       });
-      _ut.test('test_argumentDefinitionTestNonParameter_formalParameter', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_formalParameter);
-      });
-      _ut.test('test_argumentDefinitionTestNonParameter_namedParameter', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_namedParameter);
-      });
-      _ut.test('test_argumentDefinitionTestNonParameter_optionalParameter', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_optionalParameter);
-      });
       _ut.test('test_argumentTypeNotAssignable_Object_Function', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_argumentTypeNotAssignable_Object_Function);
@@ -13690,10 +13911,6 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_implicitThisReferenceInInitializer_typeParameter', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_typeParameter);
-      });
-      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
       });
       _ut.test('test_importDuplicatedLibraryName', () {
         final __test = new NonErrorResolverTest();
@@ -14331,6 +14548,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_supertype);
       });
+      _ut.test('test_returnOfInvalidType_typeParameter_18468', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_typeParameter_18468);
+      });
       _ut.test('test_returnOfInvalidType_void', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_void);
@@ -14797,6 +15018,17 @@ class NonHintCodeTest extends ResolverTestCase {
         "A a;",
         "B b;"]));
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}", "class B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_importDeferredLibraryWithLoadFunction() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "f() {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -15340,6 +15572,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_duplicateImport_show', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_duplicateImport_show);
+      });
+      _ut.test('test_importDeferredLibraryWithLoadFunction', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
       });
       _ut.test('test_missingReturn_emptyFunctionBody', () {
         final __test = new NonHintCodeTest();
@@ -17511,13 +17747,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitArgumentDefinitionTest() {
-    // ?p
-    Expression node = AstFactory.argumentDefinitionTest("p");
-    JUnitTestCase.assertSame(_typeProvider.boolType, _analyze(node));
-    _listener.assertNoErrors();
-  }
-
   void test_visitAsExpression() {
     // class A { ... this as B ... }
     // class B extends A {}
@@ -18446,10 +18675,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       _ut.test('test_visitAdjacentStrings', () {
         final __test = new StaticTypeAnalyzerTest();
         runJUnitTest(__test, __test.test_visitAdjacentStrings);
-      });
-      _ut.test('test_visitArgumentDefinitionTest', () {
-        final __test = new StaticTypeAnalyzerTest();
-        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
       });
       _ut.test('test_visitAsExpression', () {
         final __test = new StaticTypeAnalyzerTest();
@@ -23019,6 +23244,32 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_typeAnnotationDeferredClass_typeArgumentList() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E> {}",
+        "C<a.A> c;"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationDeferredClass_typeArgumentList2() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E, F> {}",
+        "C<a.A, a.A> c;"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
   void test_typeAnnotationDeferredClass_typeParameter_bound() {
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
     Source source = addSource(EngineTestCase.createSource([
@@ -24073,6 +24324,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_typeAnnotationDeferredClass_simpleFormalParameter', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_simpleFormalParameter);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_typeArgumentList', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_typeArgumentList);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_typeArgumentList2', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_typeArgumentList2);
       });
       _ut.test('test_typeAnnotationDeferredClass_typeParameter_bound', () {
         final __test = new StaticWarningCodeTest();
@@ -26523,5 +26782,6 @@ main() {
 //  StaticWarningCodeTest.dartSuite();
 //  StrictModeTest.dartSuite();
 //  TypePropagationTest.dartSuite();
+//  //AnalysisDeltaTest.dartSuite();
 //  ChangeSetTest.dartSuite();
 }

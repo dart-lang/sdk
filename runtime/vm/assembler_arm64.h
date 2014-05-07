@@ -513,6 +513,12 @@ class Assembler : public ValueObject {
   void madd(Register rd, Register rn, Register rm, Register ra) {
     EmitMiscDP3Source(MADD, rd, rn, rm, ra, kDoubleWord);
   }
+  void msub(Register rd, Register rn, Register rm, Register ra) {
+    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
+  }
+  void smulh(Register rd, Register rn, Register rm) {
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
+  }
 
   // Move wide immediate.
   void movk(Register rd, uint16_t imm, int hw_idx) {
@@ -553,6 +559,15 @@ class Assembler : public ValueObject {
   // Conditional select.
   void csel(Register rd, Register rn, Register rm, Condition cond) {
     EmitCoditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
+  }
+  void csinc(Register rd, Register rn, Register rm, Condition cond) {
+    EmitCoditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cinc(Register rd, Register rn, Condition cond) {
+    csinc(rd, rn, rn, InvertCondition(cond));
+  }
+  void cset(Register rd, Condition cond) {
+    csinc(rd, ZR, ZR, InvertCondition(cond));
   }
 
   // Comparison.
@@ -601,6 +616,75 @@ class Assembler : public ValueObject {
     EmitExceptionGenOp(HLT, imm);
   }
 
+  // Double floating point.
+  bool fmovdi(VRegister vd, double immd) {
+    int64_t imm64 = bit_cast<int64_t, double>(immd);
+    const uint8_t bit7 = imm64 >> 63;
+    const uint8_t bit6 = (~(imm64 >> 62)) & 0x1;
+    const uint8_t bit54 = (imm64 >> 52) & 0x3;
+    const uint8_t bit30 = (imm64 >> 48) & 0xf;
+    const uint8_t imm8 = (bit7 << 7) | (bit6 << 6) | (bit54 << 4) | bit30;
+    const int64_t expimm8 = Instr::VFPExpandImm(imm8);
+    if (imm64 != expimm8) {
+      return false;
+    }
+    EmitFPImm(FMOVDI, vd, imm8);
+    return true;
+  }
+  void fmovdr(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != SP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(FMOVDR, static_cast<Register>(vd), crn);
+  }
+  void fmovrd(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FMOVRD, crd, static_cast<Register>(vn));
+  }
+  void scvtfd(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != SP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn);
+  }
+  void fcvtzds(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+  }
+  void fmovdd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FMOVDD, vd, vn);
+  }
+  void fldrd(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);
+  }
+  void fstrd(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDoubleWord);
+  }
+  void fcmpd(VRegister vn, VRegister vm) {
+    EmitFPCompareOp(FCMPD, vn, vm);
+  }
+  void fcmpzd(VRegister vn) {
+    EmitFPCompareOp(FCMPZD, vn, V0);
+  }
+  void fmuld(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FMULD, vd, vn, vm);
+  }
+  void fdivd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FDIVD, vd, vn, vm);
+  }
+  void faddd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FADDD, vd, vn, vm);
+  }
+  void fsubd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitFPTwoSourceOp(FSUBD, vd, vn, vm);
+  }
+
   // Aliases.
   void mov(Register rd, Register rn) {
     if ((rd == SP) || (rn == SP)) {
@@ -610,7 +694,7 @@ class Assembler : public ValueObject {
     }
   }
   void mvn(Register rd, Register rm) {
-    orr(rd, ZR, Operand(rm));
+    orn(rd, ZR, Operand(rm));
   }
   void neg(Register rd, Register rm) {
     sub(rd, ZR, Operand(rm));
@@ -628,6 +712,12 @@ class Assembler : public ValueObject {
   void Pop(Register reg) {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
+  void PushDouble(VRegister reg) {
+    fstrd(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+  void PopDouble(VRegister reg) {
+    fldrd(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
@@ -699,6 +789,11 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
+  void AddImmediateSetFlags(
+      Register dest, Register rn, int64_t imm, Register pp);
+  void AndImmediate(Register rd, Register rn, int64_t imm, Register pp);
+  void OrImmediate(Register rd, Register rn, int64_t imm, Register pp);
+  void XorImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void TestImmediate(Register rn, int64_t imm, Register pp);
   void CompareImmediate(Register rn, int64_t imm, Register pp);
 
@@ -707,11 +802,19 @@ class Assembler : public ValueObject {
   void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag);
   }
+  void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
+  void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
+    LoadDFromOffset(dest, base, offset - kHeapObjectTag);
+  }
 
-  void StoreToOffset(Register dest, Register base, int32_t offset,
+  void StoreToOffset(Register src, Register base, int32_t offset,
                      OperandSize sz = kDoubleWord);
-  void StoreFieldToOffset(Register dest, Register base, int32_t offset) {
-    StoreToOffset(dest, base, offset - kHeapObjectTag);
+  void StoreFieldToOffset(Register src, Register base, int32_t offset) {
+    StoreToOffset(src, base, offset - kHeapObjectTag);
+  }
+  void StoreDToOffset(VRegister src, Register base, int32_t offset);
+  void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset - kHeapObjectTag);
   }
 
   // Storing into an object.
@@ -750,6 +853,7 @@ class Assembler : public ValueObject {
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
+  void LoadDImmediate(VRegister reg, double immd, Register pp);
 
   void PushObject(const Object& object, Register pp) {
     LoadObject(TMP, object, pp);
@@ -789,6 +893,16 @@ class Assembler : public ValueObject {
                                      Register temp_reg,
                                      Register pp,
                                      Heap::Space space = Heap::kNew);
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   Register instance_reg,
+                   Register temp_reg,
+                   Register pp);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
@@ -1111,6 +1225,48 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(crn) << kRnShift) |
         (static_cast<int32_t>(crm) << kRmShift) |
         (static_cast<int32_t>(cond) << kSelCondShift);
+    Emit(encoding);
+  }
+
+  void EmitFPImm(FPImmOp op, VRegister vd, uint8_t imm8) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (imm8 << kImm8Shift);
+    Emit(encoding);
+  }
+
+  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(rd) << kRdShift) |
+        (static_cast<int32_t>(rn) << kRnShift);
+    Emit(encoding);
+  }
+
+  void EmitFPOneSourceOp(FPOneSourceOp op, VRegister vd, VRegister vn) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift);
+    Emit(encoding);
+  }
+
+  void EmitFPTwoSourceOp(FPTwoSourceOp op,
+                         VRegister vd, VRegister vn, VRegister vm) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift) |
+        (static_cast<int32_t>(vm) << kVmShift);
+    Emit(encoding);
+  }
+
+  void EmitFPCompareOp(FPCompareOp op, VRegister vn, VRegister vm) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vn) << kVnShift) |
+        (static_cast<int32_t>(vm) << kVmShift);
     Emit(encoding);
   }
 

@@ -150,9 +150,6 @@ abstract class AbstractScanner implements Scanner {
                             bool asciiOnly, [int extraOffset]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendStringToken(PrecedenceInfo info, String value);
-
-  /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(PrecedenceInfo info);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
@@ -745,7 +742,7 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        appendStringToken(BAD_INPUT_INFO, "unterminated multi-line comment");
+        unterminated('/*');
         break;
       } else if (identical($STAR, next)) {
         next = advance();

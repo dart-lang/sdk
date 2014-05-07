@@ -30,6 +30,8 @@ namespace dart {
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
             "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool, show_invisible_frames, false,
+            "Show invisible frames in debugger stack traces");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -864,7 +866,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  if (frame->function().is_visible()) {
+  if (FLAG_show_invisible_frames || frame->function().is_visible()) {
     trace_.Add(frame);
   }
 }
@@ -1542,6 +1544,11 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   }
   if (best_fit_index >= 0) {
     return desc.TokenPos(best_fit_index);
+  }
+  // We didn't find a safe point in the given token range. Try and find
+  // a safe point in the remaining source code of the function.
+  if (last_token_pos < func.end_token_pos()) {
+    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos());
   }
   return -1;
 }

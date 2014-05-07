@@ -25,7 +25,7 @@ class Symbol {
    *   "`[]`", "`[]=`", or "`unary-`"),
    * * any of the above preceeded by any number of qualifiers,
    *   where a qualifier is a non-private identifier followed by '`.`',
-   * * or the empty string (the default name of a library with not library
+   * * or the empty string (the default name of a library with no library
    *   name declaration).
    *
    * The following text is non-normative:

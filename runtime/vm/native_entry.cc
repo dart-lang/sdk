@@ -9,6 +9,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/object_store.h"
+#include "vm/reusable_handles.h"
 #include "vm/tags.h"
 
 
@@ -45,24 +46,26 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
 
 const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
                                                    uword pc) {
-  if (library.native_entry_symbol_resolver() == 0) {
+  Dart_NativeEntrySymbol symbol_resolver =
+      library.native_entry_symbol_resolver();
+  if (symbol_resolver == 0) {
     // Cannot reverse lookup native entries.
     return NULL;
   }
-  Dart_NativeEntrySymbol symbol_resolver =
-      library.native_entry_symbol_resolver();
   return symbol_resolver(reinterpret_cast<Dart_NativeFunction>(pc));
 }
 
 
 const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
   Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(isolate);
+  GrowableObjectArray& libs = reused_growable_object_array_handle.Handle();
+  libs ^= isolate->object_store()->libraries();
   ASSERT(!libs.IsNull());
   intptr_t num_libs = libs.Length();
-  Library& lib = Library::Handle();
   for (intptr_t i = 0; i < num_libs; i++) {
+    REUSABLE_LIBRARY_HANDLESCOPE(isolate);
+    Library& lib = reused_library_handle.Handle();
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
     const uint8_t* r = ResolveSymbolInLibrary(lib, pc);

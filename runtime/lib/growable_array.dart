@@ -198,18 +198,18 @@ class _GrowableList<T> implements List<T> {
 
   T get first {
     if (length > 0) return this[0];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   T get last {
     if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   T get single {
     if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();;
   }
 
   int indexOf(Object element, [int start = 0]) {

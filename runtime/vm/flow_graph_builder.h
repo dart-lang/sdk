@@ -207,6 +207,9 @@ class FlowGraphBuilder: public ValueObject {
   // OSR entry point.
   void PruneUnreachable();
 
+  // Returns address where the constant 'value' is stored or 0 if not found.
+  static uword FindDoubleConstant(double value);
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
 
@@ -346,7 +349,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator,
                                Value** instantiator_type_arguments);
-  Value* BuildInstantiator();
+  Value* BuildInstantiator(const Class& instantiator_class);
   Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
                                         const Class& instantiator_class,
                                         Value* instantiator);

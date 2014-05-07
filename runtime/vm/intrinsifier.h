@@ -136,8 +136,8 @@ namespace dart {
 
 #define PROFILER_LIB_INTRINSIC_LIST(V)                                         \
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 1038211262)                    \
+  V(::, _getDefaultTag, UserTag_defaultTag, 624228668)                         \
   V(::, _getCurrentTag, Profiler_getCurrentTag, 1559793589)                    \
-  V(::, _clearCurrentTag, Profiler_clearCurrentTag, 874694572)                 \
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.

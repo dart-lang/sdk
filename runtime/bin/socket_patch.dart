@@ -390,6 +390,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int PROTOCOL_IPV4 = 1 << 0;
   static const int PROTOCOL_IPV6 = 1 << 1;
 
+  static const int NORMAL_TOKEN_BATCH_SIZE = 8;
+  static const int LISTENING_TOKEN_BATCH_SIZE = 2;
+
   // Socket close state
   bool isClosed = false;
   bool isClosing = false;
@@ -481,40 +484,53 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static Future<_NativeSocket> connect(host, int port) {
     return new Future.value(host)
         .then((host) {
-          if (host is _InternetAddress) return host;
+          if (host is _InternetAddress) return [host];
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
                   throw createError(response, "Failed host lookup: '$host'");
                 }
-                return list[0];
+                return list;
               });
         })
-        .then((address) {
-          var socket = new _NativeSocket.normal();
-          socket.address = address;
-          var result = socket.nativeCreateConnect(
-              address._in_addr, port);
-          if (result is OSError) {
-            throw createError(result, "Connection failed", address, port);
-          } else {
-            socket.port;  // Query the local port, for error messages.
-            var completer = new Completer();
-            // Setup handlers for receiving the first write event which
-            // indicate that the socket is fully connected.
-            socket.setHandlers(
-                write: () {
-                  socket.setListening(read: false, write: false);
-                  completer.complete(socket);
-                },
-                error: (e) {
-                  socket.close();
-                  completer.completeError(e);
-                }
-            );
-            socket.setListening(read: false, write: true);
-            return completer.future;
+        .then((addresses) {
+          assert(addresses is List);
+          var completer = new Completer();
+          var it = addresses.iterator;
+          void run(error) {
+            if (!it.moveNext()) {
+              assert(error != null);
+              completer.completeError(error);
+              return;
+            }
+            var address = it.current;
+            var socket = new _NativeSocket.normal();
+            socket.address = address;
+            var result = socket.nativeCreateConnect(address._in_addr, port);
+            if (result is OSError) {
+              // Keep first error, if present.
+              run(error != null ? error :
+                  createError(result, "Connection failed", address, port));
+            } else {
+              socket.port;  // Query the local port, for error messages.
+              // Setup handlers for receiving the first write event which
+              // indicate that the socket is fully connected.
+              socket.setHandlers(
+                  write: () {
+                    socket.setListening(read: false, write: false);
+                    completer.complete(socket);
+                  },
+                  error: (e) {
+                    socket.close();
+                    // Keep first error, if present.
+                    run(error != null ? error : e);
+                  }
+              );
+              socket.setListening(read: false, write: true);
+            }
           }
+          run(null);
+          return completer.future;
         });
   }
 
@@ -699,7 +715,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(available > 0);
     available--;
     tokens++;
-    returnTokens();
+    returnTokens(LISTENING_TOKEN_BATCH_SIZE);
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
@@ -811,6 +827,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
         var handler = eventHandlers[i];
         if (i == DESTROYED_EVENT) {
+          assert(isClosing);
           assert(!isClosed);
           isClosed = true;
           closeCompleter.complete();
@@ -832,14 +849,14 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     }
     if (!isListening) {
       tokens++;
-      returnTokens();
+      returnTokens(NORMAL_TOKEN_BATCH_SIZE);
     }
   }
 
-  void returnTokens() {
+  void returnTokens(int tokenBatchSize) {
     if (eventPort != null && !isClosing && !isClosed) {
-      if (tokens == 8) {
-        // Return in batches of 8.
+      // Return in batches.
+      if (tokens == tokenBatchSize) {
         assert(tokens < (1 << FIRST_COMMAND));
         sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | tokens);
         tokens = 0;
@@ -860,7 +877,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     sendWriteEvents = write;
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
-    if (eventPort == null) {
+    if (eventPort == null && !isClosing) {
       int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
@@ -923,6 +940,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void connectToEventHandler() {
+    assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
       _SocketsObservatory.add(this);
@@ -1053,6 +1071,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
+  int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
   bool nativeSetOption(int option, int protocol, value)
@@ -1070,6 +1089,7 @@ class _RawServerSocket extends Stream<RawSocket>
                        implements RawServerSocket {
   final _NativeSocket _socket;
   StreamController<RawSocket> _controller;
+  ReceivePort _referencePort;
 
   static Future<_RawServerSocket> bind(address,
                                        int port,
@@ -1110,7 +1130,12 @@ class _RawServerSocket extends Stream<RawSocket>
         _controller.addError(e);
         _controller.close();
       }),
-      destroyed: _controller.close);
+      destroyed: () {
+        _controller.close();
+        if (_referencePort != null) {
+          _referencePort.close();
+        }
+      });
     return _controller.stream.listen(
         onData,
         onError: onError,
@@ -1147,6 +1172,44 @@ class _RawServerSocket extends Stream<RawSocket>
       _resume();
     }
   }
+
+  RawServerSocketReference get reference {
+    if (_referencePort == null) {
+      _referencePort = new ReceivePort();
+      _referencePort.listen((sendPort) {
+        sendPort.send(
+          [_socket.nativeGetSocketId(),
+           _socket.address,
+           _socket.localPort]);
+      });
+    }
+    return new _RawServerSocketReference(_referencePort.sendPort);
+  }
+}
+
+
+class _RawServerSocketReference implements RawServerSocketReference {
+  final SendPort _sendPort;
+
+  _RawServerSocketReference(this._sendPort);
+
+  Future<RawServerSocket> create() {
+    var port = new ReceivePort();
+    _sendPort.send(port.sendPort);
+    return port.first.then((args) {
+      port.close();
+      var native = new _NativeSocket.listen();
+      native.nativeSetSocketId(args[0]);
+      native.address = args[1];
+      native.localPort = args[2];
+      return new _RawServerSocket(native);
+    });
+  }
+
+  int get hashCode => _sendPort.hashCode;
+
+  bool operator==(Object other)
+    => other is _RawServerSocketReference && _sendPort == other._sendPort;
 }
 
 
@@ -1307,6 +1370,18 @@ patch class ServerSocket {
   }
 }
 
+
+class _ServerSocketReference implements ServerSocketReference {
+  final RawServerSocketReference _rawReference;
+
+  _ServerSocketReference(this._rawReference);
+
+  Future<ServerSocket> create() {
+    return _rawReference.create().then((raw) => new _ServerSocket(raw));
+  }
+}
+
+
 class _ServerSocket extends Stream<Socket>
                     implements ServerSocket {
   final _socket;
@@ -1337,6 +1412,10 @@ class _ServerSocket extends Stream<Socket>
   InternetAddress get address => _socket.address;
 
   Future close() => _socket.close().then((_) => this);
+
+  ServerSocketReference get reference {
+    return new _ServerSocketReference(_socket.reference);
+  }
 }
 
 

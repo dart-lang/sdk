@@ -15,7 +15,7 @@ show
 import
     '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
 show
-    Node;
+    Block, ExpressionStatement, FunctionExpression, Node, Send;
 import
     '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart'
 show
@@ -54,13 +54,15 @@ void testWithMirrorRenaming({bool minify}) {
     Map<Node, String> renames = backend.renames;
     Map<LibraryElement, String> imports = backend.imports;
 
-    Node getNameFunctionNode =
-        backend.memberNodes.values.first.first.body.statements.nodes.head;
+    FunctionExpression node = backend.memberNodes.values.first.first;
+    Block block = node.body;
+    ExpressionStatement getNameFunctionNode = block.statements.nodes.head;
+    Send send = getNameFunctionNode.expression;
 
     Expect.equals(renames[mirrorRenamer.mirrorHelperGetNameFunctionNode.name],
-                  renames[getNameFunctionNode.expression.selector]);
+                  renames[send.selector]);
     Expect.equals("",
-                  renames[getNameFunctionNode.expression.receiver]);
+                  renames[send.receiver]);
     Expect.equals(1, imports.keys.length);
   }));
 }
@@ -73,11 +75,13 @@ void testWithoutMirrorRenaming({bool minify}) {
     Map<Node, String> renames = backend.renames;
     Map<LibraryElement, String> imports = backend.imports;
 
-    Node getNameFunctionNode =
-        backend.memberNodes.values.first.first.body.statements.nodes.head;
+    FunctionExpression node = backend.memberNodes.values.first.first;
+    Block block = node.body;
+    ExpressionStatement getNameFunctionNode = block.statements.nodes.head;
+    Send send = getNameFunctionNode.expression;
 
-    Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.selector));
-    Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.receiver));
+    Expect.isFalse(renames.containsKey(send.selector));
+    Expect.isFalse(renames.containsKey(send.receiver));
     Expect.equals(1, imports.keys.length);
   }));
 }

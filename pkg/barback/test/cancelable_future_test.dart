@@ -6,8 +6,8 @@ library barback.test.cancelable_future_test;
 
 import 'dart:async';
 
-import 'package:barback/src/cancelable_future.dart';
 import 'package:barback/src/utils.dart';
+import 'package:barback/src/utils/cancelable_future.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

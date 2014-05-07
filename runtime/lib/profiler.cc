@@ -36,8 +36,17 @@ DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("UserTag_makeCurrent: %s\n", self.ToCString());
   }
+  const UserTag& old = UserTag::Handle(isolate->current_tag());
   self.MakeActive();
-  return Object::null();
+  return old.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0) {
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("UserTag_defaultTag\n");
+  }
+  return isolate->object_store()->default_tag();
 }
 
 
@@ -48,16 +57,5 @@ DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0) {
   return isolate->current_tag();
 }
 
-
-DEFINE_NATIVE_ENTRY(Profiler_clearCurrentTag, 0) {
-  // Use a NoGCScope to avoid creating a handle for the old current.
-  NoGCScope no_gc;
-  RawUserTag* old_current = isolate->current_tag();
-  UserTag::ClearActive();
-  if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Profiler_clearCurrentTag\n");
-  }
-  return old_current;
-}
 
 }  // namespace dart

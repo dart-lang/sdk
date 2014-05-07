@@ -4,7 +4,7 @@
 
 library barback.test.multiset_test;
 
-import 'package:barback/src/multiset.dart';
+import 'package:barback/src/utils/multiset.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

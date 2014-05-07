@@ -59,14 +59,25 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <div class="content">
-      <h1>Code for {{ code.name }}</h1>
+      <template if="{{ code.isDartCode && code.isOptimized }}">
+        <h1>Optimized code for {{ code.name }}</h1>
+      </template>
+      <template if="{{ !(code.isDartCode && code.isOptimized) }}">
+        <h1>Code for {{ code.name }}</h1>
+      </template>
       <div class="memberList">
         <div class="memberItem">
-          <div class="memberName">kind</div>
+          <div class="memberName">Kind</div>
           <div class="memberValue">{{code.kind}}</div>
         </div>
+        <template if="{{ code.isDartCode }}">
+          <div class="memberItem">
+            <div class="memberName">Optimized</div>
+            <div class="memberValue">{{code.isOptimized}}</div>
+          </div>
+        </template>
         <div class="memberItem">
-          <div class="memberName">function</div>
+          <div class="memberName">Function</div>
           <div class="memberValue">
             <function-ref ref="{{code.function}}">
             </function-ref>

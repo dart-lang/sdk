@@ -6,13 +6,24 @@
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
     <span>
-      <template if="{{ isUnexpected(ref.serviceType) }}">
-        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+      <template if="{{ isError(ref.serviceType) }}">
+        <pre class="errorBox">{{ ref.message }}</pre>
       </template>
 
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre>{{ ref.message }}</pre>
+      <template if="{{ isUnexpected(ref.serviceType) }}">
+        unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
 
       <template if="{{ isNull(ref.serviceType) }}">

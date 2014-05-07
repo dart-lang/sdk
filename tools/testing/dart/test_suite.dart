@@ -2020,6 +2020,7 @@ class TestUtils {
       'chrome',
       'ff',
       'chromeOnAndroid',
+      'safarimobilesim',
       'ContentShellOnAndroid',
       'DartiumOnAndroid'
     ];

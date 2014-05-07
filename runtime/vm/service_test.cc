@@ -360,9 +360,14 @@ TEST_CASE(Service_Objects) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   ObjectIdRing* ring = isolate->object_id_ring();
-  const String& str = String::Handle(String::New("value"));
-  intptr_t str_id = ring->GetIdForObject(str.raw());
-  Dart_Handle valid_id = Dart_NewInteger(str_id);
+  const Array& arr = Array::Handle(Array::New(1, Heap::kOld));
+  {
+    HANDLESCOPE(isolate);
+    const String& str = String::Handle(String::New("value", Heap::kOld));
+    arr.SetAt(0, str);
+  }
+  intptr_t arr_id = ring->GetIdForObject(arr.raw());
+  Dart_Handle valid_id = Dart_NewInteger(arr_id);
   EXPECT_VALID(valid_id);
   EXPECT_VALID(Dart_SetField(lib, NewString("validId"), valid_id));
 
@@ -447,7 +452,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"fields\":[],"
       "\"id\":\"objects\\/int-123\","
       "\"valueAsString\":\"123\"}",
@@ -461,10 +466,15 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("size");
   handler.filterMsg("id");
   EXPECT_STREQ(
-      "{\"type\":\"String\","
-      "\"class\":{\"type\":\"@Class\","
-      "\"user_name\":\"String\"},\"fields\":[],"
-      "\"valueAsString\":\"\\\"value\\\"\"}",
+      "{\"type\":\"Array\","
+      "\"class\":{\"type\":\"@Class\",\"user_name\":\"_List\"},"
+      "\"fields\":[],"
+      "\"length\":1,"
+      "\"elements\":[{"
+          "\"index\":0,"
+          "\"value\":{\"type\":\"@String\","
+          "\"class\":{\"type\":\"@Class\",\"user_name\":\"_OneByteString\"},"
+          "\"valueAsString\":\"\\\"value\\\"\"}}]}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -499,7 +509,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"id\":\"objects\\/int-222\","
       "\"valueAsString\":\"222\"}",
       handler.msg());
@@ -542,6 +552,16 @@ TEST_CASE(Service_Objects) {
       "\"request\":{\"arguments\":[\"objects\",\"int-123\",\"eval\",\"foo\"],"
       "\"option_keys\":[\"expr\"],\"option_values\":[\"this+99\"]}}",
       handler.msg());
+
+  // Retained by single instance.
+  service_msg = Eval(lib,
+                     "[port, ['objects', '$validId', 'retained'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"objects\\/int-%" Pd "\"",
+                   arr.raw()->Size() + arr.At(0)->Size());
 }
 
 
@@ -598,7 +618,7 @@ TEST_CASE(Service_Libraries) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"id\":\"objects\\/int-54320\","
+      "\"user_name\":\"_Smi\"},\"id\":\"objects\\/int-54320\","
       "\"valueAsString\":\"54320\"}",
       handler.msg());
 }
@@ -617,10 +637,12 @@ TEST_CASE(Service_Classes) {
       "    return d;\n"
       "  }\n"
       "}\n"
+      "class B { static int i = 42; }\n"
       "main() {\n"
       "  var z = new A();\n"
       "  var x = z.c();\n"
       "  x();\n"
+      "  ++B.i;\n"
       "}";
 
   Isolate* isolate = Isolate::Current();
@@ -672,7 +694,7 @@ TEST_CASE(Service_Classes) {
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},"
+      "\"user_name\":\"_Smi\"},"
       "\"id\":\"objects\\/int-111235\","
       "\"valueAsString\":\"111235\"}",
       handler.msg());
@@ -750,6 +772,19 @@ TEST_CASE(Service_Classes) {
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
+
+  // Retained size of all instances of class B.
+  const Class& class_b = Class::Handle(GetClass(lib, "B"));
+  EXPECT(!class_b.IsNull());
+  const Instance& b0 = Instance::Handle(Instance::New(class_b));
+  const Instance& b1 = Instance::Handle(Instance::New(class_b));
+  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'retained'],"
+                      "[], []]", class_b.id());
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"objects\\/int-%" Pd "\"",
+                   b0.raw()->Size() + b1.raw()->Size());
 }
 
 

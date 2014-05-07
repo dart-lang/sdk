@@ -25,6 +25,7 @@
         'try_dart_static_files': [
           'index.html',
           'dartlang-style.css',
+          'line_numbers.css',
           'iframe.html',
           'iframe.js',
           'dart-icon.png', # iOS icon.

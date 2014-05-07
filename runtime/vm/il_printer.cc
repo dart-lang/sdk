@@ -584,7 +584,7 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("'%s', ", MethodRecognizer::KindToCString(kind()));
+  f->Print("'%s', ", MathUnaryInstr::KindToCString(kind()));
   value()->PrintTo(f);
 }
 

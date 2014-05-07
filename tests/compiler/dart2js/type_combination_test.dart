@@ -4,10 +4,9 @@
 
 import "package:expect/expect.dart";
 import "compiler_helper.dart";
-import "parser_helper.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
 import "type_mask_test_helper.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
 
 TypeMask nullType;
 TypeMask objectType;
@@ -384,6 +383,7 @@ void testUnion(MockCompiler compiler) {
 }
 
 void testIntersection(MockCompiler compiler) {
+  JavaScriptBackend backend = compiler.backend;
   RuleSet ruleSet = new RuleSet('intersection',
                                 (t1, t2) => t1.intersection(t2, compiler));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -519,9 +519,9 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, nonPrimitive1, emptyType);
   rule(jsIndexable, nonPrimitive2, emptyType);
   rule(jsIndexable, potentialArray, new TypeMask.nonNullSubtype(
-      compiler.backend.jsArrayClass));
+      backend.jsArrayClass));
   rule(jsIndexable, potentialString, new TypeMask.nonNullSubtype(
-      compiler.backend.jsStringClass));
+      backend.jsStringClass));
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);
@@ -677,6 +677,7 @@ void testRegressions(MockCompiler compiler) {
 
 void main() {
   MockCompiler compiler = new MockCompiler();
+  JavaScriptBackend backend = compiler.backend;
   compiler.interceptorsLibrary.forEachLocalMember((element) {
     if (element.isClass()) {
       compiler.enqueuer.resolution.registerInstantiatedClass(
@@ -697,52 +698,29 @@ void main() {
       compiler.functionClass);
   potentialArray = new TypeMask.subtype(
       compiler.listClass);
-  potentialString = new TypeMask.subtype(
-      patternClass);
-  jsInterceptor = new TypeMask.nonNullSubclass(
-      compiler.backend.jsInterceptorClass);
-  jsArrayOrNull = new TypeMask.subclass(
-      compiler.backend.jsArrayClass);
-  jsReadableArray = new TypeMask.nonNullSubclass(
-      compiler.backend.jsArrayClass);
-  jsMutableArrayOrNull = new TypeMask.subclass(
-      compiler.backend.jsMutableArrayClass);
-  jsMutableArray = new TypeMask.nonNullSubclass(
-      compiler.backend.jsMutableArrayClass);
-  jsFixedArrayOrNull = new TypeMask.exact(
-      compiler.backend.jsFixedArrayClass);
-  jsFixedArray = new TypeMask.nonNullExact(
-      compiler.backend.jsFixedArrayClass);
-  jsExtendableArrayOrNull = new TypeMask.exact(
-      compiler.backend.jsExtendableArrayClass);
-  jsExtendableArray = new TypeMask.nonNullExact(
-      compiler.backend.jsExtendableArrayClass);
-  jsIndexableOrNull = new TypeMask.subtype(
-      compiler.backend.jsIndexableClass);
-  jsIndexable = new TypeMask.nonNullSubtype(
-      compiler.backend.jsIndexableClass);
-  jsInterceptorOrNull = new TypeMask.subclass(
-      compiler.backend.jsInterceptorClass);
-  jsStringOrNull = new TypeMask.exact(
-      compiler.backend.jsStringClass);
-  jsString = new TypeMask.nonNullExact(
-      compiler.backend.jsStringClass);
-  jsBoolean = new TypeMask.nonNullExact(
-      compiler.backend.jsBoolClass);
-  jsNumber = new TypeMask.nonNullSubclass(
-      compiler.backend.jsNumberClass);
-  jsInteger = new TypeMask.nonNullExact(
-      compiler.backend.jsIntClass);
-  jsDouble = new TypeMask.nonNullExact(
-      compiler.backend.jsDoubleClass);
-  jsBooleanOrNull = new TypeMask.exact(
-      compiler.backend.jsBoolClass);
-  jsNumberOrNull = new TypeMask.subclass(
-      compiler.backend.jsNumberClass);
-  jsIntegerOrNull = new TypeMask.exact(
-      compiler.backend.jsIntClass);
-  jsDoubleOrNull = new TypeMask.exact(
-      compiler.backend.jsDoubleClass);
+  potentialString = new TypeMask.subtype(patternClass);
+  jsInterceptor = new TypeMask.nonNullSubclass(backend.jsInterceptorClass);
+  jsArrayOrNull = new TypeMask.subclass(backend.jsArrayClass);
+  jsReadableArray = new TypeMask.nonNullSubclass(backend.jsArrayClass);
+  jsMutableArrayOrNull = new TypeMask.subclass(backend.jsMutableArrayClass);
+  jsMutableArray = new TypeMask.nonNullSubclass(backend.jsMutableArrayClass);
+  jsFixedArrayOrNull = new TypeMask.exact(backend.jsFixedArrayClass);
+  jsFixedArray = new TypeMask.nonNullExact(backend.jsFixedArrayClass);
+  jsExtendableArrayOrNull = new TypeMask.exact(backend.jsExtendableArrayClass);
+  jsExtendableArray = new TypeMask.nonNullExact(backend.jsExtendableArrayClass);
+  jsIndexableOrNull = new TypeMask.subtype(backend.jsIndexableClass);
+  jsIndexable = new TypeMask.nonNullSubtype(backend.jsIndexableClass);
+  jsInterceptorOrNull = new TypeMask.subclass(backend.jsInterceptorClass);
+  jsStringOrNull = new TypeMask.exact(backend.jsStringClass);
+  jsString = new TypeMask.nonNullExact(backend.jsStringClass);
+  jsBoolean = new TypeMask.nonNullExact(backend.jsBoolClass);
+  jsNumber = new TypeMask.nonNullSubclass(backend.jsNumberClass);
+  jsInteger = new TypeMask.nonNullExact(backend.jsIntClass);
+  jsDouble = new TypeMask.nonNullExact(backend.jsDoubleClass);
+  jsBooleanOrNull = new TypeMask.exact(backend.jsBoolClass);
+  jsNumberOrNull = new TypeMask.subclass(backend.jsNumberClass);
+  jsIntegerOrNull = new TypeMask.exact(backend.jsIntClass);
+  jsDoubleOrNull = new TypeMask.exact(backend.jsDoubleClass);
   nullType = const TypeMask.empty();
   objectType = new TypeMask.nonNullSubclass(
       compiler.objectClass);

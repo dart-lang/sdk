@@ -721,6 +721,7 @@ class EmbeddedArray<T, 0> {
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
+  M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
@@ -1384,6 +1385,10 @@ class BlockEntryInstr : public Instruction {
   void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
 
   void set_block_id(intptr_t block_id) { block_id_ = block_id; }
+
+  // For all instruction in this block: Remove all inputs (including in the
+  // environment) from their definition's use lists for all instructions.
+  void ClearAllInstructions();
 
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
@@ -2742,6 +2747,29 @@ class ConstantInstr : public TemplateDefinition<0> {
   const Object& value_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
+};
+
+
+// Merged ConstantInstr -> UnboxedXXX into UnboxedConstantInstr.
+// TODO(srdjan): Implemented currently for doubles only, should implement
+// for other unboxing instructions.
+class UnboxedConstantInstr : public ConstantInstr {
+ public:
+  explicit UnboxedConstantInstr(const Object& value);
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  // Either NULL or the address of the unboxed constant.
+  uword constant_address() const { return constant_address_; }
+
+  DECLARE_INSTRUCTION(UnboxedConstant)
+
+ private:
+  uword constant_address_;  // Either NULL or points to the untagged constant.
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
 
 
@@ -5041,14 +5069,21 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 
 class MathUnaryInstr : public TemplateDefinition<1> {
  public:
-  MathUnaryInstr(MethodRecognizer::Kind kind, Value* value, intptr_t deopt_id)
+  enum MathUnaryKind {
+    kIllegal,
+    kSin,
+    kCos,
+    kSqrt,
+    kDoubleSquare,
+  };
+  MathUnaryInstr(MathUnaryKind kind, Value* value, intptr_t deopt_id)
       : kind_(kind) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
-  MethodRecognizer::Kind kind() const { return kind_; }
+  MathUnaryKind kind() const { return kind_; }
   const RuntimeEntry& TargetFunction() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -5084,8 +5119,10 @@ class MathUnaryInstr : public TemplateDefinition<1> {
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
+  static const char* KindToCString(MathUnaryKind kind);
+
  private:
-  const MethodRecognizer::Kind kind_;
+  const MathUnaryKind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
@@ -7685,13 +7722,13 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
- private:
   // Give a name to the location/input indices.
   enum {
     kLengthPos = 0,
     kIndexPos = 1
   };
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 

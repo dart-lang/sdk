@@ -41,12 +41,10 @@ String _outputDirectory;
 List<String> _excluded;
 
 /// The path of the pub script.
-String get pubScript => _pubScript;
-String _pubScript;
+String pubScript;
 
 /// The path of Dart binary.
-String get dartBinary => _dartBinary;
-String _dartBinary;
+String dartBinary;
 
 /// Docgen constructor initializes the link resolver for markdown parsing.
 /// Also initializes the command line arguments.
@@ -62,11 +60,11 @@ Future<bool> generateDocumentation(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, String introFileName: '',
     out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries: const [], bool
-    includeDependentPackages: false, String startPage, String dartBinary,
-    String pubScript, bool indentJSON: false}) {
+    includeDependentPackages: false, String startPage, String dartBinaryValue,
+    String pubScriptValue, bool indentJSON: false}) {
   _excluded = excludeLibraries;
-  _pubScript = pubScript;
-  _dartBinary = dartBinary;
+  dartBinary = dartBinaryValue;
+  pubScript = pubScriptValue;
 
   logger.onRecord.listen((record) => print(record.message));
 
@@ -384,13 +382,13 @@ List<FileSystemEntity> _packageDirList(Directory dir) {
 List<String> _allDependentPackageDirs(String packageDirectory) {
   var packageName = packageNameFor(packageDirectory);
   if (packageName == '') return [];
-  var dependentsJson = Process.runSync(_pubScript, ['list-package-dirs'],
+  var dependentsJson = Process.runSync(pubScript, ['list-package-dirs'],
       workingDirectory: packageDirectory, runInShell: true);
   if (dependentsJson.exitCode != 0) {
     print(dependentsJson.stderr);
   }
   var dependents = JSON.decode(dependentsJson.stdout)['packages'];
-  return dependents.values.toList();
+  return dependents != null ? dependents.values.toList() : [];
 }
 
 /// For all the libraries, return a list of the libraries that are part of

@@ -3,15 +3,14 @@
 A composable, Future-based library for making HTTP requests.
 
 This package contains a set of high-level functions and classes that make it
-easy to consume HTTP resources.
-
-**NOTE:** This package currently only works for
-server-side or command-line Dart applications. In other words, if the app
-imports `dart:io`, it can use this package.
+easy to consume HTTP resources. It's platform-independent, and can be used on
+both the command-line and the browser. Currently the global utility functions
+are unsupported on the browser; see "Using on the Browser" below.
 
 ## Using
 
-The easiest way to use this library is via the top-level functions. They allow
+The easiest way to use this library is via the top-level functions, although
+they currently only work on platforms where `dart:io` is available. They allow
 you to make individual HTTP requests with minimal hassle:
 
 ```dart
@@ -72,6 +71,25 @@ class UserAgentClient extends http.BaseClient {
     return _inner.send(request);
   }
 }
+```
+
+## Using on the Browser
+
+The HTTP library can be used on the browser via the [BrowserClient][] class in
+`package:http/browser_client.dart`. This client translates requests into
+XMLHttpRequests. For example:
+
+```dart
+import 'package:http/browser_client.dart';
+import 'package:http/http.dart' as http;
+
+var client = new BrowserClient();
+var url = "/whatsit/create";
+client.post(url, body: {"name": "doodle", "color": "blue"})
+    .then((response) {
+  print("Response status: ${response.statusCode}");
+  print("Response body: ${response.body}");
+});
 ```
 
 ## Filing issues

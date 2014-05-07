@@ -68,6 +68,15 @@ interface TimeoutHandler {
   void handleEvent();
 };
 
+// FIXME(leafp): This is a temporary hack to get things running while
+// we are still generating _blink from the dart side idl files.
+// Once we are up and running generating dart:_blink in dartium
+// this should go away.
+[Supplemental]
+interface URL {
+  [Suppressed] static DOMString createObjectURL(WebKitMediaSource source);
+};
+
 [Supplemental]
 interface CanvasRenderingContext2D {
   [DartName=createImageDataFromImageData] ImageData createImageData(ImageData imagedata);

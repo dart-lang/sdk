@@ -36,31 +36,34 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  explicit StackResource(BaseIsolate* isolate)
-      : isolate_(isolate), previous_(NULL) {
+  explicit StackResource(Isolate* isolate)
+      : isolate_(reinterpret_cast<BaseIsolate*>(isolate)), previous_(NULL) {
     // We can only have longjumps and exceptions when there is a current
     // isolate.  If there is no current isolate, we don't need to
     // protect this case.
-    if (isolate != NULL) {
-      previous_ = isolate->top_resource();
-      isolate->set_top_resource(this);
+    if (isolate_ != NULL) {
+      previous_ = isolate_->top_resource();
+      isolate_->set_top_resource(this);
     }
   }
 
   virtual ~StackResource() {
-    if (isolate() != NULL) {
-      StackResource* top = isolate()->top_resource();
+    if (isolate_ != NULL) {
+      StackResource* top = isolate_->top_resource();
       ASSERT(top == this);
-      isolate()->set_top_resource(previous_);
+      isolate_->set_top_resource(previous_);
     }
 #if defined(DEBUG)
-    if (isolate() != NULL) {
-      BaseIsolate::AssertCurrent(isolate());
+    if (isolate_ != NULL) {
+      BaseIsolate::AssertCurrent(isolate_);
     }
 #endif
   }
 
-  BaseIsolate* isolate() const { return isolate_; }
+  // We can only create StackResources with Isolates, so provide the original
+  // isolate to the subclasses. The only reason we have a BaseIsolate in the
+  // StackResource is to break the header include cycles.
+  Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
  private:
   BaseIsolate* const isolate_;  // Current isolate for this stack resource.

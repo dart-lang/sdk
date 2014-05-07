@@ -208,6 +208,8 @@ def main():
     status = ProcessBot(name, 'linux_distribution_support')
   elif name.startswith('ft'):
     status = ProcessBot(name, 'functional_testing')
+  elif name.startswith('version-checker'):
+    status = ProcessBot(name, 'version_checker')
   else:
     status = ProcessBot(name, 'compiler')
 

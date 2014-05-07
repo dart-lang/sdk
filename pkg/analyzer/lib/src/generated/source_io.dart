@@ -11,6 +11,7 @@ import 'source.dart';
 import 'java_core.dart';
 import 'java_io.dart';
 import 'utilities_general.dart';
+import 'instrumentation.dart';
 import 'engine.dart';
 export 'source.dart';
 
@@ -125,7 +126,7 @@ class FileBasedSource implements Source {
     try {
       return contentsFromFile;
     } finally {
-      handle.stop();
+      _reportIfSlowIO(handle.stop());
     }
   }
 
@@ -183,6 +184,22 @@ class FileBasedSource implements Source {
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(file.lastModified(), file.readAsStringSync());
+  }
+
+  /**
+   * Record the time the IO took if it was slow
+   */
+  void _reportIfSlowIO(int nanos) {
+    //If slower than 10ms
+    if (nanos > 10 * TimeCounter.NANOS_PER_MILLI) {
+      InstrumentationBuilder builder = Instrumentation.builder2("SlowIO");
+      try {
+        builder.data3("fileName", fullName);
+        builder.metric2("IO-Time-Nanos", nanos);
+      } finally {
+        builder.log();
+      }
+    }
   }
 }
 

@@ -179,6 +179,10 @@ class Utils {
   static uint16_t HostToLittleEndian16(uint16_t host_value);
   static uint32_t HostToLittleEndian32(uint32_t host_value);
   static uint64_t HostToLittleEndian64(uint64_t host_value);
+
+  static bool DoublesBitEqual(const double a, const double b) {
+    return bit_cast<int64_t, double>(a) == bit_cast<int64_t, double>(b);
+  }
 };
 
 }  // namespace dart

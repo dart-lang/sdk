@@ -877,14 +877,8 @@ abstract class Cookie {
  *
  *     void handleGetRequest(HttpRequest req) {
  *       HttpResponse res = req.response;
- *       var body = [];
- *       req.listen((List<int> buffer) => body.add(buffer),
- *         onDone: () {
- *           res.write('Received ${body.length} for request ');
- *           res.write(' ${req.method}: ${req.uri.path}');
- *           res.close();
- *         },
- *         onError: handleError);
+ *       res.write('Received request ${req.method}: ${req.uri.path}');
+ *       res.close();
  *     }
  */
 abstract class HttpRequest implements Stream<List<int>> {

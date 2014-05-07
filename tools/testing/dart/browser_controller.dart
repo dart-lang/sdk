@@ -76,6 +76,8 @@ abstract class Browser {
       browser = new Dartium(checkedMode);
     } else if (name == 'safari') {
       browser = new Safari();
+    } else if (name == 'safarimobilesim') {
+      browser = new SafariMobileSimulator();
     } else if (name.startsWith('ie')) {
       browser = new IE();
     } else {
@@ -439,6 +441,49 @@ class Chrome extends Browser {
 
   String toString() => "Chrome";
 }
+
+
+class SafariMobileSimulator extends Safari {
+  /**
+   * Directories where safari simulator stores state. We delete these if the
+   * deleteCache is set
+   */
+  static const List<String> CACHE_DIRECTORIES =
+      const ["Library/Application Support/iPhone Simulator/7.1/Applications"];
+
+  // Clears the cache if the static deleteCache flag is set.
+  // Returns false if the command to actually clear the cache did not complete.
+  Future<bool> clearCache() {
+    if (!Browser.deleteCache) return new Future.value(true);
+    var home = Platform.environment['HOME'];
+    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
+    return deleteIfExists(iterator);
+  }
+
+  Future<bool> start(String url) {
+    _logEvent("Starting safari mobile simulator browser on: $url");
+    return clearCache().then((success) {
+      if (!success) {
+        _logEvent("Could not clear cache, exiting");
+	return false;
+      }
+      var args = ["-SimulateApplication",
+                  "/Applications/Xcode.app/Contents/Developer/Platforms/"
+                  "iPhoneSimulator.platform/Developer/SDKs/"
+                  "iPhoneSimulator7.1.sdk/Applications/MobileSafari.app/"
+                  "MobileSafari",
+                  "-u", url];
+      return startBrowser(_binary, args)
+        .catchError((e) {
+          _logEvent("Running $_binary --version failed with $e");
+          return false;
+        });
+    });
+  }
+
+  String toString() => "SafariMobileSimulator";
+}
+
 
 class Dartium extends Chrome {
   final bool checkedMode;

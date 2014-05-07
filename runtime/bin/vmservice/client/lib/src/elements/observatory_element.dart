@@ -82,7 +82,7 @@ class ObservatoryElement extends PolymerElement {
     return (!['Null',
               'Smi',
               'Mint',
-              'Biginit',
+              'Bigint',
               'Bool',
               'String',
 	      'Double',

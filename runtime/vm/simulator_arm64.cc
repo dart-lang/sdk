@@ -93,7 +93,7 @@ class SimulatorDebugger {
   Simulator* sim_;
 
   bool GetValue(char* desc, int64_t* value);
-  // TODO(zra): GetVValue for doubles.
+  bool GetDValue(char* desc, int64_t* value);
   // TODO(zra): Breakpoints.
 };
 
@@ -143,6 +143,16 @@ static Register LookupCpuRegisterByName(const char* name) {
 }
 
 
+static VRegister LookupVRegisterByName(const char* name) {
+  int reg_nr = -1;
+  bool ok = SScanF(name, "v%d", &reg_nr);
+  if (ok && (0 <= reg_nr) && (reg_nr < kNumberOfVRegisters)) {
+    return static_cast<VRegister>(reg_nr);
+  }
+  return kNoVRegister;
+}
+
+
 bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
   Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
@@ -172,6 +182,26 @@ bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
     retval = SScanF(desc, "%"Px64, value) == 1;
   }
   return retval;
+}
+
+
+bool SimulatorDebugger::GetDValue(char* desc, int64_t* value) {
+  VRegister vreg = LookupVRegisterByName(desc);
+  if (vreg != kNoVRegister) {
+    *value = sim_->get_vregisterd(vreg);
+    return true;
+  }
+  if (desc[0] == '*') {
+    int64_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<int64_t*>(addr));
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -225,9 +255,11 @@ void SimulatorDebugger::Debug() {
                   "    disasm <address>\n"
                   "    disasm <address> <number_of_instructions>\n"
                   "  by default 10 instrs are disassembled\n"
+                  "flags -- print flag values\n"
                   "gdb -- transfer control to gdb\n"
                   "h/help -- print this help string\n"
                   "p/print <reg or value or *addr> -- print integer value\n"
+                  "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
                   "q/quit -- Quit the debugger and exit the program\n");
@@ -251,6 +283,20 @@ void SimulatorDebugger::Debug() {
           }
         } else {
           OS::Print("print <reg or value or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "pd") == 0) ||
+                 (strcmp(cmd, "printdouble") == 0)) {
+        if (args == 2) {
+          int64_t long_value;
+          if (GetDValue(arg1, &long_value)) {
+            double dvalue = bit_cast<double, int64_t>(long_value);
+            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n",
+                arg1, long_value, long_value, dvalue);
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("printdouble <dreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "po") == 0) ||
                  (strcmp(cmd, "printobject") == 0)) {
@@ -307,6 +353,12 @@ void SimulatorDebugger::Debug() {
           }
         }
         Disassembler::Disassemble(start, end);
+      } else if (strcmp(cmd, "flags") == 0) {
+        OS::Print("APSR: ");
+        OS::Print("N flag: %d; ", sim_->n_flag_);
+        OS::Print("Z flag: %d; ", sim_->z_flag_);
+        OS::Print("C flag: %d; ", sim_->c_flag_);
+        OS::Print("V flag: %d\n", sim_->v_flag_);
       } else if (strcmp(cmd, "gdb") == 0) {
         OS::Print("relinquishing control to gdb\n");
         OS::DebugBreak();
@@ -417,6 +469,11 @@ Simulator::Simulator() {
   z_flag_ = false;
   c_flag_ = false;
   v_flag_ = false;
+
+  for (int i = 0; i < kNumberOfVRegisters; i++) {
+    vregisters_[i].lo = 0;
+    vregisters_[i].hi = 0;
+  }
 
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
@@ -556,6 +613,19 @@ int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
   } else {
     return registers_[reg];
   }
+}
+
+
+int64_t Simulator::get_vregisterd(VRegister reg) {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  return vregisters_[reg].lo;
+}
+
+
+void Simulator::set_vregisterd(VRegister reg, int64_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  vregisters_[reg].lo = value;
+  vregisters_[reg].hi = 0;
 }
 
 
@@ -843,7 +913,7 @@ void Simulator::DecodeMoveWide(Instr* instr) {
   const int hw = instr->HWField();
   const int64_t shift = hw << 4;
   const int64_t shifted_imm =
-      static_cast<uint64_t>(instr->Imm16Field()) << shift;
+      static_cast<int64_t>(instr->Imm16Field()) << shift;
 
   if (instr->SFField()) {
     if (instr->Bits(29, 2) == 0) {
@@ -1322,16 +1392,10 @@ void Simulator::DecodeCompareBranch(Instr* instr) {
 
 
 void Simulator::DecodeLoadStoreReg(Instr* instr) {
-  // TODO(zra): SIMD loads and stores have bit 26 (V) set.
-  // (bit 25 is never set for loads and stores).
-  if (instr->Bits(25, 2) != 0) {
-    UnimplementedInstruction(instr);
-    return;
-  }
-
   // Calculate the address.
   const Register rn = instr->RnField();
   const Register rt = instr->RtField();
+  const VRegister vt = instr->VtField();
   const int64_t rn_val = get_register(rn, R31IsSP);
   const uint32_t size = instr->SzField();
   uword address = 0;
@@ -1372,6 +1436,7 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
     address = rn_val + offset;
   } else {
     UnimplementedInstruction(instr);
+    return;
   }
 
   // Check the address.
@@ -1382,86 +1447,106 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
 
   // Do access.
   if (instr->Bits(22, 2) == 0) {
-    // Format(instr, "str'sz 'rt, 'memop");
-    int32_t rt_val32 = get_wregister(rt, R31IsZR);
-    switch (size) {
-      case 0: {
-        uint8_t val = static_cast<uint8_t>(rt_val32);
-        WriteB(address, val);
-        break;
+    if (instr->Bit(26) == 1) {
+      // Format(instr, "vstrd 'vt, 'memop");
+      if (size != 3) {
+        UnimplementedInstruction(instr);
+        return;
       }
-      case 1: {
-        uint16_t val = static_cast<uint16_t>(rt_val32);
-        WriteH(address, val, instr);
-        break;
+      const int64_t vt_val = get_vregisterd(vt);
+      WriteX(address, vt_val, instr);
+    } else {
+      // Format(instr, "str'sz 'rt, 'memop");
+      const int32_t rt_val32 = get_wregister(rt, R31IsZR);
+      switch (size) {
+        case 0: {
+          const uint8_t val = static_cast<uint8_t>(rt_val32);
+          WriteB(address, val);
+          break;
+        }
+        case 1: {
+          const uint16_t val = static_cast<uint16_t>(rt_val32);
+          WriteH(address, val, instr);
+          break;
+        }
+        case 2: {
+          const uint32_t val = static_cast<uint32_t>(rt_val32);
+          WriteW(address, val, instr);
+          break;
+        }
+        case 3: {
+          const int64_t val = get_register(rt, R31IsZR);
+          WriteX(address, val, instr);
+          break;
+        }
+        default:
+          UNREACHABLE();
+          break;
       }
-      case 2: {
-        uint32_t val = static_cast<uint32_t>(rt_val32);
-        WriteW(address, val, instr);
-        break;
-      }
-      case 3: {
-        int64_t val = get_register(rt, R31IsZR);
-        WriteX(address, val, instr);
-        break;
-      }
-      default:
-        UNREACHABLE();
-        break;
     }
   } else {
-    // Format(instr, "ldr'sz 'rt, 'memop");
-    // Undefined case.
-    if ((size == 3) && (instr->Bits(22, 0) == 3)) {
-      UnimplementedInstruction(instr);
-      return;
-    }
-
-    // Read the value.
-    const bool signd = instr->Bit(23) == 1;
-    // Write the W register for signed values when size < 2.
-    // Write the W register for unsigned values when size == 2.
-    const bool use_w =
-        (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
-    int64_t val = 0;  // Sign extend into an int64_t.
-    switch (size) {
-      case 0: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadB(address));
-        } else {
-          val = static_cast<int64_t>(ReadBU(address));
-        }
-        break;
+    if (instr->Bit(26) == 1) {
+      // Format(instr, "ldrd 'vt, 'memop");
+      if ((size != 3) || (instr->Bit(23) != 0)) {
+        UnimplementedInstruction(instr);
+        return;
       }
-      case 1: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadH(address, instr));
-        } else {
-          val = static_cast<int64_t>(ReadHU(address, instr));
-        }
-        break;
-      }
-      case 2: {
-        if (signd) {
-          val = static_cast<int64_t>(ReadW(address, instr));
-        } else {
-          val = static_cast<int64_t>(ReadWU(address, instr));
-        }
-        break;
-      }
-      case 3:
-        val = ReadX(address, instr);
-        break;
-      default:
-        UNREACHABLE();
-        break;
-    }
-
-    // Write to register.
-    if (use_w) {
-      set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+      const int64_t val = ReadX(address, instr);
+      set_vregisterd(vt, val);
     } else {
-      set_register(rt, val, R31IsZR);
+      // Format(instr, "ldr'sz 'rt, 'memop");
+      // Undefined case.
+      if ((size == 3) && (instr->Bits(22, 2) == 3)) {
+        UnimplementedInstruction(instr);
+        return;
+      }
+
+      // Read the value.
+      const bool signd = instr->Bit(23) == 1;
+      // Write the W register for signed values when size < 2.
+      // Write the W register for unsigned values when size == 2.
+      const bool use_w =
+          (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
+      int64_t val = 0;  // Sign extend into an int64_t.
+      switch (size) {
+        case 0: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadB(address));
+          } else {
+            val = static_cast<int64_t>(ReadBU(address));
+          }
+          break;
+        }
+        case 1: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadH(address, instr));
+          } else {
+            val = static_cast<int64_t>(ReadHU(address, instr));
+          }
+          break;
+        }
+        case 2: {
+          if (signd) {
+            val = static_cast<int64_t>(ReadW(address, instr));
+          } else {
+            val = static_cast<int64_t>(ReadWU(address, instr));
+          }
+          break;
+        }
+        case 3:
+          val = ReadX(address, instr);
+          break;
+        default:
+          UNREACHABLE();
+          break;
+      }
+
+      // Write to register.
+      if (use_w) {
+        set_wregister(rt, static_cast<int32_t>(val), R31IsZR);
+      } else {
+        set_register(rt, val, R31IsZR);
+      }
     }
   }
 
@@ -1821,13 +1906,13 @@ void Simulator::DecodeMiscDP2Source(Instr* instr) {
 
 
 void Simulator::DecodeMiscDP3Source(Instr* instr) {
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const Register ra = instr->RaField();
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
       (instr->Bit(15) == 0)) {
     // Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
-    const Register rd = instr->RdField();
-    const Register rn = instr->RnField();
-    const Register rm = instr->RmField();
-    const Register ra = instr->RaField();
     if (instr->SFField() == 1) {
       const int64_t rn_val = get_register(rn, R31IsZR);
       const int64_t rm_val = get_register(rm, R31IsZR);
@@ -1841,6 +1926,31 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
       const int32_t alu_out = ra_val + (rn_val * rm_val);
       set_wregister(rd, alu_out, R31IsZR);
     }
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+             (instr->Bit(15) == 1)) {
+    // Format(instr, "msub'sf 'rd, 'rn, 'rm, 'ra");
+    if (instr->SFField() == 1) {
+      const int64_t rn_val = get_register(rn, R31IsZR);
+      const int64_t rm_val = get_register(rm, R31IsZR);
+      const int64_t ra_val = get_register(ra, R31IsZR);
+      const int64_t alu_out = ra_val - (rn_val * rm_val);
+      set_register(rd, alu_out, R31IsZR);
+    } else {
+      const int32_t rn_val = get_wregister(rn, R31IsZR);
+      const int32_t rm_val = get_wregister(rm, R31IsZR);
+      const int32_t ra_val = get_wregister(ra, R31IsZR);
+      const int32_t alu_out = ra_val - (rn_val * rm_val);
+      set_wregister(rd, alu_out, R31IsZR);
+    }
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
+             (instr->Bit(15) == 0)) {
+    // Format(instr, "smulh 'rd, 'rn, 'rm");
+    const int64_t rn_val = get_register(rn, R31IsZR);
+    const int64_t rm_val = get_register(rm, R31IsZR);
+    const __int128 res =
+        static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
+    const int64_t alu_out = static_cast<int64_t>(res >> 64);
+    set_register(rd, alu_out, R31IsZR);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -1848,31 +1958,41 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
 
 
 void Simulator::DecodeConditionalSelect(Instr* instr) {
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const int64_t rm_val64 = get_register(rm, R31IsZR);
+  const int32_t rm_val32 = get_wregister(rm, R31IsZR);
+  const int64_t rn_val64 = get_register(rn, instr->RnMode());
+  const int32_t rn_val32 = get_wregister(rn, instr->RnMode());
+  int64_t result64 = 0;
+  int32_t result32 = 0;
+
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     // Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
-    const Register rd = instr->RdField();
-    const Register rn = instr->RnField();
-    const Register rm = instr->RmField();
-    if (instr->SFField() == 1) {
-      int64_t res = 0;
-      if (ConditionallyExecute(instr)) {
-        res = get_register(rn, instr->RnMode());
-      } else {
-        res = get_register(rm, R31IsZR);
-      }
-      set_register(rd, res, instr->RdMode());
-    } else {
-      int32_t res = 0;
-      if (ConditionallyExecute(instr)) {
-        res = get_wregister(rn, instr->RnMode());
-      } else {
-        res = get_wregister(rm, R31IsZR);
-      }
-      set_wregister(rd, res, instr->RdMode());
+    result64 = rm_val64;
+    result32 = rm_val32;
+    if (ConditionallyExecute(instr)) {
+      result64 = rn_val64;
+      result32 = rn_val32;
     }
-
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
+    // Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    result64 = rm_val64 + 1;
+    result32 = rm_val32 + 1;
+    if (ConditionallyExecute(instr)) {
+      result64 = rn_val64;
+      result32 = rn_val32;
+    }
   } else {
     UnimplementedInstruction(instr);
+    return;
+  }
+
+  if (instr->SFField() == 1) {
+    set_register(rd, result64, instr->RdMode());
+  } else {
+    set_wregister(rd, result32, instr->RdMode());
   }
 }
 
@@ -1899,8 +2019,178 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
 }
 
 
+void Simulator::DecodeFPImm(Instr* instr) {
+  if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) || (instr->Bit(23) != 0) ||
+      (instr->Bits(5, 5) != 0)) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+  if (instr->Bit(22) == 1) {
+    // Double.
+    // Format(instr, "fmovd 'vd, #'immd");
+    const VRegister vd = instr->VdField();
+    const int64_t immd = Instr::VFPExpandImm(instr->Imm8Field());
+    set_vregisterd(vd, immd);
+  } else {
+    // Single.
+    UnimplementedInstruction(instr);
+  }
+}
+
+
+void Simulator::DecodeFPIntCvt(Instr* instr) {
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+
+  if ((instr->SFField() != 1) || (instr->Bit(29) != 0) ||
+      (instr->Bits(22, 2) != 1)) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+  if (instr->Bits(16, 5) == 2) {
+    // Format(instr, "scvtfd 'vd, 'vn");
+    const int64_t rn_val = get_register(rn, instr->RnMode());
+    const double vn_dbl = static_cast<double>(rn_val);
+    set_vregisterd(vd, bit_cast<int64_t, double>(vn_dbl));
+  } else if (instr->Bits(16, 5) == 6) {
+    // Format(instr, "fmovrd 'rd, 'vn");
+    const int64_t vn_val = get_vregisterd(vn);
+    set_register(rd, vn_val, R31IsZR);
+  } else if (instr->Bits(16, 5) == 7) {
+    // Format(instr, "fmovdr 'vd, 'rn");
+    const int64_t rn_val = get_register(rn, R31IsZR);
+    set_vregisterd(vd, rn_val);
+  } else if (instr->Bits(16, 5) == 24) {
+    // Format(instr, "fcvtzds 'rd, 'vn");
+    const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+    set_register(rd, static_cast<int64_t>(vn_val), instr->RdMode());
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
+void Simulator::DecodeFPOneSource(Instr* instr) {
+  const int opc = instr->Bits(15, 2);
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  switch (opc) {
+    case 0:
+      // Format("fmovdd 'vd, 'vn");
+      set_vregisterd(vd, get_vregisterd(vn));
+      break;
+    default:
+      UnimplementedInstruction(instr);
+      break;
+  }
+}
+
+
+void Simulator::DecodeFPTwoSource(Instr* instr) {
+  if (instr->Bits(22, 2) != 1) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  const VRegister vm = instr->VmField();
+  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+  const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm));
+  const int opc = instr->Bits(12, 4);
+  double result;
+
+  switch (opc) {
+    case 0:
+      // Format(instr, "fmuld 'vd, 'vn, 'vm");
+      result = vn_val * vm_val;
+      break;
+    case 1:
+      // Format(instr, "fdivd 'vd, 'vn, 'vm");
+      result = vn_val / vm_val;
+      break;
+    case 2:
+      // Format(instr, "faddd 'vd, 'vn, 'vm");
+      result = vn_val + vm_val;
+      break;
+    case 3:
+      // Format(instr, "fsubd 'vd, 'vn, 'vm");
+      result = vn_val - vm_val;
+      break;
+    default:
+      // Unknown(instr);
+      break;
+  }
+
+  set_vregisterd(vd, bit_cast<int64_t, double>(result));
+}
+
+
+void Simulator::DecodeFPCompare(Instr* instr) {
+  const VRegister vn = instr->VnField();
+  const VRegister vm = instr->VmField();
+  const double vn_val = get_vregisterd(vn);
+  double vm_val;
+
+  if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
+    // Format(instr, "fcmpd 'vn, 'vm");
+    vm_val = get_vregisterd(vm);
+  } else if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 1)) {
+    if (instr->VmField() == V0) {
+      // Format(instr, "fcmpd 'vn, #0.0");
+      vm_val = 0.0;
+    } else {
+      UnimplementedInstruction(instr);
+      return;
+    }
+  } else {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  n_flag_ = false;
+  z_flag_ = false;
+  c_flag_ = false;
+  v_flag_ = false;
+
+  if (isnan(vn_val) || isnan(vm_val)) {
+    c_flag_ = true;
+    v_flag_ = true;
+  } else if (vn_val == vm_val) {
+    z_flag_ = true;
+    c_flag_ = true;
+  } else if (vn_val < vm_val) {
+    n_flag_ = true;
+  } else {
+    c_flag_ = true;
+  }
+}
+
+
+void Simulator::DecodeFP(Instr* instr) {
+  if (instr->IsFPImmOp()) {
+    DecodeFPImm(instr);
+  } else if (instr->IsFPIntCvtOp()) {
+    DecodeFPIntCvt(instr);
+  } else if (instr->IsFPOneSourceOp()) {
+    DecodeFPOneSource(instr);
+  } else if (instr->IsFPTwoSourceOp()) {
+    DecodeFPTwoSource(instr);
+  } else if (instr->IsFPCompareOp()) {
+    DecodeFPCompare(instr);
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 void Simulator::DecodeDPSimd2(Instr* instr) {
-  UnimplementedInstruction(instr);
+  if (instr->IsFPOp()) {
+    DecodeFP(instr);
+  } else {
+    UnimplementedInstruction(instr);
+  }
 }
 
 
@@ -1977,15 +2267,24 @@ int64_t Simulator::Call(int64_t entry,
                         int64_t parameter0,
                         int64_t parameter1,
                         int64_t parameter2,
-                        int64_t parameter3) {
+                        int64_t parameter3,
+                        bool fp_return,
+                        bool fp_args) {
   // Save the SP register before the call so we can restore it.
   intptr_t sp_before_call = get_register(R31, R31IsSP);
 
   // Setup parameters.
-  set_register(R0, parameter0);
-  set_register(R1, parameter1);
-  set_register(R2, parameter2);
-  set_register(R3, parameter3);
+  if (fp_args) {
+    set_vregisterd(V0, parameter0);
+    set_vregisterd(V1, parameter1);
+    set_vregisterd(V2, parameter2);
+    set_vregisterd(V3, parameter3);
+  } else {
+    set_register(R0, parameter0);
+    set_register(R1, parameter1);
+    set_register(R2, parameter2);
+    set_register(R3, parameter3);
+  }
 
   // Make sure the activation frames are properly aligned.
   intptr_t stack_pointer = sp_before_call;
@@ -2002,67 +2301,50 @@ int64_t Simulator::Call(int64_t entry,
   // the LR the simulation stops when returning to this call point.
   set_register(LR, kEndSimulatingPC);
 
-  // Remember the values of callee-saved registers.
-  int64_t r19_val = get_register(R19);
-  int64_t r20_val = get_register(R20);
-  int64_t r21_val = get_register(R21);
-  int64_t r22_val = get_register(R22);
-  int64_t r23_val = get_register(R23);
-  int64_t r24_val = get_register(R24);
-  int64_t r25_val = get_register(R25);
-  int64_t r26_val = get_register(R26);
-  int64_t r27_val = get_register(R27);
-  int64_t r28_val = get_register(R28);
-  int64_t r29_val = get_register(R29);
-
-  // Setup the callee-saved registers with a known value. To be able to check
-  // that they are preserved properly across dart execution.
+  // Remember the values of callee-saved registers, and set them up with a
+  // known value so that we are able to check that they are preserved
+  // properly across Dart execution.
+  int64_t preserved_vals[kAbiPreservedCpuRegCount];
   int64_t callee_saved_value = icount_;
-  set_register(R19, callee_saved_value);
-  set_register(R20, callee_saved_value);
-  set_register(R21, callee_saved_value);
-  set_register(R22, callee_saved_value);
-  set_register(R23, callee_saved_value);
-  set_register(R24, callee_saved_value);
-  set_register(R25, callee_saved_value);
-  set_register(R26, callee_saved_value);
-  set_register(R27, callee_saved_value);
-  set_register(R28, callee_saved_value);
-  set_register(R29, callee_saved_value);
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+    const Register r = static_cast<Register>(i);
+    preserved_vals[i - kAbiFirstPreservedCpuReg] = get_register(r);
+    set_register(r, callee_saved_value);
+  }
+
+  // Only the bottom half of the V registers must be preserved.
+  int64_t preserved_dvals[kAbiPreservedFpuRegCount];
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    preserved_dvals[i - kAbiFirstPreservedFpuReg] = get_vregisterd(r);
+    set_vregisterd(r, callee_saved_value);
+  }
 
   // Start the simulation
   Execute();
 
-  // Check that the callee-saved registers have been preserved.
-  ASSERT(callee_saved_value == get_register(R19));
-  ASSERT(callee_saved_value == get_register(R20));
-  ASSERT(callee_saved_value == get_register(R21));
-  ASSERT(callee_saved_value == get_register(R22));
-  ASSERT(callee_saved_value == get_register(R23));
-  ASSERT(callee_saved_value == get_register(R24));
-  ASSERT(callee_saved_value == get_register(R25));
-  ASSERT(callee_saved_value == get_register(R26));
-  ASSERT(callee_saved_value == get_register(R27));
-  ASSERT(callee_saved_value == get_register(R28));
-  ASSERT(callee_saved_value == get_register(R29));
+  // Check that the callee-saved registers have been preserved,
+  // and restore them with the original value
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+    const Register r = static_cast<Register>(i);
+    ASSERT(callee_saved_value == get_register(r));
+    set_register(r, preserved_vals[i - kAbiFirstPreservedCpuReg]);
+  }
 
-  // Restore callee-saved registers with the original value.
-  set_register(R19, r19_val);
-  set_register(R20, r20_val);
-  set_register(R21, r21_val);
-  set_register(R22, r22_val);
-  set_register(R23, r23_val);
-  set_register(R24, r24_val);
-  set_register(R25, r25_val);
-  set_register(R26, r26_val);
-  set_register(R27, r27_val);
-  set_register(R28, r28_val);
-  set_register(R29, r29_val);
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    ASSERT(callee_saved_value == get_vregisterd(r));
+    set_vregisterd(r, preserved_dvals[i - kAbiFirstPreservedFpuReg]);
+  }
 
   // Restore the SP register and return R0.
   set_register(R31, sp_before_call, R31IsSP);
   int64_t return_value;
-  return_value = get_register(R0);
+  if (fp_return) {
+    return_value = get_vregisterd(V0);
+  } else {
+    return_value = get_register(R0);
+  }
   return return_value;
 }
 

@@ -650,7 +650,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   """
 
   def __init__(self, interface, options):
-    super(Dart2JSBackend, self).__init__(interface, options)
+    super(Dart2JSBackend, self).__init__(interface, options, False)
 
     self._database = options.database
     self._template_loader = options.templates

@@ -16,7 +16,7 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == ff || $runtime == chrome || $ie) ]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff || $runtime == chrome || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
@@ -71,6 +71,11 @@ rtc_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
 speechrecognition_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
 speechrecognition_test/types: Fail # TODO(dart2js-team): Please triage this failure.
 xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
+
+[ $runtime == safarimobilesim ]
+canvasrenderingcontext2d_test/fillText: RuntimeError # Issue 18573
+element_offset_test/offset: RuntimeError # Issue 18573
+element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Pass, Fail # Issue 17061
@@ -304,12 +309,9 @@ xhr_test/supported_onProgress: Fail
 xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 worker_test: Skip # Issue 13221
 worker_api_test: Skip # Issue 13221
-input_element_test/supported_month: RuntimeError
-input_element_test/supported_time: RuntimeError
-input_element_test/supported_week: RuntimeError
 webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
@@ -325,8 +327,6 @@ element_types_test/supported_template: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
-input_element_test/supported_date: Fail
-input_element_test/supported_datetime-local: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
@@ -334,8 +334,15 @@ performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-touchevent_test/supported: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
+
+[ $runtime == safari ]
+input_element_test/supported_month: RuntimeError
+input_element_test/supported_time: RuntimeError
+input_element_test/supported_week: RuntimeError
+input_element_test/supported_date: Fail
+input_element_test/supported_datetime-local: Fail
+touchevent_test/supported: Fail
 
 [ $runtime == opera ]
 blob_constructor_test: Fail

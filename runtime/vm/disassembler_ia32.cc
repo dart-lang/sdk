@@ -526,7 +526,7 @@ void X86Decoder::PrintAddress(uword addr) {
       // Print only if jumping to entry point.
       const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const String& name = String::Handle(code.UserName());
+        const String& name = String::Handle(code.PrettyName());
         const char* name_c = name.ToCString();
         Print(" [");
         Print(name_c);
@@ -1360,7 +1360,7 @@ int X86Decoder::InstructionDecode(uword pc) {
           Print(" ");
           PrintXmmRegister(regop);
           Print(",");
-          data += PrintRightOperand(data);
+          data += PrintRightXmmOperand(data);
         } else if (f0byte == 0xB1) {
           data += 2;
           data += PrintOperands(f0mnem, OPER_REG_OP_ORDER, data);

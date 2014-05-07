@@ -299,6 +299,30 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_out(0, Location::RequiresFpuRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // The register allocator drops constant definitions that have no uses.
+  if (!locs()->out(0).IsInvalid()) {
+    ASSERT(value().IsDouble());
+    const Register const_value = locs()->temp(0).reg();
+    const DRegister result = locs()->out(0).fpu_reg();
+    __ LoadObject(const_value, value());
+    __ LoadDFromOffset(result, const_value,
+        Double::value_offset() - kHeapObjectTag);
+  }
+}
+
+
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
@@ -3018,7 +3042,8 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  CompileType* value_type = value()->Type();
+  const intptr_t value_cid = value_type->ToCid();
   const Register value = locs()->in(0).reg();
   const DRegister result = locs()->out(0).fpu_reg();
 
@@ -3031,20 +3056,29 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
-    Label is_smi, done;
+    if (value_type->is_nullable() &&
+        (value_type->ToNullableCid() == kDoubleCid)) {
+      __ BranchEqual(value, reinterpret_cast<int32_t>(Object::null()), deopt);
+      // It must be double now.
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+    } else {
+      Label is_smi, done;
 
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, &is_smi);
-    __ LoadClassId(CMPRES1, value);
-    __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
-    __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
-    __ b(&done);
-    __ Bind(&is_smi);
-    // TODO(regis): Why do we preserve value here but not above?
-    __ sra(TMP, value, 1);
-    __ mtc1(TMP, STMP1);
-    __ cvtdw(result, STMP1);
-    __ Bind(&done);
+      __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+      __ beq(CMPRES1, ZR, &is_smi);
+      __ LoadClassId(CMPRES1, value);
+      __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
+      __ LoadDFromOffset(result, value,
+          Double::value_offset() - kHeapObjectTag);
+      __ b(&done);
+      __ Bind(&is_smi);
+      // TODO(regis): Why do we preserve value here but not above?
+      __ sra(TMP, value, 1);
+      __ mtc1(TMP, STMP1);
+      __ cvtdw(result, STMP1);
+      __ Bind(&done);
+    }
   }
 }
 
@@ -3478,8 +3512,7 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
-  if ((kind() == MethodRecognizer::kMathSin) ||
-      (kind() == MethodRecognizer::kMathCos)) {
+  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
     const intptr_t kNumInputs = 1;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
@@ -3488,6 +3521,8 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
     summary->set_out(0, Location::FpuRegisterLocation(D0));
     return summary;
   }
+  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
+         (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3499,8 +3534,12 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
 
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (kind() == MethodRecognizer::kMathSqrt) {
+  if (kind() == MathUnaryInstr::kSqrt) {
     __ sqrtd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    DRegister val = locs()->in(0).fpu_reg();
+    DRegister result = locs()->out(0).fpu_reg();
+    __ muld(result, val, val);
   } else {
     __ CallRuntime(TargetFunction(), InputCount());
   }
@@ -4163,13 +4202,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index_loc = locs()->in(kIndexPos);
 
   if (length_loc.IsConstant() && index_loc.IsConstant()) {
-    // TODO(srdjan): remove this code once failures are fixed.
-    if ((Smi::Cast(length_loc.constant()).Value() >
-         Smi::Cast(index_loc.constant()).Value()) &&
-        (Smi::Cast(index_loc.constant()).Value() >= 0)) {
-      // This CheckArrayBoundInstr should have been eliminated.
-      return;
-    }
     ASSERT((Smi::Cast(length_loc.constant()).Value() <=
             Smi::Cast(index_loc.constant()).Value()) ||
            (Smi::Cast(index_loc.constant()).Value() < 0));

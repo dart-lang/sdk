@@ -119,8 +119,6 @@ WebPlatformTest/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 #co19 issue 680
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t04: StaticWarning
-Language/12_Expressions/30_Identifier_Reference_A07_t01: StaticWarning
-Language/12_Expressions/30_Identifier_Reference_A16_t01: StaticWarning
 
 # co19 roll to r706: Please triage all these issues.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03: StaticWarning # co19-roll r706: Please triage this failure.
@@ -195,9 +193,9 @@ LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Sta
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/script-async-attr_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: CompileTimeError
+LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: StaticWarning
+LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: StaticWarning
 LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTableElement/createCaption_t01: StaticWarning # co19-roll r722: Please triage this failure.

@@ -244,6 +244,36 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * is fully closed and is no longer bound.
    */
   Future<RawServerSocket> close();
+
+  /**
+   * Get the [RawServerSocketReference].
+   *
+   * WARNING: This feature is *highly experimental* and currently only works on
+   * Linux. The API is most likely going to change in the near future.
+   *
+   * The returned [RawServerSocketReference] can be used to create other
+   * [RawServerSocket]s listening on the same port,
+   * using [RawServerSocketReference.create].
+   * Incoming connections on the port will be distributed fairly between the
+   * active server sockets.
+   * The [RawServerSocketReference] can be distributed to other isolates through
+   * a [RawSendPort].
+   */
+  RawServerSocketReference get reference;
+}
+
+
+/**
+ * A [RawServerSocketReference].
+ *
+ * WARNING: This class is used with [RawServerSocket.reference] which is highly
+ * experimental.
+ */
+abstract class RawServerSocketReference {
+  /**
+   * Create a new [RawServerSocket], from this reference.
+   */
+  Future<RawServerSocket> create();
 }
 
 
@@ -305,7 +335,38 @@ abstract class ServerSocket implements Stream<Socket> {
    * is fully closed and is no longer bound.
    */
   Future<ServerSocket> close();
+
+  /**
+   * Get the [ServerSocketReference].
+   *
+   * WARNING: This feature is *highly experimental* and currently only works on
+   * Linux. The API is most likely going to change in the near future.
+   *
+   * The returned [ServerSocketReference] can be used to create other
+   * [ServerSocket]s listening on the same port,
+   * using [ServerSocketReference.create].
+   * Incoming connections on the port will be distributed fairly between the
+   * active server sockets.
+   * The [ServerSocketReference] can be distributed to other isolates through a
+   * [SendPort].
+   */
+  ServerSocketReference get reference;
 }
+
+
+/**
+ * A [ServerSocketReference].
+ *
+ * WARNING: This class is used with [ServerSocket.reference] which is highly
+ * experimental.
+ */
+abstract class ServerSocketReference {
+  /**
+   * Create a new [ServerSocket], from this reference.
+   */
+  Future<ServerSocket> create();
+}
+
 
 /**
  * The [SocketDirection] is used as a parameter to [Socket.close] and
@@ -388,8 +449,10 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * if the host-lookup or connection failed.
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
+   * [String], [connect] will perform a [InternetAddress.lookup] and try
+   * all returned [InternetAddress]es, in turn, until connected. Unless a
+   * connection was established, the error from the first attempt is
+   * returned.
    */
   external static Future<RawSocket> connect(host, int port);
 
@@ -479,8 +542,10 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * if the host-lookup or connection failed.
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
+   * [String], [connect] will perform a [InternetAddress.lookup] and try
+   * all returned [InternetAddress]es, in turn, until connected. Unless a
+   * connection was established, the error from the first attempt is
+   * returned.
    */
   external static Future<Socket> connect(host, int port);
 

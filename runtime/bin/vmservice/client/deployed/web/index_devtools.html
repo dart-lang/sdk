@@ -17,6 +17,11 @@
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <style>
+      nav {
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+      }
       nav ul {
         display: inline-table;
         position: relative;
@@ -24,7 +29,7 @@
         padding-left: 0;
         margin-left: 0;
         width: 100%;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background-color: #0489c3;
@@ -32,12 +37,21 @@
       nav ul:after {
         content: ""; clear: both; display: block;
       }
+      .vertical-spacer {
+        height: 40px;
+        background-color: #0489c3;
+      }
     </style>
     <nav>
       <ul>
         <content></content>
       </ul>
     </nav>
+    <div class="vertical-spacer">
+    </div>
+    <template if="{{ pad }}">
+      <br>
+    </template>
   </template>
 </polymer-element>
 
@@ -64,7 +78,7 @@
         margin: 0;
         padding: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -107,7 +121,7 @@
         padding: 0;
         margin-left: 0;
         width: auto;
-        z-index: 10;
+        z-index: 1000;
         font: 400 16px 'Montserrat', sans-serif;
         color: white;
         background: #567;
@@ -171,10 +185,10 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="allocation profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
@@ -205,7 +219,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ msg.isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <template if="{{ msg['breakpoints'].isEmpty }}">
@@ -276,13 +290,24 @@
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
     <span>
-      <template if="{{ isUnexpected(ref.serviceType) }}">
-        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+      <template if="{{ isError(ref.serviceType) }}">
+        <pre class="errorBox">{{ ref.message }}</pre>
       </template>
 
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre>{{ ref.message }}</pre>
+      <template if="{{ isUnexpected(ref.serviceType) }}">
+        unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
 
       <template if="{{ isNull(ref.serviceType) }}">
@@ -378,7 +403,7 @@
         white-space: pre-line;
       }
       .historyExpr a:hover {
-        background-color: #e1f5fe
+        background-color: #fff3e3;
       }
       .historyValue {
         display: block;
@@ -426,6 +451,32 @@
 </polymer-element>
 
 
+<polymer-element name="eval-link">
+  <template>
+    <style>
+      .idle {
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        color: #aaa;
+        cursor: wait;
+      }
+    </style>
+
+    <template if="{{ busy }}">
+      <span class="busy">[evaluate]</span>
+    </template>
+    <template if="{{ !busy }}">
+      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
+    </template>
+    <template if="{{ result != null }}">
+      = <instance-ref ref="{{ result }}"></instance-ref>
+    </template>
+
+  </template>
+  
+</polymer-element>
 <polymer-element name="field-ref" extends="service-ref">
   <template>
   <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
@@ -459,10 +510,16 @@
 </polymer-element>
 <polymer-element name="library-ref" extends="service-ref">
 <template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
-  <a href="{{ url }}">{{ name }}</a>
+  <template if="{{ nameIsEmpty }}">
+    <a href="{{ url }}">unnamed</a>
+  </template>
+  <template if="{{ !nameIsEmpty }}">
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
 </template>
 
-</polymer-element><polymer-element name="script-ref" extends="service-ref">
+</polymer-element>
+<polymer-element name="script-ref" extends="service-ref">
 <template>
   <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
@@ -544,6 +601,12 @@
             <div class="memberValue">{{ cls.vmName }}</div>
           </div>
         </template>
+        <div class="memberItem">
+          <div class="memberName">retained size<br>(all instances)</div>
+          <div class="memberValue">
+            <eval-link callback="{{ retainedSize }}"></eval-link>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -557,7 +620,7 @@
     <div class="content">
       <template if="{{ cls['fields'].isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['fields'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ field in cls['fields'] }}">
               <div class="memberItem">
@@ -572,12 +635,12 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
 
       <template if="{{ cls['functions'].isNotEmpty }}">
         functions ({{ cls['functions'].length }})
-        <curly-block>
+        <curly-block expand="{{ cls['functions'].length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ function in cls['functions'] }}">
               <div class="memberItem">
@@ -588,7 +651,7 @@
               </div>
             </template>
           </div>
-        </curly-block><br>
+        </curly-block><br><br>
       </template>
     </div>
 
@@ -606,7 +669,12 @@
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
     <template if="{{ code.isDartCode }}">
-      <a href="{{ url }}">{{ name }}</a>
+        <template if="{{ code.isOptimized }}">
+          <a href="{{ url }}">*{{ name }}</a>
+        </template>
+        <template if="{{ !code.isOptimized }}">
+          <a href="{{ url }}">{{ name }}</a>
+        </template>
     </template>
     <template if="{{ !code.isDartCode }}">
       <span>{{ name }}</span>
@@ -669,14 +737,25 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <div class="content">
-      <h1>Code for {{ code.name }}</h1>
+      <template if="{{ code.isDartCode &amp;&amp; code.isOptimized }}">
+        <h1>Optimized code for {{ code.name }}</h1>
+      </template>
+      <template if="{{ !(code.isDartCode &amp;&amp; code.isOptimized) }}">
+        <h1>Code for {{ code.name }}</h1>
+      </template>
       <div class="memberList">
         <div class="memberItem">
-          <div class="memberName">kind</div>
+          <div class="memberName">Kind</div>
           <div class="memberValue">{{code.kind}}</div>
         </div>
+        <template if="{{ code.isDartCode }}">
+          <div class="memberItem">
+            <div class="memberName">Optimized</div>
+            <div class="memberValue">{{code.isOptimized}}</div>
+          </div>
+        </template>
         <div class="memberItem">
-          <div class="memberName">function</div>
+          <div class="memberName">Function</div>
           <div class="memberValue">
             <function-ref ref="{{code.function}}">
             </function-ref>
@@ -781,36 +860,11 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
-        <h1>{{ error.kind }}</h1>
-        <div class="well">{{ error.message }}</div>
+    <div class="content-centered">
+      <h1>{{ error.kind }}</h1>
+      <br>
+      <div class="well">{{ error.message }}</div>
     </div>
-  </template>
-  
-</polymer-element>
-<polymer-element name="eval-link">
-  <template>
-    <style>
-      .idle {
-        color: #0489c3;
-        cursor: pointer;
-      }
-      .busy {
-        color: #aaa;
-        cursor: wait;
-      }
-    </style>
-
-    <template if="{{ busy }}">
-      <span class="busy">[evaluate]</span>
-    </template>
-    <template if="{{ !busy }}">
-      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
-    </template>
-    <template if="{{ result != null }}">
-      = <instance-ref ref="{{ result }}"></instance-ref>
-    </template>
-
   </template>
   
 </polymer-element>
@@ -827,7 +881,7 @@
       <template if="{{ field['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ field.hashLink }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -957,7 +1011,7 @@
       <template if="{{ function['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ function.hashLink }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -1059,18 +1113,26 @@
     .hover {
       position: fixed;
       z-index: 999;
+      height: 16px;
       width: 100%;
       background: #ffffff;
     }
+    .spacer {
+      height: 16px;
+      background-color: red;
+    }
   </style>
-  <nav-bar>
+  <nav-bar pad="{{ false }}">
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
-    <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ fragmentation.isolate.relativeHashLink('heapmap') }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
   <div class="hover">
     <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="spacer">
+    <!-- Make sure no data is covered by hover bar initially -->
   </div>
   <div class="flex-row">
     <canvas id="fragmentation" width="1px" height="1px"></canvas>
@@ -1242,82 +1304,101 @@
 
     <br>
 
-    <div class="content">
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">root library</div>
-          <div class="memberValue">
-            <function-ref ref="{{ isolate.rootLib }}"></function-ref>
-          </div>
-        </div>
-        <div class="memberItem">
-          <template if="{{ isolate.entry != null }}">
-            <div class="memberName">entry</div>
-            <div class="memberValue">
-              <function-ref ref="{{ isolate.entry }}"></function-ref>
-            </div>
-          </template>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">id</div>
-          <div class="memberValue">{{ isolate.mainPort }}</div>
-        </div>
-        <br>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+    <div class="content-centered">
+      <div class="flex-row">
 
+        <div class="flex-item-fixed-6-12">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">root library</div>
+              <div class="memberValue">
+                <library-ref ref="{{ isolate.rootLib }}"></library-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <template if="{{ isolate.entry != null }}">
+                <div class="memberName">entry</div>
+                <div class="memberValue">
+                  <function-ref ref="{{ isolate.entry }}"></function-ref>
+                </div>
+              </template>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">id</div>
+              <div class="memberValue">{{ isolate.mainPort }}</div>
+            </div>
+            <br>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="flex-item-fixed-6-12">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">new heap</div>
+              <div class="memberValue">
+                {{ isolate.newHeapUsed | formatSize }}
+                of
+                {{ isolate.newHeapCapacity | formatSize }}
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">old heap</div>
+              <div class="memberValue">
+                {{ isolate.oldHeapUsed | formatSize }}
+                of
+                {{ isolate.oldHeapCapacity | formatSize }}
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- flex row -->
+    </div> <!-- content -->
 
     <hr>
 
     <div class="content">
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">new heap</div>
-          <div class="memberValue">
-            {{ isolate.newHeapUsed | formatSize }}
-            of
-            {{ isolate.newHeapCapacity | formatSize }}
-          </div>
+      libraries ({{ isolate.libraries.length }})
+      <curly-block expand="{{ isolate.libraries.length <= 8 }}">
+        <div class="memberList">
+          <template repeat="{{ lib in isolate.libraries }}">
+            <div class="memberItem">
+              <div class="memberName">
+                <library-ref ref="{{ lib }}"></library-ref>
+              </div>
+            </div>
+          </template>
         </div>
-        <div class="memberItem">
-          <div class="memberName">old heap</div>
-          <div class="memberValue">
-            {{ isolate.oldHeapUsed | formatSize }}
-            of
-            {{ isolate.oldHeapCapacity | formatSize }}
-          </div>
-        </div>
-      </div>
-
-      <br>
-
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-          </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-          </div>
-        </div>
-      </div>
+      </curly-block>
     </div>
 
     <hr>
@@ -1386,6 +1467,12 @@
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
           </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
+          </div>
           <template if="{{ instance['type_class'] != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>
@@ -1421,7 +1508,7 @@
       <div class="content">
         <template if="{{ instance['fields'].isNotEmpty }}">
           fields ({{ instance['fields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['fields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['fields'] }}">
                 <div class="memberItem">
@@ -1434,12 +1521,12 @@
                 </div>
               </template>
             </div>
-          </curly-block>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['nativeFields'].isNotEmpty }}">
           native fields ({{ instance['nativeFields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['nativeFields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['nativeFields'] }}">
                 <div class="memberItem">
@@ -1448,12 +1535,12 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['elements'].isNotEmpty }}">
           elements ({{ instance['elements'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['elements'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ element in instance['elements'] }}">
                 <div class="memberItem">
@@ -1465,7 +1552,7 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
       </div>
 
@@ -1508,18 +1595,8 @@
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">url</div>
-          <div class="memberValue">{{ library['url'] }}</div>
+          <div class="memberValue">{{ library.url }}</div>
         </div>
-        <template if="{{ library['imports'].length > 0 }}">
-          <div class="memberItem">
-            <div class="memberName">imports</div>
-            <div class="memberValue">
-              <template repeat="{{ import in library['imports'] }}">
-                <library-ref ref="{{ import }}"></library-ref>
-              </template>
-            </div>
-          </div>
-        </template>
         <template if="{{ library.name != library.vmName }}">
           <div class="memberItem">
             <div class="memberName">vm name</div>
@@ -1532,11 +1609,27 @@
     <hr>
 
     <div class="content">
-      <template if="{{ library['scripts'].isNotEmpty }}">
-        scripts ({{ library['scripts'].length }})
-        <curly-block>
+      <template if="{{ library.imports.isNotEmpty }}">
+        imports ({{ library.imports.length }})
+        <curly-block expand="{{ library.imports.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ script in library['scripts'] }}">
+            <template repeat="{{ imp in library.imports }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <library-ref ref="{{ imp }}"></library-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+        <br>
+      </template>
+
+      <template if="{{ library.scripts.isNotEmpty }}">
+        scripts ({{ library.scripts.length }})
+        <curly-block expand="{{ library.scripts.length <= 8 }}">
+          <div class="memberList">
+            <template repeat="{{ script in library.scripts }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <script-ref ref="{{ script }}"></script-ref>
@@ -1545,13 +1638,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['classes'].isNotEmpty }}">
-        classes ({{ library['classes'].length }})
-        <curly-block>
+      <template if="{{ library.classes.isNotEmpty }}">
+        classes ({{ library.classes.length }})
+        <curly-block expand="{{ library.classes.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ cls in library['classes'] }}">
+            <template repeat="{{ cls in library.classes }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <class-ref ref="{{ cls }}"></class-ref>
@@ -1560,13 +1654,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['variables'].isNotEmpty }}">
-        variables ({{ library['variables'].length }})
-        <curly-block>
+      <template if="{{ library.variables.isNotEmpty }}">
+        variables ({{ library.variables.length }})
+        <curly-block expand="{{ library.variables.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ field in library['variables'] }}">
+            <template repeat="{{ field in library.variables }}">
               <div class="memberItem">
                 <div class="memberName">
                   <field-ref ref="{{ field }}"></field-ref>
@@ -1580,13 +1675,14 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
 
-      <template if="{{ library['functions'].isNotEmpty }}">
-        functions ({{ library['functions'].length }})
-        <curly-block>
+      <template if="{{ library.functions.isNotEmpty }}">
+        functions ({{ library.functions.length }})
+        <curly-block expand="{{ library.functions.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ function in library['functions'] }}">
+            <template repeat="{{ function in library.functions }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <function-ref ref="{{ function }}"></function-ref>
@@ -1595,6 +1691,7 @@
             </template>
           </div>
         </curly-block><br>
+        <br>
       </template>
     </div>
 
@@ -1698,7 +1795,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ profile.isolate.relativeHashLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <style>
@@ -1837,7 +1934,7 @@
         <tbody>
           <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
             <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-              <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
+              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
               <div style="position: relative;display: inline">
                 {{row.columns[0]}}
               </div>
@@ -1911,7 +2008,7 @@
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ profile.isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -1960,12 +2057,14 @@
       <thead>
         <tr>
           <th on-click="{{changeSort}}" class="clickable" title="Class">{{ classTable.getColumnLabel(0) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Size">{{ classTable.getColumnLabel(3) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Space Accumulated Instances">{{ classTable.getColumnLabel(4) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Current Size">{{ classTable.getColumnLabel(5) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Total Current Instances">{{ classTable.getColumnLabel(6) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Size">{{ classTable.getColumnLabel(3) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Instances">{{ classTable.getColumnLabel(4) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Size">{{ classTable.getColumnLabel(5) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Instances">{{ classTable.getColumnLabel(6) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Size">{{ classTable.getColumnLabel(7) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Instances">{{ classTable.getColumnLabel(8) }}</th>
         </tr>
       </thead>
       <tbody>
@@ -1977,6 +2076,8 @@
           <td title="{{ classTable.getValue(row, 4) }}">{{ classTable.getFormattedValue(row, 4) }}</td>
           <td title="{{ classTable.getValue(row, 5) }}">{{ classTable.getFormattedValue(row, 5) }}</td>
           <td title="{{ classTable.getValue(row, 6) }}">{{ classTable.getFormattedValue(row, 6) }}</td>
+          <td title="{{ classTable.getValue(row, 7) }}">{{ classTable.getFormattedValue(row, 7) }}</td>
+          <td title="{{ classTable.getValue(row, 8) }}">{{ classTable.getFormattedValue(row, 8) }}</td>
         </tr>
       </tbody>
     </table>
@@ -1990,7 +2091,6 @@
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ script.isolate }}">
     </isolate-nav-menu>
-    <library-nav-menu library="{{ script.library }}"></library-nav-menu>
     <nav-menu link="." anchor="{{ script.name }}" last="{{ true }}">
       <li>
         <input type="checkbox" checked="{{ showCoverage }}">
@@ -2047,7 +2147,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ trace.isolate.relativeHashLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
     <template if="{{ trace['members'].isEmpty }}">
@@ -2134,10 +2234,13 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
-        <h1>{{ exception.kind }}</h1>
-        <div class="well">{{ exception.message }}</div>
+    <div class="content-centered">
+      <h1>{{ exception.kind }}</h1>
+      <br>
+      <div class="well">{{ exception.message }}</div>
+      <template if="{{ exception.response != '' }}">
         <div class="well">{{ exception.response }}</div>
+      </template>
     </div>
   </template>
   
@@ -2148,8 +2251,9 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
-    <div class="content">
+    <div class="content-centered">
       <h1>{{ error.kind }}</h1>
+      <br>
       <div class="well">{{ error.message }}</div>
     </div>
   </template>

@@ -93,12 +93,12 @@ main() {
       return;
     }
     registeredTypes = true;
-    document.register(Foo.tag, Foo);
-    document.register(Bar.tag, Bar, extendsTag: 'input');
-    document.register(Baz.tag, Baz);
-    document.register(Qux.tag, Qux, extendsTag: 'input');
-    document.register(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
-    document.register(CustomCustomDiv.tag, CustomCustomDiv, extendsTag: 'div');
+    document.registerElement(Foo.tag, Foo);
+    document.registerElement(Bar.tag, Bar, extendsTag: 'input');
+    document.registerElement(Baz.tag, Baz);
+    document.registerElement(Qux.tag, Qux, extendsTag: 'input');
+    document.registerElement(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
+    document.registerElement(CustomCustomDiv.tag, CustomCustomDiv, extendsTag: 'div');
   }
 
   setUp(() => customElementsReady);
@@ -107,19 +107,19 @@ main() {
     setUp(registerTypes);
 
     test('cannot register twice', () {
-      expect(() => document.register(FooBad.tag, Foo, extendsTag: 'div'),
+      expect(() => document.registerElement(FooBad.tag, Foo, extendsTag: 'div'),
           throws);
     });
 
     test('cannot register for non-matching tag', () {
       expect(() {
-        document.register('x-input-div', Bar, extendsTag: 'div');
+        document.registerElement('x-input-div', Bar, extendsTag: 'div');
       }, throws);
     });
 
     test('cannot register type extension for custom tag', () {
       expect(() {
-        document.register('x-custom-tag', CustomCustomDiv);
+        document.registerElement('x-custom-tag', CustomCustomDiv);
       }, throws);
     });
   });

@@ -21,8 +21,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
 
 import
     '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
-show
-    Elements;
+show Element, Elements;
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
+    show JavaScriptBackend;
 
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
@@ -81,15 +82,15 @@ void main() {
           compiler.stringClass, compiler.boolClass, compiler.nullClass,
           compiler.listClass
         ];
-
+    JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames =
-        nativeClasses.map(compiler.backend.namer.getNameOfClass);
+        nativeClasses.map(backend.namer.getNameOfClass);
     expectedNames.addAll(nativeNames);
 
     Set recordedNames = new Set()
-        ..addAll(compiler.backend.emitter.recordedMangledNames)
-        ..addAll(compiler.backend.emitter.mangledFieldNames.keys)
-        ..addAll(compiler.backend.emitter.mangledGlobalFieldNames.keys);
+        ..addAll(backend.emitter.recordedMangledNames)
+        ..addAll(backend.emitter.mangledFieldNames.keys)
+        ..addAll(backend.emitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraries.values) {
@@ -111,13 +112,12 @@ void main() {
 
     // There should at least be one metadata constant:
     // 1. The constructed constant for 'MirrorsUsed'.
-    Expect.isTrue(compiler.backend.metadataConstants.length >= 1);
+    Expect.isTrue(backend.metadataConstants.length >= 1);
 
-    Set<Constant> compiledConstants =
-        compiler.backend.constants.compiledConstants;
+    Set<Constant> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    for (var dependency in compiler.backend.metadataConstants) {
+    for (var dependency in backend.metadataConstants) {
       Constant constant = dependency.constant;
       Expect.isFalse(compiledConstants.contains(constant), '$constant');
     }

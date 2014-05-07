@@ -636,14 +636,15 @@ intptr_t Process::CurrentProcessId() {
 
 static Mutex* signal_mutex = new Mutex();
 static SignalInfo* signal_handlers = NULL;
-static const int kSignalsCount = 6;
+static const int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
   SIGHUP,
   SIGINT,
   SIGTERM,
   SIGUSR1,
   SIGUSR2,
-  SIGWINCH
+  SIGWINCH,
+  SIGQUIT  // Allow VMService to listen on SIGQUIT.
 };
 
 

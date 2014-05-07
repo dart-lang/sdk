@@ -133,8 +133,7 @@ _cpp_overloaded_callback_map = {
   ('DOMURL', 'createObjectUrlFromStreamCallback'): 'URLMediaStream',
   ('DOMURL', '_createObjectUrlFromWebKitSourceCallback'): 'URLMediaSource',
   ('DOMURL', '_createObjectURL_2Callback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_4Callback'): 'URLMediaStream',
+  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
 }
 
 _cpp_partial_map = {}
@@ -158,6 +157,109 @@ _cpp_no_auto_scope_list = set([
   ('Node', 'nodeType', 'Getter'),
   ('NodeList', 'length', 'Getter'),
   ('NodeList', 'item', 'Callback'),
+  ('WebGLRenderingContext', 'drawingBufferHeight', 'Getter'),
+  ('WebGLRenderingContext', 'drawingBufferWidth', 'Getter'),
+  ('WebGLRenderingContext', 'activeTexture', 'Callback'),
+  ('WebGLRenderingContext', 'attachShader', 'Callback'),
+  ('WebGLRenderingContext', 'bindAttribLocation', 'Callback'),
+  ('WebGLRenderingContext', 'bindBuffer', 'Callback'),
+  ('WebGLRenderingContext', 'bindFramebuffer', 'Callback'),
+  ('WebGLRenderingContext', 'bindRenderbuffer', 'Callback'),
+  ('WebGLRenderingContext', 'bindTexture', 'Callback'),
+  ('WebGLRenderingContext', 'blendColor', 'Callback'),
+  ('WebGLRenderingContext', 'blendEquation', 'Callback'),
+  ('WebGLRenderingContext', 'blendEquationSeparate', 'Callback'),
+  ('WebGLRenderingContext', 'blendFunc', 'Callback'),
+  ('WebGLRenderingContext', 'blendFuncSeparate', 'Callback'),
+  ('WebGLRenderingContext', 'checkFramebufferStatus', 'Callback'),
+  ('WebGLRenderingContext', 'clear', 'Callback'),
+  ('WebGLRenderingContext', 'clearColor', 'Callback'),
+  ('WebGLRenderingContext', 'clearDepth', 'Callback'),
+  ('WebGLRenderingContext', 'clearStencil', 'Callback'),
+  ('WebGLRenderingContext', 'colorMask', 'Callback'),
+  ('WebGLRenderingContext', 'compileShader', 'Callback'),
+  ('WebGLRenderingContext', 'compressedTexImage2D', 'Callback'),
+  ('WebGLRenderingContext', 'compressedTexSubImage2D', 'Callback'),
+  ('WebGLRenderingContext', 'copyTexImage2D', 'Callback'),
+  ('WebGLRenderingContext', 'copyTexSubImage2D', 'Callback'),
+  ('WebGLRenderingContext', 'cullFace', 'Callback'),
+  ('WebGLRenderingContext', 'deleteBuffer', 'Callback'),
+  ('WebGLRenderingContext', 'deleteFramebuffer', 'Callback'),
+  ('WebGLRenderingContext', 'deleteProgram', 'Callback'),
+  ('WebGLRenderingContext', 'deleteRenderbuffer', 'Callback'),
+  ('WebGLRenderingContext', 'deleteShader', 'Callback'),
+  ('WebGLRenderingContext', 'deleteTexture', 'Callback'),
+  ('WebGLRenderingContext', 'depthFunc', 'Callback'),
+  ('WebGLRenderingContext', 'depthMask', 'Callback'),
+  ('WebGLRenderingContext', 'depthRange', 'Callback'),
+  ('WebGLRenderingContext', 'detachShader', 'Callback'),
+  ('WebGLRenderingContext', 'disable', 'Callback'),
+  ('WebGLRenderingContext', 'disableVertexAttribArray', 'Callback'),
+  ('WebGLRenderingContext', 'drawArrays', 'Callback'),
+  ('WebGLRenderingContext', 'drawElements', 'Callback'),
+  ('WebGLRenderingContext', 'enable', 'Callback'),
+  ('WebGLRenderingContext', 'enableVertexAttribArray', 'Callback'),
+  ('WebGLRenderingContext', 'finish', 'Callback'),
+  ('WebGLRenderingContext', 'flush', 'Callback'),
+  ('WebGLRenderingContext', 'framebufferRenderbuffer', 'Callback'),
+  ('WebGLRenderingContext', 'framebufferTexture2D', 'Callback'),
+  ('WebGLRenderingContext', 'frontFace', 'Callback'),
+  ('WebGLRenderingContext', 'generateMipmap', 'Callback'),
+  ('WebGLRenderingContext', 'getActiveAttrib', 'Callback'),
+  ('WebGLRenderingContext', 'getActiveUniform', 'Callback'),
+  ('WebGLRenderingContext', 'getAttachedShaders', 'Callback'),
+  ('WebGLRenderingContext', 'getAttribLocation', 'Callback'),
+  ('WebGLRenderingContext', 'hint', 'Callback'),
+  ('WebGLRenderingContext', 'isBuffer', 'Callback'),
+  ('WebGLRenderingContext', 'isContextLost', 'Callback'),
+  ('WebGLRenderingContext', 'isEnabled', 'Callback'),
+  ('WebGLRenderingContext', 'isFramebuffer', 'Callback'),
+  ('WebGLRenderingContext', 'isProgram', 'Callback'),
+  ('WebGLRenderingContext', 'isRenderbuffer', 'Callback'),
+  ('WebGLRenderingContext', 'isShader', 'Callback'),
+  ('WebGLRenderingContext', 'isTexture', 'Callback'),
+  ('WebGLRenderingContext', 'lineWidth', 'Callback'),
+  ('WebGLRenderingContext', 'linkProgram', 'Callback'),
+  ('WebGLRenderingContext', 'pixelStorei', 'Callback'),
+  ('WebGLRenderingContext', 'polygonOffset', 'Callback'),
+  ('WebGLRenderingContext', 'scissor', 'Callback'),
+  ('WebGLRenderingContext', 'stencilFunc', 'Callback'),
+  ('WebGLRenderingContext', 'stencilFuncSeparate', 'Callback'),
+  ('WebGLRenderingContext', 'stencilMask', 'Callback'),
+  ('WebGLRenderingContext', 'stencilMaskSeparate', 'Callback'),
+  ('WebGLRenderingContext', 'stencilOp', 'Callback'),
+  ('WebGLRenderingContext', 'stencilOpSeparate', 'Callback'),
+  ('WebGLRenderingContext', 'uniform1f', 'Callback'),
+  ('WebGLRenderingContext', 'uniform1fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform1i', 'Callback'),
+  ('WebGLRenderingContext', 'uniform1iv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform2f', 'Callback'),
+  ('WebGLRenderingContext', 'uniform2fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform2i', 'Callback'),
+  ('WebGLRenderingContext', 'uniform2iv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform3f', 'Callback'),
+  ('WebGLRenderingContext', 'uniform3fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform3i', 'Callback'),
+  ('WebGLRenderingContext', 'uniform3iv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform4f', 'Callback'),
+  ('WebGLRenderingContext', 'uniform4fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniform4i', 'Callback'),
+  ('WebGLRenderingContext', 'uniform4iv', 'Callback'),
+  ('WebGLRenderingContext', 'uniformMatrix2fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniformMatrix3fv', 'Callback'),
+  ('WebGLRenderingContext', 'uniformMatrix4fv', 'Callback'),
+  ('WebGLRenderingContext', 'useProgram', 'Callback'),
+  ('WebGLRenderingContext', 'validateProgram', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib1f', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib1fv', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib2f', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib2fv', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib3f', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib3fv', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib4f', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttrib4fv', 'Callback'),
+  ('WebGLRenderingContext', 'vertexAttribPointer', 'Callback'),
+  ('WebGLRenderingContext', 'viewport', 'Callback'),
 ])
 
 # TODO(vsm): This should be recoverable from IDL, but we appear to not
@@ -245,7 +347,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def __init__(self, interface, native_library_emitter,
                cpp_library_emitter, options, dart_use_blink):
-    super(DartiumBackend, self).__init__(interface, options)
+    super(DartiumBackend, self).__init__(interface, options, dart_use_blink)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
@@ -256,9 +358,6 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
     self._native_library_name = "_blink"
-    # This goes away after the Chrome 35 roll (or whenever we commit to the
-    # dart:blink refactor)
-    self._dart_use_blink = dart_use_blink
     # These get initialized by StartInterface
     self._cpp_header_emitter = None
     self._cpp_impl_emitter = None
@@ -450,7 +549,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, constructor_callback_cpp_name, factory_method_name,
-      argument_count=None):
+      argument_count=None, emit_to_native=False):
     constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
     if argument_count is None:
       argument_count = len(constructor_info.param_infos)
@@ -472,16 +571,17 @@ class DartiumBackend(HtmlDartGenerator):
 
         # Then we emit the impedance matching wrapper to call out to the
         # toplevel wrapper
-        self._members_emitter.Emit(
-            '\n  @DocsEditable()\n'
-            '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
-            '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
-            INTERFACE_NAME=self._interface_type_info.interface_name(),
-            FACTORY_METHOD_NAME=factory_method_name,
-            PARAMETERS=typed_formals,
-            TOPLEVEL_NAME=DeriveQualifiedName(self._native_library_name,
-                                              dart_native_name),
-            OUTPARAMETERS=parameters)
+        if not emit_to_native:
+            self._members_emitter.Emit(
+                '\n  @DocsEditable()\n'
+                '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
+                '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
+                INTERFACE_NAME=self._interface_type_info.interface_name(),
+                FACTORY_METHOD_NAME=factory_method_name,
+                PARAMETERS=typed_formals,
+                TOPLEVEL_NAME=DeriveQualifiedName(self._native_library_name,
+                                                  dart_native_name),
+                OUTPARAMETERS=parameters)
     else:
         self._members_emitter.Emit(
             '\n  @DocsEditable()\n'
@@ -531,7 +631,8 @@ class DartiumBackend(HtmlDartGenerator):
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     constructor_callback_cpp_name = name + 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, constructor_callback_cpp_name, name, len(arguments))
+        constructor_info, constructor_callback_cpp_name, name, len(arguments), 
+        emit_to_native=self._dart_use_blink)
 
     ext_attrs = self._interface.ext_attrs
 
@@ -1014,33 +1115,72 @@ class DartiumBackend(HtmlDartGenerator):
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
-      self._GenerateDispatcher(info, info.operations, dart_declaration)
+      self._GenerateDispatcher(info, info.operations, dart_declaration, html_name)
 
-  def _GenerateDispatcher(self, info, operations, dart_declaration):
+  def _GenerateDispatcher(self, info, operations, dart_declaration, html_name):
 
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
-      overload_name = '_%s_%s' % (operation.id, version)
-      return_type = self.SecureOutputType(operation.type.id)
+      native_suffix = 'Callback'
       actuals = info.ParametersAsListOfVariables(argument_count)
-      actuals_s = ", ".join(actuals)
+      return_type = self.SecureOutputType(operation.type.id)
+      if self._dart_use_blink:
+          base_name = '_%s_%s' % (operation.id, version)
+          overload_name = \
+              DeriveNativeName(self._interface.id, base_name, native_suffix)
+          static = True
+          if not operation.is_static:
+            actuals = ['mthis'] + actuals
+          actuals_s = ", ".join(actuals)
+          dart_declaration = '%s(%s)' % (
+            base_name, actuals_s)
+      else:
+          base_name = '_%s_%s' % (operation.id, version)
+          overload_name = base_name
+          static = operation.is_static
+          actuals_s = ", ".join(actuals)
+          dart_declaration = '%s%s %s(%s)' % (
+            'static ' if static else '',
+            return_type,
+            overload_name, actuals_s)
+
       call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
-      dart_declaration = '%s%s %s(%s)' % (
-          'static ' if operation.is_static else '',
-          return_type,
-          overload_name, actuals_s)
       is_custom = 'Custom' in operation.ext_attrs
       native_suffix = 'Callback'
       auto_scope_setup = \
-        self._GenerateAutoSetupScope(overload_name, native_suffix)
+        self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
-        overload_name, (0 if operation.is_static else 1) + argument_count,
-        dart_declaration, operation.is_static, return_type, actuals,
-        'Callback', is_custom, auto_scope_setup, emit_metadata=False)
+        base_name, (0 if static else 1) + argument_count,
+        dart_declaration, static, return_type, actuals,
+        native_suffix, is_custom, auto_scope_setup, emit_metadata=False,
+        emit_to_native=self._dart_use_blink)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation,
           operation.arguments[:argument_count], cpp_callback_name,
           auto_scope_setup)
+
+
+    if self._dart_use_blink:
+        name = DeriveNativeName(self._interface.id, html_name, "")
+        qual_name = DeriveQualifiedName(self._native_library_name,
+                                        name)
+        actuals = info.ParametersAsListOfVariables()
+        formals = info.ParametersAsListOfVariables()
+        if not info.IsStatic():
+            formals = ['mthis'] + formals
+            actuals = ['this'] + actuals
+        actuals_s = ', '.join(actuals)
+        formals_s = ', '.join(formals)
+        self._members_emitter.Emit(
+        '\n'
+        '  $DECLARATION => $NATIVE_NAME($ACTUALS);\n',
+        DECLARATION=dart_declaration,
+        NATIVE_NAME=qual_name,
+        ACTUALS=actuals_s)
+
+        dart_declaration = \
+            '// Generated overload resolver\n' \
+            '%s(%s)' % (name, formals_s)
 
     self._GenerateDispatcherBody(
         info,
@@ -1441,7 +1581,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
-      auto_scope_setup=True, emit_metadata=True):
+      auto_scope_setup=True, emit_metadata=True, emit_to_native=False):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1465,17 +1605,17 @@ class DartiumBackend(HtmlDartGenerator):
             FORMALS=formals,
             NATIVE_BINDING=native_binding)
 
-        # We then emit a class method which calls out to the mangled toplevel
-        # function.  Eventually this will be replaced with a call to an
-        # interceptor
-        self._members_emitter.Emit(
-            '\n'
-            '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
-            METADATA=metadata,
-            DART_DECLARATION=dart_declaration,
-            DART_NAME=DeriveQualifiedName(self._native_library_name,
-                                          dart_native_name),
-            ACTUALS=actuals)
+        if not emit_to_native:
+            caller_emitter = self._members_emitter
+            full_dart_name = DeriveQualifiedName(self._native_library_name,
+                                                 dart_native_name)
+            caller_emitter.Emit(
+                '\n'
+                '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
+                METADATA=metadata,
+                DART_DECLARATION=dart_declaration,
+                DART_NAME=full_dart_name,
+                ACTUALS=actuals)
     else:
         self._members_emitter.Emit(
             '\n'

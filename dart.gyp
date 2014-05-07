@@ -8,9 +8,10 @@
       'target_name': 'most',
       'type': 'none',
       'dependencies': [
-        'dartanalyzer',
+        'analyzer_java',
         'create_sdk',
         'dart2js',
+        'dartanalyzer',
         'editor',
         'packages',
         'runtime',
@@ -52,6 +53,13 @@
       'type': 'none',
       'dependencies': [
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
+      ],
+    },
+    {
+      'target_name': 'analyzer_java',
+      'type': 'none',
+      'dependencies': [
+        'editor/analyzer_java.gyp:analyzer',
       ],
     },
     {

@@ -8,6 +8,7 @@ CACHE MANIFEST
 CACHE:
 index.html
 dartlang-style.css
+line_numbers.css
 leap.dart.js
 
 iframe.html

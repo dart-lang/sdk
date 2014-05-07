@@ -343,7 +343,7 @@ Isolate::Isolate()
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   set_vm_tag(VMTag::kIdleTagId);
-  set_user_tag(UserTags::kNoUserTag);
+  set_user_tag(UserTags::kDefaultUserTag);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
@@ -968,6 +968,19 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     typeargsRef.AddProperty("id", "typearguments");
     typeargsRef.AddProperty("name", "canonical type arguments");
   }
+  {
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(object_store()->libraries());
+    intptr_t num_libs = libs.Length();
+    Library &lib = Library::Handle();
+
+    JSONArray lib_array(&jsobj, "libraries");
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      lib_array.AddValue(lib);
+    }
+  }
 }
 
 
@@ -997,12 +1010,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
   intptr_t user_tag = tag.tag();
   set_user_tag(static_cast<uword>(user_tag));
   current_tag_ = tag.raw();
-}
-
-
-void Isolate::clear_current_tag() {
-  set_user_tag(UserTags::kNoUserTag);
-  current_tag_ = UserTag::null();
 }
 
 

@@ -6,8 +6,8 @@ library barback.package_provider;
 
 import 'dart:async';
 
-import 'asset.dart';
-import 'asset_id.dart';
+import 'asset/asset.dart';
+import 'asset/asset_id.dart';
 
 /// API for locating and accessing packages on disk.
 ///

@@ -18,6 +18,7 @@
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/resolver.h"
@@ -37,6 +38,27 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DECLARE_FLAG(bool, enable_type_checks);
+
+
+// TODO(srdjan): Allow compiler to add constants as they are encountered in
+// the compilation.
+const double kCommonDoubleConstants[] =
+    {-1.0, -0.5, -0.1, 0.0, 0.1, 0.5, 1.0, 2.0, 4.0, 5.0,
+     10.0, 20.0, 30.0, 64.0, 255.0, NAN,
+     // From dart:math
+     2.718281828459045, 2.302585092994046, 0.6931471805599453,
+     1.4426950408889634, 0.4342944819032518, 3.1415926535897932,
+     0.7071067811865476, 1.4142135623730951};
+
+uword FlowGraphBuilder::FindDoubleConstant(double value) {
+  intptr_t len = sizeof(kCommonDoubleConstants) / sizeof(double);  // NOLINT
+  for (intptr_t i = 0; i < len; i++) {
+    if (Utils::DoublesBitEqual(value, kCommonDoubleConstants[i])) {
+      return reinterpret_cast<uword>(&kCommonDoubleConstants[i]);
+    }
+  }
+  return 0;
+}
 
 
 // Base class for a stack of enclosing statements of interest (e.g.,
@@ -1296,7 +1318,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
-  Value* instantiator = BuildInstantiator();
+  Value* instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     *push_instantiator_result = PushArgument(BuildNullValue());
@@ -1325,7 +1347,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
       owner()->parsed_function()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
-  instantiator = BuildInstantiator();
+  instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator = BuildNullValue();
@@ -2561,12 +2583,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
-Value* EffectGraphVisitor::BuildInstantiator() {
-  const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function()->function().Owner());
-  if (instantiator_class.NumTypeParameters() == 0) {
-    return NULL;
-  }
+Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
+  ASSERT(instantiator_class.NumTypeParameters() > 0);
   Function& outer_function =
       Function::Handle(owner()->parsed_function()->function().raw());
   while (outer_function.IsLocalFunction()) {
@@ -2576,11 +2594,10 @@ Value* EffectGraphVisitor::BuildInstantiator() {
     return NULL;
   }
 
-  ASSERT(owner()->parsed_function()->instantiator() != NULL);
-  ValueGraphVisitor for_instantiator(owner());
-  owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
-  Append(for_instantiator);
-  return for_instantiator.value();
+  LocalVariable* instantiator = owner()->parsed_function()->instantiator();
+  ASSERT(instantiator != NULL);
+  Value* result = Bind(BuildLoadLocal(*instantiator));
+  return result;
 }
 
 
@@ -2611,14 +2628,13 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   if (outer_function.IsFactory()) {
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
-    ASSERT(owner()->parsed_function()->instantiator() != NULL);
-    ValueGraphVisitor for_instantiator(owner());
-    owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
-    Append(for_instantiator);
-    return for_instantiator.value();
+    LocalVariable* instantiator_var =
+        owner()->parsed_function()->instantiator();
+    ASSERT(instantiator_var != NULL);
+    return Bind(BuildLoadLocal(*instantiator_var));
   }
   if (instantiator == NULL) {
-    instantiator = BuildInstantiator();
+    instantiator = BuildInstantiator(instantiator_class);
   }
   // The instantiator is the receiver of the caller, which is not a factory.
   // The receiver cannot be null; extract its TypeArguments object.
@@ -3464,6 +3480,16 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  } else if (MustSaveRestoreContext(node)) {
+    // Even when the current scope has no context variables, we may
+    // still need to save the current context if, for example, there
+    // are loop scopes below this which will allocate a context
+    // object.
+    BuildSaveContext(
+        *owner()->parsed_function()->saved_entry_context_var());
+    AddInstruction(
+        new StoreContextInstr(Bind(new ConstantInstr(Object::ZoneHandle(
+            Isolate::Current()->object_store()->empty_context())))));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -3531,7 +3557,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
-      ASSERT(num_context_variables > 0);
       BuildRestoreContext(
           *owner()->parsed_function()->saved_entry_context_var());
     } else if (num_context_variables > 0) {

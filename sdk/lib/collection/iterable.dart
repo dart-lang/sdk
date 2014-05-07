@@ -31,7 +31,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   E reduce(E combine(E value, E element)) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     E value = iterator.current;
     while (iterator.moveNext()) {
@@ -117,7 +117,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   E get first {
     Iterator it = iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     return it.current;
   }
@@ -125,7 +125,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   E get last {
     Iterator it = iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     E result;
     do {
@@ -136,9 +136,9 @@ abstract class IterableMixin<E> implements Iterable<E> {
 
   E get single {
     Iterator it = iterator;
-    if (!it.moveNext()) throw new StateError("No elements");
+    if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
-    if (it.moveNext()) throw new StateError("More than one element");
+    if (it.moveNext()) throw IterableElementError.tooMany();
     return result;
   }
 
@@ -147,7 +147,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   dynamic lastWhere(bool test(E value), { Object orElse() }) {
@@ -161,7 +161,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     }
     if (foundMatching) return result;
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E singleWhere(bool test(E value)) {
@@ -170,14 +170,14 @@ abstract class IterableMixin<E> implements Iterable<E> {
     for (E element in this) {
       if (test(element)) {
         if (foundMatching) {
-          throw new StateError("More than one matching element");
+          throw IterableElementError.tooMany();
         }
         result = element;
         foundMatching = true;
       }
     }
     if (foundMatching) return result;
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E elementAt(int index) {
@@ -225,7 +225,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   E reduce(E combine(E value, E element)) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     E value = iterator.current;
     while (iterator.moveNext()) {
@@ -311,7 +311,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   E get first {
     Iterator it = iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     return it.current;
   }
@@ -319,7 +319,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   E get last {
     Iterator it = iterator;
     if (!it.moveNext()) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     E result;
     do {
@@ -330,9 +330,9 @@ abstract class IterableBase<E> implements Iterable<E> {
 
   E get single {
     Iterator it = iterator;
-    if (!it.moveNext()) throw new StateError("No elements");
+    if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
-    if (it.moveNext()) throw new StateError("More than one element");
+    if (it.moveNext()) throw IterableElementError.tooMany();
     return result;
   }
 
@@ -341,7 +341,7 @@ abstract class IterableBase<E> implements Iterable<E> {
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   dynamic lastWhere(bool test(E value), { Object orElse() }) {
@@ -355,7 +355,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     }
     if (foundMatching) return result;
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E singleWhere(bool test(E value)) {
@@ -364,14 +364,14 @@ abstract class IterableBase<E> implements Iterable<E> {
     for (E element in this) {
       if (test(element)) {
         if (foundMatching) {
-          throw new StateError("More than one matching element");
+          throw IterableElementError.tooMany();
         }
         result = element;
         foundMatching = true;
       }
     }
     if (foundMatching) return result;
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E elementAt(int index) {

@@ -378,69 +378,6 @@ class Annotation extends AstNode {
 }
 
 /**
- * Instances of the class `ArgumentDefinitionTest` represent an argument definition test.
- *
- * <pre>
- * argumentDefinitionTest ::=
- *     '?' [SimpleIdentifier]
- * </pre>
- */
-class ArgumentDefinitionTest extends Expression {
-  /**
-   * The token representing the question mark.
-   */
-  Token question;
-
-  /**
-   * The identifier representing the argument being tested.
-   */
-  SimpleIdentifier _identifier;
-
-  /**
-   * Initialize a newly created argument definition test.
-   *
-   * @param question the token representing the question mark
-   * @param identifier the identifier representing the argument being tested
-   */
-  ArgumentDefinitionTest(this.question, SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
-  }
-
-  @override
-  accept(AstVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
-
-  @override
-  Token get beginToken => question;
-
-  @override
-  Token get endToken => _identifier.endToken;
-
-  /**
-   * Return the identifier representing the argument being tested.
-   *
-   * @return the identifier representing the argument being tested
-   */
-  SimpleIdentifier get identifier => _identifier;
-
-  @override
-  int get precedence => 15;
-
-  /**
-   * Set the identifier representing the argument being tested to the given identifier.
-   *
-   * @param identifier the identifier representing the argument being tested
-   */
-  void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    safelyVisitChild(_identifier, visitor);
-  }
-}
-
-/**
  * Instances of the class `ArgumentList` represent a list of arguments in the invocation of a
  * executable element: a function, method, or constructor.
  *
@@ -1019,9 +956,6 @@ class AstCloner implements AstVisitor<AstNode> {
   Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, _cloneNode(node.name), node.period, _cloneNode(node.constructorName), _cloneNode(node.arguments));
 
   @override
-  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest(node.question, _cloneNode(node.identifier));
-
-  @override
   ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, _cloneNodeList(node.arguments), node.rightParenthesis);
 
   @override
@@ -1414,12 +1348,6 @@ class AstComparator implements AstVisitor<bool> {
   bool visitAnnotation(Annotation node) {
     Annotation other = this._other as Annotation;
     return _isEqualTokens(node.atSign, other.atSign) && _isEqualNodes(node.name, other.name) && _isEqualTokens(node.period, other.period) && _isEqualNodes(node.constructorName, other.constructorName) && _isEqualNodes(node.arguments, other.arguments);
-  }
-
-  @override
-  bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest other = this._other as ArgumentDefinitionTest;
-    return _isEqualTokens(node.question, other.question) && _isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
@@ -2352,8 +2280,6 @@ abstract class AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node);
 
   R visitAnnotation(Annotation node);
-
-  R visitArgumentDefinitionTest(ArgumentDefinitionTest node);
 
   R visitArgumentList(ArgumentList node);
 
@@ -5489,6 +5415,37 @@ class DefaultFormalParameter extends FormalParameter {
 }
 
 /**
+ * This recursive Ast visitor is used to run over [Expression]s to determine if the expression
+ * is composed by at least one deferred [PrefixedIdentifier].
+ *
+ * @see PrefixedIdentifier#isDeferred()
+ */
+class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<Object> {
+  bool _result = false;
+
+  /**
+   * Return the result, `true` if the visitor found a [PrefixedIdentifier] that returned
+   * `true` to the [PrefixedIdentifier#isDeferred] query.
+   *
+   * @return `true` if the visitor found a [PrefixedIdentifier] that returned
+   *         `true` to the [PrefixedIdentifier#isDeferred] query
+   */
+  bool get result => _result;
+
+  @override
+  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // If result is already true, skip.
+    if (!_result) {
+      // Set result to true if isDeferred() is true
+      if (node.isDeferred) {
+        _result = true;
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * The abstract class `Directive` defines the behavior common to nodes that represent a
  * directive.
  *
@@ -5754,6 +5711,9 @@ class ElementLocator {
    * @return the associated element, or `null` if none is found
    */
   static Element locateWithOffset(AstNode node, int offset) {
+    if (node == null) {
+      return null;
+    }
     // try to get Element from node
     {
       Element nodeElement = locate(node);
@@ -7882,9 +7842,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitAnnotation(Annotation node) => visitNode(node);
 
   @override
-  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitExpression(node);
-
-  @override
   R visitArgumentList(ArgumentList node) => visitNode(node);
 
   @override
@@ -8750,14 +8707,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   Annotation visitAnnotation(Annotation node) {
     Annotation copy = new Annotation(_mapToken(node.atSign), _cloneNode(node.name), _mapToken(node.period), _cloneNode(node.constructorName), _cloneNode(node.arguments));
     copy.element = node.element;
-    return copy;
-  }
-
-  @override
-  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest copy = new ArgumentDefinitionTest(_mapToken(node.question), _cloneNode(node.identifier));
-    copy.propagatedType = node.propagatedType;
-    copy.staticType = node.staticType;
     return copy;
   }
 
@@ -12473,12 +12422,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitArgumentList(ArgumentList node) {
     node.visitChildren(this);
     return null;
@@ -13560,9 +13503,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitAnnotation(Annotation node) => null;
-
-  @override
-  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => null;
 
   @override
   R visitArgumentList(ArgumentList node) => null;
@@ -15055,13 +14995,6 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
-  Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    _writer.print('?');
-    _visitNode(node.identifier);
-    return null;
-  }
-
-  @override
   Object visitArgumentList(ArgumentList node) {
     _writer.print('(');
     _visitNodeListWithSeparator(node.arguments, ", ");
@@ -15503,6 +15436,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("import ");
     _visitNode(node.uri);
+    if (node.deferredToken != null) {
+      _writer.print(" deferred");
+    }
     _visitNodeWithPrefix(" as ", node.prefix);
     _visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     _writer.print(';');
@@ -16710,9 +16646,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitAnnotation(Annotation node) => visitNode(node);
-
-  @override
-  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitNode(node);
 
   @override
   R visitArgumentList(ArgumentList node) => visitNode(node);

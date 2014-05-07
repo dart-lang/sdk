@@ -165,7 +165,8 @@ void testConfigurations(List<Map> configurations) {
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari')) {
       // Safari does not allow us to run from a fresh profile, so we can only
-      // use one browser.
+      // use one browser. Additionally, you can not start two simulators
+      // for mobile safari simultainiously.
       maxBrowserProcesses = 1;
     } else if (conf['runtime'] == 'chrome' &&
                Platform.operatingSystem == 'macos') {

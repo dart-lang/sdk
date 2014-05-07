@@ -10,9 +10,10 @@ import 'dart:typed_data';
 
 import 'base_client.dart';
 import 'base_request.dart';
+import 'io.dart' as io;
 import 'io_client.dart';
-import 'streamed_response.dart';
 import 'response.dart';
+import 'streamed_response.dart';
 
 /// The interface for HTTP clients that take care of maintaining persistent
 /// connections across multiple requests to the same server. If you only need to
@@ -24,9 +25,15 @@ import 'response.dart';
 /// another instance of [Client] and add functionality on top of that. This
 /// allows all classes implementing [Client] to be mutually composable.
 abstract class Client {
-  /// Creates a new Client using the default implementation. This implementation
-  /// uses an underlying `dart:io` [HttpClient] to make requests.
-  factory Client() => new IOClient();
+  /// Creates a new client.
+  ///
+  /// Currently this will create an [IOClient] if `dart:io` is available and
+  /// throw an [UnsupportedError] otherwise. In the future, it will create a
+  /// [BrowserClient] if `dart:html` is available.
+  factory Client() {
+    io.assertSupported("IOClient");
+    return new IOClient();
+  }
 
   /// Sends an HTTP HEAD request with the given headers to the given URL, which
   /// can be a [Uri] or a [String].

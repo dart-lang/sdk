@@ -61,8 +61,8 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
 
-  AstNode* instantiator() const { return instantiator_; }
-  void set_instantiator(AstNode* instantiator) {
+  LocalVariable* instantiator() const { return instantiator_; }
+  void set_instantiator(LocalVariable* instantiator) {
     // May be NULL.
     instantiator_ = instantiator;
   }
@@ -124,7 +124,7 @@ class ParsedFunction : public ZoneAllocated {
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
-  AstNode* instantiator_;
+  LocalVariable* instantiator_;
   Array& default_parameter_values_;
   LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;

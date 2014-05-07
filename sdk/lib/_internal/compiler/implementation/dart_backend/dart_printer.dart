@@ -22,6 +22,8 @@ library dart_printer;
 import '../dart2jslib.dart' as dart2js;
 import '../tree/tree.dart' as tree;
 import '../util/characters.dart' as characters;
+import '../elements/elements.dart' as elements;
+import '../dart_types.dart' as types;
 
 /// The following nodes correspond to [tree.Send] expressions: 
 /// [FieldExpression], [IndexExpression], [Assignment], [Increment], 
@@ -64,14 +66,9 @@ class TypeAnnotation extends Node {
   final String name;
   final List<TypeAnnotation> typeArguments;
   
-  TypeAnnotation(this.name, [this.typeArguments]);
+  types.DartType dartType;
   
-  static final TypeAnnotation NUM = new TypeAnnotation("num");
-  static final TypeAnnotation INT = new TypeAnnotation("int");
-  static final TypeAnnotation DOUBLE = new TypeAnnotation("double");
-  static final TypeAnnotation BOOL = new TypeAnnotation("bool");
-  static final TypeAnnotation STRING = new TypeAnnotation("String");
-  static final TypeAnnotation DYNAMIC = new TypeAnnotation("dynamic");
+  TypeAnnotation(this.name, [this.typeArguments = const <TypeAnnotation>[]]);
 }
 
 // STATEMENTS
@@ -134,8 +131,8 @@ class ForIn extends Statement {
       : this.leftHandValue = leftHandValue {
     assert(leftHandValue is Identifier 
         || (leftHandValue is VariableDeclarations 
-            && leftHandValue.definitions.length == 1
-            && leftHandValue.definitions[0].initializer == null));
+            && leftHandValue.declarations.length == 1
+            && leftHandValue.declarations[0].initializer == null));
   }
 }
 
@@ -234,9 +231,9 @@ class VariableDeclarations extends Statement {
   final TypeAnnotation type;
   final bool isFinal;
   final bool isConst;
-  final List<VariableDeclaration> definitions;
+  final List<VariableDeclaration> declarations;
 
-  VariableDeclarations(this.definitions, 
+  VariableDeclarations(this.declarations, 
                       { this.type, 
                         this.isFinal: false, 
                         this.isConst: false }) {
@@ -260,9 +257,9 @@ class FunctionDeclaration extends Statement {
   final Statement body;
 
   FunctionDeclaration(this.name,
-                    this.parameters,
-                    this.body, 
-                    [ this.returnType ]);
+                      this.parameters,
+                      this.body, 
+                      [ this.returnType ]);
 }
 
 class Parameters extends Node {
@@ -295,13 +292,15 @@ class Parameter extends Node {
   /// Parameters to function parameter. Null for non-function parameters.
   final Parameters parameters;
   
+  elements.ParameterElement element;
+  
   Parameter(this.name, {this.type, this.defaultValue})
       : parameters = null;
   
   Parameter.function(this.name, 
                      TypeAnnotation returnType, 
                      this.parameters, 
-                     [this.defaultValue]) : type = returnType {
+                     [ this.defaultValue ]) : type = returnType {
     assert(parameters != null);
   }
   
@@ -314,10 +313,20 @@ class Parameter extends Node {
 // EXPRESSIONS
 
 class FunctionExpression extends Expression {
+  final TypeAnnotation returnType;
+  final String name;
   final Parameters parameters;
   final Statement body;
+  
+  elements.FunctionElement element;
 
-  FunctionExpression(this.parameters, this.body);
+  FunctionExpression(this.parameters, 
+                     this.body, 
+                     { this.name, 
+                       this.returnType }) {
+    // Function must have a name if it has a return type
+    assert(returnType == null || name != null);
+  }
 }
 
 class Conditional extends Expression {
@@ -334,6 +343,8 @@ class Conditional extends Expression {
 /// to the proper definition.
 class Identifier extends Expression {
   final String name;
+  
+  elements.Element element;
 
   Identifier(this.name);
   
@@ -351,7 +362,7 @@ class LiteralList extends Expression {
   final TypeAnnotation typeArgument;
   final List<Expression> values;
 
-  LiteralList(this.values, {this.typeArgument, this.isConst: false});
+  LiteralList(this.values, { this.typeArgument, this.isConst: false });
 }
 
 class LiteralMap extends Expression {
@@ -359,7 +370,7 @@ class LiteralMap extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<LiteralMapEntry> entries;
 
-  LiteralMap(this.entries, {this.typeArguments, this.isConst: false}) {
+  LiteralMap(this.entries, { this.typeArguments, this.isConst: false }) {
     assert(this.typeArguments == null 
         || this.typeArguments.length == 0 
         || this.typeArguments.length == 2);
@@ -451,6 +462,8 @@ class CallStatic extends Expression {
   final String className;
   final String methodName;
   final List<Argument> arguments;
+  
+  elements.FunctionElement element;
 
   CallStatic(this.className, this.methodName, this.arguments);
 }
@@ -541,12 +554,78 @@ bool isUnaryOperator(String op) {
   return op == '!' || op == '-' || op == '~';
 }
 bool isBinaryOperator(String op) {
-  return Unparser._binaryPrecedence.containsKey(op);
+  return BINARY_PRECEDENCE.containsKey(op);
 }
 
 
 const int NEWLINE = 10;
 const int CARRIAGE_RETURN = 13;
+
+// Precedence levels
+const int EXPRESSION = 1;
+const int CONDITIONAL = 2;
+const int LOGICAL_OR = 3;
+const int LOGICAL_AND = 4;
+const int EQUALITY = 6;
+const int RELATIONAL = 7;
+const int BITWISE_OR = 8;
+const int BITWISE_XOR = 9;
+const int BITWISE_AND = 10;
+const int SHIFT = 11;
+const int ADDITIVE = 12;
+const int MULTIPLICATIVE = 13;
+const int UNARY = 14;
+const int POSTFIX_INCREMENT = 15;
+const int PRIMARY = 20;
+
+/// Precedence level required for the callee in a [FunctionCall]. 
+const int CALLEE = 21;
+
+const Map<String,int> BINARY_PRECEDENCE = const {
+  '&&': LOGICAL_AND,
+  '||': LOGICAL_OR,
+                                  
+  '==': EQUALITY,
+  '!=': EQUALITY,
+  
+  '>': RELATIONAL,
+  '>=': RELATIONAL,
+  '<': RELATIONAL,
+  '<=': RELATIONAL,
+  
+  '|': BITWISE_OR,
+  '^': BITWISE_XOR,
+  '&': BITWISE_AND,
+  
+  '>>': SHIFT,
+  '<<': SHIFT,
+  
+  '+': ADDITIVE,
+  '-': ADDITIVE,
+  
+  '*': MULTIPLICATIVE,
+  '%': MULTIPLICATIVE,
+  '/': MULTIPLICATIVE,
+  '~/': MULTIPLICATIVE,
+};
+
+/// Return true if binary operators with the given precedence level are
+/// (left) associative. False if they are non-associative.
+bool isAssociativeBinaryOperator(int precedence) {
+  return precedence != EQUALITY && precedence != RELATIONAL; 
+}
+
+/// True if [x] is a letter, digit, or underscore.
+/// Such characters may not follow a shorthand string interpolation.
+bool isIdentifierPartNoDollar(dynamic x) {
+  if (x is! int) {
+    return false;
+  }
+  return (characters.$0 <= x && x <= characters.$9) || 
+         (characters.$A <= x && x <= characters.$Z) ||
+         (characters.$a <= x && x <= characters.$z) ||
+         (x == characters.$_);
+}
 
 /// The unparser will apply the following syntactic rewritings:
 ///   Use short-hand function returns:
@@ -584,64 +663,6 @@ class Unparser {
   StringSink output;
   
   Unparser(this.output);
-  
-  // Precedence levels
-  static const EXPRESSION = 1;
-  static const CONDITIONAL = 2;
-  static const LOGICAL_OR = 3;
-  static const LOGICAL_AND = 4;
-  static const EQUALITY = 6;
-  static const RELATIONAL = 7;
-  static const BITWISE_OR = 8;
-  static const BITWISE_XOR = 9;
-  static const BITWISE_AND = 10;
-  static const SHIFT = 11;
-  static const ADDITIVE = 12;
-  static const MULTIPLICATIVE = 13;
-  static const UNARY = 14;
-  static const POSTFIX_INCREMENT = 15;
-  static const PRIMARY = 20;
-  
-  /// Precedence level required for the callee in a [FunctionCall]. 
-  static const CALLEE = 21;
-  
-  static const _binaryPrecedence = const {
-    '&&': LOGICAL_AND,
-    '||': LOGICAL_OR,
-                                    
-    '==': EQUALITY,
-    '!=': EQUALITY,
-    
-    '>': RELATIONAL,
-    '>=': RELATIONAL,
-    '<': RELATIONAL,
-    '<=': RELATIONAL,
-    
-    '|': BITWISE_OR,
-    '^': BITWISE_XOR,
-    '&': BITWISE_AND,
-    
-    '>>': SHIFT,
-    '<<': SHIFT,
-    
-    '+': ADDITIVE,
-    '-': ADDITIVE,
-    
-    '*': MULTIPLICATIVE,
-    '%': MULTIPLICATIVE,
-    '/': MULTIPLICATIVE,
-    '~/': MULTIPLICATIVE,
-  };
-  
-  /// The type of quote used around string literals.
-  static const QUOTE = "'";
-  static const QUOTE_CODE = 39;
-  
-  /// Return true if binary operators with the given precedence level are
-  /// (left) associative. False if they are non-associative.
-  static bool isAssociativeBinaryOperator(int precedence) {
-    return precedence != EQUALITY && precedence != RELATIONAL; 
-  }
   
 
   void write(String s) {
@@ -722,12 +743,29 @@ class Unparser {
       Statement stmt = unfoldBlocks(e.body);
       int precedence = stmt is Return ? EXPRESSION : PRIMARY;
       withPrecedence(precedence, () {
+        // A named function expression at the beginning of a statement
+        // can be mistaken for a function declaration.
+        // (Note: Functions with a return type also have a name) 
+        bool needParen = beginStmt && e.name != null;
+        if (needParen) {
+          write('(');
+        }
+        if (e.returnType != null) {
+          writeType(e.returnType);
+          write(' ');
+        }
+        if (e.name != null) {
+          write(e.name);
+        }
         writeParameters(e.parameters);
-        if (stmt is Return) {
+        if (stmt is Return) { // TODO(asgerf): Print {} for "return null;"
           write('=> '); // TODO(asgerf): Minimize use of whitespace.
           writeExp(stmt.expression, EXPRESSION);
         } else {
           writeBlock(stmt);
+        }
+        if (needParen) {
+          write(')');
         }
       });
     } else if (e is Conditional) {
@@ -768,7 +806,7 @@ class Unparser {
         write(' const '); // TODO(asgerf): Minimize use of whitespace.
         needParen = false;
       }
-      if (e.typeArguments != null && e.typeArguments.length > 0) {
+      if (e.typeArguments.length > 0) {
         write('<');
         writeEach(',', e.typeArguments, writeType);
         write('>');
@@ -807,7 +845,7 @@ class Unparser {
       else if (e.operatorName == '!' &&
           operand is TypeOperator && operand.operatorName == 'is') {
         withPrecedence(RELATIONAL, () {
-          writeExp(operand.expression, BITWISE_OR);
+          writeExp(operand.expression, BITWISE_OR, beginStmt: beginStmt);
           write(' is!'); // TODO(asgerf): Minimize use of whitespace.
           writeType(operand.type);
         });
@@ -819,7 +857,7 @@ class Unparser {
         });
       }
     } else if (e is BinaryOperator) {
-      int precedence = _binaryPrecedence[e.operatorName];
+      int precedence = BINARY_PRECEDENCE[e.operatorName];
       withPrecedence(precedence, () {
         // All binary operators are left-associative or non-associative.
         // For each operand, we use either the same precedence level as
@@ -1131,7 +1169,7 @@ class Unparser {
     if (!vds.isConst && !vds.isFinal && vds.type == null) {
       write('var ');
     }
-    writeEach(',', vds.definitions, (VariableDeclaration vd) {
+    writeEach(',', vds.declarations, (VariableDeclaration vd) {
       write(vd.name);
       if (vd.initializer != null) {
         write('=');
@@ -1179,7 +1217,7 @@ class Unparser {
     }  
   }
   
-  void writeStringLiteral(Expression node) {
+  static StringLiteralOutput analyzeStringLiteral(Expression node) {
     // TODO(asgerf): This might be a bit too expensive. Benchmark.
     // Flatten the StringConcat tree.
     List parts = []; // Expression or int (char node)
@@ -1248,16 +1286,6 @@ class Unparser {
       }
     }
     
-    /// True if [x] is a letter, digit, or underscore.
-    /// Such characters may not follow a shorthand string interpolation.
-    bool isIdentifierPartNoDollar(dynamic x) {
-      if (x is! int)
-        return false;
-      return (characters.$0 <= x && x <= characters.$9) 
-          || (characters.$A <= x && x <= characters.$Z) 
-          || (characters.$a <= x && x <= characters.$z)
-          || (x == characters.$_);
-    }
 
     /// Applies additional cost to each track in [penalized], and considers
     /// switching from each [penalized] to a [nonPenalized] track.
@@ -1342,6 +1370,12 @@ class Unparser {
       }
     }
     
+    return new StringLiteralOutput(parts, bestChunk.end(parts.length));
+  }
+  
+  void writeStringLiteral(Expression node) {
+    StringLiteralOutput output = analyzeStringLiteral(node);
+    List parts = output.parts;
     void printChunk(StringChunk chunk) {
       int startIndex;
       if (chunk.previous != null) {
@@ -1411,9 +1445,19 @@ class Unparser {
       }
       write(chunk.quoting.quoteChar);
     }
-    printChunk(bestChunk.end(parts.length));
+    printChunk(output.chunk);
   }
   
+}
+
+/// The contents of a string literal together with a strategy for printing it.
+class StringLiteralOutput {
+  /// Mix of [Expression] and `int`. Each expression is a string interpolation,
+  /// and each `int` is the character code of a character in a string literal.
+  final List parts;
+  final StringChunk chunk;
+  
+  StringLiteralOutput(this.parts, this.chunk);
 }
 
 

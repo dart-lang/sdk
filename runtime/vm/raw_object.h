@@ -456,6 +456,7 @@ class RawObject {
   friend class RawTypedData;
   friend class Scavenger;
   friend class ScavengerVisitor;
+  friend class SizeExcludingClassVisitor;  // GetClassId
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -1629,6 +1630,7 @@ class RawUserTag : public RawInstance {
   uword tag_;
 
   friend class SnapshotReader;
+  friend class Object;
 
  public:
   uword tag() const { return tag_; }

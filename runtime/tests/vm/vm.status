@@ -17,6 +17,7 @@ cc/Debug_StackTraceDump2: Skip
 cc/Sleep: Pass, Fail
 
 [ $mode == debug ]
+cc/PrintJSON: Crash  # Issue 18652
 
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip

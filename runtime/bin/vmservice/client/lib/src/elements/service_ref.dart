@@ -17,6 +17,7 @@ class ServiceRefElement extends ObservatoryElement {
   void refChanged(oldValue) {
     notifyPropertyChange(#url, "", url);
     notifyPropertyChange(#name, [], name);
+    notifyPropertyChange(#nameIsEmpty, 0, 1);
     notifyPropertyChange(#hoverText, "", hoverText);
   }
 
@@ -46,5 +47,10 @@ class ServiceRefElement extends ObservatoryElement {
       return 'NULL REF';
     }
     return ref.name;
+  }
+
+  // Workaround isEmpty not being useable due to missing @MirrorsUsed.
+  bool get nameIsEmpty {
+    return name.isEmpty;
   }
 }

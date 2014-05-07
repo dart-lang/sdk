@@ -58,7 +58,9 @@ bool FlowGraphCompiler::SupportsSinCos() {
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
-  if (deopt_env_ == NULL) return DeoptInfo::null();
+  if (deopt_env_ == NULL) {
+    return DeoptInfo::null();
+  }
 
   intptr_t stack_height = compiler->StackSize();
   AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
@@ -155,7 +157,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assem->
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
-  if (FLAG_trap_on_deoptimization) __ int3();
+  if (FLAG_trap_on_deoptimization) {
+    __ int3();
+  }
 
   ASSERT(deopt_env() != NULL);
 
@@ -1677,16 +1681,24 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
+    const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      const Object& constant = source.constant();
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorq(destination.reg(), destination.reg());
       } else {
         __ LoadObject(destination.reg(), constant, PP);
       }
+    } else if (destination.IsFpuRegister()) {
+      __ LoadObject(TMP, constant, PP);
+      __ movsd(destination.fpu_reg(),
+          FieldAddress(TMP, Double::value_offset()));
+    } else if (destination.IsDoubleStackSlot()) {
+      __ LoadObject(TMP, constant, PP);
+      __ movsd(XMM0, FieldAddress(TMP, Double::value_offset()));
+      __ movsd(destination.ToStackSlotAddress(), XMM0);
     } else {
       ASSERT(destination.IsStackSlot());
-      StoreObject(destination.ToStackSlotAddress(), source.constant());
+      StoreObject(destination.ToStackSlotAddress(), constant);
     }
   }
 

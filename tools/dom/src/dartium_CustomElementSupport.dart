@@ -31,7 +31,6 @@ class _VMElementUpgrader implements ElementUpgrader {
       throw new UnsupportedError('Element is incorrect type');
     }
     return _Utils.changeElementWrapper(element, _type);
-    return null;
   }
 }
 

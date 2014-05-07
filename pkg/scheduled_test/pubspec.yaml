@@ -1,5 +1,5 @@
 name: scheduled_test
-version: 0.11.0+1
+version: 0.11.0+2
 author: Dart Team <misc@dartlang.org>
 homepage: http://www.dartlang.org
 description: >
@@ -10,7 +10,7 @@ description: >
   read like synchronous, linear code, despite executing asynchronously.
 
 dependencies:
-  http: '>=0.9.0 <0.11.0'
+  http: '>=0.9.0 <0.12.0'
   path: '>=0.9.0 <2.0.0'
   shelf: '>=0.4.0 <0.6.0'
   stack_trace: '>=0.9.1 <0.10.0'

@@ -26,13 +26,11 @@ class _List<E> implements List<E> {
       native "List_copyFromObjectArray";
 
   void insert(int index, E element) {
-    throw new UnsupportedError(
-        "Cannot insert into a fixed-length list");
+    throw NonGrowableListError.add();
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot insert into a fixed-length list");
+    throw NonGrowableListError.add();
   }
 
   void setAll(int index, Iterable<E> iterable) {
@@ -40,23 +38,19 @@ class _List<E> implements List<E> {
   }
 
   E removeAt(int index) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   bool remove(Object element) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   void removeWhere(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   void retainWhere(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   Iterable<E> getRange(int start, [int end]) {
@@ -94,13 +88,11 @@ class _List<E> implements List<E> {
   }
 
   void removeRange(int start, int end) {
-    throw new UnsupportedError(
-        "Cannot remove range from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot remove range from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   void fillRange(int start, int end, [E fillValue]) {
@@ -222,44 +214,39 @@ class _List<E> implements List<E> {
   }
 
   void add(E element) {
-    throw new UnsupportedError(
-        "Cannot add to a fixed-length list");
+    throw NonGrowableListError.add();
   }
 
   void addAll(Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot add to a fixed-length list");
+    throw NonGrowableListError.add();
   }
 
   void clear() {
-    throw new UnsupportedError(
-        "Cannot clear a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   void set length(int length) {
-    throw new UnsupportedError(
-        "Cannot resize a fixed-length list");
+    throw NonGrowableListError.length();
   }
 
   E removeLast() {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw NonGrowableListError.remove();
   }
 
   E get first {
     if (length > 0) return this[0];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get last {
     if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get single {
     if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
   }
 
   List<E> toList({ bool growable: true}) {
@@ -297,70 +284,57 @@ class _ImmutableList<E> implements List<E> {
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   int get length native "List_getLength";
 
   void insert(int index, E element) {
-    throw new UnsupportedError(
-        "Cannot add to an immutable array");
+    throw UnmodifiableListError.add();
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot add to an immutable array");
+    throw UnmodifiableListError.add();
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   E removeAt(int index) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   bool remove(Object element) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   void removeWhere(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   void retainWhere(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   void copyFrom(List src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   void removeRange(int start, int end) {
-    throw new UnsupportedError(
-        "Cannot remove range of an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   void fillRange(int start, int end, [E fillValue]) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   List<E> sublist(int start, [int end]) {
@@ -461,13 +435,11 @@ class _ImmutableList<E> implements List<E> {
   Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   void shuffle([Random random]) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
+    throw UnmodifiableListError.change();
   }
 
   String toString() {
@@ -488,44 +460,39 @@ class _ImmutableList<E> implements List<E> {
   }
 
   void add(E element) {
-    throw new UnsupportedError(
-        "Cannot add to an immutable array");
+    throw UnmodifiableListError.add();
   }
 
   void addAll(Iterable<E> elements) {
-    throw new UnsupportedError(
-        "Cannot add to an immutable array");
+    throw UnmodifiableListError.add();
   }
 
   void clear() {
-    throw new UnsupportedError(
-        "Cannot clear an immutable array");
+    throw UnmodifiableListError.remove();
   }
 
   void set length(int length) {
-    throw new UnsupportedError(
-        "Cannot change the length of an immutable array");
+    throw UnmodifiableListError.length();
   }
 
   E removeLast() {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
+    throw UnmodifiableListError.remove();
   }
 
   E get first {
     if (length > 0) return this[0];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get last {
     if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get single {
     if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
   }
 
   List<E> toList({ bool growable: true }) {

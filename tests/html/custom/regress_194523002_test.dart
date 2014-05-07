@@ -28,7 +28,7 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.register(A.tag, A);
+        document.registerElement(A.tag, A);
       }
     });
   });

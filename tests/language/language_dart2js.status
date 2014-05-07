@@ -146,7 +146,7 @@ type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9 || $runtime == safari)]
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9 || $runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]

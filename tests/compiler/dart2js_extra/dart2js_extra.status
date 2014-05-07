@@ -44,7 +44,7 @@ code_motion_exception_test: Skip  # Requires unminified operator names.
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == jsshell) ]
 code_motion_exception_test: Skip  # Required V8 specific format of JavaScript errors.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == chrome || $runtime == chromeOnAndroid) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate2_test/01: Fail # Issue 14458.
 
 [ $runtime == jsshell ]

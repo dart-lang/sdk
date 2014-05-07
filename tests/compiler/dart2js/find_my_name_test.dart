@@ -34,11 +34,11 @@ testClass(String code, MockCompiler compiler) {
   int skip = code.indexOf('{');
   ClassElement cls = parseUnit(code, compiler, compiler.mainApp).head;
   cls.parseNode(compiler);
-  for (Element e in cls.localMembers) {
+  cls.forEachLocalMember((Element e) {
     String name = e.name;
     if (e.isConstructor()) {
       name = Elements.reconstructConstructorName(e).replaceFirst(r'$', '.');
     }
     Expect.equals(code.indexOf(name, skip), e.position().charOffset);
-  }
+  });
 }

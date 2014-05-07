@@ -322,18 +322,7 @@ class ResolverTask extends CompilerTask {
     while (!originParameters.isEmpty) {
       ParameterElementX originParameter = originParameters.head;
       ParameterElementX patchParameter = patchParameters.head;
-      // TODO(johnniwinther): Remove the case for reassignment of
-      // [patch]/[origin] when resolution is ensure to be done only once.
-      assert(invariant(originParameter, originParameter.origin == null));
-      assert(invariant(originParameter,
-          originParameter.patch == null ||
-          originParameter.patch == patchParameter));
-      originParameter.patch = patchParameter;
-      assert(invariant(patchParameter,
-          patchParameter.origin == null ||
-          patchParameter.origin == originParameter));
-      assert(invariant(patchParameter, patchParameter.patch == null));
-      patchParameter.origin = originParameter;
+      originParameter.applyPatch(patchParameter);
       DartType originParameterType = originParameter.computeType(compiler);
       DartType patchParameterType = patchParameter.computeType(compiler);
       if (originParameterType != patchParameterType) {

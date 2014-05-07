@@ -472,8 +472,6 @@ void testSimpleReadWrite({bool listenSecure,
 }
 
 testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
-  bool expectFail = pausedServer || pausedClient;
-
   asyncStart();
   var clientComplete = new Completer();
   RawServerSocket.bind(HOST, 0).then((server) {
@@ -483,25 +481,32 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
         if (pausedServer) {
           subscription.pause();
         }
-        RawSecureSocket.secureServer(
-            client, CERTIFICATE, subscription: subscription).then((client) {
-          if (expectFail) {
-            Expect.fail("secureServer succeeded with paused subscription");
-          }
-        }).catchError((e) {
-          if (!expectFail) {
-            Expect.fail("secureServer failed with non-paused subscriptions");
-          }
-          if (pausedServer) {
-            Expect.isTrue(e is StateError);
-          }
-        }).whenComplete(() {
+        void done() {
           server.close();
           clientComplete.future.then((_) {
             client.close();
             asyncEnd();
           });
-        });
+        }
+        try {
+          RawSecureSocket.secureServer(
+              client, CERTIFICATE, subscription: subscription)
+            .catchError((_) {})
+            .whenComplete(() {
+              if (pausedServer) {
+                Expect.fail("secureServer succeeded with paused subscription");
+              }
+              done();
+            });
+        } catch (e) {
+          if (!pausedServer) {
+            Expect.fail("secureServer failed with non-paused subscriptions");
+          }
+          if (pausedServer) {
+            Expect.isTrue(e is ArgumentError);
+          }
+          done();
+        }
       });
     });
 
@@ -511,22 +516,26 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
         if (pausedClient) {
           subscription.pause();
         }
-        RawSecureSocket.secure(
-            socket, subscription: subscription).then((socket) {
-          if (expectFail) {
-            Expect.fail("secure succeeded with paused subscription");
-          }
-          socket.close();
-        }).catchError((e) {
-          if (!expectFail) {
+        try {
+          RawSecureSocket.secure(
+              socket, subscription: subscription)
+            .catchError((_) {})
+            .whenComplete(() {
+              if (pausedClient) {
+                Expect.fail("secure succeeded with paused subscription");
+              }
+              socket.close();
+              clientComplete.complete(null);
+            });
+        } catch (e) {
+          if (!pausedClient) {
             Expect.fail("secure failed with non-paused subscriptions ($e)");
           }
           if (pausedClient) {
-            Expect.isTrue(e is StateError);
+            Expect.isTrue(e is ArgumentError);
           }
-        }).whenComplete(() {
           clientComplete.complete(null);
-        });
+        }
       });
     });
   });
@@ -555,6 +564,7 @@ runTests() {
   testSimpleConnectFail("not_a_nickname", true);
   testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
+
   testSimpleReadWrite(listenSecure: true,
                       connectSecure: true,
                       handshakeBeforeSecure: false,

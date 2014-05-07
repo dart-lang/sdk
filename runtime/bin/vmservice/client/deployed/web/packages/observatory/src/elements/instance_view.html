@@ -52,6 +52,12 @@
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
           </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
+          </div>
           <template if="{{ instance['type_class'] != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>
@@ -87,7 +93,7 @@
       <div class="content">
         <template if="{{ instance['fields'].isNotEmpty }}">
           fields ({{ instance['fields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['fields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['fields'] }}">
                 <div class="memberItem">
@@ -100,12 +106,12 @@
                 </div>
               </template>
             </div>
-          </curly-block>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['nativeFields'].isNotEmpty }}">
           native fields ({{ instance['nativeFields'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['nativeFields'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ field in instance['nativeFields'] }}">
                 <div class="memberItem">
@@ -114,12 +120,12 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
 
         <template if="{{ instance['elements'].isNotEmpty }}">
           elements ({{ instance['elements'].length }})
-          <curly-block>
+          <curly-block expand="{{ instance['elements'].length <= 8 }}">
             <div class="memberList">
               <template repeat="{{ element in instance['elements'] }}">
                 <div class="memberItem">
@@ -131,7 +137,7 @@
                 </div>
               </template>
             </div>
-          </curly-block><br>
+          </curly-block><br><br>
         </template>
       </div>
 

@@ -15,7 +15,6 @@ pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
-pkg/oauth2: PubGetError # Uses -dev version of pkg/http.
 samples/third_party/angular_todo: Pass, Slow
 
 [ $use_public_packages && $builder_tag == russian ]

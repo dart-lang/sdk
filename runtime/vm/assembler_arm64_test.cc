@@ -716,6 +716,114 @@ ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
 }
 
 
+
+
+ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
+  Label l;
+
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ LoadDImmediate(V1, 234.0, kNoPP);
+  __ LoadDImmediate(V2, 234.0, kNoPP);
+
+  __ fcmpd(V1, V2);
+  __ b(&l, EQ);
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
+  Label l;
+
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 233.0, kNoPP);
+  __ LoadDImmediate(V2, 234.0, kNoPP);
+
+  __ fcmpd(V1, V2);
+  __ b(&l, EQ);
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FcmpEqBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FcmpLtBranch, assembler) {
+  Label l;
+
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ LoadDImmediate(V1, 233.0, kNoPP);
+  __ LoadDImmediate(V2, 234.0, kNoPP);
+
+  __ fcmpd(V1, V2);
+  __ b(&l, LT);
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FcmpLtBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FcmpLtBranchNotTaken, assembler) {
+  Label l;
+
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 235.0, kNoPP);
+  __ LoadDImmediate(V2, 234.0, kNoPP);
+
+  __ fcmpd(V1, V2);
+  __ b(&l, LT);
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FcmpLtBranchNotTaken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
+  Label l;
+
+  __ LoadDImmediate(V0, 235.0, kNoPP);
+  __ LoadDImmediate(V1, 233.0, kNoPP);
+
+  __ fcmpzd(V1);
+  __ b(&l, GT);
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ ret();
+  __ Bind(&l);
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
   Label l;
 
@@ -1065,6 +1173,35 @@ ASSEMBLER_TEST_RUN(Mult_neg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ smulh(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Smulh_pos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
+  __ movz(R1, 6, 0);
+  __ movz(R2, 7, 0);
+  __ neg(R2, R2);
+  __ smulh(R0, R1, R2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Smulh_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Loading immediate values without the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
   __ LoadImmediate(R0, 42, kNoRegister);
@@ -1313,6 +1450,280 @@ ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
 ASSEMBLER_TEST_RUN(CSelFalse, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CsincFalse, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csinc(R0, R2, R1, GE);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CsincFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(43, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CsincTrue, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csinc(R0, R2, R1, LT);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CsincTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+// Floating point move immediate, to/from integer register.
+ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
+  __ LoadDImmediate(V0, 1.0, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdi, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovdi2, assembler) {
+  __ LoadDImmediate(V0, 123412983.1324524315, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdi2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_FLOAT_EQ(123412983.1324524315,
+      EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()), 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovrd, assembler) {
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ fmovrd(R0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovrd, test) {
+  typedef int (*SimpleCode)();
+  const int64_t one = bit_cast<int64_t, double>(1.0);
+  EXPECT_EQ(one, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ fmovrd(R1, V1);
+  __ fmovdr(V0, R1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovdr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fstrd(V1, Address(SP, -1*kWordSize, Address::PreIndex));
+  __ fldrd(V0, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
+  __ LoadDImmediate(V0, 42.0, kNoPP);
+  __ fcvtzds(R0, V0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fcvtzds, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Scvtfd, assembler) {
+  __ LoadImmediate(R0, 42, kNoPP);
+  __ scvtfd(V0, R0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Scvtfd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
+  __ LoadDImmediate(V1, 84.0, kNoPP);
+  __ LoadDImmediate(V2, 0.5, kNoPP);
+  __ fmuld(V0, V1, V2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmuld, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fdivd, assembler) {
+  __ LoadDImmediate(V1, 84.0, kNoPP);
+  __ LoadDImmediate(V2, 2.0, kNoPP);
+  __ fdivd(V0, V1, V2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fdivd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Faddd, assembler) {
+  __ LoadDImmediate(V1, 41.5, kNoPP);
+  __ LoadDImmediate(V2, 0.5, kNoPP);
+  __ faddd(V0, V1, V2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Faddd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fsubd, assembler) {
+  __ LoadDImmediate(V1, 42.5, kNoPP);
+  __ LoadDImmediate(V2, 0.5, kNoPP);
+  __ fsubd(V0, V1, V2);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fsubd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ AddImmediate(SP, SP, -1 * kWordSize, kNoPP);
+  __ add(R2, SP, Operand(1));
+  __ fstrd(V1, Address(R2, -1));
+  __ fldrd(V0, Address(R2, -1));
+  __ AddImmediate(SP, SP, 1 * kWordSize, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  // Largest negative offset that can fit in the signed 9-bit immediate field.
+  __ fstrd(V1, Address(SP, -32*kWordSize, Address::PreIndex));
+  // Largest positive kWordSize aligned offset that we can fit.
+  __ fldrd(V0, Address(SP, 31*kWordSize, Address::PostIndex));
+  // Correction.
+  __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdLargeIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ sub(SP, SP, Operand(512*kWordSize));
+  __ fstrd(V1, Address(SP, 512*kWordSize, Address::Offset));
+  __ add(SP, SP, Operand(512*kWordSize));
+  __ fldrd(V0, Address(SP));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdLargeOffset, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ movz(R2, 0xfff8, 0);
+  __ movk(R2, 0xffff, 1);  // R2 <- -8 (int32_t).
+  // This should sign extend R2, and add to SP to get address,
+  // i.e. SP - kWordSize.
+  __ fstrd(V1, Address(SP, R2, SXTW));
+  __ sub(SP, SP, Operand(kWordSize));
+  __ fldrd(V0, Address(SP));
+  __ add(SP, SP, Operand(kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdExtReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
+  __ LoadDImmediate(V0, 43.0, kNoPP);
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ movz(R2, 10, 0);
+  __ sub(SP, SP, Operand(10*kWordSize));
+  // Store V1 into SP + R2 * kWordSize.
+  __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));
+  __ fldrd(V0, Address(SP, R2, UXTX, Address::Scaled));
+  __ add(SP, SP, Operand(10*kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
 }
 
 

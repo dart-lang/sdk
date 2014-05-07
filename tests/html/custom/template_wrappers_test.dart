@@ -30,7 +30,7 @@ main() {
   test('element is upgraded once', () {
 
     expect(createdCount, 0);
-    document.register('x-custom', CustomElement);
+    document.registerElement('x-custom', CustomElement);
     expect(createdCount, 0);
 
     var element = document.createElement('x-custom');
@@ -54,7 +54,7 @@ main() {
     d1.attributes['foo'] = 'bar';
     d1 = null;
 
-    document.register('x-custom-two', CustomElement);
+    document.registerElement('x-custom-two', CustomElement);
 
     expect(createdCount, 1);
 

@@ -2361,15 +2361,18 @@ TEST_CASE(ContextScope) {
   const int first_frame_index = -1;
   LocalScope* loop_owner = parent_scope;
   LocalScope* context_owner = NULL;   // No context allocated yet.
+  bool found_captured_vars = false;
   int next_frame_index = parent_scope->AllocateVariables(first_parameter_index,
                                                          num_parameters,
                                                          first_frame_index,
                                                          loop_owner,
-                                                         &context_owner);
+                                                         &context_owner,
+                                                         &found_captured_vars);
   EXPECT_EQ(first_frame_index, next_frame_index);  // a and c not in frame.
   EXPECT_EQ(parent_scope, context_owner);  // parent_scope allocated a context.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
+  EXPECT(found_captured_vars);
 
   const intptr_t local_scope_context_level = 5;
   const ContextScope& context_scope = ContextScope::Handle(

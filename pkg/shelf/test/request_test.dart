@@ -136,44 +136,35 @@ void main() {
     });
   });
 
-  group("readAsString", () {
-    test("supports a null body", () {
-      var request = _request();
-      expect(request.readAsString(), completion(equals("")));
-    });
-
-    test("supports a Stream<List<int>> body", () {
+  group('change', () {
+    test('with no arguments returns instance with equal values', () {
       var controller = new StreamController();
-      var request = _request({}, controller.stream);
-      expect(request.readAsString(), completion(equals("hello, world")));
 
-      controller.add([104, 101, 108, 108, 111, 44]);
+      var uri = Uri.parse('https://test.example.com/static/file.html');
+
+      var request = new Request('GET', uri,
+          protocolVersion: '2.0',
+          headers: {'header1': 'header value 1'},
+          url: Uri.parse('/file.html'),
+          scriptName: '/static',
+          body: controller.stream,
+          context: {'context1': 'context value 1'});
+
+      var copy = request.change();
+
+      expect(copy.method, request.method);
+      expect(copy.requestedUri, request.requestedUri);
+      expect(copy.protocolVersion, request.protocolVersion);
+      expect(copy.headers, same(request.headers));
+      expect(copy.url, request.url);
+      expect(copy.scriptName, request.scriptName);
+      expect(copy.context, same(request.context));
+      expect(copy.readAsString(), completion('hello, world'));
+
+      controller.add(HELLO_BYTES);
       return new Future(() {
         controller
-          ..add([32, 119, 111, 114, 108, 100])
-          ..close();
-      });
-    });
-  });
-
-  group("read", () {
-    test("supports a null body", () {
-      var request = _request();
-      expect(request.read().toList(), completion(isEmpty));
-    });
-
-    test("supports a Stream<List<int>> body", () {
-      var controller = new StreamController();
-      var request = _request({}, controller.stream);
-      expect(request.read().toList(), completion(equals([
-        [104, 101, 108, 108, 111, 44],
-        [32, 119, 111, 114, 108, 100]
-      ])));
-
-      controller.add([104, 101, 108, 108, 111, 44]);
-      return new Future(() {
-        controller
-          ..add([32, 119, 111, 114, 108, 100])
+          ..add(WORLD_BYTES)
           ..close();
       });
     });

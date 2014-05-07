@@ -32,16 +32,18 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.FORMAL_DECLARED_CONST,
     MessageKind.FORMAL_DECLARED_STATIC,
     MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
-    MessageKind.HEX_DIGIT_EXPECTED,
     MessageKind.HIDDEN_IMPLICIT_IMPORT,
     MessageKind.HIDDEN_IMPORT,
     MessageKind.INHERIT_GETTER_AND_METHOD,
     MessageKind.UNIMPLEMENTED_METHOD,
     MessageKind.UNIMPLEMENTED_METHOD_ONE,
-    MessageKind.UNMATCHED_TOKEN,
-    MessageKind.UNTERMINATED_STRING,
     MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
     MessageKind.VOID_NOT_ALLOWED,
+
+    MessageKind.HEX_DIGIT_EXPECTED, // http://dartbug.com/18574
+    MessageKind.UNMATCHED_TOKEN, // http://dartbug.com/18574
+    MessageKind.UNTERMINATED_COMMENT, // http://dartbug.com/18574
+    MessageKind.UNTERMINATED_STRING, // http://dartbug.com/18574
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception

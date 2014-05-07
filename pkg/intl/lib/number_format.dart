@@ -95,20 +95,20 @@ class NumberFormat {
       new NumberFormat._forPattern(locale, (x) => newPattern);
 
   /** Create a number format that prints as DECIMAL_PATTERN. */
-  NumberFormat.decimalPattern([String locale]) :
-      this._forPattern(locale, (x) => x.DECIMAL_PATTERN);
+  NumberFormat.decimalPattern([String locale]) : this._forPattern(locale,
+      (x) => x.DECIMAL_PATTERN);
 
   /** Create a number format that prints as PERCENT_PATTERN. */
-  NumberFormat.percentPattern([String locale]) :
-    this._forPattern(locale, (x) => x.PERCENT_PATTERN);
+  NumberFormat.percentPattern([String locale]) : this._forPattern(locale,
+      (x) => x.PERCENT_PATTERN);
 
   /** Create a number format that prints as SCIENTIFIC_PATTERN. */
-  NumberFormat.scientificPattern([String locale]) :
-    this._forPattern(locale, (x) => x.SCIENTIFIC_PATTERN);
+  NumberFormat.scientificPattern([String locale]) : this._forPattern(locale,
+      (x) => x.SCIENTIFIC_PATTERN);
 
   /** Create a number format that prints as CURRENCY_PATTERN. */
   NumberFormat.currencyPattern([String locale, String currency]) :
-    this._forPattern(locale, (x) => x.CURRENCY_PATTERN, currency);
+      this._forPattern(locale, (x) => x.CURRENCY_PATTERN, currency);
 
   /**
    * Create a number format that prints in a pattern we get from
@@ -163,6 +163,12 @@ class NumberFormat {
   }
 
   /**
+   * Parse the number represented by the string. If it's not
+   * parseable, throws a [FormatException].
+   */
+  num parse(String text) => new _NumberParser(this, text).value;
+
+  /**
    * Format the main part of the number in the form dictated by the pattern.
    */
   void _formatNumber(num number) {
@@ -185,8 +191,8 @@ class NumberFormat {
     var mantissa = number / pow(10.0, exponent);
 
     var minIntDigits = minimumIntegerDigits;
-    if (maximumIntegerDigits > 1 &&
-        maximumIntegerDigits > minimumIntegerDigits) {
+    if (maximumIntegerDigits > 1 && maximumIntegerDigits > minimumIntegerDigits)
+        {
       // A repeating range is defined; adjust to it as follows.
       // If repeat == 3, we have 6,5,4=>3; 3,2,1=>0; 0,-1,-2=>-3;
       // -3,-4,-5=>-6, etc. This takes into account that the
@@ -258,11 +264,11 @@ class NumberFormat {
     // with zeros. Check for Javascript by seeing if an integer is double.
     var paddingDigits = '';
     if (1 is double && intValue > _maxInt) {
-        var howManyDigitsTooBig = (log(intValue) / LN10).ceil() - 16;
-        var divisor = pow(10, howManyDigitsTooBig).round();
-        paddingDigits = symbols.ZERO_DIGIT * howManyDigitsTooBig.toInt();
+      var howManyDigitsTooBig = (log(intValue) / LN10).ceil() - 16;
+      var divisor = pow(10, howManyDigitsTooBig).round();
+      paddingDigits = symbols.ZERO_DIGIT * howManyDigitsTooBig.toInt();
 
-        intValue = (intValue / divisor).truncate();
+      intValue = (intValue / divisor).truncate();
     }
     var integerDigits = "${intValue}${paddingDigits}".codeUnits;
     var digitLength = integerDigits.length;
@@ -288,8 +294,8 @@ class NumberFormat {
   void _formatFractionPart(String fractionPart) {
     var fractionCodes = fractionPart.codeUnits;
     var fractionLength = fractionPart.length;
-    while(fractionCodes[fractionLength - 1] == _zero &&
-           fractionLength > minimumFractionDigits + 1) {
+    while (fractionCodes[fractionLength - 1] == _zero &&
+        fractionLength > minimumFractionDigits + 1) {
       fractionLength--;
     }
     for (var i = 1; i < fractionLength; i++) {
@@ -316,9 +322,9 @@ class NumberFormat {
    * required characters into [_buffer] easily.
    */
   void _add(String x) { _buffer.write(x);}
-  void _addCharCode(int x) { _buffer.writeCharCode(x); }
-  void _addZero() { _buffer.write(symbols.ZERO_DIGIT); }
-  void _addDigit(int x) { _buffer.writeCharCode(_localeZero + x - _zero); }
+  void _addCharCode(int x) { _buffer.writeCharCode(x);}
+  void _addZero() { _buffer.write(symbols.ZERO_DIGIT);}
+  void _addDigit(int x) { _buffer.writeCharCode(_localeZero + x - _zero);}
 
   /** Print padding up to [numberOfDigits] above what's included in [basic]. */
   void _pad(int numberOfDigits, [String basic = '']) {
@@ -371,12 +377,264 @@ class NumberFormat {
     if (newPattern == null) return;
     // Make spaces non-breaking
     _pattern = newPattern.replaceAll(' ', '\u00a0');
-    var parser =
-        new _NumberFormatParser(this, newPattern, currencyName);
+    var parser = new _NumberFormatParser(this, newPattern, currencyName);
     parser.parse();
   }
 
   String toString() => "NumberFormat($_locale, $_pattern)";
+}
+
+/**
+ *  A one-time object for parsing a particular numeric string. One-time here
+ * means an instance can only parse one string. This is implemented by
+ * transforming from a locale-specific format to one that the system can parse,
+ * then calls the system parsing methods on it.
+ */
+class _NumberParser {
+
+  /** The format for which we are parsing. */
+  final NumberFormat format;
+
+  /** The text we are parsing. */
+  final String text;
+
+  /** What we use to iterate over the input text. */
+  final _Stream input;
+
+  /**
+   * The result of parsing [text] according to [format]. Automatically
+   * populated in the constructor.
+   */
+  num value;
+
+  /** The symbols used by our format. */
+  NumberSymbols get symbols => format.symbols;
+
+  /** Where we accumulate the normalized representation of the number. */
+  final StringBuffer _normalized = new StringBuffer();
+
+  /**
+   * Did we see something that indicates this is, or at least might be,
+   * a positive number.
+   */
+  bool gotPositive = false;
+
+  /**
+   * Did we see something that indicates this is, or at least might be,
+   * a negative number.
+   */
+  bool gotNegative = false;
+  /**
+   * Did we see the required positive suffix at the end. Should
+   * match [gotPositive].
+   */
+  bool gotPositiveSuffix = false;
+  /**
+   * Did we see the required negative suffix at the end. Should
+   * match [gotNegative].
+   */
+  bool gotNegativeSuffix = false;
+
+  /** Should we stop parsing before hitting the end of the string. */
+  bool done = false;
+
+  /** Have we already skipped over any required prefixes. */
+  bool prefixesSkipped = false;
+
+  /** If the number is percent or permill, what do we divide by at the end. */
+  int scale = 1;
+
+  String get _positivePrefix => format._positivePrefix;
+  String get _negativePrefix => format._negativePrefix;
+  String get _positiveSuffix => format._positiveSuffix;
+  String get _negativeSuffix => format._negativeSuffix;
+  int get _zero => format._zero;
+  int get _localeZero => format._localeZero;
+
+  /**
+   *  Create a new [_NumberParser] on which we can call parse().
+   */
+  _NumberParser(this.format, text) : this.text = text,
+      this.input = new _Stream(text) {
+    value = parse();
+  }
+
+  /**
+   *  The strings we might replace with functions that return the replacement
+   * values. They are functions because we might need to check something
+   * in the context. Note that the ordering is important here. For example,
+   * [symbols.PERCENT] might be " %", and we must handle that before we
+   * look at an individual space.
+   */
+  Map<String, Function> get replacements => _replacements == null ?
+      _replacements = _initializeReplacements() : _replacements;
+
+  var _replacements;
+
+  Map _initializeReplacements() => {
+      symbols.DECIMAL_SEP: () => '.',
+      symbols.EXP_SYMBOL: () => 'E',
+      symbols.GROUP_SEP: handleSpace,
+      symbols.PERCENT: () {
+        scale = 100;
+        return '';
+      },
+      symbols.PERMILL: () {
+        scale = 100;
+        return '';
+      },
+      ' ' : handleSpace,
+      '\u00a0' : handleSpace,
+      '+': () => '+',
+      '-': () => '-',
+    };
+
+  invalidFormat() =>
+      throw new FormatException("Invalid number: ${input.contents}");
+
+  /**
+   * Replace a space in the number with the normalized form. If space is not
+   * a significant character (normally grouping) then it's just invalid. If it
+   * is the grouping character, then it's only valid if it's followed by a
+   * digit. e.g. '$12 345.00'
+   */
+  handleSpace() =>
+      groupingIsNotASpaceOrElseItIsSpaceFollowedByADigit ? '' : invalidFormat();
+
+  /**
+   * Determine if a space is a valid character in the number. See [handleSpace].
+   */
+  bool get groupingIsNotASpaceOrElseItIsSpaceFollowedByADigit {
+    if (symbols.GROUP_SEP != '\u00a0' || symbols.GROUP_SEP != ' ') return true;
+    var peeked = input.peek(symbols.GROUP_SEP.length + 1);
+    return asDigit(peeked[peeked.length - 1]) != null;
+  }
+
+  /**
+   * Turn [char] into a number representing a digit, or null if it doesn't
+   * represent a digit in this locale.
+   */
+  int asDigit(String char) {
+    var charCode = char.codeUnitAt(0);
+    var digitValue = charCode - _localeZero;
+    if (digitValue >= 0 && digitValue < 10) {
+      return digitValue;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Check to see if the input begins with either the positive or negative
+   * prefixes. Set the [gotPositive] and [gotNegative] variables accordingly.
+   */
+  void checkPrefixes({bool skip: false}) {
+    bool checkPrefix(String prefix, skip) {
+        var matched = prefix.isNotEmpty && input.startsWith(prefix);
+        if (skip && matched) input.read(prefix.length);
+        return matched;
+    }
+
+    // TODO(alanknight): There's a faint possibility of a bug here where
+    // a positive prefix is followed by a negative prefix that's also a valid
+    // part of the number, but that seems very unlikely.
+    if (checkPrefix(_positivePrefix, skip)) gotPositive = true;
+    if (checkPrefix(_negativePrefix, skip)) gotNegative = true;
+
+    // Copied from Closure. It doesn't seem to be necessary to pass the test
+    // suite, so I'm not sure it's really needed.
+    if (gotPositive && gotNegative) {
+      if (_positivePrefix.length > _negativePrefix.length) {
+        gotNegative = false;
+      } else if (_negativePrefix.length > _positivePrefix.length) {
+        gotPositive = false;
+      }
+    }
+  }
+
+  /**
+   * If the rest of our input is either the positive or negative suffix,
+   * set [gotPositiveSuffix] or [gotNegativeSuffix] accordingly.
+   */
+  void checkSuffixes() {
+    var remainder = input.rest();
+    if (remainder == _positiveSuffix) gotPositiveSuffix = true;
+    if (remainder == _negativeSuffix) gotNegativeSuffix = true;
+  }
+
+  /**
+   * We've encountered a character that's not a digit. Go through our
+   * replacement rules looking for how to handle it. If we see something
+   * that's not a digit and doesn't have a replacement, then we're done
+   * and the number is probably invalid.
+   */
+  void processNonDigit() {
+    for (var key in replacements.keys) {
+      if (input.startsWith(key)) {
+        _normalized.write(replacements[key]());
+        input.read(key.length);
+        return;
+      }
+    }
+    // It might just be a prefix that we haven't skipped. We don't want to
+    // skip them initially because they might also be semantically meaningful,
+    // e.g. leading %. So we allow them through the loop, but only once.
+    if (input.index == 0 && !prefixesSkipped) {
+      prefixesSkipped = true;
+      checkPrefixes(skip: true);
+    } else {
+      done = true;
+    }
+  }
+
+  /**
+   * Parse [text] and return the resulting number. Throws [FormatException]
+   * if we can't parse it.
+   */
+  num parse() {
+    if (text == symbols.NAN) return double.NAN;
+    if (text == "$_positivePrefix${symbols.INFINITY}$_positiveSuffix") {
+      return double.INFINITY;
+    }
+    if (text == "$_negativePrefix${symbols.INFINITY}$_negativeSuffix") {
+      return double.NEGATIVE_INFINITY;
+    }
+
+    checkPrefixes();
+    var basicNumber = parseNumber(input);
+
+    if (gotPositive && !gotPositiveSuffix) invalidNumber();
+    if (gotNegative && !gotNegativeSuffix) invalidNumber();
+    if (!input.atEnd()) invalidNumber();
+
+    return gotNegative ? -basicNumber : basicNumber;
+  }
+
+  /** The number is invalid, throw a [FormatException]. */
+  void invalidNumber() =>
+      throw new FormatException("Invalid Number: ${input.contents}");
+
+  /**
+   * Parse the number portion of the input, i.e. not any prefixes or suffixes,
+   * and assuming NaN and Infinity are already handled.
+   */
+  num parseNumber(_Stream input) {
+    while (!done && !input.atEnd()) {
+      int digit = asDigit(input.peek());
+      if (digit != null) {
+        _normalized.writeCharCode(_zero + digit);
+        input.next();
+      } else {
+        processNonDigit();
+      }
+      checkSuffixes();
+    }
+
+    var normalizedText = _normalized.toString();
+    var parsed = int.parse(normalizedText, onError: (message) => null);
+    if (parsed == null) parsed = double.parse(normalizedText);
+    return parsed / scale;
+  }
 }
 
 /**
@@ -417,8 +675,8 @@ class _NumberFormatParser {
    * [input] pattern.
    */
   _NumberFormatParser(this.format, input, this.currencyName) :
-    pattern = _iterator(input) {
-        pattern.moveNext();
+      pattern = _iterator(input) {
+    pattern.moveNext();
   }
 
   /** The [NumberSymbols] for the locale in which our [format] prints. */
@@ -573,8 +831,8 @@ class _NumberFormatParser {
     var effectiveDecimalPos = decimalPos >= 0 ? decimalPos : totalDigits;
     format.minimumIntegerDigits = effectiveDecimalPos - digitLeftCount;
     if (format._useExponentialNotation) {
-      format.maximumIntegerDigits =
-          digitLeftCount + format.minimumIntegerDigits;
+      format.maximumIntegerDigits = digitLeftCount +
+          format.minimumIntegerDigits;
 
       // In exponential display, we need to at least show something.
       if (format.maximumFractionDigits == 0 &&
@@ -610,8 +868,8 @@ class _NumberFormatParser {
         break;
       case _PATTERN_ZERO_DIGIT:
         if (digitRightCount > 0) {
-          throw new FormatException('Unexpected "0" in pattern "'
-              + pattern.input + '"');
+          throw new FormatException('Unexpected "0" in pattern "' +
+              pattern.input + '"');
         }
         zeroDigitCount++;
         if (groupingCount >= 0 && decimalPos < 0) {
@@ -656,8 +914,7 @@ class _NumberFormatParser {
 
         if ((digitLeftCount + zeroDigitCount) < 1 ||
             format.minimumExponentDigits < 1) {
-          throw new FormatException(
-              'Malformed exponential pattern "$pattern"');
+          throw new FormatException('Malformed exponential pattern "$pattern"');
         }
         return false;
       default:

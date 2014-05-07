@@ -492,7 +492,7 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   String remove(String key) => _blink.Native_DOMStringMap_remove(this, key);
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this, keys);
+  Iterable<String> get keys => _blink.Native_DOMStringMap_get_keys(this);
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);

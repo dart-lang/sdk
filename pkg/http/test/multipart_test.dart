@@ -5,49 +5,12 @@
 library multipart_test;
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
-
-/// A matcher that validates the body of a multipart request after finalization.
-/// The string "{{boundary}}" in [pattern] will be replaced by the boundary
-/// string for the request, and LF newlines will be replaced with CRLF.
-/// Indentation will be normalized.
-Matcher bodyMatches(String pattern) => new _BodyMatches(pattern);
-
-class _BodyMatches extends Matcher {
-  final String _pattern;
-
-  _BodyMatches(this._pattern);
-
-  bool matches(item, Map matchState) {
-    if (item is! http.MultipartRequest) return false;
-
-    var future = item.finalize().toBytes().then((bodyBytes) {
-      var body = UTF8.decode(bodyBytes);
-      var contentType = new MediaType.parse(item.headers['content-type']);
-      var boundary = contentType.parameters['boundary'];
-      var expected = cleanUpLiteral(_pattern)
-          .replaceAll("\n", "\r\n")
-          .replaceAll("{{boundary}}", boundary);
-
-      expect(body, equals(expected));
-      expect(item.contentLength, equals(bodyBytes.length));
-    });
-
-    return completes.matches(future, matchState);
-  }
-
-  Description describe(Description description) {
-    return description.add('has a body that matches "$_pattern"');
-  }
-}
 
 void main() {
   test('empty', () {
@@ -268,34 +231,5 @@ void main() {
         hello
         --{{boundary}}--
         '''));
-  });
-
-  group('in a temp directory', () {
-    var tempDir;
-    setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('http_test_');
-    });
-
-    tearDown(() => tempDir.deleteSync(recursive: true));
-
-    test('with a file from disk', () {
-      expect(new Future.sync(() {
-        var filePath = path.join(tempDir.path, 'test-file');
-        new File(filePath).writeAsStringSync('hello');
-        return http.MultipartFile.fromPath('file', filePath);
-      }).then((file) {
-        var request = new http.MultipartRequest('POST', dummyUrl);
-        request.files.add(file);
-
-        expect(request, bodyMatches('''
-        --{{boundary}}
-        content-type: application/octet-stream
-        content-disposition: form-data; name="file"; filename="test-file"
-
-        hello
-        --{{boundary}}--
-        '''));
-      }), completes);
-    });
   });
 }

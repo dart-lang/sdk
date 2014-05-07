@@ -19,6 +19,7 @@
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -888,6 +889,12 @@ static bool HandleInstanceCommands(Isolate* isolate,
                                          Array::empty_array()));
     result.PrintJSON(js, true);
     return true;
+  } else if (strcmp(action, "retained") == 0) {
+    ObjectGraph graph(isolate);
+    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+    const Object& result = Object::Handle(Integer::New(retained_size));
+    result.PrintJSON(js, true);
+    return true;
   }
 
   PrintError(js, "unrecognized action '%s'\n", action);
@@ -1059,6 +1066,20 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesRetained(Isolate* isolate, const Class& cls,
+                                  JSONStream* js) {
+  if (js->num_arguments() != 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
+  return true;
+}
+
+
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
@@ -1097,6 +1118,8 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesDispatchers(isolate, cls, js);
     } else if (!strcmp(second, "types")) {
       return HandleClassesTypes(isolate, cls, js);
+    } else if (!strcmp(second, "retained")) {
+      return HandleClassesRetained(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1299,7 +1322,7 @@ static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
   JSONArray members(&jsobj, "members");
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  int num_libs = libs.Length();
+  intptr_t num_libs = libs.Length();
   Library &lib = Library::Handle();
   Script& script = Script::Handle();
   for (intptr_t i = 0; i < num_libs; i++) {

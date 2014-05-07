@@ -9,7 +9,7 @@ import 'dart:isolate';
 
 import 'package:stack_trace/stack_trace.dart';
 
-import 'asset_id.dart';
+import 'asset/asset_id.dart';
 import 'utils.dart';
 
 /// Converts [id] into a serializable map.

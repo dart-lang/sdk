@@ -1,6 +1,6 @@
 A client library for authenticating with a remote service via OAuth2 on
 behalf of a user, and making authorized HTTP requests with the user's OAuth2
-credentials. Currently this only works where `dart:io` is available.
+credentials.
 
 OAuth2 allows a client (the program using this library) to access and
 manipulate a resource that's owned by a resource owner (the end user) and

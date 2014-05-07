@@ -5,7 +5,12 @@
   <template>
     <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
     <template if="{{ code.isDartCode }}">
-      <a href="{{ url }}">{{ name }}</a>
+        <template if="{{ code.isOptimized }}">
+          <a href="{{ url }}">*{{ name }}</a>
+        </template>
+        <template if="{{ !code.isOptimized }}">
+          <a href="{{ url }}">{{ name }}</a>
+        </template>
     </template>
     <template if="{{ !code.isDartCode }}">
       <span>{{ name }}</span>

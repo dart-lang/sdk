@@ -267,6 +267,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Create tag table.
   isolate->set_tag_table(
       GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  // Set up default UserTag.
+  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
+  isolate->set_current_tag(default_tag);
+
   return Error::null();
 }
 

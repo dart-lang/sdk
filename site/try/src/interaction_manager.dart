@@ -21,7 +21,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
     ErrorToken,
     StringScanner,
-    Token;
+    Token,
+    UnmatchedToken,
+    UnterminatedToken;
 
 import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
@@ -53,13 +55,18 @@ import 'compilation_unit.dart' show
     CompilationUnit;
 
 import 'selection.dart' show
-    TrySelection;
+    TrySelection,
+    isCollapsed;
 
 import 'editor.dart' as editor;
 
 import 'mock.dart' as mock;
 
 import 'settings.dart' as settings;
+
+const String TRY_DART_NEW_DEFECT =
+    'https://code.google.com/p/dart/issues/entry'
+    '?template=Try+Dart+Internal+Error';
 
 /**
  * UI interaction manager for the entire application.
@@ -85,6 +92,8 @@ abstract class InteractionManager {
 
   void onInput(Event event);
 
+  // TODO(ahe): Rename to onKeyDown (as it is called in response to keydown
+  // event).
   void onKeyUp(KeyboardEvent event);
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer);
@@ -127,7 +136,33 @@ class InteractionContext extends InteractionManager {
   void onKeyUp(KeyboardEvent event) => state.onKeyUp(event);
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    return state.onMutation(mutations, observer);
+    try {
+      try {
+        return state.onMutation(mutations, observer);
+      } finally {
+        // Discard any mutations during the observer, as these can lead to
+        // infinite loop.
+        observer.takeRecords();
+      }
+    } catch (error, stackTrace) {
+      try {
+        editor.isMalformedInput = true;
+        outputDiv
+            ..nodes.clear()
+            ..append(new HeadingElement.h1()..appendText('Internal Error'))
+            ..appendText('We would appreciate if you take a moment to report '
+                         'this at ')
+            ..append(
+                new AnchorElement(href: TRY_DART_NEW_DEFECT)
+                    ..target = '_blank'
+                    ..appendText(TRY_DART_NEW_DEFECT))
+            ..appendText('\nError and stack trace:\n$error\n')
+            ..appendText('$stackTrace\n');
+      } catch (e) {
+        // Double faults ignored.
+      }
+      rethrow;
+    }
   }
 
   void onSelectionChange(Event event) => state.onSelectionChange(event);
@@ -195,13 +230,28 @@ class InitialState extends InteractionState {
   void onUnmodifiedKeyUp(KeyboardEvent event) {
     switch (event.keyCode) {
       case KeyCode.ENTER: {
-        event.preventDefault();
         Selection selection = window.getSelection();
-        if (selection.isCollapsed && selection.anchorNode is Text) {
-          Text text = selection.anchorNode;
-          int offset = selection.anchorOffset;
-          text.insertData(offset, '\n');
-          selection.collapse(text, offset + 1);
+        if (isCollapsed(selection)) {
+          event.preventDefault();
+          Node node = selection.anchorNode;
+          if (node is Text) {
+            Text text = node;
+            int offset = selection.anchorOffset;
+            // If at end-of-file, insert an extra newline.  The the extra
+            // newline ensures that the next line isn't empty.  At least Chrome
+            // behaves as if "\n" is just a single line. "\nc" (where c is any
+            // character) is two lines, according to Chrome.
+            String newline = isAtEndOfFile(text, offset) ? '\n\n' : '\n';
+            text.insertData(offset, newline);
+            selection.collapse(text, offset + 1);
+          } else if (node is Element) {
+            node.appendText('\n\n');
+            selection.collapse(node.firstChild, 1);
+          } else {
+            window.console
+                ..error('Unexpected node')
+                ..dir(node);
+          }
         }
         break;
       }
@@ -229,8 +279,46 @@ class InitialState extends InteractionState {
     Selection selection = window.getSelection();
     TrySelection trySelection = new TrySelection(mainEditorPane, selection);
 
+    Set<Node> normalizedNodes = new Set<Node>();
     for (MutationRecord record in mutations) {
-      normalizeMutationRecord(record, trySelection);
+      normalizeMutationRecord(record, trySelection, normalizedNodes);
+    }
+
+    if (normalizedNodes.length == 1) {
+      Node node = normalizedNodes.single;
+      if (node is Element && node.classes.contains('lineNumber')) {
+        print('Single line change: ${node.outerHtml}');
+
+        String currentText = node.text;
+
+        trySelection = new TrySelection(node, selection);
+        trySelection.updateText(currentText);
+
+        editor.isMalformedInput = false;
+        int offset = 0;
+        List<Node> nodes = <Node>[];
+
+        String state = '';
+        Element previousLine = node.previousElementSibling;
+        if (previousLine != null) {
+          state = previousLine.getAttribute('dart-state');
+        }
+        for (String line in splitLines(currentText)) {
+          List<Node> lineNodes = <Node>[];
+          state = tokenizeAndHighlight(
+              line, state, offset, trySelection, lineNodes);
+          offset += line.length;
+          nodes.add(makeLine(lineNodes, state));
+        }
+
+        node.parent.insertAllBefore(nodes, node);
+        node.remove();
+        trySelection.adjust(selection);
+
+        // Discard highlighting mutations.
+        observer.takeRecords();
+        return;
+      }
     }
 
     String currentText = mainEditorPane.text;
@@ -244,7 +332,14 @@ class InitialState extends InteractionState {
     int offset = 0;
     List<Node> nodes = <Node>[];
 
-    tokenizeAndHighlight(currentText, offset, trySelection, nodes);
+    String state = '';
+    for (String line in splitLines(currentText)) {
+      List<Node> lineNodes = <Node>[];
+      state =
+          tokenizeAndHighlight(line, state, offset, trySelection, lineNodes);
+      offset += line.length;
+      nodes.add(makeLine(lineNodes, state));
+    }
 
     mainEditorPane
         ..nodes.clear()
@@ -670,63 +765,133 @@ bool computeHasModifier(KeyboardEvent event) {
       event.getModifierState("OS");
 }
 
-void tokenizeAndHighlight(String currentText,
-                          int offset,
-                          TrySelection trySelection,
-                          List<Node> nodes) {
+String tokenizeAndHighlight(String line,
+                            String state,
+                            int start,
+                            TrySelection trySelection,
+                            List<Node> nodes) {
+  String newState = '';
+  int offset = state.length;
+  int adjustedStart = start - state.length;
+
   //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
   //   v         v             v                v
   // do          identifier_abcdefghijklmnopqrst
-  for (Token token = tokenize(currentText);
+  for (Token token = tokenize('$state$line');
        token.kind != EOF_TOKEN;
        token = token.next) {
     int charOffset = token.charOffset;
     int charCount = token.charCount;
 
-    if (charOffset < offset) continue; // Happens for scanner errors.
-
-    Decoration decoration = editor.getDecoration(token);
-
-    Token follow = token.next;
-    if (token is BeginGroupToken) {
-      follow = token.endGroup.next;
+    Token tokenToDecorate = token;
+    if (token is UnterminatedToken && isUnterminatedMultiLineToken(token)) {
+      newState += '${token.start}';
+      continue; // This might not be an error.
+    } else {
+      Token follow = token.next;
+      if (token is BeginGroupToken && token.endGroup != null) {
+        follow = token.endGroup.next;
+      }
+      if (follow is ErrorToken && follow.charOffset == token.charOffset) {
+        if (follow is UnmatchedToken) {
+          newState += '${follow.begin.value}';
+        } else {
+          tokenToDecorate = follow;
+        }
+      }
     }
-    if (follow is ErrorToken) {
-      decoration = editor.getDecoration(follow);
+
+    if (charOffset < offset) {
+      // Happens for scanner errors, or for the [state] prefix.
+      continue;
     }
+
+    Decoration decoration = editor.getDecoration(tokenToDecorate);
 
     if (decoration == null) continue;
 
     // Add a node for text before current token.
-    trySelection.addNodeFromSubstring(offset, charOffset, nodes);
+    trySelection.addNodeFromSubstring(
+        adjustedStart + offset, adjustedStart + charOffset, nodes);
 
     // Add a node for current token.
     trySelection.addNodeFromSubstring(
-        charOffset, charOffset + charCount, nodes, decoration);
+        adjustedStart + charOffset,
+        adjustedStart + charOffset + charCount, nodes, decoration);
 
     offset = charOffset + charCount;
   }
 
   // Add a node for anything after the last (decorated) token.
-  trySelection.addNodeFromSubstring(offset, currentText.length, nodes);
+  trySelection.addNodeFromSubstring(
+      adjustedStart + offset, start + line.length, nodes);
 
-  // Ensure text always ends with a newline.
-  if (!currentText.endsWith('\n')) {
-    nodes.add(new Text('\n'));
-  }
+  return newState;
 }
 
-void normalizeMutationRecord(MutationRecord record, TrySelection selection) {
-  if (record.addedNodes.isEmpty) return;
+bool isUnterminatedMultiLineToken(UnterminatedToken token) {
+  return
+      token.start == '/*' ||
+      token.start == "'''" ||
+      token.start == '"""' ||
+      token.start == "r'''" ||
+      token.start == 'r"""';
+}
+
+void normalizeMutationRecord(MutationRecord record,
+                             TrySelection selection,
+                             Set<Node> normalizedNodes) {
   for (Node node in record.addedNodes) {
     if (node.parent == null) continue;
     StringBuffer buffer = new StringBuffer();
     int selectionOffset = htmlToText(node, buffer, selection);
     Text newNode = new Text('$buffer');
     node.replaceWith(newNode);
+    normalizedNodes.add(findLine(newNode));
     if (selectionOffset != -1) {
       selection.anchorNode = newNode;
       selection.anchorOffset = selectionOffset;
     }
   }
+  if (!record.removedNodes.isEmpty) {
+    normalizedNodes.add(findLine(record.target));
+  }
+  if (record.type == "characterData") {
+    normalizedNodes.add(findLine(record.target));
+  }
+}
+
+// Finds the line of [node] (a parent node with CSS class 'lineNumber').
+// If no such parent exists, return mainEditorPane if it is a parent.
+// Otherwise return [node].
+Node findLine(Node node) {
+  for (Node n = node; n != null; n = n.parent) {
+    if (n is Element && n.classes.contains('lineNumber')) return n;
+    if (n == mainEditorPane) return n;
+  }
+  return node;
+}
+
+Element makeLine(List<Node> lineNodes, String state) {
+  // Using a div element here (anything with display=block) generally messes up
+  // editing and navigation.  We would like to use a block element here so
+  // error messages show as expected.  But no such luck.  Fortunately, there
+  // are strong indications that the current solution for displaying errors
+  // isn't good enough anyways.
+  return new SpanElement()
+      ..setAttribute('dart-state', state)
+      ..nodes.addAll(lineNodes)
+      ..classes.add('lineNumber');
+}
+
+bool isAtEndOfFile(Text text, int offset) {
+  Node line = findLine(text);
+  return
+      line.nextNode == null &&
+      text.parent.nextNode == null &&
+      offset == text.length;
+}
+
+List<String> splitLines(String text) {
+  return text.split(new RegExp('^', multiLine: true));
 }

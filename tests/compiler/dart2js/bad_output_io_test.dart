@@ -8,7 +8,6 @@ library dart2js.test.missing_file;
 
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic;
@@ -45,6 +44,10 @@ class CollectingFormattingDiagnosticHandler
   void call(Uri uri, int begin, int end, String message, kind) {
     diagnosticHandler(uri, begin, end, message, kind);
   }
+
+  String prefixMessage(String message, Diagnostic kind) {
+    return message;
+  }
 }
 
 testOutputProvider(script, libraryRoot, packageRoot, inputProvider, handler,
@@ -56,8 +59,9 @@ testOutputProvider(script, libraryRoot, packageRoot, inputProvider, handler,
 void main() {
   compileFunc = testOutputProvider;
   exitFunc = (exitCode) {
-    Expect.equals(1, diagnosticHandler.messages.length);
-    var message = diagnosticHandler.messages[0];
+    CollectingFormattingDiagnosticHandler handler = diagnosticHandler;
+    Expect.equals(1, handler.messages.length);
+    var message = handler.messages[0];
     Expect.isTrue(message[0].contains("Cannot open file"));
     Expect.equals(Diagnostic.ERROR, message[1]);
     Expect.equals(1, exitCode);

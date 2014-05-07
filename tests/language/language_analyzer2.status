@@ -78,6 +78,9 @@ field_method4_negative_test: fail
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
 
+# test issue 11697: switch/case and static const class member
+switch_case_static_const_test: fail
+
 # test issue 11918: mixin and const constructor
 const_constructor_mixin_test/01: fail
 const_constructor_mixin3_test/01: fail
@@ -198,6 +201,7 @@ bad_initializer1_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
 const_counter_negative_test: CompileTimeError
+const_map3_test/00: MissingCompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
 constructor_redirect2_negative_test: CompileTimeError
@@ -453,13 +457,15 @@ compile_time_constant_checked3_test/05: CompileTimeError # Issue 16391
 list_literal1_test/01: CompileTimeError # Issue 16391
 map_literal1_test/01: CompileTimeError # Issue 16391
 
-# Issue 17522
-deferred_constraints_type_annotation_test/*: Pass, Fail
-deferred_constraints_constants_test/*: Pass, Fail
+# Issue 18562- Old syntax (@lazy) for deferred libraries
 deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
 deferred_constraints_constants_old_syntax_test/*: Pass, Fail
-deferred_shadow_load_library_test: Fail
-deferred_closurize_load_library_test: Fail
+
+# Issue 18562- 'is', 'as' and 'catch' aren't type annotations, thus we don't
+# generate the "The deferred types cannot be used in a declaration" warning
+deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
+deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
+deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
 
 # Issues to be fixed now that type parameters have been fixed
 # (issues 14221, 15553)
@@ -487,7 +493,4 @@ factory1_test/01: StaticWarning
 factory1_test/none: StaticWarning
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
-null_test/none: StaticWarning
 redirecting_factory_long_test: StaticWarning
-type_parameter_literal_test: StaticWarning
-mirrors/new_instance_with_type_arguments_test: StaticWarning

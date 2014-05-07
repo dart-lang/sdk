@@ -41,7 +41,9 @@ struct InterruptMessage {
 // socket for the client.
 class OverlappedBuffer {
  public:
-  enum Operation { kAccept, kRead, kRecvFrom, kWrite, kSendTo, kDisconnect };
+  enum Operation {
+    kAccept, kRead, kRecvFrom, kWrite, kSendTo, kDisconnect, kConnect
+  };
 
   static OverlappedBuffer* AllocateAcceptBuffer(int buffer_size);
   static OverlappedBuffer* AllocateReadBuffer(int buffer_size);
@@ -49,6 +51,7 @@ class OverlappedBuffer {
   static OverlappedBuffer* AllocateWriteBuffer(int buffer_size);
   static OverlappedBuffer* AllocateSendToBuffer(int buffer_size);
   static OverlappedBuffer* AllocateDisconnectBuffer();
+  static OverlappedBuffer* AllocateConnectBuffer();
   static void DisposeBuffer(OverlappedBuffer* buffer);
 
   // Find the IO buffer from the OVERLAPPED address.
@@ -221,7 +224,6 @@ class Handle {
 
   HANDLE handle() { return handle_; }
   Dart_Port port() { return port_; }
-  EventHandlerImplementation* event_handler() { return event_handler_; }
 
   void Lock();
   void Unlock();
@@ -415,14 +417,18 @@ class ClientSocket : public SocketHandle {
  public:
   explicit ClientSocket(SOCKET s) : SocketHandle(s),
                                     DisconnectEx_(NULL),
-                                    next_(NULL) {
+                                    next_(NULL),
+                                    connected_(false),
+                                    closed_(false) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
 
   ClientSocket(SOCKET s, Dart_Port port) : SocketHandle(s, port),
                                            DisconnectEx_(NULL),
-                                           next_(NULL) {
+                                           next_(NULL),
+                                           connected_(false),
+                                           closed_(false) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -432,6 +438,7 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
+    ASSERT(closed_ == true);
   };
 
   void Shutdown(int how);
@@ -442,6 +449,8 @@ class ClientSocket : public SocketHandle {
   void IssueDisconnect();
   void DisconnectComplete(OverlappedBuffer* buffer);
 
+  void ConnectComplete(OverlappedBuffer* buffer);
+
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler);
   virtual void DoClose();
@@ -450,11 +459,18 @@ class ClientSocket : public SocketHandle {
   ClientSocket* next() { return next_; }
   void set_next(ClientSocket* next) { next_ = next; }
 
+  void mark_connected() {
+    connected_ = true;
+  }
+  bool is_connected() const { return connected_; }
+
  private:
   bool LoadDisconnectEx();
 
   LPFN_DISCONNECTEX DisconnectEx_;
   ClientSocket* next_;
+  bool connected_;
+  bool closed_;
 };
 
 
@@ -495,14 +511,15 @@ class EventHandlerImplementation {
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, OverlappedBuffer* buffer);
-  void HandleClosed(Handle* handle);
-  void HandleError(Handle* handle);
   void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleRecvFrom(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleDisconnect(ClientSocket* client_socket,
                         int bytes,
                         OverlappedBuffer* buffer);
+  void HandleConnect(ClientSocket* client_socket,
+                     int bytes,
+                     OverlappedBuffer* buffer);
   void HandleIOCompletion(DWORD bytes, ULONG_PTR key, OVERLAPPED* overlapped);
 
   HANDLE completion_port() { return completion_port_; }

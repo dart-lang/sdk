@@ -744,6 +744,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
+    ImportElement importElement = node.element;
+    if (importElement != null) {
+      if (importElement.isDeferred) {
+        _checkForLoadLibraryFunction(node, importElement);
+      }
+    }
     return super.visitImportDirective(node);
   }
 
@@ -1065,8 +1071,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (lhs == null || rhs == null) {
       return false;
     }
-    VariableElement leftElement = ErrorVerifier.getVariableElement(lhs);
-    DartType leftType = (leftElement == null) ? ErrorVerifier.getStaticType(lhs) : leftElement.type;
+    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
+    DartType leftType = (leftVariableElement == null) ? ErrorVerifier.getStaticType(lhs) : leftVariableElement.type;
     DartType staticRightType = ErrorVerifier.getStaticType(rhs);
     if (!staticRightType.isAssignableTo(leftType)) {
       // The warning was generated on this rhs
@@ -1079,12 +1085,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         String leftName = leftType.displayName;
         String rightName = bestRightType.displayName;
         if (leftName == rightName) {
-          leftName = ErrorVerifier.getExtendedDisplayName(leftType);
-          rightName = ErrorVerifier.getExtendedDisplayName(bestRightType);
+          Element leftElement = leftType.element;
+          Element rightElement = bestRightType.element;
+          if (leftElement != null && rightElement != null) {
+            leftName = leftElement.extendedDisplayName;
+            rightName = rightElement.extendedDisplayName;
+          }
         }
         _errorReporter.reportErrorForNode(HintCode.INVALID_ASSIGNMENT, rhs, [rightName, leftName]);
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Check that the imported library does not define a loadLibrary function. The import has already
+   * been determined to be deferred when this is called.
+   *
+   * @param node the import directive to evaluate
+   * @param importElement the [ImportElement] retrieved from the node
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+   */
+  bool _checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
+    LibraryElement importedLibrary = importElement.importedLibrary;
+    if (importedLibrary == null) {
+      return false;
+    }
+    if (importedLibrary.hasLoadLibraryFunction) {
+      _errorReporter.reportErrorForNode(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node, [importedLibrary.name]);
+      return true;
     }
     return false;
   }
@@ -1462,8 +1493,16 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         //
         result = _validate(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         element.evaluationResult = result;
+        return null;
       } else if (result is ErrorResult) {
         _reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+        return null;
+      }
+      DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+      initializer.accept(referenceDetector);
+      if (referenceDetector.result) {
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY, initializer, []);
+        return null;
       }
     }
     return null;
@@ -1537,6 +1576,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           EvaluationResultImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = parameter.element as VariableElementImpl;
           element.evaluationResult = result;
+          DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+          defaultValue.accept(referenceDetector);
+          if (result is ValidResult && referenceDetector.result) {
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY, defaultValue, []);
+          }
         }
       }
     }
@@ -1771,19 +1815,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitBlock(Block node) {
     NodeList<Statement> statements = node.statements;
-    int size = statements.length;
-    for (int i = 0; i < size; i++) {
-      Statement currentStatement = statements[i];
-      _safelyVisit(currentStatement);
-      if (currentStatement is ReturnStatement && i != size - 1) {
-        Statement nextStatement = statements[i + 1];
-        Statement lastStatement = statements[size - 1];
-        int offset = nextStatement.offset;
-        int length = lastStatement.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length, []);
-        return null;
-      }
-    }
+    _checkForDeadStatementsInNodeList(statements);
     return null;
   }
 
@@ -1837,6 +1869,18 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitSwitchCase(SwitchCase node) {
+    _checkForDeadStatementsInNodeList(node.statements);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
+  Object visitSwitchDefault(SwitchDefault node) {
+    _checkForDeadStatementsInNodeList(node.statements);
+    return super.visitSwitchDefault(node);
+  }
+
+  @override
   Object visitTryStatement(TryStatement node) {
     _safelyVisit(node.body);
     _safelyVisit(node.finallyBlock);
@@ -1854,10 +1898,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           if (currentType.isObject) {
             // Found catch clause clause that has Object as an exception type, this is equivalent to
             // having a catch clause that doesn't have an exception type, visit the block, but
-            // generate an error on any following catch clauses (and don't visit them).
+             // generate an error on any following catch clauses (and don't visit them).
             _safelyVisit(catchClause);
             if (i + 1 != numOfCatchClauses) {
-              // this catch clause is not the last in the try statement
+               // this catch clause is not the last in the try statement
               CatchClause nextCatchClause = catchClauses[i + 1];
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
@@ -1879,7 +1923,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         }
         _safelyVisit(catchClause);
       } else {
-        // Found catch clause clause that doesn't have an exception type, visit the block, but
+         // Found catch clause clause that doesn't have an exception type, visit the block, but
         // generate an error on any following catch clauses (and don't visit them).
         _safelyVisit(catchClause);
         if (i + 1 != numOfCatchClauses) {
@@ -1915,6 +1959,30 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Given some [NodeList] of [Statement]s, from either a [Block] or
+   * [SwitchMember], this loops through the list in reverse order searching for statements
+   * after a return, unlabeled break or unlabeled continue statement to mark them as dead code.
+   *
+   * @param statements some ordered list of statements in a [Block] or [SwitchMember]
+   */
+  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+    int size = statements.length;
+    for (int i = 0; i < size; i++) {
+      Statement currentStatement = statements[i];
+      _safelyVisit(currentStatement);
+      bool returnOrBreakingStatement = currentStatement is ReturnStatement || (currentStatement is BreakStatement && currentStatement.label == null) || (currentStatement is ContinueStatement && currentStatement.label == null);
+      if (returnOrBreakingStatement && i != size - 1) {
+        Statement nextStatement = statements[i + 1];
+        Statement lastStatement = statements[size - 1];
+        int offset = nextStatement.offset;
+        int length = lastStatement.end - offset;
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length, []);
+        return;
+      }
+    }
+  }
+
+  /**
    * Given some [Expression], this method returns [ValidResult#RESULT_TRUE] if it is
    * `true`, [ValidResult#RESULT_FALSE] if it is `false`, or `null` if the
    * expression is not a constant boolean value.
@@ -1934,15 +2002,24 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     }
     // Don't consider situations where we could evaluate to a constant boolean expression with the
     // ConstantVisitor
-    //    else {
-    //      EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-    //      if (result == ValidResult.RESULT_TRUE) {
-    //        return ValidResult.RESULT_TRUE;
-    //      } else if (result == ValidResult.RESULT_FALSE) {
-    //        return ValidResult.RESULT_FALSE;
-    //      }
-    //      return null;
-    //    }
+//
+       // else {
+//
+         // EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+//
+         // if (result == ValidResult.RESULT_TRUE) {
+//
+           // return ValidResult.RESULT_TRUE;
+//
+         // } else if (result == ValidResult.RESULT_FALSE) {
+//
+           // return ValidResult.RESULT_FALSE;
+//
+         // }
+//
+         // return null;
+//
+       // }
     return null;
   }
 
@@ -4431,18 +4508,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   TypePromotionManager _promoteManager;
 
   /**
-   * The name of the method that can be implemented by a class to allow its instances to be invoked
-   * as if they were a function.
-   */
-  static String CALL_METHOD_NAME = "call";
-
-  /**
-   * The name of the method that will be invoked if an attempt is made to invoke an undefined method
-   * on an object.
-   */
-  static String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param resolver the resolver driving this participant
@@ -4865,7 +4930,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
-    } else if (_isDeferredPrefix(target) && methodName.name == FunctionElement.LOAD_LIBRARY_NAME) {
+    } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME && _isDeferredPrefix(target)) {
       LibraryElement importedLibrary = _getImportedLibrary(target);
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
@@ -4965,7 +5030,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getStaticType(target);
           }
         }
-        if (targetType != null && targetType.isDartCoreFunction && methodName.name == CALL_METHOD_NAME) {
+        if (targetType != null && targetType.isDartCoreFunction && methodName.name == FunctionElement.CALL_METHOD_NAME) {
           // TODO(brianwilkerson) Can we ever resolve the function being invoked?
           //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
@@ -5025,7 +5090,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     SimpleIdentifier prefix = node.prefix;
     SimpleIdentifier identifier = node.identifier;
     //
-    // First, check to see whether the prefix is really a prefix.
+    // First, check the "lib.loadLibrary" case
+    //
+    if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME && _isDeferredPrefix(prefix)) {
+      LibraryElement importedLibrary = _getImportedLibrary(prefix);
+      identifier.staticElement = importedLibrary.loadLibraryFunction;
+      return null;
+    }
+    //
+    // Check to see whether the prefix is really a prefix.
     //
     Element prefixElement = prefix.staticElement;
     if (prefixElement is PrefixElement) {
@@ -5431,7 +5504,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (getterType != null) {
         DartType getterReturnType = getterType.returnType;
         if (getterReturnType is InterfaceType) {
-          MethodElement callMethod = getterReturnType.lookUpMethod(CALL_METHOD_NAME, _definingLibrary);
+          MethodElement callMethod = getterReturnType.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
           if (callMethod != null) {
             return _resolveArgumentsToFunction(false, argumentList, callMethod);
           }
@@ -5453,7 +5526,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return _resolveArgumentsToParameters(false, argumentList, parameters);
       } else if (type is InterfaceType) {
         // "call" invocation
-        MethodElement callMethod = type.lookUpMethod(CALL_METHOD_NAME, _definingLibrary);
+        MethodElement callMethod = type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
         if (callMethod != null) {
           List<ParameterElement> parameters = callMethod.parameters;
           return _resolveArgumentsToParameters(false, argumentList, parameters);
@@ -5639,7 +5712,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (classElement.isProxy && type.isSubtypeOf(_resolver.typeProvider.functionType)) {
         return true;
       }
-      MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, _definingLibrary);
+      MethodElement methodElement = classElement.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
       return methodElement != null;
     }
     return false;
@@ -6811,24 +6884,6 @@ class EnclosedScope extends Scope {
  */
 class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
-   * Return a display name for the given type that includes the path to the compilation unit in
-   * which the type is defined.
-   *
-   * @param type the type for which an extended display name is to be returned
-   * @return a display name that can help distiguish between two types with the same name
-   */
-  static String getExtendedDisplayName(DartType type) {
-    Element element = type.element;
-    if (element != null) {
-      Source source = element.source;
-      if (source != null) {
-        return "${type.displayName} (${source.fullName})";
-      }
-    }
-    return type.displayName;
-  }
-
-  /**
    * Return the static type of the given expression that is to be used for type analysis.
    *
    * @param expression the expression whose type is to be returned
@@ -7090,6 +7145,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    _checkForInvalidAnnotationFromDeferredLibrary(node);
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitArgumentList(ArgumentList node) {
     _checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
@@ -7104,13 +7165,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.TokenType operatorType = node.operator.type;
+    Expression lhs = node.leftHandSide;
+    Expression rhs = node.rightHandSide;
     if (operatorType == sc.TokenType.EQ) {
-      _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
+      _checkForInvalidAssignment(lhs, rhs);
     } else {
-      _checkForInvalidCompoundAssignment(node);
+      _checkForInvalidCompoundAssignment(node, lhs, rhs);
     }
-    _checkForAssignmentToFinal(node.leftHandSide);
-    _checkForArgumentTypeNotAssignableForArgument(node.rightHandSide);
+    _checkForAssignmentToFinal(lhs);
+    _checkForArgumentTypeNotAssignableForArgument(rhs);
     return super.visitAssignmentExpression(node);
   }
 
@@ -7192,9 +7255,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       // initialize initialFieldElementsMap
-      ClassElement classElement = node.element;
-      if (classElement != null) {
-        List<FieldElement> fieldElements = classElement.fields;
+      if (_enclosingClass != null) {
+        List<FieldElement> fieldElements = _enclosingClass.fields;
         _initialFieldElementsMap = new Map<FieldElement, INIT_STATE>();
         for (FieldElement fieldElement in fieldElements) {
           if (!fieldElement.isSynthetic) {
@@ -7219,12 +7281,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElement outerClassElement = _enclosingClass;
     try {
       _enclosingClass = node.element;
+      ImplementsClause implementsClause = node.implementsClause;
       // Only check for all of the inheritance logic around clauses if there isn't an error code
       // such as "Cannot extend double" already on the class.
-      if (!_checkForExtendsDisallowedClassInTypeAlias(node) && !_checkForImplementsDisallowedClass(node.implementsClause) && !_checkForAllMixinErrorCodes(node.withClause)) {
+      if (!_checkForExtendsDisallowedClassInTypeAlias(node) && !_checkForImplementsDisallowedClass(implementsClause) && !_checkForAllMixinErrorCodes(node.withClause)) {
         _checkForExtendsDeferredClassInTypeAlias(node);
-        _checkForImplementsDeferredClass(node.implementsClause);
-        _checkForRecursiveInterfaceInheritance(node.element);
+        _checkForImplementsDeferredClass(implementsClause);
+        _checkForRecursiveInterfaceInheritance(_enclosingClass);
         _checkForTypeAliasCannotReferenceItself_mixin(node);
         _checkForNonAbstractClassInheritsAbstractMember(node.name);
       }
@@ -7260,20 +7323,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
-      _enclosingFunction = node.element;
+      ConstructorElement constructorElement = node.element;
+      _enclosingFunction = constructorElement;
       _isEnclosingConstructorConst = node.constKeyword != null;
-      _checkForConstConstructorWithNonFinalField(node);
+      _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
-      _checkForConflictingConstructorNameAndMember(node);
+      _checkForConflictingConstructorNameAndMember(node, constructorElement);
       _checkForAllFinalInitializedErrorCodes(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
-      _checkForRecursiveConstructorRedirect(node);
-      if (!_checkForRecursiveFactoryRedirect(node)) {
+      _checkForRecursiveConstructorRedirect(node, constructorElement);
+      if (!_checkForRecursiveFactoryRedirect(node, constructorElement)) {
         _checkForAllRedirectConstructorErrorCodes(node);
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
-      _checkForRedirectToNonConstConstructor(node);
+      _checkForRedirectToNonConstConstructor(node, constructorElement);
       _checkForReturnInGenerativeConstructor(node);
       return super.visitConstructorDeclaration(node);
     } finally {
@@ -7286,8 +7350,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _isInConstructorInitializer = true;
     try {
-      _checkForInvalidField(node);
-      _checkForFieldInitializerNotAssignable(node);
+      SimpleIdentifier fieldName = node.fieldName;
+      Element staticElement = fieldName.staticElement;
+      _checkForInvalidField(node, fieldName, staticElement);
+      _checkForFieldInitializerNotAssignable(node, staticElement);
       return super.visitConstructorFieldInitializer(node);
     } finally {
       _isInConstructorInitializer = false;
@@ -7323,8 +7389,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
-      _checkForAmbiguousExport(node, exportElement);
-      _checkForExportDuplicateLibraryName(node, exportElement);
+      LibraryElement exportedLibrary = exportElement.exportedLibrary;
+      _checkForAmbiguousExport(node, exportElement, exportedLibrary);
+      _checkForExportDuplicateLibraryName(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
     }
     return super.visitExportDirective(node);
@@ -7377,18 +7444,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         methodName = identifier.name;
       }
       _enclosingFunction = node.element;
+      TypeName returnType = node.returnType;
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
         if (node.isSetter) {
           FunctionExpression functionExpression = node.functionExpression;
           if (functionExpression != null) {
-            _checkForWrongNumberOfParametersForSetter(node.name, functionExpression.parameters);
+            _checkForWrongNumberOfParametersForSetter(identifier, functionExpression.parameters);
           }
-          TypeName returnType = node.returnType;
           _checkForNonVoidReturnTypeForSetter(returnType);
         }
       }
-      _checkForTypeAnnotationDeferredClass(node.returnType);
+      _checkForTypeAnnotationDeferredClass(returnType);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -7454,9 +7521,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
-      if (importElement.isDeferred) {
-        _checkForLoadLibraryFunction(node, importElement);
-      }
     }
     return super.visitImportDirective(node);
   }
@@ -7479,11 +7543,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
-          _checkForConstWithUndefinedConstructor(node);
-          _checkForConstWithTypeParametersInCreation(node);
+          _checkForConstWithUndefinedConstructor(node, constructorName, typeName);
+          _checkForConstWithTypeParameters(typeName);
           _checkForConstDeferredClass(node, constructorName, typeName);
         } else {
-          _checkForNewWithUndefinedConstructor(node);
+          _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
         }
       }
       return super.visitInstanceCreationExpression(node);
@@ -7494,17 +7558,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitListLiteral(ListLiteral node) {
-    if (node.constKeyword != null) {
-      TypeArgumentList typeArguments = node.typeArguments;
-      if (typeArguments != null) {
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (node.constKeyword != null) {
         NodeList<TypeName> arguments = typeArguments.arguments;
         if (arguments.length != 0) {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments, CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
         }
       }
+      _checkForExpectedOneListTypeArgument(node, typeArguments);
+      _checkForListElementTypeNotAssignable(node, typeArguments);
     }
-    _checkForExpectedOneListTypeArgument(node);
-    _checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
 
@@ -7518,10 +7582,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments, CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
         }
       }
+      _checkExpectedTwoMapTypeArguments(typeArguments);
+      _checkForMapTypeNotAssignable(node, typeArguments);
     }
-    _checkExpectedTwoMapTypeArguments(typeArguments);
     _checkForNonConstMapAsExpressionStatement(node);
-    _checkForMapTypeNotAssignable(node);
     _checkForConstMapKeyExpressionTypeImplementsEquals(node);
     return super.visitMapLiteral(node);
   }
@@ -7713,6 +7777,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitTypeArgumentList(TypeArgumentList node) {
+    NodeList<TypeName> list = node.arguments;
+    for (TypeName typeName in list) {
+      _checkForTypeAnnotationDeferredClass(typeName);
+    }
+    return super.visitTypeArgumentList(node);
+  }
+
+  @override
   Object visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
     _checkForTypeParameterReferencedByStatic(node);
@@ -7772,15 +7845,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * This verifies if the passed map literal has type arguments then there is exactly two.
    *
-   * @param node the map literal to evaluate
+   * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#EXPECTED_TWO_MAP_TYPE_ARGUMENTS
    */
   bool _checkExpectedTwoMapTypeArguments(TypeArgumentList typeArguments) {
-    // has type arguments
-    if (typeArguments == null) {
-      return false;
-    }
     // check number of type arguments
     int num = typeArguments.arguments.length;
     if (num == 2) {
@@ -8394,12 +8463,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the export directive node to report problem on
    * @param exportElement the [ExportElement] retrieved from the node, if the element in the
    *          node was `null`, then this method is not called
+   * @param exportedLibrary the library element containing the exported element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#AMBIGUOUS_EXPORT
    */
-  bool _checkForAmbiguousExport(ExportDirective node, ExportElement exportElement) {
-    // prepare exported library
-    LibraryElement exportedLibrary = exportElement.exportedLibrary;
+  bool _checkForAmbiguousExport(ExportDirective node, ExportElement exportElement, LibraryElement exportedLibrary) {
     if (exportedLibrary == null) {
       return false;
     }
@@ -8688,14 +8756,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * members of the same class.
    *
    * @param node the constructor declaration to evaluate
+   * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_DEFAULT
    * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_NAME
    * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD
    * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD
    */
-  bool _checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
-    ConstructorElement constructorElement = node.element;
+  bool _checkForConflictingConstructorNameAndMember(ConstructorDeclaration node, ConstructorElement constructorElement) {
     SimpleIdentifier constructorName = node.name;
     String name = constructorElement.name;
     ClassElement classElement = constructorElement.enclosingElement;
@@ -9091,15 +9159,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * instance variable.
    *
    * @param node the constructor declaration to evaluate
+   * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
    */
-  bool _checkForConstConstructorWithNonFinalField(ConstructorDeclaration node) {
+  bool _checkForConstConstructorWithNonFinalField(ConstructorDeclaration node, ConstructorElement constructorElement) {
     if (!_isEnclosingConstructorConst) {
       return false;
     }
     // check if there is non-final field
-    ConstructorElement constructorElement = node.element;
     ClassElement classElement = constructorElement.enclosingElement;
     if (!classElement.hasNonFinalField) {
       return false;
@@ -9114,8 +9182,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * type.
    *
    * @param node the instance creation expression to evaluate
-   * @param constructorName the constructor name from the instance creation expression
-   * @param typeName the type name off of the constructor name
+   * @param constructorName the constructor name, always non-`null`
+   * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_DEFERRED_CLASS
    */
@@ -9264,51 +9332,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * This verifies that the passed 'const' instance creation expression does not reference any type
-   * parameters.
-   *
-   * This method assumes that the instance creation was tested to be 'const' before being called.
-   *
-   * @param node the instance creation expression to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
-   */
-  bool _checkForConstWithTypeParametersInCreation(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.constructorName;
-    if (constructorName == null) {
-      return false;
-    }
-    TypeName typeName = constructorName.type;
-    return _checkForConstWithTypeParameters(typeName);
-  }
-
-  /**
    * This verifies that if the passed 'const' instance creation expression is being invoked on the
    * resolved constructor.
    *
    * This method assumes that the instance creation was tested to be 'const' before being called.
    *
    * @param node the instance creation expression to evaluate
+   * @param constructorName the constructor name, always non-`null`
+   * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR
    * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
    */
-  bool _checkForConstWithUndefinedConstructor(InstanceCreationExpression node) {
+  bool _checkForConstWithUndefinedConstructor(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
     // OK if resolved
     if (node.staticElement != null) {
       return false;
     }
-    // prepare constructor name
-    ConstructorName constructorName = node.constructorName;
-    if (constructorName == null) {
-      return false;
-    }
-    // prepare class name
-    TypeName type = constructorName.type;
-    if (type == null) {
-      return false;
-    }
-    Identifier className = type.name;
+    Identifier className = typeName.name;
     // report as named or default constructor absence
     SimpleIdentifier name = constructorName.name;
     if (name != null) {
@@ -9455,8 +9496,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (inheritedMember.isStatic) {
       return false;
     }
+    // determine the display name, use the extended display name if the enclosing class of the
+    // inherited member is in a different source
+    String displayName;
+    Element enclosingElement = inheritedMember.enclosingElement;
+    if (enclosingElement.source == _enclosingClass.source) {
+      displayName = enclosingElement.displayName;
+    } else {
+      displayName = enclosingElement.extendedDisplayName;
+    }
     // report problem
-    _errorReporter.reportErrorForOffset(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE, staticMember.nameOffset, name.length, [name, inheritedMember.enclosingElement.displayName]);
+    _errorReporter.reportErrorForOffset(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE, staticMember.nameOffset, name.length, [name, displayName]);
     return true;
   }
 
@@ -9464,15 +9514,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * This verifies if the passed list literal has type arguments then there is exactly one.
    *
    * @param node the list literal to evaluate
+   * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#EXPECTED_ONE_LIST_TYPE_ARGUMENTS
    */
-  bool _checkForExpectedOneListTypeArgument(ListLiteral node) {
-    // prepare type arguments
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments == null) {
-      return false;
-    }
+  bool _checkForExpectedOneListTypeArgument(ListLiteral node, TypeArgumentList typeArguments) {
     // check number of type arguments
     int num = typeArguments.arguments.length;
     if (num == 1) {
@@ -9489,28 +9535,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the export directive to evaluate
    * @param exportElement the [ExportElement] retrieved from the node, if the element in the
    *          node was `null`, then this method is not called
+   * @param exportedLibrary the library element containing the exported element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#EXPORT_DUPLICATED_LIBRARY_NAME
    */
-  bool _checkForExportDuplicateLibraryName(ExportDirective node, ExportElement exportElement) {
-    // prepare exported library
-    LibraryElement nodeLibrary = exportElement.exportedLibrary;
-    if (nodeLibrary == null) {
+  bool _checkForExportDuplicateLibraryName(ExportDirective node, ExportElement exportElement, LibraryElement exportedLibrary) {
+    if (exportedLibrary == null) {
       return false;
     }
-    String name = nodeLibrary.name;
+    String name = exportedLibrary.name;
     // check if there is other exported library with the same name
     LibraryElement prevLibrary = _nameToExportElement[name];
     if (prevLibrary != null) {
-      if (prevLibrary != nodeLibrary) {
+      if (prevLibrary != exportedLibrary) {
         _errorReporter.reportErrorForNode(StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME, node, [
             prevLibrary.definingCompilationUnit.displayName,
-            nodeLibrary.definingCompilationUnit.displayName,
+            exportedLibrary.definingCompilationUnit.displayName,
             name]);
         return true;
       }
     } else {
-      _nameToExportElement[name] = nodeLibrary;
+      _nameToExportElement[name] = exportedLibrary;
     }
     // OK
     return false;
@@ -9676,13 +9721,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * initializer expression types.
    *
    * @param node the constructor field initializer to test
+   * @param staticElement the static element from the name in the
+   *          [ConstructorFieldInitializer]
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
    * @see StaticWarningCode#FIELD_INITIALIZER_NOT_ASSIGNABLE
    */
-  bool _checkForFieldInitializerNotAssignable(ConstructorFieldInitializer node) {
+  bool _checkForFieldInitializerNotAssignable(ConstructorFieldInitializer node, Element staticElement) {
     // prepare field element
-    Element staticElement = node.fieldName.staticElement;
     if (staticElement is! FieldElement) {
       return false;
     }
@@ -10076,6 +10122,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * This verifies that the passed [Annotation] isn't defined in a deferred library.
+   *
+   * @param node the [Annotation]
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY
+   */
+  bool _checkForInvalidAnnotationFromDeferredLibrary(Annotation node) {
+    Identifier nameIdentifier = node.name;
+    if (nameIdentifier is PrefixedIdentifier) {
+      if (nameIdentifier.isDeferred) {
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, node.name, []);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * This verifies that the passed left hand side and right hand side represent a valid assignment.
    *
    * @param lhs the left hand side expression
@@ -10087,15 +10151,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (lhs == null || rhs == null) {
       return false;
     }
-    VariableElement leftElement = getVariableElement(lhs);
-    DartType leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.type;
+    VariableElement leftVariableElement = getVariableElement(lhs);
+    DartType leftType = (leftVariableElement == null) ? getStaticType(lhs) : leftVariableElement.type;
     DartType staticRightType = getStaticType(rhs);
     if (!staticRightType.isAssignableTo(leftType)) {
       String leftName = leftType.displayName;
       String rightName = staticRightType.displayName;
       if (leftName == rightName) {
-        leftName = getExtendedDisplayName(leftType);
-        rightName = getExtendedDisplayName(staticRightType);
+        Element leftElement = leftType.element;
+        Element rightElement = staticRightType.element;
+        if (leftElement != null && rightElement != null) {
+          leftName = leftElement.extendedDisplayName;
+          rightName = rightElement.extendedDisplayName;
+        }
       }
       _errorReporter.reportErrorForNode(StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, [rightName, leftName]);
       return true;
@@ -10108,16 +10176,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * assignment is valid.
    *
    * @param node the assignment expression being tested
+   * @param lhs the left hand side expression
+   * @param rhs the right hand side expression
    * @return `true` if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
    */
-  bool _checkForInvalidCompoundAssignment(AssignmentExpression node) {
-    Expression lhs = node.leftHandSide;
+  bool _checkForInvalidCompoundAssignment(AssignmentExpression node, Expression lhs, Expression rhs) {
     if (lhs == null) {
       return false;
     }
-    VariableElement leftElement = getVariableElement(lhs);
-    DartType leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.type;
+    VariableElement leftVariableElement = getVariableElement(lhs);
+    DartType leftType = (leftVariableElement == null) ? getStaticType(lhs) : leftVariableElement.type;
     MethodElement invokedMethod = node.staticElement;
     if (invokedMethod == null) {
       return false;
@@ -10130,10 +10199,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String leftName = leftType.displayName;
       String rightName = rightType.displayName;
       if (leftName == rightName) {
-        leftName = getExtendedDisplayName(leftType);
-        rightName = getExtendedDisplayName(rightType);
+        Element leftElement = leftType.element;
+        Element rightElement = rightType.element;
+        if (leftElement != null && rightElement != null) {
+          leftName = leftElement.extendedDisplayName;
+          rightName = rightElement.extendedDisplayName;
+        }
       }
-      _errorReporter.reportErrorForNode(StaticTypeWarningCode.INVALID_ASSIGNMENT, node.rightHandSide, [rightName, leftName]);
+      _errorReporter.reportErrorForNode(StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, [rightName, leftName]);
       return true;
     }
     return false;
@@ -10143,10 +10216,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check the given initializer to ensure that the field being initialized is a valid field.
    *
    * @param node the field initializer being checked
+   * @param fieldName the field name from the [ConstructorFieldInitializer]
+   * @param staticElement the static element from the name in the
+   *          [ConstructorFieldInitializer]
    */
-  void _checkForInvalidField(ConstructorFieldInitializer node) {
-    SimpleIdentifier fieldName = node.fieldName;
-    Element staticElement = fieldName.staticElement;
+  void _checkForInvalidField(ConstructorFieldInitializer node, SimpleIdentifier fieldName, Element staticElement) {
     if (staticElement is FieldElement) {
       FieldElement fieldElement = staticElement;
       if (fieldElement.isSynthetic) {
@@ -10201,21 +10275,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * type.
    *
    * @param node the list literal to evaluate
+   * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
    * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
    */
-  bool _checkForListElementTypeNotAssignable(ListLiteral node) {
-    // Prepare list element type.
-    TypeArgumentList typeArgumentList = node.typeArguments;
-    if (typeArgumentList == null) {
+  bool _checkForListElementTypeNotAssignable(ListLiteral node, TypeArgumentList typeArguments) {
+    NodeList<TypeName> typeNames = typeArguments.arguments;
+    if (typeNames.length < 1) {
       return false;
     }
-    NodeList<TypeName> typeArguments = typeArgumentList.arguments;
-    if (typeArguments.length < 1) {
-      return false;
-    }
-    DartType listElementType = typeArguments[0].type;
+    DartType listElementType = typeNames[0].type;
     // Prepare problem to report.
     ErrorCode errorCode;
     if (node.constKeyword != null) {
@@ -10232,48 +10302,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check that the imported library does not define a loadLibrary function.
-   *
-   * @param node the import directive to evaluate
-   * @param importElement the [ImportElement] retrieved from the node
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
-   */
-  bool _checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
-    LibraryElement importedLibrary = importElement.importedLibrary;
-    if (importedLibrary == null) {
-      return false;
-    }
-    if (importedLibrary.hasLoadLibraryFunction) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node, [importedLibrary.name]);
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * This verifies that the key/value of entries of the given [MapLiteral] are subtypes of the
    * key/value types specified in the type arguments.
    *
    * @param node the map literal to evaluate
+   * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
    * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
    * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
    * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
    */
-  bool _checkForMapTypeNotAssignable(MapLiteral node) {
+  bool _checkForMapTypeNotAssignable(MapLiteral node, TypeArgumentList typeArguments) {
     // Prepare maps key/value types.
-    TypeArgumentList typeArgumentList = node.typeArguments;
-    if (typeArgumentList == null) {
+    NodeList<TypeName> typeNames = typeArguments.arguments;
+    if (typeNames.length < 2) {
       return false;
     }
-    NodeList<TypeName> typeArguments = typeArgumentList.arguments;
-    if (typeArguments.length < 2) {
-      return false;
-    }
-    DartType keyType = typeArguments[0].type;
-    DartType valueType = typeArguments[1].type;
+    DartType keyType = typeNames[0].type;
+    DartType valueType = typeNames[1].type;
     // Prepare problem to report.
     ErrorCode keyErrorCode;
     ErrorCode valueErrorCode;
@@ -10524,25 +10571,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * This method assumes that the instance creation was tested to be 'new' before being called.
    *
    * @param node the instance creation expression to evaluate
+   * @param constructorName the constructor name, always non-`null`
+   * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
    * @see StaticWarningCode#NEW_WITH_UNDEFINED_CONSTRUCTOR
    */
-  bool _checkForNewWithUndefinedConstructor(InstanceCreationExpression node) {
+  bool _checkForNewWithUndefinedConstructor(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
     // OK if resolved
     if (node.staticElement != null) {
       return false;
     }
-    // prepare constructor name
-    ConstructorName constructorName = node.constructorName;
-    if (constructorName == null) {
-      return false;
-    }
     // prepare class name
-    TypeName type = constructorName.type;
-    if (type == null) {
-      return false;
-    }
-    Identifier className = type.name;
+    Identifier className = typeName.name;
     // report as named or default constructor absence
     SimpleIdentifier name = constructorName.name;
     if (name != null) {
@@ -10616,7 +10656,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // From Spec:  It is a static warning if a concrete class does not have an implementation for
       // a method in any of its superinterfaces unless it declares its own noSuchMethod
       // method (7.10).
-      if (methodName == ElementResolver.NO_SUCH_METHOD_METHOD_NAME) {
+      if (methodName == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
         return false;
       }
     }
@@ -10917,10 +10957,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * references itself directly or indirectly.
    *
    * @param node the constructor declaration to evaluate
+   * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#RECURSIVE_CONSTRUCTOR_REDIRECT
    */
-  bool _checkForRecursiveConstructorRedirect(ConstructorDeclaration node) {
+  bool _checkForRecursiveConstructorRedirect(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // we check generative constructor here
     if (node.factoryKeyword != null) {
       return false;
@@ -10929,8 +10970,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (ConstructorInitializer initializer in node.initializers) {
       if (initializer is RedirectingConstructorInvocation) {
         // OK if no cycle
-        ConstructorElement element = node.element;
-        if (!_hasRedirectingFactoryConstructorCycle(element)) {
+        if (!_hasRedirectingFactoryConstructorCycle(constructorElement)) {
           return false;
         }
         // report error
@@ -10947,18 +10987,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * itself directly or indirectly.
    *
    * @param node the constructor declaration to evaluate
+   * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#RECURSIVE_FACTORY_REDIRECT
    */
-  bool _checkForRecursiveFactoryRedirect(ConstructorDeclaration node) {
+  bool _checkForRecursiveFactoryRedirect(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // prepare redirected constructor
     ConstructorName redirectedConstructorNode = node.redirectedConstructor;
     if (redirectedConstructorNode == null) {
       return false;
     }
     // OK if no cycle
-    ConstructorElement element = node.element;
-    if (!_hasRedirectingFactoryConstructorCycle(element)) {
+    if (!_hasRedirectingFactoryConstructorCycle(constructorElement)) {
       return false;
     }
     // report error
@@ -11040,26 +11080,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * itself directly or indirectly.
    *
    * @param node the constructor declaration to evaluate
+   * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#REDIRECT_TO_NON_CONST_CONSTRUCTOR
    */
-  bool _checkForRedirectToNonConstConstructor(ConstructorDeclaration node) {
+  bool _checkForRedirectToNonConstConstructor(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // prepare redirected constructor
     ConstructorName redirectedConstructorNode = node.redirectedConstructor;
     if (redirectedConstructorNode == null) {
       return false;
     }
     // prepare element
-    ConstructorElement element = node.element;
-    if (element == null) {
+    if (constructorElement == null) {
       return false;
     }
     // OK, it is not 'const'
-    if (!element.isConst) {
+    if (!constructorElement.isConst) {
       return false;
     }
     // prepare redirected constructor
-    ConstructorElement redirectedConstructor = element.redirectedConstructor;
+    ConstructorElement redirectedConstructor = constructorElement.redirectedConstructor;
     if (redirectedConstructor == null) {
       return false;
     }
@@ -11292,7 +11332,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType argType = argTypeName.type;
       DartType boundType = boundingElts[i].bound;
       if (argType != null && boundType != null) {
-        boundType = boundType.substitute2(typeArguments, typeParameters);
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          boundType = boundType.substitute2(typeArguments, typeParameters);
+        }
         if (!argType.isSubtypeOf(boundType)) {
           ErrorCode errorCode;
           if (_isInConstInstanceCreation) {
@@ -11573,7 +11615,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // If there is a noSuchMethod method, then don't report the warning, see dartbug.com/16078
-    if (classElement.getMethod(ElementResolver.NO_SUCH_METHOD_METHOD_NAME) != null) {
+    if (classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME) != null) {
       return false;
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(classElement, "call");
@@ -11754,7 +11796,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (type is FunctionType || type.isDartCoreFunction) {
       return true;
     } else if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod(ElementResolver.CALL_METHOD_NAME, _currentLibrary);
+      MethodElement callMethod = type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
     }
     return false;
@@ -19862,16 +19904,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * The Dart Language Specification, 12.33: <blockquote>The static type of an argument definition
-   * test is `bool`.</blockquote>
-   */
-  @override
-  Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    _recordStaticType(node, _typeProvider.boolType);
-    return null;
-  }
-
-  /**
    * The Dart Language Specification, 12.32: <blockquote>... the cast expression <i>e as T</i> ...
    *
    * It is a static warning if <i>T</i> does not denote a type available in the current lexical
@@ -20962,7 +20994,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (returnType.isDartCoreFunction) {
           return _dynamicType;
         } else if (returnType is InterfaceType) {
-          MethodElement callMethod = returnType.lookUpMethod(ElementResolver.CALL_METHOD_NAME, _resolver.definingLibrary);
+          MethodElement callMethod = returnType.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
           if (callMethod != null) {
             return callMethod.type.returnType;
           }

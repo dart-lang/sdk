@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:http_parser/http_parser.dart';
 
 import 'message.dart';
+import 'util.dart';
 
 /// Represents an HTTP request to be processed by a Shelf application.
 class Request extends Message {
@@ -81,8 +82,7 @@ class Request extends Message {
             headers: headers, context: context) {
     if (method.isEmpty) throw new ArgumentError('method cannot be empty.');
 
-    // TODO(kevmoo) use isAbsolute property on Uri once Issue 18053 is fixed
-    if (requestedUri.scheme.isEmpty) {
+    if (!requestedUri.isAbsolute) {
       throw new ArgumentError('requstedUri must be an absolute URI.');
     }
 
@@ -107,6 +107,27 @@ class Request extends Message {
       throw new ArgumentError('scriptName and url cannot both be empty.');
     }
   }
+
+  /// Creates a new [Request] by copying existing values and applying specified
+  /// changes.
+  ///
+  /// New key-value pairs in [context] and [headers] will be added to the copied
+  /// [Request].
+  ///
+  /// If [context] or [headers] includes a key that already exists, the
+  /// key-value pair will replace the corresponding entry in the copied
+  /// [Request].
+  ///
+  /// All other context and header values from the [Request] will be included
+  /// in the copied [Request] unchanged.
+  Request change({Map<String, String> headers, Map<String, Object> context}) {
+    headers = updateMap(this.headers, headers);
+    context = updateMap(this.context, context);
+
+    return new Request(this.method, this.requestedUri,
+        protocolVersion: this.protocolVersion, headers: headers, url: this.url,
+        scriptName: this.scriptName, body: this.read(), context: context);
+  }
 }
 
 /// Computes `url` from the provided [Request] constructor arguments.
@@ -123,7 +144,6 @@ Uri _computeUrl(Uri requestedUri, Uri url, String scriptName) {
   }
 
   if (url != null && scriptName != null) {
-    // TODO(kevmoo) use isAbsolute property on Uri once Issue 18053 is fixed
     if (url.scheme.isNotEmpty) throw new ArgumentError('url must be relative.');
     return url;
   }

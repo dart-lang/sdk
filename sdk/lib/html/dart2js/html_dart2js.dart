@@ -7752,10 +7752,14 @@ class Document extends Node  native "Document"
   ElementList queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
-  /// Checks if [register] is supported on the current platform.
-  bool get supportsRegister {
+  /// Checks if [registerElement] is supported on the current platform.
+  bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
   }
+
+  /// *Deprecated*: use [supportsRegisterElement] instead.
+  @deprecated
+  bool get supportsRegister => supportsRegisterElement;
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
@@ -9317,7 +9321,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *          // Perform any element initialization.
    *       }
    *     }
-   *     document.register('x-custom', CustomElement);
+   *     document.registerElement('x-custom', CustomElement);
    */
   Element.created() : super._created() {
     // Validate that this is a custom element & perform any additional
@@ -9694,15 +9698,39 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   /**
    * Called by the DOM when this element has been inserted into the live
    * document.
+   *
+   * More information can be found in the
+   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-attached-callback)
+   * draft specification.
    */
   @Experimental()
-  void enteredView() {}
+  void attached() {
+    // For the deprecation period, call the old callback.
+    enteredView();
+  }
 
   /**
    * Called by the DOM when this element has been removed from the live
    * document.
+   *
+   * More information can be found in the
+   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-detached-callback)
+   * draft specification.
    */
   @Experimental()
+  void detached() {
+    // For the deprecation period, call the old callback.
+    leftView();
+  }
+
+  /** *Deprecated*: override [attached] instead. */
+  @Experimental()
+  @deprecated
+  void enteredView() {}
+
+  /** *Deprecated*: override [detached] instead. */
+  @Experimental()
+  @deprecated
   void leftView() {}
 
   /**
@@ -14328,7 +14356,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
    *     }
    *
    *     main() {
-   *       document.register('x-foo', FooElement);
+   *       document.registerElement('x-foo', FooElement);
    *       var myFoo = new Element.tag('x-foo');
    *       // prints 'FooElement created!' to the console.
    *     }
@@ -14345,7 +14373,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
    *     }
    *
    *     main() {
-   *       document.register('x-bar', BarElement);
+   *       document.registerElement('x-bar', BarElement);
    *       var myBar = new Element.tag('input', 'x-bar');
    *       // prints 'BarElement created!' to the console.
    *     }
@@ -14354,9 +14382,17 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * `<input is="x-bar"></input>`
    *
    */
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void registerElement(String tag, Type customElementClass,
+      {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
+  }
+
+  /** *Deprecated*: use [registerElement] instead. */
+  @deprecated
+  @Experimental()
+  void register(String tag, Type customElementClass, {String extendsTag}) {
+    return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
   /**
@@ -26406,11 +26442,6 @@ class Url extends Interceptor implements UrlUtils native "URL" {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('createObjectURL')
-  @DomName('URL.createObjectURL')
-  @DocsEditable()
-  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native;
-
   // From URLUtils
 
   @DomName('URL.hash')
@@ -35214,12 +35245,12 @@ _callConstructor(constructor, interceptor) {
   };
 }
 
-_callEnteredView(receiver) {
-  return receiver.enteredView();
+_callAttached(receiver) {
+  return receiver.attached();
 }
 
-_callLeftView(receiver) {
-  return receiver.leftView();
+_callDetached(receiver) {
+  return receiver.detached();
 }
  _callAttributeChanged(receiver, name, oldValue, newValue) {
   return receiver.attributeChanged(name, oldValue, newValue);
@@ -35302,9 +35333,9 @@ void _registerCustomElement(context, document, String tag, Type type,
       JS('=Object', '{value: #}',
           _makeCallbackMethod(_callConstructor(constructor, interceptor))));
   JS('void', '#.attachedCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callAttached)));
   JS('void', '#.detachedCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callDetached)));
   JS('void', '#.attributeChangedCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod3(_callAttributeChanged)));
 

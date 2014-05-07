@@ -53,8 +53,8 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         introFileName: introFileName, out: out,
         excludeLibraries: excludeLibraries,
         includeDependentPackages: includeDependentPackages,
-        startPage: startPage, pubScript: pubScript, dartBinary: dartBinary,
-        indentJSON: indentJSON);
+        startPage: startPage, pubScriptValue: pubScript,
+        dartBinaryValue: dartBinary, indentJSON: indentJSON);
     viewer.addBackViewerCode();
     if (compile || serve) {
       result.then((success) {
@@ -64,6 +64,8 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       });
     }
   } else if (compile || serve) {
+    gen.pubScript = pubScript;
+    gen.dartBinary = dartBinary;
     viewer.createViewer(serve);
   }
   return result;

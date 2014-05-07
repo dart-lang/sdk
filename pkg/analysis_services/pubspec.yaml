@@ -6,6 +6,6 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: 0.14.2
+  analyzer: 0.15.1
 dev_dependencies:
   unittest: '>=0.10.0 <0.12.0'

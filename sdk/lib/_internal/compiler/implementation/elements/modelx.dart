@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import 'elements.dart';
+import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -110,59 +111,17 @@ abstract class ElementX implements Element {
   /** See [WarnOnUseElement] for documentation. */
   bool isWarnOnUse() => false;
 
-  /**
-   * Is [:true:] if this element has a corresponding patch.
-   *
-   * If [:true:] this element has a non-null [patch] field.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
   bool get isPatched => false;
 
-  /**
-   * Is [:true:] if this element is a patch.
-   *
-   * If [:true:] this element has a non-null [origin] field.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
   bool get isPatch => false;
 
-  /**
-   * Is [:true:] if this element defines the implementation for the entity of
-   * this element.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  bool get isImplementation => !isPatched;
+  bool get isImplementation => true;
 
-  /**
-   * Is [:true:] if this element introduces the entity of this element.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  bool get isDeclaration => !isPatch;
+  bool get isDeclaration => true;
 
-  bool get isSynthesized => false;
+  Element get implementation => this;
 
-  bool get isForwardingConstructor => false;
-
-  bool get isMixinApplication => false;
-
-  /**
-   * Returns the element which defines the implementation for the entity of this
-   * element.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  Element get implementation => isPatched ? patch : this;
-
-  /**
-   * Returns the element which introduces the entity of this element.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  Element get declaration => isPatch ? origin : this;
+  Element get declaration => this;
 
   Element get patch {
     throw new UnsupportedError('patch is not supported on $this');
@@ -171,6 +130,12 @@ abstract class ElementX implements Element {
   Element get origin {
     throw new UnsupportedError('origin is not supported on $this');
   }
+
+  bool get isSynthesized => false;
+
+  bool get isForwardingConstructor => false;
+
+  bool get isMixinApplication => false;
 
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
@@ -350,15 +315,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get isRedirectingFactory => unsupported();
 
-  setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();
-  requiredParameterCount(compiler) => unsupported();
-  optionalParameterCount(compiler) => unsupported();
-  parameterCount(compiler) => unsupported();
 
   // TODO(kasperl): These seem unnecessary.
-  set patch(value) => unsupported();
-  set origin(value) => unsupported();
   set defaultImplementation(value) => unsupported();
 
   get redirectionTarget => this;
@@ -769,7 +728,8 @@ class ImportScope {
   Element operator [](String name) => importScope[name];
 }
 
-class LibraryElementX extends ElementX with AnalyzableElement
+class LibraryElementX
+    extends ElementX with AnalyzableElement, PatchMixin<LibraryElementX>
     implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
@@ -781,20 +741,6 @@ class LibraryElementX extends ElementX with AnalyzableElement
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
   final ImportScope importScope = new ImportScope();
-
-  /**
-   * If this library is patched, [patch] points to the patch library.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  LibraryElementX patch = null;
-
-  /**
-   * If this is a patch library, [origin] points to the origin library.
-   *
-   * See [:patch_parser.dart:] for a description of the terminology.
-   */
-  final LibraryElementX origin;
 
   /// A mapping from an imported element to the "import" tag.
   final Importers importers = new Importers();
@@ -812,21 +758,16 @@ class LibraryElementX extends ElementX with AnalyzableElement
   final Map<LibraryDependency, LibraryElement> tagMapping =
       new Map<LibraryDependency, LibraryElement>();
 
-  LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
+  LibraryElementX(Script script,
+                  [Uri canonicalUri, LibraryElementX origin])
     : this.canonicalUri =
           ((canonicalUri == null) ? script.readableUri : canonicalUri),
       super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
-    if (isPatch) {
-      origin.patch = this;
+    if (origin != null) {
+      origin.applyPatch(this);
     }
   }
-
-  bool get isPatched => patch != null;
-  bool get isPatch => origin != null;
-
-  LibraryElement get declaration => super.declaration;
-  LibraryElement get implementation => super.implementation;
 
   Link<MetadataAnnotation> get metadata {
     return (libraryTag == null) ? super.metadata : libraryTag.metadata;
@@ -858,7 +799,8 @@ class LibraryElementX extends ElementX with AnalyzableElement
    * Adds [element] to the import scope of this library.
    *
    * If an element by the same name is already in the imported scope, an
-   * [ErroneousElement] will be put in the imported scope, allowing for detection of ambiguous uses of imported names.
+   * [ErroneousElement] will be put in the imported scope, allowing for
+   * detection of ambiguous uses of imported names.
    */
   void addImport(Element element, Import import, DiagnosticListener listener) {
     importScope.addImport(this, element, import, listener);
@@ -1034,6 +976,10 @@ class LibraryElementX extends ElementX with AnalyzableElement
   }
 
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+
+  // TODO(johnniwinther): Remove these when issue 18630 is fixed.
+  LibraryElementX get patch => super.patch;
+  LibraryElementX get origin => super.origin;
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
@@ -1284,7 +1230,8 @@ class FieldParameterElementX extends ParameterElementX
 /// patched with the corresponding parameter of the patch method. This is done
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
-class ParameterElementX extends ElementX implements ParameterElement {
+class ParameterElementX extends ElementX with PatchMixin<ParameterElement>
+    implements ParameterElement {
   final VariableDefinitions definitions;
   final Identifier identifier;
   final Expression initializer;
@@ -1334,12 +1281,6 @@ class ParameterElementX extends ElementX implements ParameterElement {
   FunctionType get functionType => type;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
-
-  ParameterElementX patch = null;
-  ParameterElementX origin = null;
-
-  bool get isPatch => origin != null;
-  bool get isPatched => patch != null;
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1486,7 +1427,8 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-class FunctionElementX extends ElementX with AnalyzableElement
+class FunctionElementX
+    extends ElementX with AnalyzableElement, PatchMixin<FunctionElement>
     implements FunctionElement {
   FunctionExpression cachedNode;
   DartType typeCache;
@@ -1495,14 +1437,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
   FunctionSignature functionSignatureCache;
-
-  /**
-   * A function declaration that should be parsed instead of the current one.
-   * The patch should be parsed as if it was in the current scope. Its
-   * signature must match this function's signature.
-   */
-  FunctionElement patch = null;
-  FunctionElement origin = null;
 
   final bool _hasNoBody;
 
@@ -1545,9 +1479,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
     defaultImplementation = this;
   }
 
-  bool get isPatched => patch != null;
-  bool get isPatch => origin != null;
-
   bool get isRedirectingFactory => defaultImplementation != this;
 
   /// This field is set by the post process queue when checking for cycles.
@@ -1573,18 +1504,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
         message: 'Redirection target type has not yet been computed for '
                  '$this.'));
     return redirectionTargetType.substByContext(newType);
-  }
-
-  /**
-   * Applies a patch function to this function. The patch function's body
-   * is used as replacement when parsing this function's body.
-   * This method must not be called after the function has been parsed,
-   * and it must be called at most once.
-   */
-  void setPatch(FunctionElement patchElement) {
-    // Sanity checks. The caller must check these things before calling.
-    assert(patch == null);
-    this.patch = patchElement;
   }
 
   bool isInstanceMember() {
@@ -1911,6 +1830,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 abstract class BaseClassElementX extends ElementX
     with AnalyzableElement,
          TypeDeclarationElementX<InterfaceType>,
+         PatchMixin<ClassElement>,
          ClassMemberMixin
     implements ClassElement {
   final int id;
@@ -1943,10 +1863,6 @@ abstract class BaseClassElementX extends ElementX
         super(name, ElementKind.CLASS, enclosing);
 
   int get hashCode => id;
-  ClassElement get patch => super.patch;
-  ClassElement get origin => super.origin;
-  ClassElement get declaration => super.declaration;
-  ClassElement get implementation => super.implementation;
 
   bool get hasBackendMembers => !backendMembers.isEmpty;
 
@@ -2297,13 +2213,13 @@ abstract class BaseClassElementX extends ElementX
         lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
     return member != null && member.isMethod ? member.type : null;
   }
+
+  // TODO(johnniwinther): Remove these when issue 18630 is fixed.
+  ClassElement get patch => super.patch;
+  ClassElement get origin => super.origin;
 }
 
 abstract class ClassElementX extends BaseClassElementX {
-  // Lazily applied patch of class members.
-  ClassElement patch = null;
-  ClassElement origin = null;
-
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
 
@@ -2313,8 +2229,6 @@ abstract class ClassElementX extends BaseClassElementX {
   ClassNode parseNode(Compiler compiler);
 
   bool get isMixinApplication => false;
-  bool get isPatched => patch != null;
-  bool get isPatch => origin != null;
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -2393,15 +2307,8 @@ class MixinApplicationElementX extends BaseClassElementX
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 
-  unsupported(message) {
-    throw new UnsupportedError('$message is not supported on $this');
-  }
-
   get patch => null;
   get origin => null;
-
-  set patch(value) => unsupported('set patch');
-  set origin(value) => unsupported('set origin');
 
   Token position() => node.getBeginToken();
 
@@ -2626,3 +2533,34 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
   Token get endToken => metadata.getEndToken();
 }
 
+/// Mixin for the implementation of patched elements.
+///
+/// See [:patch_parser.dart:] for a description of the terminology.
+abstract class PatchMixin<E extends Element> implements Element {
+  // TODO(johnniwinther): Use type variables when issue 18630 is fixed.
+  Element/*E*/ patch = null;
+  Element/*E*/ origin = null;
+
+  bool get isPatch => origin != null;
+  bool get isPatched => patch != null;
+
+  bool get isImplementation => !isPatched;
+  bool get isDeclaration => !isPatch;
+
+  Element/*E*/ get implementation => isPatched ? patch : this;
+  Element/*E*/ get declaration => isPatch ? origin : this;
+
+  /// Applies a patch to this element. This method must be called at most once.
+  void applyPatch(PatchMixin<E> patch) {
+    assert(invariant(this, this.patch == null,
+                     message: "Element is patched twice."));
+    assert(invariant(this, this.origin == null,
+                     message: "Origin element is a patch."));
+    assert(invariant(patch, patch.origin == null,
+                     message: "Element is patched twice."));
+    assert(invariant(patch, patch.patch == null,
+                     message: "Patch element is patched."));
+    this.patch = patch;
+    patch.origin = this;
+  }
+}

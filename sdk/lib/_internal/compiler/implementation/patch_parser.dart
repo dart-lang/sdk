@@ -123,6 +123,7 @@ import "elements/elements.dart";
 import "elements/modelx.dart"
     show LibraryElementX,
          MetadataAnnotationX,
+         ClassElementX,
          FunctionElementX;
 import 'util/util.dart';
 
@@ -441,20 +442,18 @@ void tryPatchClass(leg.DiagnosticListener listener,
 }
 
 void patchClass(leg.DiagnosticListener listener,
-                 ClassElement origin,
-                 ClassElement patch) {
+                ClassElementX origin,
+                ClassElementX patch) {
   if (origin.isPatched) {
     listener.internalError(origin,
         "Patching the same class more than once.");
   }
-  // TODO(johnniwinther): Change to functions on the ElementX class.
-  origin.patch = patch;
-  patch.origin = origin;
+  origin.applyPatch(patch);
 }
 
 void tryPatchGetter(leg.DiagnosticListener listener,
-                     Element origin,
-                     FunctionElement patch) {
+                    Element origin,
+                    FunctionElement patch) {
   if (!origin.isAbstractField()) {
     listener.reportError(
         origin, leg.MessageKind.PATCH_NON_GETTER, {'name': origin.name});
@@ -515,8 +514,8 @@ void tryPatchConstructor(leg.DiagnosticListener listener,
 }
 
 void tryPatchFunction(leg.DiagnosticListener listener,
-                       Element origin,
-                       FunctionElement patch) {
+                      Element origin,
+                      FunctionElement patch) {
   if (!origin.isFunction()) {
     listener.reportError(
         origin,
@@ -530,8 +529,8 @@ void tryPatchFunction(leg.DiagnosticListener listener,
 }
 
 void patchFunction(leg.DiagnosticListener listener,
-                    FunctionElementX origin,
-                    FunctionElementX patch) {
+                   FunctionElementX origin,
+                   FunctionElementX patch) {
   if (!origin.modifiers.isExternal()) {
     listener.reportError(origin, leg.MessageKind.PATCH_NON_EXTERNAL);
     listener.reportInfo(
@@ -547,10 +546,7 @@ void patchFunction(leg.DiagnosticListener listener,
     listener.internalError(origin,
         "Trying to patch an already compiled function.");
   }
-  // Don't just assign the patch field. This also updates the cachedNode.
-  // TODO(johnniwinther): Change to functions on the ElementX class.
-  origin.setPatch(patch);
-  patch.origin = origin;
+  origin.applyPatch(patch);
 }
 
 // TODO(johnniwinther): Add unittest when patch is (real) metadata.

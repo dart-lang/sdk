@@ -12,6 +12,8 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('nav-bar')
 class NavBarElement extends ObservatoryElement {
+  @published bool pad = true;
+
   NavBarElement.created() : super.created();
 }
 
@@ -67,12 +69,27 @@ class IsolateNavMenuElement extends ObservatoryElement {
   @published bool last = false;
   @published Isolate isolate;
 
+  void isolateChanged(oldValue) {
+    notifyPropertyChange(#hashLinkWorkaround, 0, 1);
+  }
+
+  // TODO(turnidge): Figure out why polymer needs this function.
+  @reflectable
+  String get hashLinkWorkaround {
+    if (isolate != null) {
+      return isolate.hashLink;
+    } else {
+      return '';
+    }
+  }
+  @reflectable set hashLinkWorkaround(var x) { /* silence polymer */ }
+
   IsolateNavMenuElement.created() : super.created();
 }
 
 @CustomTag('library-nav-menu')
 class LibraryNavMenuElement extends ObservatoryElement {
-  @published ServiceMap library;
+  @published Library library;
   @published bool last = false;
 
   LibraryNavMenuElement.created() : super.created();

@@ -1749,18 +1749,28 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   const Address user_tag_addr =
       Address::Absolute(reinterpret_cast<uword>(isolate) +
                         Isolate::user_tag_offset());
+  // EAX: Current user tag.
+  __ movl(EAX, current_tag_addr);
   // EAX: UserTag.
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));
   // Set Isolate::current_tag_.
-  __ movl(current_tag_addr, EAX);
+  __ movl(current_tag_addr, EBX);
   // EAX: UserTag's tag.
-  __ movl(EAX, FieldAddress(EAX, UserTag::tag_offset()));
+  __ movl(EBX, FieldAddress(EBX, UserTag::tag_offset()));
   // Set Isolate::user_tag_.
-  __ movl(user_tag_addr, EAX);
+  __ movl(user_tag_addr, EBX);
+  __ ret();
+}
+
+
+void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
+  Isolate* isolate = Isolate::Current();
+  const Address default_tag_addr =
+      Address::Absolute(
+          reinterpret_cast<uword>(isolate->object_store()) +
+                                  ObjectStore::default_tag_offset());
   // Set return value.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<int32_t>(Object::null()));
-  __ movl(EAX, raw_null);
+  __ movl(EAX, default_tag_addr);
   __ ret();
 }
 
@@ -1772,26 +1782,6 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
                         Isolate::current_tag_offset());
   // Set return value to Isolate::current_tag_.
   __ movl(EAX, current_tag_addr);
-  __ ret();
-}
-
-
-void Intrinsifier::Profiler_clearCurrentTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address current_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::current_tag_offset());
-  const Address user_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::user_tag_offset());
-  // Set return value to Isolate::current_tag_.
-  __ movl(EAX, current_tag_addr);
-  // Clear Isolate::current_tag_.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<int32_t>(UserTag::null()));
-  __ movl(current_tag_addr, raw_null);
-  // Clear Isolate::user_tag_.
-  __ movl(user_tag_addr, Immediate(0));
   __ ret();
 }
 

@@ -246,13 +246,22 @@ abstract class RawSecureSocket implements RawSocket {
       {bool sendClientCertificate: false,
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
-    return  _RawSecureSocket.connect(
+    _RawSecureSocket._verifyFields(
         host,
         port,
         certificateName,
-        is_server: false,
-        sendClientCertificate: sendClientCertificate,
-        onBadCertificate: onBadCertificate);
+        false,
+        false,
+        false,
+        sendClientCertificate,
+        onBadCertificate);
+    return RawSocket.connect(host, port)
+        .then((socket) {
+          return secure(socket,
+                        sendClientCertificate: sendClientCertificate,
+                        certificateName: certificateName,
+                        onBadCertificate: onBadCertificate);
+        });
   }
 
   /**
@@ -293,7 +302,7 @@ abstract class RawSecureSocket implements RawSocket {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
     return  _RawSecureSocket.connect(
-        host != null ? host : socket.address,
+        host != null ? host : socket.address.host,
         socket.port,
         certificateName,
         is_server: false,
@@ -463,34 +472,24 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool requireClientCertificate: false,
        bool sendClientCertificate: false,
        bool onBadCertificate(X509Certificate certificate)}) {
-    var future;
     _verifyFields(host, requestedPort, certificateName, is_server,
                  requestClientCertificate, requireClientCertificate,
                  sendClientCertificate, onBadCertificate);
-    if (host is String) {
-      if (socket != null) {
-        future = new Future.value(
-            (socket.address as dynamic)._cloneWithNewHost(host));
-      } else {
-        future = InternetAddress.lookup(host).then((addrs) => addrs.first);
-      }
-    } else {
-      future = new Future.value(host);
-    }
-    return future.then((addr) {
-     return new _RawSecureSocket(addr,
-                                 requestedPort,
-                                 certificateName,
-                                 is_server,
-                                 socket,
-                                 subscription,
-                                 bufferedData,
-                                 requestClientCertificate,
-                                 requireClientCertificate,
-                                 sendClientCertificate,
-                                 onBadCertificate)
-         ._handshakeComplete.future;
-    });
+    if (host is InternetAddress) host = host.host;
+    var address = socket.address;
+    if (host != null) address =  address._cloneWithNewHost(host);
+    return new _RawSecureSocket(address,
+                                requestedPort,
+                                certificateName,
+                                is_server,
+                                socket,
+                                subscription,
+                                bufferedData,
+                                requestClientCertificate,
+                                requireClientCertificate,
+                                sendClientCertificate,
+                                onBadCertificate)
+        ._handshakeComplete.future;
   }
 
   _RawSecureSocket(
@@ -498,7 +497,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       int requestedPort,
       this.certificateName,
       this.is_server,
-      RawSocket socket,
+      RawSocket this._socket,
       this._socketSubscription,
       this._bufferedData,
       this.requestClientCertificate,
@@ -521,31 +520,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (onBadCertificate != null) {
       _secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
     }
-    var futureSocket;
-    if (socket == null) {
-      futureSocket = RawSocket.connect(address, requestedPort);
+    _socket.readEventsEnabled = true;
+    _socket.writeEventsEnabled = false;
+    if (_socketSubscription == null) {
+      // If a current subscription is provided use this otherwise
+      // create a new one.
+      _socketSubscription = _socket.listen(_eventDispatcher,
+                                           onError: _reportError,
+                                           onDone: _doneHandler);
     } else {
-      futureSocket = new Future.value(socket);
-    }
-    futureSocket.then((rawSocket) {
-      _socket = rawSocket;
-      _socket.readEventsEnabled = true;
-      _socket.writeEventsEnabled = false;
-      if (_socketSubscription == null) {
-        // If a current subscription is provided use this otherwise
-        // create a new one.
-        _socketSubscription = _socket.listen(_eventDispatcher,
-                                             onError: _reportError,
-                                             onDone: _doneHandler);
-      } else {
-        if (_socketSubscription.isPaused) {
-          throw new StateError("Subscription passed to TLS upgrade is paused");
-        }
-        _socketSubscription
-            ..onData(_eventDispatcher)
-            ..onError(_reportError)
-            ..onDone(_doneHandler);
+      if (_socketSubscription.isPaused) {
+        _socket.close();
+        throw new ArgumentError(
+            "Subscription passed to TLS upgrade is paused");
       }
+      _socketSubscription
+          ..onData(_eventDispatcher)
+          ..onError(_reportError)
+          ..onDone(_doneHandler);
+    }
+    try {
       _secureFilter.connect(address.host,
                             (address as dynamic)._in_addr,
                             port,
@@ -556,8 +550,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                             requireClientCertificate,
                             sendClientCertificate);
       _secureHandshake();
-    })
-    .catchError(_reportError);
+    } catch (e, s) {
+      _reportError(e, s);
+    }
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),

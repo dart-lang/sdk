@@ -81,6 +81,10 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
 
   void onHide() {
   }
+
+  bool hasChildren() {
+    return node.children.length > 0;
+  }
 }
 
 /// Displays an IsolateProfile

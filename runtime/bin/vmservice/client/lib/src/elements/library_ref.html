@@ -3,7 +3,12 @@
 </head>
 <polymer-element name="library-ref" extends="service-ref">
 <template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
-  <a href="{{ url }}">{{ name }}</a>
+  <template if="{{ nameIsEmpty }}">
+    <a href="{{ url }}">unnamed</a>
+  </template>
+  <template if="{{ !nameIsEmpty }}">
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
 </template>
 <script type="application/dart" src="library_ref.dart"></script>
 </polymer-element>

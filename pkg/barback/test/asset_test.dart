@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/internal_asset.dart';
+import 'package:barback/src/asset/internal_asset.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 

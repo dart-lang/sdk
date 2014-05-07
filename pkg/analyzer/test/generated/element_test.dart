@@ -2963,9 +2963,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     InterfaceType typeA = classA.type;
     TypeParameterType parameterType = classA.typeParameters[0].type;
-    DartType dynamicType = DynamicTypeImpl.instance;
     JUnitTestCase.assertFalse(typeA.isSubtypeOf(parameterType));
-    JUnitTestCase.assertTrue(dynamicType.isSubtypeOf(parameterType));
   }
 
   void test_isSupertypeOf_directSupertype() {

@@ -325,6 +325,14 @@ bool ConstantInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
+    : ConstantInstr(value), constant_address_(0) {
+  // Only doubles supported for now.
+  ASSERT(value.IsDouble());
+  constant_address_ =
+      FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+}
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -1060,6 +1068,22 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
 }
 
 
+void BlockEntryInstr::ClearAllInstructions() {
+  JoinEntryInstr* join = this->AsJoinEntry();
+  if (join != NULL) {
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      it.Current()->UnuseAllInputs();
+    }
+  }
+  UnuseAllInputs();
+  for (ForwardInstructionIterator it(this);
+       !it.Done();
+       it.Advance()) {
+    it.Current()->UnuseAllInputs();
+  }
+}
+
+
 void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi
@@ -1224,7 +1248,6 @@ static bool ToIntegerConstant(Value* value, intptr_t* result) {
       return ToIntegerConstant(value->definition()->AsUnboxDouble()->value(),
                                result);
     }
-
     return false;
   }
 
@@ -1339,22 +1362,32 @@ Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kDoubleCid,
                                              left(),
                                              right());
+  if (result == NULL) {
+    result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                               kDoubleCid,
+                                               right(),
+                                               left());
+  }
   if (result != NULL) {
     return result;
   }
 
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kDoubleCid,
-                                             right(),
-                                             left());
-  if (result != NULL) {
-    return result;
+  if ((op_kind() == Token::kMUL) &&
+      (left()->definition() == right()->definition())) {
+    MathUnaryInstr* math_unary =
+        new MathUnaryInstr(MathUnaryInstr::kDoubleSquare,
+                           new Value(left()->definition()),
+                           DeoptimizationTarget());
+    flow_graph->InsertBefore(this, math_unary, env(), Definition::kValue);
+    return math_unary;
   }
 
   return this;
@@ -1601,9 +1634,21 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   // Fold away UnboxDouble(BoxDouble(v)).
-  BoxDoubleInstr* defn = value()->definition()->AsBoxDouble();
-  return (defn != NULL) ? defn->value()->definition() : this;
+  BoxDoubleInstr* box_defn = value()->definition()->AsBoxDouble();
+  if (box_defn != NULL) {
+    return box_defn->value()->definition();
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if ((c != NULL) && c->value().IsDouble()) {
+    UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
+    flow_graph->InsertBefore(this, uc, NULL, Definition::kValue);
+    return uc;
+  }
+
+  return this;
 }
 
 
@@ -3298,14 +3343,27 @@ extern const RuntimeEntry kSinRuntimeEntry(
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
-    case MethodRecognizer::kMathSin:
+    case MathUnaryInstr::kSin:
       return kSinRuntimeEntry;
-    case MethodRecognizer::kMathCos:
+    case MathUnaryInstr::kCos:
       return kCosRuntimeEntry;
     default:
       UNREACHABLE();
   }
   return kSinRuntimeEntry;
+}
+
+
+const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
+  switch (kind) {
+    case kIllegal:       return "illegal";
+    case kSin:           return "sin";
+    case kCos:           return "cos";
+    case kSqrt:          return "sqrt";
+    case kDoubleSquare:  return "double-square";
+  }
+  UNREACHABLE();
+  return "";
 }
 
 

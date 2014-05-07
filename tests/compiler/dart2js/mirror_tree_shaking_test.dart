@@ -15,6 +15,8 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic;
 
 import 'dart:async';
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
+       show JavaScriptBackend;
 
 main() {
   Uri script = currentDirectory.resolveUri(Platform.script);
@@ -50,7 +52,8 @@ main() {
     Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
     Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.disableTypeInference);
-    Expect.isFalse(compiler.backend.hasRetainedMetadata);
+    JavaScriptBackend backend = compiler.backend;
+    Expect.isFalse(backend.hasRetainedMetadata);
   }));
 }
 
