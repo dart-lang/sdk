@@ -24,6 +24,7 @@ class C implements A {
 }
 
 class D implements C {
+  int get x => 0;
   const factory D() = C.fromD;
 }
 

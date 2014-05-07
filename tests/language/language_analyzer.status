@@ -17,9 +17,6 @@ unicode_bom_test: Fail # Issue 16314
 
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
 
-const_map2_test/00: MissingCompileTimeError # Issue 17209
-switch_case_test/none: CompileTimeError # Issue 17209
-
 call_closurization_test: StaticWarning # Issue 17476
 
 # Please add new failing tests before this line.
