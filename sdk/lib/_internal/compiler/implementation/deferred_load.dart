@@ -31,7 +31,8 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     PrefixElement,
-    ClosureContainer;
+    ClosureContainer,
+    VoidElement;
 
 import 'util/util.dart' show
     Link;
@@ -277,79 +278,75 @@ class DeferredLoadTask extends CompilerTask {
     return library.getImportsFor(element);
   }
 
-  /// Replaces the imports of [outputUnit] with those in
-  /// [replacementImports]. Because mainOutputUnit has a special handling we
-  /// create a new outputUnit instead, and update the mapping from the
-  /// dependency to its outputUnit.
-  void _replaceOutputUnitImports(dynamic dependency,
-                                 OutputUnit outputUnit,
-                                 Iterable<Import> replacementImports) {
-    Map<dynamic, OutputUnit> dependencyToOutputUnit = dependency is Element
-        ? _elementToOutputUnit
-        : _constantToOutputUnit;
-    assert(outputUnit == dependencyToOutputUnit[dependency]);
-    if (outputUnit == mainOutputUnit) {
-      outputUnit = new OutputUnit();
-      dependencyToOutputUnit[dependency] = outputUnit;
-    } else {
-      outputUnit.imports.clear();
-    }
-    outputUnit.imports.addAll(replacementImports);
-  }
-
-  /// Collects all direct dependencies of [element].
-  ///
-  /// The collected dependent elements and constants are are added to
-  /// [elementDependencies] and [constantDependencies] respectively.
-  void _collectDependencies(Element element,
-                            Set<Element> elementDependencies,
-                            Set<Constant> constantDependencies) {
-    TreeElements elements =
-        compiler.enqueuer.resolution.getCachedElements(element);
-    if (elements == null) return;
-    for (Element dependency in elements.allElements) {
-      if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
-      if (Elements.isUnresolved(dependency)) continue;
-      if (dependency.isStatement) continue;
-      elementDependencies.add(dependency);
-    }
-    elements.forEachConstantNode((Node n, _) {
-      // Explicitly depend on the backend constants.
-      constantDependencies.add(
-          backend.constants.getConstantForNode(n, elements));
-    });
-    elementDependencies.addAll(elements.otherDependencies);
-  }
-
   /// Finds all elements and constants that [element] depends directly on.
   /// (not the transitive closure.)
   ///
   /// Adds the results to [elements] and [constants].
-  void _collectAllElementsAndConstantsResolvedFrom(Element element,
+  void _collectAllElementsAndConstantsResolvedFrom(
+      Element element,
       Set<Element> elements,
       Set<Constant> constants) {
+
+    /// Recursively add the constant and its dependencies to [constants].
+    void addConstants(Constant constant) {
+      if (constants.contains(constant)) return;
+      constants.add(constant);
+      if (constant is ConstructedConstant) {
+        elements.add(constant.type.element);
+      }
+      constant.getDependencies().forEach(addConstants);
+    }
+
+    /// Collects all direct dependencies of [element].
+    ///
+    /// The collected dependent elements and constants are are added to
+    /// [elements] and [constants] respectively.
+    void collectDependencies(Element element) {
+      TreeElements treeElements = element.isTypedef
+          ? element.treeElements
+          : compiler.enqueuer.resolution.getCachedElements(element);
+
+      // TODO(sigurdm): We want to be more specific about this - need a better
+      // way to query "liveness".
+      if (treeElements == null) return;
+
+      for (Element dependency in treeElements.allElements) {
+        if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
+        if (dependency.isErroneous) continue;
+        if (dependency.isStatement) continue;
+        if (dependency.isTypeVariable) continue;
+        if (dependency is VoidElement) continue;
+
+        elements.add(dependency);
+      }
+      treeElements.forEachConstantNode((Node node, _) {
+        // Explicitly depend on the backend constants.
+        addConstants(
+            backend.constants.getConstantForNode(node, treeElements));
+      });
+      elements.addAll(treeElements.otherDependencies);
+    }
+
     // TODO(sigurdm): How is metadata on a patch-class handled?
     for (MetadataAnnotation metadata in element.metadata) {
       Constant constant = backend.constants.getConstantForMetadata(metadata);
       if (constant != null) {
-        constants.add(constant);
-        elements.add(constant.computeType(compiler).element);
+        addConstants(constant);
       }
     }
     if (element.isClass) {
-      // If we see a class, add everything its instance members refer
+      // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant.
+      void addLiveInstanceMember(Element element) {
+        if (!compiler.enqueuer.resolution.isLive(element)) return;
+        if (!element.isInstanceMember) return;
+        collectDependencies(element.implementation);
+      }
       ClassElement cls = element.declaration;
-      cls.forEachLocalMember((Element e) {
-        if (!e.isInstanceMember) return;
-        _collectDependencies(e.implementation, elements, constants);
-      });
+      cls.forEachLocalMember(addLiveInstanceMember);
       if (cls.implementation != cls) {
         // TODO(ahe): Why doesn't ClassElement.forEachLocalMember do this?
-        cls.implementation.forEachLocalMember((Element e) {
-          if (!e.isInstanceMember) return;
-          _collectDependencies(e.implementation, elements, constants);
-        });
+        cls.implementation.forEachLocalMember(addLiveInstanceMember);
       }
       for (var type in cls.implementation.allSupertypes) {
         elements.add(type.element.implementation);
@@ -357,7 +354,7 @@ class DeferredLoadTask extends CompilerTask {
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) ||
                element.isConstructor) {
-      _collectDependencies(element, elements, constants);
+      collectDependencies(element);
     }
     if (element.isGenerativeConstructor) {
       // When instantiating a class, we record a reference to the
@@ -544,52 +541,6 @@ class DeferredLoadTask extends CompilerTask {
     }
   }
 
-  /// Goes through [allConstants] and adjusts their outputUnits.
-  void _adjustConstantsOutputUnit(Set<Constant> allConstants) {
-    // A constant has three dependencies:
-    // 1- the libraries it is used in.
-    // 2- its class.
-    // 3- its arguments.
-    // The constant should only be loaded if all three dependencies are
-    // loaded.
-    // TODO(floitsch): only load constants when all three dependencies are
-    // satisfied.
-    //
-    // So far we only looked at where the constants were used. For now, we
-    // use a simplified approach to fix this (partially): if the current
-    // library is not deferred, only look at the class (2). Otherwise store
-    // the constant in the current (deferred) library.
-    for (Constant constant in allConstants) {
-      // If the constant is not a "constructed" constant, it can stay where
-      // it is.
-      if (!constant.isConstructedObject) continue;
-      OutputUnit constantUnit = _constantToOutputUnit[constant];
-      Setlet<Import> constantImports = constantUnit.imports;
-      ConstructedConstant constructed = constant;
-      Element classElement = constructed.type.element;
-      OutputUnit classUnit = _elementToOutputUnit[classElement];
-      // This happens with classes that are only used as annotations.
-      // TODO(sigurdm): Find out if we can use a specific check for this.
-      if (classUnit == null) continue;
-      Setlet<Import> classImports = classUnit.imports;
-      // The class exists in the main-unit. Just leave the constant where it
-      // is. We know that the constructor will be available.
-      if (classImports.length == 1 && classImports.single == _fakeMainImport) {
-        continue;
-      }
-      // The class is loaded for all imports in the classImport-set.
-      // If the constant's imports are included in the class' set, we can
-      // keep the constant unit as is.
-      // If the constant is used otherwise, we need to make sure that the
-      // class is available before constructing the constant.
-      if (classImports.containsAll(constantImports)) continue;
-      // We could now just copy the OutputUnit from the class to the output
-      // unit of the constant, but we prefer separate instances.
-      // Replace the imports of the constant to match the ones of the class.
-      _replaceOutputUnitImports(constant, constantUnit, classImports);
-    }
-  }
-
   /// Computes a unique string for the name field for each outputUnit.
   ///
   /// Also sets up the [hunksToLoad] mapping.
@@ -736,8 +687,6 @@ class DeferredLoadTask extends CompilerTask {
       // Release maps;
       _importedDeferredBy = null;
       _constantsDeferredBy = null;
-
-      _adjustConstantsOutputUnit(allConstants);
 
       // Find all the output units we have used.
       // Also generate a unique name for each OutputUnit.
