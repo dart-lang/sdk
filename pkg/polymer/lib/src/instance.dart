@@ -626,14 +626,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     _observers = null;
   }
 
-  /// Bind a [property] in this object to a [path] in model. *Note* in Dart it
+  /// Bind the [name] property in this element to [bindable]. *Note* in Dart it
   /// is necessary to also define the field:
   ///
   ///     var myProperty;
   ///
   ///     ready() {
   ///       super.ready();
-  ///       bindProperty(#myProperty, this, 'myModel.path.to.otherProp');
+  ///       bindProperty(#myProperty,
+  ///           new PathObserver(this, 'myModel.path.to.otherProp'));
   ///     }
   Bindable bindProperty(Symbol name, Bindable bindable) {
     // Dart note: normally we only reach this code when we know it's a

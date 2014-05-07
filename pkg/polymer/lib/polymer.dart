@@ -69,7 +69,6 @@ import 'dart:mirrors' show MirrorsUsed;    // ** see important note above
 
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
-import 'package:path/path.dart' as path;
 import 'package:polymer_expressions/polymer_expressions.dart'
     show PolymerExpressions;
 import 'package:smoke/smoke.dart' as smoke;
