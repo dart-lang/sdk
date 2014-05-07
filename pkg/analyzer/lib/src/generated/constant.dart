@@ -556,15 +556,42 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
           argumentValues[i] = _valueOf(argument);
         }
       }
+      Set<ConstructorElement> constructorsVisited = new Set<ConstructorElement>();
       InterfaceType definingClass = constructor.returnType as InterfaceType;
-      if (definingClass.element.library.isDartCore) {
-        String className = definingClass.name;
-        if (className == "Symbol" && argumentCount == 1) {
-          String argumentValue = argumentValues[0].stringValue;
-          if (argumentValue != null) {
-            return _valid(definingClass, new SymbolState(argumentValue));
+      while (constructor.isFactory) {
+        if (definingClass.element.library.isDartCore) {
+          String className = definingClass.name;
+          if (className == "Symbol" && argumentCount == 1) {
+            String argumentValue = argumentValues[0].stringValue;
+            if (argumentValue != null) {
+              return _valid(definingClass, new SymbolState(argumentValue));
+            }
           }
         }
+        constructorsVisited.add(constructor);
+        ConstructorElement redirectedConstructor = constructor.redirectedConstructor;
+        if (redirectedConstructor == null) {
+          // This can happen if constructor is an external factory constructor.  Since there is no
+          // constructor to delegate to, we currently can't evaluate the constant.
+          // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
+          // we may be able to infer the value based on -D flags provided to the analyzer (see
+          // dartbug.com/17234).
+          return _error(node, null);
+        }
+        if (!redirectedConstructor.isConst) {
+          // Delegating to a non-const constructor--this is not allowed (and
+          // is checked elsewhere--see [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
+          // So if we encounter it just error out.
+          return _error(node, null);
+        }
+        if (constructorsVisited.contains(redirectedConstructor)) {
+          // Cycle in redirecting factory constructors--this is not allowed
+          // and is checked elsewhere--see [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
+          // So if we encounter it just error out.
+          return _error(node, null);
+        }
+        constructor = redirectedConstructor;
+        definingClass = constructor.returnType as InterfaceType;
       }
       Map<String, DartObjectImpl> fieldMap = new Map<String, DartObjectImpl>();
       List<ParameterElement> parameters = constructor.parameters;

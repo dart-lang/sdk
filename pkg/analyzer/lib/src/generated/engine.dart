@@ -1721,7 +1721,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void set analysisOptions(AnalysisOptions options) {
-    bool needsRecompute = this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
+    bool needsRecompute = this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.enableDeferredLoading != options.enableDeferredLoading || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -1741,6 +1741,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
+    this._options.enableDeferredLoading = options.enableDeferredLoading;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -6278,6 +6279,13 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
+   * Return `true` if analysis is to include the new "deferred loading" support.
+   *
+   * @return `true` if analysis is to include the new "deferred loading" support
+   */
+  bool get enableDeferredLoading;
+
+  /**
    * Return `true` if errors, warnings and hints should be generated for sources in the SDK.
    * The default value is `false`.
    *
@@ -6319,9 +6327,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static int DEFAULT_CACHE_SIZE = 64;
 
   /**
-   * The maximum number of sources for which AST structures should be kept in the cache.
+   * The default value for enabling deferred loading.
    */
-  int cacheSize = DEFAULT_CACHE_SIZE;
+  static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
+
+  /**
+   * A flag indicating whether analysis is to analyze Angular.
+   */
+  bool analyzeAngular = true;
 
   /**
    * A flag indicating whether analysis is to parse and analyze function bodies.
@@ -6329,9 +6342,24 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool analyzeFunctionBodies = true;
 
   /**
+   * A flag indicating whether analysis is to analyze Polymer.
+   */
+  bool analyzePolymer = true;
+
+  /**
+   * The maximum number of sources for which AST structures should be kept in the cache.
+   */
+  int cacheSize = DEFAULT_CACHE_SIZE;
+
+  /**
    * A flag indicating whether analysis is to generate dart2js related hint results.
    */
   bool dart2jsHint = true;
+
+  /**
+   * A flag indicating whether analysis is to enable deferred loading.
+   */
+  bool enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated for sources in the
@@ -6356,16 +6384,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool preserveComments = true;
 
   /**
-   * A flag indicating whether analysis is to analyze Angular.
-   */
-  bool analyzeAngular = true;
-
-  /**
-   * A flag indicating whether analysis is to analyze Polymer.
-   */
-  bool analyzePolymer = true;
-
-  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   AnalysisOptionsImpl();
@@ -6377,10 +6395,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * @param options the analysis options whose values are being copied
    */
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
+    analyzeAngular = options.analyzeAngular;
+    analyzeFunctionBodies = options.analyzeFunctionBodies;
+    analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableDeferredLoading = options.enableDeferredLoading;
+    _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
+    preserveComments = options.preserveComments;
   }
 
   @override
@@ -10440,7 +10464,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
       //
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, libraryElement, typeProvider);
       _unit.accept(constantVerifier);
       //
       // Use the ErrorVerifier to compute the rest of the errors.
@@ -12858,7 +12882,9 @@ class ParseDartTask extends AnalysisTask {
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(source, errorListener);
-      parser.parseFunctionBodies = context.analysisOptions.analyzeFunctionBodies;
+      AnalysisOptions options = context.analysisOptions;
+      parser.parseFunctionBodies = options.analyzeFunctionBodies;
+      parser.parseDeferredLibraries = options.enableDeferredLoading;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;
@@ -14384,7 +14410,7 @@ class ResolveDartUnitTask extends AnalysisTask {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
       unit.accept(errorVerifier);
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
       unit.accept(constantVerifier);
     } finally {
       counterHandleErrors.stop();

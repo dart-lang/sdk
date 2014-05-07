@@ -1062,6 +1062,25 @@ abstract class ClassElement implements Element {
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
 
   /**
+   * Return the element representing the method that results from looking up the given method in the
+   * superclass of this class with respect to the given library, or `null` if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
+   * to library <i>L</i> is:
+   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in the superclass of this class with respect
+   *         to the given library
+   */
+  MethodElement lookUpInheritedMethod(String methodName, LibraryElement library);
+
+  /**
    * Return the element representing the method that results from looking up the given method in
    * this class with respect to the given library, or `null` if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
@@ -1415,32 +1434,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  MethodElement lookUpMethod(String methodName, LibraryElement library) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin in currentElement.mixins) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          element = mixinElement.getMethod(methodName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-    }
-    return null;
-  }
+  MethodElement lookUpInheritedMethod(String methodName, LibraryElement library) => _internalLookUpMethod(methodName, library, false);
+
+  @override
+  MethodElement lookUpMethod(String methodName, LibraryElement library) => _internalLookUpMethod(methodName, library, true);
 
   @override
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
@@ -1625,6 +1622,38 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
       }
     }
+  }
+
+  MethodElement _internalLookUpMethod(String methodName, LibraryElement library, bool includeThisClass) {
+    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin in currentElement.mixins) {
+        ClassElement mixinElement = mixin.element;
+        if (mixinElement != null) {
+          MethodElement element = mixinElement.getMethod(methodName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.element;
+      MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
   }
 
   bool _safeIsOrInheritsProxy(ClassElement classElt, Set<ClassElement> visitedClassElts) {
@@ -7810,16 +7839,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  */
 class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**
-   * Is `true` if this variable is potentially mutated somewhere in its scope.
-   */
-  bool _potentiallyMutatedInScope = false;
-
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in closure.
-   */
-  bool _potentiallyMutatedInClosure = false;
-
-  /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
@@ -7866,23 +7885,23 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   }
 
   @override
-  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
+  bool get isPotentiallyMutatedInClosure => hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
 
   @override
-  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
+  bool get isPotentiallyMutatedInScope => hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   void markPotentiallyMutatedInClosure() {
-    _potentiallyMutatedInClosure = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   void markPotentiallyMutatedInScope() {
-    _potentiallyMutatedInScope = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**
@@ -8328,26 +8347,36 @@ class Modifier extends Enum<Modifier> {
 
   static const Modifier MIXIN = const Modifier('MIXIN', 7);
 
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 8);
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated within the context.
+   */
+  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 8);
+
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated within the scope.
+   */
+  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 9);
+
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 10);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 9);
+  static const Modifier SETTER = const Modifier('SETTER', 11);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 10);
+  static const Modifier STATIC = const Modifier('STATIC', 12);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 11);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 13);
 
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 12);
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 14);
 
   static const List<Modifier> values = const [
       ABSTRACT,
@@ -8358,6 +8387,8 @@ class Modifier extends Enum<Modifier> {
       GETTER,
       HAS_EXT_URI,
       MIXIN,
+      POTENTIALLY_MUTATED_IN_CONTEXT,
+      POTENTIALLY_MUTATED_IN_SCOPE,
       REFERENCES_SUPER,
       SETTER,
       STATIC,
@@ -8684,16 +8715,6 @@ abstract class ParameterElement implements LocalElement, VariableElement {
  */
 class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**
-   * Is `true` if this variable is potentially mutated somewhere in its scope.
-   */
-  bool _potentiallyMutatedInScope = false;
-
-  /**
-   * Is `true` if this variable is potentially mutated somewhere in closure.
-   */
-  bool _potentiallyMutatedInClosure = false;
-
-  /**
    * An array containing all of the parameters defined by this parameter element. There will only be
    * parameters if this parameter is a function typed parameter.
    */
@@ -8776,23 +8797,23 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   bool get isInitializingFormal => false;
 
   @override
-  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
+  bool get isPotentiallyMutatedInClosure => hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
 
   @override
-  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
+  bool get isPotentiallyMutatedInScope => hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   void markPotentiallyMutatedInClosure() {
-    _potentiallyMutatedInClosure = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   void markPotentiallyMutatedInScope() {
-    _potentiallyMutatedInScope = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**

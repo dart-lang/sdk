@@ -1224,10 +1224,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   bool _isAlreadyHandledName(SimpleIdentifier node) {
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
-      Element element = node.staticElement;
-      if (element is MethodElement || element is FunctionElement) {
-        return identical(parent.methodName, node);
-      }
+      return identical(parent.methodName, node);
     }
     return false;
   }

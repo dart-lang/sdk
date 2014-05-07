@@ -15,7 +15,7 @@ import 'source.dart';
 import 'scanner.dart';
 import 'ast.dart';
 import 'utilities_dart.dart';
-import 'engine.dart' show AnalysisEngine;
+import 'engine.dart' show AnalysisEngine, AnalysisOptionsImpl;
 import 'utilities_collection.dart' show TokenMap;
 
 /**
@@ -1436,6 +1436,11 @@ class Parser {
   bool _parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether parser is to parse deferred libraries.
+   */
+  bool _parseDeferredLibraries = AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING;
+
+  /**
    * The next token to be parsed.
    */
   Token _currentToken;
@@ -1558,6 +1563,15 @@ class Parser {
     } finally {
       instrumentation.log();
     }
+  }
+
+  /**
+   * Set whether parser is to parse deferred libraries.
+   *
+   * @param parseDeferredLibraries `true` if parser is to parse deferred libraries
+   */
+  void set parseDeferredLibraries(bool parseDeferredLibraries) {
+    this._parseDeferredLibraries = parseDeferredLibraries;
   }
 
   /**
@@ -4987,7 +5001,12 @@ class Parser {
     Token asToken = null;
     SimpleIdentifier prefix = null;
     if (_matchesKeyword(Keyword.DEFERRED)) {
-      deferredToken = andAdvance;
+      if (_parseDeferredLibraries) {
+        deferredToken = andAdvance;
+      } else {
+        _reportErrorForCurrentToken(ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED, []);
+        _advance();
+      }
     }
     if (_matchesKeyword(Keyword.AS)) {
       asToken = andAdvance;
@@ -7456,231 +7475,233 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode.con3('CONTINUE_WITHOUT_LABEL_IN_CASE', 19, "A continue statement in a switch statement must have a label as a target");
 
-  static const ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS = const ParserErrorCode.con3('DEPRECATED_CLASS_TYPE_ALIAS', 20, "The 'typedef' mixin application was replaced with 'class'");
+  static const ParserErrorCode DEFERRED_IMPORTS_NOT_SUPPORTED = const ParserErrorCode.con3('DEFERRED_IMPORTS_NOT_SUPPORTED', 20, "Deferred imports are not supported by default");
 
-  static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 21, "Directives must appear before any declarations");
+  static const ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS = const ParserErrorCode.con3('DEPRECATED_CLASS_TYPE_ALIAS', 21, "The 'typedef' mixin application was replaced with 'class'");
 
-  static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = const ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 22, "The label %s was already used in this switch statement");
+  static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 22, "Directives must appear before any declarations");
 
-  static const ParserErrorCode DUPLICATED_MODIFIER = const ParserErrorCode.con3('DUPLICATED_MODIFIER', 23, "The modifier '%s' was already specified.");
+  static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = const ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 23, "The label %s was already used in this switch statement");
 
-  static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCode.con3('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 24, "Equality expression cannot be operand of another equality expression.");
+  static const ParserErrorCode DUPLICATED_MODIFIER = const ParserErrorCode.con3('DUPLICATED_MODIFIER', 24, "The modifier '%s' was already specified.");
 
-  static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = const ParserErrorCode.con3('EXPECTED_CASE_OR_DEFAULT', 25, "Expected 'case' or 'default'");
+  static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCode.con3('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 25, "Equality expression cannot be operand of another equality expression.");
 
-  static const ParserErrorCode EXPECTED_CLASS_MEMBER = const ParserErrorCode.con3('EXPECTED_CLASS_MEMBER', 26, "Expected a class member");
+  static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = const ParserErrorCode.con3('EXPECTED_CASE_OR_DEFAULT', 26, "Expected 'case' or 'default'");
 
-  static const ParserErrorCode EXPECTED_EXECUTABLE = const ParserErrorCode.con3('EXPECTED_EXECUTABLE', 27, "Expected a method, getter, setter or operator declaration");
+  static const ParserErrorCode EXPECTED_CLASS_MEMBER = const ParserErrorCode.con3('EXPECTED_CLASS_MEMBER', 27, "Expected a class member");
 
-  static const ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = const ParserErrorCode.con3('EXPECTED_LIST_OR_MAP_LITERAL', 28, "Expected a list or map literal");
+  static const ParserErrorCode EXPECTED_EXECUTABLE = const ParserErrorCode.con3('EXPECTED_EXECUTABLE', 28, "Expected a method, getter, setter or operator declaration");
 
-  static const ParserErrorCode EXPECTED_STRING_LITERAL = const ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 29, "Expected a string literal");
+  static const ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = const ParserErrorCode.con3('EXPECTED_LIST_OR_MAP_LITERAL', 29, "Expected a list or map literal");
 
-  static const ParserErrorCode EXPECTED_TOKEN = const ParserErrorCode.con3('EXPECTED_TOKEN', 30, "Expected to find '%s'");
+  static const ParserErrorCode EXPECTED_STRING_LITERAL = const ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 30, "Expected a string literal");
 
-  static const ParserErrorCode EXPECTED_TYPE_NAME = const ParserErrorCode.con3('EXPECTED_TYPE_NAME', 31, "Expected a type name");
+  static const ParserErrorCode EXPECTED_TOKEN = const ParserErrorCode.con3('EXPECTED_TOKEN', 31, "Expected to find '%s'");
 
-  static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = const ParserErrorCode.con3('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 32, "Export directives must preceed part directives");
+  static const ParserErrorCode EXPECTED_TYPE_NAME = const ParserErrorCode.con3('EXPECTED_TYPE_NAME', 32, "Expected a type name");
 
-  static const ParserErrorCode EXTERNAL_AFTER_CONST = const ParserErrorCode.con3('EXTERNAL_AFTER_CONST', 33, "The modifier 'external' should be before the modifier 'const'");
+  static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = const ParserErrorCode.con3('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 33, "Export directives must preceed part directives");
 
-  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = const ParserErrorCode.con3('EXTERNAL_AFTER_FACTORY', 34, "The modifier 'external' should be before the modifier 'factory'");
+  static const ParserErrorCode EXTERNAL_AFTER_CONST = const ParserErrorCode.con3('EXTERNAL_AFTER_CONST', 34, "The modifier 'external' should be before the modifier 'const'");
 
-  static const ParserErrorCode EXTERNAL_AFTER_STATIC = const ParserErrorCode.con3('EXTERNAL_AFTER_STATIC', 35, "The modifier 'external' should be before the modifier 'static'");
+  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = const ParserErrorCode.con3('EXTERNAL_AFTER_FACTORY', 35, "The modifier 'external' should be before the modifier 'factory'");
 
-  static const ParserErrorCode EXTERNAL_CLASS = const ParserErrorCode.con3('EXTERNAL_CLASS', 36, "Classes cannot be declared to be 'external'");
+  static const ParserErrorCode EXTERNAL_AFTER_STATIC = const ParserErrorCode.con3('EXTERNAL_AFTER_STATIC', 36, "The modifier 'external' should be before the modifier 'static'");
 
-  static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_CONSTRUCTOR_WITH_BODY', 37, "External constructors cannot have a body");
+  static const ParserErrorCode EXTERNAL_CLASS = const ParserErrorCode.con3('EXTERNAL_CLASS', 37, "Classes cannot be declared to be 'external'");
 
-  static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode.con3('EXTERNAL_FIELD', 38, "Fields cannot be declared to be 'external'");
+  static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_CONSTRUCTOR_WITH_BODY', 38, "External constructors cannot have a body");
 
-  static const ParserErrorCode EXTERNAL_GETTER_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_GETTER_WITH_BODY', 39, "External getters cannot have a body");
+  static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode.con3('EXTERNAL_FIELD', 39, "Fields cannot be declared to be 'external'");
 
-  static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_METHOD_WITH_BODY', 40, "External methods cannot have a body");
+  static const ParserErrorCode EXTERNAL_GETTER_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_GETTER_WITH_BODY', 40, "External getters cannot have a body");
 
-  static const ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_OPERATOR_WITH_BODY', 41, "External operators cannot have a body");
+  static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_METHOD_WITH_BODY', 41, "External methods cannot have a body");
 
-  static const ParserErrorCode EXTERNAL_SETTER_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_SETTER_WITH_BODY', 42, "External setters cannot have a body");
+  static const ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_OPERATOR_WITH_BODY', 42, "External operators cannot have a body");
 
-  static const ParserErrorCode EXTERNAL_TYPEDEF = const ParserErrorCode.con3('EXTERNAL_TYPEDEF', 43, "Type aliases cannot be declared to be 'external'");
+  static const ParserErrorCode EXTERNAL_SETTER_WITH_BODY = const ParserErrorCode.con3('EXTERNAL_SETTER_WITH_BODY', 43, "External setters cannot have a body");
 
-  static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode.con3('FACTORY_TOP_LEVEL_DECLARATION', 44, "Top-level declarations cannot be declared to be 'factory'");
+  static const ParserErrorCode EXTERNAL_TYPEDEF = const ParserErrorCode.con3('EXTERNAL_TYPEDEF', 44, "Type aliases cannot be declared to be 'external'");
 
-  static const ParserErrorCode FACTORY_WITHOUT_BODY = const ParserErrorCode.con3('FACTORY_WITHOUT_BODY', 45, "A non-redirecting 'factory' constructor must have a body");
+  static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode.con3('FACTORY_TOP_LEVEL_DECLARATION', 45, "Top-level declarations cannot be declared to be 'factory'");
 
-  static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = const ParserErrorCode.con3('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 46, "Field initializers can only be used in a constructor");
+  static const ParserErrorCode FACTORY_WITHOUT_BODY = const ParserErrorCode.con3('FACTORY_WITHOUT_BODY', 46, "A non-redirecting 'factory' constructor must have a body");
 
-  static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode.con3('FINAL_AND_VAR', 47, "Members cannot be declared to be both 'final' and 'var'");
+  static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = const ParserErrorCode.con3('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 47, "Field initializers can only be used in a constructor");
 
-  static const ParserErrorCode FINAL_CLASS = const ParserErrorCode.con3('FINAL_CLASS', 48, "Classes cannot be declared to be 'final'");
+  static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode.con3('FINAL_AND_VAR', 48, "Members cannot be declared to be both 'final' and 'var'");
 
-  static const ParserErrorCode FINAL_CONSTRUCTOR = const ParserErrorCode.con3('FINAL_CONSTRUCTOR', 49, "A constructor cannot be declared to be 'final'");
+  static const ParserErrorCode FINAL_CLASS = const ParserErrorCode.con3('FINAL_CLASS', 49, "Classes cannot be declared to be 'final'");
 
-  static const ParserErrorCode FINAL_METHOD = const ParserErrorCode.con3('FINAL_METHOD', 50, "Getters, setters and methods cannot be declared to be 'final'");
+  static const ParserErrorCode FINAL_CONSTRUCTOR = const ParserErrorCode.con3('FINAL_CONSTRUCTOR', 50, "A constructor cannot be declared to be 'final'");
 
-  static const ParserErrorCode FINAL_TYPEDEF = const ParserErrorCode.con3('FINAL_TYPEDEF', 51, "Type aliases cannot be declared to be 'final'");
+  static const ParserErrorCode FINAL_METHOD = const ParserErrorCode.con3('FINAL_METHOD', 51, "Getters, setters and methods cannot be declared to be 'final'");
 
-  static const ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = const ParserErrorCode.con3('FUNCTION_TYPED_PARAMETER_VAR', 52, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
+  static const ParserErrorCode FINAL_TYPEDEF = const ParserErrorCode.con3('FINAL_TYPEDEF', 52, "Type aliases cannot be declared to be 'final'");
 
-  static const ParserErrorCode GETTER_IN_FUNCTION = const ParserErrorCode.con3('GETTER_IN_FUNCTION', 53, "Getters cannot be defined within methods or functions");
+  static const ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = const ParserErrorCode.con3('FUNCTION_TYPED_PARAMETER_VAR', 53, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
 
-  static const ParserErrorCode GETTER_WITH_PARAMETERS = const ParserErrorCode.con3('GETTER_WITH_PARAMETERS', 54, "Getter should be declared without a parameter list");
+  static const ParserErrorCode GETTER_IN_FUNCTION = const ParserErrorCode.con3('GETTER_IN_FUNCTION', 54, "Getters cannot be defined within methods or functions");
 
-  static const ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = const ParserErrorCode.con3('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 55, "Illegal assignment to non-assignable expression");
+  static const ParserErrorCode GETTER_WITH_PARAMETERS = const ParserErrorCode.con3('GETTER_WITH_PARAMETERS', 55, "Getter should be declared without a parameter list");
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = const ParserErrorCode.con3('IMPLEMENTS_BEFORE_EXTENDS', 56, "The extends clause must be before the implements clause");
+  static const ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = const ParserErrorCode.con3('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 56, "Illegal assignment to non-assignable expression");
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = const ParserErrorCode.con3('IMPLEMENTS_BEFORE_WITH', 57, "The with clause must be before the implements clause");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = const ParserErrorCode.con3('IMPLEMENTS_BEFORE_EXTENDS', 57, "The extends clause must be before the implements clause");
 
-  static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = const ParserErrorCode.con3('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 58, "Import directives must preceed part directives");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = const ParserErrorCode.con3('IMPLEMENTS_BEFORE_WITH', 58, "The with clause must be before the implements clause");
 
-  static const ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = const ParserErrorCode.con3('INITIALIZED_VARIABLE_IN_FOR_EACH', 59, "The loop variable in a for-each loop cannot be initialized");
+  static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = const ParserErrorCode.con3('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 59, "Import directives must preceed part directives");
 
-  static const ParserErrorCode INVALID_CODE_POINT = const ParserErrorCode.con3('INVALID_CODE_POINT', 60, "The escape sequence '%s' is not a valid code point");
+  static const ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = const ParserErrorCode.con3('INITIALIZED_VARIABLE_IN_FOR_EACH', 60, "The loop variable in a for-each loop cannot be initialized");
 
-  static const ParserErrorCode INVALID_COMMENT_REFERENCE = const ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 61, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
+  static const ParserErrorCode INVALID_CODE_POINT = const ParserErrorCode.con3('INVALID_CODE_POINT', 61, "The escape sequence '%s' is not a valid code point");
 
-  static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode.con3('INVALID_HEX_ESCAPE', 62, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+  static const ParserErrorCode INVALID_COMMENT_REFERENCE = const ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 62, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
 
-  static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode.con3('INVALID_OPERATOR', 63, "The string '%s' is not a valid operator");
+  static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode.con3('INVALID_HEX_ESCAPE', 63, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
 
-  static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = const ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 64, "The operator '%s' cannot be used with 'super'");
+  static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode.con3('INVALID_OPERATOR', 64, "The string '%s' is not a valid operator");
 
-  static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode.con3('INVALID_UNICODE_ESCAPE', 65, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
+  static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = const ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 65, "The operator '%s' cannot be used with 'super'");
 
-  static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode.con3('LIBRARY_DIRECTIVE_NOT_FIRST', 66, "The library directive must appear before all other directives");
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode.con3('INVALID_UNICODE_ESCAPE', 66, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
 
-  static const ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = const ParserErrorCode.con3('LOCAL_FUNCTION_DECLARATION_MODIFIER', 67, "Local function declarations cannot specify any modifier");
+  static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode.con3('LIBRARY_DIRECTIVE_NOT_FIRST', 67, "The library directive must appear before all other directives");
 
-  static const ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = const ParserErrorCode.con3('MISSING_ASSIGNABLE_SELECTOR', 68, "Missing selector such as \".<identifier>\" or \"[0]\"");
+  static const ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = const ParserErrorCode.con3('LOCAL_FUNCTION_DECLARATION_MODIFIER', 68, "Local function declarations cannot specify any modifier");
 
-  static const ParserErrorCode MISSING_CATCH_OR_FINALLY = const ParserErrorCode.con3('MISSING_CATCH_OR_FINALLY', 69, "A try statement must have either a catch or finally clause");
+  static const ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = const ParserErrorCode.con3('MISSING_ASSIGNABLE_SELECTOR', 69, "Missing selector such as \".<identifier>\" or \"[0]\"");
 
-  static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode.con3('MISSING_CLASS_BODY', 70, "A class definition must have a body, even if it is empty");
+  static const ParserErrorCode MISSING_CATCH_OR_FINALLY = const ParserErrorCode.con3('MISSING_CATCH_OR_FINALLY', 70, "A try statement must have either a catch or finally clause");
 
-  static const ParserErrorCode MISSING_CLOSING_PARENTHESIS = const ParserErrorCode.con3('MISSING_CLOSING_PARENTHESIS', 71, "The closing parenthesis is missing");
+  static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode.con3('MISSING_CLASS_BODY', 71, "A class definition must have a body, even if it is empty");
 
-  static const ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode.con3('MISSING_CONST_FINAL_VAR_OR_TYPE', 72, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
+  static const ParserErrorCode MISSING_CLOSING_PARENTHESIS = const ParserErrorCode.con3('MISSING_CLOSING_PARENTHESIS', 72, "The closing parenthesis is missing");
 
-  static const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode.con3('MISSING_EXPRESSION_IN_THROW', 73, "Throw expressions must compute the object to be thrown");
+  static const ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode.con3('MISSING_CONST_FINAL_VAR_OR_TYPE', 73, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
 
-  static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode.con3('MISSING_FUNCTION_BODY', 74, "A function body must be provided");
+  static const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode.con3('MISSING_EXPRESSION_IN_THROW', 74, "Throw expressions must compute the object to be thrown");
 
-  static const ParserErrorCode MISSING_FUNCTION_PARAMETERS = const ParserErrorCode.con3('MISSING_FUNCTION_PARAMETERS', 75, "Functions must have an explicit list of parameters");
+  static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode.con3('MISSING_FUNCTION_BODY', 75, "A function body must be provided");
 
-  static const ParserErrorCode MISSING_GET = const ParserErrorCode.con3('MISSING_GET', 76, "Getters must have the keyword 'get' before the getter name");
+  static const ParserErrorCode MISSING_FUNCTION_PARAMETERS = const ParserErrorCode.con3('MISSING_FUNCTION_PARAMETERS', 76, "Functions must have an explicit list of parameters");
 
-  static const ParserErrorCode MISSING_IDENTIFIER = const ParserErrorCode.con3('MISSING_IDENTIFIER', 77, "Expected an identifier");
+  static const ParserErrorCode MISSING_GET = const ParserErrorCode.con3('MISSING_GET', 77, "Getters must have the keyword 'get' before the getter name");
 
-  static const ParserErrorCode MISSING_KEYWORD_OPERATOR = const ParserErrorCode.con3('MISSING_KEYWORD_OPERATOR', 78, "Operator declarations must be preceeded by the keyword 'operator'");
+  static const ParserErrorCode MISSING_IDENTIFIER = const ParserErrorCode.con3('MISSING_IDENTIFIER', 78, "Expected an identifier");
 
-  static const ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = const ParserErrorCode.con3('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 79, "Library directives must include a library name");
+  static const ParserErrorCode MISSING_KEYWORD_OPERATOR = const ParserErrorCode.con3('MISSING_KEYWORD_OPERATOR', 79, "Operator declarations must be preceeded by the keyword 'operator'");
 
-  static const ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = const ParserErrorCode.con3('MISSING_NAME_IN_PART_OF_DIRECTIVE', 80, "Library directives must include a library name");
+  static const ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = const ParserErrorCode.con3('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 80, "Library directives must include a library name");
 
-  static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT = const ParserErrorCode.con3('MISSING_PREFIX_IN_DEFERRED_IMPORT', 81, "Deferred imports must have a prefix");
+  static const ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = const ParserErrorCode.con3('MISSING_NAME_IN_PART_OF_DIRECTIVE', 81, "Library directives must include a library name");
 
-  static const ParserErrorCode MISSING_STATEMENT = const ParserErrorCode.con3('MISSING_STATEMENT', 82, "Expected a statement");
+  static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT = const ParserErrorCode.con3('MISSING_PREFIX_IN_DEFERRED_IMPORT', 82, "Deferred imports must have a prefix");
 
-  static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 83, "There is no '%s' to close the parameter group");
+  static const ParserErrorCode MISSING_STATEMENT = const ParserErrorCode.con3('MISSING_STATEMENT', 83, "Expected a statement");
 
-  static const ParserErrorCode MISSING_TYPEDEF_PARAMETERS = const ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 84, "Type aliases for functions must have an explicit list of parameters");
+  static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 84, "There is no '%s' to close the parameter group");
 
-  static const ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = const ParserErrorCode.con3('MISSING_VARIABLE_IN_FOR_EACH', 85, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+  static const ParserErrorCode MISSING_TYPEDEF_PARAMETERS = const ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 85, "Type aliases for functions must have an explicit list of parameters");
 
-  static const ParserErrorCode MIXED_PARAMETER_GROUPS = const ParserErrorCode.con3('MIXED_PARAMETER_GROUPS', 86, "Cannot have both positional and named parameters in a single parameter list");
+  static const ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = const ParserErrorCode.con3('MISSING_VARIABLE_IN_FOR_EACH', 86, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
 
-  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode.con3('MULTIPLE_EXTENDS_CLAUSES', 87, "Each class definition can have at most one extends clause");
+  static const ParserErrorCode MIXED_PARAMETER_GROUPS = const ParserErrorCode.con3('MIXED_PARAMETER_GROUPS', 87, "Cannot have both positional and named parameters in a single parameter list");
 
-  static const ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = const ParserErrorCode.con3('MULTIPLE_IMPLEMENTS_CLAUSES', 88, "Each class definition can have at most one implements clause");
+  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode.con3('MULTIPLE_EXTENDS_CLAUSES', 88, "Each class definition can have at most one extends clause");
 
-  static const ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = const ParserErrorCode.con3('MULTIPLE_LIBRARY_DIRECTIVES', 89, "Only one library directive may be declared in a file");
+  static const ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = const ParserErrorCode.con3('MULTIPLE_IMPLEMENTS_CLAUSES', 89, "Each class definition can have at most one implements clause");
 
-  static const ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = const ParserErrorCode.con3('MULTIPLE_NAMED_PARAMETER_GROUPS', 90, "Cannot have multiple groups of named parameters in a single parameter list");
+  static const ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = const ParserErrorCode.con3('MULTIPLE_LIBRARY_DIRECTIVES', 90, "Only one library directive may be declared in a file");
 
-  static const ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = const ParserErrorCode.con3('MULTIPLE_PART_OF_DIRECTIVES', 91, "Only one part-of directive may be declared in a file");
+  static const ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = const ParserErrorCode.con3('MULTIPLE_NAMED_PARAMETER_GROUPS', 91, "Cannot have multiple groups of named parameters in a single parameter list");
 
-  static const ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = const ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 92, "Cannot have multiple groups of positional parameters in a single parameter list");
+  static const ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = const ParserErrorCode.con3('MULTIPLE_PART_OF_DIRECTIVES', 92, "Only one part-of directive may be declared in a file");
 
-  static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = const ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 93, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static const ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = const ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 93, "Cannot have multiple groups of positional parameters in a single parameter list");
 
-  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = const ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 94, "Each class definition can have at most one with clause");
+  static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = const ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 94, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
 
-  static const ParserErrorCode NAMED_FUNCTION_EXPRESSION = const ParserErrorCode.con3('NAMED_FUNCTION_EXPRESSION', 95, "Function expressions cannot be named");
+  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = const ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 95, "Each class definition can have at most one with clause");
 
-  static const ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = const ParserErrorCode.con3('NAMED_PARAMETER_OUTSIDE_GROUP', 96, "Named parameters must be enclosed in curly braces ('{' and '}')");
+  static const ParserErrorCode NAMED_FUNCTION_EXPRESSION = const ParserErrorCode.con3('NAMED_FUNCTION_EXPRESSION', 96, "Function expressions cannot be named");
 
-  static const ParserErrorCode NATIVE_CLAUSE_IN_NON_SDK_CODE = const ParserErrorCode.con3('NATIVE_CLAUSE_IN_NON_SDK_CODE', 97, "Native clause can only be used in the SDK and code that is loaded through native extensions");
+  static const ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = const ParserErrorCode.con3('NAMED_PARAMETER_OUTSIDE_GROUP', 97, "Named parameters must be enclosed in curly braces ('{' and '}')");
 
-  static const ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = const ParserErrorCode.con3('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 98, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
+  static const ParserErrorCode NATIVE_CLAUSE_IN_NON_SDK_CODE = const ParserErrorCode.con3('NATIVE_CLAUSE_IN_NON_SDK_CODE', 98, "Native clause can only be used in the SDK and code that is loaded through native extensions");
 
-  static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode.con3('NON_CONSTRUCTOR_FACTORY', 99, "Only constructors can be declared to be a 'factory'");
+  static const ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = const ParserErrorCode.con3('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 99, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
 
-  static const ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = const ParserErrorCode.con3('NON_IDENTIFIER_LIBRARY_NAME', 100, "The name of a library must be an identifier");
+  static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode.con3('NON_CONSTRUCTOR_FACTORY', 100, "Only constructors can be declared to be a 'factory'");
 
-  static const ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = const ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 101, "The part-of directive must be the only directive in a part");
+  static const ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = const ParserErrorCode.con3('NON_IDENTIFIER_LIBRARY_NAME', 101, "The name of a library must be an identifier");
 
-  static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = const ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 102, "The operator '%s' is not user definable");
+  static const ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = const ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 102, "The part-of directive must be the only directive in a part");
 
-  static const ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = const ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 103, "Normal parameters must occur before optional parameters");
+  static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = const ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 103, "The operator '%s' is not user definable");
 
-  static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = const ParserErrorCode.con3('POSITIONAL_AFTER_NAMED_ARGUMENT', 104, "Positional arguments must occur before named arguments");
+  static const ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = const ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 104, "Normal parameters must occur before optional parameters");
 
-  static const ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = const ParserErrorCode.con3('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 105, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+  static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = const ParserErrorCode.con3('POSITIONAL_AFTER_NAMED_ARGUMENT', 105, "Positional arguments must occur before named arguments");
 
-  static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = const ParserErrorCode.con3('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR', 106, "Only factory constructor can specify '=' redirection.");
+  static const ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = const ParserErrorCode.con3('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 106, "Positional parameters must be enclosed in square brackets ('[' and ']')");
 
-  static const ParserErrorCode SETTER_IN_FUNCTION = const ParserErrorCode.con3('SETTER_IN_FUNCTION', 107, "Setters cannot be defined within methods or functions");
+  static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = const ParserErrorCode.con3('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR', 107, "Only factory constructor can specify '=' redirection.");
 
-  static const ParserErrorCode STATIC_AFTER_CONST = const ParserErrorCode.con3('STATIC_AFTER_CONST', 108, "The modifier 'static' should be before the modifier 'const'");
+  static const ParserErrorCode SETTER_IN_FUNCTION = const ParserErrorCode.con3('SETTER_IN_FUNCTION', 108, "Setters cannot be defined within methods or functions");
 
-  static const ParserErrorCode STATIC_AFTER_FINAL = const ParserErrorCode.con3('STATIC_AFTER_FINAL', 109, "The modifier 'static' should be before the modifier 'final'");
+  static const ParserErrorCode STATIC_AFTER_CONST = const ParserErrorCode.con3('STATIC_AFTER_CONST', 109, "The modifier 'static' should be before the modifier 'const'");
 
-  static const ParserErrorCode STATIC_AFTER_VAR = const ParserErrorCode.con3('STATIC_AFTER_VAR', 110, "The modifier 'static' should be before the modifier 'var'");
+  static const ParserErrorCode STATIC_AFTER_FINAL = const ParserErrorCode.con3('STATIC_AFTER_FINAL', 110, "The modifier 'static' should be before the modifier 'final'");
 
-  static const ParserErrorCode STATIC_CONSTRUCTOR = const ParserErrorCode.con3('STATIC_CONSTRUCTOR', 111, "Constructors cannot be static");
+  static const ParserErrorCode STATIC_AFTER_VAR = const ParserErrorCode.con3('STATIC_AFTER_VAR', 111, "The modifier 'static' should be before the modifier 'var'");
 
-  static const ParserErrorCode STATIC_GETTER_WITHOUT_BODY = const ParserErrorCode.con3('STATIC_GETTER_WITHOUT_BODY', 112, "A 'static' getter must have a body");
+  static const ParserErrorCode STATIC_CONSTRUCTOR = const ParserErrorCode.con3('STATIC_CONSTRUCTOR', 112, "Constructors cannot be static");
 
-  static const ParserErrorCode STATIC_OPERATOR = const ParserErrorCode.con3('STATIC_OPERATOR', 113, "Operators cannot be static");
+  static const ParserErrorCode STATIC_GETTER_WITHOUT_BODY = const ParserErrorCode.con3('STATIC_GETTER_WITHOUT_BODY', 113, "A 'static' getter must have a body");
 
-  static const ParserErrorCode STATIC_SETTER_WITHOUT_BODY = const ParserErrorCode.con3('STATIC_SETTER_WITHOUT_BODY', 114, "A 'static' setter must have a body");
+  static const ParserErrorCode STATIC_OPERATOR = const ParserErrorCode.con3('STATIC_OPERATOR', 114, "Operators cannot be static");
 
-  static const ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = const ParserErrorCode.con3('STATIC_TOP_LEVEL_DECLARATION', 115, "Top-level declarations cannot be declared to be 'static'");
+  static const ParserErrorCode STATIC_SETTER_WITHOUT_BODY = const ParserErrorCode.con3('STATIC_SETTER_WITHOUT_BODY', 115, "A 'static' setter must have a body");
 
-  static const ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = const ParserErrorCode.con3('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 116, "The 'default' case should be the last case in a switch statement");
+  static const ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = const ParserErrorCode.con3('STATIC_TOP_LEVEL_DECLARATION', 116, "Top-level declarations cannot be declared to be 'static'");
 
-  static const ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = const ParserErrorCode.con3('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 117, "The 'default' case can only be declared once");
+  static const ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = const ParserErrorCode.con3('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 117, "The 'default' case should be the last case in a switch statement");
 
-  static const ParserErrorCode TOP_LEVEL_OPERATOR = const ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 118, "Operators must be declared within a class");
+  static const ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = const ParserErrorCode.con3('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 118, "The 'default' case can only be declared once");
 
-  static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 119, "There is no '%s' to open a parameter group");
+  static const ParserErrorCode TOP_LEVEL_OPERATOR = const ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 119, "Operators must be declared within a class");
 
-  static const ParserErrorCode UNEXPECTED_TOKEN = const ParserErrorCode.con3('UNEXPECTED_TOKEN', 120, "Unexpected token '%s'");
+  static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 120, "There is no '%s' to open a parameter group");
 
-  static const ParserErrorCode WITH_BEFORE_EXTENDS = const ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 121, "The extends clause must be before the with clause");
+  static const ParserErrorCode UNEXPECTED_TOKEN = const ParserErrorCode.con3('UNEXPECTED_TOKEN', 121, "Unexpected token '%s'");
 
-  static const ParserErrorCode WITH_WITHOUT_EXTENDS = const ParserErrorCode.con3('WITH_WITHOUT_EXTENDS', 122, "The with clause cannot be used without an extends clause");
+  static const ParserErrorCode WITH_BEFORE_EXTENDS = const ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 122, "The extends clause must be before the with clause");
 
-  static const ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = const ParserErrorCode.con3('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 123, "The default value of a named parameter should be preceeded by ':'");
+  static const ParserErrorCode WITH_WITHOUT_EXTENDS = const ParserErrorCode.con3('WITH_WITHOUT_EXTENDS', 123, "The with clause cannot be used without an extends clause");
 
-  static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = const ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 124, "The default value of a positional parameter should be preceeded by '='");
+  static const ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = const ParserErrorCode.con3('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 124, "The default value of a named parameter should be preceeded by ':'");
 
-  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 125, "Expected '%s' to close parameter group");
+  static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = const ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 125, "The default value of a positional parameter should be preceeded by '='");
 
-  static const ParserErrorCode VAR_AND_TYPE = const ParserErrorCode.con3('VAR_AND_TYPE', 126, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
+  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 126, "Expected '%s' to close parameter group");
 
-  static const ParserErrorCode VAR_AS_TYPE_NAME = const ParserErrorCode.con3('VAR_AS_TYPE_NAME', 127, "The keyword 'var' cannot be used as a type name");
+  static const ParserErrorCode VAR_AND_TYPE = const ParserErrorCode.con3('VAR_AND_TYPE', 127, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
 
-  static const ParserErrorCode VAR_CLASS = const ParserErrorCode.con3('VAR_CLASS', 128, "Classes cannot be declared to be 'var'");
+  static const ParserErrorCode VAR_AS_TYPE_NAME = const ParserErrorCode.con3('VAR_AS_TYPE_NAME', 128, "The keyword 'var' cannot be used as a type name");
 
-  static const ParserErrorCode VAR_RETURN_TYPE = const ParserErrorCode.con3('VAR_RETURN_TYPE', 129, "The return type cannot be 'var'");
+  static const ParserErrorCode VAR_CLASS = const ParserErrorCode.con3('VAR_CLASS', 129, "Classes cannot be declared to be 'var'");
 
-  static const ParserErrorCode VAR_TYPEDEF = const ParserErrorCode.con3('VAR_TYPEDEF', 130, "Type aliases cannot be declared to be 'var'");
+  static const ParserErrorCode VAR_RETURN_TYPE = const ParserErrorCode.con3('VAR_RETURN_TYPE', 130, "The return type cannot be 'var'");
 
-  static const ParserErrorCode VOID_PARAMETER = const ParserErrorCode.con3('VOID_PARAMETER', 131, "Parameters cannot have a type of 'void'");
+  static const ParserErrorCode VAR_TYPEDEF = const ParserErrorCode.con3('VAR_TYPEDEF', 131, "Type aliases cannot be declared to be 'var'");
 
-  static const ParserErrorCode VOID_VARIABLE = const ParserErrorCode.con3('VOID_VARIABLE', 132, "Variables cannot have a type of 'void'");
+  static const ParserErrorCode VOID_PARAMETER = const ParserErrorCode.con3('VOID_PARAMETER', 132, "Parameters cannot have a type of 'void'");
+
+  static const ParserErrorCode VOID_VARIABLE = const ParserErrorCode.con3('VOID_VARIABLE', 133, "Variables cannot have a type of 'void'");
 
   static const List<ParserErrorCode> values = const [
       ABSTRACT_CLASS_MEMBER,
@@ -7703,6 +7724,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
       CONSTRUCTOR_WITH_RETURN_TYPE,
       CONTINUE_OUTSIDE_OF_LOOP,
       CONTINUE_WITHOUT_LABEL_IN_CASE,
+      DEFERRED_IMPORTS_NOT_SUPPORTED,
       DEPRECATED_CLASS_TYPE_ALIAS,
       DIRECTIVE_AFTER_DECLARATION,
       DUPLICATE_LABEL_IN_SWITCH_STATEMENT,

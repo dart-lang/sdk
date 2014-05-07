@@ -13,12 +13,7 @@ built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
-#unicode_bom_test: Fail # Issue 16314
-
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
-
-const_map2_test/00: MissingCompileTimeError # Issue 17209
-switch_case_test/none: CompileTimeError # Issue 17209
 
 call_closurization_test: StaticWarning # Issue 17476
 
@@ -77,9 +72,6 @@ field_method4_negative_test: fail
 # test issue 11594, Reference to a not resolve identifier is static warning
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
-
-# test issue 11697: switch/case and static const class member
-switch_case_static_const_test: fail
 
 # test issue 11918: mixin and const constructor
 const_constructor_mixin_test/01: fail
@@ -191,9 +183,6 @@ override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
-# missing warning for assignment to method
-assign_top_method_test/01: MissingStaticWarning # Issue 16672
-
 abstract_object_method_test: StaticWarning
 application_negative_test: CompileTimeError
 bad_constructor_test/05: CompileTimeError
@@ -201,7 +190,6 @@ bad_initializer1_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
 const_counter_negative_test: CompileTimeError
-const_map3_test/00: MissingCompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
 constructor_redirect2_negative_test: CompileTimeError
@@ -466,6 +454,18 @@ deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
 deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
 deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
+
+# The following lines have been left in to quickly switch back to having deferred loading
+# off by default again.
+# Deferred loading support, tests marked as failing until support is enabled by default.
+#deferred_closurize_load_library_test: Pass, Fail
+#deferred_not_loaded_check_test/*: Pass, Fail
+#deferred_shadow_load_library_test: Pass, Fail
+#deferred_constraints_constants_test/*: Pass, Fail
+#deferred_load_library_wrong_args_test/*: Pass, Fail
+#deferred_constraints_type_annotation_test/*: Pass, Fail
+#deferred_load_inval_code_test: Pass, Fail
+#deferred_not_loaded_check_test: Pass, Fail
 
 # Issues to be fixed now that type parameters have been fixed
 # (issues 14221, 15553)

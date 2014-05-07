@@ -1354,11 +1354,16 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   InterfaceType _stringType;
 
   /**
+   * The current library that is being analyzed.
+   */
+  final LibraryElement _currentLibrary;
+
+  /**
    * Initialize a newly created constant verifier.
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(this._errorReporter, this._typeProvider) {
+  ConstantVerifier(this._errorReporter, this._currentLibrary, this._typeProvider) {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
@@ -1415,8 +1420,12 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   Object visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.constKeyword != null) {
+      EvaluationResultImpl result;
       for (Expression element in node.elements) {
-        _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        result = _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        if (result is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
+        }
       }
     }
     return null;
@@ -1432,14 +1441,23 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Expression key = entry.key;
       if (isConst) {
-        EvaluationResultImpl result = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        _validate(entry.value, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (result is ValidResult) {
-          DartObject value = result.value;
+        EvaluationResultImpl keyResult = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        Expression valueExpression = entry.value;
+        EvaluationResultImpl valueResult = _validate(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+        if (valueResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+        }
+        if (keyResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+          DartObject value = keyResult.value;
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
             keys.add(value);
+          }
+          DartType type = value.type;
+          if (_implementsEqualsWhenNotAllowed(type)) {
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, key, [type.displayName]);
           }
         }
       } else {
@@ -1472,10 +1490,37 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
-    super.visitSwitchCase(node);
-    _validate(node.expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-    return null;
+  Object visitSwitchStatement(SwitchStatement node) {
+    // TODO(paulberry): to minimize error messages, it would be nice to
+    // compare all types with the most popular type rather than the first
+    // type.
+    NodeList<SwitchMember> switchMembers = node.members;
+    bool foundError = false;
+    DartType firstType = null;
+    for (SwitchMember switchMember in switchMembers) {
+      if (switchMember is SwitchCase) {
+        SwitchCase switchCase = switchMember;
+        Expression expression = switchCase.expression;
+        EvaluationResultImpl caseResult = _validate(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+        if (caseResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+          DartObject value = caseResult.value;
+          if (firstType == null) {
+            firstType = value.type;
+          } else {
+            DartType nType = value.type;
+            if (firstType != nType) {
+              _errorReporter.reportErrorForNode(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, expression, [expression.toSource(), firstType.displayName]);
+              foundError = true;
+            }
+          }
+        }
+      }
+    }
+    if (!foundError) {
+      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
+    }
+    return super.visitSwitchStatement(node);
   }
 
   @override
@@ -1498,14 +1543,76 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         _reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         return null;
       }
-      DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-      initializer.accept(referenceDetector);
-      if (referenceDetector.result) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY, initializer, []);
-        return null;
-      }
+      _reportErrorIfFromDeferredLibrary(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
+  }
+
+  /**
+   * This verifies that the passed switch statement does not have a case expression with the
+   * operator '==' overridden.
+   *
+   * @param node the switch statement to evaluate
+   * @param type the common type of all 'case' expressions
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
+    if (!_implementsEqualsWhenNotAllowed(type)) {
+      return false;
+    }
+    // report error
+    _errorReporter.reportErrorForToken(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, node.keyword, [type.displayName]);
+    return true;
+  }
+
+  /**
+   * @return `true` if given [Type] implements operator <i>==</i>, and it is not
+   *         <i>int</i> or <i>String</i>.
+   */
+  bool _implementsEqualsWhenNotAllowed(DartType type) {
+    // ignore int or String
+    if (type == null || type == _intType || type == _typeProvider.stringType) {
+      return false;
+    } else if (type == _typeProvider.doubleType) {
+      return true;
+    }
+    // prepare ClassElement
+    Element element = type.element;
+    if (element is! ClassElement) {
+      return false;
+    }
+    ClassElement classElement = element as ClassElement;
+    // lookup for ==
+    MethodElement method = classElement.lookUpMethod("==", _currentLibrary);
+    while (method != null && method.isAbstract) {
+      ClassElement definingClass = method.enclosingElement;
+      if (definingClass == null) {
+        return false;
+      }
+      method = definingClass.lookUpInheritedMethod("==", _currentLibrary);
+    }
+    if (method == null || method.enclosingElement.type.isObject) {
+      return false;
+    }
+    // there is == that we don't like
+    return true;
+  }
+
+  /**
+   * Given some computed [Expression], this method generates the passed [ErrorCode] on
+   * the node if its' value consists of information from a deferred library.
+   *
+   * @param expression the expression to be tested for a deferred library reference
+   * @param errorCode the error code to be used if the expression is or consists of a reference to a
+   *          deferred library
+   */
+  void _reportErrorIfFromDeferredLibrary(Expression expression, ErrorCode errorCode) {
+    DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+    expression.accept(referenceDetector);
+    if (referenceDetector.result) {
+      _errorReporter.reportErrorForNode(errorCode, expression, []);
+    }
   }
 
   /**
@@ -1576,10 +1683,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           EvaluationResultImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = parameter.element as VariableElementImpl;
           element.evaluationResult = result;
-          DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-          defaultValue.accept(referenceDetector);
-          if (result is ValidResult && referenceDetector.result) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY, defaultValue, []);
+          if (result is ValidResult) {
+            _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
       }
@@ -1596,6 +1701,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   void _validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor_ConstantVerifier_validateInitializerExpression(_typeProvider, this, parameterElements));
     _reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    if (result is ValidResult) {
+      _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    }
   }
 
   /**
@@ -5509,10 +5617,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             return _resolveArgumentsToFunction(false, argumentList, callMethod);
           }
         } else if (getterReturnType is FunctionType) {
-          Element functionElement = getterReturnType.element;
-          if (functionElement is ExecutableElement) {
-            return _resolveArgumentsToFunction(false, argumentList, functionElement);
-          }
+          List<ParameterElement> parameters = getterReturnType.parameters;
+          return _resolveArgumentsToParameters(false, argumentList, parameters);
         }
       }
     } else if (element is ExecutableElement) {
@@ -6662,13 +6768,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           element = setter;
         }
       }
-    } else if (element == null && node.inSetterContext()) {
+    } else if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
       element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
-      if (element == null && node.inSetterContext()) {
+      if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
         element = _lookUpSetter(null, enclosingType, node.name);
       }
       if (element == null && node.inGetterContext()) {
@@ -7586,7 +7692,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForMapTypeNotAssignable(node, typeArguments);
     }
     _checkForNonConstMapAsExpressionStatement(node);
-    _checkForConstMapKeyExpressionTypeImplementsEquals(node);
     return super.visitMapLiteral(node);
   }
 
@@ -7752,7 +7857,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    _checkForInconsistentCaseExpressionTypes(node);
     _checkForSwitchExpressionNotAssignable(node);
     _checkForCaseBlocksNotTerminated(node);
     return super.visitSwitchStatement(node);
@@ -8624,6 +8728,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       return false;
     }
+    if (element is FunctionElement) {
+      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression, []);
+      return true;
+    }
     if (element is MethodElement) {
       _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression, []);
       return true;
@@ -8714,24 +8822,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return foundError;
-  }
-
-  /**
-   * This verifies that the passed switch statement does not have a case expression with the
-   * operator '==' overridden.
-   *
-   * @param node the switch statement to evaluate
-   * @param type the common type of all 'case' expressions
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
-    if (!_implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    _errorReporter.reportErrorForToken(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, node.keyword, [type.displayName]);
-    return true;
   }
 
   /**
@@ -9224,32 +9314,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This verifies that the all keys of the passed map literal have class type that does not declare
-   * operator <i>==<i>.
-   *
-   * @param key the map literal to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  bool _checkForConstMapKeyExpressionTypeImplementsEquals(MapLiteral node) {
-    // OK, not const.
-    if (node.constKeyword == null) {
-      return false;
-    }
-    // Check every map entry.
-    bool hasProblems = false;
-    for (MapLiteralEntry entry in node.entries) {
-      Expression key = entry.key;
-      DartType type = key.staticType;
-      if (_implementsEqualsWhenNotAllowed(type)) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, key, [type.displayName]);
-        hasProblems = true;
-      }
-    }
-    return hasProblems;
   }
 
   /**
@@ -10005,42 +10069,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // report problem
     _errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, node, [node.uri]);
     return true;
-  }
-
-  /**
-   * This verifies that the passed switch statement case expressions all have the same type.
-   *
-   * @param node the switch statement to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
-   */
-  bool _checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
-    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors?
-    NodeList<SwitchMember> switchMembers = node.members;
-    bool foundError = false;
-    DartType firstType = null;
-    for (SwitchMember switchMember in switchMembers) {
-      if (switchMember is SwitchCase) {
-        SwitchCase switchCase = switchMember;
-        Expression expression = switchCase.expression;
-        if (firstType == null) {
-          // TODO(brianwilkerson) This is failing with const variables whose declared type is
-          // dynamic. The problem is that we don't have any way to propagate type information for
-          // the variable.
-          firstType = expression.bestType;
-        } else {
-          DartType nType = expression.bestType;
-          if (firstType != nType) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, expression, [expression.toSource(), firstType.displayName]);
-            foundError = true;
-          }
-        }
-      }
-    }
-    if (!foundError) {
-      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
-    }
-    return foundError;
   }
 
   /**
@@ -11032,6 +11060,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
    * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
    * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
+   * @see CompileTimeErrorCode#REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
    */
   bool _checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
     bool errorReported = false;
@@ -11054,6 +11083,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (numRedirections > 0) {
           _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS, initializer, []);
           errorReported = true;
+        }
+        if (node.factoryKeyword == null) {
+          RedirectingConstructorInvocation invocation = initializer;
+          ConstructorElement redirectingElement = invocation.staticElement;
+          if (redirectingElement == null) {
+            String enclosingTypeName = _enclosingClass.displayName;
+            String constructorStrName = enclosingTypeName;
+            if (invocation.constructorName != null) {
+              constructorStrName += ".${invocation.constructorName.name}";
+            }
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, invocation, [constructorStrName, enclosingTypeName]);
+          } else {
+            if (redirectingElement.isFactory) {
+              _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR, initializer, []);
+            }
+          }
         }
         numRedirections++;
       }
@@ -11764,30 +11809,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       current.accept(new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(target, toCheck));
       checked.add(current);
     }
-  }
-
-  /**
-   * @return `true` if given [Type] implements operator <i>==</i>, and it is not
-   *         <i>int</i> or <i>String</i>.
-   */
-  bool _implementsEqualsWhenNotAllowed(DartType type) {
-    // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
-      return false;
-    }
-    // prepare ClassElement
-    Element element = type.element;
-    if (element is! ClassElement) {
-      return false;
-    }
-    ClassElement classElement = element as ClassElement;
-    // lookup for ==
-    MethodElement method = classElement.lookUpMethod("==", _currentLibrary);
-    if (method == null || method.enclosingElement.type.isObject) {
-      return false;
-    }
-    // there is == that we don't like
-    return true;
   }
 
   bool _isFunctionType(DartType type) {
@@ -17622,6 +17643,12 @@ class ResolverVisitor extends ScopedVisitor {
   ClassElement _enclosingClass = null;
 
   /**
+   * The class declaration representing the class containing the current node, or `null` if
+   * the current node is not contained in a class.
+   */
+  ClassDeclaration _enclosingClassDeclaration = null;
+
+  /**
    * The element representing the function containing the current node, or `null` if the
    * current node is not contained in a function.
    */
@@ -17716,6 +17743,14 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager get promoteManager => _promoteManager;
 
   @override
+  Object visitAnnotation(Annotation node) {
+    if (identical(node.parent, _enclosingClassDeclaration)) {
+      return null;
+    }
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     overrideExpression(node.expression, node.type.type);
@@ -17800,6 +17835,12 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    // Resolve the class metadata in the library scope.
+    if (node.metadata != null) {
+      node.metadata.accept(this);
+    }
+    _enclosingClassDeclaration = node;
+    // Continue the class resolution.
     ClassElement outerType = _enclosingClass;
     try {
       _enclosingClass = node.element;
@@ -17808,6 +17849,7 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
       _enclosingClass = outerType;
+      _enclosingClassDeclaration = null;
     }
     return null;
   }

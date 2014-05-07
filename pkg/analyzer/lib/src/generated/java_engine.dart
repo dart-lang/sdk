@@ -179,6 +179,11 @@ class ArrayUtils {
     target.add(value);
     return target;
   }
+  static List addAt(List target, int index, Object value) {
+    target = new List.from(target);
+    target.insert(index, value);
+    return target;
+  }
   static List addAll(List target, List source) {
     List result = new List.from(target);
     result.addAll(source);
