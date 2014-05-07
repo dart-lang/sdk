@@ -284,6 +284,21 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
+  dynamic _reviver(dynamic key, dynamic value) {
+    return value;
+  }
+
+  ObservableMap _parseJSON(String response) {
+    var map;
+    try {
+      var decoder = new JsonDecoder(_reviver);
+      map = decoder.convert(response);
+    } catch (e, st) {
+      return null;
+    }
+    return toObservable(map);
+  }
+
   Future<ObservableMap> _processMap(ObservableMap map) {
     // Verify that the top level response is a service map.
     if (!_isServiceMap(map)) {
@@ -306,30 +321,35 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(map);
   }
 
+  Future<ObservableMap> _decodeError(e) {
+    return new Future.error(new ServiceObject._fromMap(this, toObservable({
+      'type': 'ServiceException',
+      'id': '',
+      'kind': 'DecodeException',
+      'response':
+          'This is likely a result of a known V8 bug. Although the '
+          'the bug has been fixed the fix may not be in your Chrome'
+          ' version. For more information see dartbug.com/18385. '
+          'Observatory is still functioning and you should try your'
+          ' action again.',
+      'message': 'Could not decode JSON: $e',
+    })));
+  }
+
   /// Gets [id] as an [ObservableMap] from the service directly. If
   /// an error occurs, the future is completed as an error with a
   /// ServiceError or ServiceException. Therefore any chained then() calls
   /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
+      var map;
       try {
-        var map = toObservable(JSON.decode(response));
-        return _processMap(map);
+        map = _parseJSON(response);
       } catch (e, st) {
-        return new Future.error(
-              new ServiceObject._fromMap(this, toObservable({
-          'type': 'ServiceException',
-          'id': '',
-          'kind': 'DecodeException',
-          'response':
-              'This is likely a result of a known V8 bug. Although the '
-              'the bug has been fixed the fix may not be in your Chrome'
-              ' version. For more information see dartbug.com/18385. '
-              'Observatory is still functioning and you should try your'
-              ' action again.',
-          'message': 'Could not decode JSON: $e',
-        })));
+        print('Hit V8 bug.');
+        return _decodeError(e);
       }
+      return _processMap(map);
     }).catchError((error) {
       // ServiceError, forward to VM's ServiceError stream.
       errors.add(error);
