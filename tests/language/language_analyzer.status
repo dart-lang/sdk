@@ -13,8 +13,6 @@ built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
-unicode_bom_test: Fail # Issue 16314
-
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
 
 call_closurization_test: StaticWarning # Issue 17476
