@@ -9,11 +9,25 @@ import 'dart:convert';
 
 import '../asset/asset.dart';
 import '../asset/asset_id.dart';
-import '../asset/asset_set.dart';
 import '../errors.dart';
-import '../graph/transform_node.dart';
-import '../utils.dart';
-import 'base_transform.dart';
+import 'aggregate_transform.dart';
+import 'transform_logger.dart';
+
+/// Creates a new [Transform] wrapping an [AggregateTransform].
+///
+/// Although barback internally works in terms of [AggregateTransformer]s, most
+/// transformers only work on individual primary inputs in isolation. We want to
+/// allow those transformers to implement the more user-friendly [Transformer]
+/// interface which takes the more user-friendly [Transform] object. This method
+/// wraps the more general [AggregateTransform] to return a [Transform] instead.
+Future<Transform> newTransform(AggregateTransform aggregate) {
+  // A wrapped [Transformer] will assign each primary input a unique transform
+  // key, so we can safely get the first asset emitted. We don't want to wait
+  // for the stream to close, since that requires barback to prove that no more
+  // new assets will be generated.
+  return aggregate.primaryInputs.first.then((primaryInput) =>
+      new Transform._(aggregate, primaryInput));
+}
 
 /// While a [Transformer] represents a *kind* of transformation, this defines
 /// one specific usage of it on a set of files.
@@ -22,10 +36,9 @@ import 'base_transform.dart';
 /// facilitate communication between the [Transformer] and the code hosting
 /// the transformation. It lets the [Transformer] access inputs and generate
 /// outputs.
-class Transform extends BaseTransform {
-  final TransformNode _node;
-
-  final _outputs = new AssetSet();
+class Transform {
+  /// The underlying aggregate transform.
+  final AggregateTransform _aggregate;
 
   /// Gets the primary input asset.
   ///
@@ -36,31 +49,17 @@ class Transform extends BaseTransform {
   /// For example, with a dart2js transform, the primary input would be the
   /// entrypoint Dart file. All of the other Dart files that that imports
   /// would be secondary inputs.
-  ///
-  /// This method may fail at runtime with an [AssetNotFoundException] if called
-  /// asynchronously after the transform begins running. The primary input may
-  /// become unavailable while this transformer is running due to asset changes
-  /// earlier in the graph. You can ignore the error if this happens: the
-  /// transformer will be re-run automatically for you.
-  Asset get primaryInput {
-    if (!_node.primary.state.isAvailable) {
-      throw new AssetNotFoundException(_node.primary.id);
-    }
+  final Asset primaryInput;
 
-    return _node.primary.asset;
-  }
+  /// A logger so that the [Transformer] can report build details.
+  TransformLogger get logger => _aggregate.logger;
 
-  Transform._(TransformNode node)
-    : _node = node,
-      super(node);
+  Transform._(this._aggregate, this.primaryInput);
 
   /// Gets the asset for an input [id].
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
-  Future<Asset> getInput(AssetId id) {
-    if (id == _node.primary.id) return syncFuture(() => primaryInput);
-    return _node.getInput(id);
-  }
+  Future<Asset> getInput(AssetId id) => _aggregate.getInput(id);
 
   /// A convenience method to the contents of the input with [id] as a string.
   ///
@@ -71,10 +70,8 @@ class Transform extends BaseTransform {
   /// asset is decoded using [encoding], which defaults to [UTF8].
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
-  Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
-    if (encoding == null) encoding = UTF8;
-    return getInput(id).then((input) => input.readAsString(encoding: encoding));
-  }
+  Future<String> readInputAsString(AssetId id, {Encoding encoding}) =>
+      _aggregate.readInputAsString(id, encoding: encoding);
 
   /// A convenience method to the contents of the input with [id].
   ///
@@ -83,37 +80,25 @@ class Transform extends BaseTransform {
   /// If the asset was created from a [String], this returns its UTF-8 encoding.
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
-  Stream<List<int>> readInput(AssetId id) =>
-      futureStream(getInput(id).then((input) => input.read()));
+  Stream<List<int>> readInput(AssetId id) => _aggregate.readInput(id);
 
   /// A convenience method to return whether or not an asset exists.
   ///
   /// This is equivalent to calling [getInput] and catching an
   /// [AssetNotFoundException].
-  Future<bool> hasInput(AssetId id) {
-    return getInput(id).then((_) => true).catchError((error) {
-      if (error is AssetNotFoundException && error.id == id) return false;
-      throw error;
-    });
-  }
+  Future<bool> hasInput(AssetId id) => _aggregate.hasInput(id);
 
   /// Stores [output] as the output created by this transformation.
   ///
   /// A transformation can output as many assets as it wants.
-  void addOutput(Asset output) {
-    // TODO(rnystrom): This should immediately throw if an output with that ID
-    // has already been created by this transformer.
-    _outputs.add(output);
-  }
-}
+  void addOutput(Asset output) => _aggregate.addOutput(output);
 
-/// The controller for [Transform].
-class TransformController extends BaseTransformController {
-  Transform get transform => super.transform;
-
-  /// The set of assets that the transformer has emitted.
-  AssetSet get outputs => transform._outputs;
-
-  TransformController(TransformNode node)
-      : super(new Transform._(node));
+  /// Consume the primary input so that it doesn't get processed by future
+  /// phases or emitted once processing has finished.
+  ///
+  /// Normally the primary input will automatically be forwarded unless the
+  /// transformer overwrites it by emitting an input with the same id. This
+  /// allows the transformer to tell barback not to forward the primary input
+  /// even if it's not overwritten.
+  void consumePrimary() => _aggregate.consumePrimary(primaryInput.id);
 }

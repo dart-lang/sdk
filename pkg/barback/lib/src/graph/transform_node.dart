@@ -11,12 +11,13 @@ import '../asset/asset_id.dart';
 import '../asset/asset_node.dart';
 import '../errors.dart';
 import '../log.dart';
+import '../transformer/aggregate_transform.dart';
+import '../transformer/declaring_aggregate_transform.dart';
 import '../transformer/declaring_transform.dart';
 import '../transformer/declaring_transformer.dart';
 import '../transformer/lazy_transformer.dart';
 import '../transformer/transform.dart';
 import '../transformer/transformer.dart';
-import '../utils.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase.dart';
@@ -27,6 +28,9 @@ import 'phase.dart';
 /// Keeps track of whether it's dirty and needs to be run and which assets it
 /// depends on.
 class TransformNode {
+  /// The aggregate key for this node.
+  final String key;
+
   /// The [Phase] that this transform runs in.
   final Phase phase;
 
@@ -126,7 +130,8 @@ class TransformNode {
 
   TransformNode(this.phase, Transformer transformer, AssetNode primary,
       this._location)
-      : transformer = transformer,
+      : key = primary.id.path,
+        transformer = transformer,
         primary = primary {
     _forced = transformer is! DeclaringTransformer;
     if (_forced) primary.force();
@@ -233,15 +238,16 @@ class TransformNode {
   Future _declareOutputs() {
     if (transformer is! DeclaringTransformer) return new Future.value();
 
-    var controller = new DeclaringTransformController(this);
-    return syncFuture(() {
-      return (transformer as DeclaringTransformer)
-          .declareOutputs(controller.transform);
+    var controller = new DeclaringAggregateTransformController(this);
+    _streams.onLogPool.add(controller.onLog);
+    controller.idController.add(primary.id);
+    return newDeclaringTransform(controller.transform).then((transform) {
+      return (transformer as DeclaringTransformer).declareOutputs(transform);
     }).then((_) {
       if (_isRemoved) return;
       if (controller.loggedError) return;
 
-      _consumePrimary = controller.consumePrimary;
+      _consumePrimary = controller.consumedPrimaries.contains(primary.id);
       _declaredOutputs = controller.outputIds;
       var invalidIds = _declaredOutputs
           .where((id) => id.package != phase.cascade.package).toSet();
@@ -344,13 +350,16 @@ class TransformNode {
   ///
   /// Returns whether or not an error occurred while running the transformer.
   Future<bool> _runApply() {
-    var transformController = new TransformController(this);
-    _streams.onLogPool.add(transformController.onLog);
+    var controller = new AggregateTransformController(this);
+    _streams.onLogPool.add(controller.onLog);
 
     return primary.whenAvailable((_) {
       if (_isRemoved) return null;
       _state = _State.APPLYING;
-      return syncFuture(() => transformer.apply(transformController.transform));
+      controller.inputController.add(primary.asset);
+      return newTransform(controller.transform).then((transform) {
+        return transformer.apply(transform);
+      });
     }).then((_) {
       if (!_forced && !primary.state.isAvailable) {
         _state = _State.DECLARED;
@@ -361,8 +370,8 @@ class TransformNode {
       if (_isRemoved) return false;
       if (_state == _State.NEEDS_APPLY) return false;
       if (_state == _State.DECLARING) return false;
-      if (transformController.loggedError) return true;
-      _handleApplyResults(transformController);
+      if (controller.loggedError) return true;
+      _handleApplyResults(controller);
       return false;
     }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
@@ -378,12 +387,12 @@ class TransformNode {
 
   /// Handle the results of running [Transformer.apply].
   ///
-  /// [transformController] should be the controller for the [Transform] passed
-  /// to [Transformer.apply].
-  void _handleApplyResults(TransformController transformController) {
-    _consumePrimary = transformController.consumePrimary;
+  /// [controller] should be the controller for the [AggegateTransform] passed
+  /// to [AggregateTransformer.apply].
+  void _handleApplyResults(AggregateTransformController controller) {
+    _consumePrimary = controller.consumedPrimaries.contains(primary.id);
 
-    var newOutputs = transformController.outputs;
+    var newOutputs = controller.outputs;
     // Any ids that are for a different package are invalid.
     var invalidIds = newOutputs
         .map((asset) => asset.id)

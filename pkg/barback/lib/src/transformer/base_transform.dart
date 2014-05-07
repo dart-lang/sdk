@@ -6,6 +6,7 @@ library barback.transformer.base_transform;
 
 import 'dart:async';
 
+import '../asset/asset_id.dart';
 import '../graph/transform_node.dart';
 import '../log.dart';
 import 'transform_logger.dart';
@@ -18,10 +19,10 @@ import 'transform_logger.dart';
 abstract class BaseTransform {
   final TransformNode _node;
 
-  /// Whether the primary input should be consumed.
+  /// The ids of primary inputs that should be consumed.
   ///
-  /// This is exposed via [BaseTransformController].
-  bool _consumePrimary = false;
+  /// This is exposed by [BaseTransformController].
+  final _consumedPrimaries = new Set<AssetId>();
 
   /// Whether the transformer logged an error.
   ///
@@ -52,15 +53,17 @@ abstract class BaseTransform {
     });
   }
 
-  /// Consume the primary input so that it doesn't get processed by future
+  /// Consume a primary input so that it doesn't get processed by future
   /// phases or emitted once processing has finished.
   ///
-  /// Normally the primary input will automatically be forwarded unless the
+  /// Normally each primary input will automatically be forwarded unless the
   /// transformer overwrites it by emitting an input with the same id. This
-  /// allows the transformer to tell barback not to forward the primary input
+  /// allows the transformer to tell barback not to forward a primary input
   /// even if it's not overwritten.
-  void consumePrimary() {
-    _consumePrimary = true;
+  void consumePrimary(AssetId id) {
+    // TODO(nweiz): throw an error if an id is consumed that wasn't listed as a
+    // primary input.
+    _consumedPrimaries.add(id);
   }
 }
 
@@ -72,8 +75,8 @@ abstract class BaseTransformController {
   /// The [BaseTransform] controlled by this controller.
   final BaseTransform transform;
 
-  /// Whether the primary input should be consumed.
-  bool get consumePrimary => transform._consumePrimary;
+  /// The ids of primary inputs that should be consumed.
+  Set<AssetId> get consumedPrimaries => transform._consumedPrimaries;
 
   /// Whether the transform logged an error.
   bool get loggedError => transform._loggedError;

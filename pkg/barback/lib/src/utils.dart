@@ -308,3 +308,20 @@ Stream callbackStream(Stream callback()) {
       sync: true);
   return controller.stream;
 }
+
+/// Creates a single-subscription stream from a broadcast stream.
+///
+/// The returned stream will enqueue events from [broadcast] until a listener is
+/// attached, then pipe events to that listener.
+Stream broadcastToSingleSubscription(Stream broadcast) {
+  if (!broadcast.isBroadcast) return broadcast;
+
+  // TODO(nweiz): Implement this using a transformer when issues 18588 and 18586
+  // are fixed.
+  var subscription;
+  var controller = new StreamController(onCancel: () => subscription.cancel());
+  subscription = broadcast.listen(controller.add,
+      onError: controller.addError,
+      onDone: controller.close);
+  return controller.stream;
+}
