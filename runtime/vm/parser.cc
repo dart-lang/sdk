@@ -5064,16 +5064,13 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   // Lookup the library URL.
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
+    // Create an empty library to mark that we have initiated loading of this
+    // library.
+    library = Library::New(canon_url);
+    library.Register();
     // Call the library tag handler to load the library.
     // TODO(hausner): do not load eagerly if import is deferred.
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
-    // If the library tag handler succeded without registering the
-    // library we create an empty library to import.
-    library = Library::LookupLibrary(canon_url);
-    if (library.IsNull()) {
-      library = Library::New(canon_url);
-      library.Register();
-    }
   }
 
   Namespace& ns =

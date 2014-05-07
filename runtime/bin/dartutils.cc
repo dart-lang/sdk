@@ -508,7 +508,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     if (tag == Dart_kImportTag) {
       // Handle imports of other built-in libraries present in the SDK.
       if (DartUtils::IsDartIOLibURL(url_string)) {
-        return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+        return Builtin::LoadLibrary(url, Builtin::kIOLibrary);
       }
       return NewError("The built-in library '%s' is not available"
                       " on the stand-alone VM.\n", url_string);
