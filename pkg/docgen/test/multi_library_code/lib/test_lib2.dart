@@ -5,3 +5,5 @@
 library test_lib2;
 
 export 'test_lib2_foo.dart';
+
+String fooFunc(bool fooFuncParam(int x)) => 'hi';
