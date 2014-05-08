@@ -41,8 +41,8 @@ class F<V> implements E {
 }
 
 class G<W> implements F {
-  final field;
-  const G(W this.field);
+  final W field;
+  const G(field) : this.field = field;
 }
 
 main() {
