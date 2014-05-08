@@ -272,18 +272,9 @@ class Builder extends ir.Visitor<Node> {
 
   Builder(this.compiler);
 
-  static final String _bailout = 'Bailout Tree Builder';
-
-  bailout() => throw _bailout;
-
   FunctionDefinition build(ir.FunctionDefinition node) {
-    try {
-      visit(node);
-      return function;
-    } catch (e) {
-      if (e == _bailout) return null;
-      rethrow;
-    }
+    visit(node);
+    return function;
   }
 
   List<Expression> translateArguments(List<ir.Reference> args) {
