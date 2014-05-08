@@ -454,8 +454,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitSequence(Sequence node) => TODO('visitSequence');
-
   Instantiator visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
     String op = node.op;

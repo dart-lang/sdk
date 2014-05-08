@@ -465,7 +465,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (sequenceElements.length == 1) {
       return sequenceElements[0];
     } else {
-      return new js.Sequence(sequenceElements);
+      js.Expression result = sequenceElements.removeLast();
+      while (sequenceElements.isNotEmpty) {
+        result = new js.Binary(',', sequenceElements.removeLast(), result);
+      }
+      return result;
     }
   }
 
@@ -780,35 +784,35 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             jsInitialization = generateExpression(initialization);
             if (!shouldGroupVarDeclarations &&
                 delayedVariablesCount < collectedVariableDeclarations.length) {
-              // We just added a new delayed variable-declaration. See if we
-              // can put in a 'var' in front of the initialization to make it
-              // go away.
-              List<js.Expression> expressions;
-              if (jsInitialization is js.Sequence) {
-                js.Sequence sequence = jsInitialization;
-                expressions = sequence.expressions;
-              } else {
-                expressions = <js.Expression>[jsInitialization];
-              }
-              bool canTransformToVariableDeclaration = true;
-              for (js.Expression expression in expressions) {
-                bool expressionIsVariableAssignment = false;
+              // We just added a new delayed variable-declaration. See if we can
+              // put in a 'var' in front of the initialization to make it go
+              // away. We walk the 'tree' of comma-operators to find the
+              // expressions and see if they are all assignments that can be
+              // converted into declarations.
+
+              List<js.Assignment> assignments;
+
+              bool allSimpleAssignments(js.Expression expression) {
                 if (expression is js.Assignment) {
                   js.Assignment assignment = expression;
                   if (assignment.leftHandSide is js.VariableUse &&
                       !assignment.isCompound) {
-                    expressionIsVariableAssignment = true;
+                    if (assignments == null) assignments = <js.Assignment>[];
+                    assignments.add(expression);
+                    return true;
                   }
+                } else if (expression.isCommaOperator) {
+                  js.Binary binary = expression;
+                  return allSimpleAssignments(binary.left)
+                      && allSimpleAssignments(binary.right);
                 }
-                if (!expressionIsVariableAssignment) {
-                  canTransformToVariableDeclaration = false;
-                  break;
-                }
+                return false;
               }
-              if (canTransformToVariableDeclaration) {
+
+              if (allSimpleAssignments(jsInitialization)) {
                 List<js.VariableInitialization> inits =
                     <js.VariableInitialization>[];
-                for (js.Assignment assignment in expressions) {
+                for (js.Assignment assignment in assignments) {
                   String id = (assignment.leftHandSide as js.VariableUse).name;
                   js.Node declaration = new js.VariableDeclaration(id);
                   inits.add(new js.VariableInitialization(declaration,
