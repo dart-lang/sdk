@@ -104,7 +104,7 @@ buildUI() {
   buildCode(interaction);
 
   (mainEditorPane = new DivElement())
-      ..classes.addAll(['well', 'mainEditorPane'])
+      ..classes.addAll(['mainEditorPane'])
       ..style.backgroundColor = currentTheme.background.color
       ..style.color = currentTheme.foreground.color
       ..style.font = codeFont
@@ -119,7 +119,12 @@ buildUI() {
 
   var inputWrapper = new DivElement()
       ..append(mainEditorPane)
-      ..style.position = 'relative';
+      ..classes.add('well')
+      ..style.padding = '0px'
+      ..style.overflowX = 'hidden'
+      ..style.overflowY = 'scroll'
+      ..style.position = 'relative'
+      ..style.maxHeight = '80vh';
 
   var inputHeader = new DivElement()..appendText('Code');
 

@@ -873,11 +873,6 @@ Node findLine(Node node) {
 }
 
 Element makeLine(List<Node> lineNodes, String state) {
-  // Using a div element here (anything with display=block) generally messes up
-  // editing and navigation.  We would like to use a block element here so
-  // error messages show as expected.  But no such luck.  Fortunately, there
-  // are strong indications that the current solution for displaying errors
-  // isn't good enough anyways.
   return new SpanElement()
       ..setAttribute('dart-state', state)
       ..nodes.addAll(lineNodes)

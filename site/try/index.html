@@ -20,7 +20,6 @@ See: http://www.google.com/fonts#UsePlace:use/Collection:Open+Sans:400,600,700,8
 <link rel="alternate stylesheet" type="text/css" href="line_numbers.css" title="line_numbers">
 <style>
 a.diagnostic {
-  /* position: relative; */
   color: inherit;
   border-bottom: 2px dotted red;
 }
@@ -35,7 +34,7 @@ a:hover.diagnostic span {
   position: absolute;
   /* left: 1em; */
   /* top: 2em; */
-  right: 10px;
+  right: 19px;
 }
 
 .offline {
@@ -151,14 +150,12 @@ a:hover.diagnostic span {
 }
 
 .mainEditorPane {
-  overflow-y: auto;
-  overflow-x: hidden;
   white-space: pre;
-  max-height: 80vh;
+  /* Extra padding at the bottom to ensure display of error messages. */
+  padding: 19px 19px 70px 19px;
 }
 
 .lineNumber {
-  position: relative;
 }
 </style>
 
