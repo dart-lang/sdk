@@ -9,7 +9,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_isolates);
-
+DECLARE_FLAG(bool, trace_service_pause_events);
 
 class MessageHandlerTask : public ThreadPool::Task {
  public:
@@ -231,6 +231,10 @@ void MessageHandler::TaskCallback() {
 
     if (!ok || !HasLivePorts()) {
       if (pause_on_exit()) {
+        if (FLAG_trace_service_pause_events && !paused_on_exit_) {
+          OS::PrintErr("Isolate %s paused before exiting. "
+                       "Use the Observatory to release it.\n", name());
+        }
         paused_on_exit_ = true;
       } else {
         if (FLAG_trace_isolates) {
