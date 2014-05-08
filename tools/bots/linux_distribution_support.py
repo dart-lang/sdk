@@ -55,14 +55,52 @@ def ArchiveArtifacts(tarfile, builddir, channel, linux_system):
                               os.path.basename(entry)])
       gsutil.upload(full_path, remote_file, public=True)
 
+def InstallFromDep(builddir):
+  for entry in os.listdir(builddir):
+    if entry.endswith("_amd64.deb"):
+      path = os.path.join(builddir, entry)
+      Run(['sudo', 'dpkg', '-i', path])
+
+def UninstallDart():
+  Run(['sudo', 'dpkg', '-r', 'dart'])
+
+def CreateDartTestFile(tempdir):
+  filename = os.path.join(tempdir, 'test.dart')
+  with open(filename, 'w') as f:
+    f.write('import "dart:html";\n\n')
+    f.write('void main() {\n')
+    f.write('  print("Hello world");\n')
+    f.write('}')
+  return filename
+
+def Run(args):
+  print "Running: %s" % ' '.join(args)
+  bot.RunProcess(args)
+
+def TestInstallation(assume_installed=True):
+  paths = ['/usr/bin/dart']
+  for tool in ['dart2js', 'pub', 'dart', 'dartanalyzer']:
+    paths.append(os.path.join('/usr/lib/dart/bin', tool))
+  for path in paths:
+    if os.path.exists(path):
+      if not assume_installed:
+        print 'Assumed not installed, found %s' % path
+        sys.exit(1)
+    else:
+      if assume_installed:
+        print 'Assumed installed, but could not find %s' % path
+        sys.exit(1)
+
 def SrcSteps(build_info):
   # We always clobber the bot, to not leave old tarballs and packages
   # floating around the out dir.
   bot.Clobber(force=True)
+
   version = utils.GetVersion()
   builddir = os.path.join(bot_utils.DART_DIR,
                           utils.GetBuildDir(HOST_OS, HOST_OS),
                           'src_and_installation')
+
   if not os.path.exists(builddir):
     os.makedirs(builddir)
   tarfilename = 'dart-%s.tar.gz' % version
@@ -86,16 +124,46 @@ def SrcSteps(build_info):
         sys.exit(1)
 
   with bot.BuildStep('Create src tarball'):
-    args = [sys.executable, './tools/create_tarball.py', '--tar_filename',
-            tarfile]
     print 'Building src tarball'
-    bot.RunProcess(args)
+    Run([sys.executable, './tools/create_tarball.py',
+         '--tar_filename', tarfile])
+
     print 'Building Debian packages'
-    args = [sys.executable, './tools/create_debian_packages.py',
-            '--tar_filename', tarfile,
-            '--out_dir', builddir]
-    bot.RunProcess(args)
-    
+    Run([sys.executable, './tools/create_debian_packages.py',
+         '--tar_filename', tarfile,
+         '--out_dir', builddir])
+
+  with bot.BuildStep('Sanity check installation'):
+    if os.path.exists('/usr/bin/dart'):
+      print "Dart already installled, removing"
+      UninstallDart()
+    TestInstallation(assume_installed=False)
+
+    InstallFromDep(builddir)
+    TestInstallation(assume_installed=True)
+
+    # We build the runtime target to get everything we need to test the
+    # standalone target.
+    Run([sys.executable, './tools/build.py', '-mrelease', '-ax64', 'runtime'])
+    # Copy in the installed binary to avoid poluting /usr/bin (and having to
+    # run as root)
+    Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])
+
+    Run([sys.executable, './tools/test.py', '-ax64',
+         '--mode=release', 'standalone'])
+
+    # Sanity check dart2js and the analyzer against a hello world program
+    with utils.TempDir() as temp_dir:
+      test_file = CreateDartTestFile(temp_dir)
+      Run(['/usr/lib/dart/bin/dart2js', test_file])
+      Run(['/usr/lib/dart/bin/dartanalyzer', test_file])
+
+    # Sanity check that pub can start up and print the version
+    Run(['/usr/lib/dart/bin/pub', '--version'])
+
+    UninstallDart()
+    TestInstallation(assume_installed=False)
+
   with bot.BuildStep('Upload artifacts'):
     bot_name, _ = bot.GetBotName()
     channel = bot_utils.GetChannelFromName(bot_name)
