@@ -194,11 +194,12 @@ abstract class Future<T> {
   }
 
   /**
-   * Creates a future that completes after a delay.
+   * Creates a future that runs its computation after a delay.
    *
-   * The future will be completed after the given [duration] has passed with
-   * the result of calling [computation]. If the duration is 0 or less, it
-   * completes no sooner than in the next event-loop iteration.
+   * The [computation] will be executed after the given [duration] has passed,
+   * and the future is completed with the result.
+   * If the duration is 0 or less,
+   * it completes no sooner than in the next event-loop iteration.
    *
    * If [computation] is omitted,
    * it will be treated as if [computation] was set to `() => null`,
@@ -207,8 +208,8 @@ abstract class Future<T> {
    * If calling [computation] throws, the created future will complete with the
    * error.
    *
-   * See also [Completer] for a way to complete a future at a later
-   * time that isn't a known fixed duration.
+   * See also [Completer] for a way to create and complete a future at a
+   * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [T computation()]) {
     Completer completer = new Completer.sync();
@@ -216,7 +217,7 @@ abstract class Future<T> {
     if (computation != null) {
       result = result.then((ignored) => computation());
     }
-    new Timer(duration, () { completer.complete(null); });
+    new Timer(duration, completer.complete);
     return result;
   }
 
