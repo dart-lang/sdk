@@ -1080,7 +1080,9 @@ abstract class InferrerVisitor
     Node exception = node.exception;
     if (exception != null) {
       DartType type = elements.getType(node.type);
-      T mask = type == null || type.treatAsDynamic
+      T mask = type == null ||
+               type.treatAsDynamic ||
+               type.kind == TypeKind.TYPE_VARIABLE
           ? types.dynamicType
           : types.nonNullSubtype(type.element);
       locals.update(elements[exception], mask, node);

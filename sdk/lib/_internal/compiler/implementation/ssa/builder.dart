@@ -115,9 +115,26 @@ class LocalsHandler {
   SsaBuilder builder;
   ClosureClassMap closureData;
 
-  LocalsHandler(this.builder)
-      : directLocals = new Map<Element, HInstruction>(),
-        redirectionMapping = new Map<Element, Element>();
+  /// The class that defines the current type environment or null if no type
+  /// variables are in scope.
+  final ClassElement contextClass;
+
+  LocalsHandler(this.builder, this.contextClass)
+      : redirectionMapping = new Map<Element, Element>(),
+        directLocals = new Map<Element, HInstruction>();
+
+  /// Substituted type variables occurring in [type] into the context of
+  /// [contextClass].
+  DartType substInContext(DartType type) {
+    if (contextClass != null) {
+      ClassElement typeContext = Types.getClassContext(type);
+      if (typeContext != null) {
+        type = type.substByContext(
+            contextClass.asInstanceOf(typeContext));
+      }
+    }
+    return type;
+  }
 
   get typesTask => builder.compiler.typesTask;
 
@@ -129,6 +146,7 @@ class LocalsHandler {
   LocalsHandler.from(LocalsHandler other)
       : directLocals = new Map<Element, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
+        contextClass = other.contextClass,
         builder = other.builder,
         closureData = other.closureData;
 
@@ -969,7 +987,7 @@ class SsaBuilder extends ResolvedVisitor {
       this.work = work,
       this.rti = backend.rti,
       super(work.resolutionTree, backend.compiler) {
-    localsHandler = new LocalsHandler(this);
+    localsHandler = new LocalsHandler(this, work.element.contextClass);
     sourceElementStack.add(work.element);
   }
 
@@ -1526,7 +1544,7 @@ class SsaBuilder extends ResolvedVisitor {
    */
   void setupStateForInlining(FunctionElement function,
                              List<HInstruction> compiledArguments) {
-    localsHandler = new LocalsHandler(this);
+    localsHandler = new LocalsHandler(this, function.contextClass);
     localsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.parseNode(compiler), elements);
@@ -1620,31 +1638,9 @@ class SsaBuilder extends ResolvedVisitor {
     if (!compiler.enableTypeAssertions) return;
 
     FunctionSignature signature = function.functionSignature;
-
-    InterfaceType contextType;
-    if (function.isSynthesized && function.isGenerativeConstructor) {
-      // Synthesized constructors reuse the parameters from the
-      // [targetConstructor]. In face of generic types, the type variables
-      // occurring in the parameter types must be substituted by the type
-      // arguments of the enclosing class.
-      FunctionElement target = function;
-      while (target.targetConstructor != null) {
-        target = target.targetConstructor;
-      }
-      if (target != function) {
-        ClassElement functionClass = function.enclosingClass;
-        ClassElement targetClass = target.enclosingClass;
-        contextType = functionClass.thisType.asInstanceOf(targetClass);
-      }
-    }
-
     signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      DartType parameterType = parameter.type;
-      if (contextType != null) {
-        parameterType = parameterType.substByContext(contextType);
-      }
-      potentiallyCheckType(argument, parameterType);
+      potentiallyCheckType(argument, parameter.type);
     });
   }
 
@@ -1671,6 +1667,7 @@ class SsaBuilder extends ResolvedVisitor {
         // the current type. [InterfaceType.asInstanceOf] takes care
         // of both.
         InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
+        type = localsHandler.substInContext(type);
         Link<DartType> typeVariables = enclosingClass.typeVariables;
         type.typeArguments.forEach((DartType argument) {
           localsHandler.updateLocal(
@@ -1938,14 +1935,7 @@ class SsaBuilder extends ResolvedVisitor {
             assert(isNativeUpgradeFactory);
           } else {
             fields.add(member);
-            DartType type = member.type;
-            if (enclosingClass.isMixinApplication) {
-              // TODO(johnniwinther): Add a member-like abstraction for fields
-              // that normalizes this.
-              type = type.substByContext(
-                  enclosingClass.thisType.asInstanceOf(
-                      member.enclosingElement));
-            }
+            DartType type = localsHandler.substInContext(member.type);
             constructorArguments.add(potentiallyCheckType(value, type));
           }
         },
@@ -2088,6 +2078,8 @@ class SsaBuilder extends ResolvedVisitor {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
         currentClass.typeVariables.forEach((DartType argument) {
+          // TODO(johnniwinther): Substitute [argument] with
+          // `localsHandler.substInContext(argument)`.
           bodyCallInputs.add(localsHandler.readLocal(argument.element));
         });
       }
@@ -2180,11 +2172,29 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
+  /// Check that [type] is valid in the context of `localsHandler.contextClass`.
+  /// This should only be called in assertions.
+  bool assertTypeInContext(DartType type, [Spannable spannable]) {
+    return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
+        () {
+          ClassElement contextClass = Types.getClassContext(type);
+          return contextClass == null ||
+                 contextClass == localsHandler.contextClass;
+        },
+        message: "Type '$type' is not valid context of "
+                 "${localsHandler.contextClass}.");
+  }
+
+  /// Build a [HTypeConversion] for convertion [original] to type [type].
+  ///
+  /// Invariant: [type] must be valid in the context.
+  /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(HInstruction original,
                                    DartType type,
                                    int kind) {
     if (type == null) return original;
     type = type.unalias(compiler);
+    assert(assertTypeInContext(type, original));
     if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
       TypeMask subtype = new TypeMask.subtype(type.element);
       HInstruction representations = buildTypeArgumentRepresentations(type);
@@ -2215,6 +2225,7 @@ class SsaBuilder extends ResolvedVisitor {
   HInstruction potentiallyCheckType(HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
+    type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
     compiler.enqueuer.codegen.registerIsCheck(type, work.resolutionTree);
@@ -2223,8 +2234,10 @@ class SsaBuilder extends ResolvedVisitor {
 
   void assertIsSubtype(ast.Node node, DartType subtype, DartType supertype,
                        String message) {
-    HInstruction subtypeInstruction = analyzeTypeArgument(subtype);
-    HInstruction supertypeInstruction = analyzeTypeArgument(supertype);
+    HInstruction subtypeInstruction =
+        analyzeTypeArgument(localsHandler.substInContext(subtype));
+    HInstruction supertypeInstruction =
+        analyzeTypeArgument(localsHandler.substInContext(supertype));
     HInstruction messageInstruction =
         graph.addConstantString(new ast.DartString.literal(message), compiler);
     Element element = backend.getAssertIsSubtype();
@@ -3162,7 +3175,9 @@ class SsaBuilder extends ResolvedVisitor {
         generateTypeError(node, element.message);
       } else {
         HInstruction converted = buildTypeConversion(
-            expression, type, HTypeConversion.CAST_TYPE_CHECK);
+            expression,
+            localsHandler.substInContext(type),
+            HTypeConversion.CAST_TYPE_CHECK);
         if (converted != expression) add(converted);
         stack.add(converted);
       }
@@ -3180,7 +3195,6 @@ class SsaBuilder extends ResolvedVisitor {
     HInstruction expression = pop();
     bool isNot = node.isIsNotCheck;
     DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-    type = type.unalias(compiler);
     HInstruction instruction = buildIsNode(node, type, expression);
     if (isNot) {
       add(instruction);
@@ -3189,8 +3203,10 @@ class SsaBuilder extends ResolvedVisitor {
     push(instruction);
   }
 
-  HInstruction buildIsNode(ast.Node node, DartType type, HInstruction expression) {
-    type = type.unalias(compiler);
+  HInstruction buildIsNode(ast.Node node,
+                           DartType type,
+                           HInstruction expression) {
+    type = localsHandler.substInContext(type).unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
@@ -3842,6 +3858,7 @@ class SsaBuilder extends ResolvedVisitor {
    * Helper to create an instruction that gets the value of a type variable.
    */
   HInstruction addTypeVariableReference(TypeVariableType type) {
+    assert(assertTypeInContext(type));
     Element member = sourceElement;
     bool isClosure = member.enclosingElement.isClosure;
     if (isClosure) {
@@ -3893,6 +3910,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument) {
+    assert(assertTypeInContext(argument));
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
       return graph.addConstantNull(compiler);
@@ -3921,6 +3939,7 @@ class SsaBuilder extends ResolvedVisitor {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
+    type = localsHandler.substInContext(type);
     type.typeArguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument));
     });
@@ -4029,6 +4048,7 @@ class SsaBuilder extends ResolvedVisitor {
     bool isRedirected = functionElement.isRedirectingFactory;
     InterfaceType type = elements.getType(node);
     InterfaceType expectedType = functionElement.computeTargetType(type);
+    expectedType = localsHandler.substInContext(expectedType);
 
     if (checkTypeVariableBounds(node, type)) return;
 
@@ -4266,7 +4286,8 @@ class SsaBuilder extends ResolvedVisitor {
       }
     } else if (element.isTypeVariable) {
       TypeVariableElement typeVariable = element;
-      HInstruction value = addTypeVariableReference(typeVariable.type);
+      DartType type = localsHandler.substInContext(typeVariable.type);
+      HInstruction value = analyzeTypeArgument(type);
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
                        [value],
@@ -4830,6 +4851,7 @@ class SsaBuilder extends ResolvedVisitor {
         ClassElement cls = redirectingConstructor.enclosingClass;
         InterfaceType targetType =
             redirectingConstructor.computeTargetType(cls.thisType);
+        targetType = localsHandler.substInContext(targetType);
         targetType.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument));
         });
@@ -4880,7 +4902,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
-    InterfaceType type = elements.getType(node);
+    InterfaceType type = localsHandler.substInContext(elements.getType(node));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
@@ -5127,6 +5149,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     InterfaceType type = elements.getType(node);
     InterfaceType expectedType = functionElement.computeTargetType(type);
+    expectedType = localsHandler.substInContext(expectedType);
 
     if (constructor.isFactoryConstructor) {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);

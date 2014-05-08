@@ -243,6 +243,9 @@ abstract class Element implements Spannable {
   Element get enclosingMember;
   Element get outermostEnclosingMemberOrTopLevel;
 
+  /// The enclosing class that defines the type environment for this element.
+  ClassElement get contextClass;
+
   FunctionElement asFunctionElement();
 
   /// Is [:true:] if this element has a corresponding patch.
@@ -899,7 +902,33 @@ abstract class ConstructorBodyElement extends FunctionElement {
  * declarations and typedefs.
  */
 abstract class TypeDeclarationElement extends Element implements AstElement {
+  /**
+   * The `this type` for this type declaration.
+   *
+   * The type of [:this:] is the generic type based on this element in which
+   * the type arguments are the declared type variables. For instance,
+   * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
+   *
+   * For a class declaration this is the type of [:this:].
+   */
   GenericType get thisType;
+
+  /**
+   * The raw type for this type declaration.
+   *
+   * The raw type is the generic type base on this element in which the type
+   * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
+   * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
+   * is the same as [thisType].
+   *
+   * The [rawType] field is a canonicalization of the raw type and should be
+   * used to distinguish explicit and implicit uses of the [dynamic]
+   * type arguments. For instance should [:List:] be the [rawType] of the
+   * [:List:] class element whereas [:List<dynamic>:] should be its own
+   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
+   * this distinction, we can print the raw type with type arguments only when
+   * the input source has used explicit type arguments.
+   */
   GenericType get rawType;
 
   /**
@@ -921,12 +950,21 @@ abstract class ClassElement extends TypeDeclarationElement
 
   InterfaceType get rawType;
   InterfaceType get thisType;
-
   ClassElement get superclass;
 
+  /// The direct supertype of this class.
   DartType get supertype;
+
+  /// Ordered set of all supertypes of this class including the class itself.
   OrderedTypeSet get allSupertypesAndSelf;
+
+  /// A list of all supertypes of this class excluding the class itself.
   Link<DartType> get allSupertypes;
+
+  /// Returns the this type of this class as an instance of [cls].
+  InterfaceType asInstanceOf(ClassElement cls);
+
+  /// A list of all direct superinterfaces of this class.
   Link<DartType> get interfaces;
 
   bool get hasConstructor;

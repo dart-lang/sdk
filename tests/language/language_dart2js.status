@@ -36,6 +36,9 @@ ref_before_declaration_test/06: MissingCompileTimeError
 prefix3_negative_test: Crash # Issue 17139
 setter_declaration2_negative_test: Crash # Issue 17139
 
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
+
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 
@@ -72,6 +75,8 @@ named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
+generic_field_mixin3_test: Crash # Issue 18651
+
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605

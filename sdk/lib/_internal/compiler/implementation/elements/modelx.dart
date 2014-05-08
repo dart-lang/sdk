@@ -225,6 +225,18 @@ abstract class ElementX implements Element {
     return null;
   }
 
+  ClassElement get contextClass {
+    ClassElement cls;
+    for (Element e = this; e != null; e = e.enclosingElement) {
+      if (e.isClass) {
+        // Record [e] instead of returning it directly. We need the last class
+        // in the chain since the first classes might be closure classes.
+        cls = e.declaration;
+      }
+    }
+    return cls;
+  }
+
   /**
    * Creates the scope for this element.
    */
@@ -1916,6 +1928,11 @@ abstract class BaseClassElementX extends ElementX
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler);
+
+  InterfaceType asInstanceOf(ClassElement cls) {
+    if (cls == this) return thisType;
+    return allSupertypesAndSelf.asInstanceOf(cls);
+  }
 
   /**
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
