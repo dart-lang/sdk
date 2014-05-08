@@ -659,6 +659,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           type = compiler.objectClass.rawType;
         }
       }
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
+        return types.dynamicType;
+      }
       return type.unalias(compiler);
     }
 
@@ -687,6 +690,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // 'call' method into account.
     ElementAccess getAccess(Name name,
                             DartType unaliasedBound, InterfaceType interface) {
+      if (interface.treatAsDynamic) {
+        return new DynamicAccess();
+      }
       MemberSignature member = lookupMemberSignature(memberName, interface);
       if (member != null) {
         return new MemberAccess(member);
