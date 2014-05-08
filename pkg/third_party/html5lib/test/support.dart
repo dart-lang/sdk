@@ -134,7 +134,7 @@ class TestSerializer extends TreeVisitor {
     indent -= 2;
   }
 
-  visitDocument(Document node) {
+  visitDocument(node) {
     indent += 1;
     for (var child in node.nodes) visit(child);
     indent -= 1;
