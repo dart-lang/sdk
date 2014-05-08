@@ -7,11 +7,11 @@
 class C<T
   extends Malformed /// 01: static type warning, runtime error
 > {
-  f(T t) => t.foo;
+  f(T t) => t.foo; /// 01: continued
 }
 
 main() {
   new C<int>()
-    .f(1)  /// 01: continued
+    .f(1) /// 01: continued
   ;
 }
