@@ -387,6 +387,29 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       }
       return 6;
     }
+    case 'f': {
+      ASSERT(STRING_STARTS_WITH(format, "fsz"));
+        const int sz = instr->SzField();
+        char const* sz_str;
+        switch (sz) {
+          case 0:
+            if (instr->Bit(23) == 1) {
+              sz_str = "q";
+            } else {
+              sz_str = "b";
+            }
+            break;
+          case 1: sz_str = "h"; break;
+          case 2: sz_str = "s"; break;
+          case 3: sz_str = "d"; break;
+          default: sz_str = "?"; break;
+        }
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "%s",
+                                   sz_str);
+      return 3;
+    }
     case 'h': {
       ASSERT(STRING_STARTS_WITH(format, "hw"));
       const int shift = instr->HWField() << 4;
@@ -562,27 +585,19 @@ void ARM64Decoder::DecodeMoveWide(Instr* instr) {
 
 
 void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
-  if (instr->Bit(23) != 0) {
-    // 128-bit ldr/str.
-    Unknown(instr);
-  }
   if (instr->Bit(26) == 1) {
-    if (instr->Bits(30, 2) != 3) {
-      // Only 64-bit double variant supported.
-      Unknown(instr);
-    }
     // SIMD or FP src/dst.
     if (instr->Bit(22) == 1) {
-      Format(instr, "fldrd 'vt, 'memop");
+      Format(instr, "fldr'fsz 'vt, 'memop");
     } else {
-      Format(instr, "fstrd 'vt, 'memop");
+      Format(instr, "fstr'fsz 'vt, 'memop");
     }
   } else {
     // Integer src/dst.
-    if (instr->Bit(22) == 1) {
-      Format(instr, "ldr'sz 'rt, 'memop");
-    } else {
+    if (instr->Bits(22, 2) == 0) {
       Format(instr, "str'sz 'rt, 'memop");
+    } else {
+      Format(instr, "ldr'sz 'rt, 'memop");
     }
   }
 }
@@ -987,7 +1002,14 @@ void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
 
 
 void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
-  const int opc = instr->Bits(15, 2);
+  const int opc = instr->Bits(15, 6);
+
+  if ((opc != 5) && (instr->Bit(22) != 1)) {
+    // Source is interpreted as single-precision only if we're doing a
+    // conversion from single -> double.
+    Unknown(instr);
+    return;
+  }
 
   switch (opc) {
     case 0:
@@ -1002,8 +1024,14 @@ void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
     case 3:
       Format(instr, "fsqrtd 'vd, 'vn");
       break;
+    case 4:
+      Format(instr, "fcvtsd 'vd, 'vn");
+      break;
+    case 5:
+      Format(instr, "fcvtds 'vd, 'vn");
+      break;
     default:
-      UNREACHABLE();
+      Unknown(instr);
       break;
   }
 }

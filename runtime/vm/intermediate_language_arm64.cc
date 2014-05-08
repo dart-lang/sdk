@@ -55,7 +55,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       ASSERT(value.IsStackSlot());
       const intptr_t value_offset = value.ToStackSlotOffset();
-      __ LoadFromOffset(TMP, FP, value_offset);
+      __ LoadFromOffset(TMP, FP, value_offset, PP);
       __ Push(TMP);
     }
   }
@@ -201,12 +201,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ LoadFieldFromOffset(R2, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R2, R0, Function::code_offset(), PP);
 
   // R2: code.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ LoadImmediate(R5, 0, PP);
-  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset());
+  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset(), PP);
   __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag, PP);
   __ blr(R2);
   compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
@@ -238,7 +238,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(bool opt) const {
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, FP, local().index() * kWordSize);
+  __ LoadFromOffset(result, FP, local().index() * kWordSize, PP);
 }
 
 
@@ -253,7 +253,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ StoreToOffset(value, FP, local().index() * kWordSize);
+  __ StoreToOffset(value, FP, local().index() * kWordSize, PP);
 }
 
 
@@ -591,7 +591,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   bool result = data[1] == true_result;
   __ tsti(val_reg, kSmiTagMask);
   __ b(result ? labels.true_label : labels.false_label, EQ);
-  __ LoadClassId(cid_reg, val_reg);
+  __ LoadClassId(cid_reg, val_reg, PP);
 
   for (intptr_t i = 2; i < data.length(); i += 2) {
     const intptr_t test_cid = data[i];
@@ -794,7 +794,7 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
   Register str = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadFieldFromOffset(result, str, String::length_offset());
+  __ LoadFieldFromOffset(result, str, String::length_offset(), PP);
   __ CompareImmediate(result, Smi::RawValue(1), PP);
   __ LoadImmediate(TMP, Smi::RawValue(-1), PP);
   __ ldr(TMP2, FieldAddress(str, OneByteString::data_offset()), kUnsignedByte);
@@ -858,7 +858,7 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(result, Smi::RawValue(kSmiCid), PP);
   __ b(&done);
   __ Bind(&load);
-  __ LoadClassId(result, object);
+  __ LoadClassId(result, object, PP);
   __ SmiTag(result);
   __ Bind(&done);
 }
@@ -1009,8 +1009,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
-        // TODO(zra): Add when we add single precision floats.
-        UNIMPLEMENTED();
+        __ fldrs(result, element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         // Load double precision float.
@@ -1141,9 +1140,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       }
       break;
     case kTypedDataFloat32ArrayCid:
-      // TODO(zra): Implement when we add float store.
-      UNIMPLEMENTED();
-      break;
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1162,7 +1158,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
+  const Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
@@ -1204,13 +1200,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (class_id()) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {
-        Register value = locs()->in(2).reg();
+        const Register value = locs()->in(2).reg();
         __ StoreIntoObject(array, element_address, value);
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);
       } else {
-        Register value = locs()->in(2).reg();
+        const Register value = locs()->in(2).reg();
         __ StoreIntoObjectNoBarrier(array, element_address, value);
       }
       break;
@@ -1223,7 +1219,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadImmediate(TMP, static_cast<int8_t>(constant.Value()), PP);
         __ str(TMP, element_address, kUnsignedByte);
       } else {
-        Register value = locs()->in(2).reg();
+        const Register value = locs()->in(2).reg();
         __ SmiUntag(value);
         __ str(value, element_address, kUnsignedByte);
       }
@@ -1243,7 +1239,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadImmediate(TMP, static_cast<int8_t>(value), PP);
         __ str(TMP, element_address, kUnsignedByte);
       } else {
-        Register value = locs()->in(2).reg();
+        const Register value = locs()->in(2).reg();
         Label store_value;
         __ SmiUntag(value);
         __ CompareImmediate(value, 0xFF, PP);
@@ -1260,7 +1256,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      Register value = locs()->in(2).reg();
+      const Register value = locs()->in(2).reg();
       __ SmiUntag(value);
       __ str(value, element_address, kUnsignedHalfword);
       break;
@@ -1269,23 +1265,25 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint32ArrayCid: {
       if (value()->IsSmiValue()) {
         ASSERT(RequiredInputRepresentation(2) == kTagged);
-        Register value = locs()->in(2).reg();
+        const Register value = locs()->in(2).reg();
         __ SmiUntag(value);
-        __ str(value, element_address);
+        __ str(value, element_address, kUnsignedWord);
       } else {
         // TODO(zra): Implement when we add simd loads and stores.
         UNIMPLEMENTED();
       }
       break;
     }
-    case kTypedDataFloat32ArrayCid:
-      // TODO(zra): Implement when we add float store.
-      UNIMPLEMENTED();
-      break;
-    case kTypedDataFloat64ArrayCid: {
-      VRegister in2 = locs()->in(2).fpu_reg();
+    case kTypedDataFloat32ArrayCid: {
+      const VRegister in2 = locs()->in(2).fpu_reg();
       __ add(index.reg(), index.reg(), Operand(array));
-      __ StoreDToOffset(in2, index.reg(), 0);
+      __ fstrs(in2, Address(index.reg()));
+      break;
+    }
+    case kTypedDataFloat64ArrayCid: {
+      const VRegister in2 = locs()->in(2).fpu_reg();
+      __ add(index.reg(), index.reg(), Operand(array));
+      __ StoreDToOffset(in2, index.reg(), 0, PP);
       break;
     }
     case kTypedDataFloat64x2ArrayCid:
@@ -1315,7 +1313,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   } else {
     __ b(value_is_smi, EQ);
   }
-  __ LoadClassId(value_cid_reg, value_reg);
+  __ LoadClassId(value_cid_reg, value_reg, PP);
   __ Bind(&done);
 }
 
@@ -1403,11 +1401,12 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(temp_reg != kNoRegister);
         // Field guard may have remembered list length, check it.
         if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
-          __ LoadFieldFromOffset(temp_reg, value_reg, Array::length_offset());
+          __ LoadFieldFromOffset(
+              temp_reg, value_reg, Array::length_offset(), PP);
           __ CompareImmediate(temp_reg, Smi::RawValue(field_length), PP);
         } else if (RawObject::IsTypedDataClassId(field_cid)) {
           __ LoadFieldFromOffset(
-              temp_reg, value_reg, TypedData::length_offset());
+              temp_reg, value_reg, TypedData::length_offset(), PP);
           __ CompareImmediate(temp_reg, Smi::RawValue(field_length), PP);
         } else {
           ASSERT(field_cid == kIllegalCid);
@@ -1433,7 +1432,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           // Could still be a regular array.
           __ b(&check_array, LT);
           __ LoadFieldFromOffset(
-              temp_reg, value_reg, TypedData::length_offset());
+              temp_reg, value_reg, TypedData::length_offset(), PP);
           __ ldr(TMP, field_length_operand);
           __ CompareRegisters(temp_reg, TMP);
           __ b(&length_compared);
@@ -1443,7 +1442,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ b(&no_fixed_length, GT);
           __ CompareImmediate(value_cid_reg, kArrayCid, PP);
           __ b(&no_fixed_length, LT);
-          __ LoadFieldFromOffset(temp_reg, value_reg, Array::length_offset());
+          __ LoadFieldFromOffset(
+              temp_reg, value_reg, Array::length_offset(), PP);
           __ ldr(TMP, field_length_operand);
           __ CompareRegisters(temp_reg, TMP);
           __ b(&length_compared);
@@ -1469,11 +1469,12 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(value_cid_reg != kNoRegister);
         ASSERT(temp_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
-          __ LoadFieldFromOffset(temp_reg, value_reg, Array::length_offset());
+          __ LoadFieldFromOffset(
+              temp_reg, value_reg, Array::length_offset(), PP);
           __ CompareImmediate(temp_reg, Smi::RawValue(field_length), PP);
         } else if (RawObject::IsTypedDataClassId(value_cid)) {
           __ LoadFieldFromOffset(
-              temp_reg, value_reg, TypedData::length_offset());
+              temp_reg, value_reg, TypedData::length_offset(), PP);
           __ CompareImmediate(temp_reg, Smi::RawValue(field_length), PP);
         } else if (field_cid != kIllegalCid) {
           ASSERT(field_cid != value_cid);
@@ -1512,7 +1513,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(&check_array, LT);
         // Destroy value_cid_reg (safe because we are finished with it).
         __ LoadFieldFromOffset(
-            value_cid_reg, value_reg, TypedData::length_offset());
+            value_cid_reg, value_reg, TypedData::length_offset(), PP);
         __ str(value_cid_reg, field_length_operand);
         __ b(&length_set);  // Updated field length typed data array.
         // Check for regular array.
@@ -1523,7 +1524,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(&no_fixed_length, LT);
         // Destroy value_cid_reg (safe because we are finished with it).
         __ LoadFieldFromOffset(
-            value_cid_reg, value_reg, Array::length_offset());
+            value_cid_reg, value_reg, Array::length_offset(), PP);
         __ str(value_cid_reg, field_length_operand);
         // Updated field length from regular array.
         __ b(&length_set);
@@ -1540,12 +1541,12 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, Array::length_offset());
+              value_cid_reg, value_reg, Array::length_offset(), PP);
           __ str(value_cid_reg, field_length_operand);
         } else if (RawObject::IsTypedDataClassId(value_cid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, TypedData::length_offset());
+              value_cid_reg, value_reg, TypedData::length_offset(), PP);
           __ str(value_cid_reg, field_length_operand);
         } else {
           __ LoadImmediate(TMP, Smi::RawValue(Field::kNoFixedLength), PP);
@@ -1559,7 +1560,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(&ok);
       __ Bind(fail);
 
-      __ LoadFieldFromOffset(TMP, field_reg, Field::guarded_cid_offset());
+      __ LoadFieldFromOffset(TMP, field_reg, Field::guarded_cid_offset(), PP);
       __ CompareImmediate(TMP, kDynamicCid, PP);
       __ b(&ok, EQ);
 
@@ -1581,7 +1582,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       if (field_cid != kSmiCid) {
         __ b(fail, EQ);
-        __ LoadClassId(value_cid_reg, value_reg);
+        __ LoadClassId(value_cid_reg, value_reg, PP);
         __ CompareImmediate(value_cid_reg, field_cid, PP);
       }
 
@@ -1595,11 +1596,11 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, Array::length_offset());
+              value_cid_reg, value_reg, Array::length_offset(), PP);
         } else if (RawObject::IsTypedDataClassId(field_cid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, TypedData::length_offset());
+              value_cid_reg, value_reg, TypedData::length_offset(), PP);
         }
         __ ldr(TMP, field_length_operand);
         __ CompareRegisters(value_cid_reg, TMP);
@@ -1619,11 +1620,11 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, Array::length_offset());
+              value_cid_reg, value_reg, Array::length_offset(), PP);
         } else if (RawObject::IsTypedDataClassId(field_cid)) {
           // Destroy value_cid_reg (safe because we are finished with it).
           __ LoadFieldFromOffset(
-              value_cid_reg, value_reg, TypedData::length_offset());
+              value_cid_reg, value_reg, TypedData::length_offset(), PP);
         }
         __ CompareImmediate(value_cid_reg, field_length, PP);
         __ b(fail, NE);
@@ -1719,10 +1720,11 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         case kDoubleCid:
           cls = &compiler->double_class();
           break;
-        // TODO(zra): Implement these when we add fpu loads and stores.
         case kFloat32x4Cid:
+          cls = &compiler->float32x4_class();
+          break;
         case kFloat64x2Cid:
-          UNIMPLEMENTED();
+          cls = &compiler->float64x2_class();
           break;
         default:
           UNREACHABLE();
@@ -1739,20 +1741,22 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      PP);
       __ Bind(slow_path->exit_label());
       __ mov(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2, PP);
     } else {
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_, PP);
     }
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
-        __ StoreDFieldToOffset(value, temp, Double::value_offset());
+        __ StoreDFieldToOffset(value, temp, Double::value_offset(), PP);
         break;
       case kFloat32x4Cid:
+        __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+        __ StoreQFieldToOffset(value, temp, Float32x4::value_offset(), PP);
+        break;
       case kFloat64x2Cid:
-        UNIMPLEMENTED();
+        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ StoreQFieldToOffset(value, temp, Float64x2::value_offset(), PP);
         break;
       default:
         UNREACHABLE();
@@ -1774,24 +1778,25 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()), PP);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset());
+    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(), PP);
     __ CompareImmediate(temp2, kNullCid, PP);
     __ b(&store_pointer, EQ);
 
     __ LoadFromOffset(
-        temp2, temp, Field::kind_bits_offset() - kHeapObjectTag, kUnsignedByte);
+        temp2, temp, Field::kind_bits_offset() - kHeapObjectTag,
+        PP, kUnsignedByte);
     __ tsti(temp2, 1 << Field::kUnboxingCandidateBit);
     __ b(&store_pointer, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset());
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
     __ CompareImmediate(temp2, kDoubleCid, PP);
     __ b(&store_double, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset());
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
     __ CompareImmediate(temp2, kFloat32x4Cid, PP);
     __ b(&store_float32x4, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset());
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
     __ CompareImmediate(temp2, kFloat64x2Cid, PP);
     __ b(&store_float64x2, EQ);
 
@@ -1810,7 +1815,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           new StoreInstanceFieldSlowPath(this, compiler->double_class());
       compiler->AddSlowPathCode(slow_path);
 
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_, PP);
       __ CompareObject(temp, Object::null_object(), PP);
       __ b(&copy_double, NE);
 
@@ -1821,45 +1826,88 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      PP);
       __ Bind(slow_path->exit_label());
       __ mov(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2, PP);
       __ Bind(&copy_double);
-      __ LoadDFieldFromOffset(fpu_temp, value_reg, Double::value_offset());
-      __ StoreDFieldToOffset(fpu_temp, temp, Double::value_offset());
+      __ LoadDFieldFromOffset(fpu_temp, value_reg, Double::value_offset(), PP);
+      __ StoreDFieldToOffset(fpu_temp, temp, Double::value_offset(), PP);
       __ b(&skip_store);
     }
 
-    // TODO(zra): Implement these when we add simd loads and stores.
     {
       __ Bind(&store_float32x4);
-      __ Stop("Float32x4 Unimplemented");
+      Label copy_float32x4;
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float32x4_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_, PP);
+      __ CompareObject(temp, Object::null_object(), PP);
+      __ b(&copy_float32x4, NE);
+
+      __ TryAllocate(compiler->float32x4_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2,
+                     PP);
+      __ Bind(slow_path->exit_label());
+      __ mov(temp2, temp);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2, PP);
+      __ Bind(&copy_float32x4);
+      __ LoadQFieldFromOffset(
+          fpu_temp, value_reg, Float32x4::value_offset(), PP);
+      __ StoreQFieldToOffset(
+          fpu_temp, value_reg, Float32x4::value_offset(), PP);
+      __ b(&skip_store);
     }
 
     {
       __ Bind(&store_float64x2);
-      __ Stop("Float64x2 Unimplemented");
+      Label copy_float64x2;
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_, PP);
+      __ CompareObject(temp, Object::null_object(), PP);
+      __ b(&copy_float64x2, NE);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2,
+                     PP);
+      __ Bind(slow_path->exit_label());
+      __ mov(temp2, temp);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2, PP);
+      __ Bind(&copy_float64x2);
+      __ LoadQFieldFromOffset(
+          fpu_temp, value_reg, Float64x2::value_offset(), PP);
+      __ StoreQFieldToOffset(
+          fpu_temp, value_reg, Float64x2::value_offset(), PP);
+      __ b(&skip_store);
     }
 
     __ Bind(&store_pointer);
   }
 
   if (ShouldEmitStoreBarrier()) {
-    Register value_reg = locs()->in(1).reg();
-    __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, offset_in_bytes_),
-                       value_reg,
-                       CanValueBeSmi());
+    const Register value_reg = locs()->in(1).reg();
+    __ StoreIntoObjectOffset(
+        instance_reg, offset_in_bytes_, value_reg, PP, CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectNoBarrier(
+      __ StoreIntoObjectOffsetNoBarrier(
           instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_),
-          locs()->in(1).constant());
+          offset_in_bytes_,
+          locs()->in(1).constant(),
+          PP);
     } else {
-      Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
+      const Register value_reg = locs()->in(1).reg();
+      __ StoreIntoObjectOffsetNoBarrier(
+          instance_reg,
+          offset_in_bytes_,
+          value_reg,
+          PP);
     }
   }
   __ Bind(&skip_store);
@@ -1885,7 +1933,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(bool opt) const {
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadFieldFromOffset(result, field, Field::value_offset());
+  __ LoadFieldFromOffset(result, field, Field::value_offset(), PP);
 }
 
 
@@ -1904,11 +1952,10 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(temp, field(), PP);
   if (this->value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(temp,
-        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
+    __ StoreIntoObjectOffset(
+        temp, Field::value_offset(), value, PP, CanValueBeSmi());
   } else {
-    __ StoreIntoObjectNoBarrier(
-        temp, FieldAddress(temp, Field::value_offset()), value);
+    __ StoreIntoObjectOffsetNoBarrier(temp, Field::value_offset(), value, PP);
   }
 }
 
@@ -2025,12 +2072,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const VRegister result = locs()->out(0).fpu_reg();
     const Register temp = locs()->temp(0).reg();
-    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes(), PP);
     const intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
-        __ LoadDFieldFromOffset(result, temp, Double::value_offset());
+        __ LoadDFieldFromOffset(result, temp, Double::value_offset(), PP);
         break;
       case kFloat32x4Cid:
       case kFloat64x2Cid:
@@ -2093,9 +2140,9 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp,
                      PP);
       __ Bind(slow_path->exit_label());
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
-      __ LoadDFieldFromOffset(value, temp, Double::value_offset());
-      __ StoreDFieldToOffset(value, result_reg, Double::value_offset());
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes(), PP);
+      __ LoadDFieldFromOffset(value, temp, Double::value_offset(), PP);
+      __ StoreDFieldToOffset(value, result_reg, Double::value_offset(), PP);
       __ b(&done);
     }
 
@@ -2112,7 +2159,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFieldFromOffset(result_reg, instance_reg, offset_in_bytes());
+  __ LoadFieldFromOffset(result_reg, instance_reg, offset_in_bytes(), PP);
   __ Bind(&done);
 }
 
@@ -2182,13 +2229,13 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   }
 
   __ LoadObject(R2, type_arguments(), PP);
-  __ LoadFieldFromOffset(R2, R2, TypeArguments::instantiations_offset());
+  __ LoadFieldFromOffset(R2, R2, TypeArguments::instantiations_offset(), PP);
   __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag, PP);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
   Label loop, found, slow_case;
   __ Bind(&loop);
-  __ LoadFromOffset(R1, R2, 0 * kWordSize);  // Cached instantiator.
+  __ LoadFromOffset(R1, R2, 0 * kWordSize, PP);  // Cached instantiator.
   __ CompareRegisters(R1, R0);
   __ b(&found, EQ);
   __ AddImmediate(R2, R2, 2 * kWordSize, PP);
@@ -2196,7 +2243,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ b(&loop, NE);
   __ b(&slow_case);
   __ Bind(&found);
-  __ LoadFromOffset(R0, R2, 1 * kWordSize);  // Cached instantiated args.
+  __ LoadFromOffset(R0, R2, 1 * kWordSize, PP);  // Cached instantiated args.
   __ b(&type_arguments_instantiated);
 
   __ Bind(&slow_case);
@@ -2299,9 +2346,9 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore stack and initialize the two exception variables:
   // exception and stack trace variables.
   __ StoreToOffset(kExceptionObjectReg,
-                   FP, exception_var().index() * kWordSize);
+                   FP, exception_var().index() * kWordSize, PP);
   __ StoreToOffset(kStackTraceObjectReg,
-                   FP, stacktrace_var().index() * kWordSize);
+                   FP, stacktrace_var().index() * kWordSize, PP);
 }
 
 
@@ -2384,7 +2431,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(temp, compiler->parsed_function().function(), PP);
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
-    __ LoadFieldFromOffset(temp, temp, Function::usage_counter_offset());
+    __ LoadFieldFromOffset(temp, temp, Function::usage_counter_offset(), PP);
     __ CompareImmediate(temp, threshold, PP);
     __ b(slow_path->osr_entry_label(), GE);
   }
@@ -2877,7 +2924,7 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  locs()->temp(0).reg(),
                  PP);
   __ Bind(slow_path->exit_label());
-  __ StoreDFieldToOffset(value, out_reg, Double::value_offset());
+  __ StoreDFieldToOffset(value, out_reg, Double::value_offset(), PP);
 }
 
 
@@ -2899,7 +2946,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid == kDoubleCid) {
-    __ LoadDFieldFromOffset(result, value, Double::value_offset());
+    __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
   } else if (value_cid == kSmiCid) {
     __ Asr(TMP, value, kSmiTagSize);  // Untag input before conversion.
     __ scvtfd(result, TMP);
@@ -2911,14 +2958,14 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ CompareObject(value, Object::null_object(), PP);
       __ b(deopt, EQ);
       // It must be double now.
-      __ LoadDFieldFromOffset(result, value, Double::value_offset());
+      __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
     } else {
       Label is_smi, done;
       __ tsti(value, kSmiTagMask);
       __ b(&is_smi, EQ);
-      __ CompareClassId(value, kDoubleCid);
+      __ CompareClassId(value, kDoubleCid, PP);
       __ b(deopt, NE);
-      __ LoadDFieldFromOffset(result, value, Double::value_offset());
+      __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
       __ b(&done);
       __ Bind(&is_smi);
       __ Asr(TMP, value, kSmiTagSize);  // Copy and untag.
@@ -3493,7 +3540,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value_obj = locs()->in(0).reg();
   ASSERT(result == R0);
   ASSERT(result != value_obj);
-  __ LoadDFieldFromOffset(VTMP, value_obj, Double::value_offset());
+  __ LoadDFieldFromOffset(VTMP, value_obj, Double::value_offset(), PP);
 
   Label do_call, done;
   // First check for NaN. Checking for minint after the conversion doesn't work
@@ -3568,24 +3615,38 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
 }
 
 
 void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const VRegister value = locs()->in(0).fpu_reg();
+  const VRegister result = locs()->out(0).fpu_reg();
+  __ fcvtsd(result, value);
 }
 
 
 LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
 }
 
 
 void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const VRegister value = locs()->in(0).fpu_reg();
+  const VRegister result = locs()->out(0).fpu_reg();
+  __ fcvtds(result, value);
 }
 
 
@@ -3839,7 +3900,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load receiver into R0.
   __ LoadFromOffset(
-      R0, SP, (instance_call()->ArgumentCount() - 1) * kWordSize);
+      R0, SP, (instance_call()->ArgumentCount() - 1) * kWordSize, PP);
 
   LoadValueCid(compiler, R2, R0,
                (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
@@ -3906,7 +3967,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tsti(value, kSmiTagMask);
     __ b(deopt, EQ);
   }
-  __ LoadClassId(temp, value);
+  __ LoadClassId(temp, value, PP);
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   for (intptr_t i = cix; i < num_checks; i++) {
     ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);

@@ -255,7 +255,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     if (is_raw_type) {
       const Register kClassIdReg = R2;
       // dynamic type argument, check only classes.
-      __ LoadClassId(kClassIdReg, kInstanceReg);
+      __ LoadClassId(kClassIdReg, kInstanceReg, PP);
       __ CompareImmediate(kClassIdReg, type_class.id(), PP);
       __ b(is_instance_lbl, EQ);
       // List is a very common case.
@@ -336,7 +336,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Compare if the classes are equal.
   const Register kClassIdReg = R2;
-  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadClassId(kClassIdReg, kInstanceReg, PP);
   __ CompareImmediate(kClassIdReg, type_class.id(), PP);
   __ b(is_instance_lbl, EQ);
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
@@ -350,8 +350,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   if (type.IsFunctionType()) {
     // Check if instance is a closure.
-    __ LoadClassById(R3, kClassIdReg);
-    __ LoadFieldFromOffset(R3, R3, Class::signature_function_offset());
+    __ LoadClassById(R3, kClassIdReg, PP);
+    __ LoadFieldFromOffset(R3, R3, Class::signature_function_offset(), PP);
     __ CompareObject(R3, Object::null_object(), PP);
     __ b(is_instance_lbl, NE);
   }
@@ -385,11 +385,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     Label* is_not_instance_lbl) {
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = R0;
-  __ LoadClass(R1, kInstanceReg);
+  __ LoadClass(R1, kInstanceReg, PP);
   // R1: instance class.
   // Check immediate superclass equality.
-  __ LoadFieldFromOffset(R2, R1, Class::super_type_offset());
-  __ LoadFieldFromOffset(R2, R2, Type::type_class_offset());
+  __ LoadFieldFromOffset(R2, R1, Class::super_type_offset(), PP);
+  __ LoadFieldFromOffset(R2, R2, Type::type_class_offset(), PP);
   __ CompareObject(R2, type_class, PP);
   __ b(is_instance_lbl, EQ);
 
@@ -423,7 +423,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(R1, Object::null_object(), PP);
     __ b(is_instance_lbl, EQ);
     __ LoadFieldFromOffset(
-        R2, R1, TypeArguments::type_at_offset(type_param.index()));
+        R2, R1, TypeArguments::type_at_offset(type_param.index()), PP);
     // R2: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(R2, Type::ZoneHandle(Type::DynamicType()), PP);
@@ -738,7 +738,7 @@ void FlowGraphCompiler::CopyParameters() {
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
   __ LoadFieldFromOffset(
-      R8, R4, ArgumentsDescriptor::positional_count_offset());
+      R8, R4, ArgumentsDescriptor::positional_count_offset(), PP);
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
   __ CompareImmediate(R8, Smi::RawValue(min_num_pos_args), PP);
@@ -751,7 +751,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
   // to fp[kFirstLocalSlotFromFp - i].
 
-  __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset(), PP);
   // Since R7 and R8 are Smi, use LSL 2 instead of LSL 3.
   // Let R7 point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
@@ -805,9 +805,9 @@ void FlowGraphCompiler::CopyParameters() {
       opt_param_position[i + 1] = pos;
     }
     // Generate code handling each optional parameter in alphabetical order.
-    __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+    __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset(), PP);
     __ LoadFieldFromOffset(
-        R8, R4, ArgumentsDescriptor::positional_count_offset());
+        R8, R4, ArgumentsDescriptor::positional_count_offset(), PP);
     __ SmiUntag(R8);
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
@@ -821,13 +821,13 @@ void FlowGraphCompiler::CopyParameters() {
       const int param_pos = opt_param_position[i];
       // Check if this named parameter was passed in.
       // Load R5 with the name of the argument.
-      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::name_offset());
+      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::name_offset(), PP);
       ASSERT(opt_param[i]->name().IsSymbol());
       __ CompareObject(R5, opt_param[i]->name(), PP);
       __ b(&load_default_value, NE);
       // Load R5 with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
-      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::position_offset());
+      __ LoadFromOffset(R5, R6, ArgumentsDescriptor::position_offset(), PP);
       // R5 is arg_pos as Smi.
       // Point to next named entry.
       __ add(R6, R6, Operand(ArgumentsDescriptor::named_entry_size()));
@@ -848,7 +848,7 @@ void FlowGraphCompiler::CopyParameters() {
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
-      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize);
+      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize, PP);
     }
     delete[] opt_param;
     delete[] opt_param_position;
@@ -862,7 +862,7 @@ void FlowGraphCompiler::CopyParameters() {
   } else {
     ASSERT(num_opt_pos_params > 0);
     __ LoadFieldFromOffset(
-        R8, R4, ArgumentsDescriptor::positional_count_offset());
+        R8, R4, ArgumentsDescriptor::positional_count_offset(), PP);
     __ SmiUntag(R8);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
@@ -881,11 +881,11 @@ void FlowGraphCompiler::CopyParameters() {
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
-      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize);
+      __ StoreToOffset(R5, FP, computed_param_pos * kWordSize, PP);
       __ Bind(&next_parameter);
     }
     if (check_correct_named_args) {
-      __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
+      __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset(), PP);
       __ SmiUntag(R7);
       // Check that R8 equals R7, i.e. no named arguments passed.
       __ CompareRegisters(R8, R7);
@@ -917,7 +917,7 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // R4 : arguments descriptor array.
-  __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::count_offset(), PP);
   __ SmiUntag(R8);
   __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
   const Address original_argument_addr(R7, R8, UXTX, Address::Scaled);
@@ -937,8 +937,8 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
-  __ LoadFromOffset(R0, SP, 0 * kWordSize);
-  __ LoadFromOffset(R0, R0, offset - kHeapObjectTag);
+  __ LoadFromOffset(R0, SP, 0 * kWordSize, PP);
+  __ LoadFromOffset(R0, R0, offset - kHeapObjectTag, PP);
   __ ret();
 }
 
@@ -949,9 +949,9 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
   __ Comment("Inlined Setter");
-  __ LoadFromOffset(R0, SP, 1 * kWordSize);  // Receiver.
-  __ LoadFromOffset(R1, SP, 0 * kWordSize);  // Value.
-  __ StoreIntoObject(R0, FieldAddress(R0, offset), R1);
+  __ LoadFromOffset(R0, SP, 1 * kWordSize, PP);  // Receiver.
+  __ LoadFromOffset(R1, SP, 0 * kWordSize, PP);  // Value.
+  __ StoreIntoObjectOffset(R0, offset, R1, PP);
   __ LoadObject(R0, Object::null_object(), PP);
   __ ret();
 }
@@ -977,14 +977,16 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          Isolate::kNoDeoptId,
                          0);  // No token position.
     intptr_t threshold = FLAG_optimization_counter_threshold;
-    __ LoadFieldFromOffset(R7, function_reg, Function::usage_counter_offset());
+    __ LoadFieldFromOffset(
+        R7, function_reg, Function::usage_counter_offset(), new_pp);
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
       threshold = FLAG_reoptimization_counter_threshold;
     } else {
       __ add(R7, R7, Operand(1));
-      __ StoreFieldToOffset(R7, function_reg, Function::usage_counter_offset());
+      __ StoreFieldToOffset(
+          R7, function_reg, Function::usage_counter_offset(), new_pp);
     }
     __ CompareImmediate(R7, threshold, new_pp);
     ASSERT(function_reg == R6);
@@ -1054,11 +1056,11 @@ void FlowGraphCompiler::CompileGraph() {
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
       Label correct_num_arguments, wrong_num_arguments;
-      __ LoadFieldFromOffset(R0, R4, ArgumentsDescriptor::count_offset());
+      __ LoadFieldFromOffset(R0, R4, ArgumentsDescriptor::count_offset(), PP);
       __ CompareImmediate(R0, Smi::RawValue(num_fixed_params), PP);
       __ b(&wrong_num_arguments, NE);
       __ LoadFieldFromOffset(R1, R4,
-            ArgumentsDescriptor::positional_count_offset());
+            ArgumentsDescriptor::positional_count_offset(), PP);
       __ CompareRegisters(R0, R1);
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
@@ -1095,7 +1097,7 @@ void FlowGraphCompiler::CompileGraph() {
     __ LoadObject(R0, Object::null_object(), PP);
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).
-      __ StoreToOffset(R0, FP, (slot_base - i) * kWordSize);
+      __ StoreToOffset(R0, FP, (slot_base - i) * kWordSize, PP);
     }
   }
 
@@ -1183,9 +1185,9 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(R0, counter, PP);
-  __ LoadFieldFromOffset(TMP, R0, Array::element_offset(0));
+  __ LoadFieldFromOffset(TMP, R0, Array::element_offset(0), PP);
   __ add(TMP, TMP, Operand(Smi::RawValue(1)));
-  __ StoreFieldToOffset(TMP, R0, Array::element_offset(0));
+  __ StoreFieldToOffset(TMP, R0, Array::element_offset(0), PP);
 }
 
 
@@ -1246,21 +1248,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize, PP);
   __ tsti(R0, kSmiTagMask);
   __ b(&not_smi, NE);
   __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
   __ b(&load_cache);
 
   __ Bind(&not_smi);
-  __ LoadClassId(R0, R0);
+  __ LoadClassId(R0, R0, PP);
   __ SmiTag(R0);
 
   // R0: class ID of the receiver (smi).
   __ Bind(&load_cache);
   __ LoadObject(R1, cache, PP);
-  __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset());
-  __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset());
+  __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset(), PP);
+  __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset(), PP);
   // R2: cache buckets array.
   // R1: mask.
   __ mov(R3, R0);
@@ -1275,7 +1277,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const intptr_t base = Array::data_offset();
   // R3 is smi tagged, but table entries are 8 bytes, so LSL 2.
   __ add(TMP, R2, Operand(R3, LSL, 2));
-  __ LoadFieldFromOffset(R4, TMP, base);
+  __ LoadFieldFromOffset(R4, TMP, base, PP);
 
   ASSERT(kIllegalCid == 0);
   __ tst(R4, Operand(R4));
@@ -1289,9 +1291,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ add(TMP, R2, Operand(R3, LSL, 2));
-  __ LoadFieldFromOffset(R0, TMP, base + kWordSize);
-  __ LoadFieldFromOffset(R1, R0, Function::code_offset());
-  __ LoadFieldFromOffset(R1, R1, Code::instructions_offset());
+  __ LoadFieldFromOffset(R0, TMP, base + kWordSize, PP);
+  __ LoadFieldFromOffset(R1, R0, Function::code_offset(), PP);
+  __ LoadFieldFromOffset(R1, R1, Code::instructions_offset(), PP);
   __ LoadObject(R5, ic_data, PP);
   __ LoadObject(R4, arguments_descriptor, PP);
   __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);
@@ -1575,18 +1577,18 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ StoreToOffset(source.reg(), FP, dest_offset);
+      __ StoreToOffset(source.reg(), FP, dest_offset, PP);
     }
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
-      __ LoadFromOffset(destination.reg(), FP, source_offset);
+      __ LoadFromOffset(destination.reg(), FP, source_offset, PP);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadFromOffset(TMP, FP, source_offset);
-      __ StoreToOffset(TMP, FP, dest_offset);
+      __ LoadFromOffset(TMP, FP, source_offset, PP);
+      __ StoreToOffset(TMP, FP, dest_offset, PP);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -1595,7 +1597,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();
         VRegister src = source.fpu_reg();
-        __ StoreDToOffset(src, FP, dest_offset);
+        __ StoreDToOffset(src, FP, dest_offset, PP);
       } else {
         ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
@@ -1605,13 +1607,13 @@ void ParallelMoveResolver::EmitMove(int index) {
     if (destination.IsFpuRegister()) {
       const intptr_t dest_offset = source.ToStackSlotOffset();
       const VRegister dst = destination.fpu_reg();
-      __ LoadDFromOffset(dst, FP, dest_offset);
+      __ LoadDFromOffset(dst, FP, dest_offset, PP);
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadDFromOffset(VTMP, FP, source_offset);
-      __ StoreDToOffset(VTMP, FP, dest_offset);
+      __ LoadDFromOffset(VTMP, FP, source_offset, PP);
+      __ StoreDToOffset(VTMP, FP, dest_offset, PP);
     }
   } else if (source.IsQuadStackSlot()) {
     UNIMPLEMENTED();
@@ -1623,17 +1625,17 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else if (destination.IsFpuRegister()) {
       const VRegister dst = destination.fpu_reg();
       __ LoadObject(TMP, constant, PP);
-      __ LoadDFieldFromOffset(dst, TMP, Double::value_offset());
+      __ LoadDFieldFromOffset(dst, TMP, Double::value_offset(), PP);
     } else if (destination.IsDoubleStackSlot()) {
       const intptr_t dest_offset = destination.ToStackSlotOffset();
       __ LoadObject(TMP, constant, PP);
-      __ LoadDFieldFromOffset(VTMP, TMP, Double::value_offset());
-      __ StoreDToOffset(VTMP, FP, dest_offset);
+      __ LoadDFieldFromOffset(VTMP, TMP, Double::value_offset(), PP);
+      __ StoreDToOffset(VTMP, FP, dest_offset, PP);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
       __ LoadObject(TMP, constant, PP);
-      __ StoreToOffset(TMP, FP, dest_offset);
+      __ StoreToOffset(TMP, FP, dest_offset, PP);
     }
   }
 
@@ -1678,8 +1680,8 @@ void ParallelMoveResolver::EmitSwap(int index) {
         : source.ToStackSlotOffset();
 
     if (double_width) {
-      __ LoadDFromOffset(VTMP, FP, slot_offset);
-      __ StoreDToOffset(reg, FP, slot_offset);
+      __ LoadDFromOffset(VTMP, FP, slot_offset, PP);
+      __ StoreDToOffset(reg, FP, slot_offset, PP);
       __ fmovdd(reg, VTMP);
     } else {
       UNIMPLEMENTED();
@@ -1690,10 +1692,10 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
     ScratchFpuRegisterScope ensure_scratch(this, VTMP);
     VRegister scratch = ensure_scratch.reg();
-    __ LoadDFromOffset(VTMP, FP, source_offset);
-    __ LoadDFromOffset(scratch, FP, dest_offset);
-    __ StoreDToOffset(VTMP, FP, dest_offset);
-    __ StoreDToOffset(scratch, FP, source_offset);
+    __ LoadDFromOffset(VTMP, FP, source_offset, PP);
+    __ LoadDFromOffset(scratch, FP, dest_offset, PP);
+    __ StoreDToOffset(VTMP, FP, dest_offset, PP);
+    __ StoreDToOffset(scratch, FP, source_offset, PP);
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
     UNIMPLEMENTED();
   } else {

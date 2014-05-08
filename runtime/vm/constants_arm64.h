@@ -219,6 +219,7 @@ enum OperandSize {
   kDoubleWord,
   kSWord,
   kDWord,
+  kQWord,
 };
 
 static inline int Log2OperandSizeBytes(OperandSize os) {
@@ -236,11 +237,34 @@ static inline int Log2OperandSizeBytes(OperandSize os) {
     case kDoubleWord:
     case kDWord:
       return 3;
+    case kQWord:
+      return 4;
     default:
       UNREACHABLE();
       break;
   }
   return -1;
+}
+
+static inline bool IsSignedOperand(OperandSize os) {
+  switch (os) {
+    case kByte:
+    case kHalfword:
+    case kWord:
+      return true;
+    case kUnsignedByte:
+    case kUnsignedHalfword:
+    case kUnsignedWord:
+    case kDoubleWord:
+    case kSWord:
+    case kDWord:
+    case kQWord:
+      return false;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return false;
 }
 
 // Opcodes from C3
@@ -337,8 +361,11 @@ enum LoadStoreRegOp {
   LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
   STR = LoadStoreRegFixed,
   LDR = LoadStoreRegFixed | B22,
+  LDRS = LoadStoreRegFixed | B23,
   FSTR = STR | B26,
   FLDR = LDR | B26,
+  FSTRQ = STR | B26 | B23,
+  FLDRQ = LDR | B26 | B23,
 };
 
 // C3.4.1
@@ -442,6 +469,8 @@ enum FPOneSourceOp {
   FABSD = FPOneSourceFixed | B22 | B15,
   FNEGD = FPOneSourceFixed | B22 | B16,
   FSQRTD = FPOneSourceFixed | B22 | B16 | B15,
+  FCVTDS = FPOneSourceFixed | B15 | B17,
+  FCVTSD = FPOneSourceFixed | B22 | B17,
 };
 
 // C3.6.26

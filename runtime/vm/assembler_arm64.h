@@ -549,7 +549,11 @@ class Assembler : public ValueObject {
       ASSERT(((a.type() != Address::PreIndex) &&
               (a.type() != Address::PostIndex)) ||
              (rt != a.base()));
-      EmitLoadStoreReg(LDR, rt, a, sz);
+      if (IsSignedOperand(sz)) {
+        EmitLoadStoreReg(LDRS, rt, a, sz);
+      } else {
+        EmitLoadStoreReg(LDR, rt, a, sz);
+      }
     }
   }
   void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
@@ -667,18 +671,40 @@ class Assembler : public ValueObject {
   void fsqrtd(VRegister vd, VRegister vn) {
     EmitFPOneSourceOp(FSQRTD, vd, vn);
   }
+  void fcvtsd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FCVTSD, vd, vn);
+  }
+  void fcvtds(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FCVTDS, vd, vn);
+  }
+  void fldrq(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kByte);
+  }
+  void fstrq(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kByte);
+  }
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDWord);
   }
   void fstrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDoubleWord);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDWord);
+  }
+  void fldrs(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kSWord);
+  }
+  void fstrs(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kSWord);
   }
   void fcmpd(VRegister vn, VRegister vm) {
     EmitFPCompareOp(FCMPD, vn, vm);
   }
-  void fcmpzd(VRegister vn) {
+  void fcmpdz(VRegister vn) {
     EmitFPCompareOp(FCMPZD, vn, V0);
   }
   void fmuld(VRegister vd, VRegister vn, VRegister vm) {
@@ -807,23 +833,41 @@ class Assembler : public ValueObject {
   void CompareImmediate(Register rn, int64_t imm, Register pp);
 
   void LoadFromOffset(Register dest, Register base, int32_t offset,
-                      OperandSize sz = kDoubleWord);
-  void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
-    LoadFromOffset(dest, base, offset - kHeapObjectTag);
+                      Register pp, OperandSize sz = kDoubleWord);
+  void LoadFieldFromOffset(
+      Register dest, Register base, int32_t offset, Register pp) {
+    LoadFromOffset(dest, base, offset - kHeapObjectTag, pp);
   }
-  void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
-  void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
-    LoadDFromOffset(dest, base, offset - kHeapObjectTag);
+  void LoadDFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp);
+  void LoadDFieldFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp) {
+    LoadDFromOffset(dest, base, offset - kHeapObjectTag, pp);
+  }
+  void LoadQFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp);
+  void LoadQFieldFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp) {
+    LoadQFromOffset(dest, base, offset - kHeapObjectTag, pp);
   }
 
   void StoreToOffset(Register src, Register base, int32_t offset,
-                     OperandSize sz = kDoubleWord);
-  void StoreFieldToOffset(Register src, Register base, int32_t offset) {
-    StoreToOffset(src, base, offset - kHeapObjectTag);
+                     Register pp, OperandSize sz = kDoubleWord);
+  void StoreFieldToOffset(
+      Register src, Register base, int32_t offset, Register pp) {
+    StoreToOffset(src, base, offset - kHeapObjectTag, pp);
   }
-  void StoreDToOffset(VRegister src, Register base, int32_t offset);
-  void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
-    StoreDToOffset(src, base, offset - kHeapObjectTag);
+  void StoreDToOffset(
+      VRegister src, Register base, int32_t offset, Register pp);
+  void StoreDFieldToOffset(
+      VRegister src, Register base, int32_t offset, Register pp) {
+    StoreDToOffset(src, base, offset - kHeapObjectTag, pp);
+  }
+  void StoreQToOffset(
+      VRegister src, Register base, int32_t offset, Register pp);
+  void StoreQFieldToOffset(
+      VRegister src, Register base, int32_t offset, Register pp) {
+    StoreQToOffset(src, base, offset - kHeapObjectTag, pp);
   }
 
   // Storing into an object.
@@ -831,12 +875,25 @@ class Assembler : public ValueObject {
                        const Address& dest,
                        Register value,
                        bool can_value_be_smi = true);
+  void StoreIntoObjectOffset(Register object,
+                             int32_t offset,
+                             Register value,
+                             Register pp,
+                             bool can_value_be_smi = true);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectOffsetNoBarrier(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      Register pp);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreIntoObjectOffsetNoBarrier(Register object,
+                                      int32_t offset,
+                                      const Object& value,
+                                      Register pp);
 
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
@@ -870,10 +927,10 @@ class Assembler : public ValueObject {
   }
   void CompareObject(Register reg, const Object& object, Register pp);
 
-  void LoadClassId(Register result, Register object);
-  void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object);
-  void CompareClassId(Register object, intptr_t class_id);
+  void LoadClassId(Register result, Register object, Register pp);
+  void LoadClassById(Register result, Register class_id, Register pp);
+  void LoadClass(Register result, Register object, Register pp);
+  void CompareClassId(Register object, intptr_t class_id, Register pp);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
@@ -1152,7 +1209,7 @@ class Assembler : public ValueObject {
     const Register crt = ConcreteRegister(rt);
     const int32_t size = Log2OperandSizeBytes(sz);
     const int32_t encoding =
-        op | (size << kSzShift) |
+        op | ((size & 0x3) << kSzShift) |
         (static_cast<int32_t>(crt) << kRtShift) |
         a.encoding();
     Emit(encoding);

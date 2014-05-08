@@ -75,8 +75,8 @@ cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
 
-[ $arch == simarm64 ]
-dart/*: Skip
+[ $arch == simarm64 && $mode == debug ]
+cc/PrintJSON: Crash
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag

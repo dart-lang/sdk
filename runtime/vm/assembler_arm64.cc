@@ -672,52 +672,74 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
 
 
 void Assembler::LoadFromOffset(
-    Register dest, Register base, int32_t offset, OperandSize sz) {
+    Register dest, Register base, int32_t offset, Register pp, OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     ldr(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     ldr(dest, Address(TMP2), sz);
   }
 }
 
 
-void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
+void Assembler::LoadDFromOffset(
+    VRegister dest, Register base, int32_t offset, Register pp) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fldrd(dest, Address(base, offset, Address::Offset, kDWord));
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     fldrd(dest, Address(TMP2));
   }
 }
 
 
+void Assembler::LoadQFromOffset(
+    VRegister dest, Register base, int32_t offset, Register pp) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kQWord)) {
+    fldrq(dest, Address(base, offset, Address::Offset, kQWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset, pp);
+    fldrq(dest, Address(TMP2));
+  }
+}
+
+
 void Assembler::StoreToOffset(
-    Register src, Register base, int32_t offset, OperandSize sz) {
+    Register src, Register base, int32_t offset, Register pp, OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     str(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(src != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     str(src, Address(TMP2), sz);
   }
 }
 
 
-void Assembler::StoreDToOffset(VRegister src, Register base, int32_t offset) {
+void Assembler::StoreDToOffset(
+    VRegister src, Register base, int32_t offset, Register pp) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fstrd(src, Address(base, offset, Address::Offset, kDWord));
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     fstrd(src, Address(TMP2));
+  }
+}
+
+
+void Assembler::StoreQToOffset(
+    VRegister src, Register base, int32_t offset, Register pp) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kQWord)) {
+    fstrq(src, Address(base, offset, Address::Offset, kQWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset, pp);
+    fstrq(src, Address(TMP2));
   }
 }
 
@@ -751,6 +773,21 @@ void Assembler::StoreIntoObjectFilter(Register object,
   bic(TMP, TMP, Operand(object));
   tsti(TMP, kNewObjectAlignmentOffset);
   b(no_update, EQ);
+}
+
+
+void Assembler::StoreIntoObjectOffset(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      Register pp,
+                                      bool can_value_be_smi) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObject(
+        object, FieldAddress(object, offset), value, can_value_be_smi);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObject(object, Address(TMP), value, can_value_be_smi);
+  }
 }
 
 
@@ -799,48 +836,74 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
+                                               int32_t offset,
+                                               Register value,
+                                               Register pp) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
-  LoadObject(TMP, value, PP);
-  str(TMP, dest);
+  LoadObject(TMP2, value, PP);
+  str(TMP2, dest);
 }
 
 
-void Assembler::LoadClassId(Register result, Register object) {
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
+                                               int32_t offset,
+                                               const Object& value,
+                                               Register pp) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+
+void Assembler::LoadClassId(Register result, Register object, Register pp) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
+  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag, pp,
                  kUnsignedHalfword);
 }
 
 
-void Assembler::LoadClassById(Register result, Register class_id) {
+void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  LoadFieldFromOffset(result, CTX, Context::isolate_offset());
+  LoadFieldFromOffset(result, CTX, Context::isolate_offset(), pp);
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(result, result, table_offset_in_isolate);
+  LoadFromOffset(result, result, table_offset_in_isolate, pp);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 
 
-void Assembler::LoadClass(Register result, Register object) {
+void Assembler::LoadClass(Register result, Register object, Register pp) {
   ASSERT(object != TMP);
-  LoadClassId(TMP, object);
-  LoadClassById(result, TMP);
+  LoadClassId(TMP, object, pp);
+  LoadClassById(result, TMP, pp);
 }
 
 
-void Assembler::CompareClassId(Register object,
-                               intptr_t class_id) {
-  LoadClassId(TMP, object);
-  CompareImmediate(TMP, class_id, PP);
+void Assembler::CompareClassId(
+    Register object, intptr_t class_id, Register pp) {
+  LoadClassId(TMP, object, pp);
+  CompareImmediate(TMP, class_id, pp);
 }
 
 
@@ -922,7 +985,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   Comment("EnterOsrFrame");
   adr(TMP, -CodeSize());
 
-  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
+  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize, kNoPP);
 
   // Setup pool pointer for this dart function.
   if (new_pp == kNoPP) {
@@ -939,7 +1002,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 
 void Assembler::LeaveDartFrame() {
   // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize, kNoPP);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
 }
@@ -1022,7 +1085,7 @@ void Assembler::EnterStubFrame(bool load_pp) {
 
 void Assembler::LeaveStubFrame() {
   // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize, kNoPP);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
 }
@@ -1151,7 +1214,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     LoadImmediate(TMP, tags, pp);
-    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
+    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset(), pp);
   } else {
     b(failure);
   }

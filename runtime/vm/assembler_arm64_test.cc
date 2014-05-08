@@ -808,7 +808,7 @@ ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
   __ LoadDImmediate(V0, 235.0, kNoPP);
   __ LoadDImmediate(V1, 233.0, kNoPP);
 
-  __ fcmpzd(V1);
+  __ fcmpdz(V1);
   __ b(&l, GT);
   __ LoadDImmediate(V0, 0.0, kNoPP);
   __ ret();
@@ -1546,6 +1546,45 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
 
 
 ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fcvtsd(V2, V1);
+  __ fstrs(V2, Address(SP, -1*kWordSize, Address::PreIndex));
+  __ fldrs(V3, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ fcvtds(V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 21.0, kNoPP);
+  __ LoadDImmediate(V2, 21.0, kNoPP);
+  __ LoadImmediate(R1, 42, kNoPP);
+  __ Push(R1);
+  __ PushDouble(V1);
+  __ PushDouble(V2);
+  __ fldrq(V3, Address(SP, 2 * kWordSize, Address::PostIndex));
+  __ Pop(R0);
+  __ fstrq(V3, Address(SP, -2 * kWordSize, Address::PreIndex));
+  __ PopDouble(V0);
+  __ PopDouble(V1);
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
 }

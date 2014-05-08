@@ -102,14 +102,10 @@ LibTest/math/Rectangle/boundingBox_A01_t01: Skip  # Timeout, RuntimeError
 LibTest/core/Uri/encodeQueryComponent_A01_t02: RuntimeError
 LibTest/core/Uri/Uri_A06_t03: RuntimeError
 LibTest/math/Rectangle/Rectangle.fromPoints_A01_t01: RuntimeError
-Language/12_Expressions/01_Constants_A13_t06: Crash
-# Unimplemented features:
-LibTest/typed_data/Float32List/Float32List_A01_t02: Crash # Float -> Double.
 
 
 [ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == debug]
 # Bug
-Language/12_Expressions/01_Constants_A13_t06: Crash
 LibTest/core/List/List_class_A01_t01: Crash
 
 
@@ -121,3 +117,7 @@ LibTest/isolate/Isolate/spawn_A01_t02: Crash
 [ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == release && $checked ]
 # Bug
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Pass, Crash
+
+
+[ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == debug && $checked ]# Bug
+LibTest/async/StreamTransformer/StreamTransformer_A02_t02: Pass, Crash

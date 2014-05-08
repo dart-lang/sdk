@@ -616,7 +616,7 @@ int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
 }
 
 
-int64_t Simulator::get_vregisterd(VRegister reg) {
+int64_t Simulator::get_vregisterd(VRegister reg) const {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
   return vregisters_[reg].lo;
 }
@@ -626,6 +626,20 @@ void Simulator::set_vregisterd(VRegister reg, int64_t value) {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
   vregisters_[reg].lo = value;
   vregisters_[reg].hi = 0;
+}
+
+
+void Simulator::get_vregister(VRegister reg, simd_value_t* value) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  value->lo = vregisters_[reg].lo;
+  value->hi = vregisters_[reg].hi;
+}
+
+
+void Simulator::set_vregister(VRegister reg, const simd_value_t& value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  vregisters_[reg].lo = value.lo;
+  vregisters_[reg].hi = value.hi;
 }
 
 
@@ -1409,7 +1423,9 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
   const Register rt = instr->RtField();
   const VRegister vt = instr->VtField();
   const int64_t rn_val = get_register(rn, R31IsSP);
-  const uint32_t size = instr->SzField();
+  const uint32_t size =
+      (instr->Bit(26) == 1) ? ((instr->Bit(23) << 2) | instr->SzField())
+                            : instr->SzField();
   uword address = 0;
   uword wb_address = 0;
   bool wb = false;
@@ -1458,16 +1474,51 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
   }
 
   // Do access.
-  if (instr->Bits(22, 2) == 0) {
-    if (instr->Bit(26) == 1) {
-      // Format(instr, "vstrd 'vt, 'memop");
-      if (size != 3) {
-        UnimplementedInstruction(instr);
-        return;
-      }
+  if (instr->Bit(26) == 1) {
+    if (instr->Bit(22) == 0) {
+      // Format(instr, "fstr'fsz 'vt, 'memop");
       const int64_t vt_val = get_vregisterd(vt);
-      WriteX(address, vt_val, instr);
+      switch (size) {
+        case 2:
+          WriteW(address, vt_val & kWRegMask, instr);
+          break;
+        case 3:
+          WriteX(address, vt_val, instr);
+          break;
+        case 4: {
+          simd_value_t val;
+          get_vregister(vt, &val);
+          WriteX(address, val.lo, instr);
+          WriteX(address + kWordSize, val.hi, instr);
+          break;
+        }
+        default:
+          UnimplementedInstruction(instr);
+          return;
+      }
     } else {
+      // Format(instr, "fldr'fsz 'vt, 'memop");
+      switch (size) {
+        case 2:
+          set_vregisterd(vt, static_cast<int64_t>(ReadWU(address, instr)));
+          break;
+        case 3:
+          set_vregisterd(vt, ReadX(address, instr));
+          break;
+        case 4: {
+          simd_value_t val;
+          val.lo = ReadX(address, instr);
+          val.hi = ReadX(address + kWordSize, instr);
+          set_vregister(vt, val);
+          break;
+        }
+        default:
+          UnimplementedInstruction(instr);
+          return;
+      }
+    }
+  } else {
+    if (instr->Bits(22, 2) == 0) {
       // Format(instr, "str'sz 'rt, 'memop");
       const int32_t rt_val32 = get_wregister(rt, R31IsZR);
       switch (size) {
@@ -1495,16 +1546,6 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
           UNREACHABLE();
           break;
       }
-    }
-  } else {
-    if (instr->Bit(26) == 1) {
-      // Format(instr, "ldrd 'vt, 'memop");
-      if ((size != 3) || (instr->Bit(23) != 0)) {
-        UnimplementedInstruction(instr);
-        return;
-      }
-      const int64_t val = ReadX(address, instr);
-      set_vregisterd(vt, val);
     } else {
       // Format(instr, "ldr'sz 'rt, 'memop");
       // Undefined case.
@@ -2085,11 +2126,20 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
 
 
 void Simulator::DecodeFPOneSource(Instr* instr) {
-  const int opc = instr->Bits(15, 2);
+  const int opc = instr->Bits(15, 6);
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
   const int64_t vn_val = get_vregisterd(vn);
+  const int32_t vn_val32 = vn_val & kWRegMask;
   const double vn_dbl = bit_cast<double, int64_t>(vn_val);
+  const float vn_flt = bit_cast<float, int32_t>(vn_val32);
+
+  if ((opc != 5) && (instr->Bit(22) != 1)) {
+    // Source is interpreted as single-precision only if we're doing a
+    // conversion from single -> double.
+    UnimplementedInstruction(instr);
+    return;
+  }
 
   int64_t res_val = 0;
   switch (opc) {
@@ -2109,8 +2159,19 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
       // Format("fsqrtd 'vd, 'vn");
       res_val = bit_cast<int64_t, double>(sqrt(vn_dbl));
       break;
+    case 4: {
+      // Format(instr, "fcvtsd 'vd, 'vn");
+      const uint32_t val =
+          bit_cast<uint32_t, float>(static_cast<float>(vn_dbl));
+      res_val = static_cast<int64_t>(val);
+      break;
+    }
+    case 5:
+      // Format(instr, "fcvtds 'vd, 'vn");
+      res_val = bit_cast<int64_t, double>(static_cast<double>(vn_flt));
+      break;
     default:
-      UNREACHABLE();
+      UnimplementedInstruction(instr);
       break;
   }
 
