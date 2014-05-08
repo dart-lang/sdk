@@ -195,7 +195,7 @@ class Block {
 
 class BlockCollector extends ir.Visitor {
   Block entry;
-  final Map<ir.Continuation, Block> cont2block = <ir.Continuation, Block> {};
+  final Map<ir.Continuation, Block> cont2block = <ir.Continuation, Block>{};
   Block current_block;
 
   Names names;

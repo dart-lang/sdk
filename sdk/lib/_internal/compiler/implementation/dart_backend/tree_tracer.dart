@@ -4,31 +4,118 @@ import 'dart:async' show EventSink;
 import '../tracer.dart';
 import 'dart_tree.dart';
 
+class Block {
+  int index;
+  final List<Statement> statements = <Statement>[];
+  final List<Block> predecessors = <Block>[];
+  final List<Block> successors = <Block>[];
+
+  String get name => 'B$index';
+
+  void addEdgeTo(Block successor) {
+    successors.add(successor);
+    successor.predecessors.add(this);
+  }
+}
+
+class BlockCollector extends Visitor {
+  // Accumulate a list of blocks.  The current block is the last block in
+  // the list.
+  final List<Block> blocks = [new Block()..index = 0];
+
+  // Map tree [Label]s (break targets) and [Statement]s (if targets) to
+  // blocks.
+  final Map<Label, Block> breakTargets = <Label, Block>{};
+  final Map<Statement, Block> ifTargets = <Statement, Block>{};
+
+  void _addStatement(Statement statement) {
+    blocks.last.statements.add(statement);
+  }
+
+  void _addBlock(Block block) {
+    block.index = blocks.length;
+    blocks.add(block);
+  }
+
+  void collect(FunctionDefinition function) {
+    visitStatement(function.body);
+  }
+
+  visitVariable(Variable node) {}
+  visitInvokeStatic(InvokeStatic node) {}
+  visitConstant(Constant node) {}
+
+  visitLabeledStatement(LabeledStatement node) {
+    Block target = new Block();
+    breakTargets[node.label] = target;
+    visitStatement(node.body);
+    _addBlock(target);
+    visitStatement(node.next);
+  }
+
+  visitAssign(Assign node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
+
+  visitReturn(Return node) {
+    _addStatement(node);
+  }
+
+  visitBreak(Break node) {
+    _addStatement(node);
+    blocks.last.addEdgeTo(breakTargets[node.target]);
+  }
+
+  visitIf(If node) {
+    _addStatement(node);
+    Block thenTarget = new Block();
+    Block elseTarget = new Block();
+    ifTargets[node.thenStatement] = thenTarget;
+    ifTargets[node.elseStatement] = elseTarget;
+    blocks.last.addEdgeTo(thenTarget);
+    blocks.last.addEdgeTo(elseTarget);
+    _addBlock(thenTarget);
+    visitStatement(node.thenStatement);
+    _addBlock(elseTarget);
+    visitStatement(node.elseStatement);
+  }
+
+  visitExpressionStatement(ExpressionStatement node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
+}
+
 class TreeTracer extends TracerUtil with Visitor {
   final EventSink<String> output;
 
   TreeTracer(this.output);
 
   Names names;
+  BlockCollector collector;
   int statementCounter;
 
   void traceGraph(String name, FunctionDefinition function) {
     names = new Names();
     statementCounter = 0;
+    collector = new BlockCollector();
+    collector.collect(function);
     tag("cfg", () {
       printProperty("name", name);
-      printBlock(function.body);
+      int blockCounter = 0;
+      collector.blocks.forEach(printBlock);
     });
     names = null;
   }
 
-  void printBlock(Statement e) {
+  void printBlock(Block block) {
     tag("block", () {
-      printProperty("name", "B0"); // Update when proper blocks exist
+      printProperty("name", block.name);
       printProperty("from_bci", -1);
       printProperty("to_bci", -1);
-      printProperty("predecessors", ""); // Update when proper blocks exist
-      printProperty("successors", ""); // Update when proper blocks exist
+      printProperty("predecessors", block.predecessors.map((b) => b.name));
+      printProperty("successors", block.successors.map((b) => b.name));
       printEmptyProperty("xhandlers");
       printEmptyProperty("flags");
       tag("states", () {
@@ -38,7 +125,7 @@ class TreeTracer extends TracerUtil with Visitor {
         });
       });
       tag("HIR", () {
-        e.accept(this);
+        block.statements.forEach(visitStatement);
       });
     });
   }
@@ -52,62 +139,60 @@ class TreeTracer extends TracerUtil with Visitor {
     addIndent();
     add("$bci $uses $name $contents <|@\n");
   }
-  
-  
-
-  visitFunctionDefinition(FunctionDefinition node) {
-  }
 
   visitVariable(Variable node) {
     printStatement(null, "dead-use ${names.varName(node)}");
-  }
-
-  visitExpressionStatement(ExpressionStatement node) {
-    node.expression.accept(this);
-    node.next.accept(this);
-  }
-
-  visitLetVal(LetVal node) {
-    String name = names.varName(node.variable);
-    String rhs = expr(node.definition);
-    printStatement(name, "let $name = $rhs");
-    node.body.accept(this);
   }
 
   visitInvokeStatic(InvokeStatic node) {
     printStatement(null, expr(node));
   }
 
-  visitReturn(Return node) {
-    printStatement(null, "return ${expr(node.value)}");
-  }
-
   visitConstant(Constant node) {
     printStatement(null, "dead-use ${node.value}");
   }
 
-  visitNode(Node node) {}
-  visitExpression(Expression node) {}
+  visitLabeledStatement(LabeledStatement node) {
+    // These do not get added to a block's list of statements.
+  }
+
+  visitAssign(Assign node) {
+    String name = names.varName(node.variable);
+    String rhs = expr(node.definition);
+    printStatement(name, "let $name = $rhs");
+  }
+
+  visitReturn(Return node) {
+    printStatement(null, "return ${expr(node.value)}");
+  }
+
+  visitBreak(Break node) {
+    printStatement(null, "break ${collector.breakTargets[node.target].name}");
+  }
+
+  visitIf(If node) {
+    String condition = expr(node.condition);
+    String thenTarget = collector.ifTargets[node.thenStatement].name;
+    String elseTarget = collector.ifTargets[node.elseStatement].name;
+    printStatement(null, "if $condition then $thenTarget else $elseTarget");
+  }
+
+  visitExpressionStatement(ExpressionStatement node) {
+    visitExpression(node.expression);
+  }
 
   String expr(Expression e) {
-    return e.accept(new ExpressionVisitor(names));
+    return e.accept(new SubexpressionVisitor(names));
   }
 }
 
-class ExpressionVisitor extends Visitor<String, String> {
+class SubexpressionVisitor extends Visitor<String, String> {
   Names names;
 
-  ExpressionVisitor(this.names);
-  
+  SubexpressionVisitor(this.names);
+
   String visitVariable(Variable node) {
     return names.varName(node);
-  }
-
-  String visitLetVal(LetVal node) {
-    String name = names.varName(node.variable);
-    String def = node.definition.accept(this);
-    String body = node.body.accept(this);
-    return "(let $name = $def in $body)";
   }
 
   String visitInvokeStatic(InvokeStatic node) {
@@ -116,21 +201,22 @@ class ExpressionVisitor extends Visitor<String, String> {
     return "$head($args)";
   }
 
-  String visitReturn(Return node) {
-    return "return ${node.value.accept(this)}";
-  }
-
   String visitConstant(Constant node) {
     return "${node.value}";
   }
-  
+
+  // Note: There should not be statements in the context of expressions.
+  String visitStatement(Statement node) {
+    return "${node.runtimeType} statement in expression context";
+  }
+
+  String visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+  String visitAssign(Assign node) => visitStatement(node);
+  String visitReturn(Return node) => visitStatement(node);
+  String visitBreak(Break node) => visitStatement(node);
+  String visitIf(If node) => visitStatement(node);
   String visitExpressionStatement(ExpressionStatement node) {
-    // Note: There should not be statements in the context of expressions.
-    // However, generating a trace that shows where something went wrong is more
-    // useful than raising an exception.
-    String expr = node.expression.accept(this);
-    String body = node.next.accept(this);
-    return "{$expr; $body}";
+    return visitStatement(node);
   }
 }
 

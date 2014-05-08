@@ -5,13 +5,9 @@
 library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
-import '../dart_types.dart';
-import '../util/util.dart';
 import '../elements/elements.dart'
     show Element, FunctionElement, FunctionSignature, ParameterElement;
 import '../ir/ir_nodes.dart' as ir;
-import '../tree/tree.dart' as ast;
-import '../scanner/scannerlib.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -43,7 +39,26 @@ abstract class Expression extends Node {
 }
 
 abstract class Statement extends Node {
+  Statement get next;
+  void set next(Statement s);
   accept(Visitor v);
+}
+
+/**
+ * Labels name [LabeledStatement]s.
+ */
+class Label {
+  // A counter used to generate names.  The counter is reset to 0 for each
+  // function emitted.
+  static int counter = 0;
+  static String _newName() => 'L${counter++}';
+
+  String cachedName;
+
+  String get name {
+    if (cachedName == null) cachedName = _newName();
+    return cachedName;
+  }
 }
 
 /**
@@ -57,7 +72,7 @@ class Variable extends Expression {
 
   Element element;
   String cachedName;
-  
+
   String get name {
     if (cachedName != null) return cachedName;
     return cachedName = ((element == null) ? _newName() : element.name);
@@ -100,21 +115,36 @@ class Constant extends Expression {
 }
 
 /**
- * A local binding of a [Variable] to an [Expression].
- *
- * In contrast to the CPS-based IR, non-primitive expressions can be named
- * with let.
+ * A labeled statement.  Breaks to the label within the labeled statement
+ * target the successor statement.
  */
-class LetVal extends Statement {
+class LabeledStatement extends Statement {
+  Statement next;
+  final Label label;
+  Statement body;
+
+  LabeledStatement(this.label, this.body, this.next);
+
+  accept(Visitor visitor) => visitor.visitLabeledStatement(this);
+}
+
+/**
+ * An assignments of an [Expression] to a [Variable].
+ *
+ * In contrast to the CPS-based IR, non-primitive expressions can be assigned
+ * to variables.
+ */
+class Assign extends Statement {
+  Statement next;
   final Variable variable;
   Expression definition;
-  Statement body;
   final bool hasExactlyOneUse;
 
-  LetVal(this.variable, this.definition, this.body, this.hasExactlyOneUse);
+  Assign(this.variable, this.definition, this.next, this.hasExactlyOneUse);
 
-  accept(Visitor visitor) => visitor.visitLetVal(this);
+  accept(Visitor visitor) => visitor.visitAssign(this);
 }
+
 /**
  * A return exit from the function.
  *
@@ -124,23 +154,53 @@ class LetVal extends Statement {
 class Return extends Statement {
   Expression value;
 
-  Return(this.value);
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
 
-  final bool isPure = true;
+  Return(this.value);
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 }
 
-class ExpressionStatement extends Statement {
-  Expression expression;
-  Statement next;
-  
-  ExpressionStatement(this.expression, this.next);
-  
-  accept(Visitor visitor) => visitor.visitExpressionStatement(this);
+/**
+ * A break from an enclosing [LabeledStatement].  The break targets the
+ * labeled statement's successor statement.
+ */
+class Break extends Statement {
+  Label target;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Break(this.target);
+
+  accept(Visitor visitor) => visitor.visitBreak(this);
 }
 
+/**
+ * A conditional branch based on the true value of an [Expression].
+ */
+class If extends Statement {
+  Expression condition;
+  Statement thenStatement;
+  Statement elseStatement;
 
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  If(this.condition, this.thenStatement, this.elseStatement);
+
+  accept(Visitor visitor) => visitor.visitIf(this);
+}
+
+class ExpressionStatement extends Statement {
+  Statement next;
+  Expression expression;
+
+  ExpressionStatement(this.expression, this.next);
+
+  accept(Visitor visitor) => visitor.visitExpressionStatement(this);
+}
 
 class FunctionDefinition extends Node {
   final List<Variable> parameters;
@@ -154,10 +214,13 @@ abstract class Visitor<S, E> {
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
   E visitConstant(Constant node);
-  
+
   S visitStatement(Statement s) => s.accept(this);
-  S visitLetVal(LetVal node);
+  S visitLabeledStatement(LabeledStatement node);
+  S visitAssign(Assign node);
   S visitReturn(Return node);
+  S visitBreak(Break node);
+  S visitIf(If node);
   S visitExpressionStatement(ExpressionStatement node);
 }
 
@@ -196,9 +259,13 @@ abstract class Visitor<S, E> {
 class Builder extends ir.Visitor<Node> {
   final dart2js.Compiler compiler;
 
-  // Uses of IR definitions are replaced with Tree variables.  This is the
-  // mapping from definitions to variables.
-  final Map<ir.Definition, Variable> variables = {};
+  // Uses of IR primitives are replaced with Tree variables.  This is the
+  // mapping from primitives to variables.
+  final Map<ir.Primitive, Variable> variables = <ir.Primitive, Variable>{};
+
+  // Continuations with more than one use are replaced with Tree labels.  This
+  // is the mapping from continuations to labels.
+  final Map<ir.Continuation, Label> labels = <ir.Continuation, Label>{};
 
   FunctionDefinition function;
   ir.Continuation returnContinuation;
@@ -220,8 +287,39 @@ class Builder extends ir.Visitor<Node> {
   }
 
   List<Expression> translateArguments(List<ir.Reference> args) {
-    return new List.generate(args.length,
+    return new List<Expression>.generate(args.length,
          (int index) => variables[args[index].definition]);
+  }
+
+  Statement buildParameterAssignments(
+      List<ir.Parameter> parameters,
+      List<Expression> arguments,
+      Statement buildRest()) {
+    assert(parameters.length == arguments.length);
+    Statement first, current;
+    for (int i = 0; i < parameters.length; ++i) {
+      ir.Parameter parameter = parameters[i];
+      Statement assignment;
+      if (parameter.hasAtLeastOneUse) {
+        assignment = new Assign(variables[parameter], arguments[i], null,
+            parameter.hasExactlyOneUse);
+      } else {
+        assignment = new ExpressionStatement(arguments[i], null);
+      }
+
+      if (first == null) {
+        current = first = assignment;
+      } else {
+        current = current.next = assignment;
+      }
+    }
+
+    if (first == null) {
+      first = buildRest();
+    } else {
+      current.next = buildRest();
+    }
+    return first;
   }
 
   Expression visitFunctionDefinition(ir.FunctionDefinition node) {
@@ -242,7 +340,7 @@ class Builder extends ir.Visitor<Node> {
     if (node.primitive.hasAtLeastOneUse) {
       Variable variable = new Variable(null);
       variables[node.primitive] = variable;
-      return new LetVal(variable, definition, node.body.accept(this),
+      return new Assign(variable, definition, node.body.accept(this),
           node.primitive.hasExactlyOneUse);
     } else if (node.primitive is ir.Constant) {
       // TODO(kmillikin): Implement more systematic treatment of pure CPS
@@ -254,11 +352,17 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Statement visitLetCont(ir.LetCont node) {
-    // TODO(kmillikin): Allow continuations to have multiple uses.  This could
-    // arise due to the representation of local control flow or due to
-    // optimization.
-    if (!node.continuation.hasAtMostOneUse) return bailout();
-    return visit(node.body);
+    Label label;
+    if (!node.continuation.hasAtMostOneUse) {
+      label = new Label();
+      labels[node.continuation] = label;
+    }
+    node.continuation.parameters.forEach((p) {
+        if (p.hasAtLeastOneUse) variables[p] = new Variable(null);
+    });
+    Statement body = visit(node.body);
+    if (label == null) return body;
+    return new LabeledStatement(label, body, visit(node.continuation.body));
   }
 
   Statement visitInvokeStatic(ir.InvokeStatic node) {
@@ -271,28 +375,42 @@ class Builder extends ir.Visitor<Node> {
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      ir.Parameter parameter = cont.parameters[0];
-      if (parameter.hasAtLeastOneUse) {
-        Variable variable = new Variable(null);
-        variables[parameter] = variable;
-        return new LetVal(variable, invoke, cont.body.accept(this),
-            parameter.hasExactlyOneUse);
-      } else {
-        return new ExpressionStatement(invoke, visit(cont.body));
-      }
+      return buildParameterAssignments(cont.parameters, [invoke],
+          () => visit(cont.body));
     }
   }
 
   Statement visitInvokeContinuation(ir.InvokeContinuation node) {
-    // TODO(kmillikin): Support non-return continuations.  These could arise
-    // due to local control flow or due to inlining or other optimization.
-    if (node.continuation.definition != returnContinuation) return bailout();
-    assert(node.arguments.length == 1);
-    return new Return(variables[node.arguments[0].definition]);
+    // Invocations of the return continuation are translated to returns.
+    // Other continuation invocations are replaced with assignments of the
+    // arguments to formal parameter variables, followed by the body if
+    // the continuation is singly reference or a break if it is multiply
+    // referenced.
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      assert(node.arguments.length == 1);
+      return new Return(variables[node.arguments[0].definition]);
+    } else {
+      List<Expression> arguments = translateArguments(node.arguments);
+      return buildParameterAssignments(cont.parameters, arguments,
+          () => cont.hasExactlyOneUse
+                    ? visit(cont.body)
+                    : new Break(labels[cont]));
+    }
   }
 
-  Expression visitBranch(ir.Branch node) {
-    return bailout();
+  Statement visitBranch(ir.Branch node) {
+    Expression condition = visit(node.condition);
+    Statement thenStatement, elseStatement;
+    ir.Continuation cont = node.trueContinuation.definition;
+    assert(cont.parameters.isEmpty);
+    thenStatement =
+        cont.hasExactlyOneUse ? visit(cont.body) : new Break(labels[cont]);
+    cont = node.falseContinuation.definition;
+    assert(cont.parameters.isEmpty);
+    elseStatement =
+        cont.hasExactlyOneUse ? visit(cont.body) : new Break(labels[cont]);
+    return new If(condition, thenStatement, elseStatement);
   }
 
   Expression visitConstant(ir.Constant node) {
@@ -312,18 +430,22 @@ class Builder extends ir.Visitor<Node> {
     compiler.internalError(compiler.currentElement, 'Unexpected IR node.');
     return null;
   }
+
+  Expression visitIsTrue(ir.IsTrue node) {
+    return variables[node.value.definition];
+  }
 }
 
 /**
  * Unnamer propagates single-use definitions to their use site when possible.
  *
- * After translating out of CPS, all intermediate values are bound by [LetVal].
+ * After translating out of CPS, all intermediate values are bound by [Assign].
  * This transformation propagates such definitions to their uses when it is
  * safe and profitable.  Bindings are processed "on demand" when their uses are
  * seen, but are only processed once to keep this transformation linear in
  * the size of the tree.
  *
- * The transformation builds an environment containing [LetVal] bindings that
+ * The transformation builds an environment containing [Assign] bindings that
  * are in scope.  These bindings have yet-untranslated definitions.  When a use
  * is encountered the transformation determines if it is safe and profitable
  * to propagate the definition to its use.  If so, it is removed from the
@@ -336,10 +458,10 @@ class Builder extends ir.Visitor<Node> {
 class Unnamer extends Visitor<Statement, Expression> {
   // The binding environment.  The rightmost element of the list is the nearest
   // enclosing binding.
-  List<LetVal> environment;
+  List<Assign> environment;
 
   void unname(FunctionDefinition definition) {
-    environment = <LetVal>[];
+    environment = <Assign>[];
     definition.body = visitStatement(definition.body);
 
     // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
@@ -382,19 +504,25 @@ class Unnamer extends Visitor<Statement, Expression> {
     return node;
   }
 
-  Statement visitLetVal(LetVal node) {
+  Statement visitLabeledStatement(LabeledStatement node) {
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitAssign(Assign node) {
     environment.add(node);
-    Statement body = visitStatement(node.body);
+    Statement next = visitStatement(node.next);
 
     if (!environment.isEmpty && environment.last == node) {
       // The definition could not be propagated.  Residualize the let binding.
-      node.body = body;
+      node.next = next;
       environment.removeLast();
       node.definition = visitExpression(node.definition);
       return node;
     }
     assert(!environment.contains(node));
-    return body;
+    return next;
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
@@ -410,10 +538,21 @@ class Unnamer extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Statement visitBreak(Break node) {
+    return node;
+  }
+
+  Statement visitIf(If node) {
+    node.condition = visitExpression(node.condition);
+    node.thenStatement = visitStatement(node.thenStatement);
+    node.elseStatement = visitStatement(node.elseStatement);
+    return node;
+  }
+
   Expression visitConstant(Constant node) {
     return node;
   }
-  
+
   Statement visitExpressionStatement(ExpressionStatement node) {
     node.expression = visitExpression(node.expression);
     node.next = visitStatement(node.next);
