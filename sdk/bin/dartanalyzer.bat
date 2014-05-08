@@ -14,7 +14,15 @@ for %%i in ("%RETURNED_BIN_DIR%") do set BIN_DIR=%%~fi
 set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\dartanalyzer.dart.snapshot
 
-"%DART%" "%SNAPSHOT%" %*
+rem Get absolute full name for SDK_DIR.
+for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
+
+rem Remove trailing backslash if there is one
+if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
+
+set SDK_ARG=--dart-sdk=%SDK_DIR%
+
+"%DART%" "%SNAPSHOT%" "%SDK_ARG%" %*
 
 endlocal
 

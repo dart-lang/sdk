@@ -523,6 +523,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
   _SplayTreeIterator.startAt(_SplayTree tree, var startKey)
       : _tree = tree,
         _modificationCount = tree._modificationCount {
+    if (tree._root == null) return;
     int compare = tree._splay(startKey);
     _splayCount = tree._splayCount;
     if (compare < 0) {

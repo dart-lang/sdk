@@ -51,6 +51,7 @@ main() {
   Expect.equals(7, tree.firstKeyAfter(6));
 
   regressRemoveWhere();
+  regressRemoveWhere2();
 }
 
 void regressRemoveWhere() {
@@ -64,4 +65,17 @@ void regressRemoveWhere() {
     seen[x] = true;
     return x.isOdd;
   });
+}
+
+void regressRemoveWhere2() {
+  // Regression test for http://dartbug.com/18676
+  // Removing all elements with removeWhere causes error.
+
+  var t = new SplayTreeSet();
+  t.addAll([1,2,3,4,5]);
+  t.removeWhere((_) => true);  // Should not throw.
+  Expect.isTrue(t.isEmpty);
+  t.addAll([1,2,3,4,5]);
+  t.retainWhere((_) => false);  // Should not throw.
+  Expect.isTrue(t.isEmpty);
 }
