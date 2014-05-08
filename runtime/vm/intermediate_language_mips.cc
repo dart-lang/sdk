@@ -3852,77 +3852,127 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
+
+  DRegister base = locs->in(0).fpu_reg();
+  DRegister exp = locs->in(1).fpu_reg();
+  DRegister result = locs->out(0).fpu_reg();
+
+  Label check_base, skip_call;
+  __ LoadImmediate(DTMP, 0.0);
+  __ LoadImmediate(result, 1.0);
+  // exponent == 0.0 -> return 1.0;
+  __ cund(exp, exp);
+  __ bc1t(&check_base);  // NaN -> check base.
+  __ ceqd(exp, DTMP);
+  __ bc1t(&skip_call);  // exp is 0.0, result is 1.0.
+
+  // exponent == 1.0 ?
+  __ ceqd(exp, result);
+  Label return_base;
+  __ bc1t(&return_base);
+  // exponent == 2.0 ?
+  __ LoadImmediate(DTMP, 2.0);
+  __ ceqd(exp, DTMP);
+  Label return_base_times_2;
+  __ bc1t(&return_base_times_2);
+  // exponent == 3.0 ?
+  __ LoadImmediate(DTMP, 3.0);
+  __ ceqd(exp, DTMP);
+  __ bc1f(&check_base);
+
+  // base_times_3.
+  __ muld(result, base, base);
+  __ muld(result, result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base);
+  __ movd(result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base_times_2);
+  __ muld(result, base, base);
+  __ b(&skip_call);
+
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+  // base == 1.0 -> return 1.0;
+  __ cund(base, base);
+  Label return_nan;
+  __ bc1t(&return_nan);
+  __ ceqd(base, result);
+  __ bc1t(&skip_call);  // base and result are 1.0.
+
+  __ cund(exp, exp);
+  Label try_sqrt;
+  __ bc1f(&try_sqrt);  // Neither 'exp' nor 'base' are NaN.
+
+  __ Bind(&return_nan);
+  __ LoadImmediate(result, NAN);
+  __ b(&skip_call);
+
+  __ Bind(&try_sqrt);
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadImmediate(result, INFINITY);
+  // base == -Infinity -> call pow;
+  __ ceqd(base, result);
+  Label do_pow;
+  __ b(&do_pow);
+
+  // exponent == 0.5 ?
+  __ LoadImmediate(result, 0.5);
+  __ ceqd(base, result);
+  __ bc1f(&do_pow);
+
+  // base == 0 -> return 0;
+  __ LoadImmediate(DTMP, 0.0);
+  __ ceqd(base, DTMP);
+  Label return_zero;
+  __ bc1t(&return_zero);
+
+  __ sqrtd(result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_zero);
+  __ movd(result, DTMP);
+  __ b(&skip_call);
+
+  __ Bind(&do_pow);
+
+  // double values are passed and returned in vfp registers.
+  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  __ Bind(&skip_call);
+}
+
+
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
-  Label skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    DRegister base = locs()->in(0).fpu_reg();
-    DRegister exp = locs()->in(1).fpu_reg();
-    DRegister result = locs()->out(0).fpu_reg();
-
-    Label try_sqrt, check_base, return_nan;
-    __ LoadImmediate(DTMP, 0.0);
-    __ LoadImmediate(result, 1.0);
-    // exponent == 0.0 -> return 1.0;
-    __ cund(exp, exp);
-    __ bc1t(&check_base);  // NaN -> check base.
-    __ ceqd(exp, DTMP);
-    __ bc1t(&skip_call);  // exp is 0.0, result is 1.0.
-
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-    // base == 1.0 -> return 1.0;
-    __ cund(base, base);
-    __ bc1t(&return_nan);
-    __ ceqd(base, result);
-    __ bc1t(&skip_call);  // base and result are 1.0.
-
-    __ cund(exp, exp);
-    __ bc1f(&try_sqrt);  // Neither 'exp' nor 'base' are NaN.
-
-    __ Bind(&return_nan);
-    __ LoadImmediate(result, NAN);
-    __ b(&skip_call);
-
-    __ Bind(&try_sqrt);
-    // Before calling pow, check if we could use sqrt instead of pow.
-    Label do_pow, return_zero;
-    __ LoadImmediate(result, INFINITY);
-    // base == -Infinity -> call pow;
-    __ ceqd(base, result);
-    __ b(&do_pow);
-
-    // exponent == 0.5 ?
-    __ LoadImmediate(result, 0.5);
-    __ ceqd(base, result);
-    __ bc1f(&do_pow);
-
-    // base == 0 -> return 0;
-    __ ceqd(base, DTMP);
-    __ bc1t(&return_zero);
-
-    __ sqrtd(result, base);
-    __ b(&skip_call);
-
-    __ Bind(&return_zero);
-    __ movd(result, DTMP);
-    __ b(&skip_call);
-
-    __ Bind(&do_pow);
+    InvokeDoublePow(compiler, this);
+    return;
   }
   // double values are passed and returned in vfp registers.
   __ CallRuntime(TargetFunction(), InputCount());
-  __ Bind(&skip_call);
 }
 
 

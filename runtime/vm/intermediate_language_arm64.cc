@@ -3667,81 +3667,126 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 }
 
 
-void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // For pow-function return NaN if exponent is NaN.
-  Label skip_call;
-  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    const VRegister base = locs()->in(0).fpu_reg();
-    const VRegister exp = locs()->in(1).fpu_reg();
-    const VRegister result = locs()->out(0).fpu_reg();
-    const VRegister saved_base = locs()->temp(0).fpu_reg();
-    ASSERT((base == result) && (result != saved_base));
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
 
-    Label try_sqrt, check_base, return_nan;
-    __ fmovdd(saved_base, base);
-    __ LoadDImmediate(VTMP, 0.0, PP);
-    __ LoadDImmediate(result, 1.0, PP);
-    // exponent == 0.0 -> return 1.0;
-    __ fcmpd(exp, VTMP);
-    __ b(&check_base, VS);  // NaN -> check base.
-    __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
+  const VRegister base = locs->in(0).fpu_reg();
+  const VRegister exp = locs->in(1).fpu_reg();
+  const VRegister result = locs->out(0).fpu_reg();
+  const VRegister saved_base = locs->temp(0).fpu_reg();
+  ASSERT((base == result) && (result != saved_base));
 
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-    // base == 1.0 -> return 1.0;
-    __ fcmpd(saved_base, result);
-    __ b(&return_nan, VS);
-    __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
+  Label skip_call, try_sqrt, check_base, return_nan, do_pow;
+  __ fmovdd(saved_base, base);
+  __ b(&do_pow);
+  __ LoadDImmediate(result, 1.0, PP);
+  // exponent == 0.0 -> return 1.0;
+  __ fcmpdz(exp);
+  __ b(&check_base, VS);  // NaN -> check base.
+  __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
 
-    __ fcmpd(saved_base, exp);
-    __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
+  // exponent == 1.0 ?
+  __ fcmpd(exp, result);
+  Label return_base;
+  __ b(&return_base, EQ);
 
-    __ Bind(&return_nan);
-    __ LoadDImmediate(result, NAN, PP);
-    __ b(&skip_call);
+  // exponent == 2.0 ?
+  __ LoadDImmediate(VTMP, 2.0, PP);
+  __ fcmpd(exp, VTMP);
+  Label return_base_times_2;
+  __ b(&return_base_times_2, EQ);
 
-    Label do_pow, return_zero;
-    __ Bind(&try_sqrt);
+  // exponent == 3.0 ?
+  __ LoadDImmediate(VTMP, 3.0, PP);
+  __ fcmpd(exp, VTMP);
+  __ b(&check_base, NE);
 
-    // Before calling pow, check if we could use sqrt instead of pow.
-    __ LoadDImmediate(result, -INFINITY, PP);
+  // base_times_3.
+  __ fmuld(result, saved_base, saved_base);
+  __ fmuld(result, result, saved_base);
+  __ b(&skip_call);
 
-    // base == -Infinity -> call pow;
-    __ fcmpd(saved_base, result);
-    __ b(&do_pow, EQ);
+  __ Bind(&return_base);
+  __ fmovdd(result, saved_base);
+  __ b(&skip_call);
 
-    // exponent == 0.5 ?
-    __ LoadDImmediate(result, 0.5, PP);
-    __ fcmpd(exp, result);
-    __ b(&do_pow, NE);
+  __ Bind(&return_base_times_2);
+  __ fmuld(result, saved_base, saved_base);
+  __ b(&skip_call);
 
-    // base == 0 -> return 0;
-    __ fcmpd(base, VTMP);
-    __ b(&return_zero, EQ);
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+  // base == 1.0 -> return 1.0;
+  __ fcmpd(saved_base, result);
+  __ b(&return_nan, VS);
+  __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
 
-    __ fsqrtd(result, saved_base);
-    __ b(&skip_call);
+  __ fcmpd(saved_base, exp);
+  __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
 
-    __ Bind(&return_zero);
-    __ fmovdd(result, VTMP);
-    __ b(&skip_call);
+  __ Bind(&return_nan);
+  __ LoadDImmediate(result, NAN, PP);
+  __ b(&skip_call);
 
-    __ Bind(&do_pow);
-    __ fmovdd(base, saved_base);  // Restore base.
-  }
+  Label return_zero;
+  __ Bind(&try_sqrt);
 
-  __ CallRuntime(TargetFunction(), InputCount());
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadDImmediate(result, -INFINITY, PP);
+
+  // base == -Infinity -> call pow;
+  __ fcmpd(saved_base, result);
+  __ b(&do_pow, EQ);
+
+  // exponent == 0.5 ?
+  __ LoadDImmediate(result, 0.5, PP);
+  __ fcmpd(exp, result);
+  __ b(&do_pow, NE);
+
+  // base == 0 -> return 0;
+  __ fcmpdz(base);
+  __ b(&return_zero, EQ);
+
+  __ fsqrtd(result, saved_base);
+  __ b(&skip_call);
+
+  __ Bind(&return_zero);
+  __ LoadDImmediate(result, 0.0, PP);
+  __ b(&skip_call);
+
+  __ Bind(&do_pow);
+  __ fmovdd(base, saved_base);  // Restore base.
+
+  __ CallRuntime(instr->TargetFunction(), kInputCount);
   __ Bind(&skip_call);
+}
+
+
+void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    InvokeDoublePow(compiler, this);
+    return;
+  }
+  __ CallRuntime(TargetFunction(), InputCount());
 }
 
 

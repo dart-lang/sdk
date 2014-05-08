@@ -89,7 +89,7 @@ class Range;
   V(::, cos, MathCos, 1282146521)                                              \
   V(::, min, MathMin, 1022567780)                                              \
   V(::, max, MathMax, 612058870)                                               \
-  V(::, _doublePow, MathDoublePow, 2125162289)                                 \
+  V(::, _doublePow, MathDoublePow, 342259456)                                  \
   V(Float32x4, Float32x4., Float32x4Constructor, 1314950569)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1432281809)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 1148280442)                    \
@@ -7440,10 +7440,11 @@ class InvokeMathCFunctionInstr : public Definition {
 
   virtual bool MayThrow() const { return false; }
 
- private:
   static const intptr_t kSavedSpTempIndex = 0;
   static const intptr_t kObjectTempIndex = 1;
   static const intptr_t kDoubleTempIndex = 2;
+
+ private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }

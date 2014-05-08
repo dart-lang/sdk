@@ -4900,92 +4900,154 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
+
+  XmmRegister base = locs->in(0).fpu_reg();
+  XmmRegister exp = locs->in(1).fpu_reg();
+  XmmRegister result = locs->out(0).fpu_reg();
+  Register temp = locs->temp(InvokeMathCFunctionInstr::kObjectTempIndex).reg();
+  XmmRegister zero_temp =
+      locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
+
+  __ xorps(zero_temp, zero_temp);   // 0.0.
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1.0)));
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+
+  Label check_base, skip_call;
+  // exponent == 0.0 -> return 1.0;
+  __ comisd(exp, zero_temp);
+  __ j(PARITY_EVEN, &check_base);
+  __ j(EQUAL, &skip_call);  // 'result' is 1.0.
+
+  // exponent == 1.0 ?
+  __ comisd(exp, result);
+  Label return_base;
+  __ j(EQUAL, &return_base, Assembler::kNearJump);
+
+  // exponent == 2.0 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(2.0)));
+  __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, XMM0);
+  Label return_base_times_2;
+  __ j(EQUAL, &return_base_times_2, Assembler::kNearJump);
+
+  // exponent == 3.0 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(3.0)));
+  __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, XMM0);
+  __ j(NOT_EQUAL, &check_base);
+
+  // Base times 3.
+  __ movsd(result, base);
+  __ mulsd(result, base);
+  __ mulsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&return_base);
+  __ movsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&return_base_times_2);
+  __ movsd(result, base);
+  __ mulsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+
+  // base == 1.0 -> return 1.0;
+  __ comisd(base, result);
+  Label return_nan;
+  __ j(PARITY_EVEN, &return_nan, Assembler::kNearJump);
+  __ j(EQUAL, &skip_call, Assembler::kNearJump);
+  // Note: 'base' could be NaN.
+  __ comisd(exp, base);
+  // Neither 'exp' nor 'base' is NaN.
+  Label try_sqrt;
+  __ j(PARITY_ODD, &try_sqrt, Assembler::kNearJump);
+  // Return NaN.
+  __ Bind(&return_nan);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  __ jmp(&skip_call);
+
+  Label do_pow, return_zero;
+  __ Bind(&try_sqrt);
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(-INFINITY)));
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  // base == -Infinity -> call pow;
+  __ comisd(base, result);
+  __ j(EQUAL, &do_pow, Assembler::kNearJump);
+
+  // exponent == 0.5 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)));
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, result);
+  __ j(NOT_EQUAL, &do_pow, Assembler::kNearJump);
+
+  // base == 0 -> return 0;
+  __ comisd(base, zero_temp);
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+
+  __ sqrtsd(result, base);
+  __ jmp(&skip_call, Assembler::kNearJump);
+
+  __ Bind(&return_zero);
+  __ movsd(result, zero_temp);
+  __ jmp(&skip_call);
+
+  __ Bind(&do_pow);
+  // Save ESP.
+  __ movl(locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg(), ESP);
+  __ ReserveAlignedFrameSpace(kDoubleSize * kInputCount);
+  for (intptr_t i = 0; i < kInputCount; i++) {
+    __ movsd(Address(ESP, kDoubleSize * i), locs->in(i).fpu_reg());
+  }
+  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  __ fstpl(Address(ESP, 0));
+  __ movsd(locs->out(0).fpu_reg(), Address(ESP, 0));
+  // Restore ESP.
+  __ movl(ESP, locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg());
+  __ Bind(&skip_call);
+}
+
+
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    InvokeDoublePow(compiler, this);
+    return;
+  }
   // Save ESP.
   __ movl(locs()->temp(kSavedSpTempIndex).reg(), ESP);
   __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
   for (intptr_t i = 0; i < InputCount(); i++) {
     __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
   }
-  Label skip_call;
-  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    XmmRegister base = locs()->in(0).fpu_reg();
-    XmmRegister exp = locs()->in(1).fpu_reg();
-    XmmRegister result = locs()->out(0).fpu_reg();
-    Register temp = locs()->temp(kObjectTempIndex).reg();
-    XmmRegister zero_temp = locs()->temp(kDoubleTempIndex).fpu_reg();
-
-    Label try_sqrt, check_base, return_nan;
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)));
-    __ movsd(zero_temp, FieldAddress(temp, Double::value_offset()));
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-
-    // exponent == 0.0 -> return 1.0;
-    __ comisd(exp, zero_temp);
-    __ j(PARITY_EVEN, &check_base, Assembler::kNearJump);
-    __ j(EQUAL, &skip_call, Assembler::kNearJump);  // 'result' is 1.0.
-
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-
-    // base == 1.0 -> return 1.0;
-    __ comisd(base, result);
-    __ j(PARITY_EVEN, &return_nan, Assembler::kNearJump);
-    __ j(EQUAL, &skip_call, Assembler::kNearJump);
-    // Note: 'base' could be NaN.
-    __ comisd(exp, base);
-    // Neither 'exp' nor 'base' is NaN.
-    __ j(PARITY_ODD, &try_sqrt, Assembler::kNearJump);
-    // Return NaN.
-    __ Bind(&return_nan);
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    __ jmp(&skip_call);
-
-    Label do_pow, return_zero;
-    __ Bind(&try_sqrt);
-    // Before calling pow, check if we could use sqrt instead of pow.
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(-INFINITY)));
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    // base == -Infinity -> call pow;
-    __ comisd(base, result);
-    __ j(EQUAL, &do_pow, Assembler::kNearJump);
-
-    // exponent == 0.5 ?
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)));
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    __ comisd(exp, result);
-    __ j(NOT_EQUAL, &do_pow, Assembler::kNearJump);
-
-    // base == 0 -> return 0;
-    __ comisd(base, zero_temp);
-    __ j(EQUAL, &return_zero, Assembler::kNearJump);
-
-    __ sqrtsd(result, base);
-    __ jmp(&skip_call, Assembler::kNearJump);
-
-    __ Bind(&return_zero);
-    __ movsd(result, zero_temp);
-    __ jmp(&skip_call);
-
-    __ Bind(&do_pow);
-  }
 
   __ CallRuntime(TargetFunction(), InputCount());
   __ fstpl(Address(ESP, 0));
   __ movsd(locs()->out(0).fpu_reg(), Address(ESP, 0));
-  __ Bind(&skip_call);
   // Restore ESP.
   __ movl(ESP, locs()->temp(kSavedSpTempIndex).reg());
 }
