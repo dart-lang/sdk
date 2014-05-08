@@ -1269,7 +1269,7 @@ class SsaBuilder extends ResolvedVisitor {
         useMaxInliningNodes = false;
       }
       bool canInline;
-      ast.FunctionExpression functionNode = function.parseNode(compiler);
+      ast.FunctionExpression functionNode = function.node;
       canInline = InlineWeeder.canBeInlined(
           functionNode, maxInliningNodes, useMaxInliningNodes);
       if (canInline) {
@@ -1421,7 +1421,7 @@ class SsaBuilder extends ResolvedVisitor {
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    ast.FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.node;
     assert(function != null);
     assert(!function.modifiers.isExternal);
     assert(elements[function] != null);
@@ -1488,7 +1488,7 @@ class SsaBuilder extends ResolvedVisitor {
     assert(constructor.isGenerativeConstructor);
     assert(invariant(constructor, constructor.isImplementation));
     if (constructor.isSynthesized) return null;
-    ast.FunctionExpression node = constructor.parseNode(compiler);
+    ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody()) return null;
     if (node.hasEmptyBody()) return null;
@@ -1547,7 +1547,7 @@ class SsaBuilder extends ResolvedVisitor {
     localsHandler = new LocalsHandler(this, function.contextClass);
     localsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
-            function, function.parseNode(compiler), elements);
+            function, function.node, elements);
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new VariableElementX.synthetic("result",
         ElementKind.VARIABLE, function);
@@ -1602,7 +1602,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (function.isGenerativeConstructor) {
       buildFactory(function);
     } else {
-      ast.FunctionExpression functionNode = function.parseNode(compiler);
+      ast.FunctionExpression functionNode = function.node;
       functionNode.body.accept(this);
     }
   }
@@ -1716,7 +1716,7 @@ class SsaBuilder extends ResolvedVisitor {
       TreeElements oldElements = elements;
       elements = compiler.enqueuer.resolution.getCachedElements(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = callee.parseNode(compiler);
+      ast.Node node = callee.node;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               callee, node, elements);
@@ -1764,7 +1764,7 @@ class SsaBuilder extends ResolvedVisitor {
           constructor);
       return;
     }
-    ast.FunctionExpression functionNode = constructor.parseNode(compiler);
+    ast.FunctionExpression functionNode = constructor.node;
 
     bool foundSuperOrRedirect = false;
     if (functionNode.initializers != null) {
@@ -1889,7 +1889,7 @@ class SsaBuilder extends ResolvedVisitor {
         functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
         Elements.isNativeOrExtendsNative(classElement);
-    ast.FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.node;
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
@@ -2059,7 +2059,7 @@ class SsaBuilder extends ResolvedVisitor {
       bodyCallInputs.add(newObject);
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
-      ast.Node node = constructor.parseNode(compiler);
+      ast.Node node = constructor.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 

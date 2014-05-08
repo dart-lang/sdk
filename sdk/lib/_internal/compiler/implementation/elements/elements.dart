@@ -889,8 +889,6 @@ abstract class FunctionElement extends Element
   /// resolution is an error and calling [computeSignature] covers that error.
   /// This method will go away!
   @deprecated FunctionSignature computeSignature(Compiler compiler);
-
-  FunctionExpression parseNode(DiagnosticListener listener);
 }
 
 abstract class ConstructorBodyElement extends FunctionElement {

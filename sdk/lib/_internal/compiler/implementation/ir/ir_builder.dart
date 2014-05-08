@@ -236,7 +236,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.FunctionDefinition buildFunctionInternal(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression function = element.parseNode(compiler);
+    ast.FunctionExpression function = element.node;
     assert(function != null);
     assert(!function.modifiers.isExternal);
     assert(elements[function] != null);

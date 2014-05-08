@@ -893,7 +893,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       evaluateSuperOrRedirectSend(compiledArguments, target);
       return;
     }
-    FunctionExpression functionNode = constructor.parseNode(compiler);
+    FunctionExpression functionNode = constructor.node;
     NodeList initializerList = functionNode.initializers;
 
     bool foundSuperOrRedirect = false;

@@ -1681,6 +1681,7 @@ class ConstructorBodyElementX extends FunctionElementX
               Modifiers.EMPTY,
               constructor.enclosingElement, false) {
     functionSignatureCache = constructor.functionSignature;
+    cachedNode = constructor.node;
   }
 
   bool get isInstanceMember => true;
@@ -1688,13 +1689,6 @@ class ConstructorBodyElementX extends FunctionElementX
   FunctionType computeType(Compiler compiler) {
     compiler.internalError(this, '$this.computeType.');
     return null;
-  }
-
-  Node parseNode(DiagnosticListener listener) {
-    if (cachedNode != null) return cachedNode;
-    cachedNode = constructor.parseNode(listener);
-    assert(cachedNode != null);
-    return cachedNode;
   }
 
   Token get position => constructor.position;
