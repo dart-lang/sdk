@@ -7238,7 +7238,7 @@ class StoreOptimizer : public LivenessAnalysis {
         if (!live_out->Contains(instr->place_id()) &&
             CanEliminateStore(instr)) {
           if (FLAG_trace_optimization) {
-            OS::Print("Removing dead store to place %"Pd" in block B%"Pd"\n",
+            OS::Print("Removing dead store to place %" Pd " block B%" Pd "\n",
                       instr->place_id(), block->block_id());
           }
           instr->RemoveFromGraph(/* ignored */ false);
