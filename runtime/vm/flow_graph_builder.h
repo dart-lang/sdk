@@ -452,7 +452,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Specify a definition of the final result.  Adds the definition to
   // the graph, but normally overridden in subclasses.
   virtual void ReturnDefinition(Definition* definition) {
-    Do(definition);
+    // Constants have no effect, do not add them to graph otherwise SSA
+    // builder will get confused.
+    if (!definition->IsConstant()) {
+      Do(definition);
+    }
   }
 
   // Shared global state.
@@ -475,7 +479,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
       : EffectGraphVisitor(owner), value_(NULL) { }
 
   // Visit functions overridden by this class.
-  virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitAssignableNode(AssignableNode* node);
   virtual void VisitConstructorCallNode(ConstructorCallNode* node);
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
