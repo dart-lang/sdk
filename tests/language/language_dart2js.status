@@ -36,9 +36,6 @@ ref_before_declaration_test/06: MissingCompileTimeError
 prefix3_negative_test: Crash # Issue 17139
 setter_declaration2_negative_test: Crash # Issue 17139
 
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
-
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 
@@ -93,6 +90,9 @@ mixin_mixin_bound_test: RuntimeError # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
+
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 type_variable_conflict2_test/02: Crash # Issue 16180
 type_variable_conflict2_test/06: Crash # Issue 16180
