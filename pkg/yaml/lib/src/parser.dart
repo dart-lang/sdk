@@ -1106,13 +1106,14 @@ class Parser {
   // 136
   int inFlow(int ctx) {
     switch (ctx) {
-    case FLOW_OUT:
-    case FLOW_IN:
-      return FLOW_IN;
-    case BLOCK_KEY:
-    case FLOW_KEY:
-      return FLOW_KEY;
+      case FLOW_OUT:
+      case FLOW_IN:
+        return FLOW_IN;
+      case BLOCK_KEY:
+      case FLOW_KEY:
+        return FLOW_KEY;
     }
+    throw "unreachable";
   }
 
   // 137
@@ -1434,6 +1435,7 @@ class Parser {
     case CHOMPING_KEEP:
       return b_asLineFeed();
     }
+    throw "unreachable";
   }
 
   // 166
