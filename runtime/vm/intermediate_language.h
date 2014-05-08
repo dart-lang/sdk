@@ -1473,6 +1473,8 @@ class BackwardInstructionIterator : public ValueObject {
 
   bool Done() const { return current_ == block_entry_; }
 
+  void RemoveCurrentFromGraph();
+
   Instruction* Current() const { return current_; }
 
  private:
@@ -3758,6 +3760,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   Value* instance() const { return inputs_[kInstancePos]; }
   Value* value() const { return inputs_[kValuePos]; }
+  bool is_initialization() const { return is_initialization_; }
   virtual intptr_t token_pos() const { return token_pos_; }
 
   virtual CompileType* ComputeInitialType() const;

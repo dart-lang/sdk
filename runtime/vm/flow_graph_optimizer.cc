@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
+DEFINE_FLAG(bool, dead_store_elimination, true, "Eliminate dead stores");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
 DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
@@ -4098,6 +4099,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
+
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
@@ -5101,7 +5103,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 
 
 // Load instructions handled by load elimination.
-static bool IsCandidateLoad(Instruction* instr) {
+static bool IsLoadEliminationCandidate(Instruction* instr) {
   return instr->IsLoadField()
       || instr->IsLoadIndexed()
       || instr->IsLoadStaticField()
@@ -5112,7 +5114,7 @@ static bool IsCandidateLoad(Instruction* instr) {
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
                                 Instruction* instr) {
-  return IsCandidateLoad(instr) &&
+  return IsLoadEliminationCandidate(instr) &&
       (sets != NULL) &&
       instr->HasPlaceId() &&
       ((*sets)[loop_header_index] != NULL) &&
@@ -5175,14 +5177,6 @@ void LICM::Optimize() {
       }
     }
   }
-}
-
-
-static bool IsLoadEliminationCandidate(Definition* def) {
-  return def->IsLoadField()
-      || def->IsLoadIndexed()
-      || def->IsLoadStaticField()
-      || def->IsCurrentContext();
 }
 
 
@@ -5315,7 +5309,7 @@ class Place : public ValueObject {
 
   // Construct a place from instruction if instruction accesses any place.
   // Otherwise constructs kNone place.
-  Place(Instruction* instr, bool* is_load)
+  Place(Instruction* instr, bool* is_load, bool* is_store)
       : kind_(kNone),
         representation_(kNoRepresentation),
         instance_(NULL),
@@ -5350,6 +5344,7 @@ class Place : public ValueObject {
           kind_ = kVMField;
           offset_in_bytes_ = store->offset_in_bytes();
         }
+        *is_store = true;
         break;
       }
 
@@ -5365,6 +5360,7 @@ class Place : public ValueObject {
         representation_ = instr->AsStoreStaticField()->
             RequiredInputRepresentation(StoreStaticFieldInstr::kValuePos);
         field_ = &instr->AsStoreStaticField()->field();
+        *is_store = true;
         break;
 
       case Instruction::kLoadIndexed: {
@@ -5384,6 +5380,7 @@ class Place : public ValueObject {
             RequiredInputRepresentation(StoreIndexedInstr::kValuePos);
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
         index_ = store_indexed->index()->definition();
+        *is_store = true;
         break;
       }
 
@@ -5399,6 +5396,7 @@ class Place : public ValueObject {
         ASSERT(instr->AsStoreContext()->RequiredInputRepresentation(
             StoreContextInstr::kValuePos) == kTagged);
         representation_ = kTagged;
+        *is_store = true;
         break;
 
       default:
@@ -6172,14 +6170,23 @@ static PhiPlaceMoves* ComputePhiMoves(
   return phi_moves;
 }
 
+
+enum CSEMode {
+  kOptimizeLoads,
+  kOptimizeStores
+};
+
+
 static AliasedSet* NumberPlaces(
     FlowGraph* graph,
-    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map) {
+    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map,
+    CSEMode mode) {
   // Loads representing different expression ids will be collected and
   // used to build per offset kill sets.
   ZoneGrowableArray<Place*>* places = new ZoneGrowableArray<Place*>(10);
 
   bool has_loads = false;
+  bool has_stores = false;
   for (BlockIterator it = graph->reverse_postorder_iterator();
        !it.Done();
        it.Advance()) {
@@ -6188,8 +6195,7 @@ static AliasedSet* NumberPlaces(
          !instr_it.Done();
          instr_it.Advance()) {
       Instruction* instr = instr_it.Current();
-
-      Place place(instr, &has_loads);
+      Place place(instr, &has_loads, &has_stores);
       if (place.kind() == Place::kNone) {
         continue;
       }
@@ -6212,7 +6218,10 @@ static AliasedSet* NumberPlaces(
     }
   }
 
-  if (!has_loads) {
+  if ((mode == kOptimizeLoads) && !has_loads) {
+    return NULL;
+  }
+  if ((mode == kOptimizeStores) && !has_stores) {
     return NULL;
   }
 
@@ -6268,7 +6277,7 @@ class LoadOptimizer : public ValueObject {
     }
 
     DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
-    AliasedSet* aliased_set = NumberPlaces(graph, &map);
+    AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeLoads);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
       // If any loads were forwarded return true from Optimize to run load
       // forwarding again. This will allow to forward chains of loads.
@@ -6346,9 +6355,9 @@ class LoadOptimizer : public ValueObject {
               (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
-            bool is_load = false;
-            Place store_place(instr, &is_load);
-            ASSERT(!is_load);
+            bool is_load = false, is_store = false;
+            Place store_place(instr, &is_load, &is_store);
+            ASSERT(!is_load && is_store);
             Place* place = map_->Lookup(&store_place);
             if (place != NULL) {
               // Store has a corresponding numbered place that might have a
@@ -7046,6 +7055,217 @@ class LoadOptimizer : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
 };
+
+
+class StoreOptimizer : public LivenessAnalysis {
+ public:
+  StoreOptimizer(FlowGraph* graph,
+                 AliasedSet* aliased_set,
+                 DirectChainedHashMap<PointerKeyValueTrait<Place> >* map)
+      : LivenessAnalysis(aliased_set->max_place_id(), graph->postorder()),
+        graph_(graph),
+        map_(map),
+        aliased_set_(aliased_set),
+        exposed_stores_(graph_->postorder().length()) {
+    const intptr_t num_blocks = graph_->postorder().length();
+    for (intptr_t i = 0; i < num_blocks; i++) {
+      exposed_stores_.Add(NULL);
+    }
+  }
+
+  static void OptimizeGraph(FlowGraph* graph) {
+    ASSERT(FLAG_load_cse);
+    if (FLAG_trace_load_optimization) {
+      FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
+    }
+
+    DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
+    AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeStores);
+    if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
+      StoreOptimizer store_optimizer(graph, aliased_set, &map);
+      store_optimizer.Optimize();
+    }
+  }
+
+ private:
+  void Optimize() {
+    Analyze();
+    if (FLAG_trace_load_optimization) {
+      Dump();
+    }
+    EliminateDeadStores();
+    if (FLAG_trace_load_optimization) {
+      FlowGraphPrinter::PrintGraph("After StoreOptimizer", graph_);
+    }
+  }
+
+  bool CanEliminateStore(Instruction* instr) {
+    switch (instr->tag()) {
+      case Instruction::kStoreInstanceField:
+        if (instr->AsStoreInstanceField()->is_initialization()) {
+          // Can't eliminate stores that initialized unboxed fields.
+          return false;
+        }
+      case Instruction::kStoreContext:
+      case Instruction::kStoreIndexed:
+      case Instruction::kStoreStaticField:
+        return true;
+      default:
+        UNREACHABLE();
+        return false;
+    }
+  }
+
+  virtual void ComputeInitialSets() {
+    BitVector* all_places = new BitVector(aliased_set_->max_place_id());
+    all_places->SetAll();
+    for (BlockIterator block_it = graph_->postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      const intptr_t postorder_number = block->postorder_number();
+
+      BitVector* kill = kill_[postorder_number];
+      BitVector* live_in = live_in_[postorder_number];
+      BitVector* live_out = live_out_[postorder_number];
+
+      ZoneGrowableArray<Instruction*>* exposed_stores = NULL;
+
+      // Iterate backwards starting at the last instruction.
+      for (BackwardInstructionIterator instr_it(block);
+           !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* instr = instr_it.Current();
+
+        bool is_load = false;
+        bool is_store = false;
+        Place place(instr, &is_load, &is_store);
+        if (place.IsFinalField()) {
+          // Loads/stores of final fields do not participate.
+          continue;
+        }
+
+        // Handle stores.
+        if (is_store) {
+          if (kill->Contains(instr->place_id())) {
+            if (!live_in->Contains(instr->place_id()) &&
+                CanEliminateStore(instr)) {
+              if (FLAG_trace_optimization) {
+                OS::Print(
+                    "Removing dead store to place %" Pd " in block B%" Pd "\n",
+                    instr->place_id(), block->block_id());
+              }
+              instr_it.RemoveCurrentFromGraph();
+            }
+          } else if (!live_in->Contains(instr->place_id())) {
+            // Mark this store as down-ward exposed: They are the only
+            // candidates for the global store elimination.
+            if (exposed_stores == NULL) {
+              const intptr_t kMaxExposedStoresInitialSize = 5;
+              exposed_stores = new ZoneGrowableArray<Instruction*>(
+                  Utils::Minimum(kMaxExposedStoresInitialSize,
+                                 aliased_set_->max_place_id()));
+            }
+            exposed_stores->Add(instr);
+          }
+          // Interfering stores kill only loads from the same place.
+          kill->Add(instr->place_id());
+          live_in->Remove(instr->place_id());
+          continue;
+        }
+
+        // Handle side effects, deoptimization and function return.
+        if (!instr->Effects().IsNone() ||
+            instr->CanDeoptimize() ||
+            instr->IsThrow() ||
+            instr->IsReThrow() ||
+            instr->IsReturn()) {
+          // Instructions that return from the function, instructions with side
+          // effects and instructions that can deoptimize are considered as
+          // loads from all places.
+          live_in->CopyFrom(all_places);
+          if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+            // Initialize live-out for exit blocks since it won't be computed
+            // otherwise during the fixed point iteration.
+            live_out->CopyFrom(all_places);
+          }
+          continue;
+        }
+
+        // Handle loads.
+        Definition* defn = instr->AsDefinition();
+        if ((defn != NULL) && IsLoadEliminationCandidate(defn)) {
+          const Alias alias = aliased_set_->ComputeAlias(&place);
+          live_in->AddAll(aliased_set_->Get(alias));
+          continue;
+        }
+      }
+      exposed_stores_[postorder_number] = exposed_stores;
+    }
+    if (FLAG_trace_load_optimization) {
+      Dump();
+      OS::Print("---\n");
+    }
+  }
+
+  void EliminateDeadStores() {
+    // Iteration order does not matter here.
+    for (BlockIterator block_it = graph_->postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      const intptr_t postorder_number = block->postorder_number();
+
+      BitVector* live_out = live_out_[postorder_number];
+
+      ZoneGrowableArray<Instruction*>* exposed_stores =
+        exposed_stores_[postorder_number];
+      if (exposed_stores == NULL) continue;  // No exposed stores.
+
+      // Iterate over candidate stores.
+      for (intptr_t i = 0; i < exposed_stores->length(); ++i) {
+        Instruction* instr = (*exposed_stores)[i];
+        bool is_load = false;
+        bool is_store = false;
+        Place place(instr, &is_load, &is_store);
+        ASSERT(!is_load && is_store);
+        if (place.IsFinalField()) {
+          // Final field do not participate in dead store elimination.
+          continue;
+        }
+        // Eliminate a downward exposed store if the corresponding place is not
+        // in live-out.
+        if (!live_out->Contains(instr->place_id()) &&
+            CanEliminateStore(instr)) {
+          if (FLAG_trace_optimization) {
+            OS::Print("Removing dead store to place %"Pd" in block B%"Pd"\n",
+                      instr->place_id(), block->block_id());
+          }
+          instr->RemoveFromGraph(/* ignored */ false);
+        }
+      }
+    }
+  }
+
+  FlowGraph* graph_;
+  DirectChainedHashMap<PointerKeyValueTrait<Place> >* map_;
+
+  // Mapping between field offsets in words and expression ids of loads from
+  // that offset.
+  AliasedSet* aliased_set_;
+
+  // Per block list of downward exposed stores.
+  GrowableArray<ZoneGrowableArray<Instruction*>*> exposed_stores_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreOptimizer);
+};
+
+
+void DeadStoreElimination::Optimize(FlowGraph* graph) {
+  if (FLAG_dead_store_elimination) {
+    StoreOptimizer::OptimizeGraph(graph);
+  }
+}
 
 
 class CSEInstructionMap : public ValueObject {

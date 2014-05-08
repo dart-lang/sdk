@@ -288,6 +288,12 @@ class DominatorBasedCSE : public AllStatic {
 };
 
 
+class DeadStoreElimination : public AllStatic {
+ public:
+  static void Optimize(FlowGraph* graph);
+};
+
+
 // Sparse conditional constant propagation and unreachable code elimination.
 // Assumes that use lists are computed and preserves them.
 class ConstantPropagator : public FlowGraphVisitor {

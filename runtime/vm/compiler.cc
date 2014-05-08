@@ -438,18 +438,22 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           }
         }
 
-        // Optimize (a << b) & c patterns, merge operations.
-        // Run after CSE in order to have more opportunity to merge
-        // instructions that have same inputs.
-        optimizer.TryOptimizePatterns();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
+        // Run loop-invariant code motion right after load elimination since it
+        // depends on the numbering of loads from the previous load-elimination.
         if (FLAG_loop_invariant_code_motion) {
           LICM licm(flow_graph);
           licm.Optimize();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
         flow_graph->RemoveRedefinitions();
+
+        // Optimize (a << b) & c patterns, merge operations.
+        // Run after CSE in order to have more opportunity to merge
+        // instructions that have same inputs.
+        optimizer.TryOptimizePatterns();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        DeadStoreElimination::Optimize(flow_graph);
 
         if (FLAG_range_analysis) {
           // Propagate types after store-load-forwarding. Some phis may have

@@ -643,6 +643,11 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 }
 
 
+void BackwardInstructionIterator::RemoveCurrentFromGraph() {
+  current_ = current_->RemoveFromGraph(false);  // Set current_ to next.
+}
+
+
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
