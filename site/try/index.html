@@ -26,10 +26,10 @@ a.diagnostic {
 a:hover.diagnostic {
   text-decoration: none;
 }
-a.diagnostic span {
+a.diagnostic>span {
   display: none;
 }
-a:hover.diagnostic span {
+a:hover.diagnostic>span {
   display: block;
   position: absolute;
   /* left: 1em; */
@@ -52,7 +52,7 @@ a:hover.diagnostic span {
   display: 'inline-block';
 }
 
-.dart-code-completion-holder *.dart-code-completion {
+.dart-code-completion-holder /deep/ *.dart-code-completion {
   display: none;
   position: absolute;
   left: 0px;
@@ -64,11 +64,11 @@ a:hover.diagnostic span {
   padding-left: 5px;
 }
 
-.dart-code-completion-holder.active *.dart-code-completion {
+.dart-code-completion-holder.active /deep/ *.dart-code-completion {
   display: block;
 }
 
-.dart-static {
+body /deep/ .dart-static {
   width: 198px;
   overflow: auto;
 }
@@ -100,35 +100,35 @@ a:hover.diagnostic span {
  * }
  */
 
-.dart-limited-height {
+body /deep/ .dart-limited-height {
   /* TODO(ahe): Make sure to compute this height to avoid jumping in the UI. */
   max-height: 66px;
 }
 
-.dart-server {
+body /deep/ .dart-server {
   width: 198px;
   border-top: 1px solid black;
 }
 
-.activeEntry {
+body /deep/ .activeEntry {
   background: #86b4bf;
 }
 
-.doubleplusgood {
+body /deep/ .doubleplusgood {
   font-weight: 700;
 }
 
-.dart-entry {
+body /deep/ .dart-entry {
   max-width: 198px;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.hazed-suggestion {
+body /deep/ .hazed-suggestion {
   color: #aaa;
 }
 
-.hazed-suggestion:after {
+body /deep/ .hazed-suggestion:after {
   content: " ";
 }
 

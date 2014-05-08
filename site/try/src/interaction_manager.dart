@@ -64,6 +64,11 @@ import 'mock.dart' as mock;
 
 import 'settings.dart' as settings;
 
+import 'shadow_root.dart' show
+    getShadowRoot,
+    removeShadowRootPolyfill,
+    setShadowRoot;
+
 const String TRY_DART_NEW_DEFECT =
     'https://code.google.com/p/dart/issues/entry'
     '?template=Try+Dart+Internal+Error';
@@ -257,8 +262,6 @@ class InitialState extends InteractionState {
       }
     }
 
-    // editor.scheduleRemoveCodeCompletion();
-
     // This is a hack to get Safari (iOS) to send mutation events on
     // contenteditable.
     // TODO(ahe): Move to onInput?
@@ -270,11 +273,7 @@ class InitialState extends InteractionState {
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     print('onMutation');
 
-    List<Node> highlighting = mainEditorPane.querySelectorAll(
-        'a.diagnostic>span, .dart-code-completion, .hazed-suggestion');
-    for (Element element in highlighting) {
-      element.remove();
-    }
+    removeCodeCompletion();
 
     Selection selection = window.getSelection();
     TrySelection trySelection = new TrySelection(mainEditorPane, selection);
@@ -288,6 +287,8 @@ class InitialState extends InteractionState {
       Node node = normalizedNodes.single;
       if (node is Element && node.classes.contains('lineNumber')) {
         print('Single line change: ${node.outerHtml}');
+
+        removeShadowRootPolyfill(node);
 
         String currentText = node.text;
 
@@ -320,6 +321,8 @@ class InitialState extends InteractionState {
         return;
       }
     }
+
+    removeShadowRootPolyfill(mainEditorPane);
 
     String currentText = mainEditorPane.text;
     trySelection.updateText(currentText);
@@ -535,7 +538,7 @@ class CodeCompletionState extends InitialState {
   }
 
   void move(int direction) {
-    Element element = editor.moveActive(direction);
+    Element element = editor.moveActive(direction, ui);
     if (element == null) return;
     var text = activeCompletion.firstChild;
     String prefix = "";
@@ -601,7 +604,7 @@ class CodeCompletionState extends InitialState {
 
     num height = activeCompletion.getBoundingClientRect().height;
     activeCompletion.classes.add('active');
-    ui.nodes.clear();
+    Node root = getShadowRoot(ui);
 
     inline = new SpanElement()
         ..classes.add('hazed-suggestion');
@@ -615,7 +618,7 @@ class CodeCompletionState extends InitialState {
     serverResults = new DivElement()
         ..style.display = 'none'
         ..classes.add('dart-server');
-    ui.nodes.addAll([staticResults, serverResults]);
+    root.nodes.addAll([staticResults, serverResults]);
     ui.style.top = '${height}px';
 
     staticResults.nodes.add(buildCompletionEntry(prefix));
@@ -632,10 +635,8 @@ class CodeCompletionState extends InitialState {
         ..display = 'inline-block'
         ..minWidth = '${minWidth}px';
 
-    inline
-        ..nodes.clear()
-        ..appendText(suggestion.substring(prefix.length))
-        ..style.display = '';
+    setShadowRoot(inline, suggestion.substring(prefix.length));
+    inline.style.display = '';
 
     observer.takeRecords(); // Discard mutations.
   }
@@ -666,9 +667,7 @@ class CodeCompletionState extends InitialState {
     serverResults.nodes.clear();
 
     if (inlineSuggestion != null && inlineSuggestion.startsWith(prefix)) {
-      inline
-          ..nodes.clear()
-          ..appendText(inlineSuggestion.substring(prefix.length));
+      setShadowRoot(inline, inlineSuggestion.substring(prefix.length));
     }
 
     List<String> results = editor.seenIdentifiers.where(
@@ -697,13 +696,14 @@ class CodeCompletionState extends InitialState {
           if (!serverSuggestions.isEmpty) {
             updateInlineSuggestion(prefix, serverSuggestions.first);
           }
+          var root = getShadowRoot(ui);
           for (int i = 1; i < serverSuggestions.length; i++) {
             String completion = serverSuggestions[i];
             DivElement where = staticResults;
             int index = results.indexOf(completion);
             if (index != -1) {
-              List<Element> entries =
-                  document.querySelectorAll('.dart-static>.dart-entry');
+              List<Element> entries = root.querySelectorAll(
+                  '.dart-static>.dart-entry');
               entries[index].classes.add('doubleplusgood');
             } else {
               if (results.length > 3) {
@@ -889,4 +889,12 @@ bool isAtEndOfFile(Text text, int offset) {
 
 List<String> splitLines(String text) {
   return text.split(new RegExp('^', multiLine: true));
+}
+
+void removeCodeCompletion() {
+  List<Node> highlighting =
+      mainEditorPane.querySelectorAll('.dart-code-completion');
+  for (Element element in highlighting) {
+    element.remove();
+  }
 }

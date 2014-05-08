@@ -30,12 +30,16 @@ import 'decoration.dart' show
 import 'selection.dart' show
     isCollapsed;
 
+import 'shadow_root.dart' show
+    getShadowRoot;
+
 const String INDENT = '\u{a0}\u{a0}';
 
 Set<String> seenIdentifiers;
 
-Element moveActive(int distance) {
-  List<Element> entries = document.querySelectorAll('.dart-static>.dart-entry');
+Element moveActive(int distance, Node ui) {
+  var /* ShadowRoot or Element */ root = getShadowRoot(ui);
+  List<Element> entries = root.querySelectorAll('.dart-static>.dart-entry');
   int activeIndex = -1;
   for (var i = 0; i < entries.length; i++) {
     if (entries[i].classes.contains('activeEntry')) {
@@ -52,10 +56,10 @@ Element moveActive(int distance) {
   if (0 <= newIndex && activeIndex != -1) {
     entries[activeIndex].classes.remove('activeEntry');
   }
-  Element staticNode = document.querySelector('.dart-static');
+  Element staticNode = root.querySelector('.dart-static');
   String visibility = computeVisibility(currentEntry, staticNode);
   print(visibility);
-  var serverResults = document.querySelectorAll('.dart-server>.dart-entry');
+  var serverResults = root.querySelectorAll('.dart-server>.dart-entry');
   var serverResultCount = serverResults.length;
   if (serverResultCount > 0) {
     switch (visibility) {
@@ -76,7 +80,7 @@ Element moveActive(int distance) {
     currentEntry.scrollIntoView(ScrollAlignment.BOTTOM);
   }
   if (serverResultCount == 0) {
-    document.querySelector('.dart-server').style.display = 'none';
+    root.querySelector('.dart-server').style.display = 'none';
   }
   if (currentEntry != null) {
     currentEntry.classes.add('activeEntry');

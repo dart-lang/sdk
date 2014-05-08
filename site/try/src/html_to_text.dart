@@ -11,6 +11,7 @@ import 'dart:html' show
     Element,
     Node,
     NodeFilter,
+    ShadowRoot,
     Text,
     TreeWalker;
 
@@ -61,7 +62,11 @@ int htmlToText(Node root, StringBuffer buffer, TrySelection selection) {
         break;
 
       default:
-        if (node.nodeName == 'BR') {
+        if (!ShadowRoot.supported &&
+            node is Element &&
+            node.getAttribute('try-dart-shadow-root') != null) {
+          skip(node, walker);
+        } else if (node.nodeName == 'BR') {
           buffer.write('\n');
         } else if (node != root && isBlockElement(node)) {
           selectionOffset =
