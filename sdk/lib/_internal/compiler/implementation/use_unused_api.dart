@@ -54,6 +54,7 @@ void main(List<String> arguments) {
   useConstant(null, null);
   useNode(null);
   useUtil(null);
+  useSetlet(null);
   useElementVisitor(new ElementVisitor());
   useJs(new js.Program(null));
   useJs(new js.Blob(null));
@@ -121,6 +122,10 @@ void useNode(tree.Node node) {
 
 void useUtil(util.Link link) {
   link.reversePrependAll(link);
+}
+
+void useSetlet(util.Setlet setlet) {
+  setlet.difference(setlet);
 }
 
 void useElementVisitor(ElementVisitor visitor) {
