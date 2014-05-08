@@ -10,4 +10,4 @@
 *: Skip
 
 [ $csp ]
-end_to_end_test: Skip, OK # http://dartbug.com/17935
+end_to_end_test: Fail, OK # http://dartbug.com/17935
