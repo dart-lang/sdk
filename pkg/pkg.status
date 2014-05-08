@@ -323,6 +323,7 @@ source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this fa
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 matcher/test/matchers_test: StaticWarning, OK # testing error creating abstract class
+third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
