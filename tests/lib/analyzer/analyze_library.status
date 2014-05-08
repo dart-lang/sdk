@@ -16,7 +16,6 @@ lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError # Issue 16524
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError # Issue 16524
 lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 lib/_internal/compiler/samples/darttags/darttags: CompileTimeError  # Issue 16524
-lib/_internal/compiler/samples/jsonify/jsonify: CompileTimeError
 lib/js/dart2js/js_dart2js: CompileTimeError # Issue 16524
 lib/svg/dart2js/svg_dart2js: CompileTimeError # Issue 16524
 lib/svg/dartium/svg_dartium: CompileTimeError # Issue 16524
