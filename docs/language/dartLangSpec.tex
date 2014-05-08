@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.3}}
+{\large Version 1.4}}
 %\author{The Dart Team}
 \begin{document}
 \maketitle
@@ -1059,7 +1059,7 @@ A {\em generative constructor} consists of a constructor name, a constructor par
     .
  \end{grammar}
 
-A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.id}, where \code{id} is the name of an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor. 
+A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.id}, where \code{id} is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if \code{id} is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor. 
 
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
 
@@ -1914,7 +1914,38 @@ Even where type parameters are in scope there are numerous restrictions at this 
 The normative versions of these  are given in the appropriate sections of this specification. Some of these restrictions may be lifted in the future.
 }
 
+%The {\em induced type set}, $S$, of a parameterized type $T$ is the set consisting of 
+%\begin{itemize}
+%\item The supertypes of any type in $S$.
+%\item The type arguments of any parameterized type in $S$.
+%\end{itemize}
 
+%Let $P$ be the instantiation of a generic type with its own type parameters. It is a compile-time error if the induced type set of $P$ is not finite.
+
+%\rationale {A typical recursive type declaration such as}
+
+%\begin{dartCode}
+%\CLASS{} B$<$S$>$ \{\}
+%\CLASS{} D$<$T$>$ \EXTENDS{} B$<$D$<$T$>>$ \{\}
+%\end{dartCode}
+
+%\rationale{
+%poses no problem under this rule. The instantiation \cd{D$<$T$>$} has an induced
+%set consisting of: \cd{B$<$D$<$T$>>$, Object, D$<$T$>$, T}. However, the following variant
+%}
+
+%\begin{dartCode}
+%\CLASS{} B$<$S$>$ \{\}
+%\CLASS{} D$<$T$>$ \EXTENDS{} B$<$D$<$D$<$T$>>>$ \{\}
+%\end{dartCode}
+
+%\rationale{
+%is disallowed. Consider again the instantiation \cd{D$<$T$>$}. It leads to the
+%superclass \cd{B$<$D$<$D$<$T$>>>$}, and so adds \cd{D$<$D$< $T$>>$} to the induced set. The latter in turn leads to  \cd{B$<$D$<$D$<$D$<$T$>>>>$} and \cd{D$<$D$<$D$<$T$>>>$}
+%and so on ad infinitum.}
+
+%\commentary{
+%The above requirement does not preclude the use of arbitrary recursive types in the body of a generic class. }
 %A generic has a type parameter scope. The enclosing scope of a type parameter scope of a generic G  is the enclosing scope of G.
 
 
@@ -2573,7 +2604,9 @@ A {\em map literal} consists of zero or more entries. Each entry has a {\em key}
 If a map literal begins with the reserved word \CONST{}, it is a {\em constant map literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile-time. Otherwise, it is a {\em run-time map literal} and it is evaluated at run-time. Only run-time map literals can be mutated
 after they are created. Attempting to mutate a constant map literal will result in a dynamic error.
 
-It is a compile-time error if either a key or a value of an entry in a constant map literal is not a compile-time constant. It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator $==$ unless the key is a string or integer. It is a compile-time error if the type arguments of a constant map literal include a type parameter. 
+It is a compile-time error if either a key or a value of an entry in a constant map literal is not a compile-time constant. It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator $==$ unless the key is a 
+%symbol, 
+string, an integer, literal symbol or the result of invoking a constant constructor of class \cd{Symbol}. It is a compile-time error if the type arguments of a constant map literal include a type parameter. 
 
 The value of a constant map literal  \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ is an object $m$ whose class implements the built-in class $Map<K, V>$. The entries of $m$ are $u_i:v_i, i \in 1 .. n$, where $u_i$ is the value of the compile-time expression $k_i$ and $v_i$ is the value of the compile-time expression $e_i$.  The value of a constant map literal  \CONST{} $\{k_1:e_1\ldots k_n :e_n\}$ is defined as the value of a constant map literal \CONST{} $<\DYNAMIC{}, \DYNAMIC{}>\{k_1:e_1\ldots k_n :e_n\}$.
 
@@ -3113,7 +3146,7 @@ An unqualified function invocation $i$ has the form
 
 $id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$, 
 
-where $id$ is an identifier. 
+where $id$ is an identifier or an identifier qualified with a library prefix. 
 
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
@@ -3133,6 +3166,11 @@ Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equ
 Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
 
 If $i$ does not occur inside a top level or static function, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+
+% Should also say:
+% It is a static warning if $i$  occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer and there is no lexically visible declaration named $id$ in scope.
+
+
 
 
 
@@ -3550,9 +3588,9 @@ The logical boolean expressions combine boolean objects using the boolean conjun
  
 A {\em logical boolean expression} is either an equality expression (\ref{equality}), or an invocation of a logical boolean operator on an expression $e_1$ with argument $e_2$.
  
-Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$; if $e_1$ evaluates to true, the result of evaluating $b$ is true, otherwise $e_2$ is evaluated to an object $o$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ and then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is true, the result of evaluating $b$ is true, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
 
-Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$; if $e_1$ does not evaluate to true, the result of evaluating $b$ is false, otherwise $e_2$ is evaluated to an object $o$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ and then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is not  true, the result of evaluating $b$ is false, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
 
 A logical boolean expression $b$ of the form $e_1 \&\& e_2$ shows that a variable $v$ has type 
 $T$ if all of the following conditions hold:
@@ -3570,7 +3608,7 @@ Furthermore, if all of the following hold:
 \end{itemize}
 then the type of $v$ is known to be $T$ in $e_2$.
 
-It is a static warning if the static types of both $e_1$ and $e_2$ may not be assigned to \cd{bool}. The static type of a logical boolean expression is \code{bool}.
+It is a static warning if the static type of $e_1$ may not be assigned to \cd{bool} or if the static type of $e_2$ may not be assigned to \cd{bool}. The static type of a logical boolean expression is \code{bool}.
 
      
  \subsection{ Equality}
@@ -4467,7 +4505,7 @@ The {\em switch statement} supports dispatching control among a large number of 
 \commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.  Note that the values of the expressions are known at compile-time, and are independent of any static type annotations.
 }
 
-It is a compile-time error if the class $C$ has an implementation of the operator $==$ other than the one inherited from \code{Object} unless the value of the expression is a string or an integer.
+It is a compile-time error if the class $C$ has an implementation of the operator $==$ other than the one inherited from \code{Object} unless the value of the expression is a string, an integer, literal symbol or the result of invoking a constant constructor class \cd{Symbol}.
  
  \rationale{
  The prohibition on user defined equality allows us to implement the switch efficiently for user defined types. We could formulate matching in terms of identity instead with the same efficiency. However, if a type defines an equality operator, programmers would find it quite surprising that equal objects did not match.
@@ -4711,7 +4749,7 @@ If $s_1$ has raised an exception, it will transfer control to the try statement'
 
 If a matching \ON{}-\CATCH{} was found, it will execute first, and then the \FINALLY{} clause will be executed. 
 
-If an exception is raised during execution of an \ON{}-\CATCH{} clause, this will transfer control to the handler for the \FINALLY{} clause, causing the \FINALLY{} clause to execute in this case as well. 
+If an exception is thrown during execution of an \ON{}-\CATCH{} clause, this will transfer control to the handler for the \FINALLY{} clause, causing the \FINALLY{} clause to execute in this case as well. 
 
 If no exception was raised, the \FINALLY{} clause is also executed. Execution of the \FINALLY{} clause could also raise an exception, which will cause transfer of control to the next enclosing handler. 
 }
@@ -5050,7 +5088,7 @@ It is recommended that tools that deploy Dart code produce output in which all i
 If a name $N$ is referenced by a library $L$ and $N$ is  introduced into  the top level scope of $L$ by more than one import, and not all the imports denote the same declaration, then:
 \begin{itemize}
 \item A static warning occurs.
-\item If $N$ is referenced as a function, getter or setter, a \code{NoSuchMethodError} is raised. 
+\item If $N$ is referenced as a function, getter or setter, a \code{NoSuchMethodError} is thrown. 
 \item  If $N$ is referenced as a type, it is treated as a malformed type.
 
 \end{itemize}
@@ -5620,7 +5658,7 @@ The current rules say that missing type arguments are treated as if they were th
 (2)  \code{typedAPI(new G()); }
 
 
-Under the alternative rules, (2) would cause a runtime error in checked mode. This seems desirable from the perspective of error localization. However, when a dynamic error is raised at (2), the only way to keep running is rewriting (2) into
+Under the alternative rules, (2) would cause a runtime error in checked mode. This seems desirable from the perspective of error localization. However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
 
 (3) \code{typedAPI(new G\lt{String}\gt());}
 
