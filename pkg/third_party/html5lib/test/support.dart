@@ -140,6 +140,8 @@ class TestSerializer extends TreeVisitor {
     indent -= 1;
   }
 
+  visitDocumentFragment(DocumentFragment node) => visitDocument(node);
+
   visitElement(Element node) {
     _newline();
     _str.write(node);

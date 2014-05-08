@@ -262,45 +262,16 @@ class Visitor implements VisitorBase {
   }
 
   void visitSimpleSelectorSequence(SimpleSelectorSequence node) {
-    var selector = node.simpleSelector;
-    if (selector is NamespaceSelector) {
-      visitNamespaceSelector(selector);
-    } else if (selector is ElementSelector) {
-      visitElementSelector(selector);
-    } else if (selector is IdSelector) {
-      visitIdSelector(selector);
-    } else if (selector is ClassSelector) {
-      visitClassSelector(selector);
-    } else if (selector is PseudoClassFunctionSelector) {
-      visitPseudoClassFunctionSelector(selector);
-    } else if (selector is PseudoElementFunctionSelector) {
-      visitPseudoElementFunctionSelector(selector);
-    } else if (selector is PseudoClassSelector) {
-      visitPseudoClassSelector(selector);
-    } else if (selector is PseudoElementSelector) {
-      visitPseudoElementSelector(selector);
-    } else if (selector is NegationSelector) {
-      visitNegationSelector(selector);
-    } else if (selector is SelectorExpression) {
-      visitSelectorExpression(selector);
-    } else if (selector is AttributeSelector) {
-      visitAttributeSelector(selector);
-    } else {
-      visitSimpleSelector(selector);
-    }
+    node.simpleSelector.visit(this);
   }
 
   void visitSimpleSelector(SimpleSelector node) => node._name.visit(this);
 
   void visitNamespaceSelector(NamespaceSelector node) {
-    var namespace = node._namespace;
-    if (namespace is Identifier) {
-      visitIdentifier(namespace);
-    } else if (namespace is Wildcard) {
-      visitWildcard(namespace);
+    if (node._namespace != null) node._namespace.visit(this);
+    if (node.nameAsSimpleSelector != null) {
+      node.nameAsSimpleSelector.visit(this);
     }
-
-    visitSimpleSelector(node.nameAsSimpleSelector);
   }
 
   void visitElementSelector(ElementSelector node) => visitSimpleSelector(node);

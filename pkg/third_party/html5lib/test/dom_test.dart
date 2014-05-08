@@ -2,71 +2,55 @@
 library dom_test;
 
 import 'package:unittest/unittest.dart';
+import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart';
 
 main() {
-  group('Node.querySelector type selectors', () {
-    test('x-foo', () {
-      expect(parse('<x-foo>').body.querySelector('x-foo'), isNotNull);
-    });
 
-    test('-x-foo', () {
-      var doc = parse('<body><-x-foo>');
-      expect(doc.body.outerHtml, equals('<body>&lt;-x-foo&gt;</body>'));
-      expect(doc.body.querySelector('-x-foo'), isNull);
-    });
-
-    test('foo123', () {
-      expect(parse('<foo123>').body.querySelector('foo123'), isNotNull);
-    });
-
-    test('built from fragments', () {
-      var doc = parse('<body>');
-      doc.body.nodes.add(parseFragment('<x-foo>'));
-      expect(doc.body.querySelector('x-foo'), isNotNull);
-    });
-
-    test('123 - invalid', () {
-      var doc = parse('<123>');
-      expect(() => doc.body.querySelector('123'), throwsUnimplementedError);
-    });
-
-    test('x\\ny - not implemented', () {
-      var doc = parse('<x\\ny>');
-      expect(() => doc.body.querySelector('x\\ny'), throwsUnimplementedError);
+  group('Element', () {
+    test('classes', () {
+      final barBaz = new Element.html('<div class=" bar baz"></div>');
+      final quxBaz = new Element.html('<div class="qux  baz "></div>');
+      expect(barBaz.className, ' bar baz');
+      expect(quxBaz.className, 'qux  baz ');
+      expect(barBaz.classes, ['bar', 'baz']);
+      expect(quxBaz.classes, ['qux', 'baz']);
     });
   });
 
-  group('Node.querySelectorAll type selectors', () {
-    test('x-foo', () {
-      expect(parse('<x-foo>').body.querySelectorAll('x-foo').length, 1);
+  group('Document', () {
+    final doc = parse('<div id=foo>'
+          '<div class=" bar baz"></div>'
+          '<div class="qux  baz "></div>'
+          '<div id=Foo>');
+
+    test('getElementById', () {
+      var foo = doc.body.nodes[0];
+      var Foo = foo.nodes[2];
+      expect(foo.id, 'foo');
+      expect(Foo.id, 'Foo');
+      expect(doc.getElementById('foo'), foo);
+      expect(doc.getElementById('Foo'), Foo);
     });
 
-    test('-x-foo', () {
-      var doc = parse('<body><-x-foo>');
-      expect(doc.body.outerHtml, equals('<body>&lt;-x-foo&gt;</body>'));
-      expect(doc.body.querySelectorAll('-x-foo').length, 0);
+    test('getElementsByClassName', () {
+      var foo = doc.body.nodes[0];
+      var barBaz = foo.nodes[0];
+      var quxBaz = foo.nodes[1];
+      expect(barBaz.className, ' bar baz');
+      expect(quxBaz.className, 'qux  baz ');
+      expect(doc.getElementsByClassName('baz'), [barBaz, quxBaz]);
+      expect(doc.getElementsByClassName('bar '), [barBaz]);
+      expect(doc.getElementsByClassName('  qux'), [quxBaz]);
+      expect(doc.getElementsByClassName(' baz qux'), [quxBaz]);
     });
 
-    test('foo123', () {
-      expect(parse('<foo123>').body.querySelectorAll('foo123').length, 1);
-    });
-
-    test('built from fragments', () {
-      var doc = parse('<body>');
-      doc.body.nodes.add(parseFragment('<x-foo></x-foo><x-foo>'));
-      expect(doc.body.querySelectorAll('x-foo').length, 2);
-    });
-
-    test('123 - invalid', () {
-      var doc = parse('<123>');
-      expect(() => doc.body.querySelectorAll('123'), throwsUnimplementedError);
-    });
-
-    test('x\\ny - not implemented', () {
-      var doc = parse('<x\\ny>');
-      expect(() => doc.body.querySelectorAll('x\\ny'),
-        throwsUnimplementedError);
+    test('getElementsByTagName', () {
+      var foo = doc.body.nodes[0];
+      var barBaz = foo.nodes[0];
+      var quxBaz = foo.nodes[1];
+      var Foo = foo.nodes[2];
+      expect(doc.getElementsByTagName('div'), [foo, barBaz, quxBaz, Foo]);
     });
   });
 

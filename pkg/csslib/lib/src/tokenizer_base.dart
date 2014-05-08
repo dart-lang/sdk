@@ -9,12 +9,14 @@ part of csslib.parser;
 class TokenizerState {
   final int index;
   final int startIndex;
-  final bool selectorExpression;
+  final bool inSelectorExpression;
+  final bool inSelector;
 
   TokenizerState(TokenizerBase base) :
-      this.index = base._index,
-      this.startIndex = base._startIndex,
-      this.selectorExpression = base.selectorExpression;
+      index = base._index,
+      startIndex = base._startIndex,
+      inSelectorExpression = base.inSelectorExpression,
+      inSelector = base.inSelector;
 }
 
 /**
@@ -23,14 +25,32 @@ class TokenizerState {
  */
 abstract class TokenizerBase {
   final SourceFile _file;
-  final bool _skipWhitespace;
   final String _text;
+
+  bool _skipWhitespace;
 
   /**
    * Changes tokenization when in a pseudo function expression.  If true then
    * minus signs are handled as operators instead of identifiers.
    */
-  bool selectorExpression = false;
+  bool inSelectorExpression = false;
+
+  /**
+   * Changes tokenization when in selectors. If true, it prevents identifiers
+   * from being treated as units. This would break things like ":lang(fr)" or
+   * the HTML (unknown) tag name "px", which is legal to use in a selector.
+   */
+  // TODO(jmesserly): is this a problem elsewhere? "fr" for example will be
+  // processed as a "fraction" unit token, preventing it from working in
+  // places where an identifier is expected. This was breaking selectors like:
+  //     :lang(fr)
+  // The assumption that "fr" always means fraction (and similar issue with
+  // other units) doesn't seem valid. We probably should defer this
+  // analysis until we reach places in the parser where units are expected.
+  // I'm not sure this is tokenizing as described in the specs:
+  //     http://dev.w3.org/csswg/css-syntax/
+  //     http://dev.w3.org/csswg/selectors4/
+  bool inSelector = false;
 
   int _index;
   int _startIndex;
@@ -51,7 +71,8 @@ abstract class TokenizerBase {
   void restore(TokenizerState markedData) {
     _index = markedData.index;
     _startIndex = markedData.startIndex;
-    selectorExpression = markedData.selectorExpression;
+    inSelectorExpression = markedData.inSelectorExpression;
+    inSelector = markedData.inSelector;
   }
 
   int _nextChar() {
@@ -123,19 +144,6 @@ abstract class TokenizerBase {
 
     }
     return _finishToken(TokenKind.END_OF_FILE);
-  }
-
-  Token finishSingleLineComment() {
-    while (true) {
-      int ch = _nextChar();
-      if (ch == 0 || ch == TokenChar.NEWLINE || ch == TokenChar.RETURN) {
-        if (_skipWhitespace) {
-          return next();
-        } else {
-          return _finishToken(TokenKind.COMMENT);
-        }
-      }
-    }
   }
 
   Token finishMultiLineComment() {
@@ -424,21 +432,6 @@ abstract class TokenizerBase {
       return finishNumberExtra(TokenKind.DOUBLE);
     } else {
       return _finishToken(TokenKind.DOT);
-    }
-  }
-
-  Token finishIdentifier(int ch) {
-    while (_index < _text.length) {
-      if (!TokenizerHelpers.isIdentifierPart(_text.codeUnitAt(_index++))) {
-        _index--;
-        break;
-      }
-    }
-    int kind = getIdentifierKind();
-    if (kind == TokenKind.IDENTIFIER) {
-      return _finishToken(TokenKind.IDENTIFIER);
-    } else {
-      return _finishToken(kind);
     }
   }
 }

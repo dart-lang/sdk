@@ -51,3 +51,16 @@ class ErrorToken extends Token {
   String message;
   ErrorToken(int kind, Span span, this.message) : super(kind, span);
 }
+
+/**
+ * CSS ident-token.
+ *
+ * See <http://dev.w3.org/csswg/css-syntax/#typedef-ident-token> and
+ * <http://dev.w3.org/csswg/css-syntax/#ident-token-diagram>.
+ */
+class IdentifierToken extends Token {
+  final String text;
+
+  IdentifierToken(this.text, int kind, Span span)
+      : super(kind, span);
+}

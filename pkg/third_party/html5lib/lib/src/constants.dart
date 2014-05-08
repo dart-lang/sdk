@@ -316,7 +316,7 @@ class Namespaces {
       case xlink: return 'xlink';
       case xml: return 'xml';
       case xmlns: return 'xmlns';
-      default: throw new ArgumentError(url);
+      default: return null;
     }
   }
 }

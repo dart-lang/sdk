@@ -40,8 +40,7 @@ class TreeVisitor {
 
   visitComment(Comment node) => visitNodeFallback(node);
 
-  // Note: visits document by default because DocumentFragment is a Document.
-  visitDocumentFragment(DocumentFragment node) => visitDocument(node);
+  visitDocumentFragment(DocumentFragment node) => visitNodeFallback(node);
 }
 
 /// Converts the DOM tree into an HTML string with code markup suitable for
@@ -166,7 +165,7 @@ bool isVoidElement(String tagName) {
 /// <http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#html-fragment-serialization-algorithm>
 void writeTextNodeAsHtml(StringBuffer str, Text node) {
   // Don't escape text for certain elements, notably <script>.
-  final parent = node.parent;
+  final parent = node.parentNode;
   if (parent is Element) {
     var tag = parent.localName;
     if (rcdataElements.contains(tag) || tag == 'plaintext') {
