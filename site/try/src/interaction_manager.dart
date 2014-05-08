@@ -327,10 +327,7 @@ class InitialState extends InteractionState {
       }
     }
 
-    // TODO(ahe): Use getText(mainEditorPane) instead.
-    removeShadowRootPolyfill(mainEditorPane);
-
-    String currentText = mainEditorPane.text;
+    String currentText = getText(mainEditorPane);
     trySelection.updateText(currentText);
 
     context.currentCompilationUnit.content = currentText;

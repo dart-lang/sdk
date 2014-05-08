@@ -11,6 +11,3 @@
 
 [ $csp ]
 end_to_end_test: Fail, OK # http://dartbug.com/17935
-
-[ $runtime == ff ]
-source_update_test: Fail

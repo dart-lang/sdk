@@ -22,6 +22,11 @@ import 'selection.dart' show
 bool isBlockElement(Node node) {
   if (node is! Element) return false;
   Element element = node;
+
+  // TODO(ahe): Remove this line by changing code completion to avoid using a
+  // div element.
+  if (element.classes.contains('dart-code-completion')) return false;
+
   return element.getComputedStyle().display != 'inline';
 }
 
@@ -46,7 +51,10 @@ void skip(Node node, TreeWalker walker) {
 /// Writes the text of [root] to [buffer]. Keeps track of [selection] and
 /// returns the new anchorOffset from beginning of [buffer] or -1 if the
 /// selection isn't in [root].
-int htmlToText(Node root, StringBuffer buffer, TrySelection selection) {
+int htmlToText(Node root,
+               StringBuffer buffer,
+               TrySelection selection,
+               {bool treatRootAsInline: false}) {
   int selectionOffset = -1;
   TreeWalker walker = new TreeWalker(root, NodeFilter.SHOW_ALL);
 
@@ -77,7 +85,7 @@ int htmlToText(Node root, StringBuffer buffer, TrySelection selection) {
     }
   }
 
-  if (isBlockElement(root)) {
+  if (!treatRootAsInline && isBlockElement(root)) {
     buffer.write('\n');
   }
 

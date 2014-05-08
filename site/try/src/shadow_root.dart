@@ -49,6 +49,7 @@ void removeShadowRootPolyfill(Element root) {
 String getText(Element node) {
   if (ShadowRoot.supported) return node.text;
   StringBuffer buffer = new StringBuffer();
-  htmlToText(node, buffer, new TrySelection.empty(node));
+  htmlToText(
+      node, buffer, new TrySelection.empty(node), treatRootAsInline: true);
   return '$buffer';
 }
