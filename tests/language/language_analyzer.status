@@ -73,10 +73,6 @@ field_method4_negative_test: fail
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
 
-# test issue 11918: mixin and const constructor
-const_constructor_mixin_test/01: fail
-const_constructor_mixin3_test/01: fail
-
 # test issue 11962, it is warning, not error to reference undeclared identifier
 prefix1_negative_test: fail
 prefix2_negative_test: fail
