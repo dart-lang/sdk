@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-source_update_test: Fail
-
 # Try Dart is tested on the following configurations:
 # dart2js-drt (Content Shell --dump-render-tree)
 # dart2js-chrome
@@ -13,3 +11,6 @@ source_update_test: Fail
 
 [ $csp ]
 end_to_end_test: Fail, OK # http://dartbug.com/17935
+
+[ $runtime == ff ]
+source_update_test: Fail

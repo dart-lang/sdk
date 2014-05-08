@@ -66,6 +66,7 @@ import 'settings.dart' as settings;
 
 import 'shadow_root.dart' show
     getShadowRoot,
+    getText,
     removeShadowRootPolyfill,
     setShadowRoot;
 
@@ -316,12 +317,17 @@ class InitialState extends InteractionState {
         node.remove();
         trySelection.adjust(selection);
 
+        // TODO(ahe): We know almost exactly what has changed.  It could be
+        // more efficient to only communicate what changed.
+        context.currentCompilationUnit.content = getText(mainEditorPane);
+
         // Discard highlighting mutations.
         observer.takeRecords();
         return;
       }
     }
 
+    // TODO(ahe): Use getText(mainEditorPane) instead.
     removeShadowRootPolyfill(mainEditorPane);
 
     String currentText = mainEditorPane.text;

@@ -26,6 +26,10 @@ class TrySelection {
       : anchorNode = isCollapsed(selection) ? selection.anchorNode : null,
         anchorOffset = isCollapsed(selection) ? selection.anchorOffset : -1;
 
+  TrySelection.empty(this.root)
+      : anchorNode = null,
+        anchorOffset = -1;
+
   Text addNodeFromSubstring(int start,
                             int end,
                             List<Node> nodes,

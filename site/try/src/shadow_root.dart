@@ -6,6 +6,12 @@ library trydart.shadow_root;
 
 import 'dart:html';
 
+import 'selection.dart' show
+    TrySelection;
+
+import 'html_to_text.dart' show
+    htmlToText;
+
 void setShadowRoot(Element node, text) {
   if (text is String) {
     text = new Text(text);
@@ -38,4 +44,11 @@ void removeShadowRootPolyfill(Element root) {
       element.remove();
     }
   }
+}
+
+String getText(Element node) {
+  if (ShadowRoot.supported) return node.text;
+  StringBuffer buffer = new StringBuffer();
+  htmlToText(node, buffer, new TrySelection.empty(node));
+  return '$buffer';
 }
