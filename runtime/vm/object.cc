@@ -2794,6 +2794,30 @@ void Class::SetFields(const Array& value) const {
 }
 
 
+void Class::AddField(const Field& field) const {
+  const Array& arr = Array::Handle(fields());
+  const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
+  new_arr.SetAt(arr.Length(), field);
+  SetFields(new_arr);
+}
+
+
+void Class::AddFields(const GrowableObjectArray& new_fields) const {
+  const intptr_t num_new_fields = new_fields.Length();
+  if (num_new_fields == 0) return;
+  const Array& arr = Array::Handle(fields());
+  const intptr_t num_old_fields = arr.Length();
+  const Array& new_arr =
+      Array::Handle(Array::Grow(arr, num_old_fields + num_new_fields));
+  Field& field = Field::Handle();
+  for (intptr_t i = 0; i < num_new_fields; i++) {
+    field ^= new_fields.At(i);
+    new_arr.SetAt(i + num_old_fields, field);
+  }
+  SetFields(new_arr);
+}
+
+
 intptr_t Class::FindFieldIndex(const Field& needle) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
@@ -8268,6 +8292,7 @@ void Library::AddMetadata(const Class& cls,
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
+  cls.AddField(field);
 }
 
 
@@ -9641,6 +9666,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
   field.set_type(Type::Handle(Type::DynamicType()));
   field.set_value(Array::empty_array());
   set_metadata_field(field);
+  owner_class.AddField(field);
 }
 
 

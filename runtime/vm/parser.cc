@@ -4047,12 +4047,10 @@ void Parser::ParseClassDefinition(const Class& cls) {
   const bool need_implicit_constructor =
       !members.has_constructor() && !cls.is_patch();
 
-  Array& array = Array::Handle();
-  array = Array::MakeArray(members.fields());
-  cls.SetFields(array);
+  cls.AddFields(members.fields());
 
   // Creating a new array for functions marks the class as parsed.
-  array = Array::MakeArray(members.functions());
+  const Array& array = Array::Handle(Array::MakeArray(members.functions()));
   cls.SetFunctions(array);
 
   // Add an implicit constructor if no explicit constructor is present.
@@ -5257,12 +5255,9 @@ void Parser::ParseTopLevel() {
     }
   }
   if ((top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
-    Array& array = Array::Handle();
+    toplevel_class.AddFields(top_level.fields);
 
-    array = Array::MakeArray(top_level.fields);
-    toplevel_class.SetFields(array);
-
-    array = Array::MakeArray(top_level.functions);
+    const Array& array = Array::Handle(Array::MakeArray(top_level.functions));
     toplevel_class.SetFunctions(array);
 
     library_.AddAnonymousClass(toplevel_class);

@@ -939,6 +939,8 @@ class Class : public Object {
 
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
+  void AddField(const Field& field) const;
+  void AddFields(const GrowableObjectArray& fields) const;
   intptr_t FindFieldIndex(const Field& field) const;
   RawField* FieldFromIndex(intptr_t idx) const;
 

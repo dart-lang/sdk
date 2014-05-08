@@ -16,9 +16,6 @@ cc/Debug_StackTraceDump2: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
-[ $mode == debug ]
-cc/PrintJSON: Crash  # Issue 18652
-
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
