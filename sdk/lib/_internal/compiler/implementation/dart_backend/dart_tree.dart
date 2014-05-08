@@ -449,6 +449,7 @@ class Builder extends ir.Visitor<Node> {
 class Unnamer extends Visitor<Statement, Expression> {
   // The binding environment.  The rightmost element of the list is the nearest
   // enclosing binding.
+  // We use null to mark an impure expressions that does not bind a variable.
   List<Assign> environment;
 
   void unname(FunctionDefinition definition) {
@@ -477,6 +478,10 @@ class Unnamer extends Visitor<Statement, Expression> {
     // practice.
     bool seenImpure = false;
     for (int i = environment.length - 1; i >= 0; --i) {
+      if (environment[i] == null) {
+        seenImpure = true;
+        continue;
+      }
       if (environment[i].variable == node) {
         if ((!seenImpure || environment[i].definition.isPure)
             && environment[i].hasExactlyOneUse) {
@@ -546,7 +551,13 @@ class Unnamer extends Visitor<Statement, Expression> {
 
   Statement visitExpressionStatement(ExpressionStatement node) {
     node.expression = visitExpression(node.expression);
+    if (!node.expression.isPure) {
+      environment.add(null); // insert impurity marker (TODO: refactor)
+    }
     node.next = visitStatement(node.next);
+    if (!node.expression.isPure) {
+      environment.removeLast();
+    }
     return node;
   }
 }

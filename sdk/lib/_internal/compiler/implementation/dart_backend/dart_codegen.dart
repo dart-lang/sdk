@@ -8,6 +8,9 @@ import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../elements/modelx.dart' as modelx;
+import '../universe/universe.dart';
+import '../helpers/helpers.dart';
+import '../tree/tree.dart' as tree show Modifiers;
 
 /// Translates the dart_tree IR to Dart frontend AST.
 frontend.FunctionExpression emit(FunctionElement element,
@@ -22,18 +25,26 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Variables to be hoisted at the top of the current function.
   List<VariableDeclaration> variables;
 
+  /// Set of variables that have had their declaration inserted in [variables].
+  Set<tree.Variable> seenVariables;
+
   /// Statements emitted by the most recent call to [visitStatement].
   List<Statement> statementBuffer;
 
   /// The function currently being emitted.
   FunctionElement functionElement;
 
+  /// Booking object needed to synthesize a variable declaration.
+  modelx.VariableList variableList;
+
   FunctionExpression emit(FunctionElement element,
                           tree.FunctionDefinition definition) {
     functionElement = element;
     variables = <VariableDeclaration>[];
     statementBuffer = <Statement>[];
+    seenVariables = new Set<tree.Variable>();
     tree.Variable.counter = 0;
+    variableList = new modelx.VariableList(tree.Modifiers.EMPTY);
 
     Parameters parameters = emitParameters(definition.parameters);
     visitStatement(definition.body);
@@ -49,6 +60,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     variables = null;
     statementBuffer = null;
     functionElement = null;
+    variableList = null;
+    seenVariables = null;
 
     return new FunctionExpression(
         parameters,
@@ -70,6 +83,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Parameter emitParameter(tree.Variable param) {
+    seenVariables.add(param);
     ParameterElement element = param.element;
     TypeAnnotation type = emitOptionalType(element.type);
     return new Parameter(element.name, type:type)
@@ -99,12 +113,17 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   void visitAssign(tree.Assign stmt) {
     // Synthesize an element for the variable, if necessary.
     if (stmt.variable.element == null) {
-      stmt.variable.element = new modelx.VariableElementX.synthetic(
+      stmt.variable.element = new modelx.VariableElementX(
           stmt.variable.name,
           ElementKind.VARIABLE,
-          functionElement);
+          functionElement,
+          variableList,
+          null);
     }
-    variables.add(new VariableDeclaration(stmt.variable.name));
+    if (seenVariables.add(stmt.variable)) {
+      variables.add(new VariableDeclaration(stmt.variable.name)
+                            ..element = stmt.variable.element);
+    }
     Expression def = visitExpression(stmt.definition);
     statementBuffer.add(new ExpressionStatement(new Assignment(
         visitVariable(stmt.variable),
