@@ -101,7 +101,7 @@ class LogEntryList {
       _mockFailureHandler =
           new _MockFailureHandler(getOrCreateExpectFailureHandler());
     }
-    expect(logs, matcher, reason:filter, failureHandler: _mockFailureHandler);
+    expect(logs, matcher, reason: filter, failureHandler: _mockFailureHandler);
     return this;
   }
 

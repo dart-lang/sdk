@@ -17,7 +17,7 @@ class Behavior {
   List<Responder> actions; // The values to return/throw or proxies to call.
   bool logging = true;
 
-  Behavior (this.matcher) {
+  Behavior(this.matcher) {
     actions = new List<Responder>();
   }
 

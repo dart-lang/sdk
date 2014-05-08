@@ -92,7 +92,7 @@ class _ResultSetMatcher extends Matcher {
       }
       mismatchDescription.add(' value that ');
       value.describeMismatch(entry.value, mismatchDescription,
-        matchState['state'], verbose);
+          matchState['state'], verbose);
       mismatchDescription.add(' at least once');
     } else {
       mismatchDescription.add('never did');

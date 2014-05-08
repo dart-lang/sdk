@@ -36,9 +36,9 @@ LogEntry makeTestLogEntry(String methodName, List args, int time,
 LogEntryList makeTestLog() {
   var args = new List();
   return new LogEntryList('test')
-    ..add(makeTestLogEntry('a', args, 1000))
-    ..add(makeTestLogEntry('b', args, 2000))
-    ..add(makeTestLogEntry('c', args, 3000));
+      ..add(makeTestLogEntry('a', args, 1000))
+      ..add(makeTestLogEntry('b', args, 2000))
+      ..add(makeTestLogEntry('c', args, 3000));
 }
 
 void main() {
@@ -56,8 +56,7 @@ void main() {
 
     var s = '${m.foo(1,2)}${m.foo(1,1)}${m.foo(9,10)}'
         '${m.bar(1,1)}${m.foo(1,2)}';
-    m.getLogs(callsTo('foo', anything, anything)).
-        verify(happenedExactly(4));
+    m.getLogs(callsTo('foo', anything, anything)).verify(happenedExactly(4));
     m.getLogs(callsTo('foo', 1, anything)).verify(happenedExactly(3));
     m.getLogs(callsTo('foo', 9, anything)).verify(happenedOnce);
     m.getLogs(callsTo('foo', anything, 2)).verify(happenedExactly(2));
@@ -157,8 +156,8 @@ void main() {
 
   test('Mocking: Shared logList', () {
     var logList = new LogEntryList();
-    var m1 = new Mock.custom(name:'m1', log:logList);
-    var m2 = new Mock.custom(name:'m2', log:logList);
+    var m1 = new Mock.custom(name: 'm1', log: logList);
+    var m2 = new Mock.custom(name: 'm2', log: logList);
     m1.foo();
     m2.foo();
     m1.bar();
@@ -446,7 +445,7 @@ void main() {
     result = logList.preceding(keyList);
     expect(result.logs, hasLength(0));
 
-    result = logList.preceding(keyList, includeKeys:true);
+    result = logList.preceding(keyList, includeKeys: true);
     expect(result.logs, hasLength(0));
 
     // Single key, distance 1, no restrictions.
@@ -460,26 +459,26 @@ void main() {
 
     // Single key, distance 2, no restrictions.
 
-    result = logList.preceding(keyList, distance:2);
+    result = logList.preceding(keyList, distance: 2);
     expect(result.logs, orderedEquals([e1, e2]));
 
-    result = logList.following(keyList, distance:2);
+    result = logList.following(keyList, distance: 2);
     expect(result.logs, orderedEquals([e4, e5]));
 
     // Single key, distance 3, no restrictions.
 
-    result = logList.preceding(keyList, distance:3);
+    result = logList.preceding(keyList, distance: 3);
     expect(result.logs, orderedEquals([e0, e1, e2]));
 
-    result = logList.following(keyList, distance:3);
+    result = logList.following(keyList, distance: 3);
     expect(result.logs, orderedEquals([e4, e5, e6]));
 
     // Include keys in result
 
-    result = logList.preceding(keyList, distance:3, includeKeys:true);
+    result = logList.preceding(keyList, distance: 3, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e1, e2, e3]));
 
-    result = logList.following(keyList, distance:3, includeKeys:true);
+    result = logList.following(keyList, distance: 3, includeKeys: true);
     expect(result.logs, orderedEquals([e3, e4, e5, e6]));
 
     // Restrict the matches
@@ -511,10 +510,10 @@ void main() {
     result = logList.following(keyList);
     expect(result.logs, orderedEquals([e1, e4, e8]));
 
-    result = logList.preceding(keyList, includeKeys:true);
+    result = logList.preceding(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e2, e3, e6, e7]));
 
-    result = logList.following(keyList, includeKeys:true);
+    result = logList.following(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e1, e3, e4, e7, e8]));
 
     keyList.logs.clear();
@@ -528,10 +527,10 @@ void main() {
     result = logList.following(keyList);
     expect(result.logs, orderedEquals([e4, e8]));
 
-    result = logList.preceding(keyList, includeKeys:true);
+    result = logList.preceding(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e2, e3, e6, e7, e9, e10]));
 
-    result = logList.following(keyList, includeKeys:true);
+    result = logList.following(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e3, e4, e7, e8, e10]));
 
     keyList.logs.clear();
@@ -546,10 +545,10 @@ void main() {
     result = logList.following(keyList);
     expect(result.logs, orderedEquals([e1, e4, e8]));
 
-    result = logList.preceding(keyList, includeKeys:true);
+    result = logList.preceding(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e2, e3, e6, e7, e9, e10]));
 
-    result = logList.following(keyList, includeKeys:true);
+    result = logList.following(keyList, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e1, e3, e4, e7, e8, e10]));
 
     keyList.logs.clear();
@@ -557,13 +556,13 @@ void main() {
     keyList.add(e3);
     keyList.add(e7);
 
-    result = logList.preceding(keyList, distance:3);
+    result = logList.preceding(keyList, distance: 3);
     expect(result.logs, orderedEquals([e1, e2, e4, e5, e6]));
 
-    result = logList.following(keyList, distance:3);
+    result = logList.following(keyList, distance: 3);
     expect(result.logs, orderedEquals([e1, e2, e4, e5, e6, e8, e9, e10]));
 
-    result = logList.preceding(keyList, distance:3, includeKeys:true);
+    result = logList.preceding(keyList, distance: 3, includeKeys: true);
     expect(result.logs, orderedEquals([e0, e1, e2, e3, e4, e5, e6, e7]));
 
     result = logList.following(keyList, distance:3, includeKeys:true);
@@ -575,17 +574,17 @@ void main() {
     keyList.add(e7);
     keyList.add(e10);
 
-    result = logList.preceding(keyList, distance:3);
+    result = logList.preceding(keyList, distance: 3);
     expect(result.logs, orderedEquals([e0, e1, e2, e4, e5, e6, e8, e9]));
 
-    result = logList.following(keyList, distance:3);
+    result = logList.following(keyList, distance: 3);
     expect(result.logs, orderedEquals([e4, e5, e6, e8, e9]));
 
     result = logList.preceding(keyList, distance:3, includeKeys:true);
     expect(result.logs, orderedEquals([e0, e1, e2, e3, e4, e5, e6,
                                        e7, e8, e9, e10]));
 
-    result = logList.following(keyList, distance:3, includeKeys:true);
+    result = logList.following(keyList, distance: 3, includeKeys: true);
     expect(result.logs, orderedEquals([e3, e4, e5, e6, e7, e8, e9, e10]));
 
     keyList.logs.clear();
@@ -594,10 +593,10 @@ void main() {
     keyList.add(e7);
     keyList.add(e10);
 
-    result = logList.preceding(keyList, distance:3);
+    result = logList.preceding(keyList, distance: 3);
     expect(result.logs, orderedEquals([e1, e2, e4, e5, e6, e8, e9]));
 
-    result = logList.following(keyList, distance:3);
+    result = logList.following(keyList, distance: 3);
     expect(result.logs, orderedEquals([e1, e2, e4, e5, e6, e8, e9]));
 
     result = logList.preceding(keyList, distance:3, includeKeys:true);
@@ -617,9 +616,9 @@ void main() {
     }
     int total = 0;
     logList.stepwiseValidate((log, pos) {
-        total += log[pos].args[0] * log[pos + 1].args[0];
-        expect(log[pos + 1].args[0] - log[pos].args[0], equals(1));
-        return 2;
+      total += log[pos].args[0] * log[pos + 1].args[0];
+      expect(log[pos + 1].args[0] - log[pos].args[0], equals(1));
+      return 2;
     });
     expect(total, equals((0 * 1) + (2 * 3) + (4 * 5) + (6 * 7) + (8 * 9)));
   });
@@ -650,7 +649,7 @@ void main() {
         isTrue);
     m2.clearLogs();
     expect(log.logs, hasLength(3));
-    expect(log.logs.every((e) => e.mockName =='m3'), isTrue);
+    expect(log.logs.every((e) => e.mockName == 'm3'), isTrue);
     m3.clearLogs();
     expect(log.logs, hasLength(0));
   });

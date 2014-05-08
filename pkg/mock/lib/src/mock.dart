@@ -25,7 +25,7 @@ class Mock {
   final String name;
 
   /** The set of [Behavior]s supported. */
-  final LinkedHashMap<String,Behavior> _behaviors;
+  final LinkedHashMap<String, Behavior> _behaviors;
 
   /** How to handle unknown method calls - swallow or throw. */
   final bool _throwIfNoBehavior;
@@ -85,8 +85,8 @@ class Mock {
    * later.
    */
   Mock.spy(this._realObject, {this.name, this.log})
-    : _behaviors = null,
-     _throwIfNoBehavior = true {
+      : _behaviors = null,
+        _throwIfNoBehavior = true {
     logging = true;
   }
 
@@ -125,7 +125,7 @@ class Mock {
     } else if (invocation.isSetter) {
       method = 'set $method';
       // Remove the trailing '='.
-      if (method[method.length-1] == '=') {
+      if (method[method.length - 1] == '=') {
         method = method.substring(0, method.length - 1);
       }
     }
@@ -175,54 +175,9 @@ class Mock {
           }
           throw value;
         } else if (action == Action.PROXY) {
-          // TODO(gram): Replace all this with:
-          //     var rtn = reflect(value).apply(invocation.positionalArguments,
-          //         invocation.namedArguments);
-          // once that is supported.
-          var rtn;
-          switch (args.length) {
-            case 0:
-              rtn = value();
-              break;
-            case 1:
-              rtn = value(args[0]);
-              break;
-            case 2:
-              rtn = value(args[0], args[1]);
-              break;
-            case 3:
-              rtn = value(args[0], args[1], args[2]);
-              break;
-            case 4:
-              rtn = value(args[0], args[1], args[2], args[3]);
-              break;
-            case 5:
-              rtn = value(args[0], args[1], args[2], args[3], args[4]);
-              break;
-            case 6:
-              rtn = value(args[0], args[1], args[2], args[3],
-                  args[4], args[5]);
-              break;
-            case 7:
-              rtn = value(args[0], args[1], args[2], args[3],
-                  args[4], args[5], args[6]);
-              break;
-            case 8:
-              rtn = value(args[0], args[1], args[2], args[3],
-                  args[4], args[5], args[6], args[7]);
-              break;
-            case 9:
-              rtn = value(args[0], args[1], args[2], args[3],
-                  args[4], args[5], args[6], args[7], args[8]);
-              break;
-            case 9:
-              rtn = value(args[0], args[1], args[2], args[3],
-                  args[4], args[5], args[6], args[7], args[8], args[9]);
-              break;
-            default:
-              throw new Exception(
-                  "Cannot proxy calls with more than 10 parameters.");
-          }
+          var mir = reflect(value) as ClosureMirror;
+          var rtn = mir.invoke(#call, invocation.positionalArguments,
+              invocation.namedArguments).reflectee;
           if (_logging && b.logging) {
             log.add(new LogEntry(name, method, args, action, rtn));
           }

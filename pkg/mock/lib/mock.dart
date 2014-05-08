@@ -115,11 +115,3 @@ export 'src/responder.dart';
 export 'src/result_matcher.dart';
 export 'src/result_set_matcher.dart';
 export 'src/times_matcher.dart';
-
-import 'src/log_entry_list.dart';
-
-/**
- * [sharedLog] is not used in this library and is deprecated.
- */
-@deprecated
-LogEntryList sharedLog = null;
