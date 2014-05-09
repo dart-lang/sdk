@@ -8,6 +8,38 @@ import 'package:http_parser/http_parser.dart';
 import 'package:unittest/unittest.dart';
 
 void main() {
+  group('format', () {
+    test('many values with 9', () {
+      var date = new DateTime.utc(2014, 9, 9, 9, 9, 9);
+      var formatted = formatHttpDate(date);
+
+      expect(formatted, 'Tue, 09 Sep 2014 09:09:09 GMT');
+      var parsed = parseHttpDate(formatted);
+
+      expect(parsed, date);
+    });
+
+    test('end of year', () {
+      var date = new DateTime.utc(1999, 12, 31, 23, 59, 59);
+      var formatted = formatHttpDate(date);
+
+      expect(formatted, 'Fri, 31 Dec 1999 23:59:59 GMT');
+      var parsed = parseHttpDate(formatted);
+
+      expect(parsed, date);
+    });
+
+    test('start of year', () {
+      var date = new DateTime.utc(2000, 1, 1, 0, 0, 0);
+      var formatted = formatHttpDate(date);
+
+      expect(formatted, 'Sat, 01 Jan 2000 00:00:00 GMT');
+      var parsed = parseHttpDate(formatted);
+
+      expect(parsed, date);
+    });
+  });
+
   group("parse", () {
     group("RFC 1123", () {
       test("parses the example date", () {
