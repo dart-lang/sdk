@@ -29,18 +29,18 @@ string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer]
-bool_from_environment2_test/01: Fail
-bool_from_environment2_test/02: Fail
-bool_from_environment2_test/03: Fail
-bool_from_environment2_test/04: Fail
-int_from_environment3_test/01: Fail
-int_from_environment3_test/02: Fail
-int_from_environment3_test/03: Fail
-int_from_environment3_test/04: Fail
-string_from_environment3_test/01: Fail
-string_from_environment3_test/02: Fail
-string_from_environment3_test/03: Fail
-string_from_environment3_test/04: Fail
+bool_from_environment2_test/01: Fail # Issue 18755
+bool_from_environment2_test/02: Fail # Issue 18755
+bool_from_environment2_test/03: Fail # Issue 18755
+bool_from_environment2_test/04: Fail # Issue 18755
+int_from_environment3_test/01: Fail # Issue 18755
+int_from_environment3_test/02: Fail # Issue 18755
+int_from_environment3_test/03: Fail # Issue 18755
+int_from_environment3_test/04: Fail # Issue 18755
+string_from_environment3_test/01: Fail # Issue 18755
+string_from_environment3_test/02: Fail # Issue 18755
+string_from_environment3_test/03: Fail # Issue 18755
+string_from_environment3_test/04: Fail # Issue 18755
 
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
@@ -130,12 +130,12 @@ unicode_test: Fail # inherited from VM
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
 
 [ $compiler == dartanalyzer ]
-symbol_test/02: Fail
-symbol_test/03: Fail
-int_parse_radix_test: fail
-list_insert_test: fail
-list_removeat_test: fail
-symbol_test/01: fail # test issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
+int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
+list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
+list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
+symbol_test/01: Fail, OK # Test Issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
+symbol_test/02: Fail # Issue 18755
+symbol_test/03: Fail # Issue 18755
 
 [ $compiler == dart2analyzer ]
 symbol_test/02: Fail
