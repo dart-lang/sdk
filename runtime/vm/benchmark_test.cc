@@ -438,7 +438,9 @@ BENCHMARK(CoreSnapshotSize) {
 
   // Start an Isolate, load a script and create a full snapshot.
   uint8_t* buffer;
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  // Need to load the script into the dart: core library due to
+  // the import of dart:_internal.
+  TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckIsolateState(Isolate::Current());
 
   // Write snapshot with object content.
@@ -467,7 +469,9 @@ BENCHMARK(StandaloneSnapshotSize) {
 
   // Start an Isolate, load a script and create a full snapshot.
   uint8_t* buffer;
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  // Need to load the script into the dart: core library due to
+  // the import of dart:_internal.
+  TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckIsolateState(Isolate::Current());
 
   // Write snapshot with object content.

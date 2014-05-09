@@ -233,6 +233,8 @@ class TestCaseBase {
   DISALLOW_COPY_AND_ASSIGN(TestCaseBase);
 };
 
+#define USER_TEST_URI "test-lib"
+#define CORELIB_TEST_URI "dart:test-lib"
 
 class TestCase : TestCaseBase {
  public:
@@ -241,9 +243,13 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) { }
 
   static Dart_Handle LoadTestScript(const char* script,
-                                    Dart_NativeEntryResolver resolver);
+                                    Dart_NativeEntryResolver resolver,
+                                    const char* lib_uri = USER_TEST_URI);
+
+  static Dart_Handle LoadCoreTestScript(const char* script,
+                                        Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
-  static const char* url() { return "dart:test-lib"; }
+  static const char* url() { return USER_TEST_URI; }
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer) {
     return CreateIsolate(buffer);
   }

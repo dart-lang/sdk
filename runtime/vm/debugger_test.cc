@@ -49,11 +49,11 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
        "[{\"type\":\"Breakpoint\",\"id\":2,"
          "\"enabled\":true,\"resolved\":false,"
          "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"dart:test-lib\",\"tokenPos\":14}},"
+                       "\"script\":\"test-lib\",\"tokenPos\":14}},"
         "{\"type\":\"Breakpoint\",\"id\":1,"
          "\"enabled\":true,\"resolved\":false,"
          "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"dart:test-lib\",\"tokenPos\":5}}]",
+                       "\"script\":\"test-lib\",\"tokenPos\":5}}]",
        js.ToCString());
   }
 }

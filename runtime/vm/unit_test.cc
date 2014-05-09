@@ -81,7 +81,12 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle builtin_lib =
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     DART_CHECK_VALID(builtin_lib);
-    return DartUtils::CanonicalizeURL(NULL, library, url_chars);
+
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
+    return DartUtils::ResolveUri(library_url, url, builtin_lib);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == Dart_kImportTag);
@@ -101,17 +106,14 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                            Builtin::PartSource(Builtin::kIOLibrary,
                                                url_chars));
   }
-  return DartUtils::LoadSource(NULL,
-                               library,
-                               url,
-                               tag,
-                               url_chars);
+  return DartUtils::LoadSource(library, url, tag, url_chars);
 }
 
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver) {
-  Dart_Handle url = NewString(TestCase::url());
+                                     Dart_NativeEntryResolver resolver,
+                                     const char* lib_url) {
+  Dart_Handle url = NewString(lib_url);
   Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
@@ -121,6 +123,12 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   result = Dart_SetNativeResolver(lib, resolver, NULL);
   DART_CHECK_VALID(result);
   return lib;
+}
+
+
+Dart_Handle TestCase::LoadCoreTestScript(const char* script,
+                                         Dart_NativeEntryResolver resolver) {
+  return LoadTestScript(script, resolver, CORELIB_TEST_URI);
 }
 
 

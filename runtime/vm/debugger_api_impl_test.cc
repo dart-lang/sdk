@@ -1932,7 +1932,7 @@ TEST_CASE(Debug_GetClosureInfo) {
   EXPECT(Dart_IsString(sig));
   EXPECT_STREQ("() => void", ToCString(sig));
   EXPECT(Dart_IsString(loc.script_url));
-  EXPECT_STREQ("dart:test-lib", ToCString(loc.script_url));
+  EXPECT_STREQ("test-lib", ToCString(loc.script_url));
   EXPECT_EQ(0, loc.token_pos);
   EXPECT(loc.library_id > 0);
 }

@@ -174,38 +174,6 @@ bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
 }
 
 
-Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
-                                       Dart_Handle library,
-                                       const char* url_str) {
-  // Get the url of the including library.
-  Dart_Handle library_url = Dart_LibraryUrl(library);
-  if (Dart_IsError(library_url)) {
-    return Dart_NewApiError("accessing library url failed");
-  }
-  if (!Dart_IsString(library_url)) {
-    return Dart_NewApiError("library url is not a string");
-  }
-  const char* library_url_str = NULL;
-  Dart_Handle result = Dart_StringToCString(library_url, &library_url_str);
-  if (Dart_IsError(result)) {
-    return Dart_NewApiError("accessing library url characters failed");
-  }
-  if (url_mapping != NULL) {
-    const char* mapped_library_url_str = MapLibraryUrl(url_mapping,
-                                                       library_url_str);
-    if (mapped_library_url_str != NULL) {
-      library_url_str = mapped_library_url_str;
-    }
-  }
-  // Calculate the canonical path.
-  const char* canon_url_str = GetCanonicalPath(library_url_str, url_str);
-  Dart_Handle canon_url = NewString(canon_url_str);
-  free(const_cast<char*>(canon_url_str));
-
-  return canon_url;
-}
-
-
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
@@ -568,11 +536,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     }
     const char* final_path = NULL;
     Dart_StringToCString(file_path, &final_path);
-    result = DartUtils::LoadSource(NULL,
-                                   library,
-                                   url,
-                                   tag,
-                                   final_path);
+    result = DartUtils::LoadSource(library, url, tag, final_path);
     return result;
   }
 }
@@ -670,21 +634,11 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
 }
 
 
-Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
-                                  Dart_Handle library,
+Dart_Handle DartUtils::LoadSource(Dart_Handle library,
                                   Dart_Handle url,
                                   Dart_LibraryTag tag,
                                   const char* url_string) {
   bool is_http_scheme_url = DartUtils::IsHttpSchemeURL(url_string);
-  if (url_mapping != NULL && IsDartSchemeURL(url_string)) {
-    const char* mapped_url_string = MapLibraryUrl(url_mapping, url_string);
-    if (mapped_url_string == NULL) {
-      return NewError("Do not know how to load %s", url_string);
-    }
-    // We have a URL mapping specified, just read the file that the
-    // URL mapping specifies and load it.
-    url_string = mapped_url_string;
-  }
   Dart_Handle source;
   if (is_http_scheme_url) {
     // Read the file over http.
@@ -788,42 +742,6 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
     }
   }
   return result;
-}
-
-
-const char* DartUtils::GetCanonicalPath(const char* reference_dir,
-                                        const char* filename) {
-  if (File::IsAbsolutePath(filename)) {
-    return strdup(filename);
-  }
-
-  char* canonical_path = File::GetCanonicalPath(reference_dir);
-  if  (canonical_path == NULL) {
-    canonical_path = strdup(reference_dir);
-    ASSERT(canonical_path != NULL);
-  }
-  ASSERT(File::PathSeparator() != NULL && strlen(File::PathSeparator()) == 1);
-  char* path_sep = strrchr(canonical_path, File::PathSeparator()[0]);
-  if (path_sep == NULL) {
-    // No separator found: Reference is a file in local directory.
-    free(canonical_path);
-    return strdup(filename);
-  }
-  *path_sep = '\0';
-  intptr_t len = snprintf(NULL, 0, "%s%s%s",
-                          canonical_path, File::PathSeparator(), filename);
-  char* absolute_filename = reinterpret_cast<char*>(malloc(len + 1));
-  ASSERT(absolute_filename != NULL);
-
-  snprintf(absolute_filename, len + 1, "%s%s%s",
-           canonical_path, File::PathSeparator(), filename);
-  free(canonical_path);
-  canonical_path = File::GetCanonicalPath(absolute_filename);
-  if (canonical_path == NULL) {
-    return absolute_filename;
-  }
-  free(absolute_filename);
-  return canonical_path;
 }
 
 
