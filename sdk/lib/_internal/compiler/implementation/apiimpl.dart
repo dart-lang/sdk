@@ -160,6 +160,7 @@ class Compiler extends leg.Compiler {
    */
   Future<leg.Script> readScript(leg.Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
+      if (node == null) node = leg.NO_LOCATION_SPANNABLE;
       internalError(node,
           'Relative uri $readableUri provided to readScript(Uri).');
     }
