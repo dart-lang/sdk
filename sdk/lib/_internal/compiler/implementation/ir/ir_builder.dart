@@ -321,8 +321,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
     // The then and else parts are delimited.
     IrBuilder thenBuilder = new IrBuilder.delimited(this);
-    thenBuilder.visit(node.thenPart);
     IrBuilder elseBuilder = new IrBuilder.delimited(this);
+    thenBuilder.visit(node.thenPart);
     if (node.hasElsePart) elseBuilder.visit(node.elsePart);
 
     // The free variables in the then and else parts are uses of definitions
@@ -469,6 +469,81 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   }
 
   // ==== Expressions ====
+  ir.Primitive visitConditional(ast.Conditional node) {
+    assert(isOpen);
+    ir.Primitive condition = visit(node.condition);
+
+    // The then and else expressions are delimited.
+    IrBuilder thenBuilder = new IrBuilder.delimited(this);
+    IrBuilder elseBuilder = new IrBuilder.delimited(this);
+    ir.Primitive thenValue = thenBuilder.visit(node.thenExpression);
+    ir.Primitive elseValue = elseBuilder.visit(node.elseExpression);
+
+    // Construct a join in the same way as for if statements, see visitIf.
+    // There is always control flow out of expressions so thenBuilder.isOpen
+    // and elseBuilder.isOpen.  There is an extra join-point continuation
+    // parameter for the expression value.
+    assert(assignedVars.length == thenBuilder.freeVars.length);
+    assert(assignedVars.length == elseBuilder.freeVars.length);
+    assert(assignedVars.length <= thenBuilder.assignedVars.length);
+    assert(assignedVars.length <= elseBuilder.assignedVars.length);
+    List<ir.Parameter> parameters = <ir.Parameter>[];
+    List<ir.Primitive> thenArguments = <ir.Primitive>[];
+    List<ir.Primitive> elseArguments = <ir.Primitive>[];
+    for (int i = 0; i < assignedVars.length; ++i) {
+      ir.Definition thenAssignment = thenBuilder.assignedVars[i];
+      ir.Definition elseAssignment = elseBuilder.assignedVars[i];
+      if (thenAssignment != null || elseAssignment != null) {
+        ir.Parameter parameter = new ir.Parameter(null);
+        parameters.add(parameter);
+        thenArguments.add(thenAssignment == null
+                              ? thenBuilder.freeVars[i]
+                              : thenAssignment);
+        elseArguments.add(elseAssignment == null
+                              ? elseBuilder.freeVars[i]
+                              : elseAssignment);
+      }
+    }
+    // Add a continuation parameter for the result of the expression.
+    ir.Parameter resultParameter = new ir.Parameter(null);
+    parameters.add(resultParameter);
+    thenArguments.add(thenValue);
+    elseArguments.add(elseValue);
+
+    ir.Continuation joinContinuation = new ir.Continuation(parameters);
+    ir.Continuation thenContinuation = new ir.Continuation([]);
+    ir.Continuation elseContinuation = new ir.Continuation([]);
+    thenBuilder.add(
+        new ir.InvokeContinuation(joinContinuation, thenArguments));
+    elseBuilder.add(
+        new ir.InvokeContinuation(joinContinuation, elseArguments));
+    thenContinuation.body = thenBuilder.root;
+    elseContinuation.body = elseBuilder.root;
+
+    int parameterIndex = 0;
+    for (int i = 0; i < assignedVars.length; ++i) {
+      ir.Definition reachingDefinition =
+          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
+      reachingDefinition
+          ..substituteFor(thenBuilder.freeVars[i])
+          ..substituteFor(elseBuilder.freeVars[i]);
+
+      if (thenBuilder.assignedVars[i] != null ||
+          elseBuilder.assignedVars[i] != null) {
+        assignedVars[i] = parameters[parameterIndex++];
+      }
+    }
+
+    ir.Expression branch =
+        new ir.LetCont(thenContinuation,
+            new ir.LetCont(elseContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              thenContinuation,
+                              elseContinuation)));
+    add(new ir.LetCont(joinContinuation, branch));
+    return resultParameter;
+  }
+
   // For all simple literals:
   // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Primitive visitLiteralBool(ast.LiteralBool node) {
