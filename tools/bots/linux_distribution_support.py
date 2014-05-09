@@ -67,7 +67,7 @@ def UninstallDart():
 def CreateDartTestFile(tempdir):
   filename = os.path.join(tempdir, 'test.dart')
   with open(filename, 'w') as f:
-    f.write('import "dart:html";\n\n')
+    f.write('import "dart:collection";\n\n')
     f.write('void main() {\n')
     f.write('  print("Hello world");\n')
     f.write('}')
@@ -150,14 +150,18 @@ def SrcSteps(build_info):
     # run as root)
     Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])
 
-    Run([sys.executable, './tools/test.py', '-ax64',
-         '--mode=release', 'standalone'])
+    # We currently can't run the testing script on wheezy since the checked in
+    # binary is built on precise, see issue 18742
+    if (build_info.builder_tag == 'ubuntu_precise'):
+      Run([sys.executable, './tools/test.py', '-ax64',
+          '--mode=release', 'standalone'])
 
     # Sanity check dart2js and the analyzer against a hello world program
     with utils.TempDir() as temp_dir:
       test_file = CreateDartTestFile(temp_dir)
       Run(['/usr/lib/dart/bin/dart2js', test_file])
       Run(['/usr/lib/dart/bin/dartanalyzer', test_file])
+      Run(['/usr/lib/dart/bin/dart', test_file])
 
     # Sanity check that pub can start up and print the version
     Run(['/usr/lib/dart/bin/pub', '--version'])
