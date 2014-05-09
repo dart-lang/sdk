@@ -108,6 +108,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       // Simple name is 'unary-'.
       simpleName = 'unary-';
     } else if (simpleName.startsWith('operator\$')) {
+      // TODO(18740, johnniwinther): this fails for methods like `operator$foo`.
       String str = simpleName.substring(9);
       simpleName = 'operator';
       kind = Dart2JsMethodKind.OPERATOR;
