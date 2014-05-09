@@ -2807,8 +2807,8 @@ void Class::AddFields(const GrowableObjectArray& new_fields) const {
   if (num_new_fields == 0) return;
   const Array& arr = Array::Handle(fields());
   const intptr_t num_old_fields = arr.Length();
-  const Array& new_arr =
-      Array::Handle(Array::Grow(arr, num_old_fields + num_new_fields));
+  const Array& new_arr = Array::Handle(
+      Array::Grow(arr, num_old_fields + num_new_fields, Heap::kOld));
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < num_new_fields; i++) {
     field ^= new_fields.At(i);
