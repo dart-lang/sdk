@@ -120,7 +120,7 @@ class TestCase {
   // is the first time the result is being set.
   void _setResult(String testResult, String messageText, StackTrace stack) {
     _message = messageText;
-    _stackTrace = _getTrace(stack);
+    _stackTrace = getTrace(stack, formatStacks, filterStacks);
     if (_stackTrace == null) _stackTrace = stack;
     if (result == null) {
       _result = testResult;

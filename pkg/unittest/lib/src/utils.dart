@@ -4,43 +4,7 @@
 
 library unittest.utils;
 
-/// Returns the name of the type of [x], or "Unknown" if the type name can't be
-/// determined.
-String typeName(x) {
-  // dart2js blows up on some objects (e.g. window.navigator).
-  // So we play safe here.
-  try {
-    if (x == null) return "null";
-    var type = x.runtimeType.toString();
-    // TODO(nweiz): if the object's type is private, find a public superclass to
-    // display once there's a portable API to do that.
-    return type.startsWith("_") ? "?" : type;
-  } catch (e) {
-    return "?";
-  }
-}
-
-/// Returns [source] with any control characters replaced by their escape
-/// sequences.
-///
-/// This doesn't add quotes to the string, but it does escape single quote
-/// characters so that single quotes can be applied externally.
-String escapeString(String source) =>
-    source.split("").map(_escapeChar).join("");
-
-/// Return the escaped form of a character [ch].
-String _escapeChar(String ch) {
-  if (ch == "'")
-    return "\\'";
-  else if (ch == '\n')
-    return '\\n';
-  else if (ch == '\r')
-    return '\\r';
-  else if (ch == '\t')
-    return '\\t';
-  else
-    return ch;
-}
+import 'package:stack_trace/stack_trace.dart';
 
 /// Indent each line in [str] by two spaces.
 String indent(String str) =>
@@ -63,3 +27,25 @@ class Pair<E, F> {
   int get hashCode => first.hashCode ^ last.hashCode;
 }
 
+/// Returns a Trace object from a StackTrace object or a String, or the
+/// unchanged input if formatStacks is false;
+Trace getTrace(stack, bool formatStacks, bool filterStacks) {
+  Trace trace;
+  if (stack == null || !formatStacks) return null;
+  if (stack is String) {
+    trace = new Trace.parse(stack);
+  } else if (stack is StackTrace) {
+    trace = new Trace.from(stack);
+  } else {
+    throw new Exception('Invalid stack type ${stack.runtimeType} for $stack.');
+  }
+
+  if (!filterStacks) return trace;
+
+  // Format the stack trace by removing everything above TestCase._runTest,
+  // which is usually going to be irrelevant. Also fold together unittest and
+  // core library calls so only the function the user called is visible.
+  return new Trace(trace.frames.takeWhile((frame) {
+    return frame.package != 'unittest' || frame.member != 'TestCase._runTest';
+  })).terse.foldFrames((frame) => frame.package == 'unittest' || frame.isCore);
+}

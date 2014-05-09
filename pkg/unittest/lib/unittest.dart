@@ -137,7 +137,6 @@ library unittest;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
-import 'package:stack_trace/stack_trace.dart';
 
 import 'package:matcher/matcher.dart' show DefaultFailureHandler,
     configureExpectFailureHandler, TestFailure, wrapAsync;
@@ -145,9 +144,11 @@ export 'package:matcher/matcher.dart';
 
 import 'src/utils.dart';
 
-part 'src/configuration.dart';
-part 'src/group_context.dart';
+import 'src/configuration.dart';
+export 'src/configuration.dart';
+
 part 'src/simple_configuration.dart';
+part 'src/group_context.dart';
 part 'src/spread_args_helper.dart';
 part 'src/test_case.dart';
 
@@ -300,30 +301,6 @@ Function expectAsync(Function callback,
     {int count: 1, int max: 0, String id}) =>
   new _SpreadArgsHelper(callback, count, max, id).func;
 
-/// *Deprecated*
-///
-/// Use [expectAsync] instead.
-@deprecated
-Function expectAsync0(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-    expectAsync(callback, count: count, max: max, id: id);
-
-/// *Deprecated*
-///
-/// Use [expectAsync] instead.
-@deprecated
-Function expectAsync1(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-    expectAsync(callback, count: count, max: max, id: id);
-
-/// *Deprecated*
-///
-/// Use [expectAsync] instead.
-@deprecated
-Function expectAsync2(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-    expectAsync(callback, count: count, max: max, id: id);
-
 /// Indicate that [callback] is expected to be called until [isDone] returns
 /// true. The unittest framework check [isDone] after each callback and only
 /// when it returns true will it continue with the following test. Using
@@ -334,57 +311,6 @@ Function expectAsync2(Function callback,
 /// after the test case is complete).
 Function expectAsyncUntil(Function callback, bool isDone(), {String id}) =>
     new _SpreadArgsHelper(callback, 0, -1, id, isDone: isDone).func;
-
-/// *Deprecated*
-///
-/// Use [expectAsyncUntil] instead.
-@deprecated
-Function expectAsyncUntil0(Function callback, Function isDone, {String id}) =>
-    expectAsyncUntil(callback, isDone, id: id);
-
-/// *Deprecated*
-///
-/// Use [expectAsyncUntil] instead.
-@deprecated
-Function expectAsyncUntil1(Function callback, Function isDone, {String id}) =>
-    expectAsyncUntil(callback, isDone, id: id);
-
-/// *Deprecated*
-///
-/// Use [expectAsyncUntil] instead.
-@deprecated
-Function expectAsyncUntil2(Function callback, Function isDone, {String id}) =>
-    expectAsyncUntil(callback, isDone, id: id);
-
-/// *Deprecated*
-///
-/// All tests are now run an isolated [Zone].
-///
-/// You can safely remove calls to this method.
-@deprecated
-Function protectAsync0(Function callback, {String id}) {
-  return callback;
-}
-
-/// *Deprecated*
-///
-/// All tests are now run an isolated [Zone].
-///
-/// You can safely remove calls to this method.
-@deprecated
-Function protectAsync1(Function callback, {String id}) {
-  return callback;
-}
-
-/// *Deprecated*
-///
-/// All tests are now run an isolated [Zone].
-///
-/// You can safely remove calls to this method.
-@deprecated
-Function protectAsync2(Function callback, {String id}) {
-  return callback;
-}
 
 /// Creates a new named group of tests. Calls to group() or test() within the
 /// body of the function passed to this will inherit this group's description.
@@ -486,16 +412,6 @@ void runTests() {
   _currentTestCaseIndex = 0;
   _config.onStart();
   _runTest();
-}
-
-/// *Deprecated*
-///
-/// All tests are now run an isolated [Zone].
-///
-/// You can safely remove calls to this method.
-@deprecated
-guardAsync(Function tryBody) {
-  return tryBody();
 }
 
 /// Registers that an exception was caught for the current test.
@@ -645,27 +561,4 @@ void _requireNotRunning() {
   if (_currentTestCaseIndex != -1) {
     throw new StateError('Not allowed when tests are running.');
   }
-}
-
-/// Returns a Trace object from a StackTrace object or a String, or the
-/// unchanged input if formatStacks is false;
-Trace _getTrace(stack) {
-  Trace trace;
-  if (stack == null || !formatStacks) return null;
-  if (stack is String) {
-    trace = new Trace.parse(stack);
-  } else if (stack is StackTrace) {
-    trace = new Trace.from(stack);
-  } else {
-    throw new Exception('Invalid stack type ${stack.runtimeType} for $stack.');
-  }
-
-  if (!filterStacks) return trace;
-
-  // Format the stack trace by removing everything above TestCase._runTest,
-  // which is usually going to be irrelevant. Also fold together unittest and
-  // core library calls so only the function the user called is visible.
-  return new Trace(trace.frames.takeWhile((frame) {
-    return frame.package != 'unittest' || frame.member != 'TestCase._runTest';
-  })).terse.foldFrames((frame) => frame.package == 'unittest' || frame.isCore);
 }

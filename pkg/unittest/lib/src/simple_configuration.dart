@@ -121,7 +121,7 @@ class SimpleConfiguration extends Configuration {
       try {
         throw '';
       } catch (_, stack) {
-        var trace = _getTrace(stack);
+        var trace = getTrace(stack, formatStacks, filterStacks);
         if (trace == null) trace = stack;
         _testLogBuffer.add(new Pair<String, StackTrace>(reason, trace));
       }
