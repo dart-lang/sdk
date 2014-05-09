@@ -127,7 +127,7 @@ class Server {
       _server = s;
       _server.listen(_requestHandler);
       if (display_message) {
-        print('VMService listening on $ip:$port');
+        print('Observatory listening on http://$ip:$port');
       }
       return s;
     });

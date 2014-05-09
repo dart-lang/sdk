@@ -32,6 +32,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
+DEFINE_FLAG(bool, trace_service_pause_events, false,
+            "Trace VM service isolate pause events.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_asserts);
 

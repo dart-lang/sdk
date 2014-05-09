@@ -118,6 +118,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         #                    IE                   Firefox
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
 
+    'Clipboard': 'Clipboard,DataTransfer',
+
     'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
@@ -422,7 +424,7 @@ class OperationInfo(object):
         optional parameters
       named is a boolean which is true if the optional parameters should
         be named
-      A parameter declaration is a tuple (dec, var) where var is the 
+      A parameter declaration is a tuple (dec, var) where var is the
         variable name, and dec is a string suitable for declaring the
         variable in a parameter list.  That is, dec + var is a valid
         parameter declaration.
@@ -445,12 +447,12 @@ class OperationInfo(object):
 
   def ParametersAsDecStringList(self, rename_type, force_optional=False):
     """Returns a list of strings where each string corresponds to a parameter
-    declaration.  All of the optional/named parameters if any will appear as 
+    declaration.  All of the optional/named parameters if any will appear as
     a single entry at the end of the list.
     """
     (required, optional, needs_named) = \
         self.ParametersAsDecVarLists(rename_type, force_optional)
-    def FormatParam(dec): 
+    def FormatParam(dec):
         return dec[0] + dec[1]
     argtexts = map(FormatParam, required)
     if optional:
