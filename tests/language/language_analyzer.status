@@ -105,9 +105,6 @@ type_error_test: fail # Issue 12289
 # test issue 12381, It is compile-time error to invoke not existing function
 issue11724_test: fail # Issue 12381
 
-# test issue 12539, rules for finals were loosened, contradiction in spec was fixed
-const_syntax_test/09: fail # Issue 12539
-
 # test issue 12541; there shouldn't be a static warning
 static_field_test/01: fail # Issue 12541
 static_field_test/02: fail # Issue 12541
