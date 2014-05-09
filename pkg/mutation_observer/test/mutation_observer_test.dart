@@ -55,7 +55,7 @@ testMutationObserver() {
         }
       }
 
-      return expectAsyncUntil2(callback, () => done);
+      return expectAsyncUntil(callback, () => done);
     }
 
     test('empty options is syntax error', () {
