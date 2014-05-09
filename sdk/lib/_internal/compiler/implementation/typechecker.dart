@@ -353,7 +353,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType analyzeNonVoid(Node node) {
     DartType type = analyze(node);
-    if (type == types.voidType) {
+    if (type.isVoid) {
       reportTypeWarning(node, MessageKind.VOID_EXPRESSION);
     }
     return type;
@@ -561,7 +561,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
         identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)) {
       type = types.dynamicType;
-      returnType = types.voidType;
+      returnType = const VoidType();
 
       element.functionSignature.forEachParameter((ParameterElement parameter) {
         if (parameter.isFieldParameter) {
@@ -581,7 +581,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType previous = expectedReturnType;
     expectedReturnType = returnType;
     StatementType bodyType = analyze(node.body);
-    if (returnType != types.voidType && !returnType.treatAsDynamic
+    if (!returnType.isVoid && !returnType.treatAsDynamic
         && bodyType != StatementType.RETURNING) {
       MessageKind kind;
       if (bodyType == StatementType.MAYBE_RETURNING) {
@@ -1547,7 +1547,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
 
     final expression = node.expression;
-    final isVoidFunction = (identical(expectedReturnType, types.voidType));
+    final isVoidFunction = expectedReturnType.isVoid;
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the
@@ -1558,7 +1558,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (element != null && element.isGenerativeConstructor) {
         // The resolver already emitted an error for this expression.
       } else if (isVoidFunction
-          && !types.isAssignable(expressionType, types.voidType)) {
+          && !types.isAssignable(expressionType, const VoidType())) {
         reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {
         checkAssignable(expression, expressionType, expectedReturnType);
@@ -1569,7 +1569,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // hold:
     // - f is not a generative constructor.
     // - The return type of f may not be assigned to void.
-    } else if (!types.isAssignable(expectedReturnType, types.voidType)) {
+    } else if (!types.isAssignable(expectedReturnType, const VoidType())) {
       reportTypeWarning(node, MessageKind.RETURN_NOTHING,
                         {'returnType': expectedReturnType});
     }
@@ -1588,7 +1588,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitVariableDefinitions(VariableDefinitions node) {
     DartType type = analyzeWithDefault(node.type, types.dynamicType);
-    if (type == types.voidType) {
+    if (type.isVoid) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = types.dynamicType;
     }

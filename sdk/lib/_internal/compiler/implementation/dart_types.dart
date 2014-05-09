@@ -264,13 +264,13 @@ class StatementType extends DartType {
 }
 
 class VoidType extends DartType {
-  const VoidType(this.element);
+  const VoidType();
 
   TypeKind get kind => TypeKind.VOID;
 
-  String get name => element.name;
+  String get name => 'void';
 
-  final Element element;
+  Element get element => null;
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     // Void cannot be substituted.
@@ -284,10 +284,6 @@ class VoidType extends DartType {
   }
 
   bool get isVoid => true;
-
-  int get hashCode => 1729;
-
-  bool operator ==(other) => other is VoidType;
 
   String toString() => name;
 }
@@ -567,7 +563,7 @@ class BadTypedefType extends TypedefType {
 }
 
 class FunctionType extends DartType {
-  final Element element;
+  final FunctionTypedElement element;
   final DartType returnType;
   final Link<DartType> parameterTypes;
   final Link<DartType> optionalParameterTypes;
@@ -583,17 +579,45 @@ class FunctionType extends DartType {
    */
   final Link<DartType> namedParameterTypes;
 
-  FunctionType(Element this.element,
-               DartType this.returnType,
-               [this.parameterTypes = const Link<DartType>(),
-                this.optionalParameterTypes = const Link<DartType>(),
-                this.namedParameters = const Link<String>(),
-                this.namedParameterTypes = const Link<DartType>()]) {
+  factory FunctionType(
+      FunctionTypedElement element,
+      DartType returnType,
+      [Link<DartType> parameterTypes = const Link<DartType>(),
+       Link<DartType> optionalParameterTypes = const Link<DartType>(),
+       Link<String> namedParameters = const Link<String>(),
+       Link<DartType> namedParameterTypes = const Link<DartType>()]) {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null));
     assert(invariant(element, element.isDeclaration));
+    return new FunctionType.internal(element,
+        returnType, parameterTypes, optionalParameterTypes,
+        namedParameters, namedParameterTypes);
+  }
+
+  factory FunctionType.synthesized(
+      DartType returnType,
+      [Link<DartType> parameterTypes = const Link<DartType>(),
+       Link<DartType> optionalParameterTypes = const Link<DartType>(),
+       Link<String> namedParameters = const Link<String>(),
+       Link<DartType> namedParameterTypes = const Link<DartType>()]) {
+    return new FunctionType.internal(null,
+        returnType, parameterTypes, optionalParameterTypes,
+        namedParameters, namedParameterTypes);
+  }
+
+  FunctionType.internal(FunctionTypedElement this.element,
+                        DartType this.returnType,
+                        [this.parameterTypes = const Link<DartType>(),
+                         this.optionalParameterTypes = const Link<DartType>(),
+                         this.namedParameters = const Link<String>(),
+                         this.namedParameterTypes = const Link<DartType>()]) {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+        element == null || element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.slowLength() == namedParameterTypes.slowLength());
   }
+
+
 
   TypeKind get kind => TypeKind.FUNCTION;
 
@@ -632,12 +656,12 @@ class FunctionType extends DartType {
     }
     if (changed) {
       // Create a new type only if necessary.
-      return new FunctionType(element,
-                              newReturnType,
-                              newParameterTypes,
-                              newOptionalParameterTypes,
-                              namedParameters,
-                              newNamedParameterTypes);
+      return new FunctionType.internal(element,
+                                       newReturnType,
+                                       newParameterTypes,
+                                       newOptionalParameterTypes,
+                                       namedParameters,
+                                       newNamedParameterTypes);
     }
     return this;
   }
@@ -889,11 +913,9 @@ abstract class DartTypeVisitor<R, A> {
 abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   final DynamicType dynamicType;
-  final VoidType voidType;
 
   AbstractTypeRelation(Compiler this.compiler,
-                       DynamicType this.dynamicType,
-                       VoidType this.voidType);
+                       DynamicType this.dynamicType);
 
   bool visitType(DartType t, DartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
@@ -1069,9 +1091,8 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
 
 class MoreSpecificVisitor extends AbstractTypeRelation {
   MoreSpecificVisitor(Compiler compiler,
-                      DynamicType dynamicType,
-                      VoidType voidType)
-      : super(compiler, dynamicType, voidType);
+                      DynamicType dynamicType)
+      : super(compiler, dynamicType);
 
   bool isMoreSpecific(DartType t, DartType s) {
     if (identical(t, s) || s.treatAsDynamic ||
@@ -1117,9 +1138,8 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
 class SubtypeVisitor extends MoreSpecificVisitor {
 
   SubtypeVisitor(Compiler compiler,
-                 DynamicType dynamicType,
-                 VoidType voidType)
-      : super(compiler, dynamicType, voidType);
+                 DynamicType dynamicType)
+      : super(compiler, dynamicType);
 
   bool isSubtype(DartType t, DartType s) {
     return t.treatAsDynamic || isMoreSpecific(t, s);
@@ -1134,7 +1154,7 @@ class SubtypeVisitor extends MoreSpecificVisitor {
   }
 
   bool invalidFunctionReturnTypes(DartType t, DartType s) {
-    return !identical(s, voidType) && !isAssignable(t, s);
+    return !s.isVoid && !isAssignable(t, s);
   }
 
   bool invalidFunctionParameterTypes(DartType t, DartType s) {
@@ -1172,34 +1192,29 @@ typedef void CheckTypeVariableBound(GenericType type,
 
 class Types {
   final Compiler compiler;
-  // TODO(karlklose): should we have a class Void?
-  final VoidType voidType;
   final DynamicType dynamicType;
   final MoreSpecificVisitor moreSpecificVisitor;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
   factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
-    LibraryElement library = new LibraryElementX(new Script(null, null, null));
-    VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawTypeCache = dynamicElement.thisTypeCache = dynamicType;
-    return new Types.internal(compiler, voidType, dynamicType);
+    return new Types.internal(compiler, dynamicType);
   }
 
-  Types.internal(Compiler compiler, VoidType voidType, DynamicType dynamicType)
+  Types.internal(Compiler compiler, DynamicType dynamicType)
       : this.compiler = compiler,
-        this.voidType = voidType,
         this.dynamicType = dynamicType,
         this.moreSpecificVisitor =
-          new MoreSpecificVisitor(compiler, dynamicType, voidType),
+          new MoreSpecificVisitor(compiler, dynamicType),
         this.subtypeVisitor =
-          new SubtypeVisitor(compiler, dynamicType, voidType),
+          new SubtypeVisitor(compiler, dynamicType),
         this.potentialSubtypeVisitor =
-          new PotentialSubtypeVisitor(compiler, dynamicType, voidType);
+          new PotentialSubtypeVisitor(compiler, dynamicType);
 
   Types copy(Compiler compiler) {
-    return new Types.internal(compiler, voidType, dynamicType);
+    return new Types.internal(compiler, dynamicType);
   }
 
   /** Returns true if [t] is more specific than [s]. */
@@ -1537,7 +1552,7 @@ class Types {
         bNamedParameterTypes = bNamedParameterTypes.tail;
       }
     }
-    return new FunctionType(compiler.functionClass,
+    return new FunctionType.synthesized(
         returnType,
         parameterTypes, optionalParameterTypes,
         namedParameters.toLink(), namedParameterTypes.toLink());
@@ -1577,7 +1592,7 @@ class Types {
     b = b.unalias(compiler);
 
     if (a.treatAsDynamic || b.treatAsDynamic) return dynamicType;
-    if (a.isVoid || b.isVoid) return voidType;
+    if (a.isVoid || b.isVoid) return const VoidType();
 
     if (a.kind == TypeKind.FUNCTION && b.kind == TypeKind.FUNCTION) {
       return computeLeastUpperBoundFunctionTypes(a, b);
@@ -1604,9 +1619,8 @@ class Types {
  */
 class PotentialSubtypeVisitor extends SubtypeVisitor {
   PotentialSubtypeVisitor(Compiler compiler,
-                          DynamicType dynamicType,
-                          VoidType voidType)
-      : super(compiler, dynamicType, voidType);
+                          DynamicType dynamicType)
+      : super(compiler, dynamicType);
 
 
   bool isSubtype(DartType t, DartType s) {

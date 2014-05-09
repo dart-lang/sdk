@@ -336,7 +336,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   DartType resolveTypeAnnotation(TypeAnnotation annotation) {
     DartType type = resolveReturnType(annotation);
-    if (type == compiler.types.voidType) {
+    if (type.isVoid) {
       compiler.reportError(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;

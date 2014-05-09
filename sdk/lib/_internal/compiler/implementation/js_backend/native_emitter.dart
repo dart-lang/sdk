@@ -423,7 +423,7 @@ class NativeEmitter {
     // by a native class in case we get a native instance that tries to spoof
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
-    if (!element.isClass) return false;
+    if (element == null || !element.isClass) return false;
     ClassElement cls = element;
     if (Elements.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);

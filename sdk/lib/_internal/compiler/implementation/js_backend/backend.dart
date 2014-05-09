@@ -1006,7 +1006,7 @@ class JavaScriptBackend extends Backend {
       enqueueInResolution(
           compiler.findHelper('functionTypeTestMetaHelper'), elements);
     }
-    if (type.element.isNative) {
+    if (type.element != null && type.element.isNative) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
@@ -1321,7 +1321,7 @@ class JavaScriptBackend extends Backend {
     // that it can be optimized by standard interceptor optimizations.
     nativeCheck = true;
 
-    if (type == compiler.types.voidType) {
+    if (type.isVoid) {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
       return 'voidTypeCheck';

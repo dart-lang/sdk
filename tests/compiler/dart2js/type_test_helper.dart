@@ -94,7 +94,7 @@ class TypeEnvironment {
 
   DartType operator[] (String name) {
     if (name == 'dynamic') return compiler.types.dynamicType;
-    if (name == 'void') return compiler.types.voidType;
+    if (name == 'void') return const VoidType();
     return getElementType(name);
   }
 
@@ -132,8 +132,7 @@ class TypeEnvironment {
         namedParameterTypes.addLast(type);
       });
     }
-    return new FunctionType(
-        compiler.functionClass,
+    return new FunctionType.synthesized(
         returnType, parameterTypes, optionalParameterTypes,
         namedParameterNames.toLink(), namedParameterTypes.toLink());
   }

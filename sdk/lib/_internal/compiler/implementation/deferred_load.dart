@@ -315,7 +315,6 @@ class DeferredLoadTask extends CompilerTask {
         if (dependency.isErroneous) continue;
         if (dependency.isStatement) continue;
         if (dependency.isTypeVariable) continue;
-        if (dependency is VoidElement) continue;
 
         elements.add(dependency);
       }

@@ -215,8 +215,7 @@ class DartBackend extends Backend {
      * Object should not be in the resulting code.
      */
     bool shouldOutput(Element element) {
-      return (element.kind != ElementKind.VOID
-          && isUserLibrary(element.library)
+      return (isUserLibrary(element.library)
           && !element.isSynthesized
           && element is !AbstractFieldElement)
           || element.library == mirrorHelperLibrary;
@@ -340,7 +339,7 @@ class DartBackend extends Backend {
           new SynthesizedConstructorElementX(
               classElement.name, null, classElement, false);
       constructor.typeCache =
-          new FunctionType(constructor, compiler.types.voidType);
+          new FunctionType(constructor, const VoidType());
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
@@ -560,9 +559,8 @@ class ReferencedElementCollector extends Visitor {
     final DartType type = treeElements.getType(typeAnnotation);
     assert(invariant(typeAnnotation, type != null,
         message: "Missing type for type annotation: $treeElements."));
-    Element typeElement = type.element;
-    if (typeElement.isTypedef) newTypedefElementCallback(typeElement);
-    if (typeElement.isClass) newClassElementCallback(typeElement);
+    if (type.kind == TypeKind.TYPEDEF) newTypedefElementCallback(type.element);
+    if (type.kind == TypeKind.INTERFACE) newClassElementCallback(type.element);
     typeAnnotation.visitChildren(this);
   }
 

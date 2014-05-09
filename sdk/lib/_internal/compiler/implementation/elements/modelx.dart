@@ -1755,17 +1755,6 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   }
 }
 
-class VoidElementX extends ElementX implements VoidElement {
-  VoidElementX(Element enclosing) : super('void', ElementKind.VOID, enclosing);
-  DartType computeType(compiler) => compiler.types.voidType;
-  Node parseNode(_) {
-    throw 'internal error: parseNode on void';
-  }
-  bool get impliesType => true;
-
-  accept(ElementVisitor visitor) => visitor.visitVoidElement(this);
-}
-
 abstract class TypeDeclarationElementX<T extends GenericType>
     implements TypeDeclarationElement {
   /**

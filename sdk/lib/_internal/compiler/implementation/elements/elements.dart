@@ -118,8 +118,6 @@ class ElementKind {
       const ElementKind('statement', ElementCategory.NONE);
   static const ElementKind LABEL =
       const ElementKind('label', ElementCategory.NONE);
-  static const ElementKind VOID =
-      const ElementKind('void', ElementCategory.NONE);
 
   static const ElementKind AMBIGUOUS =
       const ElementKind('ambiguous', ElementCategory.NONE);
@@ -792,16 +790,10 @@ abstract class PrefixElement extends Element {
 }
 
 abstract class TypedefElement extends Element
-    implements AstElement, TypeDeclarationElement {
+    implements AstElement, TypeDeclarationElement, FunctionTypedElement {
   TypedefType get thisType;
   TypedefType get rawType;
   DartType get alias;
-  FunctionSignature get functionSignature;
-  Link<DartType> get typeVariables;
-
-  // TODO(kasperl): Try to get rid of these setters.
-  void set alias(DartType value);
-  void set functionSignature(FunctionSignature value);
 
   void checkCyclicReference(Compiler compiler);
 }
@@ -814,9 +806,9 @@ abstract class VariableElement extends Element
 abstract class FieldElement extends VariableElement
     implements ClosureContainer {}
 
-abstract class ParameterElement extends VariableElement {
+abstract class ParameterElement extends VariableElement
+    implements FunctionTypedElement {
   VariableDefinitions get node;
-  FunctionSignature get functionSignature;
 }
 
 abstract class FieldParameterElement extends ParameterElement {
@@ -858,10 +850,11 @@ abstract class FunctionSignature {
 }
 
 abstract class FunctionElement extends Element
-    implements AstElement, TypedElement, ClosureContainer {
+    implements AstElement,
+               TypedElement,
+               FunctionTypedElement,
+               ClosureContainer {
   FunctionExpression get node;
-  DartType get type;
-  FunctionSignature get functionSignature;
   FunctionElement get redirectionTarget;
   FunctionElement get defaultImplementation;
 
@@ -1126,12 +1119,16 @@ abstract class MetadataAnnotation implements Spannable {
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
-// TODO(johnniwinther): Remove this element.
-abstract class VoidElement extends Element {}
-
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
   DartType get type;
+}
+
+/// An [Element] that can define a function type.
+abstract class FunctionTypedElement extends Element {
+  /// The function signature for the function type defined by this element,
+  /// if any.
+  FunctionSignature get functionSignature;
 }
 
 /// An [Element] that (potentially) has a node.

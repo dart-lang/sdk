@@ -604,7 +604,7 @@ class ResolverTask extends CompilerTask {
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
     DartType type = resolveReturnType(element, annotation);
-    if (type == compiler.types.voidType) {
+    if (type.isVoid) {
       error(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
@@ -1658,9 +1658,7 @@ class TypeResolver {
       }
     } else {
       String stringValue = typeName.source;
-      if (identical(stringValue, 'void')) {
-        element = compiler.types.voidType.element;
-      } else if (identical(stringValue, 'dynamic')) {
+      if (identical(stringValue, 'dynamic')) {
         element = compiler.dynamicClass;
       } else {
         element = lookupInScope(compiler, typeName, scope, typeName.source);
@@ -1673,6 +1671,21 @@ class TypeResolver {
                                  {bool malformedIsError: false,
                                   bool deferredIsMalformed: true}) {
     Identifier typeName;
+    DartType type;
+
+    DartType checkNoTypeArguments(DartType type) {
+      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
+      bool hasTypeArgumentMismatch = resolveTypeArguments(
+          visitor, node, const Link<DartType>(), arguments);
+      if (hasTypeArgumentMismatch) {
+        return new MalformedType(
+            new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+                {'type': node}, typeName.source, visitor.enclosingElement),
+                type, arguments.toLink());
+      }
+      return type;
+    }
+
     Identifier prefixName;
     Send send = node.typeName.asSend();
     if (send != null) {
@@ -1681,6 +1694,12 @@ class TypeResolver {
       typeName = send.selector.asIdentifier();
     } else {
       typeName = node.typeName.asIdentifier();
+      if (identical(typeName.source, 'void')) {
+        type = const VoidType();
+        checkNoTypeArguments(type);
+        visitor.useType(node, type);
+        return type;
+      }
     }
 
     Element element = resolveTypeName(prefixName, typeName, visitor.scope,
@@ -1707,21 +1726,7 @@ class TypeResolver {
               userProvidedBadType, arguments.toLink());
     }
 
-    DartType checkNoTypeArguments(DartType type) {
-      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
-      bool hasTypeArgumentMismatch = resolveTypeArguments(
-          visitor, node, const Link<DartType>(), arguments);
-      if (hasTypeArgumentMismatch) {
-        return new MalformedType(
-            new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                {'type': node}, typeName.source, visitor.enclosingElement),
-                type, arguments.toLink());
-      }
-      return type;
-    }
-
     // Try to construct the type from the element.
-    DartType type;
     if (element == null) {
       type = reportFailureAndCreateType(
           MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName});
@@ -1740,8 +1745,7 @@ class TypeResolver {
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
       bool addTypeVariableBoundsCheck = false;
-      if (identical(element, compiler.types.voidType.element) ||
-          identical(element, compiler.dynamicClass)) {
+      if (identical(element, compiler.dynamicClass)) {
         type = checkNoTypeArguments(element.computeType(compiler));
       } else if (element.isClass) {
         ClassElement cls = element;
@@ -3793,7 +3797,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
 }
 
 class TypedefResolverVisitor extends TypeDefinitionVisitor {
-  TypedefElement get element => enclosingElement;
+  TypedefElementX get element => enclosingElement;
 
   TypedefResolverVisitor(Compiler compiler,
                          TypedefElement typedefElement,
@@ -3845,7 +3849,7 @@ class TypedefCyclicVisitor extends DartTypeVisitor {
   }
 
   visitTypedefType(TypedefType type, _) {
-    TypedefElement typedefElement = type.element;
+    TypedefElementX typedefElement = type.element;
     if (seenTypedefs.contains(typedefElement)) {
       if (!hasCyclicReference && identical(element, typedefElement)) {
         // Only report an error on the checked typedef to avoid generating

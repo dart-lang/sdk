@@ -1980,7 +1980,7 @@ void setup() {
 
   compiler = new MockCompiler(coreSource: CORE_SOURCE);
   types = compiler.types;
-  voidType = compiler.types.voidType;
+  voidType = const VoidType();
   intType = compiler.intClass.computeType(compiler);
   doubleType = compiler.doubleClass.computeType(compiler);
   boolType = compiler.boolClass.computeType(compiler);

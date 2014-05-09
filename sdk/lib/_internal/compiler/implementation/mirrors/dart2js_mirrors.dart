@@ -97,25 +97,13 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
 
   Symbol get qualifiedName => symbolOf(_qualifiedNameString, getLibrary(this));
 
-  /**
-   * Returns the first token for the source of this declaration, not including
-   * metadata annotations.
-   */
-  Token getBeginToken();
+  DeclarationMirror lookupInScope(String name) => null;
 
-  /**
-   * Returns the last token for the source of this declaration.
-   */
-  Token getEndToken();
-
-  /**
-   * Returns the script for the source of this declaration.
-   */
-  Script getScript();
+  bool get isNameSynthetic => false;
 
   /// Returns the type mirror for [type] in the context of this declaration.
-  TypeMirror _getTypeMirror(DartType type, [FunctionSignature signature]) {
-    return mirrorSystem._convertTypeToTypeMirror(type, signature);
+  TypeMirror _getTypeMirror(DartType type) {
+    return mirrorSystem._convertTypeToTypeMirror(type);
   }
 
   /// Returns a list of the declaration mirrorSystem for [element].
@@ -141,7 +129,6 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
         "Unexpected member type $element ${element.kind}.");
     return null;
   }
-
 }
 
 abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
@@ -155,8 +142,6 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   }
 
   String get _simpleNameString => _element.name;
-
-  bool get isNameSynthetic => false;
 
   /**
    * Computes the first token for this declaration using the begin token of the
@@ -326,10 +311,9 @@ class Dart2JsMirrorSystem extends MirrorSystem {
       _convertTypeToTypeMirror(compiler.types.dynamicType);
 
   TypeMirror get voidType =>
-      _convertTypeToTypeMirror(compiler.types.voidType);
+      _convertTypeToTypeMirror(const VoidType());
 
-  TypeMirror _convertTypeToTypeMirror(DartType type,
-                                      [FunctionSignature signature]) {
+  TypeMirror _convertTypeToTypeMirror(DartType type) {
     assert(type != null);
     if (type.treatAsDynamic) {
       return new Dart2JsDynamicMirror(this, type);
@@ -342,7 +326,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     } else if (type is TypeVariableType) {
       return new Dart2JsTypeVariableMirror(this, type);
     } else if (type is FunctionType) {
-      return new Dart2JsFunctionTypeMirror(this, type, signature);
+      return new Dart2JsFunctionTypeMirror(this, type);
     } else if (type is VoidType) {
       return new Dart2JsVoidMirror(this, type);
     } else if (type is TypedefType) {

@@ -189,13 +189,12 @@ abstract class MembersCreator {
         Name name = new Name(element.name, library);
         if (element.isField) {
           DartType type = element.computeType(compiler);
-          addDeclaredMember(name, type,
-              new FunctionType(compiler.functionClass, type));
+          addDeclaredMember(name, type, new FunctionType.synthesized(type));
           if (!element.modifiers.isConst &&
               !element.modifiers.isFinal) {
             addDeclaredMember(name.setter, type,
-                new FunctionType(compiler.functionClass,
-                                 compiler.types.voidType,
+                new FunctionType.synthesized(
+                                 const VoidType(),
                                  const Link<DartType>().prepend(type)));
           }
         } else if (element.isGetter) {
@@ -745,8 +744,7 @@ class InterfaceMembersCreator extends MembersCreator {
         namedParameterTypes =
             namedParameterTypes.prepend(compiler.types.dynamicType);
       }
-      FunctionType memberType = new FunctionType(
-          compiler.functionClass,
+      FunctionType memberType = new FunctionType.synthesized(
           compiler.types.dynamicType,
           requiredParameterTypes,
           optionalParameterTypes,

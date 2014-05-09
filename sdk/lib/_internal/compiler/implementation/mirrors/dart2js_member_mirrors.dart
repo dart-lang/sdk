@@ -227,9 +227,7 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
 
   ParameterElement get _element => super._element;
 
-  TypeMirror get type => owner._getTypeMirror(_element.type,
-                                              _element.functionSignature);
-
+  TypeMirror get type => owner._getTypeMirror(_element.type);
 
   bool get isFinal => false;
 
