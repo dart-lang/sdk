@@ -309,6 +309,7 @@ void initNativeDispatchContinue() {
 
   if (JS('bool', 'typeof window != "undefined"')) {
     var context = JS('=Object', 'window');
+    var fun = JS('=Object', 'function () {}');
     for (int i = 0; i < tags.length; i++) {
       var tag = tags[i];
       var proto = prototypeForTagFunction(tag);
@@ -317,6 +318,9 @@ void initNativeDispatchContinue() {
         var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
         if (record != null) {
           setDispatchProperty(proto, record);
+          // Ensure the modified prototype is still fast by assigning it to
+          // the prototype property of a function object.
+          JS('', '#.prototype = #', fun, proto);
         }
       }
     }
