@@ -830,14 +830,14 @@ abstract class HInstruction implements Spannable {
         && !canThrow();
   }
 
-  // Overridden by [HCheck] to return the actual non-[HCheck]
-  // instruction it checks against.
+  /// Overridden by [HCheck] to return the actual non-[HCheck]
+  /// instruction it checks against.
   HInstruction nonCheck() => this;
 
-  // Can this node throw an exception?
+  /// Can this node throw an exception?
   bool canThrow() => false;
 
-  // Does this node potentially affect control flow.
+  /// Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
   bool isExact() => instructionType.isExact || isNull();

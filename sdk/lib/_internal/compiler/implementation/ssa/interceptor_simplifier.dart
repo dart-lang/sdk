@@ -251,7 +251,18 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {
-    node.block.rewrite(node, receiver);
+    for (HInstruction user in node.usedBy.toList()) {
+      if (user is HIs) {
+        user.changeUse(node, receiver);
+      } else {
+        // Use the potentially self-argument as new receiver. Note that the
+        // self-argument could potentially have a tighter type than the
+        // receiver which was the input to the interceptor.
+        assert(user.inputs[0] == node);
+        assert(receiver.nonCheck() == user.inputs[1].nonCheck());
+        user.changeUse(node, user.inputs[1]);
+      }
+    }
     return false;
   }
 
