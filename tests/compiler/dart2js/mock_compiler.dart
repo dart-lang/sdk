@@ -114,9 +114,14 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator[](index) => this[index];
     operator[]=(index, value) { this[index] = value; }
     add(value) { this[length + 1] = value; }
-    removeAt(index) {}
     insert(index, value) {}
-    removeLast() {}
+    E get first => this[0];
+    E get last => this[0];
+    E get single => this[0];
+    E removeLast() => this[0];
+    E removeAt(index) => this[0];
+    E elementAt(index) => this[0];
+    E singleWhere(f) => this[0];
   }
   class JSMutableArray extends JSArray implements JSMutableIndexable {}
   class JSFixedArray extends JSMutableArray {}
@@ -220,6 +225,13 @@ const String DEFAULT_CORELIB = r'''
     var length;
     List([length]);
     List.filled(length, element);
+    E get first => null;
+    E get last => null;
+    E get single => null;
+    E removeLast() => null;
+    E removeAt(i) => null;
+    E elementAt(i) => null;
+    E singleWhere(f) => null;
   }
   abstract class Map<K,V> {}
   class DateTime {
