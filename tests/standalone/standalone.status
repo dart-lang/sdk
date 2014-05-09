@@ -130,6 +130,8 @@ assert_test: Fail # Issue 13719: Please triage this failure.
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
+javascript_compatibility_errors_test: Skip
+javascript_compatibility_warnings_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
