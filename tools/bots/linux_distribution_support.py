@@ -75,6 +75,7 @@ def CreateDartTestFile(tempdir):
 
 def Run(args):
   print "Running: %s" % ' '.join(args)
+  sys.stdout.flush()
   bot.RunProcess(args)
 
 def TestInstallation(assume_installed=True):
