@@ -3770,7 +3770,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
               const Link<TypeVariableElement>();
           seenTypeVariables = seenTypeVariables.prepend(variableElement);
           DartType bound = boundType;
-          while (bound.element.isTypeVariable) {
+          while (bound.kind == TypeKind.TYPE_VARIABLE) {
             TypeVariableElement element = bound.element;
             if (seenTypeVariables.contains(element)) {
               if (identical(element, variableElement)) {
