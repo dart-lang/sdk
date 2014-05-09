@@ -13,6 +13,7 @@
  */
 library generate_localized;
 
+import 'intl.dart';
 import 'src/intl_message.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -100,10 +101,11 @@ String _libraryName(String x) => 'messages_' + x.replaceAll('-', '_');
  * Generate a file <[generated_file_prefix]>_messages_<[locale]>.dart
  * for the [translations] in [locale] and put it in [targetDir].
  */
-void generateIndividualMessageFile(String locale,
+void generateIndividualMessageFile(String basicLocale,
     Iterable<TranslatedMessage> translations, String targetDir) {
   var result = new StringBuffer();
-  locale = new MainMessage().escapeAndValidateString(locale);
+  var locale = new MainMessage().escapeAndValidateString(
+      Intl.canonicalizedLocale(basicLocale));
   result.write(prologue(locale));
   // Exclude messages with no translation and translations with no matching
   // original message (e.g. if we're using some messages from a larger catalog)
@@ -133,8 +135,11 @@ void generateIndividualMessageFile(String locale,
       ..write(entries.join(",\n"))
       ..write("\n  };\n}");
 
-  new File(path.join(targetDir,"${generatedFilePrefix}messages_$locale.dart"))
-      ..writeAsStringSync(result.toString());
+  // To preserve compatibility, we don't use the canonical version of the locale
+  // in the file name.
+  var filename =
+      path.join(targetDir,"${generatedFilePrefix}messages_$basicLocale.dart");
+  new File(filename).writeAsStringSync(result.toString());
 }
 
 /**
@@ -193,7 +198,8 @@ String generateMainImportFile() {
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
     "  switch (localeName) {\n");
-  for (var locale in allLocales) {
+  for (var rawLocale in allLocales) {
+    var locale = Intl.canonicalizedLocale(rawLocale);
     output.write(
         "    case '$locale' : return ${_libraryName(locale)}.messages;\n");
   }

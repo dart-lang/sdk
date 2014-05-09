@@ -42,21 +42,25 @@ String asTempDirPath([String s]) {
 }
 
 main() {
+  setUp(copyFilesToTempDirectory);
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
-    copyFilesToTempDirectory();
+    var makeSureWeVerify = expectAsync(runAndVerify);
     return extractMessages(null).then((result) {
       return generateTranslationFiles(result);
     }).then((result) {
       return generateCodeFromTranslation(result);
-    }).then((result) => runAndVerify(result));
+    }).then(makeSureWeVerify).then(checkResult);
   });
+  tearDown(deleteGeneratedFiles);
 }
 
 void copyFilesToTempDirectory() {
-  var files = [asTestDirPath('sample_with_messages.dart'), asTestDirPath(
-      'part_of_sample_with_messages.dart'), asTestDirPath('verify_messages.dart'),
-      asTestDirPath('run_and_verify.dart')];
+  var files = [asTestDirPath('sample_with_messages.dart'),
+      asTestDirPath('part_of_sample_with_messages.dart'),
+      asTestDirPath('verify_messages.dart'),
+      asTestDirPath('run_and_verify.dart'),
+      asTestDirPath('print_to_list.dart')];
   for (var filename in files) {
     var file = new File(filename);
     file.copySync(path.join(tempDir, path.basename(filename)));
@@ -82,14 +86,7 @@ void deleteGeneratedFiles() {
 Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
     {
   // If there's a failure in one of the sub-programs, print its output.
-  if (previousResult != null) {
-    if (previousResult.exitCode != 0) {
-      print("Error running sub-program:");
-    }
-    print(previousResult.stdout);
-    print(previousResult.stderr);
-    print("exitCode=${previousResult.exitCode}");
-  }
+  checkResult(previousResult);
   var filesInTheRightDirectory = filenames.map((x) => asTempDirPath(x)).toList(
       );
   // Inject the script argument --output-dir in between the script and its
@@ -102,6 +99,19 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
   var result = Process.run(dart, args, stdoutEncoding: UTF8, stderrEncoding:
       UTF8);
   return result;
+}
+
+void checkResult(ProcessResult previousResult) {
+  if (previousResult != null) {
+    if (previousResult.exitCode != 0) {
+      print("Error running sub-program:");
+    }
+    print(previousResult.stdout);
+    print(previousResult.stderr);
+    print("exitCode=${previousResult.exitCode}");
+    // Fail the test.
+    expect(previousResult.exitCode, 0);
+  }
 }
 
 Future<ProcessResult> extractMessages(ProcessResult previousResult) => run(

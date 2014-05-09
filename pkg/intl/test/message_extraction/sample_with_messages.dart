@@ -224,7 +224,7 @@ main() {
   // Throw in an initialize of a null locale to make sure it doesn't throw.
   initializeMessages(null);
   var f1 = initializeMessages(fr.locale).then((_) => printStuff(fr));
-  var f2 = initializeMessages(de.locale).then((_) => printStuff(de));
+  var f2 = initializeMessages('de-de').then((_) => printStuff(de));
   printStuff(english);
   return Future.wait([f1, f2]);
 }
