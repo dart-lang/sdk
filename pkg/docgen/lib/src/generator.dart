@@ -136,8 +136,15 @@ void _writeToFile(String text, String filename) {
   var parentDir = new Directory(path.dirname(filePath));
   if (!parentDir.existsSync()) parentDir.createSync(recursive: true);
 
-  new File(filePath)
-      .writeAsStringSync(text, mode: FileMode.WRITE);
+  try {
+    new File(filePath)
+        .writeAsStringSync(text, mode: FileMode.WRITE);
+  } on FileSystemException catch (e) {
+    print('Failed to write to the path $filePath. Do you have write '
+        'permissions to that directory? If not, please specify a different '
+        'output directory using the --out option.');
+    exit(1);
+  }
 }
 
 /// Resolve all the links in the introductory comments for a given library or
