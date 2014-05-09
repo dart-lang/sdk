@@ -700,9 +700,13 @@ void Object::InitOnce() {
 
   String& error_str = String::Handle();
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
-  *snapshot_writer_error_ = LanguageError::New(error_str, Heap::kOld);
+  *snapshot_writer_error_ = LanguageError::New(error_str,
+                                               LanguageError::kError,
+                                               Heap::kOld);
   error_str = String::New("Branch offset overflow", Heap::kOld);
-  *branch_offset_error_ = LanguageError::New(error_str, Heap::kOld);
+  *branch_offset_error_ = LanguageError::New(error_str,
+                                             LanguageError::kBailout,
+                                             Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -8667,7 +8671,7 @@ void Library::AddClass(const Class& cls) const {
 }
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
-                              Script& candidate) {
+                              const Script& candidate) {
   if (candidate.IsNull()) {
     return;
   }
@@ -10846,6 +10850,24 @@ void ICData::SetIssuedJSWarning() const {
 }
 
 
+bool ICData::MayCheckForJSWarning() const {
+  const String& name = String::Handle(target_name());
+  // Warning issued from native code.
+  // Calling sequence is decoded to obtain ic data in order to check if a
+  // warning has already been issued.
+  if (name.Equals(Library::PrivateCoreLibName(Symbols::_instanceOf())) ||
+      name.Equals(Library::PrivateCoreLibName(Symbols::_as()))) {
+    return true;
+  }
+  // Warning issued in ic miss handler.
+  // No decoding necessary, so allow optimization if warning already issued.
+  if (name.Equals(Symbols::toString()) && !IssuedJSWarning()) {
+    return true;
+  }
+  return false;
+}
+
+
 bool ICData::IsClosureCall() const {
   return IsClosureCallBit::decode(raw_ptr()->state_bits_);
 }
@@ -12410,6 +12432,7 @@ RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
 
 
 RawLanguageError* LanguageError::New(const String& formatted_message,
+                                     Kind kind,
                                      Heap::Space space) {
   ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
@@ -12421,6 +12444,7 @@ RawLanguageError* LanguageError::New(const String& formatted_message,
     result ^= raw;
   }
   result.set_formatted_message(formatted_message);
+  result.set_kind(kind);
   return result.raw();
 }
 
@@ -12466,6 +12490,7 @@ RawString* LanguageError::FormatMessage() const {
     case kError: message_header = "error"; break;
     case kMalformedType: message_header = "malformed type"; break;
     case kMalboundedType: message_header = "malbounded type"; break;
+    case kBailout: message_header = "bailout"; break;
     default: message_header = ""; UNREACHABLE();
   }
   String& result = String::Handle();

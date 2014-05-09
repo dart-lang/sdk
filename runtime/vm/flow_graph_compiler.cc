@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/exceptions.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -37,6 +38,7 @@ DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
@@ -338,12 +340,13 @@ void FlowGraphCompiler::Bailout(const char* reason) {
       LanguageError::NewFormatted(Error::Handle(),  // No previous error.
                                   Script::Handle(function.script()),
                                   function.token_pos(),
-                                  LanguageError::kError,
+                                  LanguageError::kBailout,
                                   Heap::kNew,
                                   "FlowGraphCompiler Bailout: %s %s",
                                   String::Handle(function.name()).ToCString(),
                                   reason));
   Isolate::Current()->long_jump_base()->Jump(1, error);
+  UNREACHABLE();
 }
 
 
@@ -828,7 +831,12 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  if (is_optimizing()) {
+  if (is_optimizing() &&
+      // Do not make the instance call megamorphic if the callee needs to decode
+      // the calling code sequence to lookup the ic data and verify if a JS
+      // warning has already been issued or not.
+      (!FLAG_warn_on_javascript_compatibility ||
+       !ic_data.MayCheckForJSWarning())) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
     return;

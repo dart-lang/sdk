@@ -11,6 +11,8 @@ package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
+javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 
@@ -81,6 +83,8 @@ javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
+javascript_compatibility_errors_test: Skip
+javascript_compatibility_warnings_test: Skip
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -137,4 +141,6 @@ package/package1_test: StaticWarning
 package/package_test: StaticWarning
 typed_data_test: StaticWarning
 typed_data_view_test: StaticWarning
+javascript_compatibility_errors_test: Skip
+javascript_compatibility_warnings_test: Skip
 

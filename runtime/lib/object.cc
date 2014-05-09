@@ -5,6 +5,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "lib/invocation_mirror.h"
+#include "vm/code_patcher.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/native_entry.h"
@@ -16,6 +17,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 
 DEFINE_NATIVE_ENTRY(Object_equals, 1) {
@@ -109,6 +111,56 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 }
 
 
+static void JSWarning(const char* msg) {
+  DartFrameIterator iterator;
+  iterator.NextFrame();  // Skip native call.
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!caller_code.IsNull());
+  const uword caller_pc = caller_frame->pc();
+  // Assume an instance call.
+  ICData& ic_data = ICData::Handle();
+  CodePatcher::GetInstanceCallAt(caller_pc, caller_code, &ic_data);
+  ASSERT(!ic_data.IsNull());
+  // Report warning only if not already reported at this location.
+  if (!ic_data.IssuedJSWarning()) {
+    ic_data.SetIssuedJSWarning();
+    Exceptions::JSWarning(caller_frame, "%s", msg);
+  }
+}
+
+
+static void WarnOnJSIntegralNumTypeTest(
+    const Instance& instance,
+    const TypeArguments& instantiator_type_arguments,
+    const AbstractType& type) {
+  const bool instance_is_int = instance.IsInteger();
+  const bool instance_is_double = instance.IsDouble();
+  if (!(instance_is_int || instance_is_double)) {
+    return;
+  }
+  AbstractType& instantiated_type = AbstractType::Handle(type.raw());
+  if (!type.IsInstantiated()) {
+    instantiated_type = type.InstantiateFrom(instantiator_type_arguments, NULL);
+  }
+  if (instance_is_double) {
+    if (instantiated_type.IsIntType()) {
+      const double value = Double::Cast(instance).value();
+      if (floor(value) == value) {
+        JSWarning("integral value of type 'double' is also considered to be "
+                  "of type 'int'");
+      }
+    }
+  } else {
+    ASSERT(instance_is_int);
+    if (instantiated_type.IsDoubleType()) {
+      JSWarning("integer value is also considered to be of type 'double'");
+    }
+  }
+}
+
+
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   // Instantiator at position 1 is not used. It is passed along so that the call
@@ -122,6 +174,12 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
+
+  // Check for javascript compatibility.
+  if (FLAG_warn_on_javascript_compatibility) {
+    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
+  }
+
   Error& bound_error = Error::Handle();
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
@@ -170,6 +228,12 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
   if (instance.IsNull()) {
     return instance.raw();
   }
+
+  // Check for javascript compatibility.
+  if (FLAG_warn_on_javascript_compatibility) {
+    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
+  }
+
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
                                                     &bound_error);

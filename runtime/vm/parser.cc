@@ -810,7 +810,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       if (!func.IsImplicitConstructor()) {
         parser.SkipFunctionPreamble();
       }
-      node_sequence = parser.ParseFunc(func, default_parameter_values);
+      node_sequence = parser.ParseFunc(func, &default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
       ASSERT(!func.is_static());
@@ -833,11 +833,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       node_sequence =
-          parser.ParseNoSuchMethodDispatcher(func, default_parameter_values);
+          parser.ParseNoSuchMethodDispatcher(func, &default_parameter_values);
       break;
     case RawFunction::kInvokeFieldDispatcher:
       node_sequence =
-          parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
+          parser.ParseInvokeFieldDispatcher(func, &default_parameter_values);
       break;
     default:
       UNREACHABLE();
@@ -1301,7 +1301,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 
 void Parser::BuildDispatcherScope(const Function& func,
                                   const ArgumentsDescriptor& desc,
-                                  Array& default_values) {
+                                  Array* default_values) {
   ParamList params;
   // Receiver first.
   intptr_t token_pos = func.token_pos();
@@ -1340,7 +1340,7 @@ void Parser::BuildDispatcherScope(const Function& func,
 }
 
 SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
-                                                  Array& default_values) {
+                                                  Array* default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
 
   ASSERT(func.IsNoSuchMethodDispatcher());
@@ -1385,7 +1385,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
 
 
 SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
-                                                 Array& default_values) {
+                                                 Array* default_values) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
 
   ASSERT(func.IsInvokeFieldDispatcher());
@@ -2561,7 +2561,7 @@ void Parser::CheckRecursiveInvocation() {
 // Parser is at the opening parenthesis of the formal parameter declaration
 // of function. Parse the formal parameters, initializers and code.
 SequenceNode* Parser::ParseConstructor(const Function& func,
-                                       Array& default_parameter_values) {
+                                       Array* default_parameter_values) {
   TRACE_PARSER("ParseConstructor");
   ASSERT(func.IsConstructor());
   ASSERT(!func.IsFactory());
@@ -2853,7 +2853,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
 SequenceNode* Parser::ParseFunc(const Function& func,
-                                Array& default_parameter_values) {
+                                Array* default_parameter_values) {
   TRACE_PARSER("ParseFunc");
   Function& saved_innermost_function =
       Function::Handle(innermost_function().raw());
@@ -5332,15 +5332,15 @@ SequenceNode* Parser::CloseBlock() {
 
 // Set up default values for all optional parameters to the function.
 void Parser::SetupDefaultsForOptionalParams(const ParamList* params,
-                                            Array& default_values) {
+                                            Array* default_values) {
   if (params->num_optional_parameters > 0) {
     // Build array of default parameter values.
     ParamDesc* param =
       params->parameters->data() + params->num_fixed_parameters;
-    default_values = Array::New(params->num_optional_parameters);
+    *default_values = Array::New(params->num_optional_parameters);
     for (int i = 0; i < params->num_optional_parameters; i++) {
       ASSERT(param->default_value != NULL);
-      default_values.SetAt(i, *param->default_value);
+      default_values->SetAt(i, *param->default_value);
       param++;
     }
   }
@@ -5766,7 +5766,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Parse the local function.
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
-                                               default_parameter_values);
+                                               &default_parameter_values);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
@@ -8997,6 +8997,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
                          String::Handle(field.name()).ToCString());
         } else {
           isolate()->long_jump_base()->Jump(1, error);
+          UNREACHABLE();
         }
       }
       ASSERT(const_value.IsNull() || const_value.IsInstance());
@@ -9493,7 +9494,7 @@ RawAbstractType* Parser::ParseType(
 
 
 void Parser::CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor,
+    intptr_t pos, const Function& constructor,
     const TypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     const Class& constructor_class = Class::Handle(constructor.Owner());
@@ -10292,14 +10293,16 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle(isolate());
+  Object& result = Object::Handle(isolate());
   {
     PAUSETIMERSCOPE(isolate(), time_compilation);
-    concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+    result = DartEntry::InvokeFunction(func, interpolate_arg);
   }
-  if (concatenated.IsUnhandledException()) {
-    ErrorMsg("Exception thrown in Parser::Interpolate");
+  if (result.IsUnhandledException()) {
+    ErrorMsg("%s", Error::Cast(result).ToErrorCString());
   }
+  String& concatenated = String::ZoneHandle(isolate());
+  concatenated ^= result.raw();
   concatenated = Symbols::New(concatenated);
   return concatenated;
 }

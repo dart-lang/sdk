@@ -3308,6 +3308,10 @@ class ICData : public Object {
   bool IssuedJSWarning() const;
   void SetIssuedJSWarning() const;
 
+  // Return true if the target function of this IC data may check for (and
+  // possibly issue) a Javascript compatibility warning.
+  bool MayCheckForJSWarning() const;
+
   bool IsClosureCall() const;
   void SetIsClosureCall() const;
 
@@ -4015,6 +4019,7 @@ class LanguageError : public Error {
     kError,
     kMalformedType,
     kMalboundedType,
+    kBailout,
   };
 
   Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
@@ -4043,6 +4048,7 @@ class LanguageError : public Error {
                                          const char* format, va_list args);
 
   static RawLanguageError* New(const String& formatted_message,
+                               Kind kind = kError,
                                Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -6870,7 +6876,7 @@ class UserTag : public Instance {
     ASSERT(t >= UserTags::kUserTagIdOffset);
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
     raw_ptr()->tag_ = t;
-  };
+  }
   static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
 
   RawString* label() const {

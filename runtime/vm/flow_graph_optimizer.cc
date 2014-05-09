@@ -8,6 +8,7 @@
 #include "vm/cha.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
+#include "vm/exceptions.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/hash_map.h"
@@ -47,6 +48,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
@@ -109,6 +111,17 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
+  }
+  if (FLAG_warn_on_javascript_compatibility) {
+    // Do not make the instance call megamorphic if the callee needs to decode
+    // the calling code sequence to lookup the ic data and verify if a warning
+    // has already been issued or not.
+    // TryCreateICData is only invoked if the ic_data target has not been called
+    // yet, so no warning can possibly have been issued.
+    ASSERT(!call->ic_data()->IssuedJSWarning());
+    if (call->ic_data()->MayCheckForJSWarning()) {
+      return false;
+    }
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
@@ -3872,6 +3885,15 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       call->ArgumentAt(4)->OriginalDefinition()->AsConstant()->value()).value();
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+  if (FLAG_warn_on_javascript_compatibility &&
+      !unary_checks.IssuedJSWarning() &&
+      (type.IsIntType() || type.IsDoubleType() || !type.IsInstantiated())) {
+    // No warning was reported yet for this type check, either because it has
+    // not been executed yet, or because no problematic combinations of instance
+    // type and test type have been encountered so far. A warning may still be
+    // reported, so do not replace the instance call.
+    return;
+  }
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
         new ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
@@ -3953,6 +3975,15 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+  if (FLAG_warn_on_javascript_compatibility &&
+      !unary_checks.IssuedJSWarning() &&
+      (type.IsIntType() || type.IsDoubleType() || !type.IsInstantiated())) {
+    // No warning was reported yet for this type check, either because it has
+    // not been executed yet, or because no problematic combinations of instance
+    // type and test type have been encountered so far. A warning may still be
+    // reported, so do not replace the instance call.
+    return;
+  }
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
         new ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);

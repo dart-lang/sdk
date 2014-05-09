@@ -59,6 +59,8 @@ DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, warning_as_error);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -596,10 +598,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       is_compiled = true;
       done = true;
     } else {
-      // We bailed out.
+      // We bailed out or we encountered an error.
+      const Error& error = Error::Handle(
+          isolate->object_store()->sticky_error());
 
-      if (isolate->object_store()->sticky_error() ==
-          Object::branch_offset_error().raw()) {
+      if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
@@ -610,15 +613,19 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // try again (done = true), and indicate that we did not finish
         // compiling (is_compiled = false).
         if (FLAG_trace_bailout) {
-          const Error& bailout_error = Error::Handle(
-              isolate->object_store()->sticky_error());
-          OS::Print("%s\n", bailout_error.ToErrorCString());
+          OS::Print("%s\n", error.ToErrorCString());
         }
         done = true;
-        ASSERT(optimized);
+        ASSERT(optimized ||
+               (FLAG_warn_on_javascript_compatibility &&
+                FLAG_warning_as_error));
       }
 
-      isolate->object_store()->clear_sticky_error();
+      // Clear the error if it was not a real error, but just a bailout.
+      if (error.IsLanguageError() &&
+          (LanguageError::Cast(error).kind() == LanguageError::kBailout)) {
+        isolate->object_store()->clear_sticky_error();
+      }
       is_compiled = false;
     }
     // Reset global isolate state.
@@ -791,19 +798,29 @@ static RawError* CompileFunctionHelper(const Function& function,
 
     const bool success =
         CompileParsedFunctionHelper(parsed_function, optimized, osr_id);
-    if (optimized && !success) {
-      // Optimizer bailed out. Disable optimizations and to never try again.
-      if (FLAG_trace_compiler) {
-        OS::Print("--> disabling optimizations for '%s'\n",
-                  function.ToFullyQualifiedCString());
-      } else if (FLAG_trace_failed_optimization_attempts) {
-        OS::Print("Cannot optimize: %s\n", function.ToFullyQualifiedCString());
+    if (!success) {
+      if (optimized) {
+        // Optimizer bailed out. Disable optimizations and to never try again.
+        if (FLAG_trace_compiler) {
+          OS::Print("--> disabling optimizations for '%s'\n",
+                    function.ToFullyQualifiedCString());
+        } else if (FLAG_trace_failed_optimization_attempts) {
+          OS::Print("Cannot optimize: %s\n",
+                    function.ToFullyQualifiedCString());
+        }
+        function.SetIsOptimizable(false);
+        return Error::null();
       }
-      function.SetIsOptimizable(false);
-      return Error::null();
+      // So far, the only possible real error is a JS warning reported as error.
+      ASSERT(FLAG_warn_on_javascript_compatibility && FLAG_warning_as_error);
+      Error& error = Error::Handle();
+      // We got an error during compilation.
+      error = isolate->object_store()->sticky_error();
+      ASSERT(!error.IsNull());
+      isolate->object_store()->clear_sticky_error();
+      return error.raw();
     }
 
-    ASSERT(success);
     per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {

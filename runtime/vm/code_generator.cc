@@ -56,6 +56,7 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
@@ -787,8 +788,19 @@ static RawFunction* InlineCacheMissHandler(
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call
-// site.
+static void JSWarning(const ICData& ic_data, const char* msg) {
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  // Report warning only if not already reported at this location.
+  if (!ic_data.IssuedJSWarning()) {
+    ic_data.SetIssuedJSWarning();
+    Exceptions::JSWarning(caller_frame, "%s", msg);
+  }
+}
+
+
+// Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: IC data object.
 //   Returns: target function with compiled code or null.
@@ -798,14 +810,24 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
+  if (FLAG_warn_on_javascript_compatibility) {
+    if (receiver.IsDouble() &&
+        String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
+      const double value = Double::Cast(receiver).value();
+      if (floor(value) == value) {
+        JSWarning(ic_data,
+                  "string representation of an integral value of type "
+                  "'double' has no decimal mark and no fractional part");
+      }
+    }
+  }
   const Function& result =
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call
-// site.
+// Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
 //   Arg2: IC data object.
@@ -824,8 +846,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call
-// site.
+// Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
 //   Arg2: Second argument after receiver.

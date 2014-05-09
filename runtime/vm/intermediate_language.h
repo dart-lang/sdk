@@ -4061,7 +4061,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
   virtual intptr_t token_pos() const { return token_pos_; }
 
   virtual CompileType ComputeType() const;
-  // Issues a static call to Dart code whihc calls toString on objects.
+  // Issues a static call to Dart code which calls toString on objects.
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual bool CanDeoptimize() const { return true; }
   virtual bool MayThrow() const { return true; }
