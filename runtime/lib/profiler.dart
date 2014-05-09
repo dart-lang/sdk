@@ -15,7 +15,7 @@ patch class UserTag {
 class _UserTag implements UserTag {
   factory _UserTag(String label) native "UserTag_new";
   String get label native "UserTag_label";
-  void makeCurrent() native "UserTag_makeCurrent";
+  UserTag makeCurrent() native "UserTag_makeCurrent";
 }
 
 patch UserTag getCurrentTag() => _getCurrentTag();
