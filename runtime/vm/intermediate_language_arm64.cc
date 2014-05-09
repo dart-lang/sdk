@@ -470,8 +470,8 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         LocationSummary* locs,
                                         Token::Kind kind) {
-  VRegister left = locs->in(0).fpu_reg();
-  VRegister right = locs->in(1).fpu_reg();
+  const VRegister left = locs->in(0).fpu_reg();
+  const VRegister right = locs->in(1).fpu_reg();
   __ fcmpd(left, right);
   Condition true_condition = TokenKindToDoubleCondition(kind);
   return true_condition;
@@ -771,8 +771,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(bool opt) const {
 
 
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register char_code = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
+  const Register char_code = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
   __ LoadImmediate(result,
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()), PP);
   __ AddImmediate(
@@ -792,14 +792,13 @@ LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
 
 void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
-  Register str = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
+  const Register str = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
   __ LoadFieldFromOffset(result, str, String::length_offset(), PP);
+  __ ldr(TMP, FieldAddress(str, OneByteString::data_offset()), kUnsignedByte);
   __ CompareImmediate(result, Smi::RawValue(1), PP);
-  __ LoadImmediate(TMP, Smi::RawValue(-1), PP);
-  __ ldr(TMP2, FieldAddress(str, OneByteString::data_offset()), kUnsignedByte);
-  __ csel(result, TMP, result, NE);
-  __ csel(result, TMP2, result, EQ);
+  __ LoadImmediate(result, -1, PP);
+  __ csel(result, TMP, result, EQ);
   __ SmiTag(result);
 }
 

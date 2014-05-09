@@ -3849,9 +3849,6 @@ TEST_CASE(FunctionSourceFingerprint) {
 }
 
 
-// TODO(zra): Enable test when arm64 is ready.
-#if !defined(TARGET_ARCH_ARM64)
-
 TEST_CASE(FunctionWithBreakpointNotInlined) {
   const char* kScriptChars =
       "class A {\n"
@@ -3889,8 +3886,6 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   ASSERT(bpt != NULL);
   EXPECT(!func_b.IsInlineable());
 }
-
-#endif  // !defined(TARGET_ARCH_ARM64)
 
 
 TEST_CASE(SpecialClassesHaveEmptyArrays) {

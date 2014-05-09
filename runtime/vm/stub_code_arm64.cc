@@ -1641,7 +1641,16 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 
 
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Stop("GenerateBreakpointRuntimeStub");
+  __ EnterStubFrame();
+  __ Push(R5);  // Save IC Data.
+  __ Push(R4);  // Save arg. desc.
+  __ PushObject(Object::null_object(), PP);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(R0);
+  __ Pop(R4);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ br(R0);
 }
 
 

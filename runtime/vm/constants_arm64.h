@@ -610,6 +610,7 @@ enum InstructionFields {
   kImm9Bits = 9,
   kImm12Shift = 10,
   kImm12Bits = 12,
+  kImm12Mask = 0xfff << kImm12Shift,
   kImm12ShiftShift = 22,
   kImm12ShiftBits = 2,
   kImm14Shift = 5,
@@ -745,6 +746,11 @@ class Instr {
     SetInstructionBits(
         op |
         (static_cast<int32_t>(rn) << kRnShift));
+  }
+
+  inline void SetImm12Bits(int32_t orig, int32_t imm12) {
+    ASSERT((imm12 & 0xfffff000) == 0);
+    SetInstructionBits((orig & ~kImm12Mask) | (imm12 << kImm12Shift));
   }
 
   inline int NField() const { return Bit(22); }

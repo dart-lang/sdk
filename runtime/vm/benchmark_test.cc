@@ -31,8 +31,6 @@ void Benchmark::RunAll(const char* executable) {
   }
 }
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 //
 // Measure compile of all functions in dart core lib classes.
@@ -53,8 +51,6 @@ BENCHMARK(CorelibCompileAll) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
-
-#endif
 
 
 //
@@ -90,9 +86,6 @@ BENCHMARK(CorelibIsolateStartup) {
   Dart_EnterIsolate(base_isolate);
 }
 
-
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 //
 // Measure invocation of Dart API functions.
@@ -197,8 +190,6 @@ BENCHMARK(UseDartApi) {
   benchmark->set_score(elapsed_time);
 }
 
-#endif
-
 
 //
 // Measure time accessing internal and external strings.
@@ -240,9 +231,6 @@ BENCHMARK(DartStringAccess) {
   benchmark->set_score(elapsed_time);
 }
 
-
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
 
 //
 // Measure compile of all dart2js(compiler) functions.
@@ -324,8 +312,6 @@ BENCHMARK(Dart2JSCompileAll) {
   free(dart_root);
   free(script);
 }
-
-#endif
 
 
 //

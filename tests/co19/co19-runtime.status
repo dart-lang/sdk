@@ -95,13 +95,12 @@ LibTest/isolate/ReceivePort/*: Skip
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip
 LibTest/math/MutableRectangle/boundingBox_A01_t01: Skip
+LibTest/math/Rectangle/boundingBox_A01_t01: Skip  # Pass, Slow
 # Passes, but should fail like other architectures?
 LibTest/core/int/operator_left_shift_A01_t02: Skip
 # Bugs
-LibTest/math/Rectangle/boundingBox_A01_t01: Skip  # Timeout, RuntimeError
 LibTest/core/Uri/encodeQueryComponent_A01_t02: RuntimeError
 LibTest/core/Uri/Uri_A06_t03: RuntimeError
-LibTest/math/Rectangle/Rectangle.fromPoints_A01_t01: RuntimeError
 
 
 [ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == debug]
@@ -112,12 +111,5 @@ LibTest/core/List/List_class_A01_t01: Crash
 [ $compiler == none && $runtime == vm && $arch == simarm64 && $checked ]
 # Bug
 LibTest/isolate/Isolate/spawn_A01_t02: Crash
-
-
-[ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == release && $checked ]
-# Bug
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Pass, Crash
-
-
-[ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == debug && $checked ]# Bug
 LibTest/async/StreamTransformer/StreamTransformer_A02_t02: Pass, Crash

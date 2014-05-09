@@ -979,7 +979,7 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   __ ldr(result, FieldAddress(str, String::length_offset()));
   __ cmp(result, ShifterOperand(Smi::RawValue(1)));
-  __ LoadImmediate(result, Smi::RawValue(-1), NE);
+  __ LoadImmediate(result, -1, NE);
   __ ldrb(result, FieldAddress(str, OneByteString::data_offset()), EQ);
   __ SmiTag(result);
 }

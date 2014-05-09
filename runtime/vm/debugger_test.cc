@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
-#include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
-
 #include "vm/debugger.h"
 #include "vm/unit_test.h"
 
@@ -109,5 +105,3 @@ TEST_CASE(Debugger_PauseEvent) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(TARGET_ARCH_ARM64)

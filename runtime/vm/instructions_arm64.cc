@@ -34,6 +34,11 @@ CallPattern::CallPattern(uword pc, const Code& code)
 }
 
 
+intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
+  return Array::element_offset(index);
+}
+
+
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
@@ -147,7 +152,10 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
                                                  intptr_t* index) {
   // 1. ldr dst, [pp, offset]
   // or
-  // 2. movz dst, low_offset, 0
+  // 2. add dst, pp, #offset_hi12
+  //    ldr dst [dst, #offset_lo12]
+  // or
+  // 3. movz dst, low_offset, 0
   //    movk dst, hi_offset, 1 (optional)
   //    ldr dst, [pp, dst]
   uword start = end - Instr::kInstrSize;
@@ -162,9 +170,17 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   *reg = instr->RtField();
 
   if (instr->Bit(24) == 1) {
-    // pp + scaled unsigned 12-bit immediate offset.
+    // base + scaled unsigned 12-bit immediate offset.
     // Case 1.
-    offset = instr->Imm12Field() << 3;
+    offset |= (instr->Imm12Field() << 3);
+    if (instr->RnField() == *reg) {
+      start -= Instr::kInstrSize;
+      instr = Instr::At(start);
+      ASSERT(instr->IsAddSubImmOp());
+      ASSERT(instr->RnField() == PP);
+      ASSERT(instr->RdField() == *reg);
+      offset |= (instr->Imm12Field() << 12);
+    }
   } else {
     ASSERT(instr->Bits(10, 2) == 2);
     // We have to look at the preceding one or two instructions to find the
@@ -195,6 +211,27 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   ASSERT(Utils::IsAligned(offset, 8));
   *index = (offset - Array::data_offset()) / 8;
   return start;
+}
+
+
+// Encodes a load sequence ending at 'end'. Encodes a fixed length two
+// instruction load from the pool pointer in PP using the destination
+// register reg as a temporary for the base address.
+// Assumes that the location has already been validated for patching.
+void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
+                                                     int32_t offset) {
+  uword start = end - Instr::kInstrSize;
+  Instr* instr = Instr::At(start);
+  const int32_t upper12 = offset & 0x00fff000;
+  const int32_t lower12 = offset & 0x00000fff;
+  ASSERT((offset & 0xff000000) == 0);  // Can't encode > 24 bits.
+  ASSERT(((lower12 >> 3) << 3) == lower12);  // 8-byte aligned.
+  instr->SetImm12Bits(instr->InstructionBits(), lower12 >> 3);
+
+  start -= Instr::kInstrSize;
+  instr = Instr::At(start);
+  instr->SetImm12Bits(instr->InstructionBits(), upper12 >> 12);
+  instr->SetInstructionBits(instr->InstructionBits() | B22);
 }
 
 

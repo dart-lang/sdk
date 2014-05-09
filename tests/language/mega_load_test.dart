@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test megamorphic, but single target field load.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -149,7 +150,7 @@ callThemAll(var list) {
 main() {
   var list = allocateObjects();
   // Make sure the optimizer triggers the compilation of callThemAll.
-  for (var i = 0; i < 500; i++) {
+  for (var i = 0; i < 20; i++) {
     callThemAll(list);
   }
 }

@@ -2210,8 +2210,8 @@ void Simulator::DecodeFPTwoSource(Instr* instr) {
       result = vn_val - vm_val;
       break;
     default:
-      // Unknown(instr);
-      break;
+      UnimplementedInstruction(instr);
+      return;
   }
 
   set_vregisterd(vd, bit_cast<int64_t, double>(result));
@@ -2221,12 +2221,12 @@ void Simulator::DecodeFPTwoSource(Instr* instr) {
 void Simulator::DecodeFPCompare(Instr* instr) {
   const VRegister vn = instr->VnField();
   const VRegister vm = instr->VmField();
-  const double vn_val = get_vregisterd(vn);
+  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
   double vm_val;
 
   if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
     // Format(instr, "fcmpd 'vn, 'vm");
-    vm_val = get_vregisterd(vm);
+    vm_val = bit_cast<double, int64_t>(get_vregisterd(vm));
   } else if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 1)) {
     if (instr->VmField() == V0) {
       // Format(instr, "fcmpd 'vn, #0.0");

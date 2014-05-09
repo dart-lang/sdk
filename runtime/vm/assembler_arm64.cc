@@ -299,11 +299,20 @@ void Assembler::LoadPoolPointer(Register pp) {
   sub(pp, pp, Operand(kHeapObjectTag));
 }
 
+
 void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
                                        uint32_t offset) {
   ASSERT(dst != pp);
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
   if (Address::CanHoldOffset(offset)) {
     ldr(dst, Address(pp, offset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    const uint32_t lower12 = offset & 0x00000fff;
+    ASSERT(Address::CanHoldOffset(lower12));
+    add(dst, pp, op);
+    ldr(dst, Address(dst, lower12));
   } else {
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
@@ -313,6 +322,21 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
     }
     ldr(dst, Address(pp, dst));
   }
+}
+
+
+void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
+                                            uint32_t offset) {
+  ASSERT(dst != pp);
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
+  const uint32_t lower12 = offset & 0x00000fff;
+  const Operand::OperandType ot =
+      Operand::CanHold(upper20, kXRegSizeInBits, &op);
+  ASSERT(ot == Operand::Immediate);
+  ASSERT(Address::CanHoldOffset(lower12));
+  add(dst, pp, op);
+  ldr(dst, Address(dst, lower12));
 }
 
 
@@ -413,6 +437,16 @@ void Assembler::LoadExternalLabel(Register dst,
   const int32_t offset =
       Array::element_offset(FindExternalLabel(label, patchable));
   LoadWordFromPoolOffset(dst, pp, offset);
+}
+
+
+void Assembler::LoadExternalLabelFixed(Register dst,
+                                       const ExternalLabel* label,
+                                       Patchability patchable,
+                                       Register pp) {
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffsetFixed(dst, pp, offset);
 }
 
 

@@ -788,18 +788,14 @@ class Assembler : public ValueObject {
   }
 
   // Branching to ExternalLabels.
-  void BranchPatchable(const ExternalLabel* label, Register pp) {
-    LoadExternalLabel(TMP, label, kPatchable, pp);
-    br(TMP);
-  }
-
   void Branch(const ExternalLabel* label, Register pp) {
     LoadExternalLabel(TMP, label, kNotPatchable, pp);
     br(TMP);
   }
 
   // Fixed length branch to label.
-  void BranchFixed(const ExternalLabel* label) {
+  void BranchPatchable(const ExternalLabel* label) {
+    // TODO(zra): Use LoadExternalLabelFixed if possible.
     LoadImmediateFixed(TMP, label->address());
     br(TMP);
   }
@@ -814,8 +810,10 @@ class Assembler : public ValueObject {
     }
   }
 
+  // BranchLinkPatchable must be a fixed-length sequence so we can patch it
+  // with the debugger.
   void BranchLinkPatchable(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label, kPatchable, PP);
+    LoadExternalLabelFixed(TMP, label, kPatchable, PP);
     blr(TMP);
   }
 
@@ -907,6 +905,7 @@ class Assembler : public ValueObject {
   };
 
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
+  void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
   intptr_t FindExternalLabel(const ExternalLabel* label,
                              Patchability patchable);
   intptr_t FindObject(const Object& obj, Patchability patchable);
@@ -915,6 +914,10 @@ class Assembler : public ValueObject {
   bool CanLoadImmediateFromPool(int64_t imm, Register pp);
   void LoadExternalLabel(Register dst, const ExternalLabel* label,
                          Patchability patchable, Register pp);
+  void LoadExternalLabelFixed(Register dst,
+                              const ExternalLabel* label,
+                              Patchability patchable,
+                              Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);

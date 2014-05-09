@@ -902,7 +902,7 @@ void FlowGraphCompiler::CopyParameters() {
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(R5, ic_data, PP);
     __ LeaveDartFrame();  // The arguments are still on the stack.
-    __ BranchFixed(&StubCode::CallNoSuchMethodFunctionLabel());
+    __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
     __ hlt(0);
   } else if (check_correct_named_args) {
@@ -1077,7 +1077,7 @@ void FlowGraphCompiler::CompileGraph() {
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(R5, ic_data, PP);
         __ LeaveDartFrame();  // The arguments are still on the stack.
-        __ BranchFixed(&StubCode::CallNoSuchMethodFunctionLabel());
+        __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
         __ hlt(0);
       } else {
@@ -1110,14 +1110,12 @@ void FlowGraphCompiler::CompileGraph() {
   AddCurrentDescriptor(PcDescriptors::kPatchCode,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
-  __ BranchFixed(&StubCode::FixCallersTargetLabel());
+  __ BranchPatchable(&StubCode::FixCallersTargetLabel());
 
   AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
-  // TODO(zra): Can I use a normal BranchPatchable here? Probably have to change
-  // the CodePatcher.
-  __ BranchFixed(&StubCode::DeoptimizeLazyLabel());
+  __ BranchPatchable(&StubCode::DeoptimizeLazyLabel());
 }
 
 
