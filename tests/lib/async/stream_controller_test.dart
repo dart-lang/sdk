@@ -442,6 +442,7 @@ void testStreamEquals() {
 void testCancelThrow() {
   asyncStart();
   asyncStart();
+  asyncStart();
   StreamController c = new StreamController(onCancel: () {
     asyncEnd();
     throw "ERROR";
@@ -503,7 +504,7 @@ void testCancelThrow3() {
   asyncStart();
   asyncStart();
   StreamController c2 = new StreamController(onCancel: () {
-    asyneEnd();
+    asyncEnd();
     throw "ERROR2";
   });
   c2.add(1);
@@ -531,6 +532,7 @@ void testCancelThrow3() {
 }
 
 main() {
+  asyncStart();
   testMultiController();
   testSingleController();
   testExtraMethods();
@@ -539,4 +541,5 @@ main() {
   testCancelThrow();
   testCancelThrow2();
   testCancelThrow3();
+  asyncEnd();
 }
