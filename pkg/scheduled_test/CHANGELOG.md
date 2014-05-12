@@ -1,6 +1,10 @@
+## 0.11.0+3
+
+* Support `v0.11.0` of `unittest`.
+
 ## 0.11.0+1
 
-* Support `v0.5.0` of `shelf`
+* Support `v0.5.0` of `shelf`.
 
 ## 0.11.0
 
