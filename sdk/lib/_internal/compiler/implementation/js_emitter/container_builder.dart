@@ -345,6 +345,12 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (member.isInstanceMember()) emitExtraAccessors(member, builder);
   }
 
+  bool _isOperator(FunctionElement member) {
+    // TODO(18740): there must be a better way to know if an element is an
+    // operator.
+    return Elements.operatorNameToIdentifier(member.name) != member.name;
+  }
+
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {
     if (member.isAbstract) return;
     jsAst.Expression code = backend.generatedCode[member];
@@ -359,6 +365,9 @@ class ContainerBuilder extends CodeEmitterHelper {
                             member.isConstructor() ||
                             member.isAccessor();
     String tearOffName;
+
+    final bool canBeReflected = backend.isAccessibleByReflection(member);
+
     if (isNotApplyTarget) {
       canTearOff = false;
     } else if (member.isInstanceMember()) {
@@ -367,19 +376,21 @@ class ContainerBuilder extends CodeEmitterHelper {
         isClosure = true;
       } else {
         // Careful with operators.
-        canTearOff = compiler.codegenWorld.hasInvokedGetter(member, compiler);
+        canTearOff =
+            compiler.codegenWorld.hasInvokedGetter(member, compiler) ||
+            (canBeReflected && !_isOperator(member));
         assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
       }
     } else {
       canTearOff =
-          compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member);
+          compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member) ||
+          canBeReflected;
       tearOffName = namer.getStaticClosureName(member);
     }
     final bool canBeApplied = compiler.enabledFunctionApply &&
                               compiler.world.getMightBePassedToApply(member);
 
-    final bool canBeReflected = backend.isAccessibleByReflection(member);
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {

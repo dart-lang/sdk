@@ -322,7 +322,14 @@ class ResolverTask extends CompilerTask {
     while (!originParameters.isEmpty) {
       ParameterElementX originParameter = originParameters.head;
       ParameterElementX patchParameter = patchParameters.head;
-      originParameter.applyPatch(patchParameter);
+      // TODO(johnniwinther): Remove the conditional patching when we never
+      // resolve the same method twice.
+      if (!originParameter.isPatched) {
+        originParameter.applyPatch(patchParameter);
+      } else {
+        assert(invariant(origin, originParameter.patch == patchParameter,
+               message: "Inconsistent repatch of $originParameter."));
+      }
       DartType originParameterType = originParameter.computeType(compiler);
       DartType patchParameterType = patchParameter.computeType(compiler);
       if (originParameterType != patchParameterType) {
