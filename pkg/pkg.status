@@ -18,9 +18,6 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 polymer/test/build/script_compactor_test: Pass, Slow
 
-[ $compiler == dart2js && $browser ]
-polymer/test/attr_mustache_test: CompileTimeError # Issue 18667
-
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
 analysis_server/test/domain_context_test: Pass, Timeout

@@ -151,18 +151,18 @@ class Recorder {
 
   /// Adds the declaration of [name] if it was found in [type]. If [recursive]
   /// is true, then we continue looking up [name] in the parent classes until we
-  /// find it or we reach Object. Returns whether the declaration was found.
-  /// When a declaration is found, add also a symbol, getter, and setter if
-  /// [includeAccessors] is true.
+  /// find it or we reach [includeUpTo] or Object. Returns whether the
+  /// declaration was found.  When a declaration is found, add also a symbol,
+  /// getter, and setter if [includeAccessors] is true.
   bool lookupMember(ClassElement type, String name, {bool recursive: false,
-      bool includeAccessors: true}) =>
+      bool includeAccessors: true, ClassElement includeUpTo}) =>
     _lookupMemberInternal(type, _typeFor(type), name, recursive,
-        includeAccessors);
+        includeAccessors, includeUpTo);
 
   /// Helper for [lookupMember] that walks up the type hierarchy including mixin
   /// classes.
   bool _lookupMemberInternal(ClassElement type, TypeIdentifier id, String name,
-      bool recursive, bool includeAccessors) {
+      bool recursive, bool includeAccessors, ClassElement includeUpTo) {
     // Exclude members from [Object].
     if (type.type.isObject) return false;
     generator.addEmptyDeclaration(id);
@@ -210,19 +210,19 @@ class Recorder {
     if (recursive) {
       lookupParent(type);
       var parent = type.supertype != null ? type.supertype.element : null;
-      if (parent == null) return false;
+      if (parent == null || parent == includeUpTo) return false;
       var parentId = _typeFor(parent);
       for (var m in type.mixins) {
         var mixinClass = m.element;
         var mixinId = _mixins[parentId][mixinClass];
         if (_lookupMemberInternal(mixinClass, mixinId, name, false,
-              includeAccessors)) {
+              includeAccessors, includeUpTo)) {
           return true;
         }
         parentId = mixinId;
       }
       return _lookupMemberInternal(parent, parentId, name, true,
-          includeAccessors);
+          includeAccessors, includeUpTo);
     }
     return false;
   }
