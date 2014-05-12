@@ -242,12 +242,19 @@ class BacktrackingSolver {
     // Bail if there is nothing to backtrack to.
     if (_selected.isEmpty) return new Future.value(false);
 
-    // Get the set of packages that may have led to this failure.
+    // Mark any packages that may have led to this failure so that we know to
+    // consider them when backtracking.
     var dependers = _getTransitiveDependers(failure.package);
+
+    for (var selected in _selected) {
+      if (dependers.contains(selected.current.name)) {
+        selected.fail();
+      }
+    }
 
     // Advance past the current version of the leaf-most package.
     advanceVersion() {
-      _backjump(failure, dependers);
+      _backjump(failure);
       var previous = _selected.last.current;
       return _selected.last.advance().then((success) {
         if (success) {
@@ -274,7 +281,7 @@ class BacktrackingSolver {
   /// ones can be ignored and jumped over by the backtracker. The only packages
   /// we need to backtrack to are ones that led (possibly indirectly) to the
   /// failure. Everything else can be skipped.
-  void _backjump(SolveFailure failure, Set<String> dependers) {
+  void _backjump(SolveFailure failure) {
     for (var i = _selected.length - 1; i >= 0; i--) {
       // Each queue will never be empty since it gets discarded by _backtrack()
       // when that happens.
@@ -289,18 +296,8 @@ class BacktrackingSolver {
         continue;
       }
 
-      // If we get to the package that failed, backtrack to here.
-      if (selected.name == failure.package) {
-        logSolve('backjump to failed package ${selected.name}');
-        _selected.removeRange(i + 1, _selected.length);
-        return;
-      }
-
-      // If we get to a package that depends on the failing package, backtrack
-      // to here.
-      if (dependers.contains(selected.name)) {
-        logSolve('backjump to ${selected.name} because it depends on '
-                 '${failure.package}');
+      if (_selected[i].hasFailed) {
+        logSolve('backjump to ${selected.name}');
         _selected.removeRange(i + 1, _selected.length);
         return;
       }

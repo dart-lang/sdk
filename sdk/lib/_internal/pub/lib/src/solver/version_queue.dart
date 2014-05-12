@@ -40,6 +40,15 @@ class VersionQueue {
     return _allowed.first;
   }
 
+  /// Whether the currently selected version has been responsible for a solve
+  /// failure, or depends on a package that has.
+  ///
+  /// The solver uses this to determine which packages to backtrack to after a
+  /// failure occurs. Any selected package that did *not* cause the failure can
+  /// be skipped by the backtracker.
+  bool get hasFailed => _hasFailed;
+  bool _hasFailed = false;
+
   /// Creates a new [VersionQueue] queue for starting with the optional
   /// [locked] package followed by the results of calling [allowedGenerator].
   ///
@@ -66,6 +75,10 @@ class VersionQueue {
   /// Returns `true` if it moved to a new version (which can be accessed from
   /// [current]. Returns `false` if there are no more versions.
   Future<bool> advance() {
+    // Any failure was the fault of the previous version, not necessarily the
+    // new one.
+    _hasFailed = false;
+
     // If we have a locked version, consume it first.
     if (_locked != null) {
       // Advancing past the locked version, so need to load the others now
@@ -79,6 +92,12 @@ class VersionQueue {
     // Move to the next allowed version.
     _allowed.removeFirst();
     return new Future.value(_allowed.isNotEmpty);
+  }
+
+  /// Marks the selected version as being directly or indirectly responsible
+  /// for a solve failure.
+  void fail() {
+    _hasFailed = true;
   }
 
   /// Determines the list of allowed versions matching its constraint and places
