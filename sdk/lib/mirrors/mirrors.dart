@@ -79,7 +79,10 @@ abstract class MirrorSystem {
    *
    * If no unique library exists, an error is thrown.
    */
-  LibraryMirror findLibrary(Symbol libraryName);
+  LibraryMirror findLibrary(Symbol libraryName) {
+    return libraries.values.singleWhere(
+        (library) => library.simpleName == libraryName);
+  }
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
