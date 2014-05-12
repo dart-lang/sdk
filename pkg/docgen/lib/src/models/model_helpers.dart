@@ -28,15 +28,15 @@ String getLibraryDocName(LibraryMirror mirror) =>
 /// Expand the method map [mapToExpand] into a more detailed map that
 /// separates out setters, getters, constructors, operators, and methods.
 Map expandMethodMap(Map<String, Method> mapToExpand) => {
-  'setters': recurseMap(filterMap(mapToExpand,
+  'setters': recurseMap(_filterMap(mapToExpand,
       (key, val) => val.mirror.isSetter)),
-  'getters': recurseMap(filterMap(mapToExpand,
+  'getters': recurseMap(_filterMap(mapToExpand,
       (key, val) => val.mirror.isGetter)),
-  'constructors': recurseMap(filterMap(mapToExpand,
+  'constructors': recurseMap(_filterMap(mapToExpand,
       (key, val) => val.mirror.isConstructor)),
-  'operators': recurseMap(filterMap(mapToExpand,
+  'operators': recurseMap(_filterMap(mapToExpand,
       (key, val) => val.mirror.isOperator)),
-  'methods': recurseMap(filterMap(mapToExpand,
+  'methods': recurseMap(_filterMap(mapToExpand,
       (key, val) => val.mirror.isRegularMethod && !val.mirror.isOperator))
 };
 
@@ -105,7 +105,7 @@ bool isHidden(DeclarationSourceMirror mirror) {
 
 /// Transforms the map by calling toMap on each value in it.
 Map recurseMap(Map inputMap) {
-  var outputMap = new SplayTreeMap();
+  var outputMap = new LinkedHashMap();
   inputMap.forEach((key, value) {
     if (value is Map) {
       outputMap[key] = recurseMap(value);
@@ -114,14 +114,6 @@ Map recurseMap(Map inputMap) {
     }
   });
   return outputMap;
-}
-
-Map filterMap(Map map, Function test) {
-  var exported = new Map();
-  map.forEach((key, value) {
-    if (test(key, value)) exported[key] = value;
-  });
-  return exported;
 }
 
 /// Read a pubspec and return the library name given a [LibraryMirror].
@@ -149,9 +141,9 @@ Map addAll(Map map, Iterable<DeclarationMirror> mirrors) {
 Map<String, Map<String, DeclarationMirror>> calcExportedItems(
     LibrarySourceMirror library) {
   var exports = {};
-  exports['classes'] = {};
-  exports['methods'] = {};
-  exports['variables'] = {};
+  exports['classes'] = new SplayTreeMap();
+  exports['methods'] = new SplayTreeMap();
+  exports['variables'] = new SplayTreeMap();
 
   // Determine the classes, variables and methods that are exported for a
   // specific dependency.
@@ -220,7 +212,7 @@ Map<String, Map<String, DeclarationMirror>> calcExportedItems(
 /// purposes).
 Map<String, Variable> createVariables(Iterable<VariableMirror> mirrors,
     Indexable owner) {
-  var data = {};
+  var data = new SplayTreeMap<String, Variable>();
   // TODO(janicejl): When map to map feature is created, replace the below
   // with a filter. Issue(#9590).
   mirrors.forEach((dart2js_mirrors.Dart2JsFieldMirror mirror) {
@@ -238,7 +230,7 @@ Map<String, Variable> createVariables(Iterable<VariableMirror> mirrors,
 /// purposes).
 Map<String, Method> createMethods(Iterable<MethodMirror> mirrors,
     Indexable owner) {
-  var group = new Map<String, Method>();
+  var group = new SplayTreeMap<String, Method>();
   mirrors.forEach((MethodMirror mirror) {
     if (includePrivateMembers || !mirror.isPrivate) {
       group[dart2js_util.nameOf(mirror)] = new Method(mirror, owner);
@@ -263,6 +255,14 @@ Map<String, Generic> createGenerics(TypeMirror mirror) {
   return new Map.fromIterable(mirror.typeVariables,
       key: (e) => dart2js_util.nameOf(e),
       value: (e) => new Generic(e));
+}
+
+Map _filterMap(Map map, bool test(k, v)) {
+  var exported = new SplayTreeMap();
+  map.forEach((key, value) {
+    if (test(key, value)) exported[key] = value;
+  });
+  return exported;
 }
 
 /// Annotations that we do not display in the viewer.
