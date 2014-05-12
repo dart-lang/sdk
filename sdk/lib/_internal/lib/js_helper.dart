@@ -1097,16 +1097,19 @@ class Primitives {
 class JsCache {
   /// Returns a JavaScript object suitable for use as a cache.
   static allocate() {
-    var result = JS('=Object', '{x:0}');
+    var result = JS('=Object', 'Object.create(null)');
     // Deleting a property makes V8 assume that it shouldn't create a hidden
     // class for [result] and map transitions. Although these map transitions
     // pay off if there are many cache hits for the same keys, it becomes
     // really slow when there aren't many repeated hits.
+    JS('void', '#.x=0', result);
     JS('void', 'delete #.x', result);
     return result;
   }
 
-  static fetch(cache, String key) => JS('', '#[#]', cache, key);
+  static fetch(cache, String key) {
+    return JS('', '#[#]', cache, key);
+  }
 
   static void update(cache, String key, value) {
     JS('void', '#[#] = #', cache, key, value);

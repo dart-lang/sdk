@@ -1064,7 +1064,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     var cache = _getterCache;
     if (isMissingCache(cache)) {
       if ((_getterCache = --cache) != 0) return result;
-      cache = _getterCache = JS('=Object', '({})');
+      cache = _getterCache = JS('=Object', 'Object.create(null)');
     }
 
     // Make sure that symbol [fieldName] has a cache probing function ($p).
