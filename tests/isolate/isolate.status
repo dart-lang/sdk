@@ -9,9 +9,6 @@ isolate_stress_test: Fail # Issue 12588: This should be able to pass when we hav
 [ $runtime == vm && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
-[ $runtime == vm && $arch == simarm64 ]
-*: Skip
-
 [ $compiler == none || $compiler == dart2dart ]
 serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 isolate_throws_test/01: Skip # Issue 12587

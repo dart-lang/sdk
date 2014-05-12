@@ -11,7 +11,7 @@ void checkVeryClose(double a, double b) {
   // We find a ulp (unit in the last place) by shifting the original number
   // to the right. This only works if we are not too close to infinity or if
   // we work with denormals.
-  // We special case or 0.0, but not for infinity.
+  // We special case for 0.0, but not for infinity.
   if (a == 0.0) {
     final minimalDouble = 4.9406564584124654e-324;
     Expect.equals(true, b.abs() <= minimalDouble);
@@ -19,7 +19,7 @@ void checkVeryClose(double a, double b) {
   }
   if (b == 0.0) {
     // No need to look if they are close. Otherwise the check for 'a' above
-    // whould have triggered.
+    // would have triggered.
     Expect.equals(a, b);
   }
   final double shiftRightBy52 = 2.220446049250313080847263336181640625e-16;

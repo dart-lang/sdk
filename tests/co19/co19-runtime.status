@@ -61,7 +61,7 @@ LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/core/List/List_class_A01_t01: Pass, Slow
 
-[ $compiler == none && $runtime == vm && $arch != x64 ]
+[ $compiler == none && $runtime == vm && ($arch != x64 && $arch != simarm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
@@ -76,10 +76,10 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19 issue 673
 LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # dartbug.com/17440
 LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # dartbug.com/17440
 
-[ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
-LibTest/core/Uri/Uri_A06_t03: Skip # Timeouts, co19-roll r576: Please triage this failure
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # Timeouts
-LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
+[ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips || $arch == simarm64) ]
+LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
@@ -89,27 +89,7 @@ WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
 
 [ $compiler == none && $runtime == vm && $arch == simarm64 ]
-# Flaky
-LibTest/isolate/ReceivePort/*: Skip
 # Timeout.
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip
-LibTest/collection/ListBase/ListBase_class_A01_t01: Skip
 LibTest/math/MutableRectangle/boundingBox_A01_t01: Skip
-LibTest/math/Rectangle/boundingBox_A01_t01: Skip  # Pass, Slow
-# Passes, but should fail like other architectures?
-LibTest/core/int/operator_left_shift_A01_t02: Skip
-# Bugs
-LibTest/core/Uri/encodeQueryComponent_A01_t02: RuntimeError
-LibTest/core/Uri/Uri_A06_t03: RuntimeError
-
-
-[ $compiler == none && $runtime == vm && $arch == simarm64 && $mode == debug]
-# Bug
-LibTest/core/List/List_class_A01_t01: Crash
-
-
-[ $compiler == none && $runtime == vm && $arch == simarm64 && $checked ]
-# Bug
-LibTest/isolate/Isolate/spawn_A01_t02: Crash
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Pass, Crash
-LibTest/async/StreamTransformer/StreamTransformer_A02_t02: Pass, Crash
+LibTest/math/Rectangle/boundingBox_A01_t01: Skip
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Skip

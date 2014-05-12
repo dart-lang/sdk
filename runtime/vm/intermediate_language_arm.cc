@@ -3072,7 +3072,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
 
         value = value + kSmiTagSize;
-        if (value >= kCountLimit) value = kCountLimit;
+        if (value >= kCountLimit) {
+          value = kCountLimit;
+        }
 
         __ Asr(result, left, value);
         __ SmiTag(result);
@@ -5214,7 +5216,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ b(&do_pow, NE);
 
   // base == 0 -> return 0;
-  __ vcmpdz(base);
+  __ vcmpdz(saved_base);
   __ b(&return_zero, EQ);
 
   __ vsqrtd(result, saved_base);

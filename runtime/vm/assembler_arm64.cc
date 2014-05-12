@@ -20,6 +20,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -123,18 +124,81 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 }
 
 
-// TODO(zra): Support for far branches. Requires loading large immediates.
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
-  intptr_t bound_pc = buffer_.Size();
+  const intptr_t bound_pc = buffer_.Size();
 
   while (label->IsLinked()) {
     const int64_t position = label->Position();
     const int64_t dest = bound_pc - position;
-    const int32_t next = buffer_.Load<int32_t>(position);
-    const int32_t encoded = EncodeImm19BranchOffset(dest, next);
-    buffer_.Store<int32_t>(position, encoded);
-    label->position_ = DecodeImm19BranchOffset(next);
+    if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+      // Far branches are enabled, and we can't encode the branch offset in
+      // 19 bits.
+
+      // Grab the guarding branch instruction.
+      const int32_t guard_branch =
+          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+      // Grab the far branch instruction.
+      const int32_t far_branch =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+      const Condition c = DecodeImm19BranchCondition(guard_branch);
+
+      // Grab the link to the next branch.
+      const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+      // dest is the offset is from the guarding branch instruction.
+      // Correct it to be from the following instruction.
+      const int64_t offset = dest - Instr::kInstrSize;
+
+      // Encode the branch.
+      const int32_t encoded_branch =
+          EncodeImm26BranchOffset(offset, far_branch);
+
+      // If the guard branch is conditioned on NV, replace it with a nop.
+      if (c == NV) {
+        buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                               Instr::kNopInstruction);
+      }
+
+      // Write the far branch into the buffer and link to the next branch.
+      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
+      label->position_ = next;
+    } else if (use_far_branches() && CanEncodeImm19BranchOffset(dest)) {
+      // We assembled a far branch, but we don't need it. Replace it with a near
+      // branch.
+
+      // Grab the guarding branch instruction.
+      const int32_t guard_branch =
+          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+      // Grab the far branch instruction.
+      const int32_t far_branch =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+      // Grab the link to the next branch.
+      const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+      // Re-target the guarding branch and flip the conditional sense.
+      int32_t encoded_guard_branch =
+          EncodeImm19BranchOffset(dest, guard_branch);
+      const Condition c = DecodeImm19BranchCondition(encoded_guard_branch);
+      encoded_guard_branch = EncodeImm19BranchCondition(
+          InvertCondition(c), encoded_guard_branch);
+
+      // Write back the re-encoded instructions. The far branch becomes a nop.
+      buffer_.Store<int32_t>(
+          position + 0 * Instr::kInstrSize, encoded_guard_branch);
+      buffer_.Store<int32_t>(
+          position + 1 * Instr::kInstrSize, Instr::kNopInstruction);
+      label->position_ = next;
+    } else {
+      const int32_t next = buffer_.Load<int32_t>(position);
+      const int32_t encoded = EncodeImm19BranchOffset(dest, next);
+      buffer_.Store<int32_t>(position, encoded);
+      label->position_ = DecodeImm19BranchOffset(next);
+    }
   }
   label->BindTo(bound_pc);
 }
@@ -426,6 +490,9 @@ bool Assembler::CanLoadObjectFromPool(const Object& object) {
 bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
   return !Utils::IsInt(32, imm) &&
          (pp != kNoPP) &&
+         // We *could* put constants in the pool in a VM isolate, but it is
+         // simpler to maintain the invariant that the object pool is not used
+         // in the VM isolate.
          (Isolate::Current() != Dart::vm_isolate());
 }
 
@@ -434,9 +501,14 @@ void Assembler::LoadExternalLabel(Register dst,
                                   const ExternalLabel* label,
                                   Patchability patchable,
                                   Register pp) {
-  const int32_t offset =
-      Array::element_offset(FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(dst, pp, offset);
+  const int64_t target = static_cast<int64_t>(label->address());
+  if (CanLoadImmediateFromPool(target, pp)) {
+    const int32_t offset =
+        Array::element_offset(FindExternalLabel(label, patchable));
+    LoadWordFromPoolOffset(dst, pp, offset);
+  } else {
+    LoadImmediate(dst, target, kNoPP);
+  }
 }
 
 
@@ -945,7 +1017,9 @@ void Assembler::CompareClassId(
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
-  AddImmediate(SP, SP, -frame_space, kNoPP);
+  if (frame_space != 0) {
+    AddImmediate(SP, SP, -frame_space, kNoPP);
+  }
   if (OS::ActivationFrameAlignment() > 1) {
     mov(TMP, SP);  // SP can't be register operand of andi.
     andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));

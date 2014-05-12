@@ -748,11 +748,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ EnterFrame(0);
 
   // The new context, saved vm tag, the top exit frame, and the old context.
-  // const intptr_t kPreservedContextSlots = 4;
   const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
-  // const intptr_t kPreservedRegSpace =
-  //     kWordSize * (kAbiPreservedCpuRegCount + kPreservedContextSlots);
 
   // Save the callee-saved registers.
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
@@ -876,7 +873,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the bottom 64-bits of callee-saved V registers.
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);
-    __ PushDouble(r);
+    __ PopDouble(r);
   }
 
   // Restore C++ ABI callee-saved registers.

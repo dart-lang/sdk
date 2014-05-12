@@ -149,10 +149,13 @@ symbol_test/01: fail # test issue 13730; It is static type warning if "const" in
 int_parse_radix_test: Skip # Timeout
 
 [ $arch == simarm && $checked ]
-num_parse_test: Pass, Timeout
+num_parse_test: Skip  # Pass, Timeout
 
 [ $arch == simarm64 ]
-*: Skip
+num_parse_test: Skip  # Timeout
+collection_length_test: Skip  # Timeout
+shuffle_test: Skip  # Timeout
+
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.

@@ -623,9 +623,11 @@ enum InstructionFields {
   kImm19Mask = 0x7ffff << kImm19Shift,
   kImm26Shift = 0,
   kImm26Bits = 26,
+  kImm26Mask = 0x03ffffff << kImm26Shift,
 
   kCondShift = 0,
   kCondBits = 4,
+  kCondMask = 0xf << kCondShift,
 
   kSelCondShift = 12,
   kSelCondBits = 4,

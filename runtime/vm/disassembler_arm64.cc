@@ -713,7 +713,7 @@ void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
 
 
 void ARM64Decoder::DecodeSystem(Instr* instr) {
-  if ((instr->Bits(0, 8) == 0x5f) && (instr->Bits(12, 4) == 2) &&
+  if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {
     if (instr->Bits(8, 4) == 0) {

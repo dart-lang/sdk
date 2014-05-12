@@ -1312,7 +1312,7 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
 
 
 void Simulator::DecodeSystem(Instr* instr) {
-  if ((instr->Bits(0, 8) == 0x5f) && (instr->Bits(12, 4) == 2) &&
+  if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {
     if (instr->Bits(8, 4) == 0) {
@@ -2362,7 +2362,7 @@ int64_t Simulator::Call(int64_t entry,
                         bool fp_return,
                         bool fp_args) {
   // Save the SP register before the call so we can restore it.
-  intptr_t sp_before_call = get_register(R31, R31IsSP);
+  const intptr_t sp_before_call = get_register(R31, R31IsSP);
 
   // Setup parameters.
   if (fp_args) {
@@ -2396,7 +2396,8 @@ int64_t Simulator::Call(int64_t entry,
   // known value so that we are able to check that they are preserved
   // properly across Dart execution.
   int64_t preserved_vals[kAbiPreservedCpuRegCount];
-  int64_t callee_saved_value = icount_;
+  const double dicount = static_cast<double>(icount_);
+  const int64_t callee_saved_value = bit_cast<int64_t, double>(dicount);
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
     preserved_vals[i - kAbiFirstPreservedCpuReg] = get_register(r);
@@ -2411,11 +2412,11 @@ int64_t Simulator::Call(int64_t entry,
     set_vregisterd(r, callee_saved_value);
   }
 
-  // Start the simulation
+  // Start the simulation.
   Execute();
 
   // Check that the callee-saved registers have been preserved,
-  // and restore them with the original value
+  // and restore them with the original value.
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
     ASSERT(callee_saved_value == get_register(r));

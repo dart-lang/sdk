@@ -570,7 +570,7 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
     case GT: __ coltd(right, left); break;
     case GE: __ coled(right, left); break;
     default: {
-      // Should only passing the above conditions to this function.
+      // We should only be passing the above conditions to this function.
       UNREACHABLE();
       break;
     }
@@ -2804,7 +2804,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
 
         value = value + kSmiTagSize;
-        if (value >= kCountLimit) value = kCountLimit;
+        if (value >= kCountLimit) {
+          value = kCountLimit;
+        }
 
         __ sra(result, left, value);
         __ SmiTag(result);

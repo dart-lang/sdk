@@ -126,4 +126,4 @@ stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 
 # arm64 port is WIP. No issue numbers until we're a bit further along.
 [ $compiler == none && $runtime == vm && $arch == simarm64 ]
-arithmetic_test: Skip # Timeout, Bug?
+arithmetic_test: Skip  # Timeout

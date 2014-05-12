@@ -491,12 +491,15 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
 void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kEQ) || (kind() == Token::kNE));
-
   Label is_true, is_false;
   BranchLabels labels = { &is_true, &is_false, &is_false };
   Condition true_condition = EmitComparisonCode(compiler, labels);
+  if ((operation_cid() == kDoubleCid) && (true_condition != NE)) {
+    // Special case for NaN comparison. Result is always false unless
+    // relational operator is !=.
+    __ b(&is_false, VS);
+  }
   EmitBranchOnCondition(compiler, true_condition, labels);
-
   // TODO(zra): instead of branching, use the csel instruction to get
   // True or False into result.
   Register result = locs()->out(0).reg();
@@ -516,6 +519,11 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
+  if ((operation_cid() == kDoubleCid) && (true_condition != NE)) {
+    // Special case for NaN comparison. Result is always false unless
+    // relational operator is !=.
+    __ b(labels.false_label, VS);
+  }
   EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
@@ -678,6 +686,11 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_true, is_false;
   BranchLabels labels = { &is_true, &is_false, &is_false };
   Condition true_condition = EmitComparisonCode(compiler, labels);
+  if ((operation_cid() == kDoubleCid) && (true_condition != NE)) {
+    // Special case for NaN comparison. Result is always false unless
+    // relational operator is !=.
+    __ b(&is_false, VS);
+  }
   EmitBranchOnCondition(compiler, true_condition, labels);
   // TODO(zra): instead of branching, use the csel instruction to get
   // True or False into result.
@@ -696,6 +709,11 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
+  if ((operation_cid() == kDoubleCid) && (true_condition != NE)) {
+    // Special case for NaN comparison. Result is always false unless
+    // relational operator is !=.
+    __ b(labels.false_label, VS);
+  }
   EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
@@ -773,8 +791,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(bool opt) const {
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register char_code = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadImmediate(result,
-                   reinterpret_cast<uword>(Symbols::PredefinedAddress()), PP);
+  __ LoadImmediate(
+      result, reinterpret_cast<uword>(Symbols::PredefinedAddress()), PP);
   __ AddImmediate(
       result, result, Symbols::kNullCharCodeSymbolOffset * kWordSize, PP);
   __ Asr(TMP, char_code, kSmiTagShift);  // Untag to use scaled adress mode.
@@ -2839,7 +2857,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       Register temp = locs()->temp(0).reg();
       __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ Asr(result, temp, TMP);
+      __ asrv(result, temp, TMP);
       __ SmiTag(result);
       break;
     }
@@ -3696,7 +3714,6 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   Label skip_call, try_sqrt, check_base, return_nan, do_pow;
   __ fmovdd(saved_base, base);
-  __ b(&do_pow);
   __ LoadDImmediate(result, 1.0, PP);
   // exponent == 0.0 -> return 1.0;
   __ fcmpdz(exp);
@@ -3762,7 +3779,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ b(&do_pow, NE);
 
   // base == 0 -> return 0;
-  __ fcmpdz(base);
+  __ fcmpdz(saved_base);
   __ b(&return_zero, EQ);
 
   __ fsqrtd(result, saved_base);

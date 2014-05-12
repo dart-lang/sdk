@@ -13,6 +13,7 @@
 #include "platform/utils.h"
 #include "vm/constants_arm64.h"
 #include "vm/hash_map.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -601,7 +602,13 @@ class Assembler : public ValueObject {
     EmitBranch(BCOND, cond, label);
   }
 
-  // TODO(zra): branch and link with imm26 offset.
+  void b(int32_t offset) {
+    EmitUnconditionalBranchOp(B, offset);
+  }
+  void bl(int32_t offset) {
+    EmitUnconditionalBranchOp(BL, offset);
+  }
+
   // TODO(zra): cbz, cbnz.
 
   // Branch, link, return.
@@ -801,13 +808,8 @@ class Assembler : public ValueObject {
   }
 
   void BranchLink(const ExternalLabel* label, Register pp) {
-    if (Isolate::Current() == Dart::vm_isolate()) {
-      LoadImmediate(TMP, label->address(), kNoPP);
-      blr(TMP);
-    } else {
-      LoadExternalLabel(TMP, label, kNotPatchable, pp);
-      blr(TMP);
-    }
+    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+    blr(TMP);
   }
 
   // BranchLinkPatchable must be a fixed-length sequence so we can patch it
@@ -1126,6 +1128,11 @@ class Assembler : public ValueObject {
   }
 
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
+    if (!CanEncodeImm19BranchOffset(imm)) {
+      ASSERT(!use_far_branches());
+      Isolate::Current()->long_jump_base()->Jump(
+          1, Object::branch_offset_error());
+    }
     const int32_t imm32 = static_cast<int32_t>(imm);
     const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
     return (instr & ~kImm19Mask) | off;
@@ -1133,6 +1140,26 @@ class Assembler : public ValueObject {
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
     const int32_t off = (((instr & kImm19Mask) >> kImm19Shift) << 13) >> 11;
+    return static_cast<int64_t>(off);
+  }
+
+  Condition DecodeImm19BranchCondition(int32_t instr) {
+    return static_cast<Condition>((instr & kCondMask) >> kCondShift);
+  }
+
+  int32_t EncodeImm19BranchCondition(Condition cond, int32_t instr) {
+    const int32_t c_imm = static_cast<int32_t>(cond);
+    return (instr & ~kCondMask) | (c_imm << kCondShift);
+  }
+
+  int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
+    return (instr & ~kImm26Mask) | off;
+  }
+
+  int64_t DecodeImm26BranchOffset(int32_t instr) {
+    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
     return static_cast<int64_t>(off);
   }
 
@@ -1161,23 +1188,47 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
+  void EmitFarConditionalBranch(ConditionalBranchOp op,
+                                Condition cond,
+                                int64_t offset) {
+    EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
+    b(offset);
+  }
+
   bool CanEncodeImm19BranchOffset(int64_t offset) {
     ASSERT(Utils::IsAligned(offset, 4));
     return Utils::IsInt(21, offset);
   }
 
-  // TODO(zra): Implement far branches. Requires loading large immediates.
   void EmitBranch(ConditionalBranchOp op, Condition cond, Label* label) {
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
-      ASSERT(CanEncodeImm19BranchOffset(dest));
-      EmitConditionalBranch(op, cond, dest);
+      if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+        EmitFarConditionalBranch(op, cond, dest);
+      } else {
+        EmitConditionalBranch(op, cond, dest);
+      }
     } else {
       const int64_t position = buffer_.Size();
-      ASSERT(CanEncodeImm19BranchOffset(position));
-      EmitConditionalBranch(op, cond, label->position_);
+      if (use_far_branches()) {
+        EmitFarConditionalBranch(op, cond, label->position_);
+      } else {
+        EmitConditionalBranch(op, cond, label->position_);
+      }
       label->LinkTo(position);
     }
+  }
+
+  bool CanEncodeImm26BranchOffset(int64_t offset) {
+    ASSERT(Utils::IsAligned(offset, 4));
+    return Utils::IsInt(26, offset);
+  }
+
+  void EmitUnconditionalBranchOp(UnconditionalBranchOp op, int64_t offset) {
+    ASSERT(CanEncodeImm26BranchOffset(offset));
+    const int32_t off = (offset >> 2) << kImm26Shift;
+    const int32_t encoding = op | off;
+    Emit(encoding);
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
