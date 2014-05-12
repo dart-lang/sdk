@@ -342,9 +342,6 @@ $if DART2JS
       JS('void', '#.fillText(#, #, #)', this, text, x, y);
     }
   }
-
-  @DomName('CanvasRenderingContext2D.fill')
-  void fill([String winding = '']) => JS('void', '#.fill(#)', this, winding);
 $endif
 }
 
