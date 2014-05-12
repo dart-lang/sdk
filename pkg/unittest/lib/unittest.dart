@@ -301,22 +301,6 @@ Function expectAsync(Function callback,
     {int count: 1, int max: 0, String id}) =>
   new _SpreadArgsHelper(callback, count, max, id).func;
 
-/// *Deprecated*
-///
-/// Use [expectAsync] instead.
-@deprecated
-Function expectAsync0(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-    expectAsync(callback, count: count, max: max, id: id);
-
-/// *Deprecated*
-///
-/// Use [expectAsync] instead.
-@deprecated
-Function expectAsync1(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-    expectAsync(callback, count: count, max: max, id: id);
-
 /// Indicate that [callback] is expected to be called until [isDone] returns
 /// true. The unittest framework check [isDone] after each callback and only
 /// when it returns true will it continue with the following test. Using
