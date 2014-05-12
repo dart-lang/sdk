@@ -5978,12 +5978,12 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
+  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
 
-  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
   return result.raw();
 }
 
