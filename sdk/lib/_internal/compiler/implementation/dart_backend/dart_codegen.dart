@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library dart_codegen;
 
 import 'dart_tree.dart' as tree;
@@ -161,6 +165,54 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List args = exp.arguments.map(visitExpression).toList(growable:false);
     return new CallStatic(null, exp.target.name, args)
                ..element = exp.target;
+  }
+
+  Expression visitInvokeMethod(tree.InvokeMethod exp) {
+    // TODO: Derive named arguments from selector?
+    Expression receiver = visitExpression(exp.receiver);
+    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    switch (exp.selector.kind) {
+      case SelectorKind.CALL:
+        return new CallMethod(receiver, exp.selector.name, args);
+
+      case SelectorKind.OPERATOR:
+        if (args.length == 0) {
+          String name = exp.selector.name;
+          if (name == 'unary-') {
+            name = '-';
+          }
+          return new UnaryOperator(name, receiver);
+        }
+        return new BinaryOperator(receiver, exp.selector.name, args[0]);
+
+      case SelectorKind.GETTER:
+        return new FieldExpression(receiver, exp.selector.name);
+
+      case SelectorKind.SETTER:
+        return new Assignment(
+            new FieldExpression(receiver, exp.selector.name),
+            '=',
+            args[0]);
+
+      case SelectorKind.INDEX:
+        Expression e = new IndexExpression(receiver, args[0]);
+        if (args.length == 2) {
+          e = new Assignment(e, '=', args[1]);
+        }
+        return e;
+
+      default:
+        throw "Unexpected selector in InvokeMethod: ${exp.selector.kind}";
+    }
+  }
+
+  Expression visitInvokeConstructor(tree.InvokeConstructor exp) {
+    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    FunctionElement constructor = exp.target;
+    String name = constructor.name.isEmpty ? null : constructor.name;
+    return new CallNew(emitType(exp.type), args, constructorName: name)
+               ..constructor = constructor
+               ..dartType = exp.type;
   }
 
   Expression visitVariable(tree.Variable exp) {

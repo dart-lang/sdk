@@ -20,6 +20,7 @@ import '../tree/tree.dart' as ast show
 import '../elements/elements.dart' show
     Element, LibraryElement, FunctionElement;
 import '../universe/universe.dart' show Selector, TypedSelector, SelectorKind;
+import '../dart_types.dart' as types;
 
 part 'ir_unpickler.dart';
 
@@ -38,6 +39,10 @@ part 'ir_unpickler.dart';
  * node      ::= byte(NODE_CONSTANT) constant node(next)
  *             | byte(NODE_LET_CONT) int(parameter count) node(next) node(body)
  *             | byte(NODE_INVOKE_STATIC) element selector
+ *                   reference(continuation) {reference(argument)}
+ *             | byte(NODE_INVOKE_METHOD) reference(receiver) selector
+ *                   reference(continuation) {reference(argument)}
+ *             | byte(NODE_INVOKE_CONSTRUCTOR) type element(target) 
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_INVOKE_CONTINUATION) reference(continuation)
  *                   {reference(argument)}
@@ -59,6 +64,8 @@ part 'ir_unpickler.dart';
  *                    {string(parameterName)}
  *
  * element    ::= int(constantPoolIndex)
+ * 
+ * type       ::= int(constantPoolIndex)
  */
 class Pickles {
   static const int BACKREFERENCE = 1;
@@ -71,7 +78,9 @@ class Pickles {
   static const int NODE_IS_TRUE             = NODE_CONSTANT + 1;
   static const int NODE_LET_CONT            = NODE_IS_TRUE + 1;
   static const int NODE_INVOKE_STATIC       = NODE_LET_CONT + 1;
-  static const int NODE_INVOKE_CONTINUATION = NODE_INVOKE_STATIC + 1;
+  static const int NODE_INVOKE_METHOD       = NODE_INVOKE_STATIC + 1;
+  static const int NODE_INVOKE_CONSTRUCTOR  = NODE_INVOKE_METHOD + 1;
+  static const int NODE_INVOKE_CONTINUATION = NODE_INVOKE_CONSTRUCTOR + 1;
   static const int NODE_BRANCH              = NODE_INVOKE_CONTINUATION + 1;
   static const int LAST_NODE_TAG            = NODE_BRANCH;
 
@@ -337,6 +346,10 @@ class Pickler extends ir.Visitor {
   void writeElement(Element element) {
     writeInt(constantPool.add(element));
   }
+  
+  void writeDartType(types.DartType type) {
+    writeInt(constantPool.add(type));
+  }
 
   void writeSelector(Selector selector) {
     if (emitted.containsKey(selector)) {
@@ -398,6 +411,24 @@ class Pickler extends ir.Visitor {
     writeSelector(node.selector);
     // TODO(lry): compact encoding when the arity of the selector and the
     // arguments list are the same
+    writeBackReference(node.continuation.definition);
+    writeBackReferenceList(node.arguments.length,
+                           node.arguments.map((a) => a.definition));
+  }
+  
+  void visitInvokeMethod(ir.InvokeMethod node) {
+    writeByte(Pickles.NODE_INVOKE_METHOD);
+    writeBackReference(node.receiver.definition);
+    writeSelector(node.selector);
+    writeBackReference(node.continuation.definition);
+    writeBackReferenceList(node.arguments.length,
+                           node.arguments.map((a) => a.definition));
+  }
+  
+  void visitInvokeConstructor(ir.InvokeConstructor node) {
+    writeByte(Pickles.NODE_INVOKE_CONSTRUCTOR);
+    writeDartType(node.type);
+    writeElement(node.target);
     writeBackReference(node.continuation.definition);
     writeBackReferenceList(node.arguments.length,
                            node.arguments.map((a) => a.definition));

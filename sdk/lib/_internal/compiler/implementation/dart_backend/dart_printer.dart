@@ -453,6 +453,9 @@ class CallNew extends Expression {
   final String constructorName;
   final List<Argument> arguments;
 
+  elements.FunctionElement constructor;
+  types.DartType dartType;
+
   CallNew(this.type,
           this.arguments,
          { this.constructorName,

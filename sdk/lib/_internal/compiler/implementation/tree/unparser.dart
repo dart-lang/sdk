@@ -301,14 +301,21 @@ class Unparser implements Visitor {
     String opString = op != null ? op.source : null;
     bool spacesNeeded = identical(opString, 'is') || identical(opString, 'as');
 
-    if (node.isPrefix) visit(node.selector);
+    if (node.isPrefix) {
+      visit(node.selector);
+      // Add a space for sequences like - -x (double unary minus).
+      if (identical(opString, '-')) {
+        Token beginToken = node.receiver.getBeginToken();
+        if (identical(beginToken.stringValue, opString)) {
+          sb.write(' ');
+        }
+      }
+    }
     unparseSendReceiver(node, spacesNeeded: spacesNeeded);
     if (!node.isPrefix && !node.isIndex) visit(node.selector);
     if (spacesNeeded) sb.write(' ');
-    // Also add a space for sequences like x + +1 and y - -y.
-    // TODO(ahe): remove case for '+' when we drop the support for it.
-    if (node.argumentsNode != null && (identical(opString, '-')
-        || identical(opString, '+'))) {
+    // Also add a space for sequences like y - -y.
+    if (node.argumentsNode != null && identical(opString, '-')) {
       Token beginToken = node.argumentsNode.getBeginToken();
       if (beginToken != null && identical(beginToken.stringValue, opString)) {
         sb.write(' ');

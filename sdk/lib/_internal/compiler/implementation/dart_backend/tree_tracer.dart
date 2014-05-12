@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library dart_backend.tracer;
 
 import 'dart:async' show EventSink;
@@ -43,6 +47,8 @@ class BlockCollector extends Visitor {
 
   visitVariable(Variable node) {}
   visitInvokeStatic(InvokeStatic node) {}
+  visitInvokeMethod(InvokeMethod node) {}
+  visitInvokeConstructor(InvokeConstructor node) {}
   visitConstant(Constant node) {}
 
   visitLabeledStatement(LabeledStatement node) {
@@ -162,6 +168,14 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(name, "let $name = $rhs");
   }
 
+  visitInvokeMethod(InvokeMethod node) {
+    printStatement(null, expr(node));
+  }
+
+  visitInvokeConstructor(InvokeConstructor node) {
+    printStatement(null, expr(node));
+  }
+
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
   }
@@ -199,6 +213,24 @@ class SubexpressionVisitor extends Visitor<String, String> {
     String head = node.target.name;
     String args = node.arguments.map((e) => e.accept(this)).join(', ');
     return "$head($args)";
+  }
+
+  String visitInvokeMethod(InvokeMethod node) {
+    String receiver = node.receiver.accept(this);
+    String name = node.selector.name;
+    String args = node.arguments.map((e) => e.accept(this)).join(', ');
+    return "$receiver.$name($args)";
+  }
+
+  String visitInvokeConstructor(InvokeConstructor node) {
+    String callName;
+    if (node.target.name.isEmpty) {
+      callName = '${node.type}';
+    } else {
+      callName = '${node.type}.${node.target.name}';
+    }
+    String args = node.arguments.map(visitExpression).join(', ');
+    return "new $callName($args)";
   }
 
   String visitConstant(Constant node) {

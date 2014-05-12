@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library dart_printer_test;
 
 import "package:expect/expect.dart";
@@ -85,9 +89,9 @@ class PrintDiagnosticListener implements DiagnosticListener {
 
 class AstBuilder extends Listener {
   final List stack = [];
-  final StringValidator stringValidator 
-         = new StringValidator(new PrintDiagnosticListener()); 
-  
+  final StringValidator stringValidator
+         = new StringValidator(new PrintDiagnosticListener());
+
   String asName(e) {
     if (e is Identifier)
       return e.name;
@@ -96,7 +100,7 @@ class AstBuilder extends Listener {
     else
       throw 'Expression is not a name: ${e.runtimeType}';
   }
-  
+
   TypeAnnotation asType(x) {
     if (x is TypeAnnotation)
       return x;
@@ -107,7 +111,7 @@ class AstBuilder extends Listener {
     else
       throw "Not a type: ${x.runtimeType}";
   }
-  
+
   Parameter asParameter(x) {
     if (x is Parameter)
       return x;
@@ -116,7 +120,7 @@ class AstBuilder extends Listener {
     else
       throw "Not a parameter: ${x.runtimeType}";
   }
-  
+
   void push(node) {
     stack.add(node);
   }
@@ -150,7 +154,7 @@ class AstBuilder extends Listener {
     String name = pop(asName);
     return new TypeAnnotation(name, args);
   }
-  
+
   // EXPRESSIONS
   endCascade() {
     throw "Cascade not supported yet";
@@ -178,10 +182,10 @@ class AstBuilder extends Listener {
       var part = parts[i];
       if (part is Expression) {
         members.add(part);
-      } else { 
+      } else {
         assert(part is Token);
         DartString str = stringValidator.validateInterpolationPart(
-            part as Token, 
+            part as Token,
             quoting,
             isFirst: i == 0,
             isLast: i == parts.length - 1);
@@ -340,7 +344,7 @@ class AstBuilder extends Listener {
     List<Argument> args = pop();
     String constructorName = pop(asName);
     TypeAnnotation type = popTypeAnnotation();
-    push(new CallNew(type, args, constructorName: constructorName, 
+    push(new CallNew(type, args, constructorName: constructorName,
                      isConst:true));
   }
   handleParenthesizedExpression(t) {
@@ -361,7 +365,7 @@ class AstBuilder extends Listener {
   handleUnaryPrefixExpression(Token t) {
     push(new UnaryOperator(t.value, pop()));
   }
-  
+
   handleFunctionTypedFormalParameter(tok) {
     // handled in endFormalParameter
   }
@@ -418,7 +422,7 @@ class AstBuilder extends Listener {
   handleNoType(Token token) {
     push(null);
   }
-  
+
   endReturnStatement(bool hasExpression, begin, end) {
     // This is also called for functions whose body is "=> expression"
     if (hasExpression) {
@@ -427,31 +431,31 @@ class AstBuilder extends Listener {
       push(new Return());
     }
   }
-  
+
   endExpressionStatement(Token token) {
     push(new ExpressionStatement(pop()));
   }
-  
+
   endDoWhileStatement(Token doKeyword, Token whileKeyword, Token end) {
     Expression condition = pop();
     Statement body = pop();
     push(new DoWhile(body, condition));
   }
-  
+
   endWhileStatement(Token whileKeyword, Token end) {
     Statement body = pop();
     Expression condition = pop();
     push(new While(condition, body));
   }
-  
+
   endBlock(int count, Token begin, Token end) {
     push(new Block(popList(count, <Statement>[])));
   }
-  
+
   endRethrowStatement(Token throwToken, Token endToken) {
     push(new Rethrow());
   }
-  
+
   endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = null;
     if (finallyKeyword != null) {
@@ -461,7 +465,7 @@ class AstBuilder extends Listener {
     Statement tryBlock = pop();
     push(new Try(tryBlock, catchBlocks, finallyBlock));
   }
-  
+
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Statement block = pop();
     String exceptionVar = null;
@@ -474,23 +478,23 @@ class AstBuilder extends Listener {
       }
     }
     TypeAnnotation type = onKeyword == null ? null : pop();
-    push(new CatchBlock(block, 
+    push(new CatchBlock(block,
       onType: type,
       exceptionVar: exceptionVar,
       stackVar: stackVar
     ));
   }
-  
+
   endSwitchStatement(Token switchKeyword, Token end) {
     List<SwitchCase> cases = pop();
     Expression expression = pop();
     push(new Switch(expression, cases));
   }
-  
+
   endSwitchBlock(int caseCount, Token begin, Token end) {
     push(popList(caseCount, <SwitchCase>[]));
   }
-  
+
   handleSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
                    int statementCount, Token first, Token end) {
     List<Statement> statements = popList(statementCount, <Statement>[]);
@@ -500,26 +504,26 @@ class AstBuilder extends Listener {
     }
     push(new SwitchCase(cases, statements));
   }
-  
+
   handleCaseMatch(Token caseKeyword, Token colon) {
     // do nothing, leave case expression on stack
   }
-  
+
   handleBreakStatement(bool hasTarget, Token breakKeyword, Token end) {
     String target = hasTarget ? pop(asName) : null;
     push(new Break(target));
   }
-  
+
   handleContinueStatement(bool hasTarget, Token continueKeyword, Token end) {
     String target = hasTarget ? pop(asName) : null;
     push(new Continue(target));
   }
-  
+
   handleEmptyStatement(Token token) {
     push(new EmptyStatement());
   }
-  
-  
+
+
   VariableDeclaration asVariableDeclaration(x) {
     if (x is VariableDeclaration)
       return x;
@@ -527,31 +531,31 @@ class AstBuilder extends Listener {
       return new VariableDeclaration(x.name);
     throw "Not a variable definition: ${x.runtimeType}";
   }
-  
+
   endVariablesDeclaration(int count, Token end) {
-    List<VariableDeclaration> variables = 
+    List<VariableDeclaration> variables =
         popList(count, <VariableDeclaration>[], asVariableDeclaration);
     TypeAnnotation type = popTypeAnnotation();
-    push(new VariableDeclarations(variables, 
+    push(new VariableDeclarations(variables,
       type: type,
       isFinal: false, // TODO(asgerf): Parse modifiers.
       isConst: false
     ));
   }
-  
+
   endInitializer(Token assign) {
     Expression init = pop();
     String name = pop(asName);
     push(new VariableDeclaration(name, init));
   }
-  
+
   endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = (elseToken == null) ? null : pop();
     Statement thenPart = pop();
     Expression condition = pop();
     push(new If(condition, thenPart, elsePart));
   }
-  
+
   endForStatement(int updateCount, Token begin, Token end) {
     Statement body = pop();
     List<Expression> updates = popList(updateCount, <Expression>[]);
@@ -560,24 +564,24 @@ class AstBuilder extends Listener {
     Node initializer = pop();
     push(new For(initializer, exp, updates, body));
   }
-  
+
   handleNoExpression(Token token) {
     push(null);
   }
-  
+
   endForIn(Token begin, Token inKeyword, Token end) {
     Statement body = pop();
     Expression exp = pop();
     Node declaredIdentifier = pop();
     push(new ForIn(declaredIdentifier, exp, body));
   }
-  
+
   handleAssertStatement(Token assertKeyword, Token semicolonToken) {
     Expression exp = pop();
     Expression call = new CallFunction(new Identifier("assert"), [exp]);
     push(new ExpressionStatement(call));
   }
-  
+
   endLabeledStatement(int labelCount) {
     Statement statement = pop();
     for (int i=0; i<labelCount; i++) {
@@ -586,7 +590,7 @@ class AstBuilder extends Listener {
     }
     push(statement);
   }
-  
+
   // TODO(kmillikin,asgerf): this code is currently untested.
   endFunctionDeclaration(Token end) {
     Statement body = pop();
@@ -595,7 +599,7 @@ class AstBuilder extends Listener {
     TypeAnnotation returnType = popTypeAnnotation();
     push(new FunctionDeclaration(name, parameters, returnType));
   }
-  
+
   endFunctionBody(int count, Token begin, Token end) {
     push(new Block(popList(count, <Statement>[])));
   }
@@ -625,7 +629,7 @@ void checkDeepEqual(x, y) {
         continue; // do not check things from Object, such as hashCode
       }
       MethodMirror mm = xm.type.instanceMembers[name];
-      if (mm.isGetter) { 
+      if (mm.isGetter) {
         var xv = xm.getField(name).reflectee;
         var yv = ym.getField(name).reflectee;
         checkDeepEqual(xv,yv);
@@ -730,29 +734,29 @@ void debugTokens(String code) {
 }
 
 void main() {
-  // To check if these tests are effective, one should manually alter 
-  // something in [Unparser] and see if a test fails.  
-  
+  // To check if these tests are effective, one should manually alter
+  // something in [Unparser] and see if a test fails.
+
   checkExpression(" a +  b  + c");
   checkExpression("(a +  b) + c");
   checkExpression(" a + (b  + c)");
-  
+
   checkExpression(" a +  b  - c");
   checkExpression("(a +  b) - c");
   checkExpression(" a + (b  - c)");
-  
+
   checkExpression(" a -  b  + c");
   checkExpression("(a -  b) + c");
   checkExpression(" a - (b  + c)");
-  
+
   checkExpression(" a *  b  + c");
   checkExpression("(a *  b) + c");
   checkExpression(" a * (b  + c)");
-  
+
   checkExpression(" a +  b  * c");
   checkExpression("(a +  b) * c");
   checkExpression(" a + (b  * c)");
-  
+
   checkExpression(" a *  b  * c");
   checkExpression("(a *  b) * c");
   checkExpression(" a * (b  * c)");
@@ -760,7 +764,7 @@ void main() {
   checkExpression("a is T");
   checkExpression("a is! T");
   checkExpression("!(a is T)");
-  
+
   checkExpression("a is T.x");
   checkExpression("a is! T.x");
   checkExpression("!(a is T.x)");
@@ -768,7 +772,7 @@ void main() {
 
   checkExpression("a as T.x");
   checkExpression("(a as T).x");
-  
+
   checkExpression("a == b");
   checkExpression("a != b");
   checkExpression("!(a == b)", "a != b");
@@ -776,7 +780,7 @@ void main() {
   checkExpression("a && b ? c : d");
   checkExpression("(a && b) ? c : d");
   checkExpression("a && (b ? c : d)");
-  
+
   checkExpression("a || b ? c : d");
   checkExpression("(a || b) ? c : d");
   checkExpression("a || (b ? c : d)");
@@ -787,10 +791,10 @@ void main() {
 
   checkExpression(" a ? b : c = d");
   checkExpression(" a ? b : (c = d)");
-  
+
   checkExpression("(a == b) == c");
   checkExpression("a == (b == c)");
-  
+
   checkExpression(" a <  b  == c");
   checkExpression("(a <  b) == c");
   checkExpression(" a < (b  == c)");
@@ -798,16 +802,16 @@ void main() {
   checkExpression(" a ==  b  < c");
   checkExpression("(a ==  b) < c");
   checkExpression(" a == (b  < c)");
-  
+
   checkExpression("x.f()");
   checkExpression("(x.f)()");
-  
+
   checkExpression("x.f()()");
   checkExpression("(x.f)()()");
-  
+
   checkExpression("x.f().g()");
   checkExpression("(x.f)().g()");
-  
+
   checkExpression("x.f()");
   checkExpression("x.f(1 + 2)");
   checkExpression("x.f(1 + 2, 3 + 4)");
@@ -815,24 +819,24 @@ void main() {
   checkExpression("x.f(1 + 2, foo:3 + 4, bar: 5)");
   checkExpression("x.f(foo:3 + 4)");
   checkExpression("x.f(foo:3 + 4, bar: 5)");
-  
+
   checkExpression("x.f.g.h");
   checkExpression("(x.f).g.h");
   checkExpression("(x.f.g).h");
-  
+
   checkExpression(" a =  b  + c");
   checkExpression(" a = (b  + c)");
   checkExpression("(a =  b) + c");
 
   checkExpression("a + (b = c)");
-  
-  checkExpression("dx * dx + dy * dy < r * r", 
+
+  checkExpression("dx * dx + dy * dy < r * r",
                   "((dx * dx) + (dy * dy)) < (r * r)");
-  checkExpression("mid = left + right << 1", 
+  checkExpression("mid = left + right << 1",
                   "mid = ((left + right) << 1)");
   checkExpression("a + b % c * -d ^  e - f  ~/ x & ++y / z++ | w > a ? b : c");
   checkExpression("a + b % c * -d ^ (e - f) ~/ x & ++y / z++ | w > a ? b : c");
-  
+
   checkExpression("'foo'");
   checkExpression("'foo' 'bar'", "'foobar'");
 
@@ -840,7 +844,7 @@ void main() {
   checkExpression("{x: 1+2}.length");
   checkExpression("<String,int>{}.length");
   checkExpression("<String,int>{x: 1+2}.length");
-  
+
   checkExpression("[].length");
   checkExpression("[1+2].length");
   checkExpression("<num>[].length");
@@ -853,7 +857,7 @@ void main() {
   checkExpression("x-- - y");
   checkExpression("x-- - -y");
   checkExpression("x - --y");
-  
+
   checkExpression("x && !y");
   checkExpression("!x && y");
   checkExpression("!(x && y)");
@@ -865,10 +869,10 @@ void main() {
   checkExpression("x-- - -super");
   checkExpression("x - -super");
   checkExpression("x && !super");
-  
+
   checkExpression("super.f(1, 2) + 3");
   checkExpression("super.f + 3");
-  
+
   checkExpression(r"'foo\nbar'");
   checkExpression(r"'foo\r\nbar'");
   checkExpression(r"'foo\rbar'");
@@ -877,7 +881,7 @@ void main() {
   checkExpression(r"r'foo\nbar'");
   checkExpression("''");
   checkExpression("r''");
-  
+
   var sq = "'";
   var dq = '"';
   checkExpression("'$dq$dq' \"$sq$sq\"");
@@ -886,19 +890,19 @@ void main() {
   checkExpression("'$dq$dq$dq' '\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n' \"$sq$sq$sq\"");
   checkExpression("'$dq$dq$dq' '\\r\\r\\r\\r\\r\\r\\r\\r\\r\\r' \"$sq$sq$sq\"");
   checkExpression("'$dq$dq$dq' '\\r\\n\\r\\n\\r\\n\\r\\n\\r\\n' \"$sq$sq$sq\"");
-  
+
   checkExpression(r"'$foo'");
   checkExpression(r"'${foo}x'");
   checkExpression(r"'${foo}x\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'");
   checkExpression(r"'abc' '${foo}' r'\\\\\\\'");
-  
+
   checkExpression(r"'${$x}'");
   checkExpression(r"'${$x}y'");
   checkExpression("null + null");
-  
+
   checkExpression("throw x");
   checkStatement("throw x;");
-  
+
   checkStatement("var x, y, z;");
   checkStatement("final x, y, z;");
   checkStatement("dynamic x, y, z;");
@@ -907,11 +911,11 @@ void main() {
   checkStatement("final dynamic x, y, z;");
   checkStatement("final String x, y, z;");
   checkStatement("final List<int> x, y, z;");
-  
+
   checkStatement("var x = y, z;");
   checkStatement("var x, y = z;");
   checkStatement("var x = y = z;");
-  
+
   // Note: We sometimes have to pass an expected string to account for
   //       block flattening which does not preserve structural AST equality
   checkStatement("if (x)   if (y) foo();   else bar();  ");
@@ -923,13 +927,13 @@ void main() {
   checkStatement("if (x) while (y) { if (z) foo(); } else bar();  ");
   checkStatement("if (x) while (y) { if (z) foo();   else bar(); }",
                  "if (x) while (y)   if (z) foo();   else bar();  ");
-  
+
   checkStatement("{var x = 1; {var x = 2;} return x;}");
   checkStatement("{var x = 1; {x = 2;} return x;}",
                  "{var x = 1;  x = 2;  return x;}");
-  
+
   checkStatement("if (x) {var x = 1;}");
-  
+
   checkStatement("({'foo': 1}).bar();");
   checkStatement("({'foo': 1}).length;");
   checkStatement("({'foo': 1}).length + 1;");
@@ -942,18 +946,18 @@ void main() {
   checkStatement("({'foo': 1}) as Map;");
   checkStatement("({'foo': 1}) is util.Map;");
   checkStatement("({'foo': 1}) + 1;");
-  
+
   checkStatement("[1].bar();");
   checkStatement("1.bar();");
   checkStatement("'foo'.bar();");
 
   checkStatement("do while(x); while (y);");
   checkStatement("{do; while(x); while (y);}");
-  
+
   checkStatement('switch(x) { case 1: case 2: return y; }');
   checkStatement('switch(x) { default: return y; }');
   checkStatement('switch(x) { case 1: x=y; default: return y; }');
   checkStatement('switch(x) { case 1: x=y; y=z; break; default: return y; }');
-  
+
 }
 

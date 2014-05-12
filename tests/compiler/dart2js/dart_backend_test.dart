@@ -173,7 +173,9 @@ testClassWithSynthesizedConstructor() {
 }
 
 testClassWithMethod() {
-  testDart2Dart('main(){var a=new A();a.foo();}class A{void foo(){}}');
+  String src = r'main(){var a=new A();a.foo();}class A{void foo(){}}';
+  String expected = r'main(){new A().foo();}class A{void foo(){}}';
+  testDart2Dart(src, continuation: (result) => Expect.equals(expected, result));
 }
 
 testExtendsImplements() {
@@ -658,7 +660,7 @@ main() {
 }
 ''';
   var expectedResult =
-      ' foo( arg){}main(){var localvar;foo("5");}';
+      ' foo( arg){}main(){foo("5");}';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); },
       stripTypes: true);

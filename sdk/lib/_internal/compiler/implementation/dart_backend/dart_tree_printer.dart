@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library dart_tree_printer;
 
 import 'dart_printer.dart';
@@ -304,6 +308,7 @@ class TreePrinter {
         selector = new tree.TypeAnnotation(
             selector,
             typeArgList(exp.type.typeArguments.map(makeType)));
+        setType(selector, exp.dartType, exp);
       }
       if (exp.constructorName != null) {
         selector = new tree.Send(
@@ -317,6 +322,8 @@ class TreePrinter {
       result = new tree.NewExpression(
           exp.isConst ? constToken : newToken,
           send);
+      setType(result, exp.dartType, exp);
+      setElement(send, exp.constructor, exp);
     } else if (exp is CallStatic) {
       precedence = CALLEE;
       result = new tree.Send(

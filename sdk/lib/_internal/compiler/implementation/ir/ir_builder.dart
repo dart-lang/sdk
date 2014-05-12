@@ -10,9 +10,10 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
-import '../scanner/scannerlib.dart' show Token;
+import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import 'ir_pickler.dart' show Unpickler, IrConstantPool;
+import '../universe/universe.dart' show SelectorKind;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -578,9 +579,15 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
-  // TODO(kmillikin): other literals.  Strings require quoting and escaping
-  // in the Dart backend.
-  //   LiteralString
+  ir.Primitive visitLiteralString(ast.LiteralString node) {
+    assert(isOpen);
+    ir.Constant constant =
+        new ir.Constant(constantSystem.createString(node.dartString));
+    add(new ir.LetPrim(constant));
+    return constant;
+  }
+
+  // TODO(kmillikin): other literals.
   //   LiteralList
   //   LiteralMap
   //   LiteralMapEntry
@@ -605,21 +612,51 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitDynamicSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    if (node.receiver == null || node.receiver.isSuper()) {
+      return giveup();
+    }
+    Selector selector = elements.getSelector(node);
+    ir.Primitive receiver = visit(node.receiver);
+    List arguments = node.arguments.toList(growable:false)
+                         .map(visit).toList(growable:false);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.Expression invoke =
+        new ir.InvokeMethod(receiver, selector, k, arguments);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
   ir.Primitive visitGetterSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    if (!Elements.isLocal(element)) return giveup();
-    int index = variableIndex[element];
-    ir.Primitive value = assignedVars[index];
-    return value == null ? freeVars[index] : value;
+    if (Elements.isLocal(element)) {
+      int index = variableIndex[element];
+      ir.Primitive value = assignedVars[index];
+      return value == null ? freeVars[index] : value;
+    } else if (Elements.isInstanceField(element)) {
+      ir.Primitive receiver = visit(node.receiver);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.GETTER);
+      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, []);
+      add(new ir.LetCont(k, invoke));
+      return v;
+    } else {
+      // TODO(asgerf): static and top-level
+      // NOTE: Index-getters are OperatorSends, not GetterSends
+      return giveup();
+    }
   }
 
   ir.Primitive visitOperatorSend(ast.Send node) {
-    assert(isOpen);
-    return giveup();
+    ast.Operator selectorNode = node.selector;
+    if (!isUserDefinableOperator(selectorNode.source)) {
+      return giveup();
+    } else {
+      return visitDynamicSend(node);
+    }
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
@@ -648,15 +685,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // TODO(kmillikin): support a receiver: A.m().
     if (node.receiver != null) return giveup();
 
-    List arguments = [];
     // TODO(lry): support default arguments, need support for locals.
-    bool succeeded = selector.addArgumentsToList(
-        node.arguments, arguments, element.implementation, visit,
-        (node) => giveup(), compiler);
-    if (!succeeded) {
-      // TODO(lry): generate code to throw a [WrongArgumentCountError].
-      return giveup();
-    }
+    List<ir.Definition> arguments = node.arguments.toList(growable:false)
+                                       .map(visit).toList(growable:false);
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
@@ -678,14 +709,62 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitSendSet(ast.SendSet node) {
     assert(isOpen);
     Element element = elements[node];
-    if (!Elements.isLocal(element)) return giveup();
     if (node.assignmentOperator.source != '=') return giveup();
-    // Exactly one argument expected for a simple assignment.
-    assert(!node.arguments.isEmpty);
-    assert(node.arguments.tail.isEmpty);
-    ir.Primitive result = visit(node.arguments.head);
-    assignedVars[variableIndex[element]] = result;
-    return result;
+    if (Elements.isLocal(element)) {
+      // Exactly one argument expected for a simple assignment.
+      assert(!node.arguments.isEmpty);
+      assert(node.arguments.tail.isEmpty);
+      ir.Primitive result = visit(node.arguments.head);
+      assignedVars[variableIndex[element]] = result;
+      return result;
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      // TODO(asgerf): static and top-level
+      return giveup();
+    } else if (node.receiver == null) {
+      // Nodes that fall in this case:
+      // - Unresolved top-level
+      // - Assignment to final variable (will not be resolved)
+      return giveup();
+    } else {
+      // Setter or index-setter invocation
+      assert(node.receiver != null);
+      if (node.receiver.isSuper()) return giveup();
+
+      ir.Primitive receiver = visit(node.receiver);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.SETTER ||
+             selector.kind == SelectorKind.INDEX);
+      List<ir.Definition> args = node.arguments.toList(growable:false)
+                                     .map(visit).toList(growable:false);
+      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, args);
+      add(new ir.LetCont(k, invoke));
+      return args.last;
+    }
+  }
+
+  ir.Primitive visitNewExpression(ast.NewExpression node) {
+    if (node.isConst) {
+      return giveup(); // TODO(asgerf): Const constructor call.
+    }
+    FunctionElement element = elements[node.send];
+    if (Elements.isUnresolved(element)) {
+      return giveup();
+    }
+    ast.Node selector = node.send.selector;
+    GenericType type = elements.getType(node);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    List<ir.Definition> args = node.send.arguments.toList(growable:false)
+                                        .map(visit).toList(growable:false);
+    ir.InvokeConstructor invoke = new ir.InvokeConstructor(
+        type,
+        element,
+        k,
+        args);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";

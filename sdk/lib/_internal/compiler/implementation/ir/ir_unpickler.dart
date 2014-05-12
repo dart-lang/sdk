@@ -87,6 +87,11 @@ class Unpickler {
     return constantPool.get(elementIndex);
   }
 
+  types.DartType readDartType() {
+    int typeIndex = readInt();
+    return constantPool.get(typeIndex);
+  }
+  
   Selector readSelector() {
     int tag = readByte();
     if (tag == Pickles.BACKREFERENCE) {
@@ -141,6 +146,14 @@ class Unpickler {
       // Tail-position expressions.
       case Pickles.NODE_INVOKE_STATIC:
         addExpression(readInvokeStatic());
+        current = null;
+        break;
+      case Pickles.NODE_INVOKE_METHOD:
+        addExpression(readInvokeMethod());
+        current = null;
+        break;
+      case Pickles.NODE_INVOKE_CONSTRUCTOR:
+        addExpression(readInvokeConstructor());
         current = null;
         break;
       case Pickles.NODE_INVOKE_CONTINUATION:
@@ -220,6 +233,22 @@ class Unpickler {
     List<ir.Definition> arguments = readBackReferenceList();
     return new ir.InvokeStatic(functionElement, selector, continuation,
                                arguments);
+  }
+  
+  ir.InvokeMethod readInvokeMethod() {
+    ir.Definition receiver = readBackReference();
+    Selector selector = readSelector();
+    ir.Continuation continuation = readBackReference();
+    List<ir.Definition> arguments = readBackReferenceList();
+    return new ir.InvokeMethod(receiver, selector, continuation, arguments);
+  }
+  
+  ir.InvokeConstructor readInvokeConstructor() {
+    types.GenericType type = readDartType();
+    FunctionElement target = readElement();
+    ir.Continuation continuation = readBackReference();
+    List<ir.Definition> arguments = readBackReferenceList();
+    return new ir.InvokeConstructor(type, target, continuation, arguments);
   }
 
   ir.InvokeContinuation readInvokeContinuation() {

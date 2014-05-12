@@ -8,9 +8,10 @@ library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' as dart2js show Constant;
 import '../elements/elements.dart'
-    show FunctionElement, LibraryElement, ParameterElement;
+    show FunctionElement, LibraryElement, ParameterElement, ClassElement;
 import 'ir_pickler.dart' show Pickler, IrConstantPool;
 import '../universe/universe.dart' show Selector, SelectorKind;
+import '../dart_types.dart' show DartType, GenericType;
 
 abstract class Node {
   static int hashCount = 0;
@@ -124,6 +125,61 @@ class InvokeStatic extends Expression {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
+/// Invoke a method, operator, getter, setter, or index getter/setter in 
+/// tail position.
+class InvokeMethod extends Expression {
+  final Reference receiver;
+  final Selector selector;
+  final Reference continuation;
+  final List<Reference> arguments;
+  
+  InvokeMethod(Definition receiver, 
+               this.selector, 
+               Continuation cont, 
+               List<Definition> args)
+      : receiver = new Reference(receiver),
+        continuation = new Reference(cont),
+        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
+    assert(selector != null);
+    assert(selector.kind == SelectorKind.CALL ||
+           selector.kind == SelectorKind.OPERATOR ||
+           (selector.kind == SelectorKind.GETTER && arguments.isEmpty) ||
+           (selector.kind == SelectorKind.SETTER && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 2));
+  }
+  
+  accept(Visitor visitor) => visitor.visitInvokeMethod(this);
+}
+
+/// Non-const call to a constructor. The [target] may be a generative
+/// constructor, factory, or redirecting factory.
+class InvokeConstructor extends Expression {
+  final GenericType type;
+  final FunctionElement target;
+  final Reference continuation;
+  final List<Reference> arguments;
+  
+  /// The class being instantiated. This is the same as `target.enclosingClass`
+  /// and `type.element`.
+  ClassElement get targetClass => target.enclosingElement;
+  
+  /// True if this is an invocation of a factory constructor.
+  bool get isFactory => target.isFactoryConstructor;
+  
+  InvokeConstructor(this.type,
+                    this.target, 
+                    Continuation cont,
+                    List<Definition> args)
+      : continuation = new Reference(cont),
+        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
+    assert(target.isConstructor);
+    assert(type.element == target.enclosingElement);
+  }
+  
+  accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
+}
+
 /// Invoke a continuation in tail position.
 class InvokeContinuation extends Expression {
   final Reference continuation;
@@ -223,6 +279,8 @@ abstract class Visitor<T> {
   T visitLetCont(LetCont node) => visitExpression(node);
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
+  T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
+  T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
 
   // Definitions.
@@ -287,6 +345,26 @@ class SExpressionStringifier extends Visitor<String> {
     String cont = names[node.continuation.definition];
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
     return '(InvokeStatic $name $cont $args)';
+  }
+  
+  String visitInvokeMethod(InvokeMethod node) {
+    String name = node.selector.name;
+    String rcv = names[node.receiver.definition];
+    String cont = names[node.continuation.definition];
+    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    return '(InvokeMethod $rcv $name $cont $args)';
+  }
+  
+  String visitInvokeConstructor(InvokeConstructor node) {
+    String callName;
+    if (node.target.name.isEmpty) {
+      callName = '${node.type}';
+    } else {
+      callName = '${node.type}.${node.target.name}';
+    }
+    String cont = names[node.continuation.definition];
+    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    return '(InvokeConstructor $callName $cont $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {

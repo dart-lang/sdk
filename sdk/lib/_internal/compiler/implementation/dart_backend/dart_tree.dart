@@ -6,8 +6,13 @@ library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart'
-    show Element, FunctionElement, FunctionSignature, ParameterElement;
+    show Element, FunctionElement, FunctionSignature, ParameterElement,
+         ClassElement;
+import '../universe/universe.dart';
 import '../ir/ir_nodes.dart' as ir;
+import '../tree/tree.dart' as ast;
+import '../scanner/scannerlib.dart';
+import '../dart_types.dart' show DartType, GenericType;
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -99,6 +104,43 @@ class InvokeStatic extends Expression {
   final bool isPure = false;
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
+}
+
+/**
+ * A call to a method, operator, getter, setter or index getter/setter.
+ *
+ * In contrast to the CPS-based IR, the receiver and arguments can be
+ * arbitrary expressions.
+ */
+class InvokeMethod extends Expression {
+  Expression receiver;
+  final Selector selector;
+  final List<Expression> arguments;
+
+  InvokeMethod(this.receiver, this.selector, this.arguments) {
+    assert(receiver != null);
+  }
+
+  final bool isPure = false;
+
+  accept(Visitor visitor) => visitor.visitInvokeMethod(this);
+}
+
+/**
+ * Non-const call to a factory or generative constructor.
+ */
+class InvokeConstructor extends Expression {
+  final GenericType type;
+  final FunctionElement target;
+  final List<Expression> arguments;
+
+  InvokeConstructor(this.type, this.target, this.arguments);
+
+  ClassElement get targetClass => target.enclosingElement;
+
+  final bool isPure = false;
+
+  accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
 /**
@@ -213,6 +255,8 @@ abstract class Visitor<S, E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
+  E visitInvokeMethod(InvokeMethod node);
+  E visitInvokeConstructor(InvokeConstructor node);
   E visitConstant(Constant node);
 
   S visitStatement(Statement s) => s.accept(this);
@@ -360,6 +404,36 @@ class Builder extends ir.Visitor<Node> {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeStatic(node.target, arguments);
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(invoke);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildParameterAssignments(cont.parameters, [invoke],
+          () => visit(cont.body));
+    }
+  }
+
+  Statement visitInvokeMethod(ir.InvokeMethod node) {
+    Variable receiver = variables[node.receiver.definition];
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(invoke);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildParameterAssignments(cont.parameters, [invoke],
+          () => visit(cont.body));
+    }
+  }
+
+  Statement visitInvokeConstructor(ir.InvokeConstructor node) {
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression invoke =
+        new InvokeConstructor(node.type, node.target, arguments);
     ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       return new Return(invoke);
@@ -523,6 +597,21 @@ class Unnamer extends Visitor<Statement, Expression> {
 
   Expression visitInvokeStatic(InvokeStatic node) {
     // Process arguments right-to-left, the opposite of evaluation order.
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitInvokeMethod(InvokeMethod node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    node.receiver = visitExpression(node.receiver);
+    return node;
+  }
+
+  Expression visitInvokeConstructor(InvokeConstructor node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }
