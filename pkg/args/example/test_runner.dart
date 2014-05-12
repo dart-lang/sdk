@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This is an example of converting the args in test.dart to use this API.
- * It shows what it looks like to build an [ArgParser] and then, when the code
- * is run, demonstrates what the generated usage text looks like.
- */
+/// This is an example of converting the args in test.dart to use this API.
+/// It shows what it looks like to build an [ArgParser] and then, when the code
+/// is run, demonstrates what the generated usage text looks like.
 library example;
 
 import 'dart:io';
@@ -117,7 +115,6 @@ is 'dart file.dart' and you specify special command
       defaultsTo: false);
 
   parser.addOption('dart',    help: 'Path to dart executable');
-  // TODO(antonm): rename the option.
   parser.addOption('drt',     help: 'Path to content shell executable');
   parser.addOption('dartium', help: 'Path to Dartium Chrome executable');
 
