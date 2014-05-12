@@ -46,6 +46,7 @@ class HttpDate {
     StringBuffer sb = new StringBuffer()
         ..write(wkday[d.weekday - 1])
         ..write(", ")
+        ..write(d.day <= 9 ? "0" : "")
         ..write(d.day.toString())
         ..write(" ")
         ..write(month[d.month - 1])
