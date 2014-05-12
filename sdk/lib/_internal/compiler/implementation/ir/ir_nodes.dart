@@ -125,17 +125,17 @@ class InvokeStatic extends Expression {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
-/// Invoke a method, operator, getter, setter, or index getter/setter in 
+/// Invoke a method, operator, getter, setter, or index getter/setter in
 /// tail position.
 class InvokeMethod extends Expression {
   final Reference receiver;
   final Selector selector;
   final Reference continuation;
   final List<Reference> arguments;
-  
-  InvokeMethod(Definition receiver, 
-               this.selector, 
-               Continuation cont, 
+
+  InvokeMethod(Definition receiver,
+               this.selector,
+               Continuation cont,
                List<Definition> args)
       : receiver = new Reference(receiver),
         continuation = new Reference(cont),
@@ -148,7 +148,7 @@ class InvokeMethod extends Expression {
            (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
            (selector.kind == SelectorKind.INDEX && arguments.length == 2));
   }
-  
+
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
 
@@ -159,16 +159,16 @@ class InvokeConstructor extends Expression {
   final FunctionElement target;
   final Reference continuation;
   final List<Reference> arguments;
-  
+
   /// The class being instantiated. This is the same as `target.enclosingClass`
   /// and `type.element`.
   ClassElement get targetClass => target.enclosingElement;
-  
+
   /// True if this is an invocation of a factory constructor.
   bool get isFactory => target.isFactoryConstructor;
-  
+
   InvokeConstructor(this.type,
-                    this.target, 
+                    this.target,
                     Continuation cont,
                     List<Definition> args)
       : continuation = new Reference(cont),
@@ -176,8 +176,20 @@ class InvokeConstructor extends Expression {
     assert(target.isConstructor);
     assert(type.element == target.enclosingElement);
   }
-  
+
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
+}
+
+/// Invoke [toString] on each argument and concatenate the results.
+class ConcatenateStrings extends Expression {
+  final Reference continuation;
+  final List<Reference> arguments;
+
+  ConcatenateStrings(Continuation cont, List<Definition> args)
+      : continuation = new Reference(cont),
+        arguments = args.map((t) => new Reference(t)).toList(growable: false);
+
+  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
 /// Invoke a continuation in tail position.
@@ -281,6 +293,7 @@ abstract class Visitor<T> {
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
+  T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
 
   // Definitions.
@@ -346,7 +359,7 @@ class SExpressionStringifier extends Visitor<String> {
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
     return '(InvokeStatic $name $cont $args)';
   }
-  
+
   String visitInvokeMethod(InvokeMethod node) {
     String name = node.selector.name;
     String rcv = names[node.receiver.definition];
@@ -354,7 +367,7 @@ class SExpressionStringifier extends Visitor<String> {
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
     return '(InvokeMethod $rcv $name $cont $args)';
   }
-  
+
   String visitInvokeConstructor(InvokeConstructor node) {
     String callName;
     if (node.target.name.isEmpty) {
@@ -365,6 +378,12 @@ class SExpressionStringifier extends Visitor<String> {
     String cont = names[node.continuation.definition];
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
     return '(InvokeConstructor $callName $cont $args)';
+  }
+
+  String visitConcatenateStrings(ConcatenateStrings node) {
+    String cont = names[node.continuation.definition];
+    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    return '(ConcatenateStrings $cont $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {

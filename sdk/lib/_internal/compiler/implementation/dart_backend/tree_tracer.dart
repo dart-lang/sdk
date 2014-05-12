@@ -49,6 +49,7 @@ class BlockCollector extends Visitor {
   visitInvokeStatic(InvokeStatic node) {}
   visitInvokeMethod(InvokeMethod node) {}
   visitInvokeConstructor(InvokeConstructor node) {}
+  visitConcatenateStrings(ConcatenateStrings node) {}
   visitConstant(Constant node) {}
 
   visitLabeledStatement(LabeledStatement node) {
@@ -176,6 +177,10 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, expr(node));
   }
 
+  visitConcatenateStrings(ConcatenateStrings node) {
+    printStatement(null, expr(node));
+  }
+
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
   }
@@ -231,6 +236,11 @@ class SubexpressionVisitor extends Visitor<String, String> {
     }
     String args = node.arguments.map(visitExpression).join(', ');
     return "new $callName($args)";
+  }
+
+  String visitConcatenateStrings(ConcatenateStrings node) {
+    String args = node.arguments.map(visitExpression).join(', ');
+    return "concat [$args]";
   }
 
   String visitConstant(Constant node) {

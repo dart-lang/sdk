@@ -91,7 +91,7 @@ class Unpickler {
     int typeIndex = readInt();
     return constantPool.get(typeIndex);
   }
-  
+
   Selector readSelector() {
     int tag = readByte();
     if (tag == Pickles.BACKREFERENCE) {
@@ -154,6 +154,10 @@ class Unpickler {
         break;
       case Pickles.NODE_INVOKE_CONSTRUCTOR:
         addExpression(readInvokeConstructor());
+        current = null;
+        break;
+      case Pickles.NODE_CONCATENATE_STRINGS:
+        addExpression(readConcatenateStrings());
         current = null;
         break;
       case Pickles.NODE_INVOKE_CONTINUATION:
@@ -234,7 +238,7 @@ class Unpickler {
     return new ir.InvokeStatic(functionElement, selector, continuation,
                                arguments);
   }
-  
+
   ir.InvokeMethod readInvokeMethod() {
     ir.Definition receiver = readBackReference();
     Selector selector = readSelector();
@@ -242,13 +246,19 @@ class Unpickler {
     List<ir.Definition> arguments = readBackReferenceList();
     return new ir.InvokeMethod(receiver, selector, continuation, arguments);
   }
-  
+
   ir.InvokeConstructor readInvokeConstructor() {
     types.GenericType type = readDartType();
     FunctionElement target = readElement();
     ir.Continuation continuation = readBackReference();
     List<ir.Definition> arguments = readBackReferenceList();
     return new ir.InvokeConstructor(type, target, continuation, arguments);
+  }
+
+  ir.ConcatenateStrings readConcatenateStrings() {
+    ir.Continuation continuation = readBackReference();
+    List<ir.Definition> arguments = readBackReferenceList();
+    return new ir.ConcatenateStrings(continuation, arguments);
   }
 
   ir.InvokeContinuation readInvokeContinuation() {

@@ -120,6 +120,13 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "InvokeConstructor $callName ($args) $kont");
   }
 
+  visitConcatenateStrings(ir.ConcatenateStrings node) {
+    String dummy = names.name(node);
+    String args = node.arguments.map(formatReference).join(', ');
+    String kont = formatReference(node.continuation);
+    printStmt(dummy, "ConcatenateStrings ($args) $kont");
+  }
+
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
@@ -266,6 +273,13 @@ class BlockCollector extends ir.Visitor {
   }
 
   visitInvokeConstructor(ir.InvokeConstructor exp) {
+    ir.Definition target = exp.continuation.definition;
+    if (target is ir.Continuation && target.body != null) {
+      current_block.addEdgeTo(getBlock(target));
+    }
+  }
+
+  visitConcatenateStrings(ir.ConcatenateStrings exp) {
     ir.Definition target = exp.continuation.definition;
     if (target is ir.Continuation && target.body != null) {
       current_block.addEdgeTo(getBlock(target));

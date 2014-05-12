@@ -767,6 +767,33 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return v;
   }
 
+  ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
+    ir.Primitive first = visit(node.first);
+    ir.Primitive second = visit(node.second);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.ConcatenateStrings concat =
+        new ir.ConcatenateStrings(k, [first, second]);
+    add(new ir.LetCont(k, concat));
+    return v;
+  }
+
+  ir.Primitive visitStringInterpolation(ast.StringInterpolation node) {
+    List<ir.Primitive> arguments = [];
+    arguments.add(visitLiteralString(node.string));
+    var it = node.parts.iterator;
+    while (it.moveNext()) {
+      ast.StringInterpolationPart part = it.current;
+      arguments.add(visit(part.expression));
+      arguments.add(visitLiteralString(part.string));
+    }
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.ConcatenateStrings concat = new ir.ConcatenateStrings(k, arguments);
+    add(new ir.LetCont(k, concat));
+    return v;
+  }
+
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
   ir.Primitive giveup() => throw ABORT_IRNODE_BUILDER;

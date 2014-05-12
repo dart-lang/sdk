@@ -42,7 +42,9 @@ part 'ir_unpickler.dart';
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_INVOKE_METHOD) reference(receiver) selector
  *                   reference(continuation) {reference(argument)}
- *             | byte(NODE_INVOKE_CONSTRUCTOR) type element(target) 
+ *             | byte(NODE_INVOKE_CONSTRUCTOR) type element(target)
+ *                   reference(continuation) {reference(argument)}
+ *             | byte(NODE_CONCATENATE_STRINGS)
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_INVOKE_CONTINUATION) reference(continuation)
  *                   {reference(argument)}
@@ -64,7 +66,7 @@ part 'ir_unpickler.dart';
  *                    {string(parameterName)}
  *
  * element    ::= int(constantPoolIndex)
- * 
+ *
  * type       ::= int(constantPoolIndex)
  */
 class Pickles {
@@ -80,7 +82,8 @@ class Pickles {
   static const int NODE_INVOKE_STATIC       = NODE_LET_CONT + 1;
   static const int NODE_INVOKE_METHOD       = NODE_INVOKE_STATIC + 1;
   static const int NODE_INVOKE_CONSTRUCTOR  = NODE_INVOKE_METHOD + 1;
-  static const int NODE_INVOKE_CONTINUATION = NODE_INVOKE_CONSTRUCTOR + 1;
+  static const int NODE_CONCATENATE_STRINGS = NODE_INVOKE_CONSTRUCTOR + 1;
+  static const int NODE_INVOKE_CONTINUATION = NODE_CONCATENATE_STRINGS + 1;
   static const int NODE_BRANCH              = NODE_INVOKE_CONTINUATION + 1;
   static const int LAST_NODE_TAG            = NODE_BRANCH;
 
@@ -346,7 +349,7 @@ class Pickler extends ir.Visitor {
   void writeElement(Element element) {
     writeInt(constantPool.add(element));
   }
-  
+
   void writeDartType(types.DartType type) {
     writeInt(constantPool.add(type));
   }
@@ -415,7 +418,7 @@ class Pickler extends ir.Visitor {
     writeBackReferenceList(node.arguments.length,
                            node.arguments.map((a) => a.definition));
   }
-  
+
   void visitInvokeMethod(ir.InvokeMethod node) {
     writeByte(Pickles.NODE_INVOKE_METHOD);
     writeBackReference(node.receiver.definition);
@@ -424,11 +427,18 @@ class Pickler extends ir.Visitor {
     writeBackReferenceList(node.arguments.length,
                            node.arguments.map((a) => a.definition));
   }
-  
+
   void visitInvokeConstructor(ir.InvokeConstructor node) {
     writeByte(Pickles.NODE_INVOKE_CONSTRUCTOR);
     writeDartType(node.type);
     writeElement(node.target);
+    writeBackReference(node.continuation.definition);
+    writeBackReferenceList(node.arguments.length,
+                           node.arguments.map((a) => a.definition));
+  }
+
+  void visitConcatenateStrings(ir.ConcatenateStrings node) {
+    writeByte(Pickles.NODE_CONCATENATE_STRINGS);
     writeBackReference(node.continuation.definition);
     writeBackReferenceList(node.arguments.length,
                            node.arguments.map((a) => a.definition));

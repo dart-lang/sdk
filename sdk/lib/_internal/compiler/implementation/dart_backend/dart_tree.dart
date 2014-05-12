@@ -143,6 +143,17 @@ class InvokeConstructor extends Expression {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
+/// Calls [toString] on each argument and concatenates the results.
+class ConcatenateStrings extends Expression {
+  final List<Expression> arguments;
+
+  ConcatenateStrings(this.arguments);
+
+  final bool isPure = false; // invokes toString
+
+  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+}
+
 /**
  * A constant.
  */
@@ -257,6 +268,7 @@ abstract class Visitor<S, E> {
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeConstructor(InvokeConstructor node);
+  E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
 
   S visitStatement(Statement s) => s.accept(this);
@@ -426,6 +438,20 @@ class Builder extends ir.Visitor<Node> {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
       return buildParameterAssignments(cont.parameters, [invoke],
+          () => visit(cont.body));
+    }
+  }
+
+  Statement visitConcatenateStrings(ir.ConcatenateStrings node) {
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression concat = new ConcatenateStrings(arguments);
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(concat);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildParameterAssignments(cont.parameters, [concat],
           () => visit(cont.body));
     }
   }
@@ -612,6 +638,13 @@ class Unnamer extends Visitor<Statement, Expression> {
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitConcatenateStrings(ConcatenateStrings node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }

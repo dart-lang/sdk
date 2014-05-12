@@ -215,6 +215,11 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                ..dartType = exp.type;
   }
 
+  Expression visitConcatenateStrings(tree.ConcatenateStrings exp) {
+    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    return new StringConcat(args);
+  }
+
   Expression visitVariable(tree.Variable exp) {
     return new Identifier(exp.name)
                ..element = exp.element;

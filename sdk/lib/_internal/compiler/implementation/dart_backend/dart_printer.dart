@@ -2,19 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// OPEN DESIGN QUESTIONS:
-
-// Should the AST enforce that variable definitions are hoisted at the top?
-// This would simplify the AST for [For] and [ForIn] and also simplify block
-// flattening.
-// On the other hand, the code gets harder to test because the unparser only
-// works together with the middle-end.
-
-// Should the ${E.toString()} ==> ${E} rewrite be in the unparser?
-// It seems more like a semantic rewrite than a syntactic one.
-// On the other hand, it is really easy to do and costs almost nothing.
-
 // TODO(asgerf): Include metadata.
 // TODO(asgerf): Include cascade operator.
 library dart_printer;
@@ -646,8 +633,6 @@ bool isIdentifierPartNoDollar(dynamic x) {
 ///     !(E == E) ==> E != E
 ///   Introduce is-not operator:
 ///     !(E is T) ==> E is!T
-///   Remove .toString() from string interpolation (see [StringConcat])
-///     "X ${E.toString()} Y" ==> "X ${E} Y"
 ///
 /// The following transformations will NOT be applied here:
 ///   Use implicit this:
@@ -1247,12 +1232,6 @@ class Unparser {
         for (int char in e.value.value) {
           parts.add(char);
         }
-      } else if (e is CallMethod &&
-                 e.object is Expression && // Do not match super.toString()
-                 e.methodName == "toString" &&
-                 e.arguments.length == 0) {
-        // ${e.toString()} ==> ${e}
-        collectParts(e.object);
       } else {
         parts.add(e);
       }
