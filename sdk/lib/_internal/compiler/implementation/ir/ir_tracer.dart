@@ -99,10 +99,12 @@ class IRTracer extends TracerUtil implements ir.Visitor {
 
   visitInvokeMethod(ir.InvokeMethod node) {
     String dummy = names.name(node);
+    String receiver = formatReference(node.receiver);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
-    printStmt(dummy, "InvokeStatic $callName ($args) $kont");
+    printStmt(dummy,
+        "InvokeMethod $receiver $callName ($args) $kont");
   }
 
   visitInvokeConstructor(ir.InvokeConstructor node) {
