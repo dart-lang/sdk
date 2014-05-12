@@ -1174,6 +1174,11 @@ abstract class StreamSubscription<T> {
    * for example a file being read, that should be deleted afterwards.
    * In that case, the file may not be able to be deleted successfully
    * until the returned future has completed.
+   *
+   * The future will be completed with a `null` value.
+   * If the cleanup throws, which it really shouldn't, the returned future
+   * will be completed with that error.
+   *
    * Returns `null` if there is no need to wait.
    */
   Future cancel();

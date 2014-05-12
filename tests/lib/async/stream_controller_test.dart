@@ -6,8 +6,11 @@
 library stream_controller_test;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import 'event_helper.dart';
+
+fail(e) { Expect.fail("Unexepected error: $e"); }
 
 void testMultiController() {
   // Test normal flow.
@@ -436,10 +439,104 @@ void testStreamEquals() {
   Expect.equals(c.stream, c.stream);
 }
 
+void testCancelThrow() {
+  asyncStart();
+  asyncStart();
+  StreamController c = new StreamController(onCancel: () {
+    asyncEnd();
+    throw "ERROR";
+  });
+  c.add(1);
+  c.add(2);
+  c.add(3);
+  Future done = c.close();
+  StreamSubscription sub;
+  sub = c.stream.listen((v) {
+    Expect.equals(1, v);
+    Future f = sub.cancel();
+    f.catchError((e) {
+      // Must complete with error from onCancel.
+      Expect.equals("ERROR", e);
+      asyncEnd();
+    });
+  });
+  done.catchError(fail).whenComplete(asyncEnd);  // Must complete without error.
+}
+
+void testCancelThrow2() {
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  StreamController c2 = new StreamController(onCancel: () {
+    asyncEnd();
+    throw "ERROR";
+  });
+  c2.add(1);
+  c2.add(2);
+  Future done2 = c2.close();
+  done2.catchError(fail).whenComplete(asyncEnd);  // Should not get error;
+
+  StreamController c = new StreamController();
+  var sub;
+  sub = c.stream.listen((v) {
+    Expect.equals(1, v);
+    Future f = sub.cancel();
+    f.catchError((e) {
+      // Error from addStream stream's cancel must go only here.
+      asyncEnd();
+      Expect.equals("ERROR", e);
+    });
+  });
+  var addDone = c.addStream(c2.stream);
+  addDone.catchError(fail).whenComplete(asyncEnd);  // Should not get error.
+  var done = c.done;
+  done.catchError(fail).whenComplete(asyncEnd);  // Should not get error.
+}
+
+void testCancelThrow3() {
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  StreamController c2 = new StreamController(onCancel: () {
+    asyneEnd();
+    throw "ERROR2";
+  });
+  c2.add(1);
+  c2.add(2);
+  var done2 = c2.close();
+  done2.catchError(fail).whenComplete(asyncEnd);  // Should not get error;
+
+  StreamController c = new StreamController(onCancel: () {
+    asyncEnd();
+    throw "ERROR1";
+  });
+  var sub;
+  sub = c.stream.listen((v) {
+    Expect.equals(1, v);
+    Future f = sub.cancel();
+    f.catchError((e) {
+      // Only the last error ends up here.
+      Expect.equals("ERROR1", e);
+      asyncEnd();
+    });
+  });
+  var addDone = c.addStream(c2.stream);
+  addDone.catchError(fail).whenComplete(asyncEnd);  // Error must not go here.
+  c.done.catchError(fail).whenComplete(asyncEnd); // Error must not go here.
+}
+
 main() {
   testMultiController();
   testSingleController();
   testExtraMethods();
   testClosed();
   testStreamEquals();
+  testCancelThrow();
+  testCancelThrow2();
+  testCancelThrow3();
 }
