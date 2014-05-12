@@ -26,6 +26,12 @@ main() {
     test('requestResponse', WebSocketChannelTest.requestResponse);
     test('response', WebSocketChannelTest.response);
   });
+  group('ByteStreamClientChannel',  () {
+    setUp(ByteStreamClientChannelTest.setUp);
+    test('listen_notification', ByteStreamClientChannelTest.listen_notification);
+    test('listen_response', ByteStreamClientChannelTest.listen_response);
+    test('sendRequest', ByteStreamClientChannelTest.sendRequest);
+  });
   group('ByteStreamServerChannel', () {
     setUp(ByteStreamServerChannelTest.setUp);
     test('closed', ByteStreamServerChannelTest.closed);
@@ -170,6 +176,71 @@ class WebSocketChannelTest {
     expect(requestsReceived, hasLength(requestCount));
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
+  }
+}
+
+class ByteStreamClientChannelTest {
+  static ByteStreamClientChannel channel;
+
+  /**
+   * Sink that may be used to deliver data to the channel, as though it's
+   * coming from the client.
+   */
+  static IOSink inputSink;
+
+  /**
+   * Stream of lines sent back to the client by the channel.
+   */
+  static Stream<String> outputLineStream;
+
+  static void setUp() {
+    var inputStream = new StreamController<List<int>>();
+    inputSink = new IOSink(inputStream);
+    var outputStream = new StreamController<List<int>>();
+    outputLineStream = outputStream.stream.transform((new Utf8Codec()).decoder
+        ).transform(new LineSplitter());
+    var outputSink = new IOSink(outputStream);
+    channel = new ByteStreamClientChannel(inputStream.stream, outputSink);
+  }
+
+  static Future listen_notification() {
+    List<Notification> notifications = [];
+    channel.notificationStream.forEach((n) => notifications.add(n));
+    inputSink.writeln('{"event":"server.connected"}');
+    return pumpEventQueue().then((_) {
+      expect(notifications.length, equals(1));
+      expect(notifications[0].event, equals('server.connected'));
+    });
+  }
+
+  static Future listen_response() {
+    List<Response> responses = [];
+    channel.responseStream.forEach((n) => responses.add(n));
+    inputSink.writeln('{"id":"72"}');
+    return pumpEventQueue().then((_) {
+      expect(responses.length, equals(1));
+      expect(responses[0].id, equals('72'));
+    });
+  }
+
+  static Future sendRequest() {
+    int assertCount = 0;
+    Request request = new Request('72', 'foo.bar');
+    outputLineStream.first
+        .then((line) => new JsonDecoder().convert(line))
+        .then((json) {
+          expect(json[Request.ID], equals('72'));
+          expect(json[Request.METHOD], equals('foo.bar'));
+          inputSink.writeln('{"id":"73"}');
+          inputSink.writeln('{"id":"72"}');
+          assertCount++;
+        });
+    channel.sendRequest(request)
+        .then((Response response) {
+          expect(response.id, equals('72'));
+          assertCount++;
+        });
+    return pumpEventQueue().then((_) => expect(assertCount, equals(2)));
   }
 }
 

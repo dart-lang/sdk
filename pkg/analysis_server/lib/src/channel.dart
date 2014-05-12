@@ -170,9 +170,53 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 }
 
 /**
- * Instances of the class [ByteStreamServerChannel] implement a
+ * Instances of the class [ByteStreamClientChannel] implement a
  * [ClientCommunicationChannel] that uses a stream and a sink (typically,
  * standard input and standard output) to communicate with servers.
+ */
+class ByteStreamClientChannel implements ClientCommunicationChannel {
+  final Stream input;
+  final IOSink output;
+
+  @override
+  Stream<Response> responseStream;
+
+  @override
+  Stream<Notification> notificationStream;
+
+  ByteStreamClientChannel(this.input, this.output) {
+    Stream jsonStream = input.transform((new Utf8Codec()).decoder)
+        .transform(new LineSplitter())
+        .transform(new JsonStreamDecoder())
+        .where((json) => json is Map)
+        .asBroadcastStream();
+    responseStream = jsonStream
+        .where((json) => json[Notification.EVENT] == null)
+        .transform(new ResponseConverter())
+        .asBroadcastStream();
+    notificationStream = jsonStream
+        .where((json) => json[Notification.EVENT] != null)
+        .transform(new NotificationConverter())
+        .asBroadcastStream();
+  }
+
+  @override
+  Future close() {
+    // TODO: implement close
+  }
+
+  @override
+  Future<Response> sendRequest(Request request) {
+    String id = request.id;
+    output.writeln(JSON.encode(request.toJson()));
+    return responseStream.firstWhere((Response response) => response.id == id);
+  }
+}
+
+/**
+ * Instances of the class [ByteStreamServerChannel] implement a
+ * [ServerCommunicationChannel] that uses a stream and a sink (typically,
+ * standard input and standard output) to communicate with clients.
  */
 class ByteStreamServerChannel implements ServerCommunicationChannel {
   final Stream input;
