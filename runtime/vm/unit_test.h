@@ -90,7 +90,7 @@
     EXPECT(!result.IsError());                                                 \
     Instance& actual = Instance::Handle();                                     \
     actual ^= result.raw();                                                    \
-    EXPECT(actual.Equals(Instance::Handle(expected)));                         \
+    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
   }
 
 
@@ -128,7 +128,7 @@
     EXPECT(!result.IsError());                                                 \
     Instance& actual = Instance::Handle();                                     \
     actual ^= result.raw();                                                    \
-    EXPECT(actual.Equals(Instance::Handle(expected)));                         \
+    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
   }
 
 

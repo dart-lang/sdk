@@ -516,11 +516,18 @@ TEST_CASE(Double) {
     const double dbl_const = 2.0;
     const Double& dbl1 = Double::Handle(Double::New(dbl_const));
     const Double& dbl2 = Double::Handle(Double::New(dbl_const));
-    EXPECT(dbl1.Equals(dbl2));
+    EXPECT(dbl1.OperatorEquals(dbl2));
+    EXPECT(dbl1.IsIdenticalTo(dbl2));
+    EXPECT(dbl1.CanonicalizeEquals(dbl2));
     const Double& dbl3 = Double::Handle(Double::New(3.3));
-    EXPECT(!dbl1.Equals(dbl3));
-    EXPECT(!dbl1.Equals(Smi::Handle(Smi::New(3))));
-    EXPECT(!dbl1.Equals(Double::Handle()));
+    EXPECT(!dbl1.OperatorEquals(dbl3));
+    EXPECT(!dbl1.OperatorEquals(Smi::Handle(Smi::New(3))));
+    EXPECT(!dbl1.OperatorEquals(Double::Handle()));
+    const Double& nan0 = Double::Handle(Double::New(NAN));
+    EXPECT(nan0.IsIdenticalTo(nan0));
+    EXPECT(nan0.CanonicalizeEquals(nan0));
+    EXPECT(!nan0.OperatorEquals(nan0));
+    // TODO(18738): Test bitwise different NaNs after agreement on spec.
   }
   {
     const String& dbl_str0 = String::Handle(String::New("bla"));
@@ -1838,16 +1845,16 @@ TEST_CASE(Array) {
   other_array.SetAt(0, array);
   other_array.SetAt(2, array);
 
-  EXPECT(array.Equals(array));
-  EXPECT(array.Equals(other_array));
+  EXPECT(array.CanonicalizeEquals(array));
+  EXPECT(array.CanonicalizeEquals(other_array));
 
   other_array.SetAt(1, other_array);
-  EXPECT(!array.Equals(other_array));
+  EXPECT(!array.CanonicalizeEquals(other_array));
 
   other_array = Array::New(kArrayLen - 1);
   other_array.SetAt(0, array);
   other_array.SetAt(2, array);
-  EXPECT(!array.Equals(other_array));
+  EXPECT(!array.CanonicalizeEquals(other_array));
 
   EXPECT_EQ(0, Object::empty_array().Length());
 
@@ -4012,6 +4019,35 @@ TEST_CASE(PrintJSON) {
   heap->CollectAllGarbage();
   JSONTypeVerifier verifier;
   heap->IterateObjects(&verifier);
+}
+
+
+TEST_CASE(InstanceEquality) {
+  // Test that Instance::OperatorEquals can call a user-defined operator==.
+  const char* kScript =
+      "class A {\n"
+      "  bool operator==(A other) { return true; }\n"
+      "}\n"
+      "main() {\n"
+      "  A a = new A();\n"
+      "}";
+
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& clazz = Class::Handle(GetClass(lib, "A"));
+  EXPECT(!clazz.IsNull());
+  const Instance& a0 = Instance::Handle(Instance::New(clazz));
+  const Instance& a1 = Instance::Handle(Instance::New(clazz));
+  EXPECT(a0.raw() != a1.raw());
+  EXPECT(a0.OperatorEquals(a0));
+  EXPECT(a0.OperatorEquals(a1));
+  EXPECT(a0.IsIdenticalTo(a0));
+  EXPECT(!a0.IsIdenticalTo(a1));
 }
 
 }  // namespace dart

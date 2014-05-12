@@ -42,7 +42,7 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
-  if (!expected.Equals(actual)) {
+  if (!expected.OperatorEquals(actual)) {
     OS::Print("expected: '%s' actual: '%s'\n",
         expected.ToCString(), actual.ToCString());
     FATAL("Expect_equals fails.\n");

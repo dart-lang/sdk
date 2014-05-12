@@ -12733,7 +12733,7 @@ RawObject* Instance::Evaluate(const String& expr,
 
 
 
-bool Instance::Equals(const Instance& other) const {
+bool Instance::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
@@ -12844,7 +12844,7 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
     if (result.IsNull()) {
       break;
     }
-    if (this->Equals(result)) {
+    if (this->CanonicalizeEquals(result)) {
       return result.raw();
     }
     index++;
@@ -12950,13 +12950,22 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+bool Instance::OperatorEquals(const Instance& other) const {
+  // TODO(koda): Optimize for all builtin classes and all classes
+  // that do not override operator==.
+  const Object& result =
+      Object::Handle(DartLibraryCalls::Equals(*this, other));
+  return result.raw() == Object::bool_true().raw();
+}
+
+
 bool Instance::IsIdenticalTo(const Instance& other) const {
   if (raw() == other.raw()) return true;
   if (IsInteger() && other.IsInteger()) {
-    return Equals(other);
+    return Integer::Cast(*this).Equals(other);
   }
   if (IsDouble() && other.IsDouble()) {
-    if (Equals(other)) return true;
+    if (Double::Cast(*this).CanonicalizeEquals(other)) return true;
     // Check for NaN.
     const Double& a_double = Double::Cast(*this);
     const Double& b_double = Double::Cast(other);
@@ -15482,7 +15491,7 @@ void Double::set_value(double value) const {
 }
 
 
-bool Double::EqualsToDouble(double value) const {
+bool Double::BitwiseEqualsToDouble(double value) const {
   intptr_t value_offset = Double::value_offset();
   void* this_addr = reinterpret_cast<void*>(
       reinterpret_cast<uword>(this->raw_ptr()) + value_offset);
@@ -15491,14 +15500,25 @@ bool Double::EqualsToDouble(double value) const {
 }
 
 
-bool Double::Equals(const Instance& other) const {
+bool Double::OperatorEquals(const Instance& other) const {
+  if (this->IsNull() || other.IsNull()) {
+    return (this->IsNull() && other.IsNull());
+  }
+  if (!other.IsDouble()) {
+    return false;
+  }
+  return this->value() == Double::Cast(other).value();
+}
+
+
+bool Double::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
   if (other.IsNull() || !other.IsDouble()) {
     return false;
   }
-  return EqualsToDouble(Double::Cast(other).value());
+  return BitwiseEqualsToDouble(Double::Cast(other).value());
 }
 
 
@@ -15540,7 +15560,7 @@ RawDouble* Double::NewCanonical(double value) {
     if (canonical_value.IsNull()) {
       break;
     }
-    if (canonical_value.EqualsToDouble(value)) {
+    if (canonical_value.BitwiseEqualsToDouble(value)) {
       return canonical_value.raw();
     }
     index++;
@@ -17441,7 +17461,7 @@ void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-bool Array::Equals(const Instance& other) const {
+bool Array::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
     return true;
@@ -17681,7 +17701,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
 }
 
 
-bool GrowableObjectArray::Equals(const Instance& other) const {
+bool GrowableObjectArray::CanonicalizeEquals(const Instance& other) const {
   // If both handles point to the same raw instance they are equal.
   if (this->raw() == other.raw()) {
     return true;
@@ -18591,7 +18611,7 @@ const char* JSRegExp::Flags() const {
 }
 
 
-bool JSRegExp::Equals(const Instance& other) const {
+bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
