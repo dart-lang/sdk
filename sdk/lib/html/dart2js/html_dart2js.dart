@@ -1605,10 +1605,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Experimental() // untriaged
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native;
 
-  @DomName('CanvasRenderingContext2D.fill')
-  @DocsEditable()
-  void fill([String winding]) native;
-
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) native;
@@ -2061,6 +2057,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
     } else {
       JS('void', '#.fillText(#, #, #)', this, text, x, y);
     }
+  }
+
+  @DomName('CanvasRenderingContext2D.fill')
+  void fill([String winding = 'nonzero']) {
+    JS('void', '#.fill(#)', this, winding);
   }
 }
 
