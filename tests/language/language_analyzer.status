@@ -433,6 +433,8 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
+issue13474_test: StaticWarning, OK # Test Issue
+
 # Issue 16391. The analyzer handle compile-time error in checked only in these
 # cases:
 compile_time_constant_checked2_test/01: CompileTimeError # Language Issue 16391
