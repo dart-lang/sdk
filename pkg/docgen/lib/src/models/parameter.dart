@@ -8,6 +8,7 @@ import '../exports/mirrors_util.dart' as dart2js_util;
 import '../exports/source_mirrors.dart';
 
 import 'annotation.dart';
+import 'closure.dart';
 import 'doc_gen_type.dart';
 import 'library.dart';
 import 'mirror_based.dart';
@@ -25,6 +26,9 @@ class Parameter extends MirrorBased {
   final String defaultValue;
   /// List of the meta annotations on the parameter.
   final List<Annotation> annotations;
+  final Library owningLibrary;
+  // Only non-null if this parameter is a function declaration.
+  Closure functionDeclaration;
 
   Parameter(ParameterMirror mirror, Library owningLibrary)
       : this.mirror = mirror,
@@ -34,16 +38,28 @@ class Parameter extends MirrorBased {
         hasDefaultValue = mirror.hasDefaultValue,
         defaultValue = getDefaultValue(mirror),
         type = new DocGenType(mirror.type, owningLibrary),
-        annotations = createAnnotations(mirror, owningLibrary);
+        annotations = createAnnotations(mirror, owningLibrary),
+        owningLibrary = owningLibrary {
+    if (mirror.type is FunctionTypeMirror) {
+      functionDeclaration =
+          new Closure(mirror.type as FunctionTypeMirror, owningLibrary);
+    }
+  }
 
   /// Generates a map describing the [Parameter] object.
-  Map toMap() => {
-    'name': name,
-    'optional': isOptional,
-    'named': isNamed,
-    'default': hasDefaultValue,
-    'type': new List.filled(1, type.toMap()),
-    'value': defaultValue,
-    'annotations': annotations.map((a) => a.toMap()).toList()
-  };
+  Map toMap() {
+    var map = {
+      'name': name,
+      'optional': isOptional,
+      'named': isNamed,
+      'default': hasDefaultValue,
+      'type': new List.filled(1, type.toMap()),
+      'value': defaultValue,
+      'annotations': annotations.map((a) => a.toMap()).toList()
+    };
+    if (functionDeclaration != null) {
+      map['functionDeclaration'] = functionDeclaration.toMap();
+    }
+    return map;
+  }
 }

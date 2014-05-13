@@ -42,6 +42,9 @@ void main() {
 
       var params = functionDef['parameters'] as Map<String, dynamic>;
 
+      expect(params.keys, orderedEquals(_PARAM_NAME_ORDER),
+          reason: 'parameter order  must be maintained');
+
       var vals = {};
       params.forEach((paramName, paramHash) {
         expect(_PARAM_VALUES, contains(paramName));
@@ -53,10 +56,19 @@ void main() {
 }
 
 final _PARAM_VALUES = {
-  "boolConst": "true",
   "intConst": "42",
+  "boolConst": "true",
   "listConst": '[true, 42, "Shanna", null, 3.14, []]',
+  "stringConst": "\"Shanna\"",
   "mapConst": startsWith("Map"),
-  "emptyMap": '{}',
-  "stringConst": "\"Shanna\""
+  "emptyMap": '{}'
 };
+
+const _PARAM_NAME_ORDER = const [
+  "intConst",
+  "boolConst",
+  "listConst",
+  "stringConst",
+  "mapConst",
+  "emptyMap"
+];
