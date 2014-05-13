@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mime;
+library mime.multipart_transformer;
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 /**
  * A Mime Multipart class representing each part parsed by
@@ -28,12 +31,6 @@ class _MimeMultipart extends MimeMultipart {
                           onError: onError,
                           cancelOnError: cancelOnError);
   }
-}
-
-class _Const {
-  // Bytes for '()<>@,;:\\"/[]?={} \t'.
-  static const SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
-                                   91, 93, 63, 61, 123, 125, 32, 9];
 }
 
 class _CharCode {
@@ -70,6 +67,10 @@ class MimeMultipartTransformer
   static const int _LAST_BOUNDARY_END = 13;
   static const int _DONE = 14;
   static const int _FAILURE = 15;
+
+  // Bytes for '()<>@,;:\\"/[]?={} \t'.
+  static const _SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
+                                   91, 93, 63, 61, 123, 125, 32, 9];
 
   StreamController _controller;
   StreamSubscription _subscription;
@@ -387,7 +388,7 @@ class MimeMultipartTransformer
   }
 
   bool _isTokenChar(int byte) {
-    return byte > 31 && byte < 128 && _Const.SEPARATORS.indexOf(byte) == -1;
+    return byte > 31 && byte < 128 && _SEPARATORS.indexOf(byte) == -1;
   }
 
   int _toLowerCase(int byte) {
@@ -412,7 +413,9 @@ class MimeMultipartTransformer
 
 
 class MimeMultipartException implements Exception {
-  const MimeMultipartException([String this.message = ""]);
-  String toString() => "MimeMultipartException: $message";
   final String message;
+
+  const MimeMultipartException([String this.message = ""]);
+
+  String toString() => "MimeMultipartException: $message";
 }

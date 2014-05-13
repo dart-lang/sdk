@@ -14,11 +14,5 @@
  */
 library mime;
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
-
-part 'src/mime_type.dart';
-part 'src/extension_map.dart';
-part 'src/magic_number.dart';
-part 'src/mime_multipart_transformer.dart';
+export 'src/mime_multipart_transformer.dart';
+export 'src/mime_type.dart';
