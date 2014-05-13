@@ -88,7 +88,7 @@ def ZipDir(zipFile, directory):
   if HOST_OS == 'win':
     cmd = os.path.normpath(os.path.join(
         os.path.dirname(__file__),
-        '../third_party/lzma_sdk/Executable/7za.exe'))
+        '../../../third_party/lzma_sdk/Executable/7za.exe'))
     options = ['a', '-r', '-tzip']
   else:
     cmd = 'zip'
