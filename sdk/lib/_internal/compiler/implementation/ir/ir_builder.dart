@@ -93,12 +93,10 @@ class IrBuilderTask extends CompilerTask {
 
   bool irEnabled() {
     // TODO(lry): support checked-mode checks.
-    if (compiler.enableTypeAssertions ||
-        compiler.backend is !DartBackend ||
-        compiler.enableConcreteTypeInference) {
-      return false;
-    }
-    return const bool.fromEnvironment('enable_ir', defaultValue: true);
+    return const bool.fromEnvironment('USE_NEW_BACKEND') &&
+        compiler.backend is DartBackend &&
+        !compiler.enableTypeAssertions &&
+        !compiler.enableConcreteTypeInference;
   }
 
   bool canBuild(Element element) {
