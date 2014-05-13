@@ -109,7 +109,7 @@ class CompilationProcess {
     if (current != null) current.dispose();
     current = this;
     console.nodes.clear();
-    var options = [];
+    var options = ['--disable-type-inference'];
     if (verboseCompiler) options.add('--verbose');
     if (minified) options.add('--minify');
     if (onlyAnalyze) options.add('--analyze-only');
