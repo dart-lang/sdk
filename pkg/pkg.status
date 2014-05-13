@@ -253,6 +253,8 @@ matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
 [ $arch == simarm64 ]
+# Timeout. These are not unit tests. They do not run efficiently on our
+# simulator.
 *: Skip
 
 # Skip serialization test that explicitly has no library declaration in the
