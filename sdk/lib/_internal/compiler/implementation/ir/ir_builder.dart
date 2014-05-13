@@ -46,6 +46,7 @@ class IrBuilderTask extends CompilerTask {
 
   void buildNodes() {
     if (!irEnabled()) return;
+    throw "Testing backend bot is working";
     measure(() {
       Map<Element, TreeElements> resolved =
           compiler.enqueuer.resolution.resolvedElements;
