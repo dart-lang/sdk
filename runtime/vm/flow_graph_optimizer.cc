@@ -7299,6 +7299,81 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
 }
 
 
+void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
+  GrowableArray<PhiInstr*> live_phis;
+  for (BlockIterator b = flow_graph->postorder_iterator();
+       !b.Done();
+       b.Advance()) {
+    JoinEntryInstr* join = b.Current()->AsJoinEntry();
+    if (join != NULL) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        // Phis that have uses and phis inside try blocks are
+        // marked as live.
+        if (phi->HasUses() || join->InsideTryBlock()) {
+          live_phis.Add(phi);
+          phi->mark_alive();
+        } else {
+          phi->mark_dead();
+        }
+      }
+    }
+  }
+
+  while (!live_phis.is_empty()) {
+    PhiInstr* phi = live_phis.RemoveLast();
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Value* val = phi->InputAt(i);
+      PhiInstr* used_phi = val->definition()->AsPhi();
+      if ((used_phi != NULL) && !used_phi->is_alive()) {
+        used_phi->mark_alive();
+        live_phis.Add(used_phi);
+      }
+    }
+  }
+
+  for (BlockIterator it(flow_graph->postorder_iterator());
+       !it.Done();
+       it.Advance()) {
+    JoinEntryInstr* join = it.Current()->AsJoinEntry();
+    if (join != NULL) {
+      if (join->phis_ == NULL) continue;
+
+      // Eliminate dead phis and compact the phis_ array of the block.
+      intptr_t to_index = 0;
+      for (intptr_t i = 0; i < join->phis_->length(); ++i) {
+        PhiInstr* phi = (*join->phis_)[i];
+        if (phi != NULL) {
+          if (!phi->is_alive()) {
+            phi->ReplaceUsesWith(flow_graph->constant_null());
+            phi->UnuseAllInputs();
+            (*join->phis_)[i] = NULL;
+            if (FLAG_trace_optimization) {
+              OS::Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
+            }
+          } else if (phi->IsRedundant()) {
+            phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+            phi->UnuseAllInputs();
+            (*join->phis_)[i] = NULL;
+            if (FLAG_trace_optimization) {
+              OS::Print("Removing redundant phi v%" Pd "\n",
+                         phi->ssa_temp_index());
+            }
+          } else {
+            (*join->phis_)[to_index++] = phi;
+          }
+        }
+      }
+      if (to_index == 0) {
+        join->phis_ = NULL;
+      } else {
+        join->phis_->TruncateTo(to_index);
+      }
+    }
+  }
+}
+
+
 class CSEInstructionMap : public ValueObject {
  public:
   // Right now CSE and LICM track a single effect: possible externalization of
@@ -8802,8 +8877,6 @@ void ConstantPropagator::Transform() {
     FlowGraphPrinter printer(*graph_);
     printer.PrintBlocks();
   }
-
-  GrowableArray<PhiInstr*> redundant_phis(10);
 
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating

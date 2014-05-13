@@ -491,6 +491,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // amount of materializations it has to perform.
         optimizer.EliminateEnvironments();
 
+        DeadCodeElimination::EliminateDeadPhis(flow_graph);
+
         // Attempt to sink allocations of temporary non-escaping objects to
         // the deoptimization path.
         AllocationSinking* sinking = NULL;

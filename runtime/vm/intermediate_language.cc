@@ -2879,6 +2879,17 @@ void PhiInstr::InferRange() {
 }
 
 
+bool PhiInstr::IsRedundant() const {
+  ASSERT(InputCount() > 1);
+  Definition* first = InputAt(0)->definition();
+  for (intptr_t i = 1; i < InputCount(); ++i) {
+    Definition* def = InputAt(i)->definition();
+    if (def != first) return false;
+  }
+  return true;
+}
+
+
 static bool SymbolicSub(const RangeBoundary& a,
                         const RangeBoundary& b,
                         RangeBoundary* result) {

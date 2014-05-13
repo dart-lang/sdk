@@ -1594,6 +1594,7 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
+  friend class DeadCodeElimination;
 
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
@@ -1997,6 +1998,9 @@ class PhiInstr : public Definition {
   }
 
   virtual bool MayThrow() const { return false; }
+
+  // A phi is redundant if all input operands are the same.
+  bool IsRedundant() const;
 
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
