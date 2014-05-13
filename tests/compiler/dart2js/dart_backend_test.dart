@@ -173,9 +173,7 @@ testClassWithSynthesizedConstructor() {
 }
 
 testClassWithMethod() {
-  String src = r'main(){var a=new A();a.foo();}class A{void foo(){}}';
-  String expected = r'main(){new A().foo();}class A{void foo(){}}';
-  testDart2Dart(src, continuation: (result) => Expect.equals(expected, result));
+  testDart2Dart(r'main(){var a=new A();a.foo();}class A{void foo(){}}');
 }
 
 testExtendsImplements() {
@@ -184,10 +182,8 @@ testExtendsImplements() {
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){var x,y;final String s=null;}',
-      continuation: (String s) { Expect.equals('main(){}', s); });
-  testDart2Dart('main(){final int x=0,y=0;final String s=null;}',
-      continuation: (String s) { Expect.equals('main(){}', s); });
+  testDart2Dart('main(){var x,y;final String s=null;}');
+  testDart2Dart('main(){final int x=0,y=0;final String s=null;}');
   testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
@@ -391,9 +387,9 @@ main() {
   var expectedResult =
     'topfoo(){}'
     'class A{foo(){}}'
-    'A_topfoo(){}'
+    'A_topfoo(){var x=5;}'
     'class A_A{num foo(){}A_A.fromFoo(){}A myliba;List<A_A> mylist;}'
-    'A getA(){}'
+    'A getA()=>null;'
     'main(){var a=new A();a.foo();var b=new A_A.fromFoo();b.foo();'
         'var GREATVAR=b.myliba;b.mylist;a=getA();A_topfoo();topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
@@ -660,7 +656,7 @@ main() {
 }
 ''';
   var expectedResult =
-      ' foo( arg){}main(){foo("5");}';
+      ' foo( arg){}main(){var localvar;foo("5");}';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); },
       stripTypes: true);
