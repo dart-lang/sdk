@@ -332,9 +332,6 @@ watcher/test/*/mac_os_test: Skip
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
-[ $runtime == ff ]
-web_components/test/location_wrapper_test: Fail # Issue 18747
-
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
