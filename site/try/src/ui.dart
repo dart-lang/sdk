@@ -262,7 +262,6 @@ buildCode(InteractionManager interaction) {
     }
   }).catchError((error) {
     codePicker.style.visibility = 'visible';
-    print(error);
     OptionElement none = new OptionElement()
         ..appendText('Pick an example')
         ..disabled = true;

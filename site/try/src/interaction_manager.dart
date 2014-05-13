@@ -14,7 +14,12 @@ import 'dart:math' show
     min;
 
 import 'dart:async' show
-    Future;
+    Completer,
+    Future,
+    Timer;
+
+import 'dart:collection' show
+    Queue;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
@@ -30,7 +35,7 @@ import 'package:compiler/implementation/source_file.dart' show
 
 import 'compilation.dart' show
     currentSource,
-    scheduleCompilation;
+    startCompilation;
 
 import 'ui.dart' show
     currentTheme,
@@ -74,6 +79,12 @@ const String TRY_DART_NEW_DEFECT =
     'https://code.google.com/p/dart/issues/entry'
     '?template=Try+Dart+Internal+Error';
 
+const Duration HEARTBEAT_INTERVAL = const Duration(milliseconds: 500);
+
+const Duration SAVE_INTERVAL = const Duration(seconds: 5);
+
+const Duration COMPILE_INTERVAL = const Duration(seconds: 1);
+
 /**
  * UI interaction manager for the entire application.
  */
@@ -116,6 +127,9 @@ abstract class InteractionManager {
 
   /// Called when notified about a project file changed (on the server).
   void onProjectFileFsEvent(MessageEvent e);
+
+  /// Called every 500ms.
+  void onHeartbeat(Timer timer);
 }
 
 /**
@@ -126,15 +140,26 @@ class InteractionContext extends InteractionManager {
 
   final Map<String, CompilationUnit> projectFiles = <String, CompilationUnit>{};
 
+  final Set<CompilationUnit> modifiedUnits = new Set<CompilationUnit>();
+
+  final Queue<CompilationUnit> unitsToSave = new Queue<CompilationUnit>();
+
+  final Stopwatch saveTimer = new Stopwatch();
+
+  final Stopwatch compileTimer = new Stopwatch();
+
   CompilationUnit currentCompilationUnit =
       // TODO(ahe): Don't use a fake unit.
       new CompilationUnit('fake', '');
 
-  CompilationUnit lastSaved;
+  Timer heartbeat;
+
+  Completer<String> completeSaveOperation;
 
   InteractionContext()
       : super.internal() {
     state = new InitialState(this);
+    heartbeat = new Timer.periodic(HEARTBEAT_INTERVAL, onHeartbeat);
   }
 
   void onInput(Event event) => state.onInput(event);
@@ -186,6 +211,8 @@ class InteractionContext extends InteractionManager {
   void onProjectFileFsEvent(MessageEvent e) {
     return state.onProjectFileFsEvent(e);
   }
+
+  void onHeartbeat(Timer timer) => state.onHeartbeat(timer);
 }
 
 abstract class InteractionState implements InteractionManager {
@@ -361,33 +388,26 @@ class InitialState extends InteractionState {
 
   void onStateChanged(InteractionState previous) {
     super.onStateChanged(previous);
-    scheduleCompilation();
+    context.compileTimer
+        ..start()
+        ..reset();
   }
 
   void onCompilationUnitChanged(CompilationUnit unit) {
     if (unit == context.currentCompilationUnit) {
       currentSource = unit.content;
-      print("Saved source of '${unit.name}'");
       if (context.projectFiles.containsKey(unit.name)) {
         postProjectFileUpdate(unit);
       }
-      scheduleCompilation();
+      context.compileTimer.start();
     } else {
       print("Unexpected change to compilation unit '${unit.name}'.");
     }
   }
 
   void postProjectFileUpdate(CompilationUnit unit) {
-    context.lastSaved = unit;
-    onError(ProgressEvent event) {
-      HttpRequest request = event.target;
-      statusDiv.text = "Couldn't save '${unit.name}': ${request.responseText}";
-      context.lastSaved = null;
-    }
-    new HttpRequest()
-        ..open("POST", "/project/${unit.name}")
-        ..onError.listen(onError)
-        ..send(unit.content);
+    context.modifiedUnits.add(unit);
+    context.saveTimer.start();
   }
 
   Future<List<String>> projectFileNames() {
@@ -446,15 +466,65 @@ class InitialState extends InteractionState {
     List modified = map['modify'];
     if (modified == null) return;
     for (String name in modified) {
-      if (context.lastSaved != null && context.lastSaved.name == name) {
-        context.lastSaved = null;
-        continue;
-      }
-      if (context.currentCompilationUnit.name == name) {
-        mainEditorPane.contentEditable = 'false';
-        statusDiv.text = 'Modified on disk';
+      Completer completer = context.completeSaveOperation;
+      if (completer != null && !completer.isCompleted) {
+        completer.complete(name);
+      } else {
+        onUnexpectedServerModification(name);
       }
     }
+  }
+
+  void onUnexpectedServerModification(String name) {
+    if (context.currentCompilationUnit.name == name) {
+      mainEditorPane.contentEditable = 'false';
+      statusDiv.text = 'Modified on disk';
+    }
+  }
+
+  void onHeartbeat(Timer timer) {
+    if (context.unitsToSave.isEmpty &&
+        context.saveTimer.elapsed > SAVE_INTERVAL) {
+      context.saveTimer
+          ..stop()
+          ..reset();
+      context.unitsToSave.addAll(context.modifiedUnits);
+      saveUnits();
+    }
+    if (!settings.compilationPaused &&
+        context.compileTimer.elapsed > COMPILE_INTERVAL) {
+      if (startCompilation()) {
+        context.compileTimer
+            ..stop()
+            ..reset();
+      }
+    }
+  }
+
+  void saveUnits() {
+    if (context.unitsToSave.isEmpty) return;
+    CompilationUnit unit = context.unitsToSave.removeFirst();
+    onError(ProgressEvent event) {
+      HttpRequest request = event.target;
+      statusDiv.text = "Couldn't save '${unit.name}': ${request.responseText}";
+      context.completeSaveOperation.complete(unit.name);
+    }
+    new HttpRequest()
+        ..open("POST", "/project/${unit.name}")
+        ..onError.listen(onError)
+        ..send(unit.content);
+    void setupCompleter() {
+      context.completeSaveOperation = new Completer<String>.sync();
+      context.completeSaveOperation.future.then((String name) {
+        if (name == unit.name) {
+          print("Saved source of '$name'");
+          saveUnits();
+        } else {
+          setupCompleter();
+        }
+      });
+    }
+    setupCompleter();
   }
 }
 

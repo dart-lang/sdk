@@ -35,7 +35,6 @@ import 'ui.dart' show
 
 import 'settings.dart' show
     alwaysRunInWorker,
-    compilationPaused,
     minified,
     onlyAnalyze,
     verboseCompiler;
@@ -61,7 +60,6 @@ const lazy = null;
 const String PRIVATE_SCHEME = 'org-trydart';
 
 SendPort compilerPort;
-Timer compilerTimer;
 
 // TODO(ahe): Remove this.
 String get currentSource => window.localStorage['currentSource'];
@@ -70,23 +68,10 @@ void set currentSource(String text) {
   window.localStorage['currentSource'] = text;
 }
 
-void scheduleCompilation() {
-  if (compilationPaused) return;
-  if (compilerTimer != null) {
-    compilerTimer.cancel();
-    compilerTimer = null;
-  }
-  compilerTimer =
-      new Timer(const Duration(milliseconds: 500), startCompilation);
-}
-
-void startCompilation() {
-  if (compilerTimer != null) {
-    compilerTimer.cancel();
-    compilerTimer = null;
-  }
-
+bool startCompilation() {
+  if (!CompilationProcess.shouldStartCompilation()) return false;
   new CompilationProcess(currentSource, outputDiv).start();
+  return true;
 }
 
 class CompilationProcess {
@@ -119,7 +104,6 @@ class CompilationProcess {
   void start() {
     if (!shouldStartCompilation()) {
       receivePort.close();
-      if (!isMalformedInput) scheduleCompilation();
       return;
     }
     if (current != null) current.dispose();
