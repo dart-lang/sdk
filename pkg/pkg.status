@@ -104,6 +104,7 @@ polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html
 third_party/angular_tests/browser_test: Skip # uses dart:html
+web_components/test/location_wrapper_test: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -330,6 +331,9 @@ watcher/test/*/mac_os_test: Skip
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
+
+[ $runtime == ff ]
+web_components/test/location_wrapper_test: Fail # Issue 18747
 
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
