@@ -19,6 +19,7 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 mirrors/delegate_test: RuntimeError # Issue 13864
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
+mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
 
 [ $compiler == dart2js && $checked && $runtime == drt && $nocsp ]
 async/stream_transform_test: RuntimeError # Issue 16719

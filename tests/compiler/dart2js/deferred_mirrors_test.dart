@@ -38,8 +38,7 @@ void main() {
     var field2 = lib2.find("field2");
 
     Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo1));
-    Expect.equals(outputUnitForElement(foo1), outputUnitForElement(sin));
-    Expect.equals(outputUnitForElement(foo2), outputUnitForElement(sin));
+    Expect.equals(outputUnitForElement(main), outputUnitForElement(sin));
     Expect.equals(outputUnitForElement(foo2), outputUnitForElement(field2));
   });
   runTest('memory:main2.dart', (compiler) {
@@ -59,7 +58,7 @@ void main() {
     var foo = lib3.find("foo");
 
     Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo));
-    Expect.equals(outputUnitForElement(foo), outputUnitForElement(C));
+    Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
   });
 }
 

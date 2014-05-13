@@ -10,10 +10,10 @@ import 'dart2jslib.dart' show
     CompilerTask,
     Constant,
     ConstructedConstant,
+    LibraryLoaderTask,
     MessageKind,
     StringConstant,
-    invariant,
-    Backend;
+    invariant;
 
 import 'dart_backend/dart_backend.dart' show
     DartBackend;
@@ -32,7 +32,8 @@ import 'elements/elements.dart' show
     ScopeContainerElement,
     PrefixElement,
     ClosureContainer,
-    VoidElement;
+    VoidElement,
+    TypedefElement;
 
 import 'util/util.dart' show
     Link;
@@ -51,12 +52,8 @@ import 'tree/tree.dart' show
 import 'tree/tree.dart' as ast;
 
 import 'resolution/resolution.dart' show
-    TreeElements;
-
-import 'mirrors_used.dart' show
-    MirrorUsageAnalyzer,
-    MirrorUsageAnalyzerTask,
-    MirrorUsage;
+    TreeElements,
+    AnalyzableElement;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -302,7 +299,7 @@ class DeferredLoadTask extends CompilerTask {
     /// The collected dependent elements and constants are are added to
     /// [elements] and [constants] respectively.
     void collectDependencies(Element element) {
-      TreeElements treeElements = element.isTypedef
+      TreeElements treeElements = element is TypedefElement
           ? element.treeElements
           : compiler.enqueuer.resolution.getCachedElements(element);
 
@@ -431,111 +428,68 @@ class DeferredLoadTask extends CompilerTask {
   ///
   /// The elements are added with [_mapDependencies].
   void _addMirrorElements() {
-    MirrorUsageAnalyzerTask mirrorTask = compiler.mirrorUsageAnalyzerTask;
-    // For each import we record all mirrors-used elements from all the
-    // libraries reached directly from that import.
-    for (Import deferredImport in _allDeferredImports.keys) {
-      LibraryElement deferredLibrary = _allDeferredImports[deferredImport];
-      for (LibraryElement library in
-          _nonDeferredReachableLibraries(deferredLibrary)) {
-        // TODO(sigurdm): The metadata should go to the right output unit.
-        // For now they all go to the main output unit.
-        for (MetadataAnnotation metadata in library.metadata) {
+    void mapDependenciesIfResolved(Element element, Import deferredImport) {
+      // If an element is the target of a MirrorsUsed annotation but never used
+      // It will not be resolved, and we should not call isNeededForReflection.
+      // TODO(sigurdm): Unresolved elements should just answer false when
+      // asked isNeededForReflection. Instead an internal error is triggered.
+      // So we have to filter them out here.
+      if (element is AnalyzableElement && !element.hasTreeElements) return;
+      if (compiler.backend.isNeededForReflection(element)) {
+        _mapDependencies(element, deferredImport);
+      }
+    }
+
+    Set<LibraryElement> seenLibraries = new Set<LibraryElement>();
+
+    // For each deferred import we analyze all elements reachable from the
+    // imported library through non-deferred imports.
+    handleLibrary(LibraryElement library, Import deferredImport) {
+      seenLibraries.add(library);
+
+      library.forEachLocalMember((Element element) {
+        mapDependenciesIfResolved(element, deferredImport);
+      });
+      if (library.isPatched) {
+        library.implementation.forEachLocalMember((Element element) {
+          mapDependenciesIfResolved(element, deferredImport);
+        });
+      }
+
+      for (MetadataAnnotation metadata in library.metadata) {
+        Constant constant =
+            backend.constants.getConstantForMetadata(metadata);
+        if (constant != null) {
+          _mapDependencies(constant.computeType(compiler).element,
+              deferredImport);
+        }
+      }
+      for (LibraryTag tag in library.tags) {
+        for (MetadataAnnotation metadata in tag.metadata) {
           Constant constant =
               backend.constants.getConstantForMetadata(metadata);
           if (constant != null) {
             _mapDependencies(constant.computeType(compiler).element,
-                _fakeMainImport);
+                deferredImport);
           }
         }
-        for (LibraryTag tag in library.tags) {
-          for (MetadataAnnotation metadata in tag.metadata) {
-            Constant constant =
-                backend.constants.getConstantForMetadata(metadata);
-            if (constant != null) {
-              _mapDependencies(constant.computeType(compiler).element,
-                  _fakeMainImport);
-            }
-          }
-        }
+      }
+    }
 
-        if (mirrorTask.librariesWithUsage.contains(library)) {
+    for (Import deferredImport in _allDeferredImports.keys) {
+      LibraryElement deferredLibrary = _allDeferredImports[deferredImport];
+      for (LibraryElement library in
+          _nonDeferredReachableLibraries(deferredLibrary)) {
+        handleLibrary(library, deferredImport);
+      }
+    }
 
-          Map<LibraryElement, List<MirrorUsage>> mirrorsResult =
-              mirrorTask.analyzer.collectMirrorsUsedAnnotation();
-
-          // If there is a MirrorsUsed annotation we add only the needed
-          // things to the output units for the library.
-          List<MirrorUsage> mirrorUsages = mirrorsResult[library];
-          if (mirrorUsages == null) continue;
-
-          void mapDependenciesIfResolved(Element element) {
-            // If there is a target for this class, but no use of mirrors the
-            // class will not be resolved. We just skip it.
-            if (element is ClassElement &&!element.isResolved) {
-              return;
-            }
-            _mapDependencies(element, deferredImport);
-          }
-
-          for (MirrorUsage usage in mirrorUsages) {
-            if (usage.targets != null) {
-              for (Element dependency in usage.targets) {
-                if (dependency.isLibrary) {
-                  LibraryElement library = dependency;
-                  library.forEachLocalMember(mapDependenciesIfResolved);
-                } else {
-                  mapDependenciesIfResolved(dependency);
-                }
-              }
-            }
-            if (usage.metaTargets != null) {
-              for (Element dependency in usage.metaTargets) {
-                _mapDependencies(dependency, deferredImport);
-              }
-            }
-          }
-        } else {
-          // If there is no MirrorsUsed annotation we add _everything_ to
-          // the output units for the library.
-
-          // TODO(sigurdm): This is too expensive.
-          // Plan: If mirrors are used without MirrorsUsed, create an
-          // "EverythingElse" library that contains all elements that are
-          // not referred by main or deferred libraries that don't contain
-          // mirrors (without MirrorsUsed).
-          //
-          // So basically we want:
-          //   mainImport
-          //   deferredA
-          //   deferredB
-          //   deferredCwithMirrorsUsed
-          //   deferredEverythingElse
-          //
-          // Where deferredEverythingElse will be loaded for *all* libraries
-          // that contain a mirror usage without MirrorsUsed.
-          //   When loading the deferredEverythingElse also load all other
-          //   deferred libraries at the same time.
-          bool usesMirrors = false;
-          for (LibraryTag tag in library.tags) {
-            if (tag is! Import) continue;
-            if (library.getLibraryFromTag(tag) == compiler.mirrorsLibrary) {
-              usesMirrors = true;
-              break;
-            }
-          }
-          if (usesMirrors) {
-            // Add all resolved elements to the output unit.
-            for (Element element in
-                compiler.enqueuer.resolution.resolvedElements.keys) {
-              _mapDependencies(element, deferredImport);
-            }
-            for (Element element in
-                compiler.mirrorDependencies.otherDependencies) {
-              _mapDependencies(element, deferredImport);
-            }
-          }
-        }
+    // A number of libraries are never imported explicitly - they belong to the
+    // main output unit.
+    LibraryLoaderTask loader = compiler.libraryLoader;
+    for (LibraryElement library in loader.libraryNames.values) {
+      if (!seenLibraries.contains(library)) {
+        handleLibrary(library, _fakeMainImport);
       }
     }
   }
