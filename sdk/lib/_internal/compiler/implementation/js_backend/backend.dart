@@ -337,7 +337,7 @@ class JavaScriptBackend extends Backend {
 
     if (element.isField) {
       if (Elements.isStaticOrTopLevel(element)
-          && (element.modifiers.isFinal || element.modifiers.isConst)) {
+          && (element.isFinal || element.isConst)) {
         return false;
       }
     }

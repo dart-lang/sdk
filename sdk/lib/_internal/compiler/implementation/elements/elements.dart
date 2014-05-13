@@ -176,7 +176,6 @@ class ElementKind {
 abstract class Element implements Spannable {
   String get name;
   ElementKind get kind;
-  Modifiers get modifiers;
   Element get enclosingElement;
   Link<MetadataAnnotation> get metadata;
 
@@ -190,33 +189,98 @@ abstract class Element implements Spannable {
   /// This method will go away!
   @deprecated DartType computeType(Compiler compiler);
 
-  bool get isFunction;
-  bool get isConstructor;
-  bool get isClosure;
-  bool get isMember;
-  bool get isInstanceMember;
+  /// `true` if this element is a library.
+  bool get isLibrary => kind == ElementKind.LIBRARY;
 
+  /// `true` if this element is a compilation unit.
+  bool get isCompilationUnit => kind == ElementKind.COMPILATION_UNIT;
+
+  /// `true` if this element is defines the scope of prefix used by one or
+  /// more import declarations.
+  bool get isPrefix => kind == ElementKind.PREFIX;
+
+  /// `true` if this element is a class declaration or a mixin application.
+  bool get isClass => kind == ElementKind.CLASS;
+
+  /// `true` if this element is a type variable declaration.
+  bool get isTypeVariable => kind == ElementKind.TYPE_VARIABLE;
+
+  /// `true` if this element is a typedef declaration.
+  bool get isTypedef => kind == ElementKind.TYPEDEF;
+
+  /// `true` if this element is a top level function, static or instance
+  /// method, local function or closure defined by a function expression.
+  ///
+  /// This property is `true` for operator methods and factory constructors but
+  /// `false` for getter and setter methods, and generative constructors.
+  ///
+  /// See also [isConstructor], [isGenerativeConstructor], and
+  /// [isFactoryConstructor] for constructor properties, and [isAccessor],
+  /// [isGetter] and [isSetter] for getter/setter properties.
+  bool get isFunction => kind == ElementKind.FUNCTION;
+
+  /// `true` if this element is an operator method.
+  bool get isOperator;
+
+  /// `true` if this element is an accessor, that is either an explicit
+  /// getter or an explicit setter.
+  bool get isAccessor => isGetter || isSetter;
+
+  /// `true` if this element is an explicit getter method.
+  bool get isGetter => kind == ElementKind.GETTER;
+
+  /// `true` if this element is an explicit setter method.
+  bool get isSetter => kind == ElementKind.SETTER;
+
+  /// `true` if this element is a generative or factory constructor.
+  bool get isConstructor => isGenerativeConstructor ||  isFactoryConstructor;
+
+  /// `true` if this element is a generative constructor, potentially
+  /// redirecting.
+  bool get isGenerativeConstructor =>
+      kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  /// `true` if this element is the body of a generative constructor.
+  ///
+  /// This is a synthetic element kind used only be the JavaScript backend.
+  bool get isGenerativeConstructorBody =>
+      kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
+
+  /// `true` if this element is a factory constructor,
+  /// potentially redirecting.
   bool get isFactoryConstructor;
-  bool get isGenerativeConstructor;
-  bool get isGenerativeConstructorBody;
-  bool get isCompilationUnit;
-  bool get isClass;
-  bool get isPrefix;
-  bool get isVariable;
-  bool get isParameter;
+
+  /// `true` if this element is a local variable.
+  bool get isVariable => kind == ElementKind.VARIABLE;
+
+  /// `true` if this element is a top level variable, static or instance field.
+  bool get isField => kind == ElementKind.FIELD;
+
+  /// `true` if this element is the abstract field implicitly defined by an
+  /// explicit getter and/or setter.
+  bool get isAbstractField => kind == ElementKind.ABSTRACT_FIELD;
+
+  /// `true` if this element is formal parameter either from a constructor,
+  /// method, or typedef declaration or from an inlined function typed
+  /// parameter.
+  ///
+  /// This property is `false` if this element is an initializing formal.
+  /// See [isFieldParameter].
+  bool get isParameter => kind == ElementKind.PARAMETER;
+
+  /// `true` if this element is an initializing formal of constructor, that
+  /// is a formal of the form `this.foo`.
+  bool get isFieldParameter => kind == ElementKind.FIELD_PARAMETER;
+
   bool get isStatement;
-  bool get isTypedef;
-  bool get isTypeVariable;
-  bool get isField;
-  bool get isFieldParameter;
-  bool get isAbstractField;
-  bool get isGetter;
-  bool get isSetter;
-  bool get isAccessor;
-  bool get isLibrary;
+
   bool get isErroneous;
   bool get isAmbiguous;
   bool get isWarnOnUse;
+
+  bool get isClosure;
+  bool get isMember;
+  bool get isInstanceMember;
 
   /// Returns true if this [Element] is a top level element.
   /// That is, if it is not defined within the scope of a class.
@@ -228,6 +292,18 @@ abstract class Element implements Spannable {
   bool get isAssignable;
   bool get isNative;
   bool get isDeferredLoaderGetter;
+
+  /// `true` if this element is a constructor, top level or local variable,
+  /// or static field that is declared `const`.
+  bool get isConst;
+
+  /// `true` if this element is a top level or local variable, static or
+  /// instance field, or parameter that is declared `final`.
+  bool get isFinal;
+
+  /// `true` if this element is a method, getter, setter or field that
+  /// is declared `static`.
+  bool get isStatic;
 
   bool get impliesType;
 
@@ -364,7 +440,7 @@ class Elements {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
     if (!Elements.isUnresolved(element)
-        && element.modifiers.isStatic) {
+        && element.isStatic) {
       return true;
     }
     return !Elements.isUnresolved(element)
@@ -454,10 +530,15 @@ class Elements {
     }
   }
 
+  /// Returns `true` if [name] is the name of an operator method.
+  static bool isOperatorName(String name) {
+    return name == 'unary-' || isUserDefinableOperator(name);
+  }
+
   /**
-   * Map an operator-name to a valid Dart identifier.
+   * Map an operator-name to a valid JavaScript identifier.
    *
-   * For non-operator names, this metod just returns its input.
+   * For non-operator names, this method just returns its input.
    *
    * The results returned from this method are guaranteed to be valid
    * JavaScript identifers, except it may include reserved words for

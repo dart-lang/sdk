@@ -885,7 +885,7 @@ class SimpleTypeInferrerVisitor<T>
       handleDynamicSend(
           node, setterSelector, receiverType, arguments);
     } else if (element.isField) {
-      if (element.modifiers.isFinal) {
+      if (element.isFinal) {
         inferrer.recordTypeOfFinalField(
             node, outermostElement, element, rhsType);
       } else {

@@ -409,8 +409,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
 
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
-    if (element.isField &&
-        !(element.modifiers.isConst || element.modifiers.isFinal)) {
+    if (element.isField && !(element.isConst || element.isFinal)) {
       return false;
     }
 

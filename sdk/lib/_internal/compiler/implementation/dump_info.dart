@@ -13,6 +13,7 @@ import 'dart2jslib.dart' show
     CodeBuffer;
 import 'dart_types.dart' show DartType;
 import 'types/types.dart' show TypeMask;
+import 'util/util.dart' show modifiersToString;
 
 // TODO (sigurdm): A search function.
 // TODO (sigurdm): Output size of classes.
@@ -320,7 +321,9 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
         type: "$type",
         name: element.name,
         size: size,
-        modifiers: "${element.modifiers}",
+        modifiers: modifiersToString(isStatic: element.isStatic,
+                                     isFinal: element.isFinal,
+                                     isConst: element.isConst),
         contents: contents);
   }
 
@@ -328,7 +331,7 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     // If the element is not resolved it is not used in the program, and we omit
     // it from the output.
     if (!element.isResolved) return null;
-    String modifiersString = "${element.modifiers}";
+    String modifiersString = modifiersToString(isAbstract: element.isAbstract);
     String supersString = element.allSupertypes == null ? "" :
         "implements ${element.allSupertypes}";
     List contents = [];
@@ -360,7 +363,11 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     CodeBuffer emittedCode = compiler.backend.codeOf(element);
     int size = 0;
     String nameString = element.name;
-    String modifiersString = "${element.modifiers}";
+    String modifiersString = modifiersToString(
+        isStatic: element.isStatic,
+        isConst: element.isConst,
+        isFactory: element.isFactoryConstructor,
+        isExternal: element.isPatched);
     String kindString = "function";
     if (currentElement.isClass) {
       kindString = "method";

@@ -70,7 +70,7 @@ abstract class MembersCreator {
   /// interface unless it is abstract or declares a `noSuchMethod` method.
   void computeAllMembers() {
     Map<Name, Member> declaredMembers = computeMembers(null, null);
-    if (!cls.modifiers.isAbstract &&
+    if (!cls.isAbstract &&
         !declaredMembers.containsKey(const PublicName('noSuchMethod'))) {
       // Check for unimplemented members on concrete classes that neither have
       // a `@proxy` annotation nor declare a `noSuchMethod` method.
@@ -190,8 +190,7 @@ abstract class MembersCreator {
         if (element.isField) {
           DartType type = element.computeType(compiler);
           addDeclaredMember(name, type, new FunctionType.synthesized(type));
-          if (!element.modifiers.isConst &&
-              !element.modifiers.isFinal) {
+          if (!element.isConst && !element.isFinal) {
             addDeclaredMember(name.setter, type,
                 new FunctionType.synthesized(
                                  const VoidType(),

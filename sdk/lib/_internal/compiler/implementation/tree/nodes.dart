@@ -1331,17 +1331,13 @@ class Modifiers extends Node {
   bool get isFinalOrConst => isFinal || isConst;
 
   String toString() {
-    LinkBuilder<String> builder = new LinkBuilder<String>();
-    if (isStatic) builder.addLast('static');
-    if (isAbstract) builder.addLast('abstract');
-    if (isFinal) builder.addLast('final');
-    if (isVar) builder.addLast('var');
-    if (isConst) builder.addLast('const');
-    if (isFactory) builder.addLast('factory');
-    if (isExternal) builder.addLast('external');
-    StringBuffer buffer = new StringBuffer();
-    builder.toLink().printOn(buffer, ', ');
-    return buffer.toString();
+    return modifiersToString(isStatic: isStatic,
+                             isAbstract: isAbstract,
+                             isFinal: isFinal,
+                             isVar: isVar,
+                             isConst: isConst,
+                             isFactory: isFactory,
+                             isExternal: isExternal);
   }
 }
 

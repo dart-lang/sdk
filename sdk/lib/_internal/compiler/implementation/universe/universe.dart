@@ -144,11 +144,11 @@ class Selector {
            || (name != INDEX_NAME && name != INDEX_SET_NAME));
     assert(kind == SelectorKind.OPERATOR
            || kind == SelectorKind.INDEX
-           || Elements.operatorNameToIdentifier(name) == name);
+           || !Elements.isOperatorName(name));
     assert(kind == SelectorKind.CALL
            || kind == SelectorKind.GETTER
            || kind == SelectorKind.SETTER
-           || Elements.operatorNameToIdentifier(name) != name);
+           || Elements.isOperatorName(name));
     assert(!isPrivateName(name) || library != null);
   }
 
@@ -201,7 +201,7 @@ class Selector {
         namedArguments =
             signature.orderedOptionalParameters.map((e) => e.name).toList();
       }
-      if (Elements.operatorNameToIdentifier(name) != name) {
+      if (element.isOperator) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
         return new Selector(
@@ -331,7 +331,7 @@ class Selector {
     if (element.isGetter) return isGetter || isCall;
     if (element.isField) {
       return isSetter
-          ? !element.modifiers.isFinalOrConst
+          ? !element.isFinal && !element.isConst
           : isGetter || isCall;
     }
     if (isGetter) return true;

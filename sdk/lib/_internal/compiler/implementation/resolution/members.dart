@@ -861,7 +861,7 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void checkMixinApplication(MixinApplicationElement mixinApplication) {
+  void checkMixinApplication(MixinApplicationElementX mixinApplication) {
     Modifiers modifiers = mixinApplication.modifiers;
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
@@ -1006,10 +1006,12 @@ class ResolverTask extends CompilerTask {
     }
     AbstractFieldElement field = lookupElement;
 
-    if (field.getter == null) return;
-    if (field.setter == null) return;
-    int getterFlags = field.getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    int setterFlags = field.setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    FunctionElementX getter = field.getter;
+    if (getter == null) return;
+    FunctionElementX setter = field.setter;
+    if (setter == null) return;
+    int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     if (!identical(getterFlags, setterFlags)) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
@@ -1408,8 +1410,8 @@ class InitializerResolver {
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
         visitor.compiler.reportError(diagnosticNode, kind);
-      } else if (caller.modifiers.isConst
-                 && !lookedupConstructor.modifiers.isConst) {
+      } else if (caller.isConst
+                 && !lookedupConstructor.isConst) {
         visitor.compiler.reportError(
             diagnosticNode, MessageKind.CONST_CALLS_NON_CONST);
       }
@@ -1460,7 +1462,7 @@ class InitializerResolver {
           // Check that there is no body (Language specification 7.5.1).  If the
           // constructor is also const, we already reported an error in
           // [resolveMethodElement].
-          if (functionNode.hasBody() && !constructor.modifiers.isConst) {
+          if (functionNode.hasBody() && !constructor.isConst) {
             error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.
@@ -1973,7 +1975,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   bool isPotentiallyMutableTarget(Element target) {
     if (target == null) return false;
     return (target.isVariable || target.isParameter) &&
-      !(target.modifiers.isFinal || target.modifiers.isConst);
+      !(target.isFinal || target.isConst);
   }
 
   // TODO(ahe): Find a way to share this with runtime implementation.
@@ -2739,8 +2741,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.ASSIGNING_TYPE);
         compiler.backend.registerThrowNoSuchMethod(mapping);
-      } else if (target.modifiers.isFinal ||
-                 target.modifiers.isConst ||
+      } else if (target.isFinal ||
+                 target.isConst ||
                  (target.isFunction &&
                   Elements.isStaticOrTopLevelFunction(target) &&
                   !target.isSetter)) {
@@ -2909,7 +2911,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
     FunctionElement constructor = enclosingElement;
-    bool isConstConstructor = constructor.modifiers.isConst;
+    bool isConstConstructor = constructor.isConst;
     FunctionElement redirectionTarget = resolveRedirectingFactory(
         node, inConstContext: isConstConstructor);
     constructor.defaultImplementation = redirectionTarget;
@@ -2919,7 +2921,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return;
     } else {
       if (isConstConstructor &&
-          !redirectionTarget.modifiers.isConst) {
+          !redirectionTarget.isConst) {
         compiler.reportError(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
       }
       if (redirectionTarget == constructor) {
@@ -4530,7 +4532,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
           fullConstructorName,
           MessageKind.CANNOT_FIND_CONSTRUCTOR,
           {'constructorName': fullConstructorName});
-    } else if (inConstContext && !result.modifiers.isConst) {
+    } else if (inConstContext && !result.isConst) {
       error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
     return result;

@@ -236,7 +236,7 @@ class Dart2JsInterfaceTypeMirror
   Map<Symbol, MethodMirror> get instanceMembers => null;
   Map<Symbol, MethodMirror> get staticMembers => null;
 
-  bool get isAbstract => _element.modifiers.isAbstract;
+  bool get isAbstract => _element.isAbstract;
 
   bool operator ==(other) {
     if (identical(this, other)) {

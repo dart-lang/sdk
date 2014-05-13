@@ -943,7 +943,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return lookupMember(node, receiverType, name, memberKind,
           elements[node.receiver],
           lookupClassMember: lookupClassMember ||
-              element != null && element.modifiers.isStatic);
+              element != null && element.isStatic);
     } else {
       return computeResolvedAccess(node, name, element, memberKind);
     }
@@ -974,7 +974,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isMember) {
       // foo() where foo is a member.
       return lookupMember(node, thisType, name, memberKind, null,
-          lookupClassMember: element.modifiers.isStatic);
+          lookupClassMember: element.isStatic);
     } else if (element.isFunction) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);

@@ -650,7 +650,7 @@ class ResolutionEnqueuer extends Enqueuer {
     // which are ending here because their initializing expression is compiled.
     LibraryElement library = element.library;
     if (!compiler.hasIsolateSupport() &&
-        (!element.isField || !element.modifiers.isConst)) {
+        (!element.isField || !element.isConst)) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);

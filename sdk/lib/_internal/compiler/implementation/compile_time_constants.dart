@@ -442,9 +442,9 @@ class CompileTimeConstantEvaluator extends Visitor {
         return new FunctionConstant(element);
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
-        if (element.modifiers.isConst) {
+        if (element.isConst) {
           result = handler.compileConstant(element);
-        } else if (element.modifiers.isFinal && !isEvaluatingConstant) {
+        } else if (element.isFinal && !isEvaluatingConstant) {
           result = handler.compileVariable(element);
         }
         if (result != null) return result;
@@ -455,7 +455,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         // Fall through to error handling.
       } else if (!Elements.isUnresolved(element)
                  && element.isVariable
-                 && element.modifiers.isConst) {
+                 && element.isConst) {
         Constant result = handler.compileConstant(element);
         if (result != null) return result;
       }

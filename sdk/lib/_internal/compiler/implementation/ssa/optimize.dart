@@ -739,7 +739,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    ast.Modifiers modifiers = field.modifiers;
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;

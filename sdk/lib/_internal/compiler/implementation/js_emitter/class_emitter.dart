@@ -495,7 +495,7 @@ class ClassEmitter extends CodeEmitterHelper {
   bool fieldNeedsSetter(VariableElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    return (!field.modifiers.isFinalOrConst)
+    return (!field.isFinal && !field.isConst)
         && (backend.shouldRetainSetter(field)
             || compiler.codegenWorld.hasInvokedSetter(field, compiler));
   }

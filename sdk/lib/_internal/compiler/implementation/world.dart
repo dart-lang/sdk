@@ -215,8 +215,8 @@ class World {
       return false;
     }
 
-    return element.modifiers.isFinal
-        || element.modifiers.isConst
+    return element.isFinal
+        || element.isConst
         || (element.isInstanceMember
             && !compiler.resolverWorld.hasInvokedSetter(element, compiler));
   }

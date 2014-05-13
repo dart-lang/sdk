@@ -345,12 +345,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (member.isInstanceMember) emitExtraAccessors(member, builder);
   }
 
-  bool _isOperator(FunctionElement member) {
-    // TODO(18740): there must be a better way to know if an element is an
-    // operator.
-    return Elements.operatorNameToIdentifier(member.name) != member.name;
-  }
-
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {
     if (member.isAbstract) return;
     jsAst.Expression code = backend.generatedCode[member];
@@ -378,7 +372,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         // Careful with operators.
         canTearOff =
             compiler.codegenWorld.hasInvokedGetter(member, compiler) ||
-            (canBeReflected && !_isOperator(member));
+            (canBeReflected && !member.isOperator);
         assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
       }

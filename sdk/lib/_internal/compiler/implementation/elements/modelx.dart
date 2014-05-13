@@ -34,7 +34,7 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 
 import 'visitor.dart' show ElementVisitor;
 
-abstract class ElementX implements Element {
+abstract class ElementX extends Element {
   static int elementHashCode = 0;
 
   final String name;
@@ -69,9 +69,6 @@ abstract class ElementX implements Element {
     metadata = metadata.prepend(annotation);
   }
 
-
-  bool get isFunction => identical(kind, ElementKind.FUNCTION);
-  bool get isConstructor => isFactoryConstructor || isGenerativeConstructor;
   bool get isClosure => false;
   bool get isMember {
     // Check that this element is defined in the scope of a Class.
@@ -81,25 +78,11 @@ abstract class ElementX implements Element {
   bool get isDeferredLoaderGetter => false;
 
   bool get isFactoryConstructor => modifiers.isFactory;
-  bool get isGenerativeConstructor =>
-      identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);
-  bool get isGenerativeConstructorBody =>
-      identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
-  bool get isCompilationUnit => identical(kind, ElementKind.COMPILATION_UNIT);
-  bool get isClass => identical(kind, ElementKind.CLASS);
-  bool get isPrefix => identical(kind, ElementKind.PREFIX);
-  bool get isVariable => identical(kind, ElementKind.VARIABLE);
-  bool get isParameter => identical(kind, ElementKind.PARAMETER);
+  bool get isConst => modifiers.isConst;
+  bool get isFinal => modifiers.isFinal;
+  bool get isStatic => modifiers.isStatic;
+  bool get isOperator => Elements.isOperatorName(name);
   bool get isStatement => identical(kind, ElementKind.STATEMENT);
-  bool get isTypedef => identical(kind, ElementKind.TYPEDEF);
-  bool get isTypeVariable => identical(kind, ElementKind.TYPE_VARIABLE);
-  bool get isField => identical(kind, ElementKind.FIELD);
-  bool get isFieldParameter => identical(kind, ElementKind.FIELD_PARAMETER);
-  bool get isAbstractField => identical(kind, ElementKind.ABSTRACT_FIELD);
-  bool get isGetter => identical(kind, ElementKind.GETTER);
-  bool get isSetter => identical(kind, ElementKind.SETTER);
-  bool get isAccessor => isGetter || isSetter;
-  bool get isLibrary => identical(kind, ElementKind.LIBRARY);
   bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
   /** See [ErroneousElement] for documentation. */
@@ -146,7 +129,7 @@ abstract class ElementX implements Element {
   }
 
   bool get isAssignable {
-    if (modifiers.isFinalOrConst) return false;
+    if (isFinal || isConst) return false;
     if (isFunction || isGenerativeConstructor) return false;
     return true;
   }
@@ -1209,7 +1192,7 @@ class VariableElementX extends ElementX with AnalyzableElement
     return variables.type;
   }
 
-  bool get isInstanceMember => isMember && !modifiers.isStatic;
+  bool get isInstanceMember => isMember && !isStatic;
 
   // Note: cachedNode.beginToken will not be correct in all
   // cases, for example, for function typed parameters.
@@ -1319,8 +1302,8 @@ class ParameterElementX extends ElementX with PatchMixin<ParameterElement>
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
-  FunctionElement getter;
-  FunctionElement setter;
+  FunctionElementX getter;
+  FunctionElementX setter;
 
   AbstractFieldElementX(String name, Element enclosing)
       : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
@@ -1365,7 +1348,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   }
 
   bool get isInstanceMember {
-    return isMember && !modifiers.isStatic;
+    return isMember && !isStatic;
   }
 
   accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
@@ -1544,7 +1527,7 @@ class FunctionElementX
   bool get isInstanceMember {
     return isMember
            && !isConstructor
-           && !modifiers.isStatic;
+           && !isStatic;
   }
 
   FunctionSignature computeSignature(Compiler compiler) {
@@ -1623,7 +1606,7 @@ class SynthesizedCallMethodElementX extends FunctionElementX {
   final FunctionElement expression;
 
   SynthesizedCallMethodElementX(String name,
-                                FunctionElement other,
+                                FunctionElementX other,
                                 Element enclosing)
       : expression = other,
         super.tooMuchOverloading(name, other.node, other.kind,
@@ -1979,7 +1962,7 @@ abstract class BaseClassElementX extends ElementX
       Element e = s.lookupLocalMember(memberName);
       if (e == null) continue;
       // Static members are not inherited.
-      if (e.modifiers.isStatic) continue;
+      if (e.isStatic) continue;
       return e;
     }
     return null;
@@ -2022,7 +2005,7 @@ abstract class BaseClassElementX extends ElementX
       // Private members from a different library are not visible.
       if (isPrivate && !identical(library, member.library)) continue;
       // Static members are not inherited.
-      if (member.modifiers.isStatic && !identical(this, current)) continue;
+      if (member.isStatic && !identical(this, current)) continue;
       // If we find an abstract field we have to make sure that it has
       // the getter or setter part we're actually looking
       // for. Otherwise, we continue up the superclass chain.

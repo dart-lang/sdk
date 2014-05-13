@@ -668,7 +668,7 @@ class TypeGraphInferrerEngine
     if (element.isField) {
       VariableElement fieldElement = element;
       ast.Node node = fieldElement.node;
-      if (element.modifiers.isFinal || element.modifiers.isConst) {
+      if (element.isFinal || element.isConst) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
         if (fieldElement.initializer != null) {
@@ -706,7 +706,7 @@ class TypeGraphInferrerEngine
       }
       if (Elements.isStaticOrTopLevelField(element) &&
           fieldElement.initializer != null &&
-          !element.modifiers.isConst) {
+          !element.isConst) {
         var argument = fieldElement.initializer;
         // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
