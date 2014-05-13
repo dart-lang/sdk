@@ -140,22 +140,8 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   return _Utils.spawnDomUri(uri.toString());
 }
 $if DART_USE_BLINK
-// FIXME: This should be generated.
-const _typeMap = const {
-  'EventTarget': EventTarget,
-  'Window': Window,
-  'Element': Element,
-  'Console': Console,
-  'Node': Node,
-  'Document': Document,
-  'HTMLElement': HtmlElement,
-  'HTMLCanvasElement': CanvasElement,
-  'HTMLDocument': HtmlDocument,
+// FIXME: Can we make this private?
+const htmlBlinkMap = const {
+$!TYPE_MAP
 };
-
-Type _getType(String key) {
-  if (!_typeMap.containsKey(key))
-    return null;
-  return _typeMap[key];
-}
 $endif

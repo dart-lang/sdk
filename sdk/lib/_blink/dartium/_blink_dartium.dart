@@ -17,10 +17,12 @@ import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show web_glBlinkMap;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
+import 'dart:svg' show svgBlinkMap;
 import 'dart:web_audio' show AudioNode, AudioParam;
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8527,7 +8529,24 @@ Native_XSLTProcessor_transformToDocument_Callback(mthis, source) native "XSLTPro
 
 Native_XSLTProcessor_transformToFragment_Callback(mthis, source, docVal) native "XSLTProcessor_transformToFragment_Callback";
 
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+
+// TODO(vsm): This should be moved out of this library.  Into dart:html?
+Type _getType(String key) {
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+  if (htmlBlinkMap.containsKey(key))
+    return htmlBlinkMap[key];
+  if (indexed_dbBlinkMap.containsKey(key))
+    return indexed_dbBlinkMap[key];
+  if (web_audioBlinkMap.containsKey(key))
+    return web_audioBlinkMap[key];
+  if (web_glBlinkMap.containsKey(key))
+    return web_glBlinkMap[key];
+  if (web_sqlBlinkMap.containsKey(key))
+    return web_sqlBlinkMap[key];
+  if (svgBlinkMap.containsKey(key))
+    return svgBlinkMap[key];
+  return null;
+}// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 

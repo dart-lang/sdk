@@ -28,13 +28,33 @@ import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show web_glBlinkMap;
 import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
+import 'dart:svg' show svgBlinkMap;
 import 'dart:web_audio' show AudioNode, AudioParam;
 
 part '$AUXILIARY_DIR/blink_native_DOMImplementation.dart';
 
 $!GENERATED_DART_FILES
+
+// TODO(vsm): This should be moved out of this library.  Into dart:html?
+Type _getType(String key) {
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+  if (htmlBlinkMap.containsKey(key))
+    return htmlBlinkMap[key];
+  if (indexed_dbBlinkMap.containsKey(key))
+    return indexed_dbBlinkMap[key];
+  if (web_audioBlinkMap.containsKey(key))
+    return web_audioBlinkMap[key];
+  if (web_glBlinkMap.containsKey(key))
+    return web_glBlinkMap[key];
+  if (web_sqlBlinkMap.containsKey(key))
+    return web_sqlBlinkMap[key];
+  if (svgBlinkMap.containsKey(key))
+    return svgBlinkMap[key];
+  return null;
+}

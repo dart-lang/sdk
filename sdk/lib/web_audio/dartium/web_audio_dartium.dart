@@ -14,6 +14,37 @@ import 'dart:_blink' as _blink;
 
 
 
+// FIXME: Can we make this private?
+const web_audioBlinkMap = const {
+  'AnalyserNode': AnalyserNode,
+  'AudioBuffer': AudioBuffer,
+  'AudioBufferSourceNode': AudioBufferSourceNode,
+  'AudioContext': AudioContext,
+  'AudioDestinationNode': AudioDestinationNode,
+  'AudioListener': AudioListener,
+  'AudioNode': AudioNode,
+  'AudioParam': AudioParam,
+  'AudioProcessingEvent': AudioProcessingEvent,
+  'AudioSourceNode': AudioSourceNode,
+  'BiquadFilterNode': BiquadFilterNode,
+  'ChannelMergerNode': ChannelMergerNode,
+  'ChannelSplitterNode': ChannelSplitterNode,
+  'ConvolverNode': ConvolverNode,
+  'DelayNode': DelayNode,
+  'DynamicsCompressorNode': DynamicsCompressorNode,
+  'GainNode': GainNode,
+  'MediaElementAudioSourceNode': MediaElementAudioSourceNode,
+  'MediaStreamAudioDestinationNode': MediaStreamAudioDestinationNode,
+  'MediaStreamAudioSourceNode': MediaStreamAudioSourceNode,
+  'OfflineAudioCompletionEvent': OfflineAudioCompletionEvent,
+  'OfflineAudioContext': OfflineAudioContext,
+  'OscillatorNode': OscillatorNode,
+  'PannerNode': PannerNode,
+  'PeriodicWave': PeriodicWave,
+  'ScriptProcessorNode': ScriptProcessorNode,
+  'WaveShaperNode': WaveShaperNode,
+
+};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

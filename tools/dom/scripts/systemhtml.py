@@ -486,6 +486,9 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateInterface(self):
     interface_name = self._interface_type_info.interface_name()
+    implementation_name = self._interface_type_info.implementation_name()
+    self._library_emitter.AddTypeEntry(self._library_name,
+                                       self._interface.id, implementation_name)
 
     factory_provider = None
     if interface_name in interface_factories:
@@ -1204,6 +1207,9 @@ class DartLibraryEmitter():
       self._dart_libraries.AddFile(basename, library_name, path)
     return self._path_to_emitter[path]
 
+  def AddTypeEntry(self, basename, idl_name, dart_name):
+    self._dart_libraries.AddTypeEntry(basename, idl_name, dart_name)
+
   def EmitLibraries(self, auxiliary_dir):
     self._dart_libraries.Emit(self._multiemitter, auxiliary_dir)
 
@@ -1215,9 +1221,13 @@ class DartLibrary():
     self._dart_path = os.path.join(
         output_dir, '%s_%s.dart' % (name, library_type))
     self._paths = []
+    self._typeMap = {}
 
   def AddFile(self, path):
     self._paths.append(path)
+
+  def AddTypeEntry(self, idl_name, dart_name):
+    self._typeMap[idl_name] = dart_name
 
   def Emit(self, emitter, auxiliary_dir):
     def massage_path(path):
@@ -1227,13 +1237,28 @@ class DartLibrary():
     library_emitter = emitter.FileEmitter(self._dart_path)
     library_file_dir = os.path.dirname(self._dart_path)
     auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
-    imports_emitter = library_emitter.Emit(
+    emitters = library_emitter.Emit(
         self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
+    if isinstance(emitters, tuple):
+      imports_emitter, map_emitter = emitters
+    else:
+      imports_emitter, map_emitter = emitters, None
+      
 
     for path in sorted(self._paths):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
           "part '$PATH';\n", PATH=massage_path(relpath))
+
+    if map_emitter:
+      items = self._typeMap.items()
+      items.sort()
+      for (idl_name, dart_name) in items:
+        map_emitter.Emit(
+          "  '$IDL_NAME': $DART_NAME,\n",
+          IDL_NAME=idl_name,
+          DART_NAME=dart_name)
+      
 
 # ------------------------------------------------------------------------------
 
@@ -1246,6 +1271,9 @@ class DartLibraries():
 
   def AddFile(self, basename, library_name, path):
     self._libraries[library_name].AddFile(path)
+
+  def AddTypeEntry(self, library_name, idl_name, dart_name):
+    self._libraries[library_name].AddTypeEntry(idl_name, dart_name)
 
   def Emit(self, emitter, auxiliary_dir):
     for lib in self._libraries.values():
