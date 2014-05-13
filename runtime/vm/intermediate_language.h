@@ -43,6 +43,7 @@ class Range;
   V(Object, get:_cid, ObjectCid, 1498751301)                                   \
   V(_TypedListBase, get:_cid, TypedListBaseCid, 1938244762)                    \
   V(_List, get:length, ObjectArrayLength, 215183186)                           \
+  V(_List, _List., ObjectArrayConstructor, 176587978)                          \
   V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
@@ -4369,18 +4370,20 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-
   virtual intptr_t token_pos() const { return token_pos_; }
   Value* element_type() const { return inputs_[kElementTypePos]; }
   Value* num_elements() const { return inputs_[kLengthPos]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  // Throw needs environment, which is created only if instruction can
+  // deoptimize.
+  virtual bool CanDeoptimize() const { return MayThrow(); }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
+  // TODO(srdjan): return false if length is a positive Smi.
+  virtual bool MayThrow() const { return true; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }

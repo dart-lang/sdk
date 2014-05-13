@@ -620,6 +620,15 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     } else {
       __ j(NOT_ZERO, &slow_case);
     }
+    __ cmpl(EDX, Immediate(0));
+    __ j(LESS,  &slow_case);
+
+    // Check for maximum allowed length.
+    const Immediate& max_len =
+        Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+    __ cmpl(EDX, max_len);
+    __ j(GREATER, &slow_case);
+
     __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
     __ movl(EDI, Address(EDI, Isolate::heap_offset()));
     __ movl(EDI, Address(EDI, Heap::new_space_offset()));
@@ -634,7 +643,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
     ASSERT(kSmiTagShift == 1);
     __ andl(EBX, Immediate(-kObjectAlignment));
-    __ leal(EBX, Address(EAX, EBX, TIMES_1, 0));
+
+    // Check for overflow.
+    __ addl(EBX, EAX);
+    __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.

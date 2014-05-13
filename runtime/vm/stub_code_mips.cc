@@ -700,6 +700,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     } else {
       __ bne(CMPRES1, ZR, &slow_case);
     }
+    __ bltz(A1, &slow_case);
+    // Check for maximum allowed length.
+    const intptr_t max_len =
+        reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
+    __ BranchUnsignedGreater(A1, max_len, &slow_case);
+
     __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
     __ lw(T0, Address(T0, Isolate::heap_offset()));
     __ lw(T0, Address(T0, Heap::new_space_offset()));
@@ -717,7 +723,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ LoadImmediate(TMP, ~(kObjectAlignment - 1));
     __ and_(T3, T3, TMP);
-    __ addu(T2, T3, V0);
+
+    __ AdduDetectOverflow(T2, T3, V0, CMPRES1);
+    __ bltz(CMPRES1, &slow_case);  // CMPRES1 < 0 on overflow.
 
     // Check if the allocation fits into the remaining space.
     // V0: potential new object start.

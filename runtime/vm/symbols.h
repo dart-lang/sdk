@@ -443,7 +443,10 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
-  static RawString* New(const char* cstr);
+  static RawString* New(const char* cstr) {
+    return New(cstr, strlen(cstr));
+  }
+  static RawString* New(const char* cstr, intptr_t length);
 
   // Creates a new Symbol from an array of UTF-8 encoded characters.
   static RawString* FromUTF8(const uint8_t* utf8_array, intptr_t len);

@@ -4228,6 +4228,12 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
                                      recognized_kind,
                                      call->token_pos());
     ReplaceCall(call, invoke);
+  } else if (recognized_kind == MethodRecognizer::kObjectArrayConstructor) {
+    Value* type = new Value(call->ArgumentAt(0));
+    Value* num_elements = new Value(call->ArgumentAt(1));
+    CreateArrayInstr* create_array =
+        new CreateArrayInstr(call->token_pos(), type, num_elements);
+    ReplaceCall(call, create_array);
   } else if (Library::PrivateCoreLibName(Symbols::ClassId()).Equals(
       String::Handle(call->function().name()))) {
     // Check for core library get:_classId.
@@ -4239,9 +4245,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
            (cid == kImmutableArrayCid) || (cid == kArrayCid));
     ConstantInstr* cid_instr = new ConstantInstr(Smi::Handle(Smi::New(cid)));
     ReplaceCall(call, cid_instr);
-  }
-
-  if (call->function().IsFactory()) {
+  } else if (call->function().IsFactory()) {
     const Class& function_class = Class::Handle(call->function().Owner());
     if ((function_class.library() == Library::CoreLibrary()) ||
         (function_class.library() == Library::TypedDataLibrary())) {
@@ -5017,6 +5021,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
           Instruction* current = instr_it.Current();
           if (current->MayThrow()) {
             Environment* env = current->env();
+            ASSERT(env != NULL);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
               if (cdefs[env_idx] != NULL &&
                   env->ValueAt(env_idx)->BindsToConstant()) {

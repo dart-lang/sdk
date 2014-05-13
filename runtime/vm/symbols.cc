@@ -151,11 +151,10 @@ void Symbols::Add(const Array& symbol_table, const String& str) {
 }
 
 
-RawString* Symbols::New(const char* cstr) {
-  ASSERT(cstr != NULL);
-  intptr_t array_len = strlen(cstr);
+RawString* Symbols::New(const char* cstr, intptr_t len) {
+  ASSERT((cstr != NULL) && (len >= 0));
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
-  return Symbols::FromUTF8(utf8_array, array_len);
+  return Symbols::FromUTF8(utf8_array, len);
 }
 
 

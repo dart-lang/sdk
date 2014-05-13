@@ -98,8 +98,22 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Arg1: array type arguments, i.e. vector of 1 type, the element type.
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
-  const Smi& length = Smi::CheckedHandle(arguments.ArgAt(0));
-  const Array& array = Array::Handle(Array::New(length.Value()));
+  const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
+  if (!length.IsSmi()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Length must be an integer in the range [0..%" Pd "].",
+        Array::kMaxElements));
+    Exceptions::ThrowArgumentError(error);
+  }
+  const intptr_t len = Smi::Cast(length).Value();
+  if (len < 0) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
+        len, Array::kMaxElements));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  const Array& array = Array::Handle(Array::New(len));
   arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(arguments.ArgAt(1));
