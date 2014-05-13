@@ -314,6 +314,76 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return null;
   }
 
+  List<ir.Parameter> createJoinParameters(IrBuilder leftBuilder,
+                                          List<ir.Primitive> leftArguments,
+                                          IrBuilder rightBuilder,
+                                          List<ir.Primitive> rightArguments) {
+    // The sets of free and assigned variables for a delimited builder is
+    // initially the length of the assigned variables of the parent.  The free
+    // variables cannot grow because there cannot be free occurrences of
+    // variables that were not declared before the entrance to the delimited
+    // subgraph.  The assigned variables can grow when new variables are
+    // declared in the delimited graph, but we only inspect the prefix
+    // corresponding to the parent's declared variables.
+    assert(assignedVars.length == leftBuilder.freeVars.length);
+    assert(assignedVars.length == rightBuilder.freeVars.length);
+    assert(assignedVars.length <= leftBuilder.assignedVars.length);
+    assert(assignedVars.length <= rightBuilder.assignedVars.length);
+
+    List<ir.Parameter> parameters = <ir.Parameter>[];
+    // If a variable was assigned on either the left or the right (and control
+    // flow reaches the end of the corresponding subterm) then the variable has
+    // different values reaching the join point and needs to be passed as an
+    // argument to the join point continuation.
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // The last assignments if any reaching the end of the two subterms.
+      ir.Definition leftAssignment =
+          leftBuilder.isOpen ? leftBuilder.assignedVars[i] : null;
+      ir.Definition rightAssignment =
+          rightBuilder.isOpen ? rightBuilder.assignedVars[i] : null;
+
+      if (leftAssignment != null || rightAssignment != null) {
+        // The corresponsing argument is the reaching definition if any, or a
+        // free occurrence.  In the case that control does not reach both the
+        // left and right subterms we will still have a join continuation with
+        // possibly arguments passed to it.  Such singly-used continuations
+        // are eliminated by the shrinking conversions.
+        ir.Parameter parameter = new ir.Parameter(null);
+        parameters.add(parameter);
+        leftArguments.add(leftAssignment == null
+                              ? leftBuilder.freeVars[i]
+                              : leftAssignment);
+        rightArguments.add(rightAssignment == null
+                              ? rightBuilder.freeVars[i]
+                              : rightAssignment);
+      }
+    }
+    return parameters;
+  }
+
+  void captureFreeVariables(IrBuilder leftBuilder,
+                            IrBuilder rightBuilder,
+                            List<ir.Parameter> parameters) {
+    int parameterIndex = 0;
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // This is the definition that reaches the left and right subterms.  All
+      // free uses in either term are uses of this definition.
+      ir.Definition reachingDefinition =
+          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
+      reachingDefinition
+          ..substituteFor(leftBuilder.freeVars[i])
+          ..substituteFor(rightBuilder.freeVars[i]);
+
+      // Also add join continuation parameters as assignments for the join
+      // body.  This is done last because the assigned variables are updated
+      // in place.
+      if ((leftBuilder.isOpen && leftBuilder.assignedVars[i] != null) ||
+          (rightBuilder.isOpen && rightBuilder.assignedVars[i] != null)) {
+        assignedVars[i] = parameters[parameterIndex++];
+      }
+    }
+  }
+
   ir.Primitive visitIf(ast.If node) {
     assert(isOpen);
     ir.Primitive condition = visit(node.condition);
@@ -329,41 +399,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // assigned variables in the then and else parts are arguments to the join
     // point continuation if any.
 
-    // FreeVars is initially the length of assignedVars of the parent, and it
-    // does not grow.  AssignedVars can grow.
-    assert(assignedVars.length == thenBuilder.freeVars.length);
-    assert(assignedVars.length == elseBuilder.freeVars.length);
-    assert(assignedVars.length <= thenBuilder.assignedVars.length);
-    assert(assignedVars.length <= elseBuilder.assignedVars.length);
-    List<ir.Parameter> parameters = <ir.Parameter>[];
     List<ir.Primitive> thenArguments = <ir.Primitive>[];
     List<ir.Primitive> elseArguments = <ir.Primitive>[];
-    for (int i = 0; i < assignedVars.length; ++i) {
-      // These are the last assignments, if any, in the then and else
-      // continuations respectively (if they can reach the join point).  If a
-      // variable is assigned in either branch reaching the join point, it has
-      // different values that must be passed as an argument to the join point
-      // continuation.
-      ir.Definition thenAssignment =
-          thenBuilder.isOpen ? thenBuilder.assignedVars[i] : null;
-      ir.Definition elseAssignment =
-          elseBuilder.isOpen ? elseBuilder.assignedVars[i] : null;
-      if (thenAssignment != null || elseAssignment != null) {
-        // In the case that not both then and else parts can reach the join
-        // point, there will still be a join-point continuation possibly with
-        // arguments passed to it.  Such singly-used continuations should be
-        // eliminated by shrinking conversions (because they can arise
-        // otherwise as the result of optimization).
-        ir.Parameter parameter = new ir.Parameter(null);
-        parameters.add(parameter);
-        thenArguments.add(thenAssignment == null
-                              ? thenBuilder.freeVars[i]
-                              : thenAssignment);
-        elseArguments.add(elseAssignment == null
-                              ? elseBuilder.freeVars[i]
-                              : elseAssignment);
-      }
-    }
+    List<ir.Parameter> parameters =
+        createJoinParameters(thenBuilder, thenArguments,
+                             elseBuilder, elseArguments);
 
     // Create a then and else continuations and a join continuation if
     // necessary.  Jump to the join continuation from the exits of the then
@@ -385,27 +425,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     thenContinuation.body = thenBuilder.root;
     elseContinuation.body = elseBuilder.root;
 
-    // Capture free occurrences in the then and else bodies.  This is done
-    // after creating invocations of the join continuation so free join
+    // Capture free occurrences in the then and else bodies and add join
+    // continuation parameters as assignments reaching the join body.  This is
+    // done after creating invocations of the join continuation so free join
     // continuation arguments are properly captured.
-    //
-    // Also add join continuation parameters as assignments for the join body.
-    // This is done last because the assigned variables are updated in place.
-    int parameterIndex = 0;
-    for (int i = 0; i < assignedVars.length; ++i) {
-      // This is the definition that reaches the then and else continuations.
-      // All free uses in either continuation are uses of this definition.
-      ir.Definition reachingDefinition =
-          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
-      reachingDefinition
-          ..substituteFor(thenBuilder.freeVars[i])
-          ..substituteFor(elseBuilder.freeVars[i]);
-
-      if ((thenBuilder.isOpen && thenBuilder.assignedVars[i] != null) ||
-          (elseBuilder.isOpen && elseBuilder.assignedVars[i] != null)) {
-        assignedVars[i] = parameters[parameterIndex++];
-      }
-    }
+    captureFreeVariables(thenBuilder, elseBuilder, parameters);
 
     ir.Expression branch =
         new ir.LetCont(thenContinuation,
@@ -478,31 +502,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Primitive thenValue = thenBuilder.visit(node.thenExpression);
     ir.Primitive elseValue = elseBuilder.visit(node.elseExpression);
 
-    // Construct a join in the same way as for if statements, see visitIf.
-    // There is always control flow out of expressions so thenBuilder.isOpen
-    // and elseBuilder.isOpen.  There is an extra join-point continuation
-    // parameter for the expression value.
-    assert(assignedVars.length == thenBuilder.freeVars.length);
-    assert(assignedVars.length == elseBuilder.freeVars.length);
-    assert(assignedVars.length <= thenBuilder.assignedVars.length);
-    assert(assignedVars.length <= elseBuilder.assignedVars.length);
-    List<ir.Parameter> parameters = <ir.Parameter>[];
     List<ir.Primitive> thenArguments = <ir.Primitive>[];
     List<ir.Primitive> elseArguments = <ir.Primitive>[];
-    for (int i = 0; i < assignedVars.length; ++i) {
-      ir.Definition thenAssignment = thenBuilder.assignedVars[i];
-      ir.Definition elseAssignment = elseBuilder.assignedVars[i];
-      if (thenAssignment != null || elseAssignment != null) {
-        ir.Parameter parameter = new ir.Parameter(null);
-        parameters.add(parameter);
-        thenArguments.add(thenAssignment == null
-                              ? thenBuilder.freeVars[i]
-                              : thenAssignment);
-        elseArguments.add(elseAssignment == null
-                              ? elseBuilder.freeVars[i]
-                              : elseAssignment);
-      }
-    }
+    List<ir.Parameter> parameters =
+        createJoinParameters(thenBuilder, thenArguments,
+                             elseBuilder, elseArguments);
     // Add a continuation parameter for the result of the expression.
     ir.Parameter resultParameter = new ir.Parameter(null);
     parameters.add(resultParameter);
@@ -519,19 +523,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     thenContinuation.body = thenBuilder.root;
     elseContinuation.body = elseBuilder.root;
 
-    int parameterIndex = 0;
-    for (int i = 0; i < assignedVars.length; ++i) {
-      ir.Definition reachingDefinition =
-          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
-      reachingDefinition
-          ..substituteFor(thenBuilder.freeVars[i])
-          ..substituteFor(elseBuilder.freeVars[i]);
-
-      if (thenBuilder.assignedVars[i] != null ||
-          elseBuilder.assignedVars[i] != null) {
-        assignedVars[i] = parameters[parameterIndex++];
-      }
-    }
+    captureFreeVariables(thenBuilder, elseBuilder, parameters);
 
     ir.Expression branch =
         new ir.LetCont(thenContinuation,
@@ -648,13 +640,108 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
   }
 
-  ir.Primitive visitOperatorSend(ast.Send node) {
-    ast.Operator selectorNode = node.selector;
-    if (!isUserDefinableOperator(selectorNode.source)) {
-      return giveup();
+  ir.Primitive translateLogicalOperator(ast.Operator op,
+                                        ast.Expression left,
+                                        ast.Expression right) {
+    // e0 && e1 is translated as if e0 ? (e1 == true) : false.
+    // e0 || e1 is translated as if e0 ? true : (e1 == true).
+    // The translation must convert both e0 and e1 to booleans and handle
+    // local variable assignments in e1.
+
+    ir.Primitive leftValue = visit(left);
+    IrBuilder rightBuilder = new IrBuilder.delimited(this);
+    ir.Primitive rightValue = rightBuilder.visit(right);
+    // A dummy empty target for the branch on the left subexpression branch.
+    // This enables using the same infrastructure for continuation arguments
+    // and free variable capture as in visitIf and visitConditional.  It will
+    // hold an invocation of the join-point continuation.  It cannot have
+    // assigned variables but may have free variables as arguments to the
+    // join-point continuation.
+    IrBuilder emptyBuilder = new IrBuilder.delimited(this);
+
+    List <ir.Primitive> leftArguments = <ir.Primitive>[];
+    List <ir.Primitive> rightArguments = <ir.Primitive>[];
+    List <ir.Parameter> parameters =
+        createJoinParameters(emptyBuilder, leftArguments,
+                             rightBuilder, rightArguments);
+
+    // Add a continuation parameter for the result of the expression.
+    ir.Parameter resultParameter = new ir.Parameter(null);
+    parameters.add(resultParameter);
+    // If we don't evaluate the right subexpression, the value of the whole
+    // expression is this constant.
+    ir.Constant leftBool =
+        new ir.Constant(constantSystem.createBool(op.source == '||'));
+    leftArguments.add(leftBool);
+    // If we do evaluate the right subexpression, the value of the expression
+    // is a true or false constant.
+    ir.Constant rightTrue = new ir.Constant(constantSystem.createBool(true));
+    ir.Constant rightFalse = new ir.Constant(constantSystem.createBool(false));
+
+    // Wire up two continuations for the left subexpression, two continuations
+    // for the right subexpression, and a three-way join continuation.
+    ir.Continuation joinContinuation = new ir.Continuation(parameters);
+    ir.Continuation leftTrueContinuation = new ir.Continuation([]);
+    ir.Continuation leftFalseContinuation = new ir.Continuation([]);
+    ir.Continuation rightTrueContinuation = new ir.Continuation([]);
+    ir.Continuation rightFalseContinuation = new ir.Continuation([]);
+    // If right is true, invoke the join with a true value for the result.
+    rightArguments.add(rightTrue);
+    rightTrueContinuation.body = new ir.LetPrim(rightTrue)
+        ..plug(new ir.InvokeContinuation(joinContinuation, rightArguments));
+    // And if false, invoke the join continuation with a false value.  The
+    // argument list of definitions can be mutated, because fresh Reference
+    // objects are allocated by the InvokeContinuation constructor.
+    rightArguments[rightArguments.length - 1] = rightFalse;
+    rightFalseContinuation.body = new ir.LetPrim(rightFalse)
+        ..plug(new ir.InvokeContinuation(joinContinuation, rightArguments));
+    // The right subexpression has two continuations.
+    rightBuilder.add(
+        new ir.LetCont(rightTrueContinuation,
+            new ir.LetCont(rightFalseContinuation,
+                new ir.Branch(new ir.IsTrue(rightValue),
+                              rightTrueContinuation,
+                              rightFalseContinuation))));
+    // Depending on the operator, the left subexpression's continuations are
+    // either the right subexpression or an invocation of the join-point
+    // continuation.
+    if (op.source == '&&') {
+      leftTrueContinuation.body = rightBuilder.root;
+      leftFalseContinuation.body = new ir.LetPrim(leftBool)
+          ..plug(new ir.InvokeContinuation(joinContinuation, leftArguments));
     } else {
+      leftTrueContinuation.body = new ir.LetPrim(leftBool)
+          ..plug(new ir.InvokeContinuation(joinContinuation, leftArguments));
+      leftFalseContinuation.body = rightBuilder.root;
+    }
+
+    // Capture free local variable occurrences in the right subexpression
+    // and update the reaching definitions for the join-point continuation
+    // body to include the continuation's parameters.
+    captureFreeVariables(rightBuilder, emptyBuilder, parameters);
+
+    add(new ir.LetCont(joinContinuation,
+            new ir.LetCont(leftTrueContinuation,
+                new ir.LetCont(leftFalseContinuation,
+                    new ir.Branch(new ir.IsTrue(leftValue),
+                                  leftTrueContinuation,
+                                  leftFalseContinuation)))));
+    return resultParameter;
+  }
+
+  ir.Primitive visitOperatorSend(ast.Send node) {
+    assert(isOpen);
+    ast.Operator op = node.selector;
+    if (isUserDefinableOperator(op.source)) {
       return visitDynamicSend(node);
     }
+    if (op.source == '&&' || op.source == '||') {
+      assert(node.receiver != null);
+      assert(!node.arguments.isEmpty);
+      assert(node.arguments.tail.isEmpty);
+      return translateLogicalOperator(op, node.receiver, node.arguments.head);
+    }
+    return giveup();
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
