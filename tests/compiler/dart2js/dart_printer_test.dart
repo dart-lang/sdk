@@ -597,7 +597,7 @@ class AstBuilder extends Listener {
     Parameters parameters = pop();
     String name = pop(asName);
     TypeAnnotation returnType = popTypeAnnotation();
-    push(new FunctionDeclaration(name, parameters, returnType));
+    push(new FunctionDeclaration(name, parameters, body, returnType));
   }
 
   endFunctionBody(int count, Token begin, Token end) {
@@ -900,6 +900,13 @@ void main() {
   checkExpression(r"'${$x}y'");
   checkExpression("null + null");
 
+  checkExpression("(x) => x",
+                  '',
+                  '(x){return x;}');
+  checkStatement("fn(x) => x;",
+                  '',
+                  'fn(x){return x;}');
+
   checkExpression("throw x");
   checkStatement("throw x;");
 
@@ -930,6 +937,7 @@ void main() {
 
   checkStatement("{var x = 1; {var x = 2;} return x;}");
   checkStatement("{var x = 1; {x = 2;} return x;}",
+                 "{var x = 1;  x = 2;  return x;}",
                  "{var x = 1;  x = 2;  return x;}");
 
   checkStatement("if (x) {var x = 1;}");

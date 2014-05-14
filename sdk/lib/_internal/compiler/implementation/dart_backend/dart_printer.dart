@@ -1184,7 +1184,7 @@ class Unparser {
 
   /// True of statements that introduce variables in the scope of their
   /// surrounding block. Blocks containing such statements cannot be unfolded.
-  bool definesVariable(Statement s) {
+  static bool definesVariable(Statement s) {
     return s is VariableDeclarations || s is FunctionDeclaration;
   }
 

@@ -37,8 +37,16 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// The function currently being emitted.
   FunctionElement functionElement;
 
-  /// Booking object needed to synthesize a variable declaration.
+  /// Bookkeeping object needed to synthesize a variable declaration.
   modelx.VariableList variableList;
+
+  /// Input to [visitStatement]. Denotes the statement that will execute next
+  /// if the statements produced by [visitStatement] complete normally.
+  /// Set to null if control will fall over the end of the method.
+  tree.Statement fallthrough;
+
+  /// Labels that could not be eliminated using fallthrough.
+  Set<tree.Label> usedLabels;
 
   FunctionExpression emit(FunctionElement element,
                           tree.FunctionDefinition definition) {
@@ -48,6 +56,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     seenVariables = new Set<tree.Variable>();
     tree.Variable.counter = 0;
     variableList = new modelx.VariableList(tree.Modifiers.EMPTY);
+    fallthrough = null;
+    usedLabels = new Set<tree.Label>();
 
     Parameters parameters = emitParameters(definition.parameters);
     visitStatement(definition.body);
@@ -65,6 +75,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     functionElement = null;
     variableList = null;
     seenVariables = null;
+    usedLabels = null;
 
     return new FunctionExpression(
         parameters,
@@ -105,10 +116,17 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   void visitLabeledStatement(tree.LabeledStatement stmt) {
     List<Statement> savedBuffer = statementBuffer;
+    tree.Statement savedFallthrough = fallthrough;
     statementBuffer = <Statement>[];
+    fallthrough = stmt.next;
     visitStatement(stmt.body);
-    savedBuffer.add(new LabeledStatement(stmt.label.name,
-                                         new Block(statementBuffer)));
+    if (usedLabels.remove(stmt.label)) {
+      savedBuffer.add(new LabeledStatement(stmt.label.name,
+                                           new Block(statementBuffer)));
+    } else {
+      savedBuffer.add(new Block(statementBuffer));
+    }
+    fallthrough = savedFallthrough;
     statementBuffer = savedBuffer;
     visitStatement(stmt.next);
   }
@@ -141,7 +159,15 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   void visitBreak(tree.Break stmt) {
-    statementBuffer.add(new Break(stmt.target.name));
+    tree.Statement fall = fallthrough;
+    if (stmt.target.binding.next == fall) {
+      // Fall through to break target
+    } else if (fall is tree.Break && fall.target == stmt.target) {
+      // Fall through to equivalent break
+    } else {
+      usedLabels.add(stmt.target);
+      statementBuffer.add(new Break(stmt.target.name));
+    }
   }
 
   void visitIf(tree.If stmt) {

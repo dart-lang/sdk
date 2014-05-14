@@ -516,13 +516,37 @@ class TreePrinter {
     if (stmt is Block)
       return makeStatement(stmt);
     else {
-      return new tree.Block(singleton(makeStatement(stmt)));
+      return new tree.Block(braceList('', [makeStatement(stmt)]));
     }
+  }
+
+  /// Adds the given statement to a block. If the statement itself is a block
+  /// it will be flattened (if this does not change lexical scoping).
+  void addBlockMember(Statement stmt, List<tree.Node> accumulator) {
+    if (stmt is Block && !stmt.statements.any(Unparser.definesVariable)) {
+      for (Statement innerStmt in stmt.statements) {
+        addBlockMember(innerStmt, accumulator);
+      }
+    } else if (stmt is EmptyStatement) {
+      // No need to include empty statements inside blocks
+    } else {
+      accumulator.add(makeStatement(stmt));
+    }
+  }
+
+  /// True if [stmt] is equivalent to an empty statement.
+  bool isEmptyStatement(Statement stmt) {
+    return stmt is EmptyStatement ||
+          (stmt is Block && stmt.statements.every(isEmptyStatement));
   }
 
   tree.Node makeStatement(Statement stmt, {bool shortIf: true}) {
     if (stmt is Block) {
-      return new tree.Block(braceList('', stmt.statements.map(makeStatement)));
+      List<tree.Node> body = <tree.Node>[];
+      for (Statement innerStmt in stmt.statements) {
+        addBlockMember(innerStmt, body);
+      }
+      return new tree.Block(braceList('', body));
     } else if (stmt is Break) {
       return new tree.BreakStatement(
           stmt.label == null ? null : makeIdentifier(stmt.label),
@@ -592,7 +616,7 @@ class TreePrinter {
           null,  // initializers
           null)); // get/set
     } else if (stmt is If) {
-      if (stmt.elseStatement == null) {
+      if (stmt.elseStatement == null || isEmptyStatement(stmt.elseStatement)) {
         tree.Node node = new tree.If(
             parenthesize(makeExpression(stmt.condition)),
             makeStatement(stmt.thenStatement),

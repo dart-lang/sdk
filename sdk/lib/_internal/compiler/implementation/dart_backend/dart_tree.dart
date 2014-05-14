@@ -259,12 +259,19 @@ class Return extends Statement {
  * labeled statement's successor statement.
  */
 class Break extends Statement {
-  final Label target;
+  Label _target;
+
+  Label get target => _target;
+  void set target(Label newTarget) {
+    ++newTarget.breakCount;
+    --_target.breakCount;
+    _target = newTarget;
+  }
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  Break(this.target) {
+  Break(this._target) {
     ++target.breakCount;
   }
 
@@ -756,6 +763,7 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     node.value = visitExpression(node.value);
     return node;
   }
+
 
   Statement visitBreak(Break node) {
     if (node.target.breakCount == 1) {
