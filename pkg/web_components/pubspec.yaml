@@ -1,11 +1,13 @@
 name: web_components
-version: 0.3.3
+version: 0.3.4
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: https://www.dartlang.org/polymer-dart/
 description: >
+  Polyfills for Shadow DOM, Custom Elements, and HTML Imports.
   Custom Elements let authors define their own elements. Authors associate code
   with custom tag names, and then use those custom tag names as they would any
   standard tag. Shadow DOM is designed to provide encapsulation for custom
-  elements, by hiding DOM subtrees under shadow roots.
+  elements, by hiding DOM subtrees under shadow roots. HTML Imports let authors
+  bundle code and HTML as if they were libraries.
 environment:
-  sdk: ">=1.2.0 <2.0.0"
+  sdk: ">=1.4.0-dev.6.6 <2.0.0"
