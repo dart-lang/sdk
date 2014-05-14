@@ -1156,6 +1156,74 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if ((representation() == kUnboxedDouble)    ||
+      (representation() == kUnboxedMint)      ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedInt32x4)   ||
+      (representation() == kUnboxedFloat64x2)) {
+    Register array = locs()->in(0).reg();
+    Register idx = locs()->in(1).reg();
+    switch (index_scale()) {
+      case 1:
+        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
+        break;
+      case 4:
+        __ add(idx, array, ShifterOperand(idx, LSL, 1));
+        break;
+      case 8:
+        __ add(idx, array, ShifterOperand(idx, LSL, 2));
+        break;
+      case 16:
+        __ add(idx, array, ShifterOperand(idx, LSL, 3));
+        break;
+      default:
+        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
+        UNREACHABLE();
+    }
+    if (!IsExternal()) {
+      ASSERT(this->array()->definition()->representation() == kTagged);
+      __ AddImmediate(idx,
+          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    }
+    Address element_address(idx);
+    const QRegister result = locs()->out(0).fpu_reg();
+    const DRegister dresult0 = EvenDRegisterOf(result);
+    switch (class_id()) {
+      case kTypedDataInt32ArrayCid:
+        __ veorq(result, result, result);
+        __ ldr(TMP, element_address);
+        // Re-use the index register so we don't have to require a low-numbered
+        // Q register.
+        // Sign-extend into idx.
+        __ Asr(idx, TMP, 31);
+        __ vmovdrr(dresult0, TMP, idx);
+        break;
+      case kTypedDataUint32ArrayCid:
+        __ veorq(result, result, result);
+        __ ldr(TMP, element_address);
+        // Re-use the index register so we don't have to require a low-numbered
+        // Q register.
+        __ LoadImmediate(idx, 0);
+        __ vmovdrr(dresult0, TMP, idx);
+        break;
+      case kTypedDataFloat32ArrayCid:
+        // Load single precision float.
+        // vldrs does not support indexed addressing.
+        __ vldrs(EvenSRegisterOf(dresult0), element_address);
+        break;
+      case kTypedDataFloat64ArrayCid:
+        // vldrd does not support indexed addressing.
+        __ vldrd(dresult0, element_address);
+        break;
+      case kTypedDataFloat64x2ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat32x4ArrayCid:
+        __ vldmd(IA, idx, dresult0, 2);
+        break;
+    }
+    return;
+  }
+
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
@@ -1195,56 +1263,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
   element_address = Address(array, index.reg(), LSL, 0);
-
-  if ((representation() == kUnboxedDouble)    ||
-      (representation() == kUnboxedMint)      ||
-      (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedInt32x4)   ||
-      (representation() == kUnboxedFloat64x2)) {
-    const QRegister result = locs()->out(0).fpu_reg();
-    const DRegister dresult0 = EvenDRegisterOf(result);
-    const Register idx = index.reg();
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        __ veorq(result, result, result);
-        __ ldr(TMP, element_address);
-        // Re-use the index register so we don't have to require a low-numbered
-        // Q register.
-        // Sign-extend into idx.
-        __ Asr(idx, TMP, 31);
-        __ vmovdrr(dresult0, TMP, idx);
-        break;
-      case kTypedDataUint32ArrayCid:
-        __ veorq(result, result, result);
-        __ ldr(TMP, element_address);
-        // Re-use the index register so we don't have to require a low-numbered
-        // Q register.
-        __ LoadImmediate(idx, 0);
-        __ vmovdrr(dresult0, TMP, idx);
-        break;
-      case kTypedDataFloat32ArrayCid:
-        // Load single precision float.
-        // vldrs does not support indexed addressing.
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        element_address = Address(index.reg(), 0);
-        __ vldrs(EvenSRegisterOf(dresult0), element_address);
-        break;
-      case kTypedDataFloat64ArrayCid:
-        // vldrd does not support indexed addressing.
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        element_address = Address(index.reg(), 0);
-        __ vldrd(dresult0, element_address);
-        break;
-      case kTypedDataFloat64x2ArrayCid:
-      case kTypedDataInt32x4ArrayCid:
-      case kTypedDataFloat32x4ArrayCid:
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        __ vldmd(IA, index.reg(), dresult0, 2);
-        break;
-    }
-    return;
-  }
-
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
