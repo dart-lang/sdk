@@ -37,6 +37,7 @@ import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
+import 'dart:js' as js;
 import "dart:convert";
 import 'dart:math';
 // TODO(vsm): Remove this when we can do the proper checking in
@@ -142,6 +143,14 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
 const htmlBlinkMap = const {
+  '_HistoryCrossFrame': _HistoryCrossFrame,
+  '_LocationCrossFrame': _LocationCrossFrame,
+  '_DOMWindowCrossFrame': _DOMWindowCrossFrame,
+  // FIXME: Move these to better locations.
+  'DateTime': DateTime,
+  'JsObject': js.JsObject,
+  'JsFunction': js.JsFunction,
+  'JsArray': js.JsArray,
 $!TYPE_MAP
 };
 $endif

@@ -30,6 +30,7 @@ import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
+import 'dart:js' as js;
 import "dart:convert";
 import 'dart:math';
 import 'dart:mirrors';
@@ -110,6 +111,14 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 }
 // FIXME: Can we make this private?
 const htmlBlinkMap = const {
+  '_HistoryCrossFrame': _HistoryCrossFrame,
+  '_LocationCrossFrame': _LocationCrossFrame,
+  '_DOMWindowCrossFrame': _DOMWindowCrossFrame,
+  // FIXME: Move these to better locations.
+  'DateTime': DateTime,
+  'JsObject': js.JsObject,
+  'JsFunction': js.JsFunction,
+  'JsArray': js.JsArray,
   'AbstractWorker': AbstractWorker,
   'Algorithm': Algorithm,
   'Animation': Animation,
