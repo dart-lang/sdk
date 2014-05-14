@@ -7411,19 +7411,17 @@ class CompressedTokenStreamData : public ValueObject {
 
   // Add an IDENT token into the stream and the token objects array.
   void AddIdentToken(const String* ident) {
-    if (ident != NULL) {
-      // If the IDENT token is already in the tokens object array use the
-      // same index instead of duplicating it.
-      intptr_t index = FindIdentIndex(ident);
-      if (index == -1) {
-        WriteIndex(token_objects_.Length());
-        ASSERT(ident != NULL);
-        token_objects_.Add(*ident);
-      } else {
-        WriteIndex(index);
-      }
+    ASSERT(ident != NULL);
+    ASSERT(ident->IsSymbol());
+    // If the IDENT token is already in the tokens object array use the
+    // same index instead of duplicating it.
+    intptr_t index = FindIdentIndex(ident);
+    if (index == -1) {
+      WriteIndex(token_objects_.Length());
+      ASSERT(ident != NULL);
+      token_objects_.Add(*ident);
     } else {
-      WriteIndex(0);
+      WriteIndex(index);
     }
   }
 
