@@ -1395,6 +1395,12 @@ class StandardTestSuite extends TestSuite {
       args.add('--no-hints');
     }
 
+    if ((configuration["compiler"] == "dartanalyzer" ||
+        configuration["compiler"] == "dart2analyzer") &&
+        filePath.filename.contains("dart2js")) {
+      args.add("--use-dart2js-libraries");
+    }
+
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
 
