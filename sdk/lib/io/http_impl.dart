@@ -1359,6 +1359,7 @@ class _HttpClientConnection {
               .then((incoming) {
                 _currentUri = null;
                 incoming.dataDone.then((closing) {
+                  if (closed) return;
                   if (!closing &&
                       !_dispose &&
                       incoming.headers.persistentConnection &&
@@ -1502,13 +1503,11 @@ class _ConnnectionInfo {
 
 
 class _HttpClient implements HttpClient {
-  // TODO(ajohnsen): Use eviction timeout.
   bool _closing = false;
-
   final Map<String, Set<_HttpClientConnection>> _idleConnections
       = new HashMap<String, Set<_HttpClientConnection>>();
-  final Set<_HttpClientConnection> _activeConnections
-      = new HashSet<_HttpClientConnection>();
+  final Map<String, Set<_HttpClientConnection>> _activeConnections
+      = new HashMap<String, Set<_HttpClientConnection>>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   Function _authenticate;
@@ -1599,7 +1598,8 @@ class _HttpClient implements HttpClient {
     });
     assert(_idleConnections.isEmpty);
     if (force) {
-      for (var connection in _activeConnections.toList()) {
+      for (var connection in
+           _activeConnections.values.expand((s) => s).toList()) {
         connection.destroy();
       }
       assert(_activeConnections.isEmpty);
@@ -1703,15 +1703,18 @@ class _HttpClient implements HttpClient {
 
   // Return a live connection to the idle pool.
   void _returnConnection(_HttpClientConnection connection) {
-    _activeConnections.remove(connection);
+    var key = connection.key;
+    _activeConnections[key].remove(connection);
+    if (_activeConnections[key].isEmpty) {
+      _activeConnections.remove(key);
+    }
     if (_closing) {
       connection.close();
       return;
     }
-    if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new HashSet();
-    }
-    _idleConnections[connection.key].add(connection);
+    _idleConnections
+        .putIfAbsent(key, () => new HashSet())
+        .add(connection);
     connection.startTimer();
     _updateTimers();
   }
@@ -1719,11 +1722,17 @@ class _HttpClient implements HttpClient {
   // Remove a closed connnection from the active set.
   void _connectionClosed(_HttpClientConnection connection) {
     connection.stopTimer();
-    _activeConnections.remove(connection);
-    if (_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key].remove(connection);
-      if (_idleConnections[connection.key].isEmpty) {
-        _idleConnections.remove(connection.key);
+    var key = connection.key;
+    if (_activeConnections.containsKey(key)) {
+      _activeConnections[key].remove(connection);
+      if (_activeConnections[key].isEmpty) {
+        _activeConnections.remove(key);
+      }
+    }
+    if (_idleConnections.containsKey(key)) {
+      _idleConnections[key].remove(connection);
+      if (_idleConnections[key].isEmpty) {
+        _idleConnections.remove(key);
       }
     }
     _updateTimers();
@@ -1767,7 +1776,9 @@ class _HttpClient implements HttpClient {
           _idleConnections.remove(key);
         }
         connection.stopTimer();
-        _activeConnections.add(connection);
+        _activeConnections
+            .putIfAbsent(key, () => new HashSet())
+            .add(connection);
         _updateTimers();
         return new Future.value(new _ConnnectionInfo(connection, proxy));
       }
@@ -1789,11 +1800,15 @@ class _HttpClient implements HttpClient {
             return connection.createProxyTunnel(
                 uriHost, uriPort, proxy, callback)
                 .then((tunnel) {
-                  _activeConnections.add(tunnel);
+                  _activeConnections
+                      .putIfAbsent(tunnel.key, () => new HashSet())
+                      .add(tunnel);
                   return new _ConnnectionInfo(tunnel, proxy);
                 });
           } else {
-            _activeConnections.add(connection);
+            _activeConnections
+                .putIfAbsent(key, () => new HashSet())
+                .add(connection);
             return new _ConnnectionInfo(connection, proxy);
           }
         }, onError: (error) {
