@@ -85,9 +85,9 @@ Native_AudioNode__connect(mthis, destination, output, input) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_AudioNode__connect_1_Callback(mthis, destination, output, input) native "AudioNode__connect_1_Callback";
+Native_AudioNode__connect_1_Callback(mthis, destination, output, input) native "AudioNode_connect_Callback_3_AudioNode_unsigned long_unsigned long";
 
-Native_AudioNode__connect_2_Callback(mthis, destination, output) native "AudioNode__connect_2_Callback";
+Native_AudioNode__connect_2_Callback(mthis, destination, output) native "AudioNode_connect_Callback_2_AudioParam_unsigned long";
 
 Native_AudioNode_disconnect_Callback(mthis, output) native "AudioNode_disconnect_Callback";
 
@@ -275,13 +275,13 @@ Native_AudioBufferSourceNode_start(mthis, when, grainOffset, grainDuration) {
     return;
   }
 
-Native_AudioBufferSourceNode__start_1_Callback(mthis, when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_1_Callback";
+Native_AudioBufferSourceNode__start_1_Callback(mthis, when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_Callback_3_double_double_double";
 
-Native_AudioBufferSourceNode__start_2_Callback(mthis, when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
+Native_AudioBufferSourceNode__start_2_Callback(mthis, when, grainOffset) native "AudioBufferSourceNode_start_Callback_2_double_double";
 
-Native_AudioBufferSourceNode__start_3_Callback(mthis, when) native "AudioBufferSourceNode__start_3_Callback";
+Native_AudioBufferSourceNode__start_3_Callback(mthis, when) native "AudioBufferSourceNode_start_Callback_1_double";
 
-Native_AudioBufferSourceNode__start_4_Callback(mthis) native "AudioBufferSourceNode__start_4_Callback";
+Native_AudioBufferSourceNode__start_4_Callback(mthis) native "AudioBufferSourceNode_start_Callback_0_";
 
   // Generated overload resolver
 Native_AudioBufferSourceNode_stop(mthis, when) {
@@ -293,9 +293,9 @@ Native_AudioBufferSourceNode_stop(mthis, when) {
     return;
   }
 
-Native_AudioBufferSourceNode__stop_1_Callback(mthis, when) native "AudioBufferSourceNode__stop_1_Callback";
+Native_AudioBufferSourceNode__stop_1_Callback(mthis, when) native "AudioBufferSourceNode_stop_Callback_1_double";
 
-Native_AudioBufferSourceNode__stop_2_Callback(mthis) native "AudioBufferSourceNode__stop_2_Callback";
+Native_AudioBufferSourceNode__stop_2_Callback(mthis) native "AudioBufferSourceNode_stop_Callback_0_";
 
   // Generated overload resolver
 Native_AudioContext_AudioContext() {
@@ -332,9 +332,9 @@ Native_AudioContext_createChannelMerger(mthis, numberOfInputs) {
     return Native_AudioContext__createChannelMerger_2_Callback(mthis);
   }
 
-Native_AudioContext__createChannelMerger_1_Callback(mthis, numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
+Native_AudioContext__createChannelMerger_1_Callback(mthis, numberOfInputs) native "AudioContext_createChannelMerger_Callback_1_unsigned long";
 
-Native_AudioContext__createChannelMerger_2_Callback(mthis) native "AudioContext__createChannelMerger_2_Callback";
+Native_AudioContext__createChannelMerger_2_Callback(mthis) native "AudioContext_createChannelMerger_Callback_0_";
 
   // Generated overload resolver
 Native_AudioContext_createChannelSplitter(mthis, numberOfOutputs) {
@@ -344,9 +344,9 @@ Native_AudioContext_createChannelSplitter(mthis, numberOfOutputs) {
     return Native_AudioContext__createChannelSplitter_2_Callback(mthis);
   }
 
-Native_AudioContext__createChannelSplitter_1_Callback(mthis, numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
+Native_AudioContext__createChannelSplitter_1_Callback(mthis, numberOfOutputs) native "AudioContext_createChannelSplitter_Callback_1_unsigned long";
 
-Native_AudioContext__createChannelSplitter_2_Callback(mthis) native "AudioContext__createChannelSplitter_2_Callback";
+Native_AudioContext__createChannelSplitter_2_Callback(mthis) native "AudioContext_createChannelSplitter_Callback_0_";
 
 Native_AudioContext_createConvolver_Callback(mthis) native "AudioContext_createConvolver_Callback";
 
@@ -358,9 +358,9 @@ Native_AudioContext_createDelay(mthis, maxDelayTime) {
     return Native_AudioContext__createDelay_2_Callback(mthis);
   }
 
-Native_AudioContext__createDelay_1_Callback(mthis, maxDelayTime) native "AudioContext__createDelay_1_Callback";
+Native_AudioContext__createDelay_1_Callback(mthis, maxDelayTime) native "AudioContext_createDelay_Callback_1_double";
 
-Native_AudioContext__createDelay_2_Callback(mthis) native "AudioContext__createDelay_2_Callback";
+Native_AudioContext__createDelay_2_Callback(mthis) native "AudioContext_createDelay_Callback_0_";
 
   // Generated overload resolver
 Native_AudioContext_createDelayNode(mthis, maxDelayTime) {
@@ -370,9 +370,9 @@ Native_AudioContext_createDelayNode(mthis, maxDelayTime) {
     return Native_AudioContext__createDelayNode_2_Callback(mthis);
   }
 
-Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime) native "AudioContext__createDelayNode_1_Callback";
+Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime) native "AudioContext_createDelayNode_Callback_1_double";
 
-Native_AudioContext__createDelayNode_2_Callback(mthis) native "AudioContext__createDelayNode_2_Callback";
+Native_AudioContext__createDelayNode_2_Callback(mthis) native "AudioContext_createDelayNode_Callback_0_";
 
 Native_AudioContext_createDynamicsCompressor_Callback(mthis) native "AudioContext_createDynamicsCompressor_Callback";
 
@@ -391,11 +391,11 @@ Native_AudioContext_createJavaScriptNode(mthis, bufferSize, numberOfInputChannel
     return Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize);
   }
 
-Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createJavaScriptNode_1_Callback";
+Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_Callback_3_unsigned long_unsigned long_unsigned long";
 
-Native_AudioContext__createJavaScriptNode_2_Callback(mthis, bufferSize, numberOfInputChannels) native "AudioContext__createJavaScriptNode_2_Callback";
+Native_AudioContext__createJavaScriptNode_2_Callback(mthis, bufferSize, numberOfInputChannels) native "AudioContext_createJavaScriptNode_Callback_2_unsigned long_unsigned long";
 
-Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize) native "AudioContext__createJavaScriptNode_3_Callback";
+Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize) native "AudioContext_createJavaScriptNode_Callback_1_unsigned long";
 
 Native_AudioContext_createMediaElementSource_Callback(mthis, mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
@@ -423,13 +423,13 @@ Native_AudioContext_createScriptProcessor(mthis, bufferSize, numberOfInputChanne
     return Native_AudioContext__createScriptProcessor_4_Callback(mthis);
   }
 
-Native_AudioContext__createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
+Native_AudioContext__createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_Callback_3_unsigned long_unsigned long_unsigned long";
 
-Native_AudioContext__createScriptProcessor_2_Callback(mthis, bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
+Native_AudioContext__createScriptProcessor_2_Callback(mthis, bufferSize, numberOfInputChannels) native "AudioContext_createScriptProcessor_Callback_2_unsigned long_unsigned long";
 
-Native_AudioContext__createScriptProcessor_3_Callback(mthis, bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
+Native_AudioContext__createScriptProcessor_3_Callback(mthis, bufferSize) native "AudioContext_createScriptProcessor_Callback_1_unsigned long";
 
-Native_AudioContext__createScriptProcessor_4_Callback(mthis) native "AudioContext__createScriptProcessor_4_Callback";
+Native_AudioContext__createScriptProcessor_4_Callback(mthis) native "AudioContext_createScriptProcessor_Callback_0_";
 
 Native_AudioContext_createWaveShaper_Callback(mthis) native "AudioContext_createWaveShaper_Callback";
 
@@ -557,13 +557,13 @@ Native_Blob_slice(mthis, start, end, contentType) {
     return Native_Blob__slice_4_Callback(mthis);
   }
 
-Native_Blob__slice_1_Callback(mthis, start, end, contentType) native "Blob__slice_1_Callback";
+Native_Blob__slice_1_Callback(mthis, start, end, contentType) native "Blob_slice_Callback_3_long long_long long_DOMString";
 
-Native_Blob__slice_2_Callback(mthis, start, end) native "Blob__slice_2_Callback";
+Native_Blob__slice_2_Callback(mthis, start, end) native "Blob_slice_Callback_2_long long_long long";
 
-Native_Blob__slice_3_Callback(mthis, start) native "Blob__slice_3_Callback";
+Native_Blob__slice_3_Callback(mthis, start) native "Blob_slice_Callback_1_long long";
 
-Native_Blob__slice_4_Callback(mthis) native "Blob__slice_4_Callback";
+Native_Blob__slice_4_Callback(mthis) native "Blob_slice_Callback_0_";
 
 Native_ChildNode_nextElementSibling_Getter(mthis) native "ChildNode_nextElementSibling_Getter";
 
@@ -721,9 +721,9 @@ Native_CSSStyleSheet_addRule(mthis, selector, style, index) {
     return Native_CSSStyleSheet__addRule_2_Callback(mthis, selector, style);
   }
 
-Native_CSSStyleSheet__addRule_1_Callback(mthis, selector, style, index) native "CSSStyleSheet__addRule_1_Callback";
+Native_CSSStyleSheet__addRule_1_Callback(mthis, selector, style, index) native "CSSStyleSheet_addRule_Callback_3_DOMString_DOMString_unsigned long";
 
-Native_CSSStyleSheet__addRule_2_Callback(mthis, selector, style) native "CSSStyleSheet__addRule_2_Callback";
+Native_CSSStyleSheet__addRule_2_Callback(mthis, selector, style) native "CSSStyleSheet_addRule_Callback_2_DOMString_DOMString";
 
 Native_CSSStyleSheet_deleteRule_Callback(mthis, index) native "CSSStyleSheet_deleteRule_Callback";
 
@@ -735,9 +735,9 @@ Native_CSSStyleSheet_insertRule(mthis, rule, index) {
     return Native_CSSStyleSheet__insertRule_2_Callback(mthis, rule);
   }
 
-Native_CSSStyleSheet__insertRule_1_Callback(mthis, rule, index) native "CSSStyleSheet__insertRule_1_Callback";
+Native_CSSStyleSheet__insertRule_1_Callback(mthis, rule, index) native "CSSStyleSheet_insertRule_Callback_2_DOMString_unsigned long";
 
-Native_CSSStyleSheet__insertRule_2_Callback(mthis, rule) native "CSSStyleSheet__insertRule_2_Callback";
+Native_CSSStyleSheet__insertRule_2_Callback(mthis, rule) native "CSSStyleSheet_insertRule_Callback_1_DOMString";
 
 Native_CSSStyleSheet_removeRule_Callback(mthis, index) native "CSSStyleSheet_removeRule_Callback";
 
@@ -863,9 +863,9 @@ Native_CanvasRenderingContext2D_clip(mthis, winding) {
     return;
   }
 
-Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D__clip_1_Callback";
+Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D_clip_Callback_1_CanvasWindingRule";
 
-Native_CanvasRenderingContext2D__clip_2_Callback(mthis) native "CanvasRenderingContext2D__clip_2_Callback";
+Native_CanvasRenderingContext2D__clip_2_Callback(mthis) native "CanvasRenderingContext2D_clip_Callback_0_";
 
 Native_CanvasRenderingContext2D_closePath_Callback(mthis) native "CanvasRenderingContext2D_closePath_Callback";
 
@@ -936,29 +936,29 @@ Native_CanvasRenderingContext2D__drawImage(mthis, canvas_OR_image_OR_imageBitmap
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_CanvasRenderingContext2D__drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
+Native_CanvasRenderingContext2D__drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback_3_HTMLImageElement_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_2_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_2_Callback";
+Native_CanvasRenderingContext2D__drawImage_2_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_Callback_5_HTMLImageElement_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_3_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_3_Callback";
+Native_CanvasRenderingContext2D__drawImage_3_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_Callback_9_HTMLImageElement_float_float_float_float_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_4_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_4_Callback";
+Native_CanvasRenderingContext2D__drawImage_4_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback_3_HTMLCanvasElement_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_5_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_5_Callback";
+Native_CanvasRenderingContext2D__drawImage_5_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_Callback_5_HTMLCanvasElement_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_6_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_6_Callback";
+Native_CanvasRenderingContext2D__drawImage_6_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_Callback_9_HTMLCanvasElement_float_float_float_float_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_7_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_7_Callback";
+Native_CanvasRenderingContext2D__drawImage_7_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback_3_HTMLVideoElement_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_8_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_8_Callback";
+Native_CanvasRenderingContext2D__drawImage_8_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_Callback_5_HTMLVideoElement_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_9_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
+Native_CanvasRenderingContext2D__drawImage_9_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_Callback_9_HTMLVideoElement_float_float_float_float_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_10_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_10_Callback";
+Native_CanvasRenderingContext2D__drawImage_10_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback_3_ImageBitmap_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_11_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_11_Callback";
+Native_CanvasRenderingContext2D__drawImage_11_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_Callback_5_ImageBitmap_float_float_float_float";
 
-Native_CanvasRenderingContext2D__drawImage_12_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_12_Callback";
+Native_CanvasRenderingContext2D__drawImage_12_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_Callback_9_ImageBitmap_float_float_float_float_float_float_float_float";
 
 Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(mthis, element) native "CanvasRenderingContext2D_drawSystemFocusRing_Callback";
 
@@ -974,9 +974,9 @@ Native_CanvasRenderingContext2D_fill(mthis, winding) {
     return;
   }
 
-Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D__fill_1_Callback";
+Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D_fill_Callback_1_CanvasWindingRule";
 
-Native_CanvasRenderingContext2D__fill_2_Callback(mthis) native "CanvasRenderingContext2D__fill_2_Callback";
+Native_CanvasRenderingContext2D__fill_2_Callback(mthis) native "CanvasRenderingContext2D_fill_Callback_0_";
 
 Native_CanvasRenderingContext2D_fillRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_fillRect_Callback";
 
@@ -990,9 +990,9 @@ Native_CanvasRenderingContext2D_fillText(mthis, text, x, y, maxWidth) {
     return;
   }
 
-Native_CanvasRenderingContext2D__fillText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D__fillText_1_Callback";
+Native_CanvasRenderingContext2D__fillText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_Callback_4_DOMString_float_float_float";
 
-Native_CanvasRenderingContext2D__fillText_2_Callback(mthis, text, x, y) native "CanvasRenderingContext2D__fillText_2_Callback";
+Native_CanvasRenderingContext2D__fillText_2_Callback(mthis, text, x, y) native "CanvasRenderingContext2D_fillText_Callback_3_DOMString_float_float";
 
 Native_CanvasRenderingContext2D_getContextAttributes_Callback(mthis) native "CanvasRenderingContext2D_getContextAttributes_Callback";
 
@@ -1008,9 +1008,9 @@ Native_CanvasRenderingContext2D_isPointInPath(mthis, x, y, winding) {
     return Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y);
   }
 
-Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D__isPointInPath_1_Callback";
+Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D_isPointInPath_Callback_3_float_float_CanvasWindingRule";
 
-Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y) native "CanvasRenderingContext2D__isPointInPath_2_Callback";
+Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y) native "CanvasRenderingContext2D_isPointInPath_Callback_2_float_float";
 
 Native_CanvasRenderingContext2D_isPointInStroke_Callback(mthis, x, y) native "CanvasRenderingContext2D_isPointInStroke_Callback";
 
@@ -1033,9 +1033,9 @@ Native_CanvasRenderingContext2D_putImageData(mthis, imagedata, dx, dy, dirtyX, d
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_CanvasRenderingContext2D__putImageData_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D__putImageData_1_Callback";
+Native_CanvasRenderingContext2D__putImageData_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_Callback_3_ImageData_float_float";
 
-Native_CanvasRenderingContext2D__putImageData_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__putImageData_2_Callback";
+Native_CanvasRenderingContext2D__putImageData_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_Callback_7_ImageData_float_float_float_float_float_float";
 
 Native_CanvasRenderingContext2D_quadraticCurveTo_Callback(mthis, cpx, cpy, x, y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
 
@@ -1069,9 +1069,9 @@ Native_CanvasRenderingContext2D_strokeText(mthis, text, x, y, maxWidth) {
     return;
   }
 
-Native_CanvasRenderingContext2D__strokeText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D__strokeText_1_Callback";
+Native_CanvasRenderingContext2D__strokeText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_Callback_4_DOMString_float_float_float";
 
-Native_CanvasRenderingContext2D__strokeText_2_Callback(mthis, text, x, y) native "CanvasRenderingContext2D__strokeText_2_Callback";
+Native_CanvasRenderingContext2D__strokeText_2_Callback(mthis, text, x, y) native "CanvasRenderingContext2D_strokeText_Callback_3_DOMString_float_float";
 
 Native_CanvasRenderingContext2D_transform_Callback(mthis, m11, m12, m21, m22, dx, dy) native "CanvasRenderingContext2D_transform_Callback";
 
@@ -1092,9 +1092,9 @@ Native_CanvasRenderingContext2D_putImageDataHD(mthis, imagedata, dx, dy, dirtyX,
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback";
+Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_Callback_3_ImageData_float_float";
 
-Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback";
+Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_Callback_7_ImageData_float_float_float_float_float_float";
 
 Native_ClientRect_bottom_Getter(mthis) native "ClientRect_bottom_Getter";
 
@@ -1138,9 +1138,9 @@ Native_Clipboard_clearData(mthis, type) {
     return;
   }
 
-Native_Clipboard__clearData_1_Callback(mthis, type) native "Clipboard__clearData_1_Callback";
+Native_Clipboard__clearData_1_Callback(mthis, type) native "Clipboard_clearData_Callback_1_DOMString";
 
-Native_Clipboard__clearData_2_Callback(mthis) native "Clipboard__clearData_2_Callback";
+Native_Clipboard__clearData_2_Callback(mthis) native "Clipboard_clearData_Callback_0_";
 
 Native_Clipboard_getData_Callback(mthis, type) native "Clipboard_getData_Callback";
 
@@ -1316,9 +1316,9 @@ Native_DOMTokenList_toggle(mthis, token, force) {
     return Native_DOMTokenList__toggle_2_Callback(mthis, token);
   }
 
-Native_DOMTokenList__toggle_1_Callback(mthis, token, force) native "DOMTokenList__toggle_1_Callback";
+Native_DOMTokenList__toggle_1_Callback(mthis, token, force) native "DOMTokenList_toggle_Callback_2_DOMString_boolean";
 
-Native_DOMTokenList__toggle_2_Callback(mthis, token) native "DOMTokenList__toggle_2_Callback";
+Native_DOMTokenList__toggle_2_Callback(mthis, token) native "DOMTokenList_toggle_Callback_1_DOMString";
 
 Native_DOMSettableTokenList_value_Getter(mthis) native "DOMSettableTokenList_value_Getter";
 
@@ -1345,9 +1345,9 @@ Native_DOMStringMap___delete__(mthis, index_OR_name) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_DOMStringMap____delete___1_Callback(mthis, index_OR_name) native "DOMStringMap____delete___1_Callback";
+Native_DOMStringMap____delete___1_Callback(mthis, index_OR_name) native "DOMStringMap___delete___Callback_1_unsigned long";
 
-Native_DOMStringMap____delete___2_Callback(mthis, index_OR_name) native "DOMStringMap____delete___2_Callback";
+Native_DOMStringMap____delete___2_Callback(mthis, index_OR_name) native "DOMStringMap___delete___Callback_1_DOMString";
 
   // Generated overload resolver
 Native_DOMStringMap___getter__(mthis, index_OR_name) {
@@ -1360,9 +1360,9 @@ Native_DOMStringMap___getter__(mthis, index_OR_name) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_DOMStringMap____getter___1_Callback(mthis, index_OR_name) native "DOMStringMap____getter___1_Callback";
+Native_DOMStringMap____getter___1_Callback(mthis, index_OR_name) native "DOMStringMap___getter___Callback_1_unsigned long";
 
-Native_DOMStringMap____getter___2_Callback(mthis, index_OR_name) native "DOMStringMap____getter___2_Callback";
+Native_DOMStringMap____getter___2_Callback(mthis, index_OR_name) native "DOMStringMap___getter___Callback_1_DOMString";
 
   // Generated overload resolver
 Native_DOMStringMap___setter__(mthis, index_OR_name, value) {
@@ -1377,9 +1377,9 @@ Native_DOMStringMap___setter__(mthis, index_OR_name, value) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_DOMStringMap____setter___1_Callback(mthis, index_OR_name, value) native "DOMStringMap____setter___1_Callback";
+Native_DOMStringMap____setter___1_Callback(mthis, index_OR_name, value) native "DOMStringMap___setter___Callback_2_unsigned long_DOMString";
 
-Native_DOMStringMap____setter___2_Callback(mthis, index_OR_name, value) native "DOMStringMap____setter___2_Callback";
+Native_DOMStringMap____setter___2_Callback(mthis, index_OR_name, value) native "DOMStringMap___setter___Callback_2_DOMString_DOMString";
 
 Native_DataTransferItem_kind_Getter(mthis) native "DataTransferItem_kind_Getter";
 
@@ -1406,9 +1406,9 @@ Native_DataTransferItemList_add(mthis, data_OR_file, type) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_DataTransferItemList__add_1_Callback(mthis, data_OR_file) native "DataTransferItemList__add_1_Callback";
+Native_DataTransferItemList__add_1_Callback(mthis, data_OR_file) native "DataTransferItemList_add_Callback_1_File";
 
-Native_DataTransferItemList__add_2_Callback(mthis, data_OR_file, type) native "DataTransferItemList__add_2_Callback";
+Native_DataTransferItemList__add_2_Callback(mthis, data_OR_file, type) native "DataTransferItemList_add_Callback_2_DOMString_DOMString";
 
 Native_DataTransferItemList_addData_Callback(mthis, data, type) native "DataTransferItemList_addData_Callback";
 
@@ -1544,9 +1544,9 @@ Native_Entry__copyTo(mthis, parent, name, successCallback, errorCallback) {
     return;
   }
 
-Native_Entry__copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry__copyTo_1_Callback";
+Native_Entry__copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry_copyTo_Callback_4_DirectoryEntry_DOMString_EntryCallback_ErrorCallback";
 
-Native_Entry__copyTo_2_Callback(mthis, parent) native "Entry__copyTo_2_Callback";
+Native_Entry__copyTo_2_Callback(mthis, parent) native "Entry_copyTo_Callback_1_DirectoryEntry";
 
 Native_Entry_getMetadata_Callback(mthis, successCallback, errorCallback) native "Entry_getMetadata_Callback";
 
@@ -1562,9 +1562,9 @@ Native_Entry__moveTo(mthis, parent, name, successCallback, errorCallback) {
     return;
   }
 
-Native_Entry__moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry__moveTo_1_Callback";
+Native_Entry__moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry_moveTo_Callback_4_DirectoryEntry_DOMString_EntryCallback_ErrorCallback";
 
-Native_Entry__moveTo_2_Callback(mthis, parent) native "Entry__moveTo_2_Callback";
+Native_Entry__moveTo_2_Callback(mthis, parent) native "Entry_moveTo_Callback_1_DirectoryEntry";
 
 Native_Entry_remove_Callback(mthis, successCallback, errorCallback) native "Entry_remove_Callback";
 
@@ -1666,9 +1666,9 @@ Native_Document__createEvent(mthis, eventType) {
     return Native_Document__createEvent_2_Callback(mthis);
   }
 
-Native_Document__createEvent_1_Callback(mthis, eventType) native "Document__createEvent_1_Callback";
+Native_Document__createEvent_1_Callback(mthis, eventType) native "Document_createEvent_Callback_1_DOMString";
 
-Native_Document__createEvent_2_Callback(mthis) native "Document__createEvent_2_Callback";
+Native_Document__createEvent_2_Callback(mthis) native "Document_createEvent_Callback_0_";
 
   // Generated overload resolver
 Native_Document__createNodeIterator(mthis, root, whatToShow, filter) {
@@ -1681,11 +1681,11 @@ Native_Document__createNodeIterator(mthis, root, whatToShow, filter) {
     return Native_Document__createNodeIterator_3_Callback(mthis, root);
   }
 
-Native_Document__createNodeIterator_1_Callback(mthis, root, whatToShow, filter) native "Document__createNodeIterator_1_Callback";
+Native_Document__createNodeIterator_1_Callback(mthis, root, whatToShow, filter) native "Document_createNodeIterator_Callback_3_Node_unsigned long_NodeFilter";
 
-Native_Document__createNodeIterator_2_Callback(mthis, root, whatToShow) native "Document__createNodeIterator_2_Callback";
+Native_Document__createNodeIterator_2_Callback(mthis, root, whatToShow) native "Document_createNodeIterator_Callback_2_Node_unsigned long";
 
-Native_Document__createNodeIterator_3_Callback(mthis, root) native "Document__createNodeIterator_3_Callback";
+Native_Document__createNodeIterator_3_Callback(mthis, root) native "Document_createNodeIterator_Callback_1_Node";
 
 Native_Document_createRange_Callback(mthis) native "Document_createRange_Callback";
 
@@ -1704,11 +1704,11 @@ Native_Document__createTreeWalker(mthis, root, whatToShow, filter) {
     return Native_Document__createTreeWalker_3_Callback(mthis, root);
   }
 
-Native_Document__createTreeWalker_1_Callback(mthis, root, whatToShow, filter) native "Document__createTreeWalker_1_Callback";
+Native_Document__createTreeWalker_1_Callback(mthis, root, whatToShow, filter) native "Document_createTreeWalker_Callback_3_Node_unsigned long_NodeFilter";
 
-Native_Document__createTreeWalker_2_Callback(mthis, root, whatToShow) native "Document__createTreeWalker_2_Callback";
+Native_Document__createTreeWalker_2_Callback(mthis, root, whatToShow) native "Document_createTreeWalker_Callback_2_Node_unsigned long";
 
-Native_Document__createTreeWalker_3_Callback(mthis, root) native "Document__createTreeWalker_3_Callback";
+Native_Document__createTreeWalker_3_Callback(mthis, root) native "Document_createTreeWalker_Callback_1_Node";
 
 Native_Document_elementFromPoint_Callback(mthis, x, y) native "Document_elementFromPoint_Callback";
 
@@ -1732,9 +1732,9 @@ Native_Document_importNode(mthis, node, deep) {
     return Native_Document__importNode_2_Callback(mthis, node);
   }
 
-Native_Document__importNode_1_Callback(mthis, node, deep) native "Document__importNode_1_Callback";
+Native_Document__importNode_1_Callback(mthis, node, deep) native "Document_importNode_Callback_2_Node_boolean";
 
-Native_Document__importNode_2_Callback(mthis, node) native "Document__importNode_2_Callback";
+Native_Document__importNode_2_Callback(mthis, node) native "Document_importNode_Callback_1_Node";
 
 Native_Document_queryCommandEnabled_Callback(mthis, command) native "Document_queryCommandEnabled_Callback";
 
@@ -1854,11 +1854,11 @@ Native_Element_animate(mthis, keyframes, timingInput) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Element__animate_1_Callback(mthis, keyframes, timingInput) native "Element__animate_1_Callback";
+Native_Element__animate_1_Callback(mthis, keyframes, timingInput) native "Element_animate_Callback_2_sequence<Dictionary>_Dictionary";
 
-Native_Element__animate_2_Callback(mthis, keyframes, timingInput) native "Element__animate_2_Callback";
+Native_Element__animate_2_Callback(mthis, keyframes, timingInput) native "Element_animate_Callback_2_sequence<Dictionary>_double";
 
-Native_Element__animate_3_Callback(mthis, keyframes) native "Element__animate_3_Callback";
+Native_Element__animate_3_Callback(mthis, keyframes) native "Element_animate_Callback_1_sequence<Dictionary>";
 
 Native_Element_blur_Callback(mthis) native "Element_blur_Callback";
 
@@ -1914,9 +1914,9 @@ Native_Element__scrollIntoView(mthis, alignWithTop) {
     return;
   }
 
-Native_Element__scrollIntoView_1_Callback(mthis, alignWithTop) native "Element__scrollIntoView_1_Callback";
+Native_Element__scrollIntoView_1_Callback(mthis, alignWithTop) native "Element_scrollIntoView_Callback_1_boolean";
 
-Native_Element__scrollIntoView_2_Callback(mthis) native "Element__scrollIntoView_2_Callback";
+Native_Element__scrollIntoView_2_Callback(mthis) native "Element_scrollIntoView_Callback_0_";
 
   // Generated overload resolver
 Native_Element__scrollIntoViewIfNeeded(mthis, centerIfNeeded) {
@@ -1928,9 +1928,9 @@ Native_Element__scrollIntoViewIfNeeded(mthis, centerIfNeeded) {
     return;
   }
 
-Native_Element__scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded) native "Element__scrollIntoViewIfNeeded_1_Callback";
+Native_Element__scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded) native "Element_scrollIntoViewIfNeeded_Callback_1_boolean";
 
-Native_Element__scrollIntoViewIfNeeded_2_Callback(mthis) native "Element__scrollIntoViewIfNeeded_2_Callback";
+Native_Element__scrollIntoViewIfNeeded_2_Callback(mthis) native "Element_scrollIntoViewIfNeeded_Callback_0_";
 
 Native_Element_setAttribute_Callback(mthis, name, value) native "Element_setAttribute_Callback";
 
@@ -2028,9 +2028,9 @@ Native_FileReader_readAsText(mthis, blob, encoding) {
     return;
   }
 
-Native_FileReader__readAsText_1_Callback(mthis, blob, encoding) native "FileReader__readAsText_1_Callback";
+Native_FileReader__readAsText_1_Callback(mthis, blob, encoding) native "FileReader_readAsText_Callback_2_Blob_DOMString";
 
-Native_FileReader__readAsText_2_Callback(mthis, blob) native "FileReader__readAsText_2_Callback";
+Native_FileReader__readAsText_2_Callback(mthis, blob) native "FileReader_readAsText_Callback_1_Blob";
 
   // Generated overload resolver
 Native_FileReaderSync__FileReaderSync() {
@@ -2118,9 +2118,9 @@ Native_FontFaceSet_forEach(mthis, callback, thisArg) {
     return;
   }
 
-Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet__forEach_1_Callback";
+Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet_forEach_Callback_2_FontFaceSetForEachCallback_any";
 
-Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet__forEach_2_Callback";
+Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet_forEach_Callback_1_FontFaceSetForEachCallback";
 
 Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callback";
 
@@ -2471,11 +2471,11 @@ Native_HTMLMediaElement_addTextTrack(mthis, kind, label, language) {
     return Native_HTMLMediaElement__addTextTrack_3_Callback(mthis, kind);
   }
 
-Native_HTMLMediaElement__addTextTrack_1_Callback(mthis, kind, label, language) native "HTMLMediaElement__addTextTrack_1_Callback";
+Native_HTMLMediaElement__addTextTrack_1_Callback(mthis, kind, label, language) native "HTMLMediaElement_addTextTrack_Callback_3_DOMString_DOMString_DOMString";
 
-Native_HTMLMediaElement__addTextTrack_2_Callback(mthis, kind, label) native "HTMLMediaElement__addTextTrack_2_Callback";
+Native_HTMLMediaElement__addTextTrack_2_Callback(mthis, kind, label) native "HTMLMediaElement_addTextTrack_Callback_2_DOMString_DOMString";
 
-Native_HTMLMediaElement__addTextTrack_3_Callback(mthis, kind) native "HTMLMediaElement__addTextTrack_3_Callback";
+Native_HTMLMediaElement__addTextTrack_3_Callback(mthis, kind) native "HTMLMediaElement_addTextTrack_Callback_1_DOMString";
 
 Native_HTMLMediaElement_canPlayType_Callback(mthis, type, keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
@@ -2497,9 +2497,9 @@ Native_HTMLMediaElement_addKey(mthis, keySystem, key, initData, sessionId) {
     return;
   }
 
-Native_HTMLMediaElement__webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId) native "HTMLMediaElement__webkitAddKey_1_Callback";
+Native_HTMLMediaElement__webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_Callback_4_DOMString_Uint8Array_Uint8Array_DOMString";
 
-Native_HTMLMediaElement__webkitAddKey_2_Callback(mthis, keySystem, key) native "HTMLMediaElement__webkitAddKey_2_Callback";
+Native_HTMLMediaElement__webkitAddKey_2_Callback(mthis, keySystem, key) native "HTMLMediaElement_webkitAddKey_Callback_2_DOMString_Uint8Array";
 
 Native_HTMLMediaElement_webkitCancelKeyRequest_Callback(mthis, keySystem, sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
@@ -2513,9 +2513,9 @@ Native_HTMLMediaElement_generateKeyRequest(mthis, keySystem, initData) {
     return;
   }
 
-Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData) native "HTMLMediaElement__webkitGenerateKeyRequest_1_Callback";
+Native_HTMLMediaElement__webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_Callback_2_DOMString_Uint8Array";
 
-Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(mthis, keySystem) native "HTMLMediaElement__webkitGenerateKeyRequest_2_Callback";
+Native_HTMLMediaElement__webkitGenerateKeyRequest_2_Callback(mthis, keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_Callback_1_DOMString";
 
   // Generated overload resolver
 Native_HTMLAudioElement_AudioElement(src) {
@@ -3001,9 +3001,9 @@ Native_HTMLInputElement_setRangeText(mthis, replacement, start, end, selectionMo
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_HTMLInputElement__setRangeText_1_Callback(mthis, replacement) native "HTMLInputElement__setRangeText_1_Callback";
+Native_HTMLInputElement__setRangeText_1_Callback(mthis, replacement) native "HTMLInputElement_setRangeText_Callback_1_DOMString";
 
-Native_HTMLInputElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLInputElement__setRangeText_2_Callback";
+Native_HTMLInputElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLInputElement_setRangeText_Callback_4_DOMString_unsigned long_unsigned long_DOMString";
 
   // Generated overload resolver
 Native_HTMLInputElement_setSelectionRange(mthis, start, end, direction) {
@@ -3015,9 +3015,9 @@ Native_HTMLInputElement_setSelectionRange(mthis, start, end, direction) {
     return;
   }
 
-Native_HTMLInputElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLInputElement__setSelectionRange_1_Callback";
+Native_HTMLInputElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLInputElement_setSelectionRange_Callback_3_long_long_DOMString";
 
-Native_HTMLInputElement__setSelectionRange_2_Callback(mthis, start, end) native "HTMLInputElement__setSelectionRange_2_Callback";
+Native_HTMLInputElement__setSelectionRange_2_Callback(mthis, start, end) native "HTMLInputElement_setSelectionRange_Callback_2_long_long";
 
   // Generated overload resolver
 Native_HTMLInputElement_stepDown(mthis, n) {
@@ -3029,9 +3029,9 @@ Native_HTMLInputElement_stepDown(mthis, n) {
     return;
   }
 
-Native_HTMLInputElement__stepDown_1_Callback(mthis, n) native "HTMLInputElement__stepDown_1_Callback";
+Native_HTMLInputElement__stepDown_1_Callback(mthis, n) native "HTMLInputElement_stepDown_Callback_1_long";
 
-Native_HTMLInputElement__stepDown_2_Callback(mthis) native "HTMLInputElement__stepDown_2_Callback";
+Native_HTMLInputElement__stepDown_2_Callback(mthis) native "HTMLInputElement_stepDown_Callback_0_";
 
   // Generated overload resolver
 Native_HTMLInputElement_stepUp(mthis, n) {
@@ -3043,9 +3043,9 @@ Native_HTMLInputElement_stepUp(mthis, n) {
     return;
   }
 
-Native_HTMLInputElement__stepUp_1_Callback(mthis, n) native "HTMLInputElement__stepUp_1_Callback";
+Native_HTMLInputElement__stepUp_1_Callback(mthis, n) native "HTMLInputElement_stepUp_Callback_1_long";
 
-Native_HTMLInputElement__stepUp_2_Callback(mthis) native "HTMLInputElement__stepUp_2_Callback";
+Native_HTMLInputElement__stepUp_2_Callback(mthis) native "HTMLInputElement_stepUp_Callback_0_";
 
 Native_HTMLKeygenElement_autofocus_Getter(mthis) native "HTMLKeygenElement_autofocus_Getter";
 
@@ -3621,9 +3621,9 @@ Native_HTMLTextAreaElement_setRangeText(mthis, replacement, start, end, selectio
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_HTMLTextAreaElement__setRangeText_1_Callback(mthis, replacement) native "HTMLTextAreaElement__setRangeText_1_Callback";
+Native_HTMLTextAreaElement__setRangeText_1_Callback(mthis, replacement) native "HTMLTextAreaElement_setRangeText_Callback_1_DOMString";
 
-Native_HTMLTextAreaElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLTextAreaElement__setRangeText_2_Callback";
+Native_HTMLTextAreaElement__setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_Callback_4_DOMString_unsigned long_unsigned long_DOMString";
 
   // Generated overload resolver
 Native_HTMLTextAreaElement_setSelectionRange(mthis, start, end, direction) {
@@ -3635,9 +3635,9 @@ Native_HTMLTextAreaElement_setSelectionRange(mthis, start, end, direction) {
     return;
   }
 
-Native_HTMLTextAreaElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLTextAreaElement__setSelectionRange_1_Callback";
+Native_HTMLTextAreaElement__setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLTextAreaElement_setSelectionRange_Callback_3_long_long_DOMString";
 
-Native_HTMLTextAreaElement__setSelectionRange_2_Callback(mthis, start, end) native "HTMLTextAreaElement__setSelectionRange_2_Callback";
+Native_HTMLTextAreaElement__setSelectionRange_2_Callback(mthis, start, end) native "HTMLTextAreaElement_setSelectionRange_Callback_2_long_long";
 
 Native_HTMLTrackElement_default_Getter(mthis) native "HTMLTrackElement_default_Getter";
 
@@ -3755,11 +3755,11 @@ Native_IDBDatabase_transaction(mthis, storeName_OR_storeNames, mode) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_IDBDatabase__transaction_1_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase__transaction_1_Callback";
+Native_IDBDatabase__transaction_1_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_2_DOMStringList_DOMString";
 
-Native_IDBDatabase__transaction_2_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase__transaction_2_Callback";
+Native_IDBDatabase__transaction_2_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_2_sequence<DOMString>_DOMString";
 
-Native_IDBDatabase__transaction_3_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
+Native_IDBDatabase__transaction_3_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_2_DOMString_DOMString";
 
 Native_IDBDatabase_transactionList_Callback(mthis, storeNames, mode) native "IDBDatabase_transactionList_Callback";
 
@@ -3779,9 +3779,9 @@ Native_IDBFactory__open(mthis, name, version) {
     return Native_IDBFactory__open_2_Callback(mthis, name);
   }
 
-Native_IDBFactory__open_1_Callback(mthis, name, version) native "IDBFactory__open_1_Callback";
+Native_IDBFactory__open_1_Callback(mthis, name, version) native "IDBFactory_open_Callback_2_DOMString_unsigned long long";
 
-Native_IDBFactory__open_2_Callback(mthis, name) native "IDBFactory__open_2_Callback";
+Native_IDBFactory__open_2_Callback(mthis, name) native "IDBFactory_open_Callback_1_DOMString";
 
 Native_IDBFactory_webkitGetDatabaseNames_Callback(mthis) native "IDBFactory_webkitGetDatabaseNames_Callback";
 
@@ -3848,9 +3848,9 @@ Native_IDBObjectStore__createIndex(mthis, name, keyPath, options) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_IDBObjectStore__createIndex_1_Callback(mthis, name, keyPath, options) native "IDBObjectStore__createIndex_1_Callback";
+Native_IDBObjectStore__createIndex_1_Callback(mthis, name, keyPath, options) native "IDBObjectStore_createIndex_Callback_3_DOMString_sequence<DOMString>_Dictionary";
 
-Native_IDBObjectStore__createIndex_2_Callback(mthis, name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
+Native_IDBObjectStore__createIndex_2_Callback(mthis, name, keyPath, options) native "IDBObjectStore_createIndex_Callback_3_DOMString_DOMString_Dictionary";
 
 Native_IDBObjectStore_delete_Callback(mthis, key) native "IDBObjectStore_delete_Callback";
 
@@ -4028,9 +4028,9 @@ Native_MIDIOutput_send(mthis, data, timestamp) {
     return;
   }
 
-Native_MIDIOutput__send_1_Callback(mthis, data, timestamp) native "MIDIOutput__send_1_Callback";
+Native_MIDIOutput__send_1_Callback(mthis, data, timestamp) native "MIDIOutput_send_Callback_2_Uint8Array_double";
 
-Native_MIDIOutput__send_2_Callback(mthis, data) native "MIDIOutput__send_2_Callback";
+Native_MIDIOutput__send_2_Callback(mthis, data) native "MIDIOutput_send_Callback_1_Uint8Array";
 
   // Generated overload resolver
 Native_MediaController_MediaController() {
@@ -4173,9 +4173,9 @@ Native_MediaSource_endOfStream(mthis, error) {
     return;
   }
 
-Native_MediaSource__endOfStream_1_Callback(mthis, error) native "MediaSource__endOfStream_1_Callback";
+Native_MediaSource__endOfStream_1_Callback(mthis, error) native "MediaSource_endOfStream_Callback_1_EndOfStreamError";
 
-Native_MediaSource__endOfStream_2_Callback(mthis) native "MediaSource__endOfStream_2_Callback";
+Native_MediaSource__endOfStream_2_Callback(mthis) native "MediaSource_endOfStream_Callback_0_";
 
 Native_MediaSource_isTypeSupported_Callback(type) native "MediaSource_isTypeSupported_Callback";
 
@@ -4535,9 +4535,9 @@ Native_OscillatorNode_start(mthis, when) {
     return;
   }
 
-Native_OscillatorNode__start_1_Callback(mthis, when) native "OscillatorNode__start_1_Callback";
+Native_OscillatorNode__start_1_Callback(mthis, when) native "OscillatorNode_start_Callback_1_double";
 
-Native_OscillatorNode__start_2_Callback(mthis) native "OscillatorNode__start_2_Callback";
+Native_OscillatorNode__start_2_Callback(mthis) native "OscillatorNode_start_Callback_0_";
 
   // Generated overload resolver
 Native_OscillatorNode_stop(mthis, when) {
@@ -4549,9 +4549,9 @@ Native_OscillatorNode_stop(mthis, when) {
     return;
   }
 
-Native_OscillatorNode__stop_1_Callback(mthis, when) native "OscillatorNode__stop_1_Callback";
+Native_OscillatorNode__stop_1_Callback(mthis, when) native "OscillatorNode_stop_Callback_1_double";
 
-Native_OscillatorNode__stop_2_Callback(mthis) native "OscillatorNode__stop_2_Callback";
+Native_OscillatorNode__stop_2_Callback(mthis) native "OscillatorNode_stop_Callback_0_";
 
 Native_OverflowEvent_horizontalOverflow_Getter(mthis) native "OverflowEvent_horizontalOverflow_Getter";
 
@@ -4837,11 +4837,11 @@ Native_RTCDTMFSender_insertDtmf(mthis, tones, duration, interToneGap) {
     return;
   }
 
-Native_RTCDTMFSender__insertDTMF_1_Callback(mthis, tones, duration, interToneGap) native "RTCDTMFSender__insertDTMF_1_Callback";
+Native_RTCDTMFSender__insertDTMF_1_Callback(mthis, tones, duration, interToneGap) native "RTCDTMFSender_insertDTMF_Callback_3_DOMString_long_long";
 
-Native_RTCDTMFSender__insertDTMF_2_Callback(mthis, tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
+Native_RTCDTMFSender__insertDTMF_2_Callback(mthis, tones, duration) native "RTCDTMFSender_insertDTMF_Callback_2_DOMString_long";
 
-Native_RTCDTMFSender__insertDTMF_3_Callback(mthis, tones) native "RTCDTMFSender__insertDTMF_3_Callback";
+Native_RTCDTMFSender__insertDTMF_3_Callback(mthis, tones) native "RTCDTMFSender_insertDTMF_Callback_1_DOMString";
 
 Native_RTCDTMFToneChangeEvent_tone_Getter(mthis) native "RTCDTMFToneChangeEvent_tone_Getter";
 
@@ -4892,13 +4892,13 @@ Native_RTCDataChannel_send(mthis, data) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_RTCDataChannel__send_1_Callback(mthis, data) native "RTCDataChannel__send_1_Callback";
+Native_RTCDataChannel__send_1_Callback(mthis, data) native "RTCDataChannel_send_Callback_1_ArrayBufferView";
 
-Native_RTCDataChannel__send_2_Callback(mthis, data) native "RTCDataChannel__send_2_Callback";
+Native_RTCDataChannel__send_2_Callback(mthis, data) native "RTCDataChannel_send_Callback_1_ArrayBuffer";
 
-Native_RTCDataChannel__send_3_Callback(mthis, data) native "RTCDataChannel__send_3_Callback";
+Native_RTCDataChannel__send_3_Callback(mthis, data) native "RTCDataChannel_send_Callback_1_Blob";
 
-Native_RTCDataChannel__send_4_Callback(mthis, data) native "RTCDataChannel__send_4_Callback";
+Native_RTCDataChannel__send_4_Callback(mthis, data) native "RTCDataChannel_send_Callback_1_DOMString";
 
 Native_RTCDataChannel_sendBlob_Callback(mthis, data) native "RTCDataChannel_sendBlob_Callback";
 
@@ -6546,9 +6546,9 @@ Native_Screen_lockOrientation(mthis, orientation_OR_orientations) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations) native "Screen__lockOrientation_1_Callback";
+Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations) native "Screen_lockOrientation_Callback_1_DOMString";
 
-Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations) native "Screen__lockOrientation_2_Callback";
+Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations) native "Screen_lockOrientation_Callback_1_sequence<DOMString>";
 
 Native_Screen_unlockOrientation_Callback(mthis) native "Screen_unlockOrientation_Callback";
 
@@ -6707,9 +6707,9 @@ Native_SourceBuffer_appendStream(mthis, stream, maxSize) {
     return;
   }
 
-Native_SourceBuffer__appendStream_1_Callback(mthis, stream, maxSize) native "SourceBuffer__appendStream_1_Callback";
+Native_SourceBuffer__appendStream_1_Callback(mthis, stream, maxSize) native "SourceBuffer_appendStream_Callback_2_Stream_unsigned long long";
 
-Native_SourceBuffer__appendStream_2_Callback(mthis, stream) native "SourceBuffer__appendStream_2_Callback";
+Native_SourceBuffer__appendStream_2_Callback(mthis, stream) native "SourceBuffer_appendStream_Callback_1_Stream";
 
 Native_SourceBuffer_appendTypedData_Callback(mthis, data) native "SourceBuffer_appendTypedData_Callback";
 
@@ -6765,9 +6765,9 @@ Native_SpeechGrammarList_addFromString(mthis, string, weight) {
     return;
   }
 
-Native_SpeechGrammarList__addFromString_1_Callback(mthis, string, weight) native "SpeechGrammarList__addFromString_1_Callback";
+Native_SpeechGrammarList__addFromString_1_Callback(mthis, string, weight) native "SpeechGrammarList_addFromString_Callback_2_DOMString_float";
 
-Native_SpeechGrammarList__addFromString_2_Callback(mthis, string) native "SpeechGrammarList__addFromString_2_Callback";
+Native_SpeechGrammarList__addFromString_2_Callback(mthis, string) native "SpeechGrammarList_addFromString_Callback_1_DOMString";
 
   // Generated overload resolver
 Native_SpeechGrammarList_addFromUri(mthis, src, weight) {
@@ -6779,9 +6779,9 @@ Native_SpeechGrammarList_addFromUri(mthis, src, weight) {
     return;
   }
 
-Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight) native "SpeechGrammarList__addFromUri_1_Callback";
+Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight) native "SpeechGrammarList_addFromUri_Callback_2_DOMString_float";
 
-Native_SpeechGrammarList__addFromUri_2_Callback(mthis, src) native "SpeechGrammarList__addFromUri_2_Callback";
+Native_SpeechGrammarList__addFromUri_2_Callback(mthis, src) native "SpeechGrammarList_addFromUri_Callback_1_DOMString";
 
 Native_SpeechGrammarList_item_Callback(mthis, index) native "SpeechGrammarList_item_Callback";
 
@@ -6934,9 +6934,9 @@ Native_Storage___delete__(mthis, index_OR_name) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Storage____delete___1_Callback(mthis, index_OR_name) native "Storage____delete___1_Callback";
+Native_Storage____delete___1_Callback(mthis, index_OR_name) native "Storage___delete___Callback_1_unsigned long";
 
-Native_Storage____delete___2_Callback(mthis, index_OR_name) native "Storage____delete___2_Callback";
+Native_Storage____delete___2_Callback(mthis, index_OR_name) native "Storage___delete___Callback_1_DOMString";
 
   // Generated overload resolver
 Native_Storage___getter__(mthis, index_OR_name) {
@@ -6949,9 +6949,9 @@ Native_Storage___getter__(mthis, index_OR_name) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Storage____getter___1_Callback(mthis, index_OR_name) native "Storage____getter___1_Callback";
+Native_Storage____getter___1_Callback(mthis, index_OR_name) native "Storage___getter___Callback_1_unsigned long";
 
-Native_Storage____getter___2_Callback(mthis, index_OR_name) native "Storage____getter___2_Callback";
+Native_Storage____getter___2_Callback(mthis, index_OR_name) native "Storage___getter___Callback_1_DOMString";
 
   // Generated overload resolver
 Native_Storage___setter__(mthis, index_OR_name, value) {
@@ -6966,9 +6966,9 @@ Native_Storage___setter__(mthis, index_OR_name, value) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Storage____setter___1_Callback(mthis, index_OR_name, value) native "Storage____setter___1_Callback";
+Native_Storage____setter___1_Callback(mthis, index_OR_name, value) native "Storage___setter___Callback_2_unsigned long_DOMString";
 
-Native_Storage____setter___2_Callback(mthis, index_OR_name, value) native "Storage____setter___2_Callback";
+Native_Storage____setter___2_Callback(mthis, index_OR_name, value) native "Storage___setter___Callback_2_DOMString_DOMString";
 
 Native_Storage_clear_Callback(mthis) native "Storage_clear_Callback";
 
@@ -7212,11 +7212,11 @@ Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_1_Callback";
+Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_1_Blob";
 
-Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_2_Callback";
+Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_1_MediaStream";
 
-Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL__createObjectURL_3_Callback";
+Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_1_MediaSource";
 
 Native_URL_createObjectUrlFromBlob_Callback(blob) native "URL_createObjectUrlFromBlob_Callback";
 
@@ -7503,11 +7503,11 @@ Native_WebGLRenderingContext_bufferData(mthis, target, data_OR_size, usage) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_WebGLRenderingContext__bufferData_1_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_1_Callback";
+Native_WebGLRenderingContext__bufferData_1_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback_3_unsigned long_ArrayBufferView_unsigned long";
 
-Native_WebGLRenderingContext__bufferData_2_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_2_Callback";
+Native_WebGLRenderingContext__bufferData_2_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback_3_unsigned long_ArrayBuffer_unsigned long";
 
-Native_WebGLRenderingContext__bufferData_3_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
+Native_WebGLRenderingContext__bufferData_3_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback_3_unsigned long_long long_unsigned long";
 
 Native_WebGLRenderingContext_bufferDataTyped_Callback(mthis, target, data, usage) native "WebGLRenderingContext_bufferDataTyped_Callback";
 
@@ -7526,9 +7526,9 @@ Native_WebGLRenderingContext_bufferSubData(mthis, target, offset, data) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_WebGLRenderingContext__bufferSubData_1_Callback(mthis, target, offset, data) native "WebGLRenderingContext__bufferSubData_1_Callback";
+Native_WebGLRenderingContext__bufferSubData_1_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubData_Callback_3_unsigned long_long long_ArrayBufferView";
 
-Native_WebGLRenderingContext__bufferSubData_2_Callback(mthis, target, offset, data) native "WebGLRenderingContext__bufferSubData_2_Callback";
+Native_WebGLRenderingContext__bufferSubData_2_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubData_Callback_3_unsigned long_long long_ArrayBuffer";
 
 Native_WebGLRenderingContext_bufferSubDataTyped_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubDataTyped_Callback";
 
@@ -7731,15 +7731,15 @@ Native_WebGLRenderingContext_texImage2D(mthis, target, level, internalformat, fo
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_WebGLRenderingContext__texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext__texImage2D_1_Callback";
+Native_WebGLRenderingContext__texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_Callback_9_unsigned long_long_unsigned long_long_long_long_unsigned long_unsigned long_ArrayBufferView";
 
-Native_WebGLRenderingContext__texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_2_Callback";
+Native_WebGLRenderingContext__texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_Callback_6_unsigned long_long_unsigned long_unsigned long_unsigned long_ImageData";
 
-Native_WebGLRenderingContext__texImage2D_3_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_3_Callback";
+Native_WebGLRenderingContext__texImage2D_3_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_Callback_6_unsigned long_long_unsigned long_unsigned long_unsigned long_HTMLImageElement";
 
-Native_WebGLRenderingContext__texImage2D_4_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_4_Callback";
+Native_WebGLRenderingContext__texImage2D_4_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_Callback_6_unsigned long_long_unsigned long_unsigned long_unsigned long_HTMLCanvasElement";
 
-Native_WebGLRenderingContext__texImage2D_5_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_5_Callback";
+Native_WebGLRenderingContext__texImage2D_5_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_Callback_6_unsigned long_long_unsigned long_unsigned long_unsigned long_HTMLVideoElement";
 
 Native_WebGLRenderingContext_texImage2DCanvas_Callback(mthis, target, level, internalformat, format, type, canvas) native "WebGLRenderingContext_texImage2DCanvas_Callback";
 
@@ -7778,15 +7778,15 @@ Native_WebGLRenderingContext_texSubImage2D(mthis, target, level, xoffset, yoffse
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_WebGLRenderingContext__texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext__texSubImage2D_1_Callback";
+Native_WebGLRenderingContext__texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_Callback_9_unsigned long_long_long_long_long_long_unsigned long_unsigned long_ArrayBufferView";
 
-Native_WebGLRenderingContext__texSubImage2D_2_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_2_Callback";
+Native_WebGLRenderingContext__texSubImage2D_2_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_Callback_7_unsigned long_long_long_long_unsigned long_unsigned long_ImageData";
 
-Native_WebGLRenderingContext__texSubImage2D_3_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_3_Callback";
+Native_WebGLRenderingContext__texSubImage2D_3_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_Callback_7_unsigned long_long_long_long_unsigned long_unsigned long_HTMLImageElement";
 
-Native_WebGLRenderingContext__texSubImage2D_4_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_4_Callback";
+Native_WebGLRenderingContext__texSubImage2D_4_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_Callback_7_unsigned long_long_long_long_unsigned long_unsigned long_HTMLCanvasElement";
 
-Native_WebGLRenderingContext__texSubImage2D_5_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_5_Callback";
+Native_WebGLRenderingContext__texSubImage2D_5_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_Callback_7_unsigned long_long_long_long_unsigned long_unsigned long_HTMLVideoElement";
 
 Native_WebGLRenderingContext_texSubImage2DCanvas_Callback(mthis, target, level, xoffset, yoffset, format, type, canvas) native "WebGLRenderingContext_texSubImage2DCanvas_Callback";
 
@@ -7944,11 +7944,11 @@ Native_WebSocket_close(mthis, code, reason) {
     return;
   }
 
-Native_WebSocket__close_1_Callback(mthis, code, reason) native "WebSocket__close_1_Callback";
+Native_WebSocket__close_1_Callback(mthis, code, reason) native "WebSocket_close_Callback_2_unsigned short_DOMString";
 
-Native_WebSocket__close_2_Callback(mthis, code) native "WebSocket__close_2_Callback";
+Native_WebSocket__close_2_Callback(mthis, code) native "WebSocket_close_Callback_1_unsigned short";
 
-Native_WebSocket__close_3_Callback(mthis) native "WebSocket__close_3_Callback";
+Native_WebSocket__close_3_Callback(mthis) native "WebSocket_close_Callback_0_";
 
 Native_WebSocket_send_Callback(mthis, data) native "WebSocket_send_Callback";
 
@@ -8087,9 +8087,9 @@ Native_Window___getter__(mthis, index_OR_name) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Window____getter___1_Callback(mthis, index_OR_name) native "Window____getter___1_Callback";
+Native_Window____getter___1_Callback(mthis, index_OR_name) native "Window___getter___Callback_1_unsigned long";
 
-Native_Window____getter___2_Callback(mthis, index_OR_name) native "Window____getter___2_Callback";
+Native_Window____getter___2_Callback(mthis, index_OR_name) native "Window___getter___Callback_1_DOMString";
 
 Native_Window_alert_Callback(mthis, message) native "Window_alert_Callback";
 

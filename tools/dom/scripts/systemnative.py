@@ -1124,8 +1124,10 @@ class DartiumBackend(HtmlDartGenerator):
       native_suffix = 'Callback'
       actuals = info.ParametersAsListOfVariables(argument_count)
       return_type = self.SecureOutputType(operation.type.id)
+      native_suffix = 'Callback'
       if self._dart_use_blink:
           base_name = '_%s_%s' % (operation.id, version)
+          cpp_base_name = '%s' % operation.id
           overload_name = \
               DeriveNativeName(self._interface.id, base_name, native_suffix)
           static = True
@@ -1134,8 +1136,16 @@ class DartiumBackend(HtmlDartGenerator):
           actuals_s = ", ".join(actuals)
           dart_declaration = '%s(%s)' % (
             base_name, actuals_s)
+          type_string = \
+              "_".join([argument.type.id
+                        for argument in operation.arguments[:argument_count]])
+          components = \
+              [self._interface.id, cpp_base_name, native_suffix,
+               str(argument_count), type_string]
+          resolver_string = "_".join(components)
       else:
           base_name = '_%s_%s' % (operation.id, version)
+          cpp_base_name = base_name
           overload_name = base_name
           static = operation.is_static
           actuals_s = ", ".join(actuals)
@@ -1143,17 +1153,17 @@ class DartiumBackend(HtmlDartGenerator):
             'static ' if static else '',
             return_type,
             overload_name, actuals_s)
+          resolver_string = None
 
       call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
       is_custom = 'Custom' in operation.ext_attrs
-      native_suffix = 'Callback'
       auto_scope_setup = \
         self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
         base_name, (0 if static else 1) + argument_count,
         dart_declaration, static, return_type, actuals,
         native_suffix, is_custom, auto_scope_setup, emit_metadata=False,
-        emit_to_native=self._dart_use_blink)
+        emit_to_native=self._dart_use_blink, resolver_string=resolver_string)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation,
           operation.arguments[:argument_count], cpp_callback_name,
@@ -1581,7 +1591,8 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
-      auto_scope_setup=True, emit_metadata=True, emit_to_native=False):
+      auto_scope_setup=True, emit_metadata=True, emit_to_native=False,
+      resolver_string=None):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1589,7 +1600,13 @@ class DartiumBackend(HtmlDartGenerator):
           self._interface, idl_name, '  ')
     dart_native_name = \
         DeriveNativeName(self._interface.id, idl_name, native_suffix)
-    native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
+
+    if (resolver_string):
+        native_binding = resolver_string
+    else:
+        native_binding = \
+            '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
+
     if self._dart_use_blink:
         if not static:
             formals = ", ".join(['mthis'] + parameters)
