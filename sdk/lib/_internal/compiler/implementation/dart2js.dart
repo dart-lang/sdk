@@ -365,11 +365,11 @@ Future compile(List<String> argv) {
 
   compilationDone(String code) {
     if (analyzeOnly) return;
+    writeString(Uri.parse('$out.deps'),
+                getDepsOutput(inputProvider.sourceFiles));
     if (code == null) {
       fail('Compilation failed.');
     }
-    writeString(Uri.parse('$out.deps'),
-                getDepsOutput(inputProvider.sourceFiles));
     diagnosticHandler.info(
          'Compiled ${inputProvider.dartCharactersRead} characters Dart '
          '-> $totalCharactersWritten characters $outputLanguage '

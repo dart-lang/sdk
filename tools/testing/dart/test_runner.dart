@@ -93,6 +93,9 @@ class Command {
   String toString() => reproductionCommand;
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
+  
+  Future<String> get cachedOutput => new Future.value(null);
+  Future writeCachedOutput(CommandOutput output) => new Future.value(null);
 }
 
 class ProcessCommand extends Command {
@@ -172,6 +175,24 @@ class CompilationCommand extends ProcessCommand {
   bool _neverSkipCompilation;
   List<Uri> _bootstrapDependencies;
 
+  Future writeCachedOutput(CommandOutput output) {
+    var file = new io.File(TestUtils.cachedOutputFile(_outputFile));
+    return file.writeAsString(output.json)
+      .catchError((error) { 
+        DebugLogger.warning("Could not write cached output: $error");
+        return null;
+      });
+  }
+
+  Future<CommandOutput> get cachedOutput {
+    var file = new io.File(TestUtils.cachedOutputFile(_outputFile));
+    return file.exists().then((exists) {
+      if (exists) return file.readAsString().then((content) {
+        return new CompilationCommandOutputImpl.fromJson(this, content);
+      });;
+    });
+  }
+
   CompilationCommand._(String displayName,
                        this._outputFile,
                        this._neverSkipCompilation,
@@ -205,22 +226,28 @@ class CompilationCommand extends ProcessCommand {
       });
     }
 
+    bool isUpToDate(lastModified, dependencies) {
+      if (lastModified == null) return false;
+      for (var dependency in dependencies) {
+        var dependencyLastModified =
+          TestUtils.lastModifiedCache.getLastModified(dependency);
+        if (dependencyLastModified == null ||
+            dependencyLastModified.isAfter(lastModified)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     return readDepsFile("$_outputFile.deps").then((dependencies) {
       if (dependencies != null) {
         dependencies.addAll(_bootstrapDependencies);
-        var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
-            new Uri(scheme: 'file', path: _outputFile));
-        if (jsOutputLastModified != null) {
-          for (var dependency in dependencies) {
-            var dependencyLastModified =
-                TestUtils.lastModifiedCache.getLastModified(dependency);
-            if (dependencyLastModified == null ||
-                dependencyLastModified.isAfter(jsOutputLastModified)) {
-              return false;
-            }
-          }
-          return true;
-        }
+        // We check if the cached output is up to date, if so we return true
+        var cachedOutputFile = TestUtils.cachedOutputFile(_outputFile);
+        var cachedOutputUri = new Uri(scheme: 'file', path: cachedOutputFile);
+        var cachedOutputLastModified = 
+            TestUtils.lastModifiedCache.getLastModified(cachedOutputUri);
+        return isUpToDate(cachedOutputLastModified, dependencies);
       }
       return false;
     });
@@ -919,6 +946,8 @@ abstract class CommandOutput {
   List<String> get diagnostics;
 
   bool get compilationSkipped;
+
+  String get json;
 }
 
 class CommandOutputImpl extends UniqueObject implements CommandOutput {
@@ -1008,6 +1037,9 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     }
     return Expectation.FAIL;
   }
+
+  String get json => null;
+
 }
 
 class BrowserCommandOutputImpl extends CommandOutputImpl {
@@ -1605,6 +1637,32 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
         exitCode == 0 ? Expectation.PASS : Expectation.COMPILETIME_ERROR;
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
+
+  String get json {
+    var map = {
+    'stdout': stdout,
+    'stderr': stderr,
+    'exitCode': exitCode,
+    'timedOut': timedOut,
+    };
+    return JSON.encode(map);
+  }
+
+  factory CompilationCommandOutputImpl.fromJson(Command command,
+                                                String json) {
+    var obj = JSON.decode(json);
+    for (var v in ['stdout', 'stderr', 'exitCode', 'timedOut']) {
+      assert(obj.containsKey(v));
+    }
+    return new CompilationCommandOutputImpl(command,
+                                            obj['exitCode'],
+                                            obj['timedOut'],
+                                            obj['stdout'],
+                                            obj['stderr'],
+                                            const Duration(seconds: 0),
+                                            true);
+                                            
+  }
 }
 
 class JsCommandlineOutputImpl extends CommandOutputImpl
@@ -1802,10 +1860,12 @@ class RunningProcess {
   }
 
   void _runCommand() {
-    command.outputIsUpToDate.then((bool isUpToDate) {
+    command.outputIsUpToDate.then((isUpToDate) {
       if (isUpToDate) {
         compilationSkipped = true;
-        _commandComplete(0);
+        command.cachedOutput.then((cached) {
+          _commandComplete(cached.exitCode, cachedOutput: cached);
+        });
       } else {
         var processEnvironment = _createProcessEnvironment();
         Future processFuture =
@@ -1898,12 +1958,17 @@ class RunningProcess {
     });
   }
 
-  void _commandComplete(int exitCode) {
+  void _commandComplete(int exitCode, {cachedOutput: null}) {
     if (timeoutTimer != null) {
       timeoutTimer.cancel();
     }
-    var commandOutput = _createCommandOutput(command, exitCode);
-    completer.complete(commandOutput);
+    if (cachedOutput != null) {
+      completer.complete(cachedOutput);
+    } else {
+      var commandOutput = _createCommandOutput(command, exitCode);
+      command.writeCachedOutput(commandOutput);
+      completer.complete(commandOutput);
+    }
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {

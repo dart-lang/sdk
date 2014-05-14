@@ -17,6 +17,7 @@
 import 'package:expect/expect.dart';
 import 'package:path/path.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
@@ -34,11 +35,13 @@ class FileUtils {
   File testJsDeps;
   File testDart;
   File testSnapshot;
+  File testCachedOutput;
 
   FileUtils({bool createJs,
              bool createJsDeps,
              bool createDart,
-             bool createSnapshot}) {
+             bool createSnapshot,
+             bool createCachedOutput}) {
     tempDir = Directory.systemTemp
                        .createTempSync('dart_skipping_dart2js_compilations');
     if (createJs) {
@@ -59,6 +62,17 @@ class FileUtils {
           .append("test.dart");
       _writeToFile(testJsDeps, "file://$path");
     }
+    if (createCachedOutput) {
+      testCachedOutput = _createFile(testCachedOutputPath);
+      var content =  JSON.encode({
+          'stdout': '',
+          'stderr': '',
+          'exitCode': 0,
+          'timedOut': false
+        });
+      _writeToFile(testCachedOutput, content);
+    }
+
   }
 
   void cleanup() {
@@ -66,11 +80,18 @@ class FileUtils {
     if (testJsDeps != null) testJsDeps.deleteSync();
     if (testDart != null) testDart.deleteSync();
     if (testSnapshot != null) testSnapshot.deleteSync();
+    if (testCachedOutput != null) testCachedOutput.deleteSync();
 
-    // if the script did run, it created this file, so we need to delete it
+    // If the script did run, it created this file, so we need to delete it
+    // We also need to delete the cached output which will always be there if
+    // we ran.
     File file = new File(scriptOutputPath.toNativePath());
     if (file.existsSync()) {
       file.deleteSync();
+    }
+    File cacheFile = new File(testCachedOutputPath.toNativePath());
+    if (cacheFile.existsSync()) {
+      cacheFile.deleteSync();
     }
 
     tempDir.deleteSync();
@@ -94,6 +115,11 @@ class FileUtils {
   Path get testJsDepsFilePath {
     return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('test.js.deps'));
+  }
+
+  Path get testCachedOutputPath {
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
+        .append('test.js.cached_output'));
   }
 
   Path get testSnapshotFilePath {
@@ -134,7 +160,11 @@ class CommandCompletedHandler {
 
   void processCompletedTest(runner.CommandOutput output) {
     Expect.isTrue(output.exitCode == 0);
+    if (output.stderr.length > 0)
+      print(output.stderr);
     Expect.isTrue(output.stderr.length == 0);
+    Expect.isTrue(new File(fileUtils.testCachedOutputPath.toNativePath())
+        .existsSync());
     if (_shouldHaveRun) {
       Expect.isTrue(output.stdout.length == 0);
       Expect.isTrue(new File(fileUtils.scriptOutputPath.toNativePath())
@@ -167,31 +197,38 @@ void main() {
   var fs_noTestJs = new FileUtils(createJs: false,
                                   createJsDeps: true,
                                   createDart: true,
-                                  createSnapshot: true);
+                                  createSnapshot: true,
+                                  createCachedOutput: false);
   var fs_noTestJsDeps = new FileUtils(createJs: true,
                                       createJsDeps: false,
                                       createDart: true,
-                                      createSnapshot: true);
+                                      createSnapshot: true,
+                                      createCachedOutput: true);
   var fs_noTestDart = new FileUtils(createJs: true,
                                     createJsDeps: true,
                                     createDart: false,
-                                    createSnapshot: true);
+                                    createSnapshot: true,
+                                    createCachedOutput: true);
   var fs_noTestSnapshot = new FileUtils(createJs: true,
                                         createJsDeps: true,
                                         createDart: true,
-                                        createSnapshot: false);
+                                        createSnapshot: false,
+                                        createCachedOutput: true);
   var fs_notUpToDate_snapshot = new FileUtils(createJs: true,
                                               createJsDeps: true,
                                               createDart: true,
-                                              createSnapshot: true);
+                                              createSnapshot: true,
+                                              createCachedOutput: true);
   var fs_notUpToDate_dart = new FileUtils(createJs: true,
                                           createJsDeps: true,
                                           createDart: true,
-                                          createSnapshot: true);
+                                          createSnapshot: true,
+                                          createCachedOutput: true);
   var fs_upToDate = new FileUtils(createJs: true,
                                   createJsDeps: true,
                                   createDart: true,
-                                  createSnapshot: true);
+                                  createSnapshot: true,
+                                  createCachedOutput: true);
   void cleanup() {
     fs_noTestJs.cleanup();
     fs_noTestJsDeps.cleanup();
