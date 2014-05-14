@@ -684,6 +684,12 @@ void Assembler::LoadDImmediate(VRegister vd, double immd, Register pp) {
 void Assembler::AddImmediate(
     Register dest, Register rn, int64_t imm, Register pp) {
   Operand op;
+  if (imm == 0) {
+    if (dest != rn) {
+      mov(dest, rn);
+    }
+    return;
+  }
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     add(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
@@ -702,15 +708,36 @@ void Assembler::AddImmediateSetFlags(
     Register dest, Register rn, int64_t imm, Register pp) {
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    // Handles imm == kMinInt64.
     adds(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
+    ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     subs(dest, rn, op);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm, pp);
     adds(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::SubImmediateSetFlags(
+    Register dest, Register rn, int64_t imm, Register pp) {
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    // Handles imm == kMinInt64.
+    subs(dest, rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
+    adds(dest, rn, op);
+  } else {
+    // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
+    ASSERT(rn != TMP2);
+    LoadImmediate(TMP2, imm, pp);
+    subs(dest, rn, Operand(TMP2));
   }
 }
 

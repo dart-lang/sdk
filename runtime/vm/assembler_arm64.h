@@ -826,6 +826,8 @@ class Assembler : public ValueObject {
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
   void AddImmediateSetFlags(
       Register dest, Register rn, int64_t imm, Register pp);
+  void SubImmediateSetFlags(
+      Register dest, Register rn, int64_t imm, Register pp);
   void AndImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void OrImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void XorImmediate(Register rd, Register rn, int64_t imm, Register pp);

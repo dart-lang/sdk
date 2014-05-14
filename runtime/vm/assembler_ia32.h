@@ -627,6 +627,7 @@ class Assembler : public ValueObject {
   void PopRegister(Register r);
 
   void AddImmediate(Register reg, const Immediate& imm);
+  void SubImmediate(Register reg, const Immediate& imm);
 
   void Drop(intptr_t stack_elements);
 

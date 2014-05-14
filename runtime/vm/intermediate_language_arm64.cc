@@ -2608,18 +2608,26 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    int64_t imm = reinterpret_cast<int64_t>(constant.raw());
+    const int64_t imm = reinterpret_cast<int64_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kSUB: {
-        imm = -imm;  // TODO(regis): What if deopt != NULL && imm == 0x80000000?
-        // Fall through.
-      }
       case Token::kADD: {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm, PP);
         } else {
           __ AddImmediateSetFlags(result, left, imm, PP);
-          __ b(deopt, VS);        }
+          __ b(deopt, VS);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -imm, PP);
+        } else {
+          // Negating imm and using AddImmediateSetFlags would not detect the
+          // overflow when imm == kMinInt64.
+          __ SubImmediateSetFlags(result, left, imm, PP);
+          __ b(deopt, VS);
+        }
         break;
       }
       case Token::kMUL: {

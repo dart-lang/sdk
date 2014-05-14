@@ -2228,14 +2228,6 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
 }
 
 
-void Assembler::BranchLinkStore(const ExternalLabel* label, Address ad) {
-  // TODO(regis): Revisit this code sequence.
-  LoadImmediate(IP, label->address());  // Target address is never patched.
-  str(PC, ad);
-  blx(IP);  // Use blx instruction so that the return branch prediction works.
-}
-
-
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
@@ -2305,7 +2297,6 @@ void Assembler::LoadDImmediate(DRegister dd,
                                double value,
                                Register scratch,
                                Condition cond) {
-  // TODO(regis): Revisit this code sequence.
   ASSERT(scratch != PC);
   ASSERT(scratch != IP);
   if (!vmovd(dd, value, cond)) {
@@ -2508,8 +2499,10 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                                     Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
+    // Handles value == kMinInt32.
     adds(rd, rn, shifter_op, cond);
   } else if (ShifterOperand::CanHold(-value, &shifter_op)) {
+    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
     subs(rd, rn, shifter_op, cond);
   } else {
     ASSERT(rn != IP);
@@ -2517,6 +2510,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, shifter_op, cond);
       adds(rd, rn, ShifterOperand(IP), cond);
     } else if (ShifterOperand::CanHold(~(-value), &shifter_op)) {
+      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
       mvn(IP, shifter_op, cond);
       subs(rd, rn, ShifterOperand(IP), cond);
     } else {
@@ -2527,24 +2521,27 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
 }
 
 
-void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
-                                     Condition cond) {
+void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
+                                    Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
-    adc(rd, rn, shifter_op, cond);
-  } else if (ShifterOperand::CanHold(-value - 1, &shifter_op)) {
-    sbc(rd, rn, shifter_op, cond);
+    // Handles value == kMinInt32.
+    subs(rd, rn, shifter_op, cond);
+  } else if (ShifterOperand::CanHold(-value, &shifter_op)) {
+    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+    adds(rd, rn, shifter_op, cond);
   } else {
     ASSERT(rn != IP);
     if (ShifterOperand::CanHold(~value, &shifter_op)) {
       mvn(IP, shifter_op, cond);
-      adc(rd, rn, ShifterOperand(IP), cond);
-    } else if (ShifterOperand::CanHold(~(-value - 1), &shifter_op)) {
+      subs(rd, rn, ShifterOperand(IP), cond);
+    } else if (ShifterOperand::CanHold(~(-value), &shifter_op)) {
+      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
       mvn(IP, shifter_op, cond);
-      sbc(rd, rn, ShifterOperand(IP), cond);
+      adds(rd, rn, ShifterOperand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
-      adc(rd, rn, ShifterOperand(IP), cond);
+      subs(rd, rn, ShifterOperand(IP), cond);
     }
   }
 }

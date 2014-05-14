@@ -4939,7 +4939,7 @@ class Smi : public Integer {
  public:
   static const intptr_t kBits = kSmiBits;
   static const intptr_t kMaxValue = kSmiMax;
-  static const intptr_t kMinValue =  kSmiMin;
+  static const intptr_t kMinValue = kSmiMin;
 
   intptr_t Value() const {
     return ValueFromRaw(raw_value());

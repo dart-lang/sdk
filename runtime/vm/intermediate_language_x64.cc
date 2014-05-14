@@ -168,7 +168,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shlq(RDX, Immediate(shift + kSmiTagSize));
   } else {
-    __ AddImmediate(RDX, Immediate(-1), PP);
+    __ decq(RDX);
     __ AndImmediate(RDX,
         Immediate(Smi::RawValue(true_value) - Smi::RawValue(false_value)), PP);
     if (false_value != 0) {
@@ -2739,17 +2739,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm =
-        reinterpret_cast<int64_t>(constant.raw());
+    const int64_t imm = reinterpret_cast<int64_t>(constant.raw());
     switch (op_kind()) {
       case Token::kADD: {
-        __ AddImmediate(left, Immediate(imm), PP);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ AddImmediate(left, Immediate(imm), PP);
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       }
       case Token::kSUB: {
-        __ AddImmediate(left, Immediate(-imm), PP);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ SubImmediate(left, Immediate(imm), PP);
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       }
       case Token::kMUL: {

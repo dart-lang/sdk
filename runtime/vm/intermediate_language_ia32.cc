@@ -2919,16 +2919,21 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int32_t imm =
-        reinterpret_cast<int32_t>(constant.raw());
+    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kADD:
-        __ addl(left, Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+    case Token::kADD:
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ addl(left, Immediate(imm));
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       case Token::kSUB: {
-        __ subl(left, Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ subl(left, Immediate(imm));
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       }
       case Token::kMUL: {
@@ -5997,7 +6002,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shll(EDX, Immediate(shift + kSmiTagSize));
   } else {
-    __ subl(EDX, Immediate(1));
+    __ decl(EDX);
     __ andl(EDX, Immediate(
         Smi::RawValue(true_value) - Smi::RawValue(false_value)));
     if (false_value != 0) {

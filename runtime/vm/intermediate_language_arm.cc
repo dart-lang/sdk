@@ -2959,17 +2959,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    int32_t imm = reinterpret_cast<int32_t>(constant.raw());
+    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kSUB: {
-        imm = -imm;  // TODO(regis): What if deopt != NULL && imm == 0x80000000?
-        // Fall through.
-      }
       case Token::kADD: {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm);
         } else {
           __ AddImmediateSetFlags(result, left, imm);
+          __ b(deopt, VS);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -imm);
+        } else {
+          // Negating imm and using AddImmediateSetFlags would not detect the
+          // overflow when imm == kMinInt32.
+          __ SubImmediateSetFlags(result, left, imm);
           __ b(deopt, VS);
         }
         break;
@@ -3044,8 +3051,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ShifterOperand shifter_op;
         if (ShifterOperand::CanHold(imm, &shifter_op)) {
           __ and_(result, left, shifter_op);
+        } else if (ShifterOperand::CanHold(~imm, &shifter_op)) {
+          __ bic(result, left, shifter_op);
         } else {
-          // TODO(regis): Try to use bic.
           __ LoadImmediate(IP, imm);
           __ and_(result, left, ShifterOperand(IP));
         }
@@ -3057,7 +3065,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (ShifterOperand::CanHold(imm, &shifter_op)) {
           __ orr(result, left, shifter_op);
         } else {
-          // TODO(regis): Try to use orn.
           __ LoadImmediate(IP, imm);
           __ orr(result, left, ShifterOperand(IP));
         }

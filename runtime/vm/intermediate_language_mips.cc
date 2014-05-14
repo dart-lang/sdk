@@ -2675,24 +2675,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    int32_t imm = reinterpret_cast<int32_t>(constant.raw());
+    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kSUB: {
-        __ TraceSimMsg("kSUB imm");
-        if (deopt == NULL) {
-          __ AddImmediate(result, left, -imm);
-        } else {
-          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
-          __ bltz(CMPRES1, deopt);
-        }
-        break;
-      }
       case Token::kADD: {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm);
         } else {
           Register temp = locs()->temp(0).reg();
           __ AddImmediateDetectOverflow(result, left, imm, CMPRES1, temp);
+          __ bltz(CMPRES1, deopt);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        __ TraceSimMsg("kSUB imm");
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -imm);
+        } else {
+          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
           __ bltz(CMPRES1, deopt);
         }
         break;
