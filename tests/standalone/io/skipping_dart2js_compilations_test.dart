@@ -65,8 +65,8 @@ class FileUtils {
     if (createCachedOutput) {
       testCachedOutput = _createFile(testCachedOutputPath);
       var content =  JSON.encode({
-          'stdout': '',
-          'stderr': '',
+          'stdout': [],
+          'stderr': [],
           'exitCode': 0,
           'timedOut': false
         });
