@@ -22,7 +22,7 @@ class TreePrinter {
   void setElement(tree.Node node, elements.Element element, source) {
     if (treeElements != null) {
       if (element == null) {
-        throw "Missing element from ${source.runtimeType}";
+        throw "Missing element from ${source}";
       }
       treeElements[node] = element;
     }
@@ -31,7 +31,7 @@ class TreePrinter {
   void setType(tree.Node node, types.DartType type, source) {
     if (treeElements != null) {
       if (type == null) {
-        throw "Missing type from ${source.runtimeType}";
+        throw "Missing type from ${source}";
       }
       treeElements.setType(node, type);
     }
@@ -228,7 +228,7 @@ class TreePrinter {
           colon,
           makeExpression(arg.expression));
     } else {
-      throw "Unrecognized argument type: ${arg.runtimeType}";
+      throw "Unrecognized argument type: ${arg}";
     }
   }
 
@@ -267,7 +267,7 @@ class TreePrinter {
         arguments = bracketList(',',
             [makeExpression(left.index), makeExpression(exp.right)]);
       } else {
-        throw "Unexpected left-hand side of assignment: ${left.runtimeType}";
+        throw "Unexpected left-hand side of assignment: ${left}";
       }
       tree.Operator op = new tree.Operator(assignmentToken(exp.operatorName));
       result = new tree.SendSet(receiver, selector, op, arguments);
@@ -378,7 +378,7 @@ class TreePrinter {
         selector = new tree.Operator(indexToken);
         argument = makeExpression(lvalue.index);
       } else {
-        throw "Unrecognized left-hand side: ${lvalue.runtimeType}";
+        throw "Unrecognized left-hand side: ${lvalue}";
       }
       tree.Operator op = new tree.Operator(incrementToken(exp.operatorName));
       if (exp.isPrefix) {
@@ -419,7 +419,7 @@ class TreePrinter {
       } else if (value is dart2js.NullConstant) {
         result = new tree.LiteralNull(tok);
       } else {
-        throw "Unrecognized constant: ${value.runtimeType}";
+        throw "Unrecognized constant: ${value}";
       }
     } else if (exp is LiteralList) {
       precedence = PRIMARY;
@@ -485,7 +485,7 @@ class TreePrinter {
           makeExp(exp.operand, UNARY),
           new tree.Operator(unopToken(exp.operatorName)));
     } else {
-      throw "Unknown expression type: ${exp.runtimeType}";
+      throw "Unknown expression type: ${exp}";
     }
 
     needParen = needParen || precedence < minPrecedence;
@@ -649,7 +649,7 @@ class TreePrinter {
           makeStatement(stmt.body, shortIf: shortIf),
           whileToken);
     } else {
-      throw "Unrecognized statement: ${stmt.runtimeType}";
+      throw "Unrecognized statement: ${stmt}";
     }
   }
 

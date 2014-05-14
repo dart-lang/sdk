@@ -13,7 +13,6 @@ import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../elements/modelx.dart' as modelx;
 import '../universe/universe.dart';
-import '../helpers/helpers.dart';
 import '../tree/tree.dart' as tree show Modifiers;
 
 /// Translates the dart_tree IR to Dart frontend AST.
@@ -246,7 +245,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       return new TypeAnnotation(type.name)
           ..dartType = type;
     } else {
-      throw "Unsupported type annotation: ${type.runtimeType}";
+      throw "Unsupported type annotation: $type";
     }
   }
 
@@ -273,7 +272,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       }
       return new LiteralMap(entries, isConst: true);
     } else {
-      throw "Unsupported constant: ${constant.runtimeType}";
+      throw "Unsupported constant: $constant";
     }
   }
 }

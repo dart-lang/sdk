@@ -181,7 +181,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Expression toExpression(item) {
           if (item is Expression) return item;
           if (item is String) return convertStringToVariableUse(item);
-          error('Interpolated value #$position is not '
+          return error('Interpolated value #$position is not '
               'an Expression or List of Expressions: $value');
         }
         if (value is Iterable) return value.map(toExpression);
@@ -196,8 +196,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[position];
       if (value is Literal) return value;
-      error('Interpolated value #$position is not a Literal: '
-          '$value  (${value.runtimeType})');
+      error('Interpolated value #$position is not a Literal: $value');
     };
   }
 
@@ -210,7 +209,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         if (item is Parameter) return item;
         if (item is String) return new Parameter(item);
         error('Interpolated value #$position is not a Parameter or '
-            'List of Parameters: $value  (a ${value.runtimeType})');
+            'List of Parameters: $value');
       }
       if (value is Iterable) return value.map(toParameter);
       return toParameter(value);
@@ -383,7 +382,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   TODO(String name) {
-    throw new UnimplementedError('${this.runtimeType}.$name');
+    throw new UnimplementedError('$this.$name');
   }
 
   Instantiator visitWhile(While node) => TODO('visitWhile');

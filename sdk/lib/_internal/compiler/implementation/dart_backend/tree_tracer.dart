@@ -260,7 +260,7 @@ class SubexpressionVisitor extends Visitor<String, String> {
 
   // Note: There should not be statements in the context of expressions.
   String visitStatement(Statement node) {
-    return "${node.runtimeType} statement in expression context";
+    return "$node statement in expression context";
   }
 
   String visitLabeledStatement(LabeledStatement node) => visitStatement(node);
