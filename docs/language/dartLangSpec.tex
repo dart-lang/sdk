@@ -2078,7 +2078,7 @@ The predefined Dart function \cd{identical()} is defined such that \code{identic
    \item $c_1$ and $c_2$ are non-zero and \code{$c_1$ == $c_2$}.
    \item  Both $c_1$ and $c_2$ are $+0.0$.
    \item Both  $c_1$ and $c_2$ are $-0.0$.
-   \item Both $c_1$ and $c_2$ represent a NaN value.
+   \item Both $c_1$ and $c_2$ represent a NaN value with the same underlying bit pattern.
  \end{itemize}
  OR
  \item $c_1$ and $c_2$ are constant lists that are defined to be identical in the specification of literal list expressions (\ref{lists}), OR
@@ -2606,7 +2606,8 @@ after they are created. Attempting to mutate a constant map literal will result 
 
 It is a compile-time error if either a key or a value of an entry in a constant map literal is not a compile-time constant. It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator $==$ unless the key is a 
 %symbol, 
-string, an integer, literal symbol or the result of invoking a constant constructor of class \cd{Symbol}. It is a compile-time error if the type arguments of a constant map literal include a type parameter. 
+string, an integer, a literal symbol or the result of invoking a constant constructor of class \cd{Symbol}. 
+It is a compile-time error if the type arguments of a constant map literal include a type parameter. 
 
 The value of a constant map literal  \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ is an object $m$ whose class implements the built-in class $Map<K, V>$. The entries of $m$ are $u_i:v_i, i \in 1 .. n$, where $u_i$ is the value of the compile-time expression $k_i$ and $v_i$ is the value of the compile-time expression $e_i$.  The value of a constant map literal  \CONST{} $\{k_1:e_1\ldots k_n :e_n\}$ is defined as the value of a constant map literal \CONST{} $<\DYNAMIC{}, \DYNAMIC{}>\{k_1:e_1\ldots k_n :e_n\}$.
 
@@ -3588,9 +3589,9 @@ The logical boolean expressions combine boolean objects using the boolean conjun
  
 A {\em logical boolean expression} is either an equality expression (\ref{equality}), or an invocation of a logical boolean operator on an expression $e_1$ with argument $e_2$.
  
-Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ and then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is true, the result of evaluating $b$ is true, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ which is then  subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is true, the result of evaluating $b$ is true, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
 
-Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ and then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is not  true, the result of evaluating $b$ is false, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ which is then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is not  true, the result of evaluating $b$ is false, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
 
 A logical boolean expression $b$ of the form $e_1 \&\& e_2$ shows that a variable $v$ has type 
 $T$ if all of the following conditions hold:
@@ -5222,7 +5223,11 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main}. 
 A script $S$ may be executed as follows:
 
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked with no arguments. It is a run time error if $S$ does not declare or import a top-level function \code{main}.
+First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no formal parameters, it is invoked with no arguments. Otherwise \code{main} is invoked with a single actual argument whose type implements \code{List$<$String$>$}. It is a run time error if $S$ does not declare or import a top-level function \code{main}. It is a static warning if \code{main} has more than one required parameter.
+
+\commentary {
+If \code{main} requires more than one argument, a run time error will occur.
+}
 
 \rationale{
 The names of scripts are optional, in the interests of interactive, informal use. However, any script of long term value should be given a name as a matter of good practice. 
