@@ -392,6 +392,21 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
+  __ LoadImmediate(R1, 0xffffffff, kNoPP);
+  __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
+  __ ldr(R0, Address(SP), kWord);
+  __ ldr(R1, Address(SP, 4, Address::PostIndex, kWord), kWord);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, 43, 0);

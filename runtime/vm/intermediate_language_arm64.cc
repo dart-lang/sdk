@@ -169,7 +169,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Lsl(result, result, shift + kSmiTagSize);
   } else {
     __ sub(result, result, Operand(1));
-    const int32_t val =
+    const int64_t val =
         Smi::RawValue(true_value) - Smi::RawValue(false_value);
     __ AndImmediate(result, result, val, PP);
     if (false_value != 0) {
@@ -547,7 +547,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int32_t imm =
+    const int64_t imm =
         reinterpret_cast<int64_t>(right.constant().raw());
     __ TestImmediate(left, imm, PP);
   } else {
