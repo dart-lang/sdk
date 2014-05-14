@@ -597,6 +597,9 @@ class CodeCompletionState extends InitialState {
       case KeyCode.ENTER:
         event.preventDefault();
         return endCompletion(acceptSuggestion: true);
+
+      case KeyCode.SPACE:
+        return endCompletion();
     }
   }
 
