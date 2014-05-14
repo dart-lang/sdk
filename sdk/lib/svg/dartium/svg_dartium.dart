@@ -1398,21 +1398,6 @@ class ElementInstance extends EventTarget {
   @DocsEditable()
   ElementInstance get previousSibling => _blink.Native_SVGElementInstance_previousSibling_Getter(this);
 
-  @DomName('SVGElementInstance.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SVGElementInstance_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SVGElementInstance.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_SVGElementInstance_dispatchEvent_Callback(this, event);
-
-  @DomName('SVGElementInstance.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SVGElementInstance_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `abort` events handled by this [ElementInstance].
   @DomName('SVGElementInstance.onabort')
   @DocsEditable()

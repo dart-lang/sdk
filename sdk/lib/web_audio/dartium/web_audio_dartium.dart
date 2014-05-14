@@ -407,21 +407,6 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   void startRendering() => _blink.Native_AudioContext_startRendering_Callback(this);
 
-  @DomName('AudioContext.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_AudioContext_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('AudioContext.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_AudioContext_dispatchEvent_Callback(this, event);
-
-  @DomName('AudioContext.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_AudioContext_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `complete` events handled by this [AudioContext].
   @DomName('AudioContext.oncomplete')
   @DocsEditable()
@@ -559,18 +544,6 @@ class AudioNode extends EventTarget {
   @DomName('AudioNode.disconnect')
   @DocsEditable()
   void disconnect(int output) => _blink.Native_AudioNode_disconnect_Callback(this, output);
-
-  @DomName('AudioNode.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_AudioNode_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('AudioNode.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_AudioNode_dispatchEvent_Callback(this, event);
-
-  @DomName('AudioNode.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_AudioNode_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>

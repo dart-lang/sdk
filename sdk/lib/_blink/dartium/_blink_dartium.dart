@@ -91,12 +91,6 @@ Native_AudioNode__connect_2_Callback(mthis, destination, output) native "AudioNo
 
 Native_AudioNode_disconnect_Callback(mthis, output) native "AudioNode_disconnect_Callback";
 
-Native_AudioNode_addEventListener_Callback(mthis, type, listener, useCapture) native "AudioNode_addEventListener_Callback";
-
-Native_AudioNode_dispatchEvent_Callback(mthis, event) native "AudioNode_dispatchEvent_Callback";
-
-Native_AudioNode_removeEventListener_Callback(mthis, type, listener, useCapture) native "AudioNode_removeEventListener_Callback";
-
 Native_AnalyserNode_fftSize_Getter(mthis) native "AnalyserNode_fftSize_Getter";
 
 Native_AnalyserNode_fftSize_Setter(mthis, value) native "AnalyserNode_fftSize_Setter";
@@ -165,12 +159,6 @@ Native_ApplicationCache_swapCache_Callback(mthis) native "ApplicationCache_swapC
 
 Native_ApplicationCache_update_Callback(mthis) native "ApplicationCache_update_Callback";
 
-Native_ApplicationCache_addEventListener_Callback(mthis, type, listener, useCapture) native "ApplicationCache_addEventListener_Callback";
-
-Native_ApplicationCache_dispatchEvent_Callback(mthis, event) native "ApplicationCache_dispatchEvent_Callback";
-
-Native_ApplicationCache_removeEventListener_Callback(mthis, type, listener, useCapture) native "ApplicationCache_removeEventListener_Callback";
-
 Native_Node_baseURI_Getter(mthis) native "Node_baseURI_Getter";
 
 Native_Node_childNodes_Getter(mthis) native "Node_childNodes_Getter";
@@ -216,12 +204,6 @@ Native_Node_insertBefore_Callback(mthis, newChild, refChild) native "Node_insert
 Native_Node_removeChild_Callback(mthis, oldChild) native "Node_removeChild_Callback";
 
 Native_Node_replaceChild_Callback(mthis, newChild, oldChild) native "Node_replaceChild_Callback";
-
-Native_Node_addEventListener_Callback(mthis, type, listener, useCapture) native "Node_addEventListener_Callback";
-
-Native_Node_dispatchEvent_Callback(mthis, event) native "Node_dispatchEvent_Callback";
-
-Native_Node_removeEventListener_Callback(mthis, type, listener, useCapture) native "Node_removeEventListener_Callback";
 
 Native_Attr_localName_Getter(mthis) native "Attr_localName_Getter";
 
@@ -454,12 +436,6 @@ Native_AudioContext_createWaveShaper_Callback(mthis) native "AudioContext_create
 Native_AudioContext_decodeAudioData_Callback(mthis, audioData, successCallback, errorCallback) native "AudioContext_decodeAudioData_Callback";
 
 Native_AudioContext_startRendering_Callback(mthis) native "AudioContext_startRendering_Callback";
-
-Native_AudioContext_addEventListener_Callback(mthis, type, listener, useCapture) native "AudioContext_addEventListener_Callback";
-
-Native_AudioContext_dispatchEvent_Callback(mthis, event) native "AudioContext_dispatchEvent_Callback";
-
-Native_AudioContext_removeEventListener_Callback(mthis, type, listener, useCapture) native "AudioContext_removeEventListener_Callback";
 
 Native_AudioDestinationNode_maxChannelCount_Getter(mthis) native "AudioDestinationNode_maxChannelCount_Getter";
 
@@ -1492,12 +1468,6 @@ Native_WorkerGlobalScope_webkitResolveLocalFileSystemSyncURL_Callback(mthis, url
 
 Native_WorkerGlobalScope_webkitResolveLocalFileSystemURL_Callback(mthis, url, successCallback, errorCallback) native "WorkerGlobalScope_webkitResolveLocalFileSystemURL_Callback";
 
-Native_WorkerGlobalScope_addEventListener_Callback(mthis, type, listener, useCapture) native "WorkerGlobalScope_addEventListener_Callback";
-
-Native_WorkerGlobalScope_dispatchEvent_Callback(mthis, event) native "WorkerGlobalScope_dispatchEvent_Callback";
-
-Native_WorkerGlobalScope_removeEventListener_Callback(mthis, type, listener, useCapture) native "WorkerGlobalScope_removeEventListener_Callback";
-
 Native_WorkerGlobalScope_atob_Callback(mthis, string) native "WorkerGlobalScope_atob_Callback";
 
 Native_WorkerGlobalScope_btoa_Callback(mthis, string) native "WorkerGlobalScope_btoa_Callback";
@@ -2009,12 +1979,6 @@ Native_EventSource_withCredentials_Getter(mthis) native "EventSource_withCredent
 
 Native_EventSource_close_Callback(mthis) native "EventSource_close_Callback";
 
-Native_EventSource_addEventListener_Callback(mthis, type, listener, useCapture) native "EventSource_addEventListener_Callback";
-
-Native_EventSource_dispatchEvent_Callback(mthis, event) native "EventSource_dispatchEvent_Callback";
-
-Native_EventSource_removeEventListener_Callback(mthis, type, listener, useCapture) native "EventSource_removeEventListener_Callback";
-
 Native_File_lastModified_Getter(mthis) native "File_lastModified_Getter";
 
 Native_File_lastModifiedDate_Getter(mthis) native "File_lastModifiedDate_Getter";
@@ -2068,12 +2032,6 @@ Native_FileReader__readAsText_1_Callback(mthis, blob, encoding) native "FileRead
 
 Native_FileReader__readAsText_2_Callback(mthis, blob) native "FileReader__readAsText_2_Callback";
 
-Native_FileReader_addEventListener_Callback(mthis, type, listener, useCapture) native "FileReader_addEventListener_Callback";
-
-Native_FileReader_dispatchEvent_Callback(mthis, event) native "FileReader_dispatchEvent_Callback";
-
-Native_FileReader_removeEventListener_Callback(mthis, type, listener, useCapture) native "FileReader_removeEventListener_Callback";
-
   // Generated overload resolver
 Native_FileReaderSync__FileReaderSync() {
     return Native_FileReaderSync__create_1constructorCallback();
@@ -2096,12 +2054,6 @@ Native_FileWriter_seek_Callback(mthis, position) native "FileWriter_seek_Callbac
 Native_FileWriter_truncate_Callback(mthis, size) native "FileWriter_truncate_Callback";
 
 Native_FileWriter_write_Callback(mthis, data) native "FileWriter_write_Callback";
-
-Native_FileWriter_addEventListener_Callback(mthis, type, listener, useCapture) native "FileWriter_addEventListener_Callback";
-
-Native_FileWriter_dispatchEvent_Callback(mthis, event) native "FileWriter_dispatchEvent_Callback";
-
-Native_FileWriter_removeEventListener_Callback(mthis, type, listener, useCapture) native "FileWriter_removeEventListener_Callback";
 
 Native_FocusEvent_relatedTarget_Getter(mthis) native "FocusEvent_relatedTarget_Getter";
 
@@ -2171,12 +2123,6 @@ Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFac
 Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet__forEach_2_Callback";
 
 Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callback";
-
-Native_FontFaceSet_addEventListener_Callback(mthis, type, listener, useCapture) native "FontFaceSet_addEventListener_Callback";
-
-Native_FontFaceSet_dispatchEvent_Callback(mthis, event) native "FontFaceSet_dispatchEvent_Callback";
-
-Native_FontFaceSet_removeEventListener_Callback(mthis, type, listener, useCapture) native "FontFaceSet_removeEventListener_Callback";
 
 Native_FormData_constructorCallback(form) native "FormData_constructorCallback";
 
@@ -3821,12 +3767,6 @@ Native_IDBDatabase_transactionStore_Callback(mthis, storeName, mode) native "IDB
 
 Native_IDBDatabase_transactionStores_Callback(mthis, storeNames, mode) native "IDBDatabase_transactionStores_Callback";
 
-Native_IDBDatabase_addEventListener_Callback(mthis, type, listener, useCapture) native "IDBDatabase_addEventListener_Callback";
-
-Native_IDBDatabase_dispatchEvent_Callback(mthis, event) native "IDBDatabase_dispatchEvent_Callback";
-
-Native_IDBDatabase_removeEventListener_Callback(mthis, type, listener, useCapture) native "IDBDatabase_removeEventListener_Callback";
-
 Native_IDBFactory_cmp_Callback(mthis, first, second) native "IDBFactory_cmp_Callback";
 
 Native_IDBFactory_deleteDatabase_Callback(mthis, name) native "IDBFactory_deleteDatabase_Callback";
@@ -3936,12 +3876,6 @@ Native_IDBRequest_source_Getter(mthis) native "IDBRequest_source_Getter";
 
 Native_IDBRequest_transaction_Getter(mthis) native "IDBRequest_transaction_Getter";
 
-Native_IDBRequest_addEventListener_Callback(mthis, type, listener, useCapture) native "IDBRequest_addEventListener_Callback";
-
-Native_IDBRequest_dispatchEvent_Callback(mthis, event) native "IDBRequest_dispatchEvent_Callback";
-
-Native_IDBRequest_removeEventListener_Callback(mthis, type, listener, useCapture) native "IDBRequest_removeEventListener_Callback";
-
 Native_IDBTransaction_db_Getter(mthis) native "IDBTransaction_db_Getter";
 
 Native_IDBTransaction_error_Getter(mthis) native "IDBTransaction_error_Getter";
@@ -3951,12 +3885,6 @@ Native_IDBTransaction_mode_Getter(mthis) native "IDBTransaction_mode_Getter";
 Native_IDBTransaction_abort_Callback(mthis) native "IDBTransaction_abort_Callback";
 
 Native_IDBTransaction_objectStore_Callback(mthis, name) native "IDBTransaction_objectStore_Callback";
-
-Native_IDBTransaction_addEventListener_Callback(mthis, type, listener, useCapture) native "IDBTransaction_addEventListener_Callback";
-
-Native_IDBTransaction_dispatchEvent_Callback(mthis, event) native "IDBTransaction_dispatchEvent_Callback";
-
-Native_IDBTransaction_removeEventListener_Callback(mthis, type, listener, useCapture) native "IDBTransaction_removeEventListener_Callback";
 
 Native_IDBVersionChangeEvent_dataLoss_Getter(mthis) native "IDBVersionChangeEvent_dataLoss_Getter";
 
@@ -3985,12 +3913,6 @@ Native_InputMethodContext_locale_Getter(mthis) native "InputMethodContext_locale
 Native_InputMethodContext_target_Getter(mthis) native "InputMethodContext_target_Getter";
 
 Native_InputMethodContext_confirmComposition_Callback(mthis) native "InputMethodContext_confirmComposition_Callback";
-
-Native_InputMethodContext_addEventListener_Callback(mthis, type, listener, useCapture) native "InputMethodContext_addEventListener_Callback";
-
-Native_InputMethodContext_dispatchEvent_Callback(mthis, event) native "InputMethodContext_dispatchEvent_Callback";
-
-Native_InputMethodContext_removeEventListener_Callback(mthis, type, listener, useCapture) native "InputMethodContext_removeEventListener_Callback";
 
 Native_InstallPhaseEvent_waitUntil_Callback(mthis, value) native "InstallPhaseEvent_waitUntil_Callback";
 
@@ -4078,12 +4000,6 @@ Native_MIDIAccess_inputs_Callback(mthis) native "MIDIAccess_inputs_Callback";
 
 Native_MIDIAccess_outputs_Callback(mthis) native "MIDIAccess_outputs_Callback";
 
-Native_MIDIAccess_addEventListener_Callback(mthis, type, listener, useCapture) native "MIDIAccess_addEventListener_Callback";
-
-Native_MIDIAccess_dispatchEvent_Callback(mthis, event) native "MIDIAccess_dispatchEvent_Callback";
-
-Native_MIDIAccess_removeEventListener_Callback(mthis, type, listener, useCapture) native "MIDIAccess_removeEventListener_Callback";
-
 Native_MIDIAccessPromise_then_Callback(mthis, successCallback, errorCallback) native "MIDIAccessPromise_then_Callback";
 
 Native_MIDIConnectionEvent_port_Getter(mthis) native "MIDIConnectionEvent_port_Getter";
@@ -4097,12 +4013,6 @@ Native_MIDIPort_name_Getter(mthis) native "MIDIPort_name_Getter";
 Native_MIDIPort_type_Getter(mthis) native "MIDIPort_type_Getter";
 
 Native_MIDIPort_version_Getter(mthis) native "MIDIPort_version_Getter";
-
-Native_MIDIPort_addEventListener_Callback(mthis, type, listener, useCapture) native "MIDIPort_addEventListener_Callback";
-
-Native_MIDIPort_dispatchEvent_Callback(mthis, event) native "MIDIPort_dispatchEvent_Callback";
-
-Native_MIDIPort_removeEventListener_Callback(mthis, type, listener, useCapture) native "MIDIPort_removeEventListener_Callback";
 
 Native_MIDIMessageEvent_data_Getter(mthis) native "MIDIMessageEvent_data_Getter";
 
@@ -4167,12 +4077,6 @@ Native_MediaController_play_Callback(mthis) native "MediaController_play_Callbac
 
 Native_MediaController_unpause_Callback(mthis) native "MediaController_unpause_Callback";
 
-Native_MediaController_addEventListener_Callback(mthis, type, listener, useCapture) native "MediaController_addEventListener_Callback";
-
-Native_MediaController_dispatchEvent_Callback(mthis, event) native "MediaController_dispatchEvent_Callback";
-
-Native_MediaController_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaController_removeEventListener_Callback";
-
 Native_MediaElementAudioSourceNode_mediaElement_Getter(mthis) native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 Native_MediaError_code_Getter(mthis) native "MediaError_code_Getter";
@@ -4212,12 +4116,6 @@ Native_MediaKeySession_sessionId_Getter(mthis) native "MediaKeySession_sessionId
 Native_MediaKeySession_release_Callback(mthis) native "MediaKeySession_release_Callback";
 
 Native_MediaKeySession_update_Callback(mthis, response) native "MediaKeySession_update_Callback";
-
-Native_MediaKeySession_addEventListener_Callback(mthis, type, listener, useCapture) native "MediaKeySession_addEventListener_Callback";
-
-Native_MediaKeySession_dispatchEvent_Callback(mthis, event) native "MediaKeySession_dispatchEvent_Callback";
-
-Native_MediaKeySession_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaKeySession_removeEventListener_Callback";
 
   // Generated overload resolver
 Native_MediaKeys_MediaKeys(keySystem) {
@@ -4283,12 +4181,6 @@ Native_MediaSource_isTypeSupported_Callback(type) native "MediaSource_isTypeSupp
 
 Native_MediaSource_removeSourceBuffer_Callback(mthis, buffer) native "MediaSource_removeSourceBuffer_Callback";
 
-Native_MediaSource_addEventListener_Callback(mthis, type, listener, useCapture) native "MediaSource_addEventListener_Callback";
-
-Native_MediaSource_dispatchEvent_Callback(mthis, event) native "MediaSource_dispatchEvent_Callback";
-
-Native_MediaSource_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaSource_removeEventListener_Callback";
-
   // Generated overload resolver
 Native_MediaStream_MediaStream(stream_OR_tracks) {
     if (stream_OR_tracks == null) {
@@ -4327,12 +4219,6 @@ Native_MediaStream_removeTrack_Callback(mthis, track) native "MediaStream_remove
 
 Native_MediaStream_stop_Callback(mthis) native "MediaStream_stop_Callback";
 
-Native_MediaStream_addEventListener_Callback(mthis, type, listener, useCapture) native "MediaStream_addEventListener_Callback";
-
-Native_MediaStream_dispatchEvent_Callback(mthis, event) native "MediaStream_dispatchEvent_Callback";
-
-Native_MediaStream_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaStream_removeEventListener_Callback";
-
 Native_MediaStreamAudioDestinationNode_stream_Getter(mthis) native "MediaStreamAudioDestinationNode_stream_Getter";
 
 Native_MediaStreamAudioSourceNode_mediaStream_Getter(mthis) native "MediaStreamAudioSourceNode_mediaStream_Getter";
@@ -4354,12 +4240,6 @@ Native_MediaStreamTrack_readyState_Getter(mthis) native "MediaStreamTrack_readyS
 Native_MediaStreamTrack_getSources_Callback(callback) native "MediaStreamTrack_getSources_Callback";
 
 Native_MediaStreamTrack_stop_Callback(mthis) native "MediaStreamTrack_stop_Callback";
-
-Native_MediaStreamTrack_addEventListener_Callback(mthis, type, listener, useCapture) native "MediaStreamTrack_addEventListener_Callback";
-
-Native_MediaStreamTrack_dispatchEvent_Callback(mthis, event) native "MediaStreamTrack_dispatchEvent_Callback";
-
-Native_MediaStreamTrack_removeEventListener_Callback(mthis, type, listener, useCapture) native "MediaStreamTrack_removeEventListener_Callback";
 
 Native_MediaStreamTrackEvent_track_Getter(mthis) native "MediaStreamTrackEvent_track_Getter";
 
@@ -4388,12 +4268,6 @@ Native_MessagePort_close_Callback(mthis) native "MessagePort_close_Callback";
 Native_MessagePort_postMessage_Callback(mthis, message, messagePorts) native "MessagePort_postMessage_Callback";
 
 Native_MessagePort_start_Callback(mthis) native "MessagePort_start_Callback";
-
-Native_MessagePort_addEventListener_Callback(mthis, type, listener, useCapture) native "MessagePort_addEventListener_Callback";
-
-Native_MessagePort_dispatchEvent_Callback(mthis, event) native "MessagePort_dispatchEvent_Callback";
-
-Native_MessagePort_removeEventListener_Callback(mthis, type, listener, useCapture) native "MessagePort_removeEventListener_Callback";
 
 Native_Metadata_modificationTime_Getter(mthis) native "Metadata_modificationTime_Getter";
 
@@ -4618,12 +4492,6 @@ Native_Notification_close_Callback(mthis) native "Notification_close_Callback";
 
 Native_Notification_requestPermission_Callback(callback) native "Notification_requestPermission_Callback";
 
-Native_Notification_addEventListener_Callback(mthis, type, listener, useCapture) native "Notification_addEventListener_Callback";
-
-Native_Notification_dispatchEvent_Callback(mthis, event) native "Notification_dispatchEvent_Callback";
-
-Native_Notification_removeEventListener_Callback(mthis, type, listener, useCapture) native "Notification_removeEventListener_Callback";
-
 Native_OESVertexArrayObject_bindVertexArrayOES_Callback(mthis, arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
 Native_OESVertexArrayObject_createVertexArrayOES_Callback(mthis) native "OESVertexArrayObject_createVertexArrayOES_Callback";
@@ -4792,12 +4660,6 @@ Native_Performance_now_Callback(mthis) native "Performance_now_Callback";
 Native_Performance_webkitClearResourceTimings_Callback(mthis) native "Performance_webkitClearResourceTimings_Callback";
 
 Native_Performance_webkitSetResourceTimingBufferSize_Callback(mthis, maxSize) native "Performance_webkitSetResourceTimingBufferSize_Callback";
-
-Native_Performance_addEventListener_Callback(mthis, type, listener, useCapture) native "Performance_addEventListener_Callback";
-
-Native_Performance_dispatchEvent_Callback(mthis, event) native "Performance_dispatchEvent_Callback";
-
-Native_Performance_removeEventListener_Callback(mthis, type, listener, useCapture) native "Performance_removeEventListener_Callback";
 
 Native_PerformanceEntry_duration_Getter(mthis) native "PerformanceEntry_duration_Getter";
 
@@ -4981,12 +4843,6 @@ Native_RTCDTMFSender__insertDTMF_2_Callback(mthis, tones, duration) native "RTCD
 
 Native_RTCDTMFSender__insertDTMF_3_Callback(mthis, tones) native "RTCDTMFSender__insertDTMF_3_Callback";
 
-Native_RTCDTMFSender_addEventListener_Callback(mthis, type, listener, useCapture) native "RTCDTMFSender_addEventListener_Callback";
-
-Native_RTCDTMFSender_dispatchEvent_Callback(mthis, event) native "RTCDTMFSender_dispatchEvent_Callback";
-
-Native_RTCDTMFSender_removeEventListener_Callback(mthis, type, listener, useCapture) native "RTCDTMFSender_removeEventListener_Callback";
-
 Native_RTCDTMFToneChangeEvent_tone_Getter(mthis) native "RTCDTMFToneChangeEvent_tone_Getter";
 
 Native_RTCDataChannel_binaryType_Getter(mthis) native "RTCDataChannel_binaryType_Getter";
@@ -5052,12 +4908,6 @@ Native_RTCDataChannel_sendString_Callback(mthis, data) native "RTCDataChannel_se
 
 Native_RTCDataChannel_sendTypedData_Callback(mthis, data) native "RTCDataChannel_sendTypedData_Callback";
 
-Native_RTCDataChannel_addEventListener_Callback(mthis, type, listener, useCapture) native "RTCDataChannel_addEventListener_Callback";
-
-Native_RTCDataChannel_dispatchEvent_Callback(mthis, event) native "RTCDataChannel_dispatchEvent_Callback";
-
-Native_RTCDataChannel_removeEventListener_Callback(mthis, type, listener, useCapture) native "RTCDataChannel_removeEventListener_Callback";
-
 Native_RTCDataChannelEvent_channel_Getter(mthis) native "RTCDataChannelEvent_channel_Getter";
 
   // Generated overload resolver
@@ -5121,12 +4971,6 @@ Native_RTCPeerConnection_setLocalDescription_Callback(mthis, description, succes
 Native_RTCPeerConnection_setRemoteDescription_Callback(mthis, description, successCallback, failureCallback) native "RTCPeerConnection_setRemoteDescription_Callback";
 
 Native_RTCPeerConnection_updateIce_Callback(mthis, configuration, mediaConstraints) native "RTCPeerConnection_updateIce_Callback";
-
-Native_RTCPeerConnection_addEventListener_Callback(mthis, type, listener, useCapture) native "RTCPeerConnection_addEventListener_Callback";
-
-Native_RTCPeerConnection_dispatchEvent_Callback(mthis, event) native "RTCPeerConnection_dispatchEvent_Callback";
-
-Native_RTCPeerConnection_removeEventListener_Callback(mthis, type, listener, useCapture) native "RTCPeerConnection_removeEventListener_Callback";
 
   // Generated overload resolver
 Native_RTCSessionDescription_RtcSessionDescription(descriptionInitDict) {
@@ -5466,12 +5310,6 @@ Native_SVGElementInstance_nextSibling_Getter(mthis) native "SVGElementInstance_n
 Native_SVGElementInstance_parentNode_Getter(mthis) native "SVGElementInstance_parentNode_Getter";
 
 Native_SVGElementInstance_previousSibling_Getter(mthis) native "SVGElementInstance_previousSibling_Getter";
-
-Native_SVGElementInstance_addEventListener_Callback(mthis, type, listener, useCapture) native "SVGElementInstance_addEventListener_Callback";
-
-Native_SVGElementInstance_dispatchEvent_Callback(mthis, event) native "SVGElementInstance_dispatchEvent_Callback";
-
-Native_SVGElementInstance_removeEventListener_Callback(mthis, type, listener, useCapture) native "SVGElementInstance_removeEventListener_Callback";
 
 Native_SVGElementInstanceList_length_Getter(mthis) native "SVGElementInstanceList_length_Getter";
 
@@ -6714,12 +6552,6 @@ Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations) na
 
 Native_Screen_unlockOrientation_Callback(mthis) native "Screen_unlockOrientation_Callback";
 
-Native_Screen_addEventListener_Callback(mthis, type, listener, useCapture) native "Screen_addEventListener_Callback";
-
-Native_Screen_dispatchEvent_Callback(mthis, event) native "Screen_dispatchEvent_Callback";
-
-Native_Screen_removeEventListener_Callback(mthis, type, listener, useCapture) native "Screen_removeEventListener_Callback";
-
 Native_ScriptProcessorNode_bufferSize_Getter(mthis) native "ScriptProcessorNode_bufferSize_Getter";
 
 Native_ScriptProcessorNode__setEventListener_Callback(mthis, eventListener) native "ScriptProcessorNode__setEventListener_Callback";
@@ -6839,12 +6671,6 @@ Native_SharedWorker_port_Getter(mthis) native "SharedWorker_port_Getter";
 
 Native_SharedWorker_workerStart_Getter(mthis) native "SharedWorker_workerStart_Getter";
 
-Native_SharedWorker_addEventListener_Callback(mthis, type, listener, useCapture) native "SharedWorker_addEventListener_Callback";
-
-Native_SharedWorker_dispatchEvent_Callback(mthis, event) native "SharedWorker_dispatchEvent_Callback";
-
-Native_SharedWorker_removeEventListener_Callback(mthis, type, listener, useCapture) native "SharedWorker_removeEventListener_Callback";
-
 Native_SharedWorkerGlobalScope_name_Getter(mthis) native "SharedWorkerGlobalScope_name_Getter";
 
 Native_SourceBuffer_appendWindowEnd_Getter(mthis) native "SourceBuffer_appendWindowEnd_Getter";
@@ -6889,23 +6715,11 @@ Native_SourceBuffer_appendTypedData_Callback(mthis, data) native "SourceBuffer_a
 
 Native_SourceBuffer_remove_Callback(mthis, start, end) native "SourceBuffer_remove_Callback";
 
-Native_SourceBuffer_addEventListener_Callback(mthis, type, listener, useCapture) native "SourceBuffer_addEventListener_Callback";
-
-Native_SourceBuffer_dispatchEvent_Callback(mthis, event) native "SourceBuffer_dispatchEvent_Callback";
-
-Native_SourceBuffer_removeEventListener_Callback(mthis, type, listener, useCapture) native "SourceBuffer_removeEventListener_Callback";
-
 Native_SourceBufferList_length_Getter(mthis) native "SourceBufferList_length_Getter";
 
 Native_SourceBufferList_NativeIndexed_Getter(mthis, index) native "SourceBufferList_item_Callback";
 
 Native_SourceBufferList_item_Callback(mthis, index) native "SourceBufferList_item_Callback";
-
-Native_SourceBufferList_addEventListener_Callback(mthis, type, listener, useCapture) native "SourceBufferList_addEventListener_Callback";
-
-Native_SourceBufferList_dispatchEvent_Callback(mthis, event) native "SourceBufferList_dispatchEvent_Callback";
-
-Native_SourceBufferList_removeEventListener_Callback(mthis, type, listener, useCapture) native "SourceBufferList_removeEventListener_Callback";
 
 Native_SourceInfo_facing_Getter(mthis) native "SourceInfo_facing_Getter";
 
@@ -7016,12 +6830,6 @@ Native_SpeechRecognition_start_Callback(mthis) native "SpeechRecognition_start_C
 
 Native_SpeechRecognition_stop_Callback(mthis) native "SpeechRecognition_stop_Callback";
 
-Native_SpeechRecognition_addEventListener_Callback(mthis, type, listener, useCapture) native "SpeechRecognition_addEventListener_Callback";
-
-Native_SpeechRecognition_dispatchEvent_Callback(mthis, event) native "SpeechRecognition_dispatchEvent_Callback";
-
-Native_SpeechRecognition_removeEventListener_Callback(mthis, type, listener, useCapture) native "SpeechRecognition_removeEventListener_Callback";
-
 Native_SpeechRecognitionAlternative_confidence_Getter(mthis) native "SpeechRecognitionAlternative_confidence_Getter";
 
 Native_SpeechRecognitionAlternative_transcript_Getter(mthis) native "SpeechRecognitionAlternative_transcript_Getter";
@@ -7066,12 +6874,6 @@ Native_SpeechSynthesis_resume_Callback(mthis) native "SpeechSynthesis_resume_Cal
 
 Native_SpeechSynthesis_speak_Callback(mthis, utterance) native "SpeechSynthesis_speak_Callback";
 
-Native_SpeechSynthesis_addEventListener_Callback(mthis, type, listener, useCapture) native "SpeechSynthesis_addEventListener_Callback";
-
-Native_SpeechSynthesis_dispatchEvent_Callback(mthis, event) native "SpeechSynthesis_dispatchEvent_Callback";
-
-Native_SpeechSynthesis_removeEventListener_Callback(mthis, type, listener, useCapture) native "SpeechSynthesis_removeEventListener_Callback";
-
 Native_SpeechSynthesisEvent_charIndex_Getter(mthis) native "SpeechSynthesisEvent_charIndex_Getter";
 
 Native_SpeechSynthesisEvent_elapsedTime_Getter(mthis) native "SpeechSynthesisEvent_elapsedTime_Getter";
@@ -7108,12 +6910,6 @@ Native_SpeechSynthesisUtterance_voice_Setter(mthis, value) native "SpeechSynthes
 Native_SpeechSynthesisUtterance_volume_Getter(mthis) native "SpeechSynthesisUtterance_volume_Getter";
 
 Native_SpeechSynthesisUtterance_volume_Setter(mthis, value) native "SpeechSynthesisUtterance_volume_Setter";
-
-Native_SpeechSynthesisUtterance_addEventListener_Callback(mthis, type, listener, useCapture) native "SpeechSynthesisUtterance_addEventListener_Callback";
-
-Native_SpeechSynthesisUtterance_dispatchEvent_Callback(mthis, event) native "SpeechSynthesisUtterance_dispatchEvent_Callback";
-
-Native_SpeechSynthesisUtterance_removeEventListener_Callback(mthis, type, listener, useCapture) native "SpeechSynthesisUtterance_removeEventListener_Callback";
 
 Native_SpeechSynthesisVoice_default_Getter(mthis) native "SpeechSynthesisVoice_default_Getter";
 
@@ -7248,12 +7044,6 @@ Native_TextTrack_removeCue_Callback(mthis, cue) native "TextTrack_removeCue_Call
 
 Native_TextTrack_removeRegion_Callback(mthis, region) native "TextTrack_removeRegion_Callback";
 
-Native_TextTrack_addEventListener_Callback(mthis, type, listener, useCapture) native "TextTrack_addEventListener_Callback";
-
-Native_TextTrack_dispatchEvent_Callback(mthis, event) native "TextTrack_dispatchEvent_Callback";
-
-Native_TextTrack_removeEventListener_Callback(mthis, type, listener, useCapture) native "TextTrack_removeEventListener_Callback";
-
 Native_TextTrackCue_endTime_Getter(mthis) native "TextTrackCue_endTime_Getter";
 
 Native_TextTrackCue_endTime_Setter(mthis, value) native "TextTrackCue_endTime_Setter";
@@ -7272,12 +7062,6 @@ Native_TextTrackCue_startTime_Setter(mthis, value) native "TextTrackCue_startTim
 
 Native_TextTrackCue_track_Getter(mthis) native "TextTrackCue_track_Getter";
 
-Native_TextTrackCue_addEventListener_Callback(mthis, type, listener, useCapture) native "TextTrackCue_addEventListener_Callback";
-
-Native_TextTrackCue_dispatchEvent_Callback(mthis, event) native "TextTrackCue_dispatchEvent_Callback";
-
-Native_TextTrackCue_removeEventListener_Callback(mthis, type, listener, useCapture) native "TextTrackCue_removeEventListener_Callback";
-
 Native_TextTrackCueList_length_Getter(mthis) native "TextTrackCueList_length_Getter";
 
 Native_TextTrackCueList_NativeIndexed_Getter(mthis, index) native "TextTrackCueList_item_Callback";
@@ -7293,12 +7077,6 @@ Native_TextTrackList_NativeIndexed_Getter(mthis, index) native "TextTrackList_it
 Native_TextTrackList_getTrackById_Callback(mthis, id) native "TextTrackList_getTrackById_Callback";
 
 Native_TextTrackList_item_Callback(mthis, index) native "TextTrackList_item_Callback";
-
-Native_TextTrackList_addEventListener_Callback(mthis, type, listener, useCapture) native "TextTrackList_addEventListener_Callback";
-
-Native_TextTrackList_dispatchEvent_Callback(mthis, event) native "TextTrackList_dispatchEvent_Callback";
-
-Native_TextTrackList_removeEventListener_Callback(mthis, type, listener, useCapture) native "TextTrackList_removeEventListener_Callback";
 
 Native_TimeRanges_length_Getter(mthis) native "TimeRanges_length_Getter";
 
@@ -8182,12 +7960,6 @@ Native_WebSocket_sendString_Callback(mthis, data) native "WebSocket_sendString_C
 
 Native_WebSocket_sendTypedData_Callback(mthis, data) native "WebSocket_sendTypedData_Callback";
 
-Native_WebSocket_addEventListener_Callback(mthis, type, listener, useCapture) native "WebSocket_addEventListener_Callback";
-
-Native_WebSocket_dispatchEvent_Callback(mthis, event) native "WebSocket_dispatchEvent_Callback";
-
-Native_WebSocket_removeEventListener_Callback(mthis, type, listener, useCapture) native "WebSocket_removeEventListener_Callback";
-
 Native_WheelEvent_deltaMode_Getter(mthis) native "WheelEvent_deltaMode_Getter";
 
 Native_WheelEvent_deltaX_Getter(mthis) native "WheelEvent_deltaX_Getter";
@@ -8375,12 +8147,6 @@ Native_Window_webkitRequestFileSystem_Callback(mthis, type, size, successCallbac
 
 Native_Window_webkitResolveLocalFileSystemURL_Callback(mthis, url, successCallback, errorCallback) native "Window_webkitResolveLocalFileSystemURL_Callback";
 
-Native_Window_addEventListener_Callback(mthis, type, listener, useCapture) native "Window_addEventListener_Callback";
-
-Native_Window_dispatchEvent_Callback(mthis, event) native "Window_dispatchEvent_Callback";
-
-Native_Window_removeEventListener_Callback(mthis, type, listener, useCapture) native "Window_removeEventListener_Callback";
-
 Native_Window_atob_Callback(mthis, string) native "Window_atob_Callback";
 
 Native_Window_btoa_Callback(mthis, string) native "Window_btoa_Callback";
@@ -8404,21 +8170,9 @@ Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_
 
 Native_Worker_terminate_Callback(mthis) native "Worker_terminate_Callback";
 
-Native_Worker_addEventListener_Callback(mthis, type, listener, useCapture) native "Worker_addEventListener_Callback";
-
-Native_Worker_dispatchEvent_Callback(mthis, event) native "Worker_dispatchEvent_Callback";
-
-Native_Worker_removeEventListener_Callback(mthis, type, listener, useCapture) native "Worker_removeEventListener_Callback";
-
 Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_getRandomValues_Callback";
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback";
-
-Native_XMLHttpRequestEventTarget_addEventListener_Callback(mthis, type, listener, useCapture) native "XMLHttpRequestEventTarget_addEventListener_Callback";
-
-Native_XMLHttpRequestEventTarget_dispatchEvent_Callback(mthis, event) native "XMLHttpRequestEventTarget_dispatchEvent_Callback";
-
-Native_XMLHttpRequestEventTarget_removeEventListener_Callback(mthis, type, listener, useCapture) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
 
 Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback";
 
