@@ -70,7 +70,14 @@ _runAnalyzer(CommandLineOptions options, [bool async = true]) {
   if (async) {
     return analyzer.analyzeAsync();
   } else {
-    return analyzer.analyzeSync();
+    var errorSeverity = analyzer.analyzeSync();
+    if (errorSeverity == ErrorSeverity.ERROR) {
+      exitCode = errorSeverity.ordinal;
+    }
+    if (options.warningsAreFatal && errorSeverity == ErrorSeverity.WARNING) {
+      exitCode = errorSeverity.ordinal;
+    }
+    return errorSeverity;
   }
 }
 

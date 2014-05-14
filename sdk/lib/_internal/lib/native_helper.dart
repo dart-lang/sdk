@@ -309,6 +309,7 @@ void initNativeDispatchContinue() {
 
   if (JS('bool', 'typeof window != "undefined"')) {
     var context = JS('=Object', 'window');
+    var fun = JS('=Object', 'function () {}');
     for (int i = 0; i < tags.length; i++) {
       var tag = tags[i];
       var proto = prototypeForTagFunction(tag);
@@ -317,6 +318,9 @@ void initNativeDispatchContinue() {
         var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
         if (record != null) {
           setDispatchProperty(proto, record);
+          // Ensure the modified prototype is still fast by assigning it to
+          // the prototype property of a function object.
+          JS('', '#.prototype = #', fun, proto);
         }
       }
     }
@@ -495,13 +499,23 @@ function getTagFallback(o) {
   if (typeof constructor == "function") {
     var name = constructor.name;
     // If the name is a non-empty string, we use that as the type name of this
-    // object. On Firefox, we often get "Object" as the constructor name even
-    // for more specialized objects so we have to fall through to the toString()
-    // based implementation below in that case.
-    if (typeof name == "string"
-        && name !== ""
-        && name !== "Object"
-        && name !== "Function.prototype") {  // Can happen in Opera.
+    // object.  There are various cases where that does not work, so we have to
+    // detect them and fall through to the toString() based implementation.
+
+    if (typeof name == "string" &&
+
+        // Sometimes the string is empty.  This test also catches minified
+        // shadow dom polyfil wrapper for Window on Firefox where the faked
+        // constructor name does not 'stick'.  The shortest real DOM object
+        // names have three characters (e.g. URL, CSS).
+        name.length > 2 &&
+
+        // On Firefox we often get "Object" as the constructor name, even for
+        // more specialized DOM objects.
+        name !== "Object" &&
+
+        // This can happen in Opera.
+        name !== "Function.prototype") {
       return name;
     }
   }
