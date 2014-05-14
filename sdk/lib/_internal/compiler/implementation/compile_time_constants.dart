@@ -738,13 +738,14 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant makeConstructedConstant(
-      Spannable node, InterfaceType type, FunctionElement constructor,
-      List<Constant> getArguments(FunctionElement constructor)) {
+      Spannable node, InterfaceType type, ConstructorElement constructor,
+      List<Constant> getArguments(ConstructorElement constructor)) {
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);
-    InterfaceType constructedType = constructor.computeTargetType(type);
-    constructor = constructor.redirectionTarget;
+    InterfaceType constructedType =
+        constructor.computeEffectiveTargetType(type);
+    constructor = constructor.effectiveTarget;
     ClassElement classElement = constructor.enclosingClass;
     // The constructor must be an implementation to ensure that field
     // initializers are handled correctly.

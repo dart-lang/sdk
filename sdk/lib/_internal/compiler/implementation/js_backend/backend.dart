@@ -101,8 +101,8 @@ class JavaScriptBackend extends Backend {
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
   ClassElement typeVariableClass;
-  Element mapLiteralConstructor;
-  Element mapLiteralConstructorEmpty;
+  ConstructorElement mapLiteralConstructor;
+  ConstructorElement mapLiteralConstructorEmpty;
 
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;

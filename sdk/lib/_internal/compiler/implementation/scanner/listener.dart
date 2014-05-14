@@ -2072,32 +2072,35 @@ class NodeListener extends ElementListener {
   }
 }
 
-class PartialFunctionElement extends FunctionElementX {
-  final Token beginToken;
-  final Token getOrSet;
-  final Token endToken;
+abstract class PartialFunctionMixin implements FunctionElement {
+  FunctionExpression cachedNode;
+  Modifiers get modifiers;
+  Token beginToken;
+  Token getOrSet;
+  Token endToken;
 
   /**
    * The position is computed in the constructor using [findMyName]. Computing
    * it on demand fails in case tokens are GC'd.
    */
-  final Token _position;
+  Token _position;
 
-  PartialFunctionElement(String name,
-                         Token beginToken,
-                         this.getOrSet,
-                         this.endToken,
-                         ElementKind kind,
-                         Modifiers modifiers,
-                         Element enclosing,
-                         bool hasNoBody)
-    : super(name, kind, modifiers, enclosing, hasNoBody),
-      beginToken = beginToken,
-      _position = ElementX.findNameToken(
-          beginToken,
-          modifiers.isFactory ||
-            identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
-          name, enclosing.name);
+  void init(Token beginToken, Token getOrSet, Token endToken) {
+    this.beginToken = beginToken;
+    this.getOrSet = getOrSet;
+    this.endToken = endToken;
+    _position = ElementX.findNameToken(
+        beginToken,
+        modifiers.isFactory ||
+          identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
+        name, enclosingElement.name);
+  }
+
+  FunctionExpression get node {
+    assert(invariant(this, cachedNode != null,
+        message: "Node has not been computed for $this."));
+    return cachedNode;
+  }
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -2115,6 +2118,34 @@ class PartialFunctionElement extends FunctionElementX {
   Token get position => _position;
 }
 
+class PartialFunctionElement extends FunctionElementX
+    with PartialFunctionMixin {
+  PartialFunctionElement(String name,
+                         Token beginToken,
+                         Token getOrSet,
+                         Token endToken,
+                         ElementKind kind,
+                         Modifiers modifiers,
+                         Element enclosing,
+                         bool hasNoBody)
+      : super(name, kind, modifiers, enclosing, hasNoBody) {
+    init(beginToken, getOrSet, endToken);
+  }
+}
+
+class PartialConstructorElement extends ConstructorElementX
+    with PartialFunctionMixin {
+  PartialConstructorElement(String name,
+                            Token beginToken,
+                            Token endToken,
+                            ElementKind kind,
+                            Modifiers modifiers,
+                            Element enclosing)
+      : super(name, kind, modifiers, enclosing) {
+    init(beginToken, null, endToken);
+  }
+}
+
 class PartialFieldList extends VariableList {
   final Token beginToken;
   final Token endToken;
@@ -2122,7 +2153,7 @@ class PartialFieldList extends VariableList {
   PartialFieldList(Token this.beginToken,
                    Token this.endToken,
                    Modifiers modifiers)
-    : super(modifiers);
+      : super(modifiers);
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
     if (definitions != null) return definitions;

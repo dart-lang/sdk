@@ -430,9 +430,7 @@ class MockCompiler extends Compiler {
   }
 
   resolverVisitor() {
-    Element mockElement =
-      new FunctionElementX('', ElementKind.FUNCTION, Modifiers.EMPTY,
-                           mainApp.entryCompilationUnit, false);
+    Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));
@@ -598,4 +596,14 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
       print(message);
     }
   };
+}
+
+class MockElement extends FunctionElementX {
+  MockElement(Element enclosingElement)
+      : super('', ElementKind.FUNCTION, Modifiers.EMPTY,
+              enclosingElement, false);
+
+  get node => null;
+
+  parseNode(_) => null;
 }

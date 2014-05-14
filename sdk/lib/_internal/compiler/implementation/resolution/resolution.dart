@@ -12,11 +12,13 @@ import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show BaseClassElementX,
+         ConstructorElementX,
          ErroneousElementX,
          FieldParameterElementX,
          FunctionElementX,
          FunctionSignatureX,
          LabelElementX,
+         LocalFunctionElementX,
          LocalVariableElementX,
          MetadataAnnotationX,
          MixinApplicationElementX,

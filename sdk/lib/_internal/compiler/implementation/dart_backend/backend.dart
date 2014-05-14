@@ -339,7 +339,10 @@ class DartBackend extends Backend {
               classElement.name, null, classElement, false);
       constructor.typeCache =
           new FunctionType(constructor, const VoidType());
-      constructor.cachedNode = new FunctionExpression(
+      if (!constructor.isSynthesized) {
+        classMembers[classElement].add(constructor);
+      }
+      FunctionExpression node = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
                        const Link<Node>(),
@@ -348,11 +351,8 @@ class DartBackend extends Backend {
               new StringToken.fromString(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 
-      if (!constructor.isSynthesized) {
-        classMembers[classElement].add(constructor);
-      }
       elementAsts[constructor] =
-          new ElementAst(constructor.cachedNode, new TreeElementMapping(null));
+          new ElementAst(node, new TreeElementMapping(null));
     }
 
     // Create all necessary placeholders.

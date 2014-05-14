@@ -702,8 +702,8 @@ class Elements {
                                                 Compiler compiler) {
     if (compiler.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
-    FunctionElement constructor = element;
-    constructor = constructor.redirectionTarget;
+    ConstructorElement constructor = element;
+    constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.typedDataLibrary
         && cls.isNative
@@ -739,7 +739,7 @@ class Elements {
   }
 }
 
-abstract class ErroneousElement extends Element implements FunctionElement {
+abstract class ErroneousElement extends Element implements ConstructorElement {
   MessageKind get messageKind;
   Map get messageArguments;
   String get message;
@@ -936,26 +936,13 @@ abstract class FunctionElement extends Element
                FunctionTypedElement,
                ClosureContainer {
   FunctionExpression get node;
-  FunctionElement get redirectionTarget;
-  FunctionElement get defaultImplementation;
 
   FunctionElement get patch;
   FunctionElement get origin;
 
-  bool get isRedirectingFactory;
-
   /// Used to retrieve a link to the abstract field element representing this
   /// element.
   AbstractFieldElement get abstractField;
-
-  /**
-   * Compute the type of the target of a constructor for an instantiation site
-   * with type [:newType:].
-   */
-  InterfaceType computeTargetType(InterfaceType newType);
-
-  // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set defaultImplementation(FunctionElement value);
 
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
   /// the signature through the [functionSignature] field.
@@ -963,6 +950,42 @@ abstract class FunctionElement extends Element
   /// resolution is an error and calling [computeSignature] covers that error.
   /// This method will go away!
   @deprecated FunctionSignature computeSignature(Compiler compiler);
+}
+
+abstract class ConstructorElement extends FunctionElement {
+  /// The effective target of this constructor, that is the non-redirecting
+  /// constructor that is called on invocation of this constructor.
+  ///
+  /// Consider for instance this hierachy:
+  ///
+  ///     class C { factory C.c() = D.d; }
+  ///     class D { factory D.d() = E.e2; }
+  ///     class E { E.e1();
+  ///               E.e2() : this.e1(); }
+  ///
+  /// The effective target of both `C.c`, `D.d`, and `E.e2` is `E.e2`, and the
+  /// effective target of `E.e1` is `E.e1` itself.
+  ConstructorElement get effectiveTarget;
+
+  /// The immediate redirection target of a redirecting factory constructor.
+  ///
+  /// Consider for instance this hierachy:
+  ///
+  ///     class C { factory C() = D; }
+  ///     class D { factory D() = E; }
+  ///     class E { E(); }
+  ///
+  /// The immediate redirection target of `C` is `D` and the immediate
+  /// redirection target of `D` is `E`. `E` is not a redirecting factory
+  /// constructor so its immediate redirection target is `null`.
+  ConstructorElement get immediateRedirectionTarget;
+
+  /// Is `true` if this constructor is a redirecting factory constructor.
+  bool get isRedirectingFactory;
+
+  /// Compute the type of the effective target of this constructor for an
+  /// instantiation site with type [:newType:].
+  InterfaceType computeEffectiveTargetType(InterfaceType newType);
 }
 
 abstract class ConstructorBodyElement extends FunctionElement {

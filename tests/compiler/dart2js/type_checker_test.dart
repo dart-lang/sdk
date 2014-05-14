@@ -2059,8 +2059,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   Node node = listener.popNode();
   Element compilationUnit =
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
-  Element function = new FunctionElementX(
-      '', ElementKind.FUNCTION, Modifiers.EMPTY, compilationUnit, false);
+  Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);

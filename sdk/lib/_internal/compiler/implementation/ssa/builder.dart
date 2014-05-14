@@ -4028,13 +4028,13 @@ class SsaBuilder extends ResolvedVisitor {
 
     Element constructor = elements[send];
     Selector selector = elements.getSelector(send);
-    FunctionElement functionElement = constructor;
-    constructor = functionElement.redirectionTarget;
+    ConstructorElement constructorDeclaration = constructor;
+    constructor = constructorDeclaration.effectiveTarget;
 
     final bool isSymbolConstructor =
-        functionElement == compiler.symbolConstructor;
+        constructorDeclaration == compiler.symbolConstructor;
     final bool isJSArrayTypedConstructor =
-        functionElement == backend.jsArrayTypedConstructor;
+        constructorDeclaration == backend.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
       constructor = compiler.symbolValidatedConstructor;
@@ -4045,9 +4045,10 @@ class SsaBuilder extends ResolvedVisitor {
                        message: 'Constructor Symbol.validated is missing'));
     }
 
-    bool isRedirected = functionElement.isRedirectingFactory;
+    bool isRedirected = constructorDeclaration.isRedirectingFactory;
     InterfaceType type = elements.getType(node);
-    InterfaceType expectedType = functionElement.computeTargetType(type);
+    InterfaceType expectedType =
+        constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
     if (checkTypeVariableBounds(node, type)) return;
@@ -4404,8 +4405,8 @@ class SsaBuilder extends ResolvedVisitor {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneousElement(element)) {
-      FunctionElement function = element;
-      element = function.redirectionTarget;
+      ConstructorElement function = element;
+      element = function.effectiveTarget;
     }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
@@ -4826,7 +4827,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (node.isRedirectingFactoryBody) {
       FunctionElement targetConstructor =
           elements[node.expression].implementation;
-      FunctionElement redirectingConstructor = sourceElement;
+      ConstructorElement redirectingConstructor = sourceElement;
       List<HInstruction> inputs = <HInstruction>[];
       FunctionSignature targetSignature = targetConstructor.functionSignature;
       FunctionSignature redirectingSignature =
@@ -4850,7 +4851,7 @@ class SsaBuilder extends ResolvedVisitor {
       if (backend.classNeedsRti(targetClass)) {
         ClassElement cls = redirectingConstructor.enclosingClass;
         InterfaceType targetType =
-            redirectingConstructor.computeTargetType(cls.thisType);
+            redirectingConstructor.computeEffectiveTargetType(cls.thisType);
         targetType = localsHandler.substInContext(targetType);
         targetType.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument));
@@ -5130,7 +5131,7 @@ class SsaBuilder extends ResolvedVisitor {
       listInputs.add(pop());
     }
 
-    Element constructor;
+    ConstructorElement constructor;
     List<HInstruction> inputs = <HInstruction>[];
 
     if (listInputs.isEmpty) {
@@ -5144,11 +5145,12 @@ class SsaBuilder extends ResolvedVisitor {
 
     assert(constructor.isFactoryConstructor);
 
-    FunctionElement functionElement = constructor;
-    constructor = functionElement.redirectionTarget;
+    ConstructorElement functionElement = constructor;
+    constructor = functionElement.effectiveTarget;
 
     InterfaceType type = elements.getType(node);
-    InterfaceType expectedType = functionElement.computeTargetType(type);
+    InterfaceType expectedType =
+        functionElement.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
     if (constructor.isFactoryConstructor) {

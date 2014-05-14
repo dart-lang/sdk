@@ -620,23 +620,24 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(FunctionElement constructor, Spannable node) {
-    FunctionElementX target = constructor;
+  void resolveRedirectionChain(ConstructorElementX constructor,
+                               Spannable node) {
+    ConstructorElementX target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     // Follow the chain of redirections and check for cycles.
-    while (target != target.defaultImplementation) {
-      if (target.internalRedirectionTarget != null) {
+    while (target.isRedirectingFactory) {
+      if (target.internalEffectiveTarget != null) {
         // We found a constructor that already has been processed.
-        targetType = target.redirectionTargetType;
+        targetType = target.effectiveTargetType;
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                      '$target'));
-        target = target.internalRedirectionTarget;
+        target = target.internalEffectiveTarget;
         break;
       }
 
-      Element nextTarget = target.defaultImplementation;
+      Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         break;
@@ -656,7 +657,7 @@ class ResolverTask extends CompilerTask {
     // compute [redirectionTargetType] for each factory by computing the
     // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
-      FunctionElementX factory = seen.removeLast();
+      ConstructorElementX factory = seen.removeLast();
 
       // [factory] must already be analyzed but the [TreeElements] might not
       // have been stored in the enqueuer cache yet.
@@ -671,8 +672,8 @@ class ResolverTask extends CompilerTask {
           treeElements.getType(redirectionNode.expression);
 
       targetType = targetType.substByContext(factoryType);
-      factory.redirectionTarget = target;
-      factory.redirectionTargetType = targetType;
+      factory.effectiveTarget = target;
+      factory.effectiveTargetType = targetType;
     }
   }
 
@@ -2299,7 +2300,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    FunctionElementX function = new FunctionElementX.fromNode(
+    FunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
     function.functionSignatureCache =
@@ -2910,11 +2911,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.reportHint(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
-    FunctionElement constructor = enclosingElement;
+    ConstructorElementX constructor = enclosingElement;
     bool isConstConstructor = constructor.isConst;
-    FunctionElement redirectionTarget = resolveRedirectingFactory(
+    ConstructorElement redirectionTarget = resolveRedirectingFactory(
         node, inConstContext: isConstConstructor);
-    constructor.defaultImplementation = redirectionTarget;
+    constructor.immediateRedirectionTarget = redirectionTarget;
     useElement(node.expression, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
       compiler.backend.registerThrowNoSuchMethod(mapping);
@@ -3171,11 +3172,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
    * Note: this function may return an ErroneousFunctionElement instead of
    * [:null:], if there is no corresponding constructor, class or library.
    */
-  FunctionElement resolveConstructor(NewExpression node) {
+  ConstructorElement resolveConstructor(NewExpression node) {
     return node.accept(new ConstructorResolver(compiler, this));
   }
 
-  FunctionElement resolveRedirectingFactory(Return node,
+  ConstructorElement resolveRedirectingFactory(Return node,
                                             {bool inConstContext: false}) {
     return node.accept(new ConstructorResolver(compiler, this,
                                                inConstContext: inConstContext));

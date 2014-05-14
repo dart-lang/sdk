@@ -50,12 +50,14 @@ abstract class ElementX extends Element {
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.internalError(this, 'Not implemented.');
+    listener.internalError(this,
+        'parseNode not implemented on $this.');
     return null;
   }
 
   DartType computeType(Compiler compiler) {
-    compiler.internalError(this, "$this.computeType.");
+    compiler.internalError(this,
+        "computeType not implemented on $this.");
     return null;
   }
 
@@ -305,19 +307,16 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get functionSignature => unsupported();
   get patch => null;
   get origin => this;
-  get defaultImplementation => unsupported();
+  get immediateRedirectionTarget => unsupported();
   get nestedClosures => unsupported();
 
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
 
-  // TODO(kasperl): These seem unnecessary.
-  set defaultImplementation(value) => unsupported();
+  get effectiveTarget => this;
 
-  get redirectionTarget => this;
-
-  computeTargetType(InterfaceType newType) => unsupported();
+  computeEffectiveTargetType(InterfaceType newType) => unsupported();
 
   String get message => '${messageKind.message(messageArguments)}';
 
@@ -1445,10 +1444,9 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-class FunctionElementX
+abstract class FunctionElementX
     extends ElementX with AnalyzableElement, PatchMixin<FunctionElement>
     implements FunctionElement {
-  FunctionExpression cachedNode;
   DartType typeCache;
   final Modifiers modifiers;
 
@@ -1460,32 +1458,15 @@ class FunctionElementX
 
   AbstractFieldElement abstractField;
 
-  /**
-   * If this is a redirecting factory, [defaultImplementation] will be
-   * changed by the resolver to point to the redirection target.
-   * Otherwise, [:identical(defaultImplementation, this):].
-   */
-  // TODO(ahe): Rename this field to redirectionTarget.
-  FunctionElement defaultImplementation;
-
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
                    Element enclosing,
                    bool hasNoBody)
-      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
+      : this.tooMuchOverloading(name, kind, modifiers, enclosing, null,
                                 hasNoBody);
 
-  FunctionElementX.fromNode(String name,
-                            FunctionExpression node,
-                            ElementKind kind,
-                            Modifiers modifiers,
-                            Element enclosing)
-      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
-                                false);
-
   FunctionElementX.tooMuchOverloading(String name,
-                                      FunctionExpression this.cachedNode,
                                       ElementKind kind,
                                       this.modifiers,
                                       Element enclosing,
@@ -1494,34 +1475,6 @@ class FunctionElementX
       : super(name, kind, enclosing),
         _hasNoBody = hasNoBody {
     assert(modifiers != null);
-    defaultImplementation = this;
-  }
-
-  bool get isRedirectingFactory => defaultImplementation != this;
-
-  /// This field is set by the post process queue when checking for cycles.
-  FunctionElement internalRedirectionTarget;
-  DartType redirectionTargetType;
-
-  set redirectionTarget(FunctionElement constructor) {
-    assert(constructor != null && internalRedirectionTarget == null);
-    internalRedirectionTarget = constructor;
-  }
-
-  FunctionElement get redirectionTarget {
-    if (Elements.isErroneousElement(defaultImplementation)) {
-      return defaultImplementation;
-    }
-    assert(!isRedirectingFactory || internalRedirectionTarget != null);
-    return isRedirectingFactory ? internalRedirectionTarget : this;
-  }
-
-  InterfaceType computeTargetType(InterfaceType newType) {
-    if (!isRedirectingFactory) return newType;
-    assert(invariant(this, redirectionTargetType != null,
-        message: 'Redirection target type has not yet been computed for '
-                 '$this.'));
-    return redirectionTargetType.substByContext(newType);
   }
 
   bool get isInstanceMember {
@@ -1556,31 +1509,6 @@ class FunctionElementX
     return typeCache;
   }
 
-  FunctionExpression parseNode(DiagnosticListener listener) {
-    if (patch == null) {
-      if (modifiers.isExternal) {
-        listener.internalError(this,
-            "Compiling external function with no implementation.");
-      }
-    }
-    return cachedNode;
-  }
-
-  FunctionExpression get node {
-    assert(invariant(this, cachedNode != null,
-        message: "Node has not been computed for $this."));
-    return cachedNode;
-  }
-
-  Token get position {
-    // Use the name as position if this is not an unnamed closure.
-    if (cachedNode.name != null) {
-      return cachedNode.name.getBeginToken();
-    } else {
-      return cachedNode.getBeginToken();
-    }
-  }
-
   FunctionElement asFunctionElement() => this;
 
   String toString() {
@@ -1602,6 +1530,67 @@ class FunctionElementX
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 }
 
+class LocalFunctionElementX extends FunctionElementX {
+  final FunctionExpression node;
+
+  LocalFunctionElementX(String name,
+                        FunctionExpression this.node,
+                        ElementKind kind,
+                        Modifiers modifiers,
+                        Element enclosing)
+      : super(name, kind, modifiers, enclosing, false);
+
+  FunctionExpression parseNode(DiagnosticListener listener) => node;
+
+  Token get position {
+    // Use the name as position if this is not an unnamed closure.
+    if (node.name != null) {
+      return node.name.getBeginToken();
+    } else {
+      return node.getBeginToken();
+    }
+  }
+}
+
+abstract class ConstructorElementX extends FunctionElementX
+    implements ConstructorElement {
+
+  ConstructorElementX(String name,
+                      ElementKind kind,
+                      Modifiers modifiers,
+                      Element enclosing)
+        : super(name, kind, modifiers, enclosing, false);
+
+  FunctionElement immediateRedirectionTarget;
+
+  bool get isRedirectingFactory => immediateRedirectionTarget != null;
+
+  /// This field is set by the post process queue when checking for cycles.
+  ConstructorElement internalEffectiveTarget;
+  DartType effectiveTargetType;
+
+  void set effectiveTarget(ConstructorElement constructor) {
+    assert(constructor != null && internalEffectiveTarget == null);
+    internalEffectiveTarget = constructor;
+  }
+
+  ConstructorElement get effectiveTarget {
+    if (Elements.isErroneousElement(immediateRedirectionTarget)) {
+      return immediateRedirectionTarget;
+    }
+    assert(!isRedirectingFactory || internalEffectiveTarget != null);
+    return isRedirectingFactory ? internalEffectiveTarget : this;
+  }
+
+  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+    if (!isRedirectingFactory) return newType;
+    assert(invariant(this, effectiveTargetType != null,
+        message: 'Redirection target type has not yet been computed for '
+                 '$this.'));
+    return effectiveTargetType.substByContext(newType);
+  }
+}
+
 class SynthesizedCallMethodElementX extends FunctionElementX {
   final FunctionElement expression;
 
@@ -1609,14 +1598,17 @@ class SynthesizedCallMethodElementX extends FunctionElementX {
                                 FunctionElementX other,
                                 Element enclosing)
       : expression = other,
-        super.tooMuchOverloading(name, other.node, other.kind,
+        super.tooMuchOverloading(name, other.kind,
                                  other.modifiers, enclosing,
                                  other.functionSignature,
                                  false);
+
+  FunctionExpression get node => expression.node;
+
+  FunctionExpression parseNode(DiagnosticListener listener) => node;
 }
 
 class DeferredLoaderGetterElementX extends FunctionElementX {
-
   final PrefixElement prefix;
 
   DeferredLoaderGetterElementX(PrefixElement prefix)
@@ -1651,6 +1643,10 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
   // By having position null, the enclosing elements location is printed in
   // error messages.
   Token get position => null;
+
+  FunctionExpression parseNode(DiagnosticListener listener) => null;
+
+  FunctionExpression get node => null;
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1664,8 +1660,9 @@ class ConstructorBodyElementX extends FunctionElementX
               Modifiers.EMPTY,
               constructor.enclosingElement, false) {
     functionSignatureCache = constructor.functionSignature;
-    cachedNode = constructor.node;
   }
+
+  FunctionExpression get node => constructor.node;
 
   bool get isInstanceMember => true;
 
@@ -1688,8 +1685,8 @@ class ConstructorBodyElementX extends FunctionElementX
  * This class is used to represent default constructors and forwarding
  * constructors for mixin applications.
  */
-class SynthesizedConstructorElementX extends FunctionElementX {
-  final FunctionElement superMember;
+class SynthesizedConstructorElementX extends ConstructorElementX {
+  final ConstructorElement superMember;
   final bool isDefaultConstructor;
 
   SynthesizedConstructorElementX(String name,
@@ -1699,10 +1696,12 @@ class SynthesizedConstructorElementX extends FunctionElementX {
       : super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
-              enclosing, false);
+              enclosing);
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
       : this('', superMember, enclosing, true);
+
+  FunctionExpression parseNode(DiagnosticListener listener) => null;
 
   FunctionExpression get node => null;
 
@@ -1731,7 +1730,6 @@ class SynthesizedConstructorElementX extends FunctionElementX {
 
   get declaration => this;
   get implementation => this;
-  get defaultImplementation => this;
 
   accept(ElementVisitor visitor) {
     return visitor.visitFunctionElement(this);

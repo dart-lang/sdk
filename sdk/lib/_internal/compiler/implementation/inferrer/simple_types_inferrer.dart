@@ -995,8 +995,8 @@ class SimpleTypeInferrerVisitor<T>
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
       int length = findLength(node);
-      FunctionElement constructor = element;
-      constructor = constructor.redirectionTarget;
+      ConstructorElement constructor = element;
+      constructor = constructor.effectiveTarget;
       T elementType = inferrer.returnTypeOfElement(
           constructor.enclosingClass.lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(

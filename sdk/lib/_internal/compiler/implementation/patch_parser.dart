@@ -542,10 +542,6 @@ void patchFunction(leg.DiagnosticListener listener,
     listener.internalError(origin,
         "Trying to patch a function more than once.");
   }
-  if (origin.cachedNode != null) {
-    listener.internalError(origin,
-        "Trying to patch an already compiled function.");
-  }
   origin.applyPatch(patch);
 }
 
