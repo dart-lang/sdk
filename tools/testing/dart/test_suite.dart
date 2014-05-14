@@ -1917,23 +1917,6 @@ class TestUtils {
         .pipe(new File(dest.toNativePath()).openWrite());
   }
 
-  static Future isContentEqual(Path source, Path dest) {
-    return new File(source.toNativePath()).readAsString()
-      .then((srcString) {
-        return new File(dest.toNativePath()).readAsString()
-          .then((destString) => srcString == destString);
-      })
-      .catchError((error) {
-          return false;
-      });
-  }
-
-  static Future copyIfDifferent(Path source, Path dest) {
-    return isContentEqual(source, dest).then((equal) {
-      return equal ? null : TestUtils.copyFile(source, dest);
-    });
-  }
-
   static Future copyDirectory(String source, String dest) {
     source = new Path(source).toNativePath();
     dest = new Path(dest).toNativePath();
@@ -2164,11 +2147,6 @@ class TestUtils {
     }
     return path;
   }
-
-  static String cachedOutputFile(String outputFile) {
-    return "$outputFile.cached_output";
-  }
-
 }
 
 class SummaryReport {

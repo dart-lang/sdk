@@ -248,10 +248,9 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
     if (!importDir.isEmpty) {
       TestUtils.mkdirRecursive(targetDir, importDir);
     }
-    Path srcPath = sourceDir.join(importPath);
-    Path targetPath = targetDir.join(importPath);
     // Copy file.
-    futureCopies.add(TestUtils.copyIfDifferent(srcPath, targetPath));
+    futureCopies.add(TestUtils.copyFile(sourceDir.join(importPath),
+                                        targetDir.join(importPath)));
   }
 
   // Wait until all imports are copied before scheduling test cases.

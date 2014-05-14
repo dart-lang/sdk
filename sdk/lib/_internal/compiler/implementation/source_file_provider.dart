@@ -44,7 +44,6 @@ abstract class SourceFileProvider {
     try {
       source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
-      sourceFiles[resourceUri.toString()] = null;
       return new Future.error(
           "Error reading '${relativize(cwd, resourceUri, isWindows)}' "
           "(${ex.osError})");
