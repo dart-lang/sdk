@@ -13,6 +13,7 @@ import '../ir/ir_nodes.dart' as ir;
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart';
 import '../dart_types.dart' show DartType, GenericType;
+import '../helpers/helpers.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -41,6 +42,13 @@ abstract class Node {
 abstract class Expression extends Node {
   bool get isPure;
   accept(Visitor v);
+
+  /// Temporary variable used by [TreeRewriter].
+  /// If set to true, this expression has already had enclosing assignments
+  /// propagated into its variables, and should not be processed again.
+  /// It is only set for expressions that are known to be in risk of redundant
+  /// processing.
+  bool processed = false;
 }
 
 abstract class Statement extends Node {
@@ -64,6 +72,14 @@ class Label {
     if (cachedName == null) cachedName = _newName();
     return cachedName;
   }
+
+  /// Number of [Break] statements that target this label.
+  /// The [Break] constructor will increment this automatically, but the
+  /// counter must be decremented by hand when a [Break] becomes orphaned.
+  int breakCount = 0;
+
+  /// The [LabeledStatement] binding this label.
+  LabeledStatement binding;
 }
 
 /**
@@ -167,6 +183,25 @@ class Constant extends Expression {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
+/// A conditional expression.
+class Conditional extends Expression {
+  Expression condition;
+  Expression thenExpression;
+  Expression elseExpression;
+
+  Conditional(this.condition, this.thenExpression, this.elseExpression);
+
+  // TODO(asgerf): Repeatedly computing isPure is potentially expensive,
+  // but caching isPure in a field is dangerous because a subexpression could
+  // become impure during a transformation (e.g. assignment propagation).
+  // Improve the situation somehow.
+  bool get isPure => condition.isPure &&
+                     thenExpression.isPure &&
+                     elseExpression.isPure;
+
+  accept(Visitor visitor) => visitor.visitConditional(this);
+}
+
 /**
  * A labeled statement.  Breaks to the label within the labeled statement
  * target the successor statement.
@@ -176,7 +211,10 @@ class LabeledStatement extends Statement {
   final Label label;
   Statement body;
 
-  LabeledStatement(this.label, this.body, this.next);
+  LabeledStatement(this.label, this.body, this.next) {
+    assert(label.binding == null);
+    label.binding = this;
+  }
 
   accept(Visitor visitor) => visitor.visitLabeledStatement(this);
 }
@@ -205,6 +243,7 @@ class Assign extends Statement {
  * expression.
  */
 class Return extends Statement {
+  /// Should not be null. Use [Constant] with [NullConstant] for void returns.
   Expression value;
 
   Statement get next => null;
@@ -220,12 +259,14 @@ class Return extends Statement {
  * labeled statement's successor statement.
  */
 class Break extends Statement {
-  Label target;
+  final Label target;
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  Break(this.target);
+  Break(this.target) {
+    ++target.breakCount;
+  }
 
   accept(Visitor visitor) => visitor.visitBreak(this);
 }
@@ -270,6 +311,7 @@ abstract class Visitor<S, E> {
   E visitInvokeConstructor(InvokeConstructor node);
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
+  E visitConditional(Conditional node);
 
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
@@ -528,7 +570,22 @@ class Builder extends ir.Visitor<Node> {
 }
 
 /**
- * Unnamer propagates single-use definitions to their use site when possible.
+ * Performs the following three transformations on the tree:
+ * - Assignment propagation
+ * - If-to-conditional conversion
+ * - Break inlining
+ *
+ * The above transformations are performed in the same phase because each
+ * transformation can introduce redexes of one of the others.
+ *
+ *
+ * ASSIGNMENT PROPAGATION:
+ * Single-use definitions are propagated to their use site when possible.
+ * For example:
+ *
+ *   { v0 = foo(); return v0; }
+ *     ==>
+ *   return foo()
  *
  * After translating out of CPS, all intermediate values are bound by [Assign].
  * This transformation propagates such definitions to their uses when it is
@@ -545,14 +602,41 @@ class Builder extends ir.Visitor<Node> {
  *
  * See [visitVariable] for the implementation of the heuristic for propagating
  * a definition.
+ *
+ *
+ * IF-TO-CONDITIONAL CONVERSION:
+ * If-statement are converted to conditional expressions when possible.
+ * For example:
+ *
+ *   if (v0) { v1 = foo(); break L } else { v1 = bar(); break L }
+ *     ==>
+ *   { v1 = v0 ? foo() : bar(); break L }
+ *
+ * This can lead to inlining of L, which in turn can lead to further propagation
+ * of the variable v1.
+ *
+ * See [visitIf].
+ *
+ *
+ * BREAK INLINING:
+ * Single-use labels are inlined at [Break] statements.
+ * For example:
+ *
+ *   L0: { v0 = foo(); break L0 }; return v0;
+ *     ==>
+ *   v0 = foo(); return v0;
+ *
+ * This can lead to propagation of v0.
+ *
+ * See [visitBreak] and [visitLabeledStatement].
  */
-class Unnamer extends Visitor<Statement, Expression> {
+class TreeRewriter extends Visitor<Statement, Expression> {
   // The binding environment.  The rightmost element of the list is the nearest
   // enclosing binding.
   // We use null to mark an impure expressions that does not bind a variable.
   List<Assign> environment;
 
-  void unname(FunctionDefinition definition) {
+  void apply(FunctionDefinition definition) {
     environment = <Assign>[];
     definition.body = visitStatement(definition.body);
 
@@ -561,6 +645,8 @@ class Unnamer extends Visitor<Statement, Expression> {
     // or else introducing a variable definition and an assignment.
     assert(environment.isEmpty);
   }
+
+  Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 
   Expression visitVariable(Variable node) {
     // Propagate a variable's definition to its use site if:
@@ -602,6 +688,10 @@ class Unnamer extends Visitor<Statement, Expression> {
 
   Statement visitLabeledStatement(LabeledStatement node) {
     node.body = visitStatement(node.body);
+    if (node.label.breakCount == 0) {
+      // If the break was inlined, eliminate the label.
+      return node.body;
+    }
     node.next = visitStatement(node.next);
     return node;
   }
@@ -651,19 +741,50 @@ class Unnamer extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitConditional(Conditional node) {
+    node.condition = visitExpression(node.condition);
+
+    environment.add(null); // impure expressions may not propagate across branch
+    node.thenExpression = visitExpression(node.thenExpression);
+    node.elseExpression = visitExpression(node.elseExpression);
+    environment.removeLast();
+
+    return node;
+  }
+
   Statement visitReturn(Return node) {
     node.value = visitExpression(node.value);
     return node;
   }
 
   Statement visitBreak(Break node) {
+    if (node.target.breakCount == 1) {
+      --node.target.breakCount;
+      return visitStatement(node.target.binding.next);
+    }
     return node;
   }
 
   Statement visitIf(If node) {
     node.condition = visitExpression(node.condition);
+
+    environment.add(null); // impure expressions may not propagate across branch
     node.thenStatement = visitStatement(node.thenStatement);
     node.elseStatement = visitStatement(node.elseStatement);
+    environment.removeLast();
+
+    Statement reduced = combineStatementsWithSubexpressions(
+        node.thenStatement,
+        node.elseStatement,
+        (t,f) => new Conditional(node.condition, t, f)..processed = true);
+    if (reduced != null) {
+      if (reduced.next is Break) {
+        // In case the break can now be inlined.
+        reduced = visitStatement(reduced);
+      }
+      return reduced;
+    }
+
     return node;
   }
 
@@ -682,4 +803,78 @@ class Unnamer extends Visitor<Statement, Expression> {
     }
     return node;
   }
+
+
+  /// If [s] and [t] are similar statements we extract their subexpressions
+  /// and returns a new statement of the same type using expressions combined
+  /// with the [combine] callback. For example:
+  ///
+  ///   combineStatements(Return E1, Return E2) = Return combine(E1, E2)
+  ///
+  /// If [combine] returns E1 then the unified statement is equivalent to [s],
+  /// and if [combine] returns E2 the unified statement is equivalence to [t].
+  ///
+  /// It is guaranteed that no side effects occur between the beginning of the
+  /// statement and the position of the combined expression.
+  ///
+  /// Returns null if the statements are too different.
+  ///
+  /// If non-null is returned, the caller MUST discard [s] and [t] and use
+  /// the returned statement instead.
+  static Statement combineStatementsWithSubexpressions(
+      Statement s,
+      Statement t,
+      Expression combine(Expression s, Expression t)) {
+    if (s is Return && t is Return) {
+      return new Return(combine(s.value, t.value));
+    }
+    if (s is Assign && t is Assign && s.variable == t.variable) {
+      Statement next = combineStatements(s.next, t.next);
+      if (next != null) {
+        return new Assign(s.variable,
+                          combine(s.definition, t.definition),
+                          next,
+                          s.hasExactlyOneUse);
+      }
+    }
+    if (s is ExpressionStatement && t is ExpressionStatement) {
+      Statement next = combineStatements(s.next, t.next);
+      if (next != null) {
+        return new ExpressionStatement(combine(s.expression, t.expression),
+                                       next);
+      }
+    }
+    return null;
+  }
+
+  /// Returns a statement equivalent to both [s] and [t], or null if [s] and
+  /// [t] are incompatible.
+  /// If non-null is returned, the caller MUST discard [s] and [t] and use
+  /// the returned statement instead.
+  /// If two breaks are combined, the label's break counter will be decremented.
+  static Statement combineStatements(Statement s, Statement t) {
+    if (s is Break && t is Break && s.target == t.target) {
+      --t.target.breakCount; // Two breaks become one.
+      return s;
+    }
+    if (s is Return && t is Return && equivalentExpressions(s.value, t.value)) {
+      return s;
+    }
+    return null;
+  }
+
+  /// True if the two expressions both syntactically and semantically
+  /// equivalent.
+  static bool equivalentExpressions(Expression e1, Expression e2) {
+    if (e1 == e2) { // Detect same variable reference
+      // TODO(asgerf): This might turn the variable into a single-use,
+      // but we currently don't discover this.
+      return true;
+    }
+    if (e1 is Constant && e2 is Constant) {
+      return e1.value == e2.value;
+    }
+    return false;
+  }
 }
+

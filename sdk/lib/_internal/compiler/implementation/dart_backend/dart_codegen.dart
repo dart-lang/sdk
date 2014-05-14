@@ -220,6 +220,13 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return new StringConcat(args);
   }
 
+  Expression visitConditional(tree.Conditional exp) {
+    return new Conditional(
+        visitExpression(exp.condition),
+        visitExpression(exp.thenExpression),
+        visitExpression(exp.elseExpression));
+  }
+
   Expression visitVariable(tree.Variable exp) {
     return new Identifier(exp.name)
                ..element = exp.element;

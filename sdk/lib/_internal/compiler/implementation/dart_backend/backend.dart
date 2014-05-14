@@ -235,9 +235,8 @@ class DartBackend extends Backend {
         compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph('Tree builder', definition);
         treeElements = new TreeElementMapping(element);
-        tree.Unnamer unnamer = new tree.Unnamer();
-        unnamer.unname(definition);
-        compiler.tracer.traceGraph('Unnamer', definition);
+        new tree.TreeRewriter().apply(definition);
+        compiler.tracer.traceGraph('Tree rewriter', definition);
         node = dart_codegen.emit(element, treeElements, definition);
       }
       return new ElementAst(node, treeElements);

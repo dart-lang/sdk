@@ -51,6 +51,7 @@ class BlockCollector extends Visitor {
   visitInvokeConstructor(InvokeConstructor node) {}
   visitConcatenateStrings(ConcatenateStrings node) {}
   visitConstant(Constant node) {}
+  visitConditional(Conditional node) {}
 
   visitLabeledStatement(LabeledStatement node) {
     Block target = new Block();
@@ -181,6 +182,10 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, expr(node));
   }
 
+  visitConditional(Conditional node) {
+    printStatement(null, expr(node));
+  }
+
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
   }
@@ -245,6 +250,12 @@ class SubexpressionVisitor extends Visitor<String, String> {
 
   String visitConstant(Constant node) {
     return "${node.value}";
+  }
+
+  String visitConditional(Conditional node) {
+    return visitExpression(node.condition) + ' ? ' +
+           visitExpression(node.thenExpression) + ' : ' +
+           visitExpression(node.elseExpression);
   }
 
   // Note: There should not be statements in the context of expressions.
