@@ -457,7 +457,6 @@ class ResponseTest {
     expect(response.getResult(resultName), same(resultValue));
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: null,
       Response.RESULT: {
         resultName: resultValue
       }

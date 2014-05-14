@@ -35,7 +35,7 @@ class ServerDomainHandlerTest {
     expect(response.error, isNull);
     expect(response.result, isEmpty);
   }
-  
+
   static void createContext_alreadyExists() {
     AnalysisServer server = new AnalysisServer(new MockServerChannel());
     ServerDomainHandler handler = new ServerDomainHandler(server);
@@ -92,8 +92,7 @@ class ServerDomainHandlerTest {
     deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
     Response response = handler.handleRequest(deleteRequest);
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
   }
 
@@ -105,8 +104,7 @@ class ServerDomainHandlerTest {
     Request shutdownRequest = new Request('0', ServerDomainHandler.SHUTDOWN_METHOD);
     Response response = handler.handleRequest(shutdownRequest);
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
     expect(server.running, isFalse);
   }
@@ -119,7 +117,6 @@ class ServerDomainHandlerTest {
     Response response = handler.handleRequest(versionRequest);
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: null,
       Response.RESULT: {
         ServerDomainHandler.VERSION_RESULT: '0.0.1'
       }

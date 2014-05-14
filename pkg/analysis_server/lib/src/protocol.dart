@@ -412,9 +412,7 @@ class Response {
   Map<String, Object> toJson() {
     Map<String, Object> jsonObject = new Map<String, Object>();
     jsonObject[ID] = id;
-    if (error == null) {
-      jsonObject[ERROR] = null;
-    } else {
+    if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
     if (!result.isEmpty) {
@@ -451,7 +449,7 @@ class RequestError {
    * server. An error occurred on the server while parsing the JSON text.
    */
   static const int CODE_PARSE_ERROR = -32700;
-  
+
   /**
    * An error code indicating that the analysis server has already been
    * started (and hence won't accept new connections).
@@ -523,7 +521,7 @@ class RequestError {
    */
   RequestError.serverAlreadyStarted()
     : this(CODE_SERVER_ALREADY_STARTED, "Server already started");
-  
+
   /**
    * Initialize a newly created [Error] to indicate an invalid request. The
    * JSON sent is not a valid [Request] object.

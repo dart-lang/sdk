@@ -46,8 +46,7 @@ class ContextDomainHandlerTest {
     Response response = handler.handleRequest(request);
     expect(server.contextWorkQueue, hasLength(1));
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
   }
 
@@ -79,8 +78,7 @@ class ContextDomainHandlerTest {
     request.setParameter(ContextDomainHandler.OPTIONS_PARAM, options);
     Response response = handler.handleRequest(request);
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
   }
 
@@ -95,8 +93,7 @@ class ContextDomainHandlerTest {
     request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
     Response response = handler.handleRequest(request);
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
   }
 
@@ -112,8 +109,7 @@ class ContextDomainHandlerTest {
     request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
     Response response = handler.handleRequest(request);
     expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: null
+      Response.ID: '0'
     }));
   }
 
