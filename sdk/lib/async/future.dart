@@ -488,18 +488,25 @@ class TimeoutException implements Exception {
  * A way to produce Future objects and to complete them later
  * with a value or error.
  *
- * If you already have a Future, you probably don't need a Completer.
- * Instead, you can usually use [Future.then], which returns a Future:
+ * Most of the time, the simplest way to create a future is to just use
+ * one of the [Future] constructors to capture the result of a single
+ * asynchronous computation:
+ *
+ *     new Future(() { doSomething(); return result; });
+ *
+ * or, if the future represents the result of a sequence of asynchronous
+ * computations, they can be chained using [Future.then] or similar functions
+ * on [Future]:
  *
  *     Future doStuff(){
  *       return someAsyncOperation().then((result) {
- *         // Do something.
+ *         return someOtherAsyncOperation(result);
  *       });
  *     }
  *
- * If you do need to create a Future from scratch—for example,
+ * If you do need to create a Future from scratch — for example,
  * when you're converting a callback-based API into a Future-based
- * one—you can use a Completer as follows:
+ * one — you can use a Completer as follows:
  *
  *     Class AsyncOperation {
  *       Completer _completer = new Completer();
@@ -510,12 +517,12 @@ class TimeoutException implements Exception {
  *       }
  *
  *       // Something calls this when the value is ready.
- *       _finishOperation(T result) {
+ *       void _finishOperation(T result) {
  *         _completer.complete(result);
  *       }
  *
  *       // If something goes wrong, call this.
- *       _errorHappened(error) {
+ *       void _errorHappened(error) {
  *         _completer.completeError(error);
  *       }
  *     }
