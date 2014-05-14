@@ -59,10 +59,10 @@ class ClassHeapStatsTestHelper {
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {
-    printf("%" Pd " ", stats->recent.new_count);
-    printf("%" Pd " ", stats->post_gc.new_count);
-    printf("%" Pd " ", stats->pre_gc.new_count);
-    printf("\n");
+    OS::Print("%" Pd " ", stats->recent.new_count);
+    OS::Print("%" Pd " ", stats->post_gc.new_count);
+    OS::Print("%" Pd " ", stats->pre_gc.new_count);
+    OS::Print("\n");
   }
 };
 

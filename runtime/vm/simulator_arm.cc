@@ -708,11 +708,11 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
       if (exclusive_access_state_[i].addr == addr) {
         result = true;
       }
-      exclusive_access_state_[i].addr = NULL;
+      exclusive_access_state_[i].addr = static_cast<uword>(NULL);
       continue;
     }
     if (exclusive_access_state_[i].addr == addr) {
-      exclusive_access_state_[i].addr = NULL;
+      exclusive_access_state_[i].addr = static_cast<uword>(NULL);
     }
   }
   return result;
@@ -724,7 +724,7 @@ void Simulator::InitOnce() {
   exclusive_access_lock_ = new Mutex();
   for (int i = 0; i < kNumAddressTags; i++) {
     exclusive_access_state_[i].isolate = NULL;
-    exclusive_access_state_[i].addr = NULL;
+    exclusive_access_state_[i].addr = static_cast<uword>(NULL);
   }
   next_address_tag_ = 0;
 }
@@ -1106,7 +1106,7 @@ void Simulator::ClearExclusive() {
   // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
   // Set exclusive access to open state for this isolate.
-  HasExclusiveAccessAndOpen(NULL);
+  HasExclusiveAccessAndOpen(static_cast<uword>(NULL));
 }
 
 
