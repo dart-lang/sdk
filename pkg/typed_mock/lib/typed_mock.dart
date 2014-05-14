@@ -3,10 +3,28 @@ library typed_mock;
 
 _InvocationMatcher _lastMatcher;
 
-
 /// Enables stubbing methods.
-/// Use it when you want the mock to return particular value when particular
-/// method is called.
+///
+/// Use it when you want the mock to return a particular value when a particular
+/// method, getter or setter is called.
+///
+///     when(obj.testProperty).thenReturn(10);
+///     expect(obj.testProperty, 10); // pass
+///
+/// You can specify multiple matchers, which are checked one after another.
+///
+///     when(obj.testMethod(anyInt)).thenReturn('was int');
+///     when(obj.testMethod(anyString)).thenReturn('was String');
+///     expect(obj.testMethod(42), 'was int'); // pass
+///     expect(obj.testMethod('foo'), 'was String'); // pass
+///
+/// You can even provide a function to calculate results.
+/// Function can be also used to capture invocation arguments (if you test some
+/// consumer).
+///
+///     when(obj.testMethod(anyInt)).thenInvoke((int p) => 10 + p);
+///     expect(obj.testMethod(1), 11); // pass
+///     expect(obj.testMethod(5), 15); // pass
 Behavior when(_ignored) {
   try {
     var mock = _lastMatcher._mock;
@@ -111,7 +129,7 @@ class _InvocationMatcher {
     for (int i = 0; i < _matchers.length; i++) {
       var matcher = _matchers[i];
       var argument = arguments[i];
-      if (!matcher.match(argument)) {
+      if (!matcher.matches(argument)) {
         return false;
       }
     }
@@ -138,6 +156,7 @@ class Behavior {
   bool _throwExceptionEnabled = false;
   var _throwException;
 
+  /// Invokes the given [function] with actual arguments and returns its result.
   Behavior thenInvoke(Function function) {
     _reset();
     _thenFunctionEnabled = true;
@@ -145,6 +164,7 @@ class Behavior {
     return this;
   }
 
+  /// Returns the specific value.
   Behavior thenReturn(value) {
     _reset();
     _returnAlwaysEnabled = true;
@@ -152,6 +172,8 @@ class Behavior {
     return this;
   }
 
+  /// Returns values from the [list] starting from first to the last.
+  /// If the end of list is reached a [StateError] is thrown.
   Behavior thenReturnList(List list) {
     _reset();
     _returnListEnabled = true;
@@ -160,6 +182,7 @@ class Behavior {
     return this;
   }
 
+  /// Throws the specified [exception] object.
   Behavior thenThrow(exception) {
     _reset();
     _throwExceptionEnabled = true;
@@ -283,6 +306,17 @@ class Verifier {
 }
 
 
+/// A class to extend mocks from.
+/// It supports specifying behavior using [when] and validation of interactions
+/// using [verify].
+///
+///     abstract class Name {
+///       String get firstName;
+///       String get lastName;
+///     }
+///     class NameMock extends TypedMock implements Name {
+///       noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+///     }
 class TypedMock {
   final Map<Symbol, List<_InvocationMatcher>> _matchersMap = {};
 
@@ -327,8 +361,11 @@ class TypedMock {
 }
 
 
+/// [ArgumentMatcher] checks whether the given argument satisfies some
+/// condition.
 abstract class ArgumentMatcher {
-  bool match(val);
+  /// Checks whether this matcher accepts the given argument.
+  bool matches(val);
 }
 
 
@@ -338,11 +375,12 @@ class _ArgumentMatcher_equals extends ArgumentMatcher {
   _ArgumentMatcher_equals(this.expected);
 
   @override
-  bool match(val) {
+  bool matches(val) {
     return val == expected;
   }
 }
 
+/// Matches an argument that is equal to the given [expected] value.
 equals(expected) {
   return new _ArgumentMatcher_equals(expected);
 }
@@ -350,39 +388,43 @@ equals(expected) {
 
 class _ArgumentMatcher_anyBool extends ArgumentMatcher {
   @override
-  bool match(val) {
+  bool matches(val) {
     return val is bool;
   }
 }
 
+/// Matches any [bool] value.
 final anyBool = new _ArgumentMatcher_anyBool();
 
 
 class _ArgumentMatcher_anyInt extends ArgumentMatcher {
   @override
-  bool match(val) {
+  bool matches(val) {
     return val is int;
   }
 }
 
+/// Matches any [int] value.
 final anyInt = new _ArgumentMatcher_anyInt();
 
 
 class _ArgumentMatcher_anyObject extends ArgumentMatcher {
   @override
-  bool match(val) {
+  bool matches(val) {
     return true;
   }
 }
 
+/// Matches any [Object] (or subclass) value.
 final anyObject = new _ArgumentMatcher_anyObject();
 
 
 class _ArgumentMatcher_anyString extends ArgumentMatcher {
   @override
-  bool match(val) {
+  bool matches(val) {
     return val is String;
   }
 }
 
+/// Matches any [String] value.
 final anyString = new _ArgumentMatcher_anyString();
