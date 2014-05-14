@@ -77,7 +77,7 @@ Element moveActive(int distance, Node ui) {
       }
     }
   } else {
-    currentEntry.scrollIntoView(ScrollAlignment.BOTTOM);
+    currentEntry.scrollIntoView();
   }
   if (serverResultCount == 0) {
     root.querySelector('.dart-server').style.display = 'none';
