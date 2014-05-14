@@ -920,10 +920,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       SetLastError(error_code);
       return -1;
     }
-    signal_handlers = new SignalInfo(write_fd, signal);
-  } else {
-    new SignalInfo(write_fd, signal, signal_handlers);
   }
+  signal_handlers = new SignalInfo(write_fd, signal, signal_handlers);
   return reinterpret_cast<intptr_t>(new FileHandle(fds[kReadHandle]));
 }
 

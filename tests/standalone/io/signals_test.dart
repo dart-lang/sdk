@@ -60,13 +60,41 @@ void testSignal(ProcessSignal signal) {
             process.kill(signal);
           }
         }, onDone: () {
-          Expect.equals('ready\ngot signal\n', output);
+          Expect.equals('ready\n$signal\n', output);
         });
       process.exitCode.then((exitCode) {
         Expect.equals(0, exitCode);
         asyncEnd();
       });
     });
+}
+
+void testMultipleSignals(List<ProcessSignal> signals) {
+  for (var signal in signals) {
+    asyncStart();
+    Process.start(Platform.executable,
+        [Platform.script.resolve('signal_test_script.dart').toFilePath()]
+            ..addAll(signals.map((s) => s.toString())))
+      .then((process) {
+        process.stdin.close();
+        process.stderr.drain();
+
+        var output = "";
+        process.stdout.transform(UTF8.decoder)
+          .listen((str) {
+            output += str;
+            if (output == 'ready\n') {
+              process.kill(signal);
+            }
+          }, onDone: () {
+            Expect.equals('ready\n$signal\n', output);
+          });
+        process.exitCode.then((exitCode) {
+          Expect.equals(0, exitCode);
+          asyncEnd();
+        });
+      });
+  }
 }
 
 
@@ -95,4 +123,12 @@ void main() {
   testSignal(ProcessSignal.SIGUSR1);
   testSignal(ProcessSignal.SIGUSR2);
   testSignal(ProcessSignal.SIGWINCH);
+
+  testMultipleSignals([
+      ProcessSignal.SIGHUP,
+      ProcessSignal.SIGINT,
+      ProcessSignal.SIGTERM,
+      ProcessSignal.SIGUSR1,
+      ProcessSignal.SIGUSR2,
+      ProcessSignal.SIGWINCH]);
 }
