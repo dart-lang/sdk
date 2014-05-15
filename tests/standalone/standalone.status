@@ -129,8 +129,7 @@ io/web_socket_test: Skip
 io/http_server_response_test: Skip
 io/http_content_length_test: Skip
 typed_data_test: Skip
-# Unimplemented
-javascript_int_overflow_test: RuntimeError
+
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
