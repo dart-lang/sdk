@@ -94,7 +94,7 @@ abstract class InteractionManager {
   //
   // Simplicity in UI is in the eye of the beholder, not the implementor. Great
   // 'natural UI' is usually achieved with substantial implementation
-  // complexity that doesn't modularise well and has nasty complicated state
+  // complexity that doesn't modularize well and has nasty complicated state
   // dependencies.
   //
   // In rare cases, some UI components can be independent of this state
@@ -489,6 +489,7 @@ class InitialState extends InteractionState {
           ..stop()
           ..reset();
       context.unitsToSave.addAll(context.modifiedUnits);
+      context.modifiedUnits.clear();
       saveUnits();
     }
     if (!settings.compilationPaused &&
