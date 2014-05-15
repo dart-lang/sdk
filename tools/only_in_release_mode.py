@@ -28,6 +28,7 @@ def Main():
   separator_index = sys.argv.index('--')
   outputs = sys.argv[1:separator_index]
   arguments = sys.argv[separator_index + 1:]
+  arguments[0] = os.path.normpath(arguments[0])
   mode = os.getenv('DART_BUILD_MODE', default='release')
   if mode != 'release':
     print >> sys.stderr, 'Not running %s in mode=%s' % (arguments, mode)
