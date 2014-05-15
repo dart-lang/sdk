@@ -9,7 +9,6 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
-import "dart:async";
 import "memory_compiler.dart";
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
@@ -59,6 +58,22 @@ void main() {
 
     Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo));
     Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
+  });
+  runTest('memory:main4.dart', (compiler) {
+    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    Expect.isNotNull(main, "Could not find 'main'");
+    compiler.deferredLoadTask.onResolutionComplete(main);
+    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+
+    var mainLib = compiler.libraries["memory:main4.dart"];
+    var lib4 = compiler.libraries["memory:lib4.dart"];
+    var lib5 = compiler.libraries["memory:lib5.dart"];
+    var lib6 = compiler.libraries["memory:lib6.dart"];
+    var foo5 = lib5.find("foo");
+    var foo6 = lib6.find("foo");
+
+    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo5));
+    Expect.equals(outputUnitForElement(foo5), outputUnitForElement(foo6));
   });
 }
 
@@ -145,5 +160,35 @@ import "dart:mirrors";
 foo() {
   currentMirrorSystem().findLibrary(#main3);
 }
+""",
+// Check that exports and imports are handled correctly with mirrors.
+"main4.dart": """
+library main3;
+
+@MirrorsUsed(targets: const ["lib5.foo","lib6.foo"])
+import "dart:mirrors";
+
+import "lib4.dart" deferred as lib;
+
+void main() {
+  lib.loadLibrary().then((_) {
+    currentMirrorSystem().findLibrary(#lib5);
+  });
+}
+""",
+"lib4.dart": """
+import "lib5.dart";
+export "lib6.dart";
+
+""",
+"lib5.dart": """
+library lib5;
+
+foo() {}
+""",
+"lib6.dart": """
+library lib6;
+
+foo() {}
 """,
 };

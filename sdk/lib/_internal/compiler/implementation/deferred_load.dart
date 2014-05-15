@@ -10,7 +10,6 @@ import 'dart2jslib.dart' show
     CompilerTask,
     Constant,
     ConstructedConstant,
-    LibraryLoaderTask,
     MessageKind,
     StringConstant,
     invariant;
@@ -46,6 +45,7 @@ import 'tree/tree.dart' show
     Node,
     NewExpression,
     Import,
+    LibraryDependency,
     LiteralString,
     LiteralDartString;
 
@@ -374,18 +374,28 @@ class DeferredLoadTask extends CompilerTask {
     void traverseLibrary(LibraryElement library) {
       if (result.contains(library)) return;
       result.add(library);
-      // TODO(sigurdm): Make helper getLibraryImportTags when tags is changed to
-      // be a List instead of a Link.
-      for (LibraryTag tag in library.tags) {
-        if (tag is! Import) continue;
-        Import import = tag;
-        if (!_isImportDeferred(import)) {
-          LibraryElement importedLibrary = library.getLibraryFromTag(tag);
-          traverseLibrary(importedLibrary);
+
+      iterateTags(LibraryElement library) {
+        // TODO(sigurdm): Make helper getLibraryDependencyTags when tags is
+        // changed to be a List instead of a Link.
+        for (LibraryTag tag in library.tags) {
+          if (tag is! LibraryDependency) continue;
+          LibraryDependency libraryDependency = tag;
+          if (!(libraryDependency is Import
+              && _isImportDeferred(libraryDependency))) {
+            LibraryElement importedLibrary = library.getLibraryFromTag(tag);
+            traverseLibrary(importedLibrary);
+          }
         }
+      }
+
+      iterateTags(library);
+      if (library.isPatched) {
+        iterateTags(library.implementation);
       }
     }
     traverseLibrary(root);
+    result.add(compiler.coreLibrary);
     return result;
   }
 
@@ -440,21 +450,12 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
 
-    Set<LibraryElement> seenLibraries = new Set<LibraryElement>();
-
     // For each deferred import we analyze all elements reachable from the
     // imported library through non-deferred imports.
     handleLibrary(LibraryElement library, Import deferredImport) {
-      seenLibraries.add(library);
-
-      library.forEachLocalMember((Element element) {
+      library.implementation.forEachLocalMember((Element element) {
         mapDependenciesIfResolved(element, deferredImport);
       });
-      if (library.isPatched) {
-        library.implementation.forEachLocalMember((Element element) {
-          mapDependenciesIfResolved(element, deferredImport);
-        });
-      }
 
       for (MetadataAnnotation metadata in library.metadata) {
         Constant constant =
@@ -481,15 +482,6 @@ class DeferredLoadTask extends CompilerTask {
       for (LibraryElement library in
           _nonDeferredReachableLibraries(deferredLibrary)) {
         handleLibrary(library, deferredImport);
-      }
-    }
-
-    // A number of libraries are never imported explicitly - they belong to the
-    // main output unit.
-    LibraryLoaderTask loader = compiler.libraryLoader;
-    for (LibraryElement library in loader.libraryNames.values) {
-      if (!seenLibraries.contains(library)) {
-        handleLibrary(library, _fakeMainImport);
       }
     }
   }
