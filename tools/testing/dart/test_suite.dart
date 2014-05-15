@@ -1397,7 +1397,8 @@ class StandardTestSuite extends TestSuite {
 
     if ((configuration["compiler"] == "dartanalyzer" ||
         configuration["compiler"] == "dart2analyzer") &&
-        filePath.filename.contains("dart2js")) {
+        (filePath.filename.contains("dart2js") ||
+        filePath.directoryPath.segments().last.contains('html_common'))) {
       args.add("--use-dart2js-libraries");
     }
 
