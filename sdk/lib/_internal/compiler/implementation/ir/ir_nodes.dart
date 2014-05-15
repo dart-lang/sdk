@@ -9,7 +9,6 @@ library dart2js.ir_nodes;
 import '../dart2jslib.dart' as dart2js show Constant;
 import '../elements/elements.dart'
     show FunctionElement, LibraryElement, ParameterElement, ClassElement;
-import 'ir_pickler.dart' show Pickler, IrConstantPool;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 
@@ -273,10 +272,6 @@ class FunctionDefinition extends Node {
   final Expression body;
 
   FunctionDefinition(this.returnContinuation, this.parameters, this.body);
-
-  List<int> pickle(IrConstantPool constantPool) {
-    return new Pickler(constantPool).pickle(this);
-  }
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }

@@ -12,7 +12,6 @@ import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
-import 'ir_pickler.dart' show Unpickler, IrConstantPool;
 import '../universe/universe.dart' show SelectorKind;
 
 /**
@@ -74,14 +73,6 @@ class IrBuilderTask extends CompilerTask {
           }
 
           if (function != null) {
-            assert(() {
-              // In host-checked mode, serialize and de-serialize the IrNode.
-              LibraryElement library = element.declaration.library;
-              IrConstantPool constantPool = IrConstantPool.forLibrary(library);
-              List<int> data = function.pickle(constantPool);
-              function = new Unpickler(compiler, constantPool).unpickle(data);
-              return true;
-            });
             nodes[element] = function;
             compiler.tracer.traceCompilation(element.name, null, compiler);
             compiler.tracer.traceGraph("IR Builder", function);
