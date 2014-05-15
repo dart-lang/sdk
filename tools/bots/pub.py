@@ -36,7 +36,6 @@ def PubConfig(name, is_buildbot):
   return bot.BuildInfo('none', 'vm', mode, system, checked=True,
                        builder_tag=locale)
 
-
 def PubSteps(build_info):
   with bot.BuildStep('Build package-root'):
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
@@ -47,7 +46,8 @@ def PubSteps(build_info):
   common_args = ['--write-test-outcome-log']
   if build_info.builder_tag:
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
-                
+
+
   # Pub tests currently have a lot of timeouts when run in debug mode.
   # See issue 18479
   if build_info.mode == 'release':
@@ -56,7 +56,6 @@ def PubSteps(build_info):
   else:
     bot.RunTest('pub', build_info,
                 common_args + ['pkg', 'docs'])
-    
 
   if build_info.mode == 'release':
     pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
@@ -64,8 +63,14 @@ def PubSteps(build_info):
     bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
         common_args + ['--append_logs', '--use-repository-packages',
                        'pkgbuild'])
-    bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info,
-        common_args + ['--append_logs', '--use-public-packages', 'pkgbuild'])
+
+    # We are seeing issues with pub get calls on the windows bots.
+    # Experiment with not running concurrent calls.
+    public_args = (common_args +
+                   ['--append_logs', '--use-public-packages', 'pkgbuild'])
+    if build_info.system == 'windows':
+      public_args.append('-j1')
+    bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)
