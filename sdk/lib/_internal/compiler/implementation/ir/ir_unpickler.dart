@@ -250,9 +250,11 @@ class Unpickler {
   ir.InvokeConstructor readInvokeConstructor() {
     types.GenericType type = readDartType();
     FunctionElement target = readElement();
+    Selector selector = readSelector();
     ir.Continuation continuation = readBackReference();
     List<ir.Definition> arguments = readBackReferenceList();
-    return new ir.InvokeConstructor(type, target, continuation, arguments);
+    return new ir.InvokeConstructor(type, target, selector,
+                                    continuation, arguments);
   }
 
   ir.ConcatenateStrings readConcatenateStrings() {

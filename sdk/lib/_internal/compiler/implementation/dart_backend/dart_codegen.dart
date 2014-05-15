@@ -186,16 +186,27 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return emitConstant(exp.value);
   }
 
+  List<Argument> emitArguments(tree.Invoke exp) {
+    List<tree.Expression> args = exp.arguments;
+    int positionalArgumentCount = exp.selector.positionalArgumentCount;
+    List<Argument> result = new List<Argument>.generate(positionalArgumentCount,
+        (i) => visitExpression(exp.arguments[i]));
+    for (int i = 0; i < exp.selector.namedArgumentCount; ++i) {
+      result.add(new NamedArgument(exp.selector.namedArguments[i],
+          visitExpression(exp.arguments[positionalArgumentCount + i])));
+    }
+    return result;
+  }
+
   Expression visitInvokeStatic(tree.InvokeStatic exp) {
-    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    List<Argument> args = emitArguments(exp);
     return new CallStatic(null, exp.target.name, args)
                ..element = exp.target;
   }
 
   Expression visitInvokeMethod(tree.InvokeMethod exp) {
-    // TODO: Derive named arguments from selector?
     Expression receiver = visitExpression(exp.receiver);
-    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    List<Argument> args = emitArguments(exp);
     switch (exp.selector.kind) {
       case SelectorKind.CALL:
         return new CallMethod(receiver, exp.selector.name, args);
@@ -232,7 +243,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitInvokeConstructor(tree.InvokeConstructor exp) {
-    List args = exp.arguments.map(visitExpression).toList(growable:false);
+    List args = emitArguments(exp);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
     return new CallNew(emitType(exp.type), args, constructorName: name)

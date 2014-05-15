@@ -219,16 +219,30 @@ class SubexpressionVisitor extends Visitor<String, String> {
     return names.varName(node);
   }
 
+  String formatArguments(Invoke node) {
+    List<String> args = new List<String>();
+    int positionalArgumentCount = node.selector.positionalArgumentCount;
+    for (int i = 0; i < positionalArgumentCount; ++i) {
+      args.add(node.arguments[i].accept(this));
+    }
+    for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
+      String name = node.selector.namedArguments[i];
+      String arg = node.arguments[positionalArgumentCount + i].accept(this);
+      args.add("$name: $arg");
+    }
+    return args.join(', ');
+  }
+
   String visitInvokeStatic(InvokeStatic node) {
     String head = node.target.name;
-    String args = node.arguments.map((e) => e.accept(this)).join(', ');
+    String args = formatArguments(node);
     return "$head($args)";
   }
 
   String visitInvokeMethod(InvokeMethod node) {
     String receiver = node.receiver.accept(this);
     String name = node.selector.name;
-    String args = node.arguments.map((e) => e.accept(this)).join(', ');
+    String args = formatArguments(node);
     return "$receiver.$name($args)";
   }
 
@@ -239,7 +253,7 @@ class SubexpressionVisitor extends Visitor<String, String> {
     } else {
       callName = '${node.type}.${node.target.name}';
     }
-    String args = node.arguments.map(visitExpression).join(', ');
+    String args = formatArguments(node);
     return "new $callName($args)";
   }
 

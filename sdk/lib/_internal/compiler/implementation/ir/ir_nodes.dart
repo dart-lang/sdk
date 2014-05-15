@@ -100,8 +100,13 @@ class LetCont extends Expression {
   accept(Visitor visitor) => visitor.visitLetCont(this);
 }
 
+abstract class Invoke {
+  Selector get selector;
+  List<Reference> get arguments;
+}
+
 /// Invoke a static function in tail position.
-class InvokeStatic extends Expression {
+class InvokeStatic extends Expression implements Invoke {
   final FunctionElement target;
 
   /**
@@ -127,7 +132,7 @@ class InvokeStatic extends Expression {
 
 /// Invoke a method, operator, getter, setter, or index getter/setter in
 /// tail position.
-class InvokeMethod extends Expression {
+class InvokeMethod extends Expression implements Invoke {
   final Reference receiver;
   final Selector selector;
   final Reference continuation;
@@ -154,11 +159,12 @@ class InvokeMethod extends Expression {
 
 /// Non-const call to a constructor. The [target] may be a generative
 /// constructor, factory, or redirecting factory.
-class InvokeConstructor extends Expression {
+class InvokeConstructor extends Expression implements Invoke {
   final GenericType type;
   final FunctionElement target;
   final Reference continuation;
   final List<Reference> arguments;
+  final Selector selector;
 
   /// The class being instantiated. This is the same as `target.enclosingClass`
   /// and `type.element`.
@@ -169,6 +175,7 @@ class InvokeConstructor extends Expression {
 
   InvokeConstructor(this.type,
                     this.target,
+                    this.selector,
                     Continuation cont,
                     List<Definition> args)
       : continuation = new Reference(cont),
@@ -353,10 +360,23 @@ class SExpressionStringifier extends Visitor<String> {
     return '(LetCont ($cont$parameters) $contBody) $body';
   }
 
+  String formatArguments(Invoke node) {
+    int positionalArgumentCount = node.selector.positionalArgumentCount;
+    List<String> args = new List<String>();
+    args.addAll(node.arguments.getRange(0, positionalArgumentCount)
+        .map((v) => names[v.definition.toString()]));
+    for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
+      String name = node.selector.namedArguments[i];
+      Definition arg = node.arguments[positionalArgumentCount + i].definition;
+      args.add("($name: $arg)");
+    }
+    return args.join(' ');
+  }
+
   String visitInvokeStatic(InvokeStatic node) {
     String name = node.target.name;
     String cont = names[node.continuation.definition];
-    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    String args = formatArguments(node);
     return '(InvokeStatic $name $cont $args)';
   }
 
@@ -364,7 +384,7 @@ class SExpressionStringifier extends Visitor<String> {
     String name = node.selector.name;
     String rcv = names[node.receiver.definition];
     String cont = names[node.continuation.definition];
-    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    String args = formatArguments(node);
     return '(InvokeMethod $rcv $name $cont $args)';
   }
 
@@ -376,7 +396,7 @@ class SExpressionStringifier extends Visitor<String> {
       callName = '${node.type}.${node.target.name}';
     }
     String cont = names[node.continuation.definition];
-    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    String args = formatArguments(node);
     return '(InvokeConstructor $callName $cont $args)';
   }
 

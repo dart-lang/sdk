@@ -42,7 +42,7 @@ part 'ir_unpickler.dart';
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_INVOKE_METHOD) reference(receiver) selector
  *                   reference(continuation) {reference(argument)}
- *             | byte(NODE_INVOKE_CONSTRUCTOR) type element(target)
+ *             | byte(NODE_INVOKE_CONSTRUCTOR) type element(target) selector
  *                   reference(continuation) {reference(argument)}
  *             | byte(NODE_CONCATENATE_STRINGS)
  *                   reference(continuation) {reference(argument)}
@@ -432,6 +432,7 @@ class Pickler extends ir.Visitor {
     writeByte(Pickles.NODE_INVOKE_CONSTRUCTOR);
     writeDartType(node.type);
     writeElement(node.target);
+    writeSelector(node.selector);
     writeBackReference(node.continuation.definition);
     writeBackReferenceList(node.arguments.length,
                            node.arguments.map((a) => a.definition));

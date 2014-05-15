@@ -595,6 +595,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return giveup();
   }
 
+  ir.Primitive visitNamedArgument(ast.NamedArgument node) {
+    assert(isOpen);
+    return visit(node.expression);
+  }
+
   ir.Primitive visitClosureSend(ast.Send node) {
     assert(isOpen);
     return giveup();
@@ -764,8 +769,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (element == compiler.identicalFunction) giveup();
 
     Selector selector = elements.getSelector(node);
-    // TODO(lry): support named arguments
-    if (selector.namedArgumentCount != 0) return giveup();
 
     // TODO(kmillikin): support a receiver: A.m().
     if (node.receiver != null) return giveup();
@@ -846,6 +849,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.InvokeConstructor invoke = new ir.InvokeConstructor(
         type,
         element,
+        elements.getSelector(node.send),
         k,
         args);
     add(new ir.LetCont(k, invoke));

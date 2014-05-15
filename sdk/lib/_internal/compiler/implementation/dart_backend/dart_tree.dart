@@ -14,6 +14,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart';
 import '../dart_types.dart' show DartType, GenericType;
 import '../helpers/helpers.dart';
+import '../universe/universe.dart' show Selector;
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -107,15 +108,24 @@ class Variable extends Expression {
 }
 
 /**
+ * Common interface for invocations with arguments.
+ */
+abstract class Invoke {
+  List<Expression> get arguments;
+  Selector get selector;
+}
+
+/**
  * A call to a static target.
  *
  * In contrast to the CPS-based IR, the arguments can be arbitrary expressions.
  */
-class InvokeStatic extends Expression {
+class InvokeStatic extends Expression implements Invoke {
   final FunctionElement target;
   final List<Expression> arguments;
+  final Selector selector;
 
-  InvokeStatic(this.target, this.arguments);
+  InvokeStatic(this.target, this.selector, this.arguments);
 
   final bool isPure = false;
 
@@ -128,7 +138,7 @@ class InvokeStatic extends Expression {
  * In contrast to the CPS-based IR, the receiver and arguments can be
  * arbitrary expressions.
  */
-class InvokeMethod extends Expression {
+class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
   final List<Expression> arguments;
@@ -145,12 +155,13 @@ class InvokeMethod extends Expression {
 /**
  * Non-const call to a factory or generative constructor.
  */
-class InvokeConstructor extends Expression {
+class InvokeConstructor extends Expression implements Invoke {
   final GenericType type;
   final FunctionElement target;
   final List<Expression> arguments;
+  final Selector selector;
 
-  InvokeConstructor(this.type, this.target, this.arguments);
+  InvokeConstructor(this.type, this.target, this.selector, this.arguments);
 
   ClassElement get targetClass => target.enclosingElement;
 
@@ -464,7 +475,7 @@ class Builder extends ir.Visitor<Node> {
   Statement visitInvokeStatic(ir.InvokeStatic node) {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke = new InvokeStatic(node.target, arguments);
+    Expression invoke = new InvokeStatic(node.target, node.selector, arguments);
     ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       return new Return(invoke);
@@ -508,7 +519,7 @@ class Builder extends ir.Visitor<Node> {
   Statement visitInvokeConstructor(ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke =
-        new InvokeConstructor(node.type, node.target, arguments);
+        new InvokeConstructor(node.type, node.target, node.selector, arguments);
     ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       return new Return(invoke);
