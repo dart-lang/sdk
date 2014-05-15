@@ -323,6 +323,17 @@ def DeriveNativeName(interface_name, name, suffix):
         fields.append(suffix)
     return "_".join(fields)
 
+def DeriveResolverString(interface_id, operation_id, native_suffix,
+                         argument_count, type_ids):
+    type_string = \
+        "_".join(type_ids[:argument_count])
+    if native_suffix:
+        operation_id = "%s_%s" % (operation_id, native_suffix)
+    components = \
+        [interface_id, operation_id,
+         "RESOLVER_STRING", str(argument_count), type_string]
+    return "_".join(components)
+
 # FIXME(leafp) This should really go elsewhere.  I think the right thing
 # to do is to add support in the DartLibraries objects in systemhtml
 # for emitting top level code in libraries.  This can then just be a
@@ -549,14 +560,25 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, constructor_callback_cpp_name, factory_method_name,
-      argument_count=None, emit_to_native=False):
-    constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
-    if argument_count is None:
+      arguments=None, emit_to_native=False):
+
+    if arguments is None:
       argument_count = len(constructor_info.param_infos)
+    else:
+      argument_count = len(arguments)
 
     typed_formals = constructor_info.ParametersAsArgumentList(argument_count)
     parameters = constructor_info.ParametersAsStringOfVariables(argument_count)
     interface_name =  self._interface_type_info.interface_name()
+
+    if self._dart_use_blink and arguments:
+        type_ids = [p.type.id for p in arguments]
+        constructor_callback_id = \
+            DeriveResolverString(self._interface.id,
+                                 constructor_callback_cpp_name, None,
+                                 argument_count, type_ids)
+    else:
+        constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
 
     if self._dart_use_blink:
         # First we emit the toplevel function
@@ -629,9 +651,12 @@ class DartiumBackend(HtmlDartGenerator):
     return False
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
-    constructor_callback_cpp_name = name + 'constructorCallback'
+    if self._dart_use_blink:
+        constructor_callback_cpp_name = 'constructorCallback'
+    else:
+        constructor_callback_cpp_name = name + 'constructorCallback'  
     self._EmitConstructorInfrastructure(
-        constructor_info, constructor_callback_cpp_name, name, len(arguments), 
+        constructor_info, constructor_callback_cpp_name, name, arguments, 
         emit_to_native=self._dart_use_blink)
 
     ext_attrs = self._interface.ext_attrs
@@ -978,12 +1003,15 @@ class DartiumBackend(HtmlDartGenerator):
               DeriveNativeName(self._interface.id, "NativeIndexed", "Getter")
           # First emit a toplevel function to do the native call
           # Calls to this are emitted elsewhere,
+          resolver_string = \
+              DeriveResolverString(self._interface.id, "item", "Callback",
+                                   1, ["unsigned long"])
           self._native_library_emitter.Emit(
               '\n'
               '$(DART_NATIVE_NAME)(mthis, index) '
-              'native "$(INTERFACE)_item_Callback";\n',
+              'native "$(RESOLVER_STRING)";\n',
               DART_NATIVE_NAME = dart_native_name,
-              INTERFACE=self._interface.id)
+              RESOLVER_STRING=resolver_string)
 
           # Emit the method which calls the toplevel function, along with
           # the [] operator.
@@ -1108,10 +1136,20 @@ class DartiumBackend(HtmlDartGenerator):
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
       native_suffix = 'Callback'
       auto_scope_setup = self._GenerateAutoSetupScope(info.name, native_suffix)
+      if self._dart_use_blink:
+          type_ids = [argument.type.id
+                      for argument in operation.arguments[:argument_count]]
+          resolver_string = \
+              DeriveResolverString(self._interface.id, operation.id,
+                                   native_suffix, len(info.param_infos), 
+                                   type_ids)
+      else:
+          resolver_string = None
       cpp_callback_name = self._GenerateNativeBinding(
         info.name, argument_count, dart_declaration,
         info.IsStatic(), return_type, parameters,
-        native_suffix, is_custom, auto_scope_setup)
+        native_suffix, is_custom, auto_scope_setup, 
+        resolver_string=resolver_string)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
@@ -1127,7 +1165,6 @@ class DartiumBackend(HtmlDartGenerator):
       native_suffix = 'Callback'
       if self._dart_use_blink:
           base_name = '_%s_%s' % (operation.id, version)
-          cpp_base_name = '%s' % operation.id
           overload_name = \
               DeriveNativeName(self._interface.id, base_name, native_suffix)
           static = True
@@ -1136,16 +1173,13 @@ class DartiumBackend(HtmlDartGenerator):
           actuals_s = ", ".join(actuals)
           dart_declaration = '%s(%s)' % (
             base_name, actuals_s)
-          type_string = \
-              "_".join([argument.type.id
-                        for argument in operation.arguments[:argument_count]])
-          components = \
-              [self._interface.id, cpp_base_name, native_suffix,
-               str(argument_count), type_string]
-          resolver_string = "_".join(components)
+          type_ids = [argument.type.id
+                      for argument in operation.arguments[:argument_count]]
+          resolver_string = \
+              DeriveResolverString(self._interface.id, operation.id,
+                                   native_suffix, argument_count, type_ids)
       else:
           base_name = '_%s_%s' % (operation.id, version)
-          cpp_base_name = base_name
           overload_name = base_name
           static = operation.is_static
           actuals_s = ", ".join(actuals)
