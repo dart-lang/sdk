@@ -559,8 +559,10 @@ class DartiumBackend(HtmlDartGenerator):
         INTERFACE_NAME=self._interface.id);
 
   def _EmitConstructorInfrastructure(self,
-      constructor_info, constructor_callback_cpp_name, factory_method_name,
+      constructor_info, cpp_prefix, cpp_suffix, factory_method_name,
       arguments=None, emit_to_native=False):
+
+    constructor_callback_cpp_name = cpp_prefix + cpp_suffix
 
     if arguments is None:
       argument_count = len(constructor_info.param_infos)
@@ -575,7 +577,7 @@ class DartiumBackend(HtmlDartGenerator):
         type_ids = [p.type.id for p in arguments]
         constructor_callback_id = \
             DeriveResolverString(self._interface.id,
-                                 constructor_callback_cpp_name, None,
+                                 cpp_suffix, None,
                                  argument_count, type_ids)
     else:
         constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
@@ -638,7 +640,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     constructor_callback_cpp_name = 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, constructor_callback_cpp_name, '_create')
+        constructor_info, "", constructor_callback_cpp_name, '_create')
 
     self._cpp_declarations_emitter.Emit(
         '\n'
@@ -651,12 +653,9 @@ class DartiumBackend(HtmlDartGenerator):
     return False
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
-    if self._dart_use_blink:
-        constructor_callback_cpp_name = 'constructorCallback'
-    else:
-        constructor_callback_cpp_name = name + 'constructorCallback'  
+    constructor_callback_cpp_name = name + 'constructorCallback'  
     self._EmitConstructorInfrastructure(
-        constructor_info, constructor_callback_cpp_name, name, arguments, 
+        constructor_info, name, 'constructorCallback', name, arguments, 
         emit_to_native=self._dart_use_blink)
 
     ext_attrs = self._interface.ext_attrs

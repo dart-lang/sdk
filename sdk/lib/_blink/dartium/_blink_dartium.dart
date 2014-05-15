@@ -145,11 +145,11 @@ Native_Animation_Animation(target, keyframes, timingInput) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Animation_constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_Dictionary";
+Native_Animation__create_1constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_Dictionary";
 
-Native_Animation_constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_double";
+Native_Animation__create_2constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_double";
 
-Native_Animation_constructorCallback(target, keyframes) native "Animation_constructorCallback_RESOLVER_STRING_2_Element_sequence<Dictionary>";
+Native_Animation__create_3constructorCallback(target, keyframes) native "Animation_constructorCallback_RESOLVER_STRING_2_Element_sequence<Dictionary>";
 
 Native_ApplicationCache_status_Getter(mthis) native "ApplicationCache_status_Getter";
 
@@ -302,7 +302,7 @@ Native_AudioContext_AudioContext() {
     return Native_AudioContext__create_1constructorCallback();
   }
 
-Native_AudioContext_constructorCallback() native "AudioContext_constructorCallback";
+Native_AudioContext__create_1constructorCallback() native "AudioContext__create_1constructorCallback";
 
 Native_AudioContext_activeSourceCount_Getter(mthis) native "AudioContext_activeSourceCount_Getter";
 
@@ -1159,7 +1159,7 @@ Native_Comment_Comment(data) {
     return Native_Comment__create_1constructorCallback(data);
   }
 
-Native_Comment_constructorCallback(data) native "Comment_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_Comment__create_1constructorCallback(data) native "Comment_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_UIEvent_charCode_Getter(mthis) native "UIEvent_charCode_Getter";
 
@@ -1296,7 +1296,7 @@ Native_DOMParser_DomParser() {
     return Native_DOMParser__create_1constructorCallback();
   }
 
-Native_DOMParser_constructorCallback() native "DOMParser_constructorCallback";
+Native_DOMParser__create_1constructorCallback() native "DOMParser__create_1constructorCallback";
 
 Native_DOMParser_parseFromString_Callback(mthis, str, contentType) native "DOMParser_parseFromString_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
@@ -1969,7 +1969,7 @@ Native_EventSource_EventSource(url, eventSourceInit) {
     return Native_EventSource__create_1constructorCallback(url, eventSourceInit);
   }
 
-Native_EventSource_constructorCallback(url, eventSourceInit) native "EventSource_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
+Native_EventSource__create_1constructorCallback(url, eventSourceInit) native "EventSource_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
 
 Native_EventSource_readyState_Getter(mthis) native "EventSource_readyState_Getter";
 
@@ -2004,7 +2004,7 @@ Native_FileReader_FileReader() {
     return Native_FileReader__create_1constructorCallback();
   }
 
-Native_FileReader_constructorCallback() native "FileReader_constructorCallback";
+Native_FileReader__create_1constructorCallback() native "FileReader__create_1constructorCallback";
 
 Native_FileReader_error_Getter(mthis) native "FileReader_error_Getter";
 
@@ -2037,7 +2037,7 @@ Native_FileReaderSync__FileReaderSync() {
     return Native_FileReaderSync__create_1constructorCallback();
   }
 
-Native_FileReaderSync_constructorCallback() native "FileReaderSync_constructorCallback";
+Native_FileReaderSync__create_1constructorCallback() native "FileReaderSync__create_1constructorCallback";
 
 Native_FileWriter_error_Getter(mthis) native "FileWriter_error_Getter";
 
@@ -2062,7 +2062,7 @@ Native_FontFace_FontFace(family, source, descriptors) {
     return Native_FontFace__create_1constructorCallback(family, source, descriptors);
   }
 
-Native_FontFace_constructorCallback(family, source, descriptors) native "FontFace_constructorCallback_RESOLVER_STRING_3_DOMString_DOMString_Dictionary";
+Native_FontFace__create_1constructorCallback(family, source, descriptors) native "FontFace_constructorCallback_RESOLVER_STRING_3_DOMString_DOMString_Dictionary";
 
 Native_FontFace_family_Getter(mthis) native "FontFace_family_Getter";
 
@@ -2522,7 +2522,7 @@ Native_HTMLAudioElement_AudioElement(src) {
     return Native_HTMLAudioElement__create_1constructorCallback(src);
   }
 
-Native_HTMLAudioElement_constructorCallback(src) native "HTMLAudioElement_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_HTMLAudioElement__create_1constructorCallback(src) native "HTMLAudioElement_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_HTMLBaseElement_href_Getter(mthis) native "HTMLBaseElement_href_Getter";
 
@@ -3248,7 +3248,7 @@ Native_HTMLOptionElement_OptionElement__(data, value, defaultSelected, selected)
     return Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected);
   }
 
-Native_HTMLOptionElement_constructorCallback(data, value, defaultSelected, selected) native "HTMLOptionElement_constructorCallback_RESOLVER_STRING_4_DOMString_DOMString_boolean_boolean";
+Native_HTMLOptionElement__create_1constructorCallback(data, value, defaultSelected, selected) native "HTMLOptionElement_constructorCallback_RESOLVER_STRING_4_DOMString_DOMString_boolean_boolean";
 
 Native_HTMLOptionElement_defaultSelected_Getter(mthis) native "HTMLOptionElement_defaultSelected_Getter";
 
@@ -4037,7 +4037,7 @@ Native_MediaController_MediaController() {
     return Native_MediaController__create_1constructorCallback();
   }
 
-Native_MediaController_constructorCallback() native "MediaController_constructorCallback";
+Native_MediaController__create_1constructorCallback() native "MediaController__create_1constructorCallback";
 
 Native_MediaController_buffered_Getter(mthis) native "MediaController_buffered_Getter";
 
@@ -4122,7 +4122,7 @@ Native_MediaKeys_MediaKeys(keySystem) {
     return Native_MediaKeys__create_1constructorCallback(keySystem);
   }
 
-Native_MediaKeys_constructorCallback(keySystem) native "MediaKeys_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_MediaKeys__create_1constructorCallback(keySystem) native "MediaKeys_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_MediaKeys_keySystem_Getter(mthis) native "MediaKeys_keySystem_Getter";
 
@@ -4149,7 +4149,7 @@ Native_MediaSource_MediaSource() {
     return Native_MediaSource__create_1constructorCallback();
   }
 
-Native_MediaSource_constructorCallback() native "MediaSource_constructorCallback";
+Native_MediaSource__create_1constructorCallback() native "MediaSource__create_1constructorCallback";
 
 Native_MediaSource_activeSourceBuffers_Getter(mthis) native "MediaSource_activeSourceBuffers_Getter";
 
@@ -4195,11 +4195,11 @@ Native_MediaStream_MediaStream(stream_OR_tracks) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_MediaStream_constructorCallback() native "MediaStream_constructorCallback";
+Native_MediaStream__create_1constructorCallback() native "MediaStream__create_1constructorCallback";
 
-Native_MediaStream_constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStream";
+Native_MediaStream__create_2constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStream";
 
-Native_MediaStream_constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStreamTrack[]";
+Native_MediaStream__create_3constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStreamTrack[]";
 
 Native_MediaStream_ended_Getter(mthis) native "MediaStream_ended_Getter";
 
@@ -4472,7 +4472,7 @@ Native_Notification_Notification(title, options) {
     return Native_Notification__create_1constructorCallback(title, options);
   }
 
-Native_Notification_constructorCallback(title, options) native "Notification_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
+Native_Notification__create_1constructorCallback(title, options) native "Notification_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
 
 Native_Notification_body_Getter(mthis) native "Notification_body_Getter";
 
@@ -4507,7 +4507,7 @@ Native_OfflineAudioContext_OfflineAudioContext(numberOfChannels, numberOfFrames,
     return Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
   }
 
-Native_OfflineAudioContext_constructorCallback(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext_constructorCallback_RESOLVER_STRING_3_unsigned long_unsigned long_float";
+Native_OfflineAudioContext__create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext_constructorCallback_RESOLVER_STRING_3_unsigned long_unsigned long_float";
 
 Native_OscillatorNode_detune_Getter(mthis) native "OscillatorNode_detune_Getter";
 
@@ -4613,11 +4613,11 @@ Native_Path_Path(path_OR_text) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Path_constructorCallback() native "Path_constructorCallback";
+Native_Path__create_1constructorCallback() native "Path__create_1constructorCallback";
 
-Native_Path_constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_Path";
+Native_Path__create_2constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_Path";
 
-Native_Path_constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_Path__create_3constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_Path_arc_Callback(mthis, x, y, radius, startAngle, endAngle, anticlockwise) native "Path_arc_Callback_RESOLVER_STRING_6_float_float_float_float_float_boolean";
 
@@ -4915,7 +4915,7 @@ Native_RTCIceCandidate_RtcIceCandidate(dictionary) {
     return Native_RTCIceCandidate__create_1constructorCallback(dictionary);
   }
 
-Native_RTCIceCandidate_constructorCallback(dictionary) native "RTCIceCandidate_constructorCallback_RESOLVER_STRING_1_Dictionary";
+Native_RTCIceCandidate__create_1constructorCallback(dictionary) native "RTCIceCandidate_constructorCallback_RESOLVER_STRING_1_Dictionary";
 
 Native_RTCIceCandidate_candidate_Getter(mthis) native "RTCIceCandidate_candidate_Getter";
 
@@ -4930,7 +4930,7 @@ Native_RTCPeerConnection_RtcPeerConnection(rtcIceServers, mediaConstraints) {
     return Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints);
   }
 
-Native_RTCPeerConnection_constructorCallback(rtcIceServers, mediaConstraints) native "RTCPeerConnection_constructorCallback_RESOLVER_STRING_2_Dictionary_Dictionary";
+Native_RTCPeerConnection__create_1constructorCallback(rtcIceServers, mediaConstraints) native "RTCPeerConnection_constructorCallback_RESOLVER_STRING_2_Dictionary_Dictionary";
 
 Native_RTCPeerConnection_iceConnectionState_Getter(mthis) native "RTCPeerConnection_iceConnectionState_Getter";
 
@@ -4977,7 +4977,7 @@ Native_RTCSessionDescription_RtcSessionDescription(descriptionInitDict) {
     return Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict);
   }
 
-Native_RTCSessionDescription_constructorCallback(descriptionInitDict) native "RTCSessionDescription_constructorCallback_RESOLVER_STRING_1_Dictionary";
+Native_RTCSessionDescription__create_1constructorCallback(descriptionInitDict) native "RTCSessionDescription_constructorCallback_RESOLVER_STRING_1_Dictionary";
 
 Native_RTCSessionDescription_sdp_Getter(mthis) native "RTCSessionDescription_sdp_Getter";
 
@@ -6665,7 +6665,7 @@ Native_SharedWorker_SharedWorker(scriptURL, name) {
     return Native_SharedWorker__create_1constructorCallback(scriptURL, name);
   }
 
-Native_SharedWorker_constructorCallback(scriptURL, name) native "SharedWorker_constructorCallback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_SharedWorker__create_1constructorCallback(scriptURL, name) native "SharedWorker_constructorCallback_RESOLVER_STRING_2_DOMString_DOMString";
 
 Native_SharedWorker_port_Getter(mthis) native "SharedWorker_port_Getter";
 
@@ -6734,7 +6734,7 @@ Native_SpeechGrammar_SpeechGrammar() {
     return Native_SpeechGrammar__create_1constructorCallback();
   }
 
-Native_SpeechGrammar_constructorCallback() native "SpeechGrammar_constructorCallback";
+Native_SpeechGrammar__create_1constructorCallback() native "SpeechGrammar__create_1constructorCallback";
 
 Native_SpeechGrammar_src_Getter(mthis) native "SpeechGrammar_src_Getter";
 
@@ -6749,7 +6749,7 @@ Native_SpeechGrammarList_SpeechGrammarList() {
     return Native_SpeechGrammarList__create_1constructorCallback();
   }
 
-Native_SpeechGrammarList_constructorCallback() native "SpeechGrammarList_constructorCallback";
+Native_SpeechGrammarList__create_1constructorCallback() native "SpeechGrammarList__create_1constructorCallback";
 
 Native_SpeechGrammarList_length_Getter(mthis) native "SpeechGrammarList_length_Getter";
 
@@ -6802,7 +6802,7 @@ Native_SpeechRecognition_SpeechRecognition() {
     return Native_SpeechRecognition__create_1constructorCallback();
   }
 
-Native_SpeechRecognition_constructorCallback() native "SpeechRecognition_constructorCallback";
+Native_SpeechRecognition__create_1constructorCallback() native "SpeechRecognition__create_1constructorCallback";
 
 Native_SpeechRecognition_continuous_Getter(mthis) native "SpeechRecognition_continuous_Getter";
 
@@ -6885,7 +6885,7 @@ Native_SpeechSynthesisUtterance_SpeechSynthesisUtterance(text) {
     return Native_SpeechSynthesisUtterance__create_1constructorCallback(text);
   }
 
-Native_SpeechSynthesisUtterance_constructorCallback(text) native "SpeechSynthesisUtterance_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_SpeechSynthesisUtterance__create_1constructorCallback(text) native "SpeechSynthesisUtterance_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_SpeechSynthesisUtterance_lang_Getter(mthis) native "SpeechSynthesisUtterance_lang_Getter";
 
@@ -7293,7 +7293,7 @@ Native_VTTCue_VttCue(startTime, endTime, text) {
     return Native_VTTCue__create_1constructorCallback(startTime, endTime, text);
   }
 
-Native_VTTCue_constructorCallback(startTime, endTime, text) native "VTTCue_constructorCallback_RESOLVER_STRING_3_double_double_DOMString";
+Native_VTTCue__create_1constructorCallback(startTime, endTime, text) native "VTTCue_constructorCallback_RESOLVER_STRING_3_double_double_DOMString";
 
 Native_VTTCue_align_Getter(mthis) native "VTTCue_align_Getter";
 
@@ -7334,7 +7334,7 @@ Native_VTTRegion_VttRegion() {
     return Native_VTTRegion__create_1constructorCallback();
   }
 
-Native_VTTRegion_constructorCallback() native "VTTRegion_constructorCallback";
+Native_VTTRegion__create_1constructorCallback() native "VTTRegion__create_1constructorCallback";
 
 Native_VTTRegion_height_Getter(mthis) native "VTTRegion_height_Getter";
 
@@ -7875,14 +7875,14 @@ Native_WebKitCSSMatrix__WebKitCSSMatrix(cssValue) {
     return Native_WebKitCSSMatrix__create_1constructorCallback(cssValue);
   }
 
-Native_WebKitCSSMatrix_constructorCallback(cssValue) native "WebKitCSSMatrix_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_WebKitCSSMatrix__create_1constructorCallback(cssValue) native "WebKitCSSMatrix_constructorCallback_RESOLVER_STRING_1_DOMString";
 
   // Generated overload resolver
 Native_WebKitMediaSource__WebKitMediaSource() {
     return Native_WebKitMediaSource__create_1constructorCallback();
   }
 
-Native_WebKitMediaSource_constructorCallback() native "WebKitMediaSource_constructorCallback";
+Native_WebKitMediaSource__create_1constructorCallback() native "WebKitMediaSource__create_1constructorCallback";
 
 Native_WebKitPoint_constructorCallback(x, y) native "WebKitPoint_constructorCallback";
 
@@ -7910,11 +7910,11 @@ Native_WebSocket_WebSocket(url, protocol_OR_protocols) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_WebSocket_constructorCallback(url) native "WebSocket_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_WebSocket__create_1constructorCallback(url) native "WebSocket_constructorCallback_RESOLVER_STRING_1_DOMString";
 
-Native_WebSocket_constructorCallback(url, protocol_OR_protocols) native "WebSocket_constructorCallback_RESOLVER_STRING_2_DOMString_sequence<DOMString>";
+Native_WebSocket__create_2constructorCallback(url, protocol_OR_protocols) native "WebSocket_constructorCallback_RESOLVER_STRING_2_DOMString_sequence<DOMString>";
 
-Native_WebSocket_constructorCallback(url, protocol_OR_protocols) native "WebSocket_constructorCallback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_WebSocket__create_3constructorCallback(url, protocol_OR_protocols) native "WebSocket_constructorCallback_RESOLVER_STRING_2_DOMString_DOMString";
 
 Native_WebSocket_binaryType_Getter(mthis) native "WebSocket_binaryType_Getter";
 
@@ -8164,7 +8164,7 @@ Native_Worker_Worker(scriptUrl) {
     return Native_Worker__create_1constructorCallback(scriptUrl);
   }
 
-Native_Worker_constructorCallback(scriptUrl) native "Worker_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_Worker__create_1constructorCallback(scriptUrl) native "Worker_constructorCallback_RESOLVER_STRING_1_DOMString";
 
 Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback_RESOLVER_STRING_2_SerializedScriptValue_MessagePort[]";
 
@@ -8221,7 +8221,7 @@ Native_XMLSerializer_XmlSerializer() {
     return Native_XMLSerializer__create_1constructorCallback();
   }
 
-Native_XMLSerializer_constructorCallback() native "XMLSerializer_constructorCallback";
+Native_XMLSerializer__create_1constructorCallback() native "XMLSerializer__create_1constructorCallback";
 
 Native_XMLSerializer_serializeToString_Callback(mthis, node) native "XMLSerializer_serializeToString_Callback_RESOLVER_STRING_1_Node";
 
@@ -8230,7 +8230,7 @@ Native_XPathEvaluator_XPathEvaluator() {
     return Native_XPathEvaluator__create_1constructorCallback();
   }
 
-Native_XPathEvaluator_constructorCallback() native "XPathEvaluator_constructorCallback";
+Native_XPathEvaluator__create_1constructorCallback() native "XPathEvaluator__create_1constructorCallback";
 
 Native_XPathEvaluator_createExpression_Callback(mthis, expression, resolver) native "XPathEvaluator_createExpression_Callback_RESOLVER_STRING_2_DOMString_XPathNSResolver";
 
@@ -8265,7 +8265,7 @@ Native_XSLTProcessor_XsltProcessor() {
     return Native_XSLTProcessor__create_1constructorCallback();
   }
 
-Native_XSLTProcessor_constructorCallback() native "XSLTProcessor_constructorCallback";
+Native_XSLTProcessor__create_1constructorCallback() native "XSLTProcessor__create_1constructorCallback";
 
 Native_XSLTProcessor_clearParameters_Callback(mthis) native "XSLTProcessor_clearParameters_Callback_RESOLVER_STRING_0_";
 
