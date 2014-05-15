@@ -1940,6 +1940,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// TODO(srdjan): In case of constant inputs make CreateArray kNoCall and
+// use slow path stub.
 LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1952,15 +1954,115 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = R10;
+  const Register kElemTypeReg = RBX;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+  __ movq(RCX, RAX);
+
+  __ addq(RCX, Immediate(kArraySize));
+  __ j(CARRY, slow_path);
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, slow_path);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+  __ movq(R13, Immediate(kArraySize));
+  __ UpdateAllocationStatsWithSize(kArrayCid, R13);
+
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(tags));
+  }
+
+  // RAX: new object start as a tagged pointer.
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::length_offset()),
+                              kLengthReg);
+
+  // Initialize all array elements to raw_null.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpq(RDI, RCX);
+  __ j(ABOVE_EQUAL, done, Assembler::kNearJump);
+  __ movq(Address(RDI, 0), R12);
+  __ addq(RDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
-  ASSERT(locs()->in(0).reg() == RBX);
-  ASSERT(locs()->in(1).reg() == R10);
+  const Register kLengthReg = R10;
+  const Register kElemTypeReg = RBX;
+  const Register kResultReg = RAX;
+  ASSERT(locs()->in(0).reg() == kElemTypeReg);
+  ASSERT(locs()->in(1).reg() == kLengthReg);
+
+  Label slow_path, done;
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+      __ pushq(kLengthReg);
+      __ pushq(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ popq(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
+  __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == RAX);
+  __ Bind(&done);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 

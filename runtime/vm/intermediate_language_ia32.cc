@@ -2058,6 +2058,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// TODO(srdjan): In case of constant inputs make CreateArray kNoCall and
+// use slow path stub.
 LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -2070,15 +2072,110 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = EDX;
+  const Register kElemTypeReg = ECX;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  __ movl(EBX, EAX);
+
+  __ addl(EBX, Immediate(kArraySize));
+  __ j(CARRY, slow_path);
+
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new object start.
+  // EBX: potential next object start.
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ j(ABOVE_EQUAL, slow_path);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, kArraySize, kNoRegister);
+
+  // Initialize the tags.
+  // EAX: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(tags));
+  }
+
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::length_offset()),
+                              kLengthReg);
+
+  // Initialize all array elements to raw_null.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpl(EDI, EBX);
+  __ j(ABOVE_EQUAL, done, Assembler::kNearJump);
+  __ movl(Address(EDI, 0), raw_null);
+  __ addl(EDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  EDX = length, ECX = element type.
-  ASSERT(locs()->in(0).reg() == ECX);
-  ASSERT(locs()->in(1).reg() == EDX);
+  const Register kLengthReg = EDX;
+  const Register kElemTypeReg = ECX;
+  const Register kResultReg = EAX;
+  ASSERT(locs()->in(0).reg() == kElemTypeReg);
+  ASSERT(locs()->in(1).reg() == kLengthReg);
+
+  Label slow_path, done;
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
+      __ pushl(kLengthReg);
+      __ pushl(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ popl(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
+  __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == EAX);
+  __ Bind(&done);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 

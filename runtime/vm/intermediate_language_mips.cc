@@ -2056,16 +2056,117 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = A1;
+  const Register kElemTypeReg = A0;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ LoadImmediate(T3, heap->TopAddress());
+  __ lw(V0, Address(T3, 0));  // Potential new object start.
+  // Potential next object start.
+  __ AddImmediateDetectOverflow(T1, V0, kArraySize, CMPRES1);
+  __ bltz(CMPRES1, slow_path);  // CMPRES1 < 0 on overflow.
+
+  // Check if the allocation fits into the remaining space.
+  // V0: potential new object start.
+  // T1: potential next object start.
+  __ LoadImmediate(T4, heap->EndAddress());
+  __ lw(T4, Address(T4, 0));
+  __ BranchUnsignedGreaterEqual(T1, T4, slow_path);
+
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ sw(T1, Address(T3, 0));
+  __ addiu(V0, V0, Immediate(kHeapObjectTag));
+  __ LoadImmediate(T2, kArraySize);
+  __ UpdateAllocationStatsWithSize(kArrayCid, T2, T4);
+
+  // Initialize the tags.
+  // V0: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ LoadImmediate(T2, tags);
+    __ sw(T2, FieldAddress(V0, Array::tags_offset()));  // Store tags.
+  }
+  // V0: new object start as a tagged pointer.
+  // T1: new object end address.
+
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(V0,
+                              FieldAddress(V0, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(V0,
+                              FieldAddress(V0, Array::length_offset()),
+                              kLengthReg);
+
+  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+  // Initialize all array elements to raw_null.
+  // V0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // T2: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // T7: null.
+  __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
+
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ BranchUnsignedGreaterEqual(T2, T1, done);
+  __ sw(T7, Address(T2, 0));
+  __ b(&init_loop);
+  __ delay_slot()->addiu(T2, T2, Immediate(kWordSize));
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("CreateArrayInstr");
-  // Allocate the array.  A1 = length, A0 = element type.
-  ASSERT(locs()->in(0).reg() == A0);
-  ASSERT(locs()->in(1).reg() == A1);
+  const Register kLengthReg = A1;
+  const Register kElemTypeReg = A0;
+  const Register kResultReg = V0;
+  ASSERT(locs()->in(0).reg() == kElemTypeReg);
+  ASSERT(locs()->in(1).reg() == kLengthReg);
+
+  Label slow_path, done;
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
+      __ Push(kLengthReg);  // length.
+      __ Push(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ Pop(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
+  __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == V0);
+  __ Bind(&done);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 

@@ -202,6 +202,7 @@ class Range;
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
   V(_List, [], ObjectArrayGetIndexed, 675155875)                               \
   V(_List, []=, ObjectArraySetIndexed, 1228569706)                             \
+  V(_List, get:isEmpty, ObjectArrayIsEmpty, 1082804442)                        \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 1768793932)                  \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1282104248)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 807019110)                    \
@@ -4382,7 +4383,7 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  // TODO(srdjan): return false if length is a positive Smi.
+  // OutOfMemoryError can be called.
   virtual bool MayThrow() const { return true; }
 
   virtual AliasIdentity Identity() const { return identity_; }
