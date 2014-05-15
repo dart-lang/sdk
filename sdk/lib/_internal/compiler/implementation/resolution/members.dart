@@ -1810,11 +1810,7 @@ class TypeResolver {
         compiler.internalError(node,
             "Unexpected element kind ${element.kind}.");
       }
-      // TODO(johnniwinther): We should not resolve type annotations after the
-      // resolution queue has been closed. Currently the dart backend does so.
-      // Remove the guarded when this is fixed.
-      if (!compiler.enqueuer.resolution.queueIsClosed &&
-          addTypeVariableBoundsCheck) {
+      if (addTypeVariableBoundsCheck) {
         visitor.addDeferredAction(
             visitor.enclosingElement,
             () => checkTypeVariableBounds(visitor.mapping, node, type));
