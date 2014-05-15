@@ -59,6 +59,12 @@ class TrySelection {
     globalOffset = computeGlobalOffset(root, anchorNode, anchorOffset);
   }
 
+  TrySelection copyWithRoot(Node root) {
+    return new TrySelection.empty(root)
+        ..anchorNode = anchorNode
+        ..anchorOffset = anchorOffset;
+  }
+
   /// Computes the global offset, that is, the offset from [root].
   static int computeGlobalOffset(Node root, Node anchorNode, int anchorOffset) {
     if (anchorOffset == -1) return -1;

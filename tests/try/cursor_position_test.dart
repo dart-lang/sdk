@@ -11,15 +11,36 @@ import 'test_try.dart';
 void main() {
   InteractionManager interaction = mockTryDartInteraction();
 
-  runTests(<TestCase>[
+  TestCase twoLines =
+      new TestCase('Test adding two lines programmatically.', () {
+        clearEditorPaneWithoutNotifications();
+        mainEditorPane.appendText('\n\n');
+        Text text = mainEditorPane.firstChild;
+        window.getSelection().collapse(text, 1);
+        checkSelectionIsCollapsed(text, 1);
+      }, checkAtBeginningOfSecondLine);
 
-    new TestCase('Test adding two lines programmatically.', () {
-      clearEditorPaneWithoutNotifications();
-      mainEditorPane.appendText('\n\n');
-      Text text = mainEditorPane.firstChild;
-      window.getSelection().collapse(text, 1);
-      checkSelectionIsCollapsed(text, 1);
-    }, checkAtBeginningOfSecondLine),
+  runTests(<TestCase>[
+    twoLines,
+
+    new TestCase('Test adding a new text node.', () {
+      // This test relies on the previous test leaving two lines.
+      Text text = new Text('fisk');
+      window.getSelection().getRangeAt(0).insertNode(text);
+      window.getSelection().collapse(text, text.length);
+      checkSelectionIsCollapsed(text, text.length);
+    }, checkAtEndOfSecondLineWithFisk),
+
+    twoLines,
+
+    new TestCase('Test adding a new wrapped text node.', () {
+      // This test relies on the previous test leaving two lines.
+      Text text = new Text('fisk');
+      Node node = new SpanElement()..append(text);
+      window.getSelection().getRangeAt(0).insertNode(node);
+      window.getSelection().collapse(text, text.length);
+      checkSelectionIsCollapsed(text, text.length);
+    }, checkAtEndOfSecondLineWithFisk),
 
     new TestCase('Test adding a new line with mock key event.', () {
       clearEditorPaneWithoutNotifications();
@@ -51,6 +72,17 @@ void checkLineCount(int expectedLineCount) {
 void checkAtBeginningOfSecondLine() {
   checkLineCount(2);
   checkSelectionIsCollapsed(mainEditorPane.nodes[1].firstChild, 0);
+}
+
+void checkAtEndOfSecondLineWithFisk() {
+  checkLineCount(2);
+  SpanElement secondLine = mainEditorPane.nodes[1];
+  Text text = secondLine.firstChild.firstChild;
+  Expect.stringEquals('fisk', text.text);
+  Expect.equals(4, text.length);
+  Text newline = secondLine.firstChild.nextNode;
+  Expect.equals(newline, secondLine.lastChild);
+  checkSelectionIsCollapsed(newline, 0);
 }
 
 class MockKeyboardEvent extends KeyEvent {

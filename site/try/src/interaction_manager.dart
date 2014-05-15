@@ -320,7 +320,7 @@ class InitialState extends InteractionState {
 
         String currentText = node.text;
 
-        trySelection = new TrySelection(node, selection);
+        trySelection = trySelection.copyWithRoot(node);
         trySelection.updateText(currentText);
 
         editor.isMalformedInput = false;
@@ -920,11 +920,12 @@ void normalizeMutationRecord(MutationRecord record,
                              Set<Node> normalizedNodes) {
   for (Node node in record.addedNodes) {
     if (node.parent == null) continue;
+    normalizedNodes.add(findLine(node));
+    if (node is Text) continue;
     StringBuffer buffer = new StringBuffer();
     int selectionOffset = htmlToText(node, buffer, selection);
     Text newNode = new Text('$buffer');
     node.replaceWith(newNode);
-    normalizedNodes.add(findLine(newNode));
     if (selectionOffset != -1) {
       selection.anchorNode = newNode;
       selection.anchorOffset = selectionOffset;
