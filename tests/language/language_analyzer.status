@@ -448,12 +448,6 @@ map_literal1_test/01: CompileTimeError # Issue 16391
 deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
 deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 
-# Issue 18562- 'is', 'as' and 'catch' aren't type annotations, thus we don't
-# generate the "The deferred types cannot be used in a declaration" warning
-deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
-deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
-deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
-
 # The following lines have been left in to quickly switch back to having deferred loading
 # off by default again.
 # Deferred loading support, tests marked as failing until support is enabled by default.
