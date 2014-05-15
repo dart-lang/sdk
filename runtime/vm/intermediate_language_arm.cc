@@ -1135,7 +1135,11 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
   // The smi index is either untagged (element size == 1), or it is left smi
   // tagged (for all element sizes > 1).
   // TODO(regis): Revisit and see if the index can be immediate.
-  locs->set_in(1, Location::WritableRegister());
+  if (index_scale() == 2 && IsExternal()) {
+    locs->set_in(1, Location::RequiresRegister());
+  } else {
+    locs->set_in(1, Location::WritableRegister());
+  }
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
@@ -1227,40 +1231,50 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
   ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  Address element_address(kNoRegister, 0);
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
   // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
   // index is expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
+  const intptr_t offset = IsExternal()
+      ? 0
+      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
   switch (index_scale()) {
     case 1: {
-      __ SmiUntag(index.reg());
+      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
+      element_address = Address(index.reg(), offset);
       break;
     }
     case 2: {
+      // No scaling needed, since index is a smi.
+      if (!IsExternal()) {
+        __ AddImmediate(index.reg(), index.reg(),
+            FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+        element_address = Address(array, index.reg(), LSL, 0);
+      } else {
+        element_address = Address(array, index.reg(), LSL, 0);
+      }
       break;
     }
     case 4: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
+      element_address = Address(index.reg(), offset);
       break;
     }
     case 8: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 2));
+      element_address = Address(index.reg(), offset);
       break;
     }
     case 16: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 3));
+      element_address = Address(index.reg(), offset);
       break;
     }
     default:
       UNREACHABLE();
   }
 
-  if (!IsExternal()) {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    __ AddImmediate(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
-  Address element_address(array, index.reg(), LSL, 0);
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
